@@ -43,7 +43,8 @@ export function useLoginForm() {
       if (isLogin) {
         // For admin login
         if (formData.username === 'admin') {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
+          console.log("Attempting admin login...");
+          const { data, error: signInError } = await supabase.auth.signInWithPassword({
             email: 'admin@example.com',
             password: formData.password,
           });
@@ -55,6 +56,7 @@ export function useLoginForm() {
             return;
           }
 
+          console.log("Admin login successful:", data);
           toast({
             title: "ログイン成功",
             description: "ようこそ戻ってきました！",
@@ -64,6 +66,7 @@ export function useLoginForm() {
         }
 
         // For regular users
+        console.log("Attempting regular user login...");
         // Get user by username first
         const { data: profiles, error: profileError } = await supabase
           .from('profiles')
@@ -78,8 +81,10 @@ export function useLoginForm() {
           return;
         }
 
+        console.log("Found user profile:", profiles);
+
         // Then sign in with the associated email
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
           email: `${profiles.id}@example.com`,
           password: formData.password,
         });
@@ -91,6 +96,7 @@ export function useLoginForm() {
           return;
         }
 
+        console.log("User login successful:", data);
         toast({
           title: "ログイン成功",
           description: "ようこそ戻ってきました！",
@@ -98,6 +104,7 @@ export function useLoginForm() {
         navigate("/");
       } else {
         // For signup
+        console.log("Attempting user signup...");
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: `${crypto.randomUUID()}@example.com`,
           password: formData.password,
@@ -114,6 +121,8 @@ export function useLoginForm() {
           setLoading(false);
           return;
         }
+
+        console.log("Signup successful:", signUpData);
 
         // Check if username is already taken
         const { data: existingUser } = await supabase
