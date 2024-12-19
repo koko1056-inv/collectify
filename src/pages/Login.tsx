@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Check, X } from "lucide-react";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,13 +18,27 @@ export default function Login() {
     email: "",
     password: "",
   });
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password: string) => {
+    return password.length >= 6;
+  };
 
   const validateForm = () => {
     if (!formData.email || !formData.password) {
       setError("メールアドレスとパスワードを入力してください");
       return false;
     }
-    if (formData.password.length < 6) {
+    if (!validateEmail(formData.email)) {
+      setError("有効なメールアドレスを入力してください");
+      return false;
+    }
+    if (!validatePassword(formData.password)) {
       setError("パスワードは6文字以上である必要があります");
       return false;
     }
@@ -89,6 +103,16 @@ export default function Login() {
     }
   };
 
+  const handlePasswordFocus = () => {
+    if (!isLogin) {
+      setShowPasswordRequirements(true);
+    }
+  };
+
+  const handlePasswordBlur = () => {
+    setShowPasswordRequirements(false);
+  };
+
   return (
     <div className="min-h-screen bg-accent flex items-center justify-center p-4">
       <Card className="w-full max-w-md animate-fade-in">
@@ -123,6 +147,7 @@ export default function Login() {
                 }
                 required
                 placeholder="your@email.com"
+                className={!validateEmail(formData.email) && formData.email ? "border-destructive" : ""}
               />
             </div>
             <div className="space-y-2">
@@ -136,9 +161,24 @@ export default function Login() {
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
+                onFocus={handlePasswordFocus}
+                onBlur={handlePasswordBlur}
                 required
                 placeholder="••••••"
+                className={!validatePassword(formData.password) && formData.password ? "border-destructive" : ""}
               />
+              {showPasswordRequirements && (
+                <div className="text-sm space-y-1 mt-2">
+                  <div className="flex items-center gap-2">
+                    {formData.password.length >= 6 ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <X className="h-4 w-4 text-destructive" />
+                    )}
+                    <span>パスワードは6文字以上である必要があります</span>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
@@ -151,6 +191,7 @@ export default function Login() {
               onClick={() => {
                 setIsLogin(!isLogin);
                 setError(null);
+                setFormData({ email: "", password: "" });
               }}
               className="w-full"
               disabled={loading}
