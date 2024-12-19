@@ -44,19 +44,16 @@ export function useLoginForm() {
         // For admin login
         if (formData.username === 'admin') {
           console.log("Attempting admin login...");
-          const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          const { error: signInError } = await supabase.auth.signInWithPassword({
             email: 'admin@example.com',
             password: formData.password,
           });
 
           if (signInError) {
             console.error("Admin login error:", signInError);
-            setError("ユーザー名またはパスワードが正しくありません");
-            setLoading(false);
-            return;
+            throw new Error("ユーザー名またはパスワードが正しくありません");
           }
 
-          console.log("Admin login successful:", data);
           toast({
             title: "ログイン成功",
             description: "ようこそ戻ってきました！",
@@ -67,7 +64,6 @@ export function useLoginForm() {
 
         // For regular users
         console.log("Attempting regular user login...");
-        // Get user by username first
         const { data: profiles, error: profileError } = await supabase
           .from('profiles')
           .select('id')
@@ -76,27 +72,19 @@ export function useLoginForm() {
 
         if (profileError) {
           console.error("Profile lookup error:", profileError);
-          setError("ユーザー名が見つかりません");
-          setLoading(false);
-          return;
+          throw new Error("ユーザー名が見つかりません");
         }
 
-        console.log("Found user profile:", profiles);
-
-        // Then sign in with the associated email
-        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email: `${profiles.id}@example.com`,
           password: formData.password,
         });
 
         if (signInError) {
           console.error("User login error:", signInError);
-          setError("ユーザー名またはパスワードが正しくありません");
-          setLoading(false);
-          return;
+          throw new Error("ユーザー名またはパスワードが正しくありません");
         }
 
-        console.log("User login successful:", data);
         toast({
           title: "ログイン成功",
           description: "ようこそ戻ってきました！",
@@ -105,7 +93,7 @@ export function useLoginForm() {
       } else {
         // For signup
         console.log("Attempting user signup...");
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        const { error: signUpError } = await supabase.auth.signUp({
           email: `${crypto.randomUUID()}@example.com`,
           password: formData.password,
           options: {
@@ -117,12 +105,8 @@ export function useLoginForm() {
 
         if (signUpError) {
           console.error("Signup error:", signUpError);
-          setError("アカウント作成中にエラーが発生しました");
-          setLoading(false);
-          return;
+          throw new Error("アカウント作成中にエラーが発生しました");
         }
-
-        console.log("Signup successful:", signUpData);
 
         // Check if username is already taken
         const { data: existingUser } = await supabase
@@ -132,10 +116,7 @@ export function useLoginForm() {
           .single();
 
         if (existingUser) {
-          setError("このユーザー名は既に使用されています");
-          setIsLogin(true);
-          setLoading(false);
-          return;
+          throw new Error("このユーザー名は既に使用されています");
         }
 
         toast({
@@ -146,7 +127,7 @@ export function useLoginForm() {
       }
     } catch (error) {
       console.error("Authentication error:", error);
-      setError("認証エラーが発生しました。しばらく経ってからもう一度お試しください。");
+      setError(error instanceof Error ? error.message : "認証エラーが発生しました。しばらく経ってからもう一度お試しください。");
     } finally {
       setLoading(false);
     }
