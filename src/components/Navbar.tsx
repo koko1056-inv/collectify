@@ -4,9 +4,12 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { WishlistViewModal } from "./WishlistViewModal";
 
 export function Navbar() {
   const { user } = useAuth();
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -25,31 +28,41 @@ export function Navbar() {
   });
 
   return (
-    <nav className="border-b bg-white">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold text-primary">
-          AnimeCollect
-        </Link>
-        
-        <div className="flex items-center gap-4">
-          {profile?.is_admin && (
-            <Link to="/admin">
-              <Button variant="outline">管理者ページ</Button>
-            </Link>
-          )}
-          <Button variant="ghost" size="icon">
-            <Heart className="h-5 w-5" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <User className="h-5 w-5" />
-          </Button>
-          <Link to="/login">
-            <Button variant="default">
-              ログイン
-            </Button>
+    <>
+      <nav className="border-b bg-white">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          <Link to="/" className="text-xl font-bold text-primary">
+            AnimeCollect
           </Link>
+          
+          <div className="flex items-center gap-4">
+            {profile?.is_admin && (
+              <Link to="/admin">
+                <Button variant="outline">管理者ページ</Button>
+              </Link>
+            )}
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setIsWishlistOpen(true)}
+            >
+              <Heart className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon">
+              <User className="h-5 w-5" />
+            </Button>
+            <Link to="/login">
+              <Button variant="default">
+                ログイン
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+      <WishlistViewModal 
+        isOpen={isWishlistOpen} 
+        onClose={() => setIsWishlistOpen(false)} 
+      />
+    </>
   );
 }
