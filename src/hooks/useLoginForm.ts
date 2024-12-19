@@ -67,13 +67,19 @@ export function useLoginForm() {
         });
         navigate("/");
       } else {
-        // Check if user exists before attempting signup
-        const { data: existingUser } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
+        // Check if user exists by looking up their email
+        const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
+          filters: {
+            email: formData.email
+          }
         });
 
-        if (existingUser?.user) {
+        if (getUserError) {
+          console.error("Error checking existing user:", getUserError);
+          throw getUserError;
+        }
+
+        if (users && users.length > 0) {
           setError("このメールアドレスは既に登録されています。ログインをお試しください。");
           setIsLogin(true);
           return;
