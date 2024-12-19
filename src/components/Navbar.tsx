@@ -17,9 +17,11 @@ export function Navbar() {
           <Button variant="ghost" size="icon">
             <User className="h-5 w-5" />
           </Button>
-          <Button variant="default">
-            ログイン
-          </Button>
+          <Link to="/login">
+            <Button variant="default">
+              ログイン
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>
