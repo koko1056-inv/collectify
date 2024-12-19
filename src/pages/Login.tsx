@@ -2,8 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Mail, Lock } from "lucide-react";
-import { PasswordRequirements } from "@/components/PasswordRequirements";
+import { AlertCircle, User, Lock } from "lucide-react";
 import { useLoginForm } from "@/hooks/useLoginForm";
 
 export default function Login() {
@@ -12,9 +11,7 @@ export default function Login() {
     loading,
     error,
     formData,
-    showPasswordRequirements,
     setFormData,
-    setShowPasswordRequirements,
     handleSubmit,
     toggleMode,
   } = useLoginForm();
@@ -42,15 +39,15 @@ export default function Login() {
             )}
             <div className="space-y-2">
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  type="email"
-                  value={formData.email}
+                  type="text"
+                  value={formData.username}
                   onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
+                    setFormData({ ...formData, username: e.target.value })
                   }
                   required
-                  placeholder="メールアドレス"
+                  placeholder="ユーザー名"
                   className="pl-10"
                 />
               </div>
@@ -64,16 +61,11 @@ export default function Login() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  onFocus={() => !isLogin && setShowPasswordRequirements(true)}
-                  onBlur={() => setShowPasswordRequirements(false)}
                   required
                   placeholder="パスワード"
                   className="pl-10"
                 />
               </div>
-              {showPasswordRequirements && (
-                <PasswordRequirements password={formData.password} />
-              )}
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

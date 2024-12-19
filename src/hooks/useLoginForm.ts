@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { validateEmail, validatePassword } from "@/utils/validation";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface FormData {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -16,21 +15,16 @@ export function useLoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
-    email: "",
+    username: "",
     password: "",
   });
-  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
 
   const validateForm = () => {
-    if (!formData.email || !formData.password) {
-      setError("メールアドレスとパスワードを入力してください");
+    if (!formData.username || !formData.password) {
+      setError("ユーザー名とパスワードを入力してください");
       return false;
     }
-    if (!validateEmail(formData.email)) {
-      setError("有効なメールアドレスを入力してください");
-      return false;
-    }
-    if (!validatePassword(formData.password)) {
+    if (formData.password.length < 6) {
       setError("パスワードは6文字以上である必要があります");
       return false;
     }
@@ -48,13 +42,13 @@ export function useLoginForm() {
     try {
       if (isLogin) {
         const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
+          email: `${formData.username}@example.com`,
           password: formData.password,
         });
 
         if (signInError) {
           if (signInError.message.includes("Invalid login credentials")) {
-            setError("メールアドレスまたはパスワードが正しくありません");
+            setError("ユーザー名またはパスワードが正しくありません");
             return;
           }
           throw signInError;
@@ -66,26 +60,30 @@ export function useLoginForm() {
         });
         navigate("/");
       } else {
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email: formData.email,
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: `${formData.username}@example.com`,
           password: formData.password,
+          options: {
+            data: {
+              username: formData.username,
+            },
+          },
         });
 
         if (signUpError) {
           if (signUpError.message.includes("User already registered")) {
-            setError("このメールアドレスは既に登録されています。ログインをお試しください。");
+            setError("このユーザー名は既に使用されています");
             setIsLogin(true);
             return;
           }
           throw signUpError;
         }
 
-        if (data.user) {
-          toast({
-            title: "登録完了",
-            description: "確認メールをお送りしました。メールを確認してアカウントを有効化してください。",
-          });
-        }
+        toast({
+          title: "登録完了",
+          description: "アカウントが作成されました。ログインしてください。",
+        });
+        setIsLogin(true);
       }
     } catch (error) {
       console.error("Authentication error:", error);
@@ -98,7 +96,7 @@ export function useLoginForm() {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError(null);
-    setFormData({ email: "", password: "" });
+    setFormData({ username: "", password: "" });
   };
 
   return {
@@ -106,9 +104,7 @@ export function useLoginForm() {
     loading,
     error,
     formData,
-    showPasswordRequirements,
     setFormData,
-    setShowPasswordRequirements,
     handleSubmit,
     toggleMode,
   };
