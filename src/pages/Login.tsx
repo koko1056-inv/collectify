@@ -40,7 +40,18 @@ export default function Login() {
           password: formData.password,
         });
 
-        if (error) throw error;
+        if (error) {
+          // Check if the error is "user already exists"
+          if (error.message.includes("already registered")) {
+            toast({
+              title: "アカウントが既に存在します",
+              description: "ログインに切り替えます",
+            });
+            setIsLogin(true);
+            return;
+          }
+          throw error;
+        }
 
         toast({
           title: "登録完了",
