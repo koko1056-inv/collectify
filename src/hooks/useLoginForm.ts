@@ -1,0 +1,113 @@
+import { useState } from "react";
+import { validateEmail, validatePassword } from "@/utils/validation";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface FormData {
+  email: string;
+  password: string;
+}
+
+export function useLoginForm() {
+  const [isLogin, setIsLogin] = useState(true);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<FormData>({
+    email: "",
+    password: "",
+  });
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+
+  const validateForm = () => {
+    if (!formData.email || !formData.password) {
+      setError("メールアドレスとパスワードを入力してください");
+      return false;
+    }
+    if (!validateEmail(formData.email)) {
+      setError("有効なメールアドレスを入力してください");
+      return false;
+    }
+    if (!validatePassword(formData.password)) {
+      setError("パスワードは6文字以上である必要があります");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!validateForm()) return;
+
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) {
+          if (signInError.message.includes("Invalid login credentials")) {
+            setError("メールアドレスまたはパスワードが正しくありません");
+            return;
+          }
+          throw signInError;
+        }
+
+        toast({
+          title: "ログイン成功",
+          description: "ようこそ戻ってきました！",
+        });
+        navigate("/");
+      } else {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signUpError) {
+          if (signUpError.message.includes("already registered")) {
+            setError("このメールアドレスは既に登録されています。ログインをお試しください。");
+            return;
+          }
+          throw signUpError;
+        }
+
+        toast({
+          title: "登録完了",
+          description: "確認メールをお送りしました。メールを確認してアカウントを有効化してください。",
+        });
+      }
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "認証エラーが発生しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    setError(null);
+    setFormData({ email: "", password: "" });
+  };
+
+  return {
+    isLogin,
+    loading,
+    error,
+    formData,
+    showPasswordRequirements,
+    setFormData,
+    setShowPasswordRequirements,
+    handleSubmit,
+    toggleMode,
+    validateEmail,
+    validatePassword,
+  };
+}
