@@ -44,8 +44,26 @@ export function useLoginForm() {
         // For admin login
         if (formData.username === 'admin') {
           console.log("Attempting admin login...");
+          
+          // First check if admin profile exists
+          const { data: adminProfile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('username', 'admin')
+            .single();
+
+          if (profileError) {
+            console.error("Admin profile lookup error:", profileError);
+            throw new Error("管理者アカウントが見つかりません");
+          }
+
+          if (!adminProfile.is_admin) {
+            throw new Error("管理者権限がありません");
+          }
+
+          // Now try to sign in
           const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: 'admin@example.com',
+            email: formData.username + '@example.com',
             password: formData.password,
           });
 
@@ -93,6 +111,18 @@ export function useLoginForm() {
       } else {
         // For signup
         console.log("Attempting user signup...");
+        
+        // Check if username is already taken
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', formData.username)
+          .single();
+
+        if (existingUser) {
+          throw new Error("このユーザー名は既に使用されています");
+        }
+
         const { error: signUpError } = await supabase.auth.signUp({
           email: `${crypto.randomUUID()}@example.com`,
           password: formData.password,
@@ -106,17 +136,6 @@ export function useLoginForm() {
         if (signUpError) {
           console.error("Signup error:", signUpError);
           throw new Error("アカウント作成中にエラーが発生しました");
-        }
-
-        // Check if username is already taken
-        const { data: existingUser } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('username', formData.username)
-          .single();
-
-        if (existingUser) {
-          throw new Error("このユーザー名は既に使用されています");
         }
 
         toast({
