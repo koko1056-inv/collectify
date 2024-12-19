@@ -5,38 +5,53 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
+  const validateForm = () => {
+    if (!formData.email || !formData.password) {
+      setError("メールアドレスとパスワードを入力してください");
+      return false;
+    }
+    if (formData.password.length < 6) {
+      setError("パスワードは6文字以上である必要があります");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
+    if (!validateForm()) return;
+
     setLoading(true);
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         });
 
-        if (error) {
-          if (error.message.includes("Invalid login credentials")) {
-            toast({
-              title: "ログインエラー",
-              description: "メールアドレスまたはパスワードが正しくありません",
-              variant: "destructive",
-            });
+        if (signInError) {
+          if (signInError.message.includes("Invalid login credentials")) {
+            setError("メールアドレスまたはパスワードが正しくありません");
             return;
           }
-          throw error;
+          throw signInError;
         }
 
         toast({
@@ -45,14 +60,13 @@ export default function Login() {
         });
         navigate("/");
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { error: signUpError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
         });
 
-        if (error) {
-          // Check if the error is "user already exists"
-          if (error.message.includes("already registered")) {
+        if (signUpError) {
+          if (signUpError.message.includes("already registered")) {
             toast({
               title: "アカウントが既に存在します",
               description: "ログインに切り替えます",
@@ -60,7 +74,7 @@ export default function Login() {
             setIsLogin(true);
             return;
           }
-          throw error;
+          throw signUpError;
         }
 
         toast({
@@ -69,11 +83,7 @@ export default function Login() {
         });
       }
     } catch (error) {
-      toast({
-        title: "エラー",
-        description: error instanceof Error ? error.message : "認証エラーが発生しました",
-        variant: "destructive",
-      });
+      setError(error instanceof Error ? error.message : "認証エラーが発生しました");
     } finally {
       setLoading(false);
     }
@@ -94,6 +104,12 @@ export default function Login() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
                 メールアドレス
@@ -106,6 +122,7 @@ export default function Login() {
                   setFormData({ ...formData, email: e.target.value })
                 }
                 required
+                placeholder="your@email.com"
               />
             </div>
             <div className="space-y-2">
@@ -120,6 +137,7 @@ export default function Login() {
                   setFormData({ ...formData, password: e.target.value })
                 }
                 required
+                placeholder="••••••"
               />
             </div>
           </CardContent>
@@ -130,7 +148,10 @@ export default function Login() {
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError(null);
+              }}
               className="w-full"
               disabled={loading}
             >
