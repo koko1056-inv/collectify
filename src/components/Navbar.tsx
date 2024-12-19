@@ -40,25 +40,14 @@ export function Navbar() {
           <Button variant="ghost" size="icon">
             <Heart className="h-5 w-5" />
           </Button>
-          <Link to="/profile">
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
+          <Button variant="ghost" size="icon">
+            <User className="h-5 w-5" />
+          </Button>
+          <Link to="/login">
+            <Button variant="default">
+              ログイン
             </Button>
           </Link>
-          {user ? (
-            <Button
-              variant="outline"
-              onClick={() => supabase.auth.signOut()}
-            >
-              ログアウト
-            </Button>
-          ) : (
-            <Link to="/login">
-              <Button variant="default">
-                ログイン
-              </Button>
-            </Link>
-          )}
         </div>
       </div>
     </nav>
