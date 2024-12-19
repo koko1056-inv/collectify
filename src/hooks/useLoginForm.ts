@@ -41,17 +41,32 @@ export function useLoginForm() {
 
     try {
       if (isLogin) {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: `${formData.username}@example.com`,
-          password: formData.password,
-        });
+        // Get user by username first
+        const { data: profiles, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', formData.username)
+          .single();
 
-        if (signInError) {
-          if (signInError.message.includes("Invalid login credentials")) {
+        if (profileError || !profiles) {
+          setError("ユーザー名が見つかりません");
+          setLoading(false);
+          return;
+        }
+
+        // Then sign in with the associated email
+        const { data: userData, error: userError } = await supabase
+          .auth.signInWithPassword({
+            email: `${profiles.id}@example.com`,
+            password: formData.password,
+          });
+
+        if (userError) {
+          if (userError.message.includes("Invalid login credentials")) {
             setError("ユーザー名またはパスワードが正しくありません");
             return;
           }
-          throw signInError;
+          throw userError;
         }
 
         toast({
@@ -60,8 +75,9 @@ export function useLoginForm() {
         });
         navigate("/");
       } else {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: `${formData.username}@example.com`,
+        // For signup, create auth user with UUID as email
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: `${crypto.randomUUID()}@example.com`,
           password: formData.password,
           options: {
             data: {
@@ -71,12 +87,20 @@ export function useLoginForm() {
         });
 
         if (signUpError) {
-          if (signUpError.message.includes("User already registered")) {
-            setError("このユーザー名は既に使用されています");
-            setIsLogin(true);
-            return;
-          }
           throw signUpError;
+        }
+
+        // Check if username is already taken
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('username', formData.username)
+          .single();
+
+        if (existingUser) {
+          setError("このユーザー名は既に使用されています");
+          setIsLogin(true);
+          return;
         }
 
         toast({
