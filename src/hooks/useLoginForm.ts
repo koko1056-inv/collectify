@@ -43,17 +43,16 @@ export function useLoginForm() {
       if (isLogin) {
         // For admin login
         if (formData.username === 'admin') {
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          const { error: signInError } = await supabase.auth.signInWithPassword({
             email: 'admin@example.com',
             password: formData.password,
           });
 
           if (signInError) {
-            if (signInError.message.includes("Invalid login credentials")) {
-              setError("ユーザー名またはパスワードが正しくありません");
-              return;
-            }
-            throw signInError;
+            console.error("Admin login error:", signInError);
+            setError("ユーザー名またはパスワードが正しくありません");
+            setLoading(false);
+            return;
           }
 
           toast({
@@ -73,26 +72,23 @@ export function useLoginForm() {
           .single();
 
         if (profileError) {
-          if (profileError.code === 'PGRST116') {
-            setError("ユーザー名が見つかりません");
-            setLoading(false);
-            return;
-          }
-          throw profileError;
+          console.error("Profile lookup error:", profileError);
+          setError("ユーザー名が見つかりません");
+          setLoading(false);
+          return;
         }
 
         // Then sign in with the associated email
-        const { data: userData, error: userError } = await supabase.auth.signInWithPassword({
+        const { error: signInError } = await supabase.auth.signInWithPassword({
           email: `${profiles.id}@example.com`,
           password: formData.password,
         });
 
-        if (userError) {
-          if (userError.message.includes("Invalid login credentials")) {
-            setError("ユーザー名またはパスワードが正しくありません");
-            return;
-          }
-          throw userError;
+        if (signInError) {
+          console.error("User login error:", signInError);
+          setError("ユーザー名またはパスワードが正しくありません");
+          setLoading(false);
+          return;
         }
 
         toast({
@@ -101,7 +97,7 @@ export function useLoginForm() {
         });
         navigate("/");
       } else {
-        // For signup, create auth user with UUID as email
+        // For signup
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: `${crypto.randomUUID()}@example.com`,
           password: formData.password,
@@ -113,7 +109,10 @@ export function useLoginForm() {
         });
 
         if (signUpError) {
-          throw signUpError;
+          console.error("Signup error:", signUpError);
+          setError("アカウント作成中にエラーが発生しました");
+          setLoading(false);
+          return;
         }
 
         // Check if username is already taken
@@ -126,6 +125,7 @@ export function useLoginForm() {
         if (existingUser) {
           setError("このユーザー名は既に使用されています");
           setIsLogin(true);
+          setLoading(false);
           return;
         }
 
