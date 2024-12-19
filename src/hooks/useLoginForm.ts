@@ -72,8 +72,9 @@ export function useLoginForm() {
         });
 
         if (signUpError) {
-          if (signUpError.message.includes("already registered")) {
+          if (signUpError.message.includes("User already registered")) {
             setError("このメールアドレスは既に登録されています。ログインをお試しください。");
+            setIsLogin(true); // Automatically switch to login mode
             return;
           }
           throw signUpError;
@@ -85,7 +86,8 @@ export function useLoginForm() {
         });
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : "認証エラーが発生しました");
+      console.error("Authentication error:", error);
+      setError("認証エラーが発生しました。しばらく経ってからもう一度お試しください。");
     } finally {
       setLoading(false);
     }
