@@ -53,7 +53,6 @@ export function useLoginForm() {
         });
 
         if (signInError) {
-          console.error("Sign in error:", signInError);
           if (signInError.message.includes("Invalid login credentials")) {
             setError("メールアドレスまたはパスワードが正しくありません");
             return;
@@ -73,7 +72,6 @@ export function useLoginForm() {
         });
 
         if (signUpError) {
-          console.error("Sign up error:", signUpError);
           if (signUpError.message.includes("User already registered")) {
             setError("このメールアドレスは既に登録されています。ログインをお試しください。");
             setIsLogin(true);
@@ -113,7 +111,5 @@ export function useLoginForm() {
     setShowPasswordRequirements,
     handleSubmit,
     toggleMode,
-    validateEmail,
-    validatePassword,
   };
 }
