@@ -53,7 +53,7 @@ const Index = () => {
 
           <TabsContent value="official" className="space-y-6">
             <h1 className="text-3xl font-bold animate-fade-in">
-              人気のアニメグッズ
+              公式グッズ
             </h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredItems.map((item) => (
