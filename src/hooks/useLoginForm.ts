@@ -73,6 +73,7 @@ export function useLoginForm() {
         });
 
         if (signUpError) {
+          console.error("Sign up error:", signUpError);
           if (signUpError.message.includes("User already registered")) {
             setError("このメールアドレスは既に登録されています。ログインをお試しください。");
             setIsLogin(true); // Automatically switch to login mode
