@@ -67,25 +67,7 @@ export function useLoginForm() {
         });
         navigate("/");
       } else {
-        // Check if user exists by looking up their email
-        const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
-          filters: {
-            email: formData.email
-          }
-        });
-
-        if (getUserError) {
-          console.error("Error checking existing user:", getUserError);
-          throw getUserError;
-        }
-
-        if (users && users.length > 0) {
-          setError("このメールアドレスは既に登録されています。ログインをお試しください。");
-          setIsLogin(true);
-          return;
-        }
-
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
         });
@@ -100,10 +82,12 @@ export function useLoginForm() {
           throw signUpError;
         }
 
-        toast({
-          title: "登録完了",
-          description: "確認メールをお送りしました。メールを確認してアカウントを有効化してください。",
-        });
+        if (data.user) {
+          toast({
+            title: "登録完了",
+            description: "確認メールをお送りしました。メールを確認してアカウントを有効化してください。",
+          });
+        }
       }
     } catch (error) {
       console.error("Authentication error:", error);
