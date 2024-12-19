@@ -4,6 +4,8 @@ import { Heart, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface GoodsCardProps {
   title: string;
@@ -14,6 +16,7 @@ interface GoodsCardProps {
 
 export function GoodsCard({ title, image, price, id }: GoodsCardProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
 
   const handleShare = () => {
@@ -21,6 +24,42 @@ export function GoodsCard({ title, image, price, id }: GoodsCardProps) {
       title: "共有",
       description: "共有機能は準備中です。",
     });
+  };
+
+  const handleAddToCollection = async () => {
+    if (!user) {
+      toast({
+        title: "エラー",
+        description: "コレクションに追加するにはログインが必要です。",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("user_items").insert({
+        title,
+        image,
+        prize: price,
+        release_date: new Date().toISOString(),
+        user_id: user.id,
+        is_shared: false,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "成功",
+        description: "コレクションに追加しました。",
+      });
+    } catch (error) {
+      console.error("Error adding to collection:", error);
+      toast({
+        title: "エラー",
+        description: "コレクションへの追加に失敗しました。",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -43,7 +82,7 @@ export function GoodsCard({ title, image, price, id }: GoodsCardProps) {
           <Button 
             variant="default" 
             className="flex-1"
-            onClick={() => setIsWishlistModalOpen(true)}
+            onClick={handleAddToCollection}
           >
             コレクションに追加
           </Button>
