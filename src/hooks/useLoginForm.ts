@@ -53,6 +53,7 @@ export function useLoginForm() {
         });
 
         if (signInError) {
+          console.error("Sign in error:", signInError);
           if (signInError.message.includes("Invalid login credentials")) {
             setError("メールアドレスまたはパスワードが正しくありません");
             return;
