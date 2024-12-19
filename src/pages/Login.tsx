@@ -1,23 +1,61 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: isLogin ? "ログイン" : "新規登録",
-      description: "この機能は現在開発中です。",
-    });
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "ログイン成功",
+          description: "ようこそ戻ってきました！",
+        });
+        navigate("/");
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "登録完了",
+          description: "確認メールをお送りしました。メールを確認してアカウントを有効化してください。",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: error instanceof Error ? error.message : "認証エラーが発生しました",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,15 +74,15 @@ export default function Login() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="username" className="text-sm font-medium">
-                ユーザー名
+              <label htmlFor="email" className="text-sm font-medium">
+                メールアドレス
               </label>
               <Input
-                id="username"
-                type="text"
-                value={formData.username}
+                id="email"
+                type="email"
+                value={formData.email}
                 onChange={(e) =>
-                  setFormData({ ...formData, username: e.target.value })
+                  setFormData({ ...formData, email: e.target.value })
                 }
                 required
               />
@@ -65,14 +103,15 @@ export default function Login() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full">
-              {isLogin ? "ログイン" : "アカウント作成"}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "処理中..." : isLogin ? "ログイン" : "アカウント作成"}
             </Button>
             <Button
               type="button"
               variant="ghost"
               onClick={() => setIsLogin(!isLogin)}
               className="w-full"
+              disabled={loading}
             >
               {isLogin
                 ? "アカウントをお持ちでない方はこちら"
