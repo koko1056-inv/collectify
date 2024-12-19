@@ -3,50 +3,26 @@ import { GoodsCard } from "@/components/GoodsCard";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Search } from "lucide-react";
-
-const SAMPLE_ITEMS = [
-  {
-    id: "123e4567-e89b-12d3-a456-426614174000",
-    title: "ナルト うずまきナルト フィギュア",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-    price: "¥12,800",
-  },
-  {
-    id: "223e4567-e89b-12d3-a456-426614174001",
-    title: "ワンピース ルフィ アクションフィギュア",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f",
-    price: "¥15,600",
-  },
-  {
-    id: "323e4567-e89b-12d3-a456-426614174002",
-    title: "鬼滅の刃 我妻善逸 フィギュア",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-    price: "¥14,300",
-  },
-  {
-    id: "423e4567-e89b-12d3-a456-426614174003",
-    title: "進撃の巨人 エレン・イェーガー フィギュア",
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-    price: "¥13,200",
-  },
-  {
-    id: "523e4567-e89b-12d3-a456-426614174004",
-    title: "ドラゴンボール 孫悟空 フィギュア",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-    price: "¥11,800",
-  },
-  {
-    id: "623e4567-e89b-12d3-a456-426614174005",
-    title: "ハンターハンター キルア フィギュア",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f",
-    price: "¥13,500",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredItems = SAMPLE_ITEMS.filter((item) =>
+  const { data: items = [] } = useQuery({
+    queryKey: ["official-items"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("official_items")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const filteredItems = items.filter((item) =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
