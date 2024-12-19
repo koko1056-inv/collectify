@@ -27,7 +27,17 @@ export default function Login() {
           password: formData.password,
         });
 
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes("Invalid login credentials")) {
+            toast({
+              title: "ログインエラー",
+              description: "メールアドレスまたはパスワードが正しくありません",
+              variant: "destructive",
+            });
+            return;
+          }
+          throw error;
+        }
 
         toast({
           title: "ログイン成功",
