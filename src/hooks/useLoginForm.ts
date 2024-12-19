@@ -41,29 +41,51 @@ export function useLoginForm() {
 
     try {
       if (isLogin) {
+        // For admin login
+        if (formData.username === 'admin') {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: 'admin@example.com',
+            password: formData.password,
+          });
+
+          if (signInError) {
+            if (signInError.message.includes("Invalid login credentials")) {
+              setError("ユーザー名またはパスワードが正しくありません");
+              return;
+            }
+            throw signInError;
+          }
+
+          toast({
+            title: "ログイン成功",
+            description: "ようこそ戻ってきました！",
+          });
+          navigate("/");
+          return;
+        }
+
+        // For regular users
         // Get user by username first
         const { data: profiles, error: profileError } = await supabase
           .from('profiles')
           .select('id')
           .eq('username', formData.username)
-          .maybeSingle();
+          .single();
 
         if (profileError) {
+          if (profileError.code === 'PGRST116') {
+            setError("ユーザー名が見つかりません");
+            setLoading(false);
+            return;
+          }
           throw profileError;
         }
 
-        if (!profiles) {
-          setError("ユーザー名が見つかりません");
-          setLoading(false);
-          return;
-        }
-
         // Then sign in with the associated email
-        const { data: userData, error: userError } = await supabase
-          .auth.signInWithPassword({
-            email: `${profiles.id}@example.com`,
-            password: formData.password,
-          });
+        const { data: userData, error: userError } = await supabase.auth.signInWithPassword({
+          email: `${profiles.id}@example.com`,
+          password: formData.password,
+        });
 
         if (userError) {
           if (userError.message.includes("Invalid login credentials")) {
@@ -99,7 +121,7 @@ export function useLoginForm() {
           .from('profiles')
           .select('username')
           .eq('username', formData.username)
-          .maybeSingle();
+          .single();
 
         if (existingUser) {
           setError("このユーザー名は既に使用されています");
