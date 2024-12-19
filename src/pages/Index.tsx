@@ -5,6 +5,8 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { UserCollection } from "@/components/UserCollection";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,21 +45,36 @@ const Index = () => {
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold mb-8 animate-fade-in">
-          人気のアニメグッズ
-        </h1>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredItems.map((item) => (
-            <GoodsCard
-              key={item.id}
-              id={item.id}
-              title={item.title}
-              image={item.image}
-              price={item.price}
-            />
-          ))}
-        </div>
+        <Tabs defaultValue="official" className="space-y-6">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+            <TabsTrigger value="official">公式グッズ</TabsTrigger>
+            <TabsTrigger value="collection">マイコレクション</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="official" className="space-y-6">
+            <h1 className="text-3xl font-bold animate-fade-in">
+              人気のアニメグッズ
+            </h1>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredItems.map((item) => (
+                <GoodsCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  image={item.image}
+                  price={item.price}
+                />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="collection" className="space-y-6">
+            <h1 className="text-3xl font-bold animate-fade-in">
+              マイコレクション
+            </h1>
+            <UserCollection />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
