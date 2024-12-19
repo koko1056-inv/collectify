@@ -46,9 +46,13 @@ export function useLoginForm() {
           .from('profiles')
           .select('id')
           .eq('username', formData.username)
-          .single();
+          .maybeSingle();
 
-        if (profileError || !profiles) {
+        if (profileError) {
+          throw profileError;
+        }
+
+        if (!profiles) {
           setError("ユーザー名が見つかりません");
           setLoading(false);
           return;
@@ -95,7 +99,7 @@ export function useLoginForm() {
           .from('profiles')
           .select('username')
           .eq('username', formData.username)
-          .single();
+          .maybeSingle();
 
         if (existingUser) {
           setError("このユーザー名は既に使用されています");
