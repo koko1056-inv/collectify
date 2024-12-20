@@ -70,8 +70,8 @@ export function UserCollection() {
 
       console.log("Deleted items:", data);
 
-      // Invalidate and refetch the user items query
-      queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
+      // Immediately invalidate and refetch the user items query
+      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
 
       toast({
         title: "削除完了",
