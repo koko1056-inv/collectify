@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, User, Lock } from "lucide-react";
 import { useLoginForm } from "@/hooks/useLoginForm";
+import { PasswordReset } from "@/components/PasswordReset";
 
 export default function Login() {
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
   const {
     isLogin,
     loading,
@@ -15,6 +18,27 @@ export default function Login() {
     handleSubmit,
     toggleMode,
   } = useLoginForm();
+
+  if (showPasswordReset) {
+    return (
+      <div className="min-h-screen bg-accent/5 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
+              パスワードをお忘れですか？
+            </CardTitle>
+            <CardDescription className="text-center">
+              登録したメールアドレスを入力してください。
+              パスワードリセット用のリンクをお送りします。
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PasswordReset onBack={() => setShowPasswordReset(false)} />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-accent/5 flex items-center justify-center p-4">
@@ -77,6 +101,16 @@ export default function Login() {
             >
               {loading ? "処理中..." : isLogin ? "ログイン" : "アカウント作成"}
             </Button>
+            {isLogin && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setShowPasswordReset(true)}
+                className="w-full text-sm"
+              >
+                パスワードをお忘れの方はこちら
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"
