@@ -12,23 +12,25 @@ export function UserCollection({ selectedTag }: UserCollectionProps) {
   const { user } = useAuth();
 
   const { data: userItems = [], isLoading: isItemsLoading } = useQuery({
-    queryKey: ["user-items", user?.id],
+    queryKey: ["user-items", user?.id, selectedTag],
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      const query = supabase
         .from("user_items")
         .select(`
           *,
           user_item_tags (
-            tag_id,
             tags (
+              id,
               name
             )
           )
         `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
+
+      const { data, error } = await query;
 
       if (error) throw error;
       return data;
@@ -68,6 +70,14 @@ export function UserCollection({ selectedTag }: UserCollectionProps) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">まだコレクションに追加されたアイテムがありません。</p>
+      </div>
+    );
+  }
+
+  if (filteredItems.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">選択されたタグに一致するアイテムがありません。</p>
       </div>
     );
   }
