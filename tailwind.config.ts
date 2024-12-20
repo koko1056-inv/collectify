@@ -53,6 +53,7 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "Noto Sans JP", "sans-serif"],
+        righteous: ["Righteous", "cursive"],
       },
     },
   },

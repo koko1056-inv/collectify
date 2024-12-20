@@ -28,8 +28,8 @@ export function Navbar() {
   return (
     <nav className="border-b">
       <div className="flex h-16 items-center px-4 container mx-auto">
-        <Link to="/" className="font-semibold">
-          くじコレ
+        <Link to="/" className="logo-text">
+          Collectify
         </Link>
         <div className="ml-auto flex items-center space-x-4">
           <UserInfo />
