@@ -64,7 +64,7 @@ export function GoodsCard({ title, image, price, id }: GoodsCardProps) {
 
   return (
     <>
-      <Card className="hover-scale card-shadow">
+      <Card className="hover-scale card-shadow bg-white border border-gray-200">
         <CardHeader className="p-0">
           <div className="aspect-square relative overflow-hidden rounded-t-lg">
             <img
@@ -75,24 +75,25 @@ export function GoodsCard({ title, image, price, id }: GoodsCardProps) {
           </div>
         </CardHeader>
         <CardContent className="p-4">
-          <CardTitle className="text-lg mb-2 line-clamp-2">{title}</CardTitle>
+          <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
           <p className="text-sm text-gray-600">{price}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
           <Button 
             variant="default" 
-            className="flex-1"
+            className="flex-1 bg-gray-900 hover:bg-gray-800"
             onClick={handleAddToCollection}
           >
             コレクションに追加
           </Button>
-          <Button variant="outline" size="icon" onClick={handleShare}>
+          <Button variant="outline" size="icon" onClick={handleShare} className="border-gray-200 hover:bg-gray-50">
             <Share2 className="h-4 w-4" />
           </Button>
           <Button 
             variant="outline" 
             size="icon"
             onClick={() => setIsWishlistModalOpen(true)}
+            className="border-gray-200 hover:bg-gray-50"
           >
             <Heart className="h-4 w-4" />
           </Button>

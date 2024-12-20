@@ -7,10 +7,10 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --foreground: 0 0% 13%;
+    --border: 0 0% 90%;
+    --input: 0 0% 95%;
+    --ring: 0 0% 13%;
   }
 
   body {
@@ -24,5 +24,5 @@
 }
 
 .card-shadow {
-  @apply shadow-lg hover:shadow-xl transition-shadow duration-300;
+  @apply shadow-sm hover:shadow-md transition-shadow duration-300;
 }

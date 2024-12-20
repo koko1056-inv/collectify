@@ -29,7 +29,7 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-accent">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-xl mx-auto mb-8">
@@ -39,20 +39,24 @@ const Index = () => {
               placeholder="グッズを検索..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
           </div>
         </div>
 
         <Tabs defaultValue="official" className="space-y-6">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="official">公式グッズ</TabsTrigger>
-            <TabsTrigger value="collection">マイコレクション</TabsTrigger>
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white border border-gray-200">
+            <TabsTrigger value="official" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white">
+              公式グッズ
+            </TabsTrigger>
+            <TabsTrigger value="collection" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white">
+              マイコレクション
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="official" className="space-y-6">
-            <h1 className="text-3xl font-bold animate-fade-in">
+            <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
               公式グッズ
             </h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -69,7 +73,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="collection" className="space-y-6">
-            <h1 className="text-3xl font-bold animate-fade-in">
+            <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
               マイコレクション
             </h1>
             <UserCollection />
