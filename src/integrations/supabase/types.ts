@@ -185,6 +185,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_item_tags: {
+        Row: {
+          created_at: string
+          id: string
+          tag_id: string
+          user_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tag_id: string
+          user_item_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tag_id?: string
+          user_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_item_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_item_tags_user_item_id_fkey"
+            columns: ["user_item_id"]
+            isOneToOne: false
+            referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_items: {
         Row: {
           anime: string | null
