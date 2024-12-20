@@ -8,12 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { TagInput } from "./TagInput";
 import { ImageUpload } from "./ImageUpload";
 
-interface Tag {
-  id: string;
-  name: string;
-  created_at?: string;
-}
-
 export function AdminItemForm() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -24,23 +18,13 @@ export function AdminItemForm() {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const handleImageChange = (file: File | null) => {
     if (file) {
       setImageFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: Tag) => {
-    setSelectedTags(selectedTags.filter(tag => tag.id !== tagToRemove.id));
-  };
-
-  const handleAddTag = (tag: Tag) => {
-    if (!selectedTags.some(selectedTag => selectedTag.id === tag.id)) {
-      setSelectedTags([...selectedTags, tag]);
     }
   };
 
@@ -85,13 +69,37 @@ export function AdminItemForm() {
       if (itemError) throw itemError;
 
       // Process tags
-      for (const tag of selectedTags) {
+      for (const tagName of selectedTags) {
+        // Check if tag exists using maybeSingle()
+        const { data: existingTag, error: tagError } = await supabase
+          .from("tags")
+          .select("id")
+          .eq("name", tagName)
+          .maybeSingle();
+
+        if (tagError) throw tagError;
+
+        let tagId;
+        if (!existingTag) {
+          // Tag doesn't exist, create it
+          const { data: newTag, error: createTagError } = await supabase
+            .from("tags")
+            .insert([{ name: tagName }])
+            .select()
+            .single();
+
+          if (createTagError) throw createTagError;
+          tagId = newTag.id;
+        } else {
+          tagId = existingTag.id;
+        }
+
         // Create item-tag relationship
         const { error: relationError } = await supabase
           .from("item_tags")
           .insert([{
             official_item_id: itemData.id,
-            tag_id: tag.id,
+            tag_id: tagId,
           }]);
 
         if (relationError) throw relationError;
@@ -162,8 +170,7 @@ export function AdminItemForm() {
           </div>
           <TagInput
             selectedTags={selectedTags}
-            onRemoveTag={handleRemoveTag}
-            onAddTag={handleAddTag}
+            onTagsChange={setSelectedTags}
           />
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "追加中..." : "アイテムを追加"}

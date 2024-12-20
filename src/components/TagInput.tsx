@@ -1,97 +1,97 @@
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { X } from "lucide-react";
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Tag {
-  id: string;
-  name: string;
-  created_at?: string;
-}
-
 interface TagInputProps {
-  selectedTags: Tag[];
-  onRemoveTag: (tag: Tag) => void;
-  onAddTag: (tag: Tag) => void;
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
 }
 
-export function TagInput({ selectedTags, onRemoveTag, onAddTag }: TagInputProps) {
-  const [inputValue, setInputValue] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
+export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
+  const [tagInput, setTagInput] = useState("");
 
-  const { data: allTags = [] } = useQuery({
+  // Fetch existing tags
+  const { data: existingTags = [] } = useQuery({
     queryKey: ["tags"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
-        .select("*")
+        .select("name")
         .order("name");
       if (error) throw error;
-      return data as Tag[];
+      return data.map(tag => tag.name);
     },
   });
 
-  const filteredTags = allTags.filter(
-    (tag) =>
-      tag.name.toLowerCase().includes(inputValue.toLowerCase()) &&
-      !selectedTags.some((selectedTag) => selectedTag.id === tag.id)
-  );
+  const handleAddTag = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && tagInput.trim()) {
+      e.preventDefault();
+      const newTag = tagInput.trim().toLowerCase();
+      if (!selectedTags.includes(newTag)) {
+        onTagsChange([...selectedTags, newTag]);
+      }
+      setTagInput("");
+    }
+  };
 
-  const handleTagSelect = async (tag: Tag) => {
-    onAddTag(tag);
-    setInputValue("");
-    setShowSuggestions(false);
+  const handleRemoveTag = (tagToRemove: string) => {
+    onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap gap-2">
+    <div className="space-y-2">
+      <label htmlFor="tags" className="text-sm font-medium">
+        タグ
+      </label>
+      <Input
+        id="tags"
+        value={tagInput}
+        onChange={(e) => setTagInput(e.target.value)}
+        onKeyDown={handleAddTag}
+        placeholder="タグを入力してEnterを押してください"
+      />
+      <div className="flex flex-wrap gap-2 mt-2">
         {selectedTags.map((tag) => (
           <Badge
-            key={tag.id}
+            key={tag}
             variant="secondary"
             className="flex items-center gap-1"
           >
-            {tag.name}
-            <X
-              className="h-3 w-3 cursor-pointer"
-              onClick={() => onRemoveTag(tag)}
-            />
+            {tag}
+            <button
+              type="button"
+              onClick={() => handleRemoveTag(tag)}
+              className="hover:text-destructive"
+            >
+              <X className="h-3 w-3" />
+            </button>
           </Badge>
         ))}
       </div>
-      <div className="relative">
-        <Input
-          type="text"
-          placeholder="タグを入力..."
-          value={inputValue}
-          onChange={(e) => {
-            setInputValue(e.target.value);
-            setShowSuggestions(true);
-          }}
-          onFocus={() => setShowSuggestions(true)}
-          onBlur={() => {
-            // Delay hiding suggestions to allow click events to fire
-            setTimeout(() => setShowSuggestions(false), 200);
-          }}
-          className="mt-2"
-        />
-        {showSuggestions && inputValue && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-            {filteredTags.map((tag) => (
-              <div
-                key={tag.id}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => handleTagSelect(tag)}
+      {existingTags.length > 0 && (
+        <div className="mt-2">
+          <p className="text-sm text-muted-foreground mb-1">既存のタグ:</p>
+          <div className="flex flex-wrap gap-2">
+            {existingTags.map((tag) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className="cursor-pointer hover:bg-secondary"
+                onClick={() => {
+                  if (!selectedTags.includes(tag)) {
+                    onTagsChange([...selectedTags, tag]);
+                  }
+                }}
               >
-                {tag.name}
-              </div>
+                {tag}
+              </Badge>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
