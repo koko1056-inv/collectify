@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, Tag, Heart } from "lucide-react";
+import { Tag, Heart, Plus } from "lucide-react";
 import { useState } from "react";
 import { TagManageModal } from "./TagManageModal";
-import { ShareModal } from "./ShareModal";
 import { WishlistModal } from "./WishlistModal";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 
 interface OfficialGoodsCardProps {
   id: string;
@@ -14,8 +15,21 @@ interface OfficialGoodsCardProps {
 
 export function OfficialGoodsCard({ id, title, image }: OfficialGoodsCardProps) {
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleAddToCollection = () => {
+    navigate("/add-item", {
+      state: {
+        officialItem: {
+          id,
+          title,
+          image,
+        },
+      },
+    });
+  };
 
   return (
     <>
@@ -46,10 +60,10 @@ export function OfficialGoodsCard({ id, title, image }: OfficialGoodsCardProps) 
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setIsShareModalOpen(true)}
+            onClick={handleAddToCollection}
             className="border-gray-200 hover:bg-gray-50"
           >
-            <Share2 className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -68,14 +82,6 @@ export function OfficialGoodsCard({ id, title, image }: OfficialGoodsCardProps) 
         itemId={id}
         itemTitle={title}
         isOfficialItem={true}
-      />
-
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        title={title}
-        url={window.location.href}
-        image={image}
       />
 
       <WishlistModal
