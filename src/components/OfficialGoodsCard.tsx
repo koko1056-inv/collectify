@@ -4,7 +4,7 @@ import { Heart, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
-import { TagManageModal } from "./TagManageModal";
+import { TagManageModal } from "./tag/TagManageModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

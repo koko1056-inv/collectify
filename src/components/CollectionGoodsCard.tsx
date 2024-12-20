@@ -4,7 +4,7 @@ import { Share2, BookMarked, Trash2, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { ItemMemoriesModal } from "./ItemMemoriesModal";
-import { TagManageModal } from "./TagManageModal";
+import { TagManageModal } from "./tag/TagManageModal";
 import { ShareModal } from "./ShareModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
