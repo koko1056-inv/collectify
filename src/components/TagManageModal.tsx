@@ -48,7 +48,8 @@ export function TagManageModal({
             tag_id,
             tags (
               id,
-              name
+              name,
+              created_at
             )
           `)
           .eq("official_item_id", itemId);
@@ -56,6 +57,7 @@ export function TagManageModal({
         return data.map(tag => ({
           id: tag.tags.id,
           name: tag.tags.name,
+          created_at: tag.tags.created_at,
         }));
       } else {
         const { data, error } = await supabase
@@ -64,7 +66,8 @@ export function TagManageModal({
             tag_id,
             tags (
               id,
-              name
+              name,
+              created_at
             )
           `)
           .eq("user_item_id", itemId);
@@ -72,6 +75,7 @@ export function TagManageModal({
         return data.map(tag => ({
           id: tag.tags.id,
           name: tag.tags.name,
+          created_at: tag.tags.created_at,
         }));
       }
     },
