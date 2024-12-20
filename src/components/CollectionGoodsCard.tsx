@@ -106,6 +106,18 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
         </CardHeader>
         <CardContent className="p-4">
           <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
+          {hasTags && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {itemTags.map((tag) => (
+                <span
+                  key={tag.tag_id}
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                >
+                  {tag.tags.name}
+                </span>
+              ))}
+            </div>
+          )}
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
           <Button 
