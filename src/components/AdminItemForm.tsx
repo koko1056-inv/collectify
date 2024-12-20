@@ -13,20 +13,49 @@ export function AdminItemForm() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    image: "",
-    price: "",
-    release_date: "",
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      let imageUrl = "";
+      
+      if (imageFile) {
+        const fileExt = imageFile.name.split('.').pop();
+        const filePath = `${crypto.randomUUID()}.${fileExt}`;
+        
+        const { error: uploadError, data } = await supabase.storage
+          .from('kuji_images')
+          .upload(filePath, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('kuji_images')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrl;
+      }
+
       const { error } = await supabase.from("official_items").insert([
         {
           ...formData,
-          release_date: new Date(formData.release_date).toISOString(),
+          image: imageUrl,
+          price: "0", // ダミー値として設定
+          release_date: new Date().toISOString(), // ダミー値として設定
         },
       ]);
 
@@ -40,10 +69,9 @@ export function AdminItemForm() {
       setFormData({
         title: "",
         description: "",
-        image: "",
-        price: "",
-        release_date: "",
       });
+      setImageFile(null);
+      setPreviewUrl(null);
 
       queryClient.invalidateQueries({ queryKey: ["official-items"] });
     } catch (error) {
@@ -64,6 +92,27 @@ export function AdminItemForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="image" className="text-sm font-medium">
+              画像
+            </label>
+            <Input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              required
+            />
+            {previewUrl && (
+              <div className="mt-2">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-full max-w-xs rounded-lg"
+                />
+              </div>
+            )}
+          </div>
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-medium">
               タイトル
@@ -87,46 +136,6 @@ export function AdminItemForm() {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="image" className="text-sm font-medium">
-              画像URL
-            </label>
-            <Input
-              id="image"
-              value={formData.image}
-              onChange={(e) =>
-                setFormData({ ...formData, image: e.target.value })
-              }
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="price" className="text-sm font-medium">
-              価格
-            </label>
-            <Input
-              id="price"
-              value={formData.price}
-              onChange={(e) =>
-                setFormData({ ...formData, price: e.target.value })
-              }
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="release_date" className="text-sm font-medium">
-              発売日
-            </label>
-            <Input
-              id="release_date"
-              type="date"
-              value={formData.release_date}
-              onChange={(e) =>
-                setFormData({ ...formData, release_date: e.target.value })
-              }
-              required
             />
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
