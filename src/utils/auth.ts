@@ -29,25 +29,25 @@ export const handleAdminLogin = async (password: string) => {
 };
 
 export const handleUserLogin = async (formData: LoginFormData) => {
+  // First check if the profile exists
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('username')
+    .select('username, id')
     .eq('username', formData.username)
-    .maybeSingle();
+    .single();
 
   if (profileError) {
     console.error("Profile lookup error:", profileError);
+    if (profileError.code === 'PGRST116') {
+      throw new Error("ユーザー名が見つかりません");
+    }
     throw new Error("ユーザー情報の検索中にエラーが発生しました");
   }
 
-  if (!profile) {
-    throw new Error("ユーザー名が見つかりません");
-  }
-
   const userEmail = `${formData.username.toLowerCase()}@example.com`;
-  console.log("Using email for auth:", userEmail);
+  console.log("Attempting login with email:", userEmail);
 
-  const { error: signInError } = await supabase.auth.signInWithPassword({
+  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
     email: userEmail,
     password: formData.password,
   });
@@ -56,28 +56,31 @@ export const handleUserLogin = async (formData: LoginFormData) => {
     console.error("Sign in error:", signInError);
     throw new Error("ユーザー名またはパスワードが正しくありません");
   }
+
+  return signInData;
 };
 
 export const handleUserSignup = async (formData: LoginFormData) => {
-  const { data: existingUser, error: existingUserError } = await supabase
+  // Check if username already exists
+  const { data: existingProfile, error: profileError } = await supabase
     .from('profiles')
     .select('username')
     .eq('username', formData.username)
     .maybeSingle();
 
-  if (existingUserError && existingUserError.code !== 'PGRST116') {
-    console.error("Username check error:", existingUserError);
+  if (profileError && profileError.code !== 'PGRST116') {
+    console.error("Username check error:", profileError);
     throw new Error("ユーザー名の確認中にエラーが発生しました");
   }
 
-  if (existingUser) {
+  if (existingProfile) {
     throw new Error("このユーザー名は既に使用されています");
   }
 
   const userEmail = `${formData.username.toLowerCase()}@example.com`;
-  console.log("Using email for signup:", userEmail);
-  
-  const { error: signUpError } = await supabase.auth.signUp({
+  console.log("Creating new user with email:", userEmail);
+
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
     email: userEmail,
     password: formData.password,
     options: {
@@ -94,4 +97,6 @@ export const handleUserSignup = async (formData: LoginFormData) => {
 
   // Wait for the trigger to create the profile
   await new Promise(resolve => setTimeout(resolve, 1000));
+
+  return signUpData;
 };
