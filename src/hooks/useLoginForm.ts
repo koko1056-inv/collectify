@@ -77,7 +77,7 @@ export function useLoginForm() {
         // For regular users
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, username')
           .eq('username', formData.username)
           .maybeSingle();
 
@@ -147,7 +147,6 @@ export function useLoginForm() {
         setIsLogin(true);
       }
     } catch (error) {
-      console.error("Authentication error:", error);
       setError(error instanceof Error ? error.message : "認証エラーが発生しました。しばらく経ってからもう一度お試しください。");
     } finally {
       setLoading(false);
