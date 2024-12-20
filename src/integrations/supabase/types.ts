@@ -36,6 +36,38 @@ export type Database = {
         }
         Relationships: []
       }
+      item_memories: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          user_item_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          user_item_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          user_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_memories_user_item_id_fkey"
+            columns: ["user_item_id"]
+            isOneToOne: false
+            referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       official_items: {
         Row: {
           created_at: string

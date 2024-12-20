@@ -1,23 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Share2 } from "lucide-react";
+import { Heart, Share2, BookMarked } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
+import { ItemMemoriesModal } from "./ItemMemoriesModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface GoodsCardProps {
   title: string;
   image: string;
-  price: string;
   id: string;
 }
 
-export function GoodsCard({ title, image, price, id }: GoodsCardProps) {
+export function GoodsCard({ title, image, id }: GoodsCardProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+  const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
 
   const handleShare = () => {
     toast({
@@ -40,10 +41,10 @@ export function GoodsCard({ title, image, price, id }: GoodsCardProps) {
       const { error } = await supabase.from("user_items").insert({
         title,
         image,
-        prize: price,
         release_date: new Date().toISOString(),
         user_id: user.id,
         is_shared: false,
+        prize: "0",
       });
 
       if (error) throw error;
@@ -85,6 +86,14 @@ export function GoodsCard({ title, image, price, id }: GoodsCardProps) {
           >
             コレクションに追加
           </Button>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setIsMemoriesModalOpen(true)}
+            className="border-gray-200 hover:bg-gray-50"
+          >
+            <BookMarked className="h-4 w-4" />
+          </Button>
           <Button variant="outline" size="icon" onClick={handleShare} className="border-gray-200 hover:bg-gray-50">
             <Share2 className="h-4 w-4" />
           </Button>
@@ -101,6 +110,12 @@ export function GoodsCard({ title, image, price, id }: GoodsCardProps) {
       <WishlistModal
         isOpen={isWishlistModalOpen}
         onClose={() => setIsWishlistModalOpen(false)}
+        itemId={id}
+        itemTitle={title}
+      />
+      <ItemMemoriesModal
+        isOpen={isMemoriesModalOpen}
+        onClose={() => setIsMemoriesModalOpen(false)}
         itemId={id}
         itemTitle={title}
       />
