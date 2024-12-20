@@ -30,7 +30,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="border-b">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b">
       <div className="flex h-16 items-center px-4 container mx-auto">
         <Link to="/" className="logo-text">
           Collectify
