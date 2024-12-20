@@ -49,7 +49,7 @@ export function useLoginForm() {
             .from('profiles')
             .select('*')
             .eq('username', 'admin')
-            .maybeSingle();
+            .single();
 
           if (profileError) {
             throw new Error("管理者アカウントの検索中にエラーが発生しました");
@@ -81,9 +81,9 @@ export function useLoginForm() {
         console.log("Attempting regular user login");
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, username')
+          .select('id, username, created_at')
           .eq('username', formData.username)
-          .maybeSingle();
+          .single();
 
         if (profileError) {
           console.error("Profile lookup error:", profileError);
@@ -94,8 +94,9 @@ export function useLoginForm() {
           throw new Error("ユーザー名が見つかりません");
         }
 
-        const userEmail = `${profile.id}@example.com`;
-        console.log("Generated email for auth:", userEmail);
+        // Generate deterministic email based on username
+        const userEmail = `${formData.username.toLowerCase()}@example.com`;
+        console.log("Using email for auth:", userEmail);
 
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: userEmail,
@@ -119,9 +120,9 @@ export function useLoginForm() {
           .from('profiles')
           .select('username')
           .eq('username', formData.username)
-          .maybeSingle();
+          .single();
 
-        if (existingUserError) {
+        if (existingUserError && existingUserError.code !== 'PGRST116') {
           console.error("Username check error:", existingUserError);
           throw new Error("ユーザー名の確認中にエラーが発生しました");
         }
@@ -130,11 +131,12 @@ export function useLoginForm() {
           throw new Error("このユーザー名は既に使用されています");
         }
 
-        const randomEmail = `${crypto.randomUUID()}@example.com`;
-        console.log("Generated email for signup:", randomEmail);
+        // Use deterministic email for signup
+        const userEmail = `${formData.username.toLowerCase()}@example.com`;
+        console.log("Using email for signup:", userEmail);
         
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: randomEmail,
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: userEmail,
           password: formData.password,
           options: {
             data: {
