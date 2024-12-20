@@ -5,6 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { ItemMemoriesModal } from "./ItemMemoriesModal";
 import { TagManageModal } from "./TagManageModal";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface CollectionGoodsCardProps {
@@ -30,6 +31,25 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  // Fetch tags for this item
+  const { data: itemTags = [] } = useQuery({
+    queryKey: ["user-item-tags", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_item_tags")
+        .select(`
+          tag_id,
+          tags (
+            id,
+            name
+          )
+        `)
+        .eq("user_item_id", id);
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleShare = () => {
     toast({
@@ -63,6 +83,8 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
     }
   };
 
+  const hasTags = itemTags.length > 0;
+
   return (
     <>
       <Card className="hover-scale card-shadow bg-white border border-gray-200">
@@ -91,9 +113,13 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
             variant="outline" 
             size="icon"
             onClick={() => setIsTagManageModalOpen(true)}
-            className="border-gray-200 hover:bg-gray-50"
+            className={`${
+              hasTags 
+                ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
+                : "border-gray-200 hover:bg-gray-50"
+            } transition-colors`}
           >
-            <Tag className="h-4 w-4" />
+            <Tag className={`h-4 w-4 ${hasTags ? "text-purple-500" : ""}`} />
           </Button>
           <Button 
             variant="outline" 
