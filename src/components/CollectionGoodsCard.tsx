@@ -18,6 +18,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface CollectionGoodsCardProps {
   title: string;
@@ -32,7 +38,6 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch tags for this item
   const { data: itemTags = [] } = useQuery({
     queryKey: ["user-item-tags", id],
     queryFn: async () => {
@@ -64,10 +69,45 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
     },
   });
 
-  const handleShare = () => {
+  const handleShare = async (platform: string) => {
+    const shareUrl = encodeURIComponent(window.location.href);
+    const shareTitle = encodeURIComponent(title);
+    const shareImage = encodeURIComponent(image);
+
+    let shareLink = '';
+    switch (platform) {
+      case 'twitter':
+        shareLink = `https://twitter.com/intent/tweet?text=${shareTitle}&url=${shareUrl}`;
+        break;
+      case 'facebook':
+        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
+        break;
+      case 'line':
+        shareLink = `https://social-plugins.line.me/lineit/share?url=${shareUrl}`;
+        break;
+      default:
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: title,
+              url: window.location.href,
+            });
+            return;
+          } catch (error) {
+            console.error('Error sharing:', error);
+          }
+        }
+        toast({
+          title: "共有",
+          description: "このプラットフォームでの共有は現在サポートされていません。",
+        });
+        return;
+    }
+
+    window.open(shareLink, '_blank', 'noopener,noreferrer');
     toast({
-      title: "共有",
-      description: "共有機能は準備中です。",
+      title: "共有完了",
+      description: `${platform}で共有しました。`,
     });
   };
 
@@ -139,14 +179,28 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
           >
             <Tag className={`h-4 w-4 ${hasTags ? "text-purple-500" : ""}`} />
           </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={handleShare} 
-            className="border-gray-200 hover:bg-gray-50"
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="border-gray-200 hover:bg-gray-50"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleShare('twitter')}>
+                Twitter で共有
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShare('facebook')}>
+                Facebook で共有
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleShare('line')}>
+                LINE で共有
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button 
             variant="outline" 
             size="icon"
