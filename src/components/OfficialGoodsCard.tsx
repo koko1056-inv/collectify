@@ -28,7 +28,7 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
       const { data } = await supabase
         .from("user_items")
         .select("id")
-        .eq("title", title)
+        .eq("official_link", id)
         .eq("user_id", user.id)
         .maybeSingle();
       
@@ -62,6 +62,7 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
         user_id: user.id,
         is_shared: false,
         prize: "0",
+        official_link: id, // Add the official_item_id reference
       });
 
       if (error) throw error;
