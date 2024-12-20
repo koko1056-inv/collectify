@@ -38,6 +38,19 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
     enabled: !!user,
   });
 
+  // Fetch wishlist count for this item
+  const { data: wishlistCount = 0 } = useQuery({
+    queryKey: ["wishlist-count", id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("wishlists")
+        .select("*", { count: 'exact', head: true })
+        .eq("official_item_id", id);
+      
+      return count || 0;
+    },
+  });
+
   const handleShare = () => {
     toast({
       title: "共有",
@@ -68,7 +81,6 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
 
       if (error) throw error;
 
-      // Invalidate both queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user.id] });
       queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
 
@@ -113,14 +125,17 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
           <Button variant="outline" size="icon" onClick={handleShare} className="border-gray-200 hover:bg-gray-50">
             <Share2 className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => setIsWishlistModalOpen(true)}
-            className="border-gray-200 hover:bg-gray-50"
-          >
-            <Heart className="h-4 w-4" />
-          </Button>
+          <div className="flex flex-col items-center">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => setIsWishlistModalOpen(true)}
+              className="border-gray-200 hover:bg-gray-50"
+            >
+              <Heart className="h-4 w-4" />
+            </Button>
+            <span className="text-xs text-gray-500 mt-1">{wishlistCount}</span>
+          </div>
         </CardFooter>
       </Card>
       <WishlistModal
