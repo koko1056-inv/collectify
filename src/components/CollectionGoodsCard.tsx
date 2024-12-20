@@ -51,6 +51,19 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
     },
   });
 
+  // Fetch memories for this item
+  const { data: itemMemories = [] } = useQuery({
+    queryKey: ["item-memories", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("item_memories")
+        .select("*")
+        .eq("user_item_id", id);
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handleShare = () => {
     toast({
       title: "共有",
@@ -84,6 +97,7 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
   };
 
   const hasTags = itemTags.length > 0;
+  const hasMemories = itemMemories.length > 0;
 
   return (
     <>
@@ -105,9 +119,13 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
             variant="outline" 
             size="icon"
             onClick={() => setIsMemoriesModalOpen(true)}
-            className="border-gray-200 hover:bg-gray-50"
+            className={`${
+              hasMemories 
+                ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
+                : "border-gray-200 hover:bg-gray-50"
+            } transition-colors`}
           >
-            <BookMarked className="h-4 w-4" />
+            <BookMarked className={`h-4 w-4 ${hasMemories ? "text-purple-500" : ""}`} />
           </Button>
           <Button 
             variant="outline" 
