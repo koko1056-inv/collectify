@@ -30,8 +30,7 @@ const Index = () => {
             )
           )
         `)
-        .order("created_at", { ascending: false })
-        .limit(6);  // Only get the 6 most recent items
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
