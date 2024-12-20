@@ -107,10 +107,12 @@ const Index = () => {
             </TabsContent>
 
             <TabsContent value="collection">
-              <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
-                マイコレクション
-              </h1>
-              <UserCollection selectedTag={selectedTag} />
+              <div className="space-y-8">
+                <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
+                  マイコレクション
+                </h1>
+                <UserCollection selectedTag={selectedTag} />
+              </div>
             </TabsContent>
           </Tabs>
         </div>
