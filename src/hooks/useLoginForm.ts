@@ -49,9 +49,10 @@ export function useLoginForm() {
             .from('profiles')
             .select('*')
             .eq('username', 'admin')
-            .single();
+            .maybeSingle();
 
           if (profileError) {
+            console.error("Admin profile lookup error:", profileError);
             throw new Error("管理者アカウントの検索中にエラーが発生しました");
           }
 
@@ -81,9 +82,9 @@ export function useLoginForm() {
         console.log("Attempting regular user login");
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, username, created_at')
+          .select('username')
           .eq('username', formData.username)
-          .single();
+          .maybeSingle();
 
         if (profileError) {
           console.error("Profile lookup error:", profileError);
@@ -94,7 +95,6 @@ export function useLoginForm() {
           throw new Error("ユーザー名が見つかりません");
         }
 
-        // Generate deterministic email based on username
         const userEmail = `${formData.username.toLowerCase()}@example.com`;
         console.log("Using email for auth:", userEmail);
 
@@ -120,7 +120,7 @@ export function useLoginForm() {
           .from('profiles')
           .select('username')
           .eq('username', formData.username)
-          .single();
+          .maybeSingle();
 
         if (existingUserError && existingUserError.code !== 'PGRST116') {
           console.error("Username check error:", existingUserError);
@@ -131,7 +131,6 @@ export function useLoginForm() {
           throw new Error("このユーザー名は既に使用されています");
         }
 
-        // Use deterministic email for signup
         const userEmail = `${formData.username.toLowerCase()}@example.com`;
         console.log("Using email for signup:", userEmail);
         
