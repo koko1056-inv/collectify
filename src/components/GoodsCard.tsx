@@ -76,7 +76,6 @@ export function GoodsCard({ title, image, price, id }: GoodsCardProps) {
         </CardHeader>
         <CardContent className="p-4">
           <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
-          <p className="text-sm text-gray-600">{price}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
           <Button 
