@@ -163,6 +163,7 @@ export function AdminItemForm() {
           <TagInput
             selectedTags={selectedTags}
             onRemoveTag={handleRemoveTag}
+            onAddTag={handleAddTag}
           />
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "追加中..." : "アイテムを追加"}

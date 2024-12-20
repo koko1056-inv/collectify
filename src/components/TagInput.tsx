@@ -14,9 +14,10 @@ interface Tag {
 interface TagInputProps {
   selectedTags: Tag[];
   onRemoveTag: (tag: Tag) => void;
+  onAddTag: (tag: Tag) => void;
 }
 
-export function TagInput({ selectedTags, onRemoveTag }: TagInputProps) {
+export function TagInput({ selectedTags, onRemoveTag, onAddTag }: TagInputProps) {
   const [inputValue, setInputValue] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -39,19 +40,7 @@ export function TagInput({ selectedTags, onRemoveTag }: TagInputProps) {
   );
 
   const handleTagSelect = async (tag: Tag) => {
-    const { error } = await supabase
-      .from("tags")
-      .select("*")
-      .eq("id", tag.id)
-      .single();
-
-    if (error) {
-      console.error("Error selecting tag:", error);
-      return;
-    }
-
-    // Update the parent component's state
-    const updatedTags = [...selectedTags, tag];
+    onAddTag(tag);
     setInputValue("");
     setShowSuggestions(false);
   };
@@ -83,6 +72,10 @@ export function TagInput({ selectedTags, onRemoveTag }: TagInputProps) {
             setShowSuggestions(true);
           }}
           onFocus={() => setShowSuggestions(true)}
+          onBlur={() => {
+            // Delay hiding suggestions to allow click events to fire
+            setTimeout(() => setShowSuggestions(false), 200);
+          }}
           className="mt-2"
         />
         {showSuggestions && inputValue && (
