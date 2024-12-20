@@ -12,7 +12,7 @@ export function TagFilter({ selectedTag, onTagSelect, tags }: TagFilterProps) {
     <div className="flex flex-wrap gap-2">
       <Badge
         variant={selectedTag === null ? "default" : "outline"}
-        className="cursor-pointer"
+        className="cursor-pointer hover:bg-gray-100"
         onClick={() => onTagSelect(null)}
       >
         すべて
@@ -21,7 +21,7 @@ export function TagFilter({ selectedTag, onTagSelect, tags }: TagFilterProps) {
         <Badge
           key={tag.id}
           variant={selectedTag === tag.name ? "default" : "outline"}
-          className="cursor-pointer"
+          className="cursor-pointer hover:bg-gray-100"
           onClick={() => onTagSelect(tag.name)}
         >
           {tag.name}
