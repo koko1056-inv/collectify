@@ -38,11 +38,13 @@ export function useLoginForm() {
     if (!validateForm()) return;
 
     setLoading(true);
+    console.log("Starting authentication process for:", formData.username);
 
     try {
       if (isLogin) {
         // For admin login
         if (formData.username === 'admin') {
+          console.log("Attempting admin login");
           const { data: adminProfile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
@@ -63,6 +65,7 @@ export function useLoginForm() {
           });
 
           if (signInError) {
+            console.error("Admin login error:", signInError);
             throw new Error("ユーザー名またはパスワードが正しくありません");
           }
 
@@ -75,6 +78,7 @@ export function useLoginForm() {
         }
 
         // For regular users
+        console.log("Attempting regular user login");
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id, username')
@@ -82,6 +86,7 @@ export function useLoginForm() {
           .maybeSingle();
 
         if (profileError) {
+          console.error("Profile lookup error:", profileError);
           throw new Error("ユーザー情報の検索中にエラーが発生しました");
         }
 
@@ -90,6 +95,7 @@ export function useLoginForm() {
         }
 
         const userEmail = `${profile.id}@example.com`;
+        console.log("Generated email for auth:", userEmail);
 
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: userEmail,
@@ -97,6 +103,7 @@ export function useLoginForm() {
         });
 
         if (signInError) {
+          console.error("Sign in error:", signInError);
           throw new Error("ユーザー名またはパスワードが正しくありません");
         }
 
@@ -107,6 +114,7 @@ export function useLoginForm() {
         navigate("/");
       } else {
         // For signup
+        console.log("Attempting user signup");
         const { data: existingUser, error: existingUserError } = await supabase
           .from('profiles')
           .select('username')
@@ -114,6 +122,7 @@ export function useLoginForm() {
           .maybeSingle();
 
         if (existingUserError) {
+          console.error("Username check error:", existingUserError);
           throw new Error("ユーザー名の確認中にエラーが発生しました");
         }
 
@@ -122,6 +131,7 @@ export function useLoginForm() {
         }
 
         const randomEmail = `${crypto.randomUUID()}@example.com`;
+        console.log("Generated email for signup:", randomEmail);
         
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: randomEmail,
@@ -134,6 +144,7 @@ export function useLoginForm() {
         });
 
         if (signUpError) {
+          console.error("Signup error:", signUpError);
           throw new Error("アカウント作成中にエラーが発生しました");
         }
 
@@ -147,6 +158,7 @@ export function useLoginForm() {
         setIsLogin(true);
       }
     } catch (error) {
+      console.error("Authentication error:", error);
       setError(error instanceof Error ? error.message : "認証エラーが発生しました。しばらく経ってからもう一度お試しください。");
     } finally {
       setLoading(false);
