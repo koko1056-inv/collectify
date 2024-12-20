@@ -6,7 +6,7 @@ import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface OfficialGoodsCardProps {
   title: string;
@@ -18,6 +18,7 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
   const { toast } = useToast();
   const { user } = useAuth();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   // Check if the item is already in the user's collection
   const { data: isInCollection } = useQuery({
@@ -62,10 +63,14 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
         user_id: user.id,
         is_shared: false,
         prize: "0",
-        official_link: id, // Add the official_item_id reference
+        official_link: id,
       });
 
       if (error) throw error;
+
+      // Invalidate both queries to refresh the UI
+      queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user.id] });
+      queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
 
       toast({
         title: "成功",
