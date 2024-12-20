@@ -35,10 +35,10 @@ export function TagManageModal({ isOpen, onClose, itemId, itemTitle }: TagManage
 
   // Fetch item's current tags
   const { data: itemTags = [] } = useQuery({
-    queryKey: ["user-item-tags", itemId],
+    queryKey: ["item-tags", itemId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("user_item_tags")
+        .from("item_tags")
         .select(`
           tag_id,
           tags (
@@ -46,7 +46,7 @@ export function TagManageModal({ isOpen, onClose, itemId, itemTitle }: TagManage
             name
           )
         `)
-        .eq("user_item_id", itemId);
+        .eq("official_item_id", itemId);
       if (error) throw error;
       return data.map(tag => ({
         id: tag.tags.id,
@@ -85,17 +85,16 @@ export function TagManageModal({ isOpen, onClose, itemId, itemTitle }: TagManage
 
         // Add tag to item
         const { error: relationError } = await supabase
-          .from("user_item_tags")
+          .from("item_tags")
           .insert([{
-            user_item_id: itemId,
+            official_item_id: itemId,
             tag_id: tagId,
           }]);
 
         if (relationError) throw relationError;
 
-        queryClient.invalidateQueries({ queryKey: ["user-item-tags", itemId] });
+        queryClient.invalidateQueries({ queryKey: ["item-tags", itemId] });
         queryClient.invalidateQueries({ queryKey: ["tags"] });
-        queryClient.invalidateQueries({ queryKey: ["user-items"] });
 
         setTagInput("");
         toast({
@@ -116,15 +115,14 @@ export function TagManageModal({ isOpen, onClose, itemId, itemTitle }: TagManage
   const handleRemoveTag = async (tagId: string, tagName: string) => {
     try {
       const { error } = await supabase
-        .from("user_item_tags")
+        .from("item_tags")
         .delete()
-        .eq("user_item_id", itemId)
+        .eq("official_item_id", itemId)
         .eq("tag_id", tagId);
 
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["user-item-tags", itemId] });
-      queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      queryClient.invalidateQueries({ queryKey: ["item-tags", itemId] });
 
       toast({
         title: "タグを削除しました",
@@ -152,16 +150,15 @@ export function TagManageModal({ isOpen, onClose, itemId, itemTitle }: TagManage
 
     try {
       const { error } = await supabase
-        .from("user_item_tags")
+        .from("item_tags")
         .insert([{
-          user_item_id: itemId,
+          official_item_id: itemId,
           tag_id: tagId,
         }]);
 
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["user-item-tags", itemId] });
-      queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      queryClient.invalidateQueries({ queryKey: ["item-tags", itemId] });
 
       toast({
         title: "タグを追加しました",
