@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Tag } from "@/types";
 
 interface TagInputProps {
   selectedTags: string[];
@@ -13,16 +14,15 @@ interface TagInputProps {
 export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
   const [tagInput, setTagInput] = useState("");
 
-  // Fetch existing tags
   const { data: existingTags = [] } = useQuery({
     queryKey: ["tags"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
-        .select("name")
+        .select("*")
         .order("name");
       if (error) throw error;
-      return data.map(tag => tag.name);
+      return data as Tag[];
     },
   });
 
@@ -77,16 +77,16 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
           <div className="flex flex-wrap gap-2">
             {existingTags.map((tag) => (
               <Badge
-                key={tag}
+                key={tag.id}
                 variant="outline"
                 className="cursor-pointer hover:bg-secondary"
                 onClick={() => {
-                  if (!selectedTags.includes(tag)) {
-                    onTagsChange([...selectedTags, tag]);
+                  if (!selectedTags.includes(tag.name)) {
+                    onTagsChange([...selectedTags, tag.name]);
                   }
                 }}
               >
-                {tag}
+                {tag.name}
               </Badge>
             ))}
           </div>
