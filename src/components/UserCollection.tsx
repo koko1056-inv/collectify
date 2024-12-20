@@ -62,7 +62,6 @@ export function UserCollection() {
           id={item.id}
           title={item.title}
           image={item.image}
-          price={item.prize}
         />
       ))}
     </div>

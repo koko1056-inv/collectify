@@ -77,7 +77,6 @@ const Index = () => {
                   id={item.id}
                   title={item.title}
                   image={item.image}
-                  price={item.price}
                 />
               ))}
             </div>
