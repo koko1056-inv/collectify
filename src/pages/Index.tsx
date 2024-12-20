@@ -1,16 +1,18 @@
+import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { GoodsCard } from "@/components/GoodsCard";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
 import { Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserCollection } from "@/components/UserCollection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AdminItemForm } from "@/components/AdminItemForm";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
   const { data: items = [] } = useQuery({
     queryKey: ["official-items"],
@@ -57,26 +59,27 @@ const Index = () => {
           </TabsList>
 
           <TabsContent value="official" className="space-y-6">
-            <div className="flex justify-between items-start gap-8">
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold animate-fade-in text-gray-900 mb-6">
-                  公式グッズ
-                </h1>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {filteredItems.map((item) => (
-                    <GoodsCard
-                      key={item.id}
-                      id={item.id}
-                      title={item.title}
-                      image={item.image}
-                      price={item.price}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="w-96">
-                <AdminItemForm />
-              </div>
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
+                公式グッズ
+              </h1>
+              <Button 
+                onClick={() => navigate("/add-item")}
+                className="bg-gray-900 hover:bg-gray-800"
+              >
+                新規アイテムを追加
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredItems.map((item) => (
+                <GoodsCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  image={item.image}
+                  price={item.price}
+                />
+              ))}
             </div>
           </TabsContent>
 
