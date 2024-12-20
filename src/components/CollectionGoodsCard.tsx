@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { ItemMemoriesModal } from "./ItemMemoriesModal";
 import { TagManageModal } from "./TagManageModal";
+import { ShareModal } from "./ShareModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -18,12 +19,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface CollectionGoodsCardProps {
   title: string;
@@ -36,6 +31,7 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: itemTags = [] } = useQuery({
@@ -56,7 +52,6 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
     },
   });
 
-  // Fetch memories for this item
   const { data: itemMemories = [] } = useQuery({
     queryKey: ["item-memories", id],
     queryFn: async () => {
@@ -68,48 +63,6 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
       return data;
     },
   });
-
-  const handleShare = async (platform: string) => {
-    const shareUrl = encodeURIComponent(window.location.href);
-    const shareTitle = encodeURIComponent(title);
-    const shareImage = encodeURIComponent(image);
-
-    let shareLink = '';
-    switch (platform) {
-      case 'twitter':
-        shareLink = `https://twitter.com/intent/tweet?text=${shareTitle}&url=${shareUrl}`;
-        break;
-      case 'facebook':
-        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
-        break;
-      case 'line':
-        shareLink = `https://social-plugins.line.me/lineit/share?url=${shareUrl}`;
-        break;
-      default:
-        if (navigator.share) {
-          try {
-            await navigator.share({
-              title: title,
-              url: window.location.href,
-            });
-            return;
-          } catch (error) {
-            console.error('Error sharing:', error);
-          }
-        }
-        toast({
-          title: "共有",
-          description: "このプラットフォームでの共有は現在サポートされていません。",
-        });
-        return;
-    }
-
-    window.open(shareLink, '_blank', 'noopener,noreferrer');
-    toast({
-      title: "共有完了",
-      description: `${platform}で共有しました。`,
-    });
-  };
 
   const handleDelete = async () => {
     try {
@@ -179,28 +132,14 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
           >
             <Tag className={`h-4 w-4 ${hasTags ? "text-purple-500" : ""}`} />
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="border-gray-200 hover:bg-gray-50"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleShare('twitter')}>
-                Twitter で共有
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShare('facebook')}>
-                Facebook で共有
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShare('line')}>
-                LINE で共有
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setIsShareModalOpen(true)}
+            className="border-gray-200 hover:bg-gray-50"
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
           <Button 
             variant="outline" 
             size="icon"
@@ -224,6 +163,14 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
         onClose={() => setIsTagManageModalOpen(false)}
         itemId={id}
         itemTitle={title}
+      />
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={title}
+        url={window.location.href}
+        image={image}
       />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
