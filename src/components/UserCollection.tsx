@@ -8,8 +8,8 @@ import { useState } from "react";
 
 export function UserCollection() {
   const { user } = useAuth();
-  const [selectedArtist, setSelectedArtist] = useState<string>("");
-  const [selectedAnime, setSelectedAnime] = useState<string>("");
+  const [selectedArtist, setSelectedArtist] = useState<string>("all");
+  const [selectedAnime, setSelectedAnime] = useState<string>("all");
 
   const { data: userItems = [], isLoading } = useQuery({
     queryKey: ["user-items", user?.id],
@@ -34,8 +34,8 @@ export function UserCollection() {
 
   // Filter items based on selected artist and anime
   const filteredItems = userItems.filter(item => {
-    const matchesArtist = !selectedArtist || item.artist === selectedArtist;
-    const matchesAnime = !selectedAnime || item.anime === selectedAnime;
+    const matchesArtist = selectedArtist === "all" || item.artist === selectedArtist;
+    const matchesAnime = selectedAnime === "all" || item.anime === selectedAnime;
     return matchesArtist && matchesAnime;
   });
 
@@ -78,7 +78,7 @@ export function UserCollection() {
               <SelectValue placeholder="アーティストで絞り込み" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">すべて</SelectItem>
+              <SelectItem value="all">すべて</SelectItem>
               {artists.map((artist) => (
                 <SelectItem key={artist} value={artist}>
                   {artist}
@@ -93,7 +93,7 @@ export function UserCollection() {
               <SelectValue placeholder="アニメで絞り込み" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">すべて</SelectItem>
+              <SelectItem value="all">すべて</SelectItem>
               {animes.map((anime) => (
                 <SelectItem key={anime} value={anime}>
                   {anime}
