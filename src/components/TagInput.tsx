@@ -1,97 +1,46 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
-interface TagInputProps {
-  selectedTags: string[];
-  onTagsChange: (tags: string[]) => void;
+interface Tag {
+  id: string;
+  name: string;
+  created_at?: string;
 }
 
-export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
-  const [tagInput, setTagInput] = useState("");
+interface TagInputProps {
+  selectedTags: Tag[];
+  onRemoveTag: (tag: Tag) => void;
+}
 
-  // Fetch existing tags
-  const { data: existingTags = [] } = useQuery({
-    queryKey: ["tags"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tags")
-        .select("name")
-        .order("name");
-      if (error) throw error;
-      return data.map(tag => tag.name);
-    },
-  });
-
-  const handleAddTag = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && tagInput.trim()) {
-      e.preventDefault();
-      const newTag = tagInput.trim().toLowerCase();
-      if (!selectedTags.includes(newTag)) {
-        onTagsChange([...selectedTags, newTag]);
-      }
-      setTagInput("");
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
-  };
+export function TagInput({ selectedTags, onRemoveTag }: TagInputProps) {
+  const [inputValue, setInputValue] = useState("");
 
   return (
-    <div className="space-y-2">
-      <label htmlFor="tags" className="text-sm font-medium">
-        タグ
-      </label>
-      <Input
-        id="tags"
-        value={tagInput}
-        onChange={(e) => setTagInput(e.target.value)}
-        onKeyDown={handleAddTag}
-        placeholder="タグを入力してEnterを押してください"
-      />
-      <div className="flex flex-wrap gap-2 mt-2">
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
         {selectedTags.map((tag) => (
           <Badge
-            key={tag}
+            key={tag.id}
             variant="secondary"
             className="flex items-center gap-1"
           >
-            {tag}
-            <button
-              type="button"
-              onClick={() => handleRemoveTag(tag)}
-              className="hover:text-destructive"
-            >
-              <X className="h-3 w-3" />
-            </button>
+            {tag.name}
+            <X
+              className="h-3 w-3 cursor-pointer"
+              onClick={() => onRemoveTag(tag)}
+            />
           </Badge>
         ))}
       </div>
-      {existingTags.length > 0 && (
-        <div className="mt-2">
-          <p className="text-sm text-muted-foreground mb-1">既存のタグ:</p>
-          <div className="flex flex-wrap gap-2">
-            {existingTags.map((tag) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className="cursor-pointer hover:bg-secondary"
-                onClick={() => {
-                  if (!selectedTags.includes(tag)) {
-                    onTagsChange([...selectedTags, tag]);
-                  }
-                }}
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
+      <Input
+        type="text"
+        placeholder="タグを入力..."
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        className="mt-2"
+      />
     </div>
   );
 }
