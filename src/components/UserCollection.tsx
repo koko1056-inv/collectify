@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CollectionGoodsCard } from "./CollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export function UserCollection() {
@@ -82,7 +82,7 @@ export function UserCollection() {
   };
 
   // Call deleteSpecificItems when component mounts
-  useState(() => {
+  useEffect(() => {
     if (user) {
       deleteSpecificItems();
     }
