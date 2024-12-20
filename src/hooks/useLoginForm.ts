@@ -44,6 +44,21 @@ export function useLoginForm() {
         // For admin login
         if (formData.username === 'admin') {
           console.log("Attempting admin login...");
+          const { data: adminProfile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('username', 'admin')
+            .single();
+
+          if (profileError) {
+            console.error("Admin profile lookup error:", profileError);
+            throw new Error("管理者アカウントが見つかりません");
+          }
+
+          if (!adminProfile.is_admin) {
+            throw new Error("管理者権限がありません");
+          }
+
           const { error: signInError } = await supabase.auth.signInWithPassword({
             email: 'admin@example.com',
             password: formData.password,
@@ -66,7 +81,7 @@ export function useLoginForm() {
         console.log("Attempting regular user login...");
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, username')
           .eq('username', formData.username)
           .single();
 
@@ -75,7 +90,9 @@ export function useLoginForm() {
           throw new Error("ユーザー名が見つかりません");
         }
 
-        const { error: signInError } = await supabase.auth.signInWithPassword({
+        console.log("Found profile:", profile);
+
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email: `${profile.id}@example.com`,
           password: formData.password,
         });
@@ -84,6 +101,8 @@ export function useLoginForm() {
           console.error("User login error:", signInError);
           throw new Error("ユーザー名またはパスワードが正しくありません");
         }
+
+        console.log("Login successful:", signInData);
 
         toast({
           title: "ログイン成功",
@@ -122,6 +141,8 @@ export function useLoginForm() {
           console.error("Signup error:", signUpError);
           throw new Error("アカウント作成中にエラーが発生しました");
         }
+
+        console.log("Signup successful:", signUpData);
 
         // Wait for the trigger to create the profile
         await new Promise(resolve => setTimeout(resolve, 1000));
