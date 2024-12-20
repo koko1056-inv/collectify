@@ -26,6 +26,7 @@ export function UserCollection() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      console.log("Fetched user items:", data);
       return data;
     },
     enabled: !!user,
@@ -55,14 +56,19 @@ export function UserCollection() {
       "ドラゴンボール 孫悟空 フィギュア"
     ];
 
+    console.log("Attempting to delete items:", itemsToDelete);
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("user_items")
         .delete()
         .eq("user_id", user.id)
-        .in("title", itemsToDelete);
+        .in("title", itemsToDelete)
+        .select();
 
       if (error) throw error;
+
+      console.log("Deleted items:", data);
 
       // Invalidate and refetch the user items query
       queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
