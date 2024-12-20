@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
+import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,34 +12,56 @@ interface TagInputProps {
 }
 
 export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
-  const [tagInput, setTagInput] = useState("");
+  const [input, setInput] = useState("");
+  const [suggestions, setSuggestions] = useState<Array<{ id: string; name: string }>>([]);
 
-  // Fetch existing tags
-  const { data: existingTags = [] } = useQuery({
+  const { data: existingTags } = useQuery({
     queryKey: ["tags"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
-        .select("name")
-        .order("name");
+        .select("*")
+        .order("name", { ascending: true });
+
       if (error) throw error;
-      return data.map(tag => tag.name);
+      return data;
     },
   });
 
-  const handleAddTag = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && tagInput.trim()) {
-      e.preventDefault();
-      const newTag = tagInput.trim().toLowerCase();
-      if (!selectedTags.includes(newTag)) {
-        onTagsChange([...selectedTags, newTag]);
-      }
-      setTagInput("");
+  useEffect(() => {
+    if (existingTags && input) {
+      const filtered = existingTags.filter(
+        (tag) =>
+          tag.name.toLowerCase().includes(input.toLowerCase()) &&
+          !selectedTags.includes(tag.name)
+      );
+      setSuggestions(filtered);
+    } else {
+      setSuggestions([]);
+    }
+  }, [input, existingTags, selectedTags]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+  };
+
+  const addTag = (tagName: string) => {
+    if (tagName && !selectedTags.includes(tagName)) {
+      onTagsChange([...selectedTags, tagName]);
+      setInput("");
+      setSuggestions([]);
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
+  const removeTag = (tagToRemove: string) => {
+    onTagsChange(selectedTags.filter((tag) => tag !== tagToRemove));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && input) {
+      e.preventDefault();
+      addTag(input);
+    }
   };
 
   return (
@@ -46,52 +69,44 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
       <label htmlFor="tags" className="text-sm font-medium">
         タグ
       </label>
-      <Input
-        id="tags"
-        value={tagInput}
-        onChange={(e) => setTagInput(e.target.value)}
-        onKeyDown={handleAddTag}
-        placeholder="タグを入力してEnterを押してください"
-      />
-      <div className="flex flex-wrap gap-2 mt-2">
+      <div className="flex flex-wrap gap-2 mb-2">
         {selectedTags.map((tag) => (
-          <Badge
-            key={tag}
-            variant="secondary"
-            className="flex items-center gap-1"
-          >
+          <Badge key={tag} variant="secondary" className="text-sm">
             {tag}
-            <button
-              type="button"
-              onClick={() => handleRemoveTag(tag)}
-              className="hover:text-destructive"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-4 w-4 ml-1 hover:bg-transparent"
+              onClick={() => removeTag(tag)}
             >
               <X className="h-3 w-3" />
-            </button>
+            </Button>
           </Badge>
         ))}
       </div>
-      {existingTags.length > 0 && (
-        <div className="mt-2">
-          <p className="text-sm text-muted-foreground mb-1">既存のタグ:</p>
-          <div className="flex flex-wrap gap-2">
-            {existingTags.map((tag) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className="cursor-pointer hover:bg-secondary"
-                onClick={() => {
-                  if (!selectedTags.includes(tag)) {
-                    onTagsChange([...selectedTags, tag]);
-                  }
-                }}
+      <div className="relative">
+        <Input
+          id="tags"
+          type="text"
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          placeholder="タグを入力..."
+        />
+        {suggestions.length > 0 && (
+          <div className="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg">
+            {suggestions.map((tag) => (
+              <div
+                key={tag.id}
+                className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                onClick={() => addTag(tag.name)}
               >
-                {tag}
-              </Badge>
+                {tag.name}
+              </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
