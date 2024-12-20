@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, BookMarked, Trash2 } from "lucide-react";
+import { Share2, BookMarked, Trash2, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { ItemMemoriesModal } from "./ItemMemoriesModal";
+import { TagManageModal } from "./TagManageModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ interface CollectionGoodsCardProps {
 export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardProps) {
   const { toast } = useToast();
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
+  const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -45,7 +47,6 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
 
       if (error) throw error;
 
-      // Invalidate the user items query to refresh the collection
       queryClient.invalidateQueries({ queryKey: ["user-items"] });
 
       toast({
@@ -88,6 +89,14 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
           </Button>
           <Button 
             variant="outline" 
+            size="icon"
+            onClick={() => setIsTagManageModalOpen(true)}
+            className="border-gray-200 hover:bg-gray-50"
+          >
+            <Tag className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
             size="icon" 
             onClick={handleShare} 
             className="border-gray-200 hover:bg-gray-50"
@@ -108,6 +117,13 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
       <ItemMemoriesModal
         isOpen={isMemoriesModalOpen}
         onClose={() => setIsMemoriesModalOpen(false)}
+        itemId={id}
+        itemTitle={title}
+      />
+
+      <TagManageModal
+        isOpen={isTagManageModalOpen}
+        onClose={() => setIsTagManageModalOpen(false)}
         itemId={id}
         itemTitle={title}
       />
