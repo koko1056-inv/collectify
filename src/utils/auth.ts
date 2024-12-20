@@ -2,86 +2,74 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
 export const handleAdminLogin = async (password: string) => {
-  const { data: adminProfile, error: profileError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('username', 'admin')
-    .maybeSingle();
-
-  if (profileError) {
-    console.error("Admin profile lookup error:", profileError);
-    throw new Error("管理者アカウントの検索中にエラーが発生しました");
-  }
-
-  if (!adminProfile || !adminProfile.is_admin) {
-    throw new Error("管理者権限がありません");
-  }
-
-  const { error: signInError } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: 'admin@example.com',
     password,
   });
 
-  if (signInError) {
-    console.error("Admin login error:", signInError);
-    throw new Error("ユーザー名またはパスワードが正しくありません");
+  if (error) {
+    console.error("Admin login error:", error);
+    throw new Error("管理者ログインに失敗しました");
   }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', data.user.id)
+    .single();
+
+  if (profileError || !profile?.is_admin) {
+    await supabase.auth.signOut();
+    throw new Error("管理者権限がありません");
+  }
+
+  return data;
 };
 
 export const handleUserLogin = async (formData: LoginFormData) => {
-  // First check if the profile exists
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('username, id')
-    .eq('username', formData.username)
-    .single();
+  const email = `${formData.username.toLowerCase()}@example.com`;
+  console.log("Attempting login for user:", formData.username);
 
-  if (profileError) {
-    console.error("Profile lookup error:", profileError);
-    if (profileError.code === 'PGRST116') {
-      throw new Error("ユーザー名が見つかりません");
-    }
-    throw new Error("ユーザー情報の検索中にエラーが発生しました");
-  }
-
-  const userEmail = `${formData.username.toLowerCase()}@example.com`;
-  console.log("Attempting login with email:", userEmail);
-
-  const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-    email: userEmail,
-    password: formData.password,
-  });
-
-  if (signInError) {
-    console.error("Sign in error:", signInError);
-    throw new Error("ユーザー名またはパスワードが正しくありません");
-  }
-
-  return signInData;
-};
-
-export const handleUserSignup = async (formData: LoginFormData) => {
-  // Check if username already exists
-  const { data: existingProfile, error: profileError } = await supabase
+  const { data: profile } = await supabase
     .from('profiles')
     .select('username')
     .eq('username', formData.username)
     .maybeSingle();
 
-  if (profileError && profileError.code !== 'PGRST116') {
-    console.error("Username check error:", profileError);
-    throw new Error("ユーザー名の確認中にエラーが発生しました");
+  if (!profile) {
+    throw new Error("ユーザーが見つかりません");
   }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password: formData.password,
+  });
+
+  if (error) {
+    console.error("Login error:", error);
+    throw new Error("ログインに失敗しました。パスワードを確認してください。");
+  }
+
+  return data;
+};
+
+export const handleUserSignup = async (formData: LoginFormData) => {
+  const email = `${formData.username.toLowerCase()}@example.com`;
+  console.log("Creating new user:", formData.username);
+
+  // Check if username is already taken
+  const { data: existingProfile } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('username', formData.username)
+    .maybeSingle();
 
   if (existingProfile) {
     throw new Error("このユーザー名は既に使用されています");
   }
 
-  const userEmail = `${formData.username.toLowerCase()}@example.com`;
-  console.log("Creating new user with email:", userEmail);
-
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-    email: userEmail,
+  const { data, error } = await supabase.auth.signUp({
+    email,
     password: formData.password,
     options: {
       data: {
@@ -90,13 +78,21 @@ export const handleUserSignup = async (formData: LoginFormData) => {
     },
   });
 
-  if (signUpError) {
-    console.error("Signup error:", signUpError);
-    throw new Error("アカウント作成中にエラーが発生しました");
+  if (error) {
+    console.error("Signup error:", error);
+    throw new Error("アカウント作成に失敗しました");
   }
 
-  // Wait for the trigger to create the profile
+  // Wait for the profile creation trigger
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  return signUpData;
+  return data;
+};
+
+export const handleLogout = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Logout error:", error);
+    throw new Error("ログアウトに失敗しました");
+  }
 };
