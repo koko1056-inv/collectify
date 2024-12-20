@@ -1,6 +1,4 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, BookMarked, Trash2, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { ItemMemoriesModal } from "./ItemMemoriesModal";
@@ -8,17 +6,11 @@ import { TagManageModal } from "./tag/TagManageModal";
 import { ShareModal } from "./ShareModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useQueryClient } from "@tanstack/react-query";
+import { CardImage } from "./collection/CardImage";
+import { TagList } from "./collection/TagList";
+import { CardActions } from "./collection/CardActions";
+import { DeleteConfirmDialog } from "./collection/DeleteConfirmDialog";
 
 interface CollectionGoodsCardProps {
   title: string;
@@ -96,70 +88,21 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
     <>
       <Card className="hover-scale card-shadow bg-white border border-gray-200">
         <CardHeader className="p-0">
-          <div className="aspect-square relative overflow-hidden rounded-t-lg">
-            <img
-              src={image}
-              alt={title}
-              className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
-            />
-          </div>
+          <CardImage image={image} title={title} />
         </CardHeader>
         <CardContent className="p-4">
           <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
-          {hasTags && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {itemTags.map((tag) => (
-                <span
-                  key={tag.tag_id}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-                >
-                  {tag.tags.name}
-                </span>
-              ))}
-            </div>
-          )}
+          <TagList tags={itemTags} />
         </CardContent>
-        <CardFooter className="p-4 pt-0 flex justify-between gap-2">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => setIsMemoriesModalOpen(true)}
-            className={`${
-              hasMemories 
-                ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
-                : "border-gray-200 hover:bg-gray-50"
-            } transition-colors`}
-          >
-            <BookMarked className={`h-4 w-4 ${hasMemories ? "text-purple-500" : ""}`} />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => setIsTagManageModalOpen(true)}
-            className={`${
-              hasTags 
-                ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
-                : "border-gray-200 hover:bg-gray-50"
-            } transition-colors`}
-          >
-            <Tag className={`h-4 w-4 ${hasTags ? "text-purple-500" : ""}`} />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => setIsShareModalOpen(true)}
-            className="border-gray-200 hover:bg-gray-50"
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => setIsDeleteDialogOpen(true)}
-            className="border-gray-200 hover:bg-gray-50 hover:border-red-200 hover:text-red-500"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+        <CardFooter className="p-4 pt-0">
+          <CardActions
+            onMemoriesClick={() => setIsMemoriesModalOpen(true)}
+            onTagManageClick={() => setIsTagManageModalOpen(true)}
+            onShareClick={() => setIsShareModalOpen(true)}
+            onDeleteClick={() => setIsDeleteDialogOpen(true)}
+            hasMemories={hasMemories}
+            hasTags={hasTags}
+          />
         </CardFooter>
       </Card>
 
@@ -185,25 +128,11 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
         image={image}
       />
 
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>アイテムの削除</AlertDialogTitle>
-            <AlertDialogDescription>
-              このアイテムをコレクションから削除してもよろしいですか？この操作は取り消せません。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              削除する
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+      />
     </>
   );
 }
