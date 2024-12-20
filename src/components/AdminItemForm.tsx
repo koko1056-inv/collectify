@@ -38,6 +38,12 @@ export function AdminItemForm() {
     setSelectedTags(selectedTags.filter(tag => tag.id !== tagToRemove.id));
   };
 
+  const handleAddTag = (tag: Tag) => {
+    if (!selectedTags.some(selectedTag => selectedTag.id === tag.id)) {
+      setSelectedTags([...selectedTags, tag]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
