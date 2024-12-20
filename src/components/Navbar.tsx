@@ -1,71 +1,56 @@
-import { Button } from "@/components/ui/button";
-import { Heart, User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { WishlistViewModal } from "./WishlistViewModal";
+import { useToast } from "@/hooks/use-toast";
+import { UserInfo } from "./UserInfo";
 
 export function Navbar() {
   const { user } = useAuth();
-  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const { toast } = useToast();
 
-  const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "エラー",
+        description: "ログアウトに失敗しました",
+      });
+    } else {
+      toast({
+        title: "ログアウト完了",
+        description: "ログアウトしました",
+      });
+    }
+  };
 
   return (
-    <>
-      <nav className="border-b border-gray-100 bg-white shadow-sm">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="text-xl tracking-wider font-black text-gray-900 font-sans">
-            Collectify
-          </Link>
-          
-          <div className="flex items-center gap-4">
-            {profile?.is_admin && (
-              <Link to="/admin">
-                <Button variant="outline" className="border-gray-200 hover:bg-gray-50">
-                  管理者ページ
-                </Button>
-              </Link>
-            )}
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setIsWishlistOpen(true)}
-              className="hover:bg-gray-50"
-            >
-              <Heart className="h-5 w-5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="hover:bg-gray-50">
-              <User className="h-5 w-5" />
-            </Button>
-            <Link to="/login">
-              <Button variant="default" className="bg-gray-900 hover:bg-gray-800">
-                ログイン
+    <nav className="border-b">
+      <div className="flex h-16 items-center px-4 container mx-auto">
+        <Link to="/" className="font-semibold">
+          くじコレ
+        </Link>
+        <div className="ml-auto flex items-center space-x-4">
+          <UserInfo />
+          {user ? (
+            <>
+              {user.email === 'admin@example.com' && (
+                <Link to="/admin">
+                  <Button variant="outline">管理画面</Button>
+                </Link>
+              )}
+              <Button onClick={handleLogout} variant="outline">
+                ログアウト
               </Button>
+            </>
+          ) : (
+            <Link to="/login">
+              <Button variant="outline">ログイン</Button>
             </Link>
-          </div>
+          )}
         </div>
-      </nav>
-      <WishlistViewModal 
-        isOpen={isWishlistOpen} 
-        onClose={() => setIsWishlistOpen(false)} 
-      />
-    </>
+      </div>
+    </nav>
   );
 }
