@@ -3,9 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { CollectionGoodsCard } from "./CollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { useState } from "react";
 
 export function UserCollection() {
   const { user } = useAuth();
+  const [selectedArtist, setSelectedArtist] = useState<string>("");
+  const [selectedAnime, setSelectedAnime] = useState<string>("");
 
   const { data: userItems = [], isLoading } = useQuery({
     queryKey: ["user-items", user?.id],
@@ -22,6 +26,17 @@ export function UserCollection() {
       return data;
     },
     enabled: !!user,
+  });
+
+  // Extract unique artists and anime from user items
+  const artists = Array.from(new Set(userItems.map(item => item.artist).filter(Boolean)));
+  const animes = Array.from(new Set(userItems.map(item => item.anime).filter(Boolean)));
+
+  // Filter items based on selected artist and anime
+  const filteredItems = userItems.filter(item => {
+    const matchesArtist = !selectedArtist || item.artist === selectedArtist;
+    const matchesAnime = !selectedAnime || item.anime === selectedAnime;
+    return matchesArtist && matchesAnime;
   });
 
   if (!user) {
@@ -55,15 +70,50 @@ export function UserCollection() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {userItems.map((item) => (
-        <CollectionGoodsCard
-          key={item.id}
-          id={item.id}
-          title={item.title}
-          image={item.image}
-        />
-      ))}
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-4">
+        <div className="w-48">
+          <Select value={selectedArtist} onValueChange={setSelectedArtist}>
+            <SelectTrigger>
+              <SelectValue placeholder="アーティストで絞り込み" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">すべて</SelectItem>
+              {artists.map((artist) => (
+                <SelectItem key={artist} value={artist}>
+                  {artist}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-48">
+          <Select value={selectedAnime} onValueChange={setSelectedAnime}>
+            <SelectTrigger>
+              <SelectValue placeholder="アニメで絞り込み" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">すべて</SelectItem>
+              {animes.map((anime) => (
+                <SelectItem key={anime} value={anime}>
+                  {anime}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {filteredItems.map((item) => (
+          <CollectionGoodsCard
+            key={item.id}
+            id={item.id}
+            title={item.title}
+            image={item.image}
+          />
+        ))}
+      </div>
     </div>
   );
 }

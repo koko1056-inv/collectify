@@ -187,6 +187,8 @@ export type Database = {
       }
       user_items: {
         Row: {
+          anime: string | null
+          artist: string | null
           created_at: string
           id: string
           image: string
@@ -198,6 +200,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          anime?: string | null
+          artist?: string | null
           created_at?: string
           id?: string
           image: string
@@ -209,6 +213,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          anime?: string | null
+          artist?: string | null
           created_at?: string
           id?: string
           image?: string
