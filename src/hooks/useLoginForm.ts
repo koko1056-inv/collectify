@@ -48,10 +48,15 @@ export function useLoginForm() {
             .from('profiles')
             .select('*')
             .eq('username', 'admin')
-            .single();
+            .maybeSingle();
 
           if (profileError) {
             console.error("Admin profile lookup error:", profileError);
+            throw new Error("管理者アカウントの検索中にエラーが発生しました");
+          }
+
+          if (!adminProfile) {
+            console.error("Admin profile not found");
             throw new Error("管理者アカウントが見つかりません");
           }
 
@@ -83,10 +88,15 @@ export function useLoginForm() {
           .from('profiles')
           .select('id, username')
           .eq('username', formData.username)
-          .single();
+          .maybeSingle();
 
         if (profileError) {
           console.error("Profile lookup error:", profileError);
+          throw new Error("ユーザー情報の検索中にエラーが発生しました");
+        }
+
+        if (!profile) {
+          console.error("Profile not found for username:", formData.username);
           throw new Error("ユーザー名が見つかりません");
         }
 
@@ -114,11 +124,16 @@ export function useLoginForm() {
         console.log("Attempting user signup...");
         
         // Check if username is already taken
-        const { data: existingUser } = await supabase
+        const { data: existingUser, error: existingUserError } = await supabase
           .from('profiles')
           .select('username')
           .eq('username', formData.username)
-          .single();
+          .maybeSingle();
+
+        if (existingUserError) {
+          console.error("Error checking existing user:", existingUserError);
+          throw new Error("ユーザー名の確認中にエラーが発生しました");
+        }
 
         if (existingUser) {
           throw new Error("このユーザー名は既に使用されています");
