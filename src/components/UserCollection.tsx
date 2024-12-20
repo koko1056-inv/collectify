@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { GoodsCard } from "./GoodsCard";
+import { CollectionGoodsCard } from "./CollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
 
 export function UserCollection() {
@@ -57,7 +57,7 @@ export function UserCollection() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {userItems.map((item) => (
-        <GoodsCard
+        <CollectionGoodsCard
           key={item.id}
           id={item.id}
           title={item.title}
