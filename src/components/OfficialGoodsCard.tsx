@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Share2 } from "lucide-react";
+import { Heart, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
+import { TagManageModal } from "./TagManageModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +19,7 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
   const { toast } = useToast();
   const { user } = useAuth();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Check if the item is already in the user's collection
@@ -122,8 +124,13 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
           >
             {isInCollection ? "追加済み" : "コレクションに追加"}
           </Button>
-          <Button variant="outline" size="icon" onClick={handleShare} className="border-gray-200 hover:bg-gray-50">
-            <Share2 className="h-4 w-4" />
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => setIsTagModalOpen(true)}
+            className="border-gray-200 hover:bg-gray-50"
+          >
+            <Tag className="h-4 w-4" />
           </Button>
           <div className="flex flex-col items-center">
             <Button 
@@ -141,6 +148,12 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
       <WishlistModal
         isOpen={isWishlistModalOpen}
         onClose={() => setIsWishlistModalOpen(false)}
+        itemId={id}
+        itemTitle={title}
+      />
+      <TagManageModal
+        isOpen={isTagModalOpen}
+        onClose={() => setIsTagModalOpen(false)}
         itemId={id}
         itemTitle={title}
       />
