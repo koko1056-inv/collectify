@@ -6,9 +6,10 @@ import { useState } from "react";
 
 interface TagInputFieldProps {
   itemId: string;
+  isUserItem?: boolean;
 }
 
-export function TagInputField({ itemId }: TagInputFieldProps) {
+export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps) {
   const [tagInput, setTagInput] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -39,16 +40,21 @@ export function TagInputField({ itemId }: TagInputFieldProps) {
           tagId = newTag.id;
         }
 
+        // Insert into the appropriate tags table based on item type
         const { error: relationError } = await supabase
-          .from("item_tags")
-          .insert([{
-            official_item_id: itemId,
-            tag_id: tagId,
-          }]);
+          .from(isUserItem ? "user_item_tags" : "item_tags")
+          .insert(
+            isUserItem
+              ? [{ user_item_id: itemId, tag_id: tagId }]
+              : [{ official_item_id: itemId, tag_id: tagId }]
+          );
 
         if (relationError) throw relationError;
 
-        queryClient.invalidateQueries({ queryKey: ["item-tags", itemId] });
+        // Invalidate the appropriate queries
+        queryClient.invalidateQueries({
+          queryKey: isUserItem ? ["user-item-tags", itemId] : ["item-tags", itemId],
+        });
         queryClient.invalidateQueries({ queryKey: ["tags"] });
 
         setTagInput("");

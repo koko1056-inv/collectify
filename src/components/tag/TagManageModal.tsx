@@ -1,36 +1,29 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TagInputField } from "./TagInputField";
-import { CurrentTags } from "./CurrentTags";
 import { ExistingTags } from "./ExistingTags";
+import { CurrentTags } from "./CurrentTags";
 
 interface TagManageModalProps {
   isOpen: boolean;
   onClose: () => void;
   itemId: string;
   itemTitle: string;
+  isUserItem?: boolean;
 }
 
-export function TagManageModal({
-  isOpen,
-  onClose,
-  itemId,
-  itemTitle,
-}: TagManageModalProps) {
+export function TagManageModal({ isOpen, onClose, itemId, itemTitle, isUserItem = false }: TagManageModalProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>タグの管理 - {itemTitle}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            タグの管理: {itemTitle}
+          </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          <TagInputField itemId={itemId} />
-          <CurrentTags itemId={itemId} />
-          <ExistingTags itemId={itemId} />
+        <div className="space-y-6">
+          <TagInputField itemId={itemId} isUserItem={isUserItem} />
+          <CurrentTags itemId={itemId} isUserItem={isUserItem} />
+          <ExistingTags itemId={itemId} isUserItem={isUserItem} />
         </div>
       </DialogContent>
     </Dialog>

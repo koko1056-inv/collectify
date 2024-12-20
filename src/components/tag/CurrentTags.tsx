@@ -6,17 +6,18 @@ import { X } from "lucide-react";
 
 interface CurrentTagsProps {
   itemId: string;
+  isUserItem?: boolean;
 }
 
-export function CurrentTags({ itemId }: CurrentTagsProps) {
+export function CurrentTags({ itemId, isUserItem = false }: CurrentTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: itemTags = [] } = useQuery({
-    queryKey: ["item-tags", itemId],
+    queryKey: isUserItem ? ["user-item-tags", itemId] : ["item-tags", itemId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("item_tags")
+        .from(isUserItem ? "user_item_tags" : "item_tags")
         .select(`
           tag_id,
           tags (
@@ -24,7 +25,7 @@ export function CurrentTags({ itemId }: CurrentTagsProps) {
             name
           )
         `)
-        .eq("official_item_id", itemId);
+        .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
       if (error) throw error;
       return data.map(tag => ({
         id: tag.tags.id,
@@ -36,14 +37,16 @@ export function CurrentTags({ itemId }: CurrentTagsProps) {
   const handleRemoveTag = async (tagId: string, tagName: string) => {
     try {
       const { error } = await supabase
-        .from("item_tags")
+        .from(isUserItem ? "user_item_tags" : "item_tags")
         .delete()
-        .eq("official_item_id", itemId)
+        .eq(isUserItem ? "user_item_id" : "official_item_id", itemId)
         .eq("tag_id", tagId);
 
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["item-tags", itemId] });
+      queryClient.invalidateQueries({
+        queryKey: isUserItem ? ["user-item-tags", itemId] : ["item-tags", itemId],
+      });
 
       toast({
         title: "タグを削除しました",
