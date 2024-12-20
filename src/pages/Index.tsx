@@ -110,7 +110,7 @@ const Index = () => {
               <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
                 マイコレクション
               </h1>
-              <UserCollection />
+              <UserCollection selectedTag={selectedTag} />
             </TabsContent>
           </Tabs>
         </div>

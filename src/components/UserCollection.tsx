@@ -3,12 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { CollectionGoodsCard } from "./CollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
-import { Badge } from "./ui/badge";
-import { useState } from "react";
 
-export function UserCollection() {
+interface UserCollectionProps {
+  selectedTag: string | null;
+}
+
+export function UserCollection({ selectedTag }: UserCollectionProps) {
   const { user } = useAuth();
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   const { data: userItems = [], isLoading: isItemsLoading } = useQuery({
     queryKey: ["user-items", user?.id],
@@ -35,18 +36,6 @@ export function UserCollection() {
     enabled: !!user,
   });
 
-  const { data: allTags = [], isLoading: isTagsLoading } = useQuery({
-    queryKey: ["tags"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tags")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
-
   if (!user) {
     return (
       <div className="text-center py-8">
@@ -55,7 +44,7 @@ export function UserCollection() {
     );
   }
 
-  if (isItemsLoading || isTagsLoading) {
+  if (isItemsLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
@@ -84,37 +73,15 @@ export function UserCollection() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap gap-2">
-        <Badge
-          variant={selectedTag === null ? "default" : "outline"}
-          className="cursor-pointer"
-          onClick={() => setSelectedTag(null)}
-        >
-          すべて
-        </Badge>
-        {allTags.map((tag) => (
-          <Badge
-            key={tag.id}
-            variant={selectedTag === tag.name ? "default" : "outline"}
-            className="cursor-pointer"
-            onClick={() => setSelectedTag(tag.name)}
-          >
-            {tag.name}
-          </Badge>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredItems.map((item) => (
-          <CollectionGoodsCard
-            key={item.id}
-            id={item.id}
-            title={item.title}
-            image={item.image}
-          />
-        ))}
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {filteredItems.map((item) => (
+        <CollectionGoodsCard
+          key={item.id}
+          id={item.id}
+          title={item.title}
+          image={item.image}
+        />
+      ))}
     </div>
   );
 }
