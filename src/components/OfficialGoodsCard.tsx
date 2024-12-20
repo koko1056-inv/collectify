@@ -53,12 +53,25 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
     },
   });
 
-  const handleShare = () => {
-    toast({
-      title: "共有",
-      description: "共有機能は準備中です。",
-    });
-  };
+  // Fetch item's tags
+  const { data: itemTags = [] } = useQuery({
+    queryKey: ["item-tags", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("item_tags")
+        .select(`
+          tag_id,
+          tags (
+            id,
+            name,
+            created_at
+          )
+        `)
+        .eq("official_item_id", id);
+      if (error) throw error;
+      return data.map(tag => tag.tags);
+    },
+  });
 
   const handleAddToCollection = async () => {
     if (!user) {
@@ -114,6 +127,18 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
         </CardHeader>
         <CardContent className="p-4">
           <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
+          {itemTags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {itemTags.map((tag) => (
+                <span
+                  key={tag.id}
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                >
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+          )}
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
           <Button 
