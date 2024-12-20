@@ -9,9 +9,11 @@ import { UserCollection } from "@/components/UserCollection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const { data: items = [] } = useQuery({
@@ -19,7 +21,15 @@ const Index = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("official_items")
-        .select("*")
+        .select(`
+          *,
+          item_tags (
+            tag_id,
+            tags (
+              name
+            )
+          )
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -27,16 +37,37 @@ const Index = () => {
     },
   });
 
-  const filteredItems = items.filter((item) =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const { data: allTags = [] } = useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const filteredItems = items.filter((item) => {
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (selectedTag) {
+      const itemTags = item.item_tags?.map(
+        (itemTag: any) => itemTag.tags?.name
+      ) || [];
+      return matchesSearch && itemTags.includes(selectedTag);
+    }
+    
+    return matchesSearch;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-xl mx-auto mb-8">
-          <div className="relative">
+          <div className="relative mb-4">
             <Input
               type="text"
               placeholder="グッズを検索..."
@@ -45,6 +76,25 @@ const Index = () => {
               className="pl-10 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
             />
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {allTags.map((tag) => (
+              <Badge
+                key={tag.id}
+                variant={selectedTag === tag.name ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => {
+                  if (selectedTag === tag.name) {
+                    setSelectedTag(null);
+                  } else {
+                    setSelectedTag(tag.name);
+                  }
+                }}
+              >
+                {tag.name}
+              </Badge>
+            ))}
           </div>
         </div>
 
