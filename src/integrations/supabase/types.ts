@@ -68,6 +68,42 @@ export type Database = {
           },
         ]
       }
+      item_tags: {
+        Row: {
+          created_at: string
+          id: string
+          official_item_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          official_item_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          official_item_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_tags_official_item_id_fkey"
+            columns: ["official_item_id"]
+            isOneToOne: false
+            referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       official_items: {
         Row: {
           created_at: string
@@ -128,6 +164,24 @@ export type Database = {
           id?: string
           is_admin?: boolean | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }

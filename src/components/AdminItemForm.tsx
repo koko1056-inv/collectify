@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export function AdminItemForm() {
   const { toast } = useToast();
@@ -16,6 +19,21 @@ export function AdminItemForm() {
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [tagInput, setTagInput] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Fetch existing tags
+  const { data: existingTags = [] } = useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("name")
+        .order("name");
+      if (error) throw error;
+      return data.map(tag => tag.name);
+    },
+  });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -24,6 +42,21 @@ export function AdminItemForm() {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
+  };
+
+  const handleAddTag = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && tagInput.trim()) {
+      e.preventDefault();
+      const newTag = tagInput.trim().toLowerCase();
+      if (!selectedTags.includes(newTag)) {
+        setSelectedTags([...selectedTags, newTag]);
+      }
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setSelectedTags(selectedTags.filter(tag => tag !== tagToRemove));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,16 +83,56 @@ export function AdminItemForm() {
         imageUrl = publicUrl;
       }
 
-      const { error } = await supabase.from("official_items").insert([
-        {
-          ...formData,
-          image: imageUrl,
-          price: "0", // ダミー値として設定
-          release_date: new Date().toISOString(), // ダミー値として設定
-        },
-      ]);
+      // Insert the item first
+      const { data: itemData, error: itemError } = await supabase
+        .from("official_items")
+        .insert([
+          {
+            ...formData,
+            image: imageUrl,
+            price: "0", // ダミー値として設定
+            release_date: new Date().toISOString(), // ダミー値として設定
+          },
+        ])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (itemError) throw itemError;
+
+      // Process tags
+      for (const tagName of selectedTags) {
+        // Insert or get tag
+        const { data: tagData, error: tagError } = await supabase
+          .from("tags")
+          .select("id")
+          .eq("name", tagName)
+          .single();
+
+        let tagId;
+        if (tagError) {
+          // Tag doesn't exist, create it
+          const { data: newTag, error: createTagError } = await supabase
+            .from("tags")
+            .insert([{ name: tagName }])
+            .select()
+            .single();
+
+          if (createTagError) throw createTagError;
+          tagId = newTag.id;
+        } else {
+          tagId = tagData.id;
+        }
+
+        // Create item-tag relationship
+        const { error: relationError } = await supabase
+          .from("item_tags")
+          .insert([{
+            official_item_id: itemData.id,
+            tag_id: tagId,
+          }]);
+
+        if (relationError) throw relationError;
+      }
 
       toast({
         title: "アイテムを追加しました",
@@ -72,9 +145,12 @@ export function AdminItemForm() {
       });
       setImageFile(null);
       setPreviewUrl(null);
+      setSelectedTags([]);
 
       queryClient.invalidateQueries({ queryKey: ["official-items"] });
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
     } catch (error) {
+      console.error("Error:", error);
       toast({
         title: "エラー",
         description: "アイテムの追加に失敗しました。",
@@ -137,6 +213,57 @@ export function AdminItemForm() {
                 setFormData({ ...formData, description: e.target.value })
               }
             />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="tags" className="text-sm font-medium">
+              タグ
+            </label>
+            <Input
+              id="tags"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleAddTag}
+              placeholder="タグを入力してEnterを押してください"
+            />
+            <div className="flex flex-wrap gap-2 mt-2">
+              {selectedTags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tag)}
+                    className="hover:text-destructive"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+            {existingTags.length > 0 && (
+              <div className="mt-2">
+                <p className="text-sm text-muted-foreground mb-1">既存のタグ:</p>
+                <div className="flex flex-wrap gap-2">
+                  {existingTags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="outline"
+                      className="cursor-pointer hover:bg-secondary"
+                      onClick={() => {
+                        if (!selectedTags.includes(tag)) {
+                          setSelectedTags([...selectedTags, tag]);
+                        }
+                      }}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "追加中..." : "アイテムを追加"}
