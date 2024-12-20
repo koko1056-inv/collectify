@@ -118,6 +118,7 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
         onClose={() => setIsTagManageModalOpen(false)}
         itemId={id}
         itemTitle={title}
+        isUserItem={true}
       />
 
       <ShareModal
