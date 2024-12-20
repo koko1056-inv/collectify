@@ -101,15 +101,17 @@ export function AdminItemForm() {
 
       // Process tags
       for (const tagName of selectedTags) {
-        // Insert or get tag
-        const { data: tagData, error: tagError } = await supabase
+        // Check if tag exists using maybeSingle()
+        const { data: existingTag, error: tagError } = await supabase
           .from("tags")
           .select("id")
           .eq("name", tagName)
-          .single();
+          .maybeSingle();
+
+        if (tagError) throw tagError;
 
         let tagId;
-        if (tagError) {
+        if (!existingTag) {
           // Tag doesn't exist, create it
           const { data: newTag, error: createTagError } = await supabase
             .from("tags")
@@ -120,7 +122,7 @@ export function AdminItemForm() {
           if (createTagError) throw createTagError;
           tagId = newTag.id;
         } else {
-          tagId = tagData.id;
+          tagId = existingTag.id;
         }
 
         // Create item-tag relationship
