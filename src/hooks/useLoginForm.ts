@@ -43,7 +43,6 @@ export function useLoginForm() {
       if (isLogin) {
         // For admin login
         if (formData.username === 'admin') {
-          console.log("Attempting admin login...");
           const { data: adminProfile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
@@ -51,16 +50,10 @@ export function useLoginForm() {
             .maybeSingle();
 
           if (profileError) {
-            console.error("Admin profile lookup error:", profileError);
             throw new Error("管理者アカウントの検索中にエラーが発生しました");
           }
 
-          if (!adminProfile) {
-            console.error("Admin profile not found");
-            throw new Error("管理者アカウントが見つかりません");
-          }
-
-          if (!adminProfile.is_admin) {
+          if (!adminProfile || !adminProfile.is_admin) {
             throw new Error("管理者権限がありません");
           }
 
@@ -70,7 +63,6 @@ export function useLoginForm() {
           });
 
           if (signInError) {
-            console.error("Admin login error:", signInError);
             throw new Error("ユーザー名またはパスワードが正しくありません");
           }
 
@@ -83,7 +75,6 @@ export function useLoginForm() {
         }
 
         // For regular users
-        console.log("Attempting regular user login...");
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('id')
@@ -91,20 +82,14 @@ export function useLoginForm() {
           .maybeSingle();
 
         if (profileError) {
-          console.error("Profile lookup error:", profileError);
           throw new Error("ユーザー情報の検索中にエラーが発生しました");
         }
 
         if (!profile) {
-          console.error("Profile not found for username:", formData.username);
           throw new Error("ユーザー名が見つかりません");
         }
 
-        console.log("Found profile:", profile);
-
-        // Generate email using profile.id
         const userEmail = `${profile.id}@example.com`;
-        console.log("Attempting login with email:", userEmail);
 
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: userEmail,
@@ -112,7 +97,6 @@ export function useLoginForm() {
         });
 
         if (signInError) {
-          console.error("User login error:", signInError);
           throw new Error("ユーザー名またはパスワードが正しくありません");
         }
 
@@ -123,9 +107,6 @@ export function useLoginForm() {
         navigate("/");
       } else {
         // For signup
-        console.log("Attempting user signup...");
-        
-        // Check if username is already taken
         const { data: existingUser, error: existingUserError } = await supabase
           .from('profiles')
           .select('username')
@@ -133,7 +114,6 @@ export function useLoginForm() {
           .maybeSingle();
 
         if (existingUserError) {
-          console.error("Error checking existing user:", existingUserError);
           throw new Error("ユーザー名の確認中にエラーが発生しました");
         }
 
@@ -141,9 +121,7 @@ export function useLoginForm() {
           throw new Error("このユーザー名は既に使用されています");
         }
 
-        // Generate a random email for the user
         const randomEmail = `${crypto.randomUUID()}@example.com`;
-        console.log("Signing up with email:", randomEmail);
         
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: randomEmail,
@@ -156,11 +134,8 @@ export function useLoginForm() {
         });
 
         if (signUpError) {
-          console.error("Signup error:", signUpError);
           throw new Error("アカウント作成中にエラーが発生しました");
         }
-
-        console.log("Signup successful:", signUpData);
 
         // Wait for the trigger to create the profile
         await new Promise(resolve => setTimeout(resolve, 1000));
