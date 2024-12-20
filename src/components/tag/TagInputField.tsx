@@ -20,6 +20,7 @@ export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps
       const newTagName = tagInput.trim().toLowerCase();
 
       try {
+        // First check if tag exists
         let tagId;
         const { data: existingTag } = await supabase
           .from("tags")
@@ -29,7 +30,26 @@ export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps
 
         if (existingTag) {
           tagId = existingTag.id;
+          
+          // Check if this tag is already associated with the item
+          const { data: existingItemTag } = await supabase
+            .from(isUserItem ? "user_item_tags" : "item_tags")
+            .select("id")
+            .eq(isUserItem ? "user_item_id" : "official_item_id", itemId)
+            .eq("tag_id", tagId)
+            .maybeSingle();
+
+          if (existingItemTag) {
+            toast({
+              title: "タグが既に存在します",
+              description: `${newTagName}は既にこのアイテムに追加されています。`,
+              variant: "destructive",
+            });
+            setTagInput("");
+            return;
+          }
         } else {
+          // Create new tag if it doesn't exist
           const { data: newTag, error: createTagError } = await supabase
             .from("tags")
             .insert([{ name: newTagName }])
@@ -40,7 +60,11 @@ export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps
           tagId = newTag.id;
         }
 
-        // Insert into the appropriate tags table based on item type
+        if (!tagId) {
+          throw new Error("タグIDが見つかりませんでした。");
+        }
+
+        // Insert into the appropriate tags table
         const { error: relationError } = await supabase
           .from(isUserItem ? "user_item_tags" : "item_tags")
           .insert(
@@ -51,7 +75,7 @@ export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps
 
         if (relationError) throw relationError;
 
-        // Invalidate the appropriate queries
+        // Invalidate queries
         queryClient.invalidateQueries({
           queryKey: isUserItem ? ["user-item-tags", itemId] : ["item-tags", itemId],
         });
