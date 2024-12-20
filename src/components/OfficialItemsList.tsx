@@ -9,6 +9,9 @@ interface OfficialItemsListProps {
 
 export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const navigate = useNavigate();
+  
+  // Filter out the last 6 items
+  const displayedItems = items.slice(0, -6);
 
   return (
     <div className="space-y-6">
@@ -24,7 +27,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
         </Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {items.map((item) => (
+        {displayedItems.map((item) => (
           <OfficialGoodsCard
             key={item.id}
             id={item.id}
