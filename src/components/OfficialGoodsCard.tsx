@@ -1,102 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Share2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Share2, Tag, Heart } from "lucide-react";
 import { useState } from "react";
+import { TagManageModal } from "./TagManageModal";
+import { ShareModal } from "./ShareModal";
 import { WishlistModal } from "./WishlistModal";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface OfficialGoodsCardProps {
+  id: string;
   title: string;
   image: string;
-  id: string;
 }
 
-export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) {
-  const { toast } = useToast();
-  const { user } = useAuth();
+export function OfficialGoodsCard({ id, title, image }: OfficialGoodsCardProps) {
+  const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
-  const queryClient = useQueryClient();
-
-  // Check if the item is already in the user's collection
-  const { data: isInCollection } = useQuery({
-    queryKey: ["user-item-exists", id, user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-      
-      const { data } = await supabase
-        .from("user_items")
-        .select("id")
-        .eq("official_link", id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      
-      return !!data;
-    },
-    enabled: !!user,
-  });
-
-  // Fetch wishlist count for this item
-  const { data: wishlistCount = 0 } = useQuery({
-    queryKey: ["wishlist-count", id],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("wishlists")
-        .select("*", { count: 'exact', head: true })
-        .eq("official_item_id", id);
-      
-      return count || 0;
-    },
-  });
-
-  const handleShare = () => {
-    toast({
-      title: "共有",
-      description: "共有機能は準備中です。",
-    });
-  };
-
-  const handleAddToCollection = async () => {
-    if (!user) {
-      toast({
-        title: "エラー",
-        description: "コレクションに追加するにはログインが必要です。",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { error } = await supabase.from("user_items").insert({
-        title,
-        image,
-        release_date: new Date().toISOString(),
-        user_id: user.id,
-        is_shared: false,
-        prize: "0",
-        official_link: id,
-      });
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user.id] });
-      queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
-
-      toast({
-        title: "成功",
-        description: "コレクションに追加しました。",
-      });
-    } catch (error) {
-      console.error("Error adding to collection:", error);
-      toast({
-        title: "エラー",
-        description: "コレクションへの追加に失敗しました。",
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <>
@@ -111,33 +30,54 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
           </div>
         </CardHeader>
         <CardContent className="p-4">
-          <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
+          <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">
+            {title}
+          </CardTitle>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
-          <Button 
-            variant={isInCollection ? "secondary" : "default"}
-            className={`flex-1 ${isInCollection ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-gray-900 hover:bg-gray-800'}`}
-            onClick={handleAddToCollection}
-            disabled={isInCollection}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setIsTagManageModalOpen(true)}
+            className="border-gray-200 hover:bg-gray-50"
           >
-            {isInCollection ? "追加済み" : "コレクションに追加"}
+            <Tag className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" onClick={handleShare} className="border-gray-200 hover:bg-gray-50">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setIsShareModalOpen(true)}
+            className="border-gray-200 hover:bg-gray-50"
+          >
             <Share2 className="h-4 w-4" />
           </Button>
-          <div className="flex flex-col items-center">
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={() => setIsWishlistModalOpen(true)}
-              className="border-gray-200 hover:bg-gray-50"
-            >
-              <Heart className="h-4 w-4" />
-            </Button>
-            <span className="text-xs text-gray-500 mt-1">{wishlistCount}</span>
-          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setIsWishlistModalOpen(true)}
+            className="border-gray-200 hover:bg-gray-50"
+          >
+            <Heart className="h-4 w-4" />
+          </Button>
         </CardFooter>
       </Card>
+
+      <TagManageModal
+        isOpen={isTagManageModalOpen}
+        onClose={() => setIsTagManageModalOpen(false)}
+        itemId={id}
+        itemTitle={title}
+        isOfficialItem={true}
+      />
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={title}
+        url={window.location.href}
+        image={image}
+      />
+
       <WishlistModal
         isOpen={isWishlistModalOpen}
         onClose={() => setIsWishlistModalOpen(false)}
