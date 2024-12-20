@@ -1,9 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Share2, BookMarked } from "lucide-react";
+import { Share2, BookMarked, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { ItemMemoriesModal } from "./ItemMemoriesModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CollectionGoodsCardProps {
   title: string;
@@ -14,12 +26,40 @@ interface CollectionGoodsCardProps {
 export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardProps) {
   const { toast } = useToast();
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleShare = () => {
     toast({
       title: "共有",
       description: "共有機能は準備中です。",
     });
+  };
+
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from("user_items")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      // Invalidate the user items query to refresh the collection
+      queryClient.invalidateQueries({ queryKey: ["user-items"] });
+
+      toast({
+        title: "削除完了",
+        description: "アイテムをコレクションから削除しました。",
+      });
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      toast({
+        title: "エラー",
+        description: "アイテムの削除に失敗しました。",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -46,17 +86,51 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
           >
             <BookMarked className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" onClick={handleShare} className="border-gray-200 hover:bg-gray-50">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleShare} 
+            className="border-gray-200 hover:bg-gray-50"
+          >
             <Share2 className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="border-gray-200 hover:bg-gray-50 hover:border-red-200 hover:text-red-500"
+          >
+            <Trash2 className="h-4 w-4" />
           </Button>
         </CardFooter>
       </Card>
+
       <ItemMemoriesModal
         isOpen={isMemoriesModalOpen}
         onClose={() => setIsMemoriesModalOpen(false)}
         itemId={id}
         itemTitle={title}
       />
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>アイテムの削除</AlertDialogTitle>
+            <AlertDialogDescription>
+              このアイテムをコレクションから削除してもよろしいですか？この操作は取り消せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
