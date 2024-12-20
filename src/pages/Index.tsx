@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SearchBar } from "@/components/SearchBar";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
 import { OfficialItem, Tag } from "@/types";
+import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -62,35 +63,57 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
-        <SearchBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedTag={selectedTag}
-          onTagSelect={setSelectedTag}
-          tags={allTags}
-        />
+        <div className="space-y-6">
+          <SearchBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedTag={selectedTag}
+            onTagSelect={setSelectedTag}
+            tags={allTags}
+          />
 
-        <Tabs defaultValue="official" className="space-y-6">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white border border-gray-200">
-            <TabsTrigger value="official" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white">
-              公式グッズ
-            </TabsTrigger>
-            <TabsTrigger value="collection" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white">
-              マイコレクション
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex flex-wrap gap-2">
+            <Badge
+              variant={selectedTag === null ? "default" : "outline"}
+              className="cursor-pointer"
+              onClick={() => setSelectedTag(null)}
+            >
+              すべて
+            </Badge>
+            {allTags.map((tag) => (
+              <Badge
+                key={tag.id}
+                variant={selectedTag === tag.name ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => setSelectedTag(tag.name)}
+              >
+                {tag.name}
+              </Badge>
+            ))}
+          </div>
 
-          <TabsContent value="official">
-            <OfficialItemsList items={filteredItems} />
-          </TabsContent>
+          <Tabs defaultValue="official" className="space-y-6">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white border border-gray-200">
+              <TabsTrigger value="official" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white">
+                公式グッズ
+              </TabsTrigger>
+              <TabsTrigger value="collection" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white">
+                マイコレクション
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="collection">
-            <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
-              マイコレクション
-            </h1>
-            <UserCollection />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="official">
+              <OfficialItemsList items={filteredItems} />
+            </TabsContent>
+
+            <TabsContent value="collection">
+              <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
+                マイコレクション
+              </h1>
+              <UserCollection />
+            </TabsContent>
+          </Tabs>
+        </div>
       </main>
     </div>
   );
