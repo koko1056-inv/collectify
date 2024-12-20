@@ -86,7 +86,7 @@ export function useLoginForm() {
         console.log("Attempting regular user login...");
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('id, username')
+          .select('id')
           .eq('username', formData.username)
           .maybeSingle();
 
@@ -102,8 +102,12 @@ export function useLoginForm() {
 
         console.log("Found profile:", profile);
 
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: `${profile.id}@example.com`,
+        // Generate email using profile.id
+        const userEmail = `${profile.id}@example.com`;
+        console.log("Attempting login with email:", userEmail);
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: userEmail,
           password: formData.password,
         });
 
@@ -111,8 +115,6 @@ export function useLoginForm() {
           console.error("User login error:", signInError);
           throw new Error("ユーザー名またはパスワードが正しくありません");
         }
-
-        console.log("Login successful:", signInData);
 
         toast({
           title: "ログイン成功",
@@ -141,6 +143,7 @@ export function useLoginForm() {
 
         // Generate a random email for the user
         const randomEmail = `${crypto.randomUUID()}@example.com`;
+        console.log("Signing up with email:", randomEmail);
         
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: randomEmail,
