@@ -31,8 +31,8 @@ export function Navbar() {
     <>
       <nav className="border-b border-gray-100 bg-white shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold text-gray-900">
-            AnimeCollect
+          <Link to="/" className="text-xl tracking-wider font-black text-gray-900 font-sans">
+            Collectify
           </Link>
           
           <div className="flex items-center gap-4">
