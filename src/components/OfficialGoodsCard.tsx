@@ -6,6 +6,7 @@ import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 
 interface OfficialGoodsCardProps {
   title: string;
@@ -17,6 +18,24 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
   const { toast } = useToast();
   const { user } = useAuth();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+
+  // Check if the item is already in the user's collection
+  const { data: isInCollection } = useQuery({
+    queryKey: ["user-item-exists", id, user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      
+      const { data } = await supabase
+        .from("user_items")
+        .select("id")
+        .eq("title", title)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      return !!data;
+    },
+    enabled: !!user,
+  });
 
   const handleShare = () => {
     toast({
@@ -78,11 +97,12 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between gap-2">
           <Button 
-            variant="default" 
-            className="flex-1 bg-gray-900 hover:bg-gray-800"
+            variant={isInCollection ? "secondary" : "default"}
+            className={`flex-1 ${isInCollection ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-gray-900 hover:bg-gray-800'}`}
             onClick={handleAddToCollection}
+            disabled={isInCollection}
           >
-            コレクションに追加
+            {isInCollection ? "追加済み" : "コレクションに追加"}
           </Button>
           <Button variant="outline" size="icon" onClick={handleShare} className="border-gray-200 hover:bg-gray-50">
             <Share2 className="h-4 w-4" />
