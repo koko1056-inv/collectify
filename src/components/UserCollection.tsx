@@ -1,18 +1,15 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { CollectionGoodsCard } from "./CollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export function UserCollection() {
   const { user } = useAuth();
   const [selectedArtist, setSelectedArtist] = useState<string>("all");
   const [selectedAnime, setSelectedAnime] = useState<string>("all");
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const { data: userItems = [], isLoading } = useQuery({
     queryKey: ["user-items", user?.id],
@@ -26,7 +23,6 @@ export function UserCollection() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      console.log("Fetched user items:", data);
       return data;
     },
     enabled: !!user,
@@ -42,57 +38,6 @@ export function UserCollection() {
     const matchesAnime = selectedAnime === "all" || item.anime === selectedAnime;
     return matchesArtist && matchesAnime;
   });
-
-  // Function to delete specific items
-  const deleteSpecificItems = async () => {
-    if (!user) return;
-
-    const itemsToDelete = [
-      "ナルト うずまきナルト フィギュア",
-      "ハンターハンター キルア フィギュア",
-      "ワンピース ルフィ アクションフィギュア",
-      "鬼滅の刃 我妻善逸 フィギュア",
-      "進撃の巨人 エレン・イェーガー フィギュア",
-      "ドラゴンボール 孫悟空 フィギュア"
-    ];
-
-    console.log("Attempting to delete items:", itemsToDelete);
-
-    try {
-      const { data, error } = await supabase
-        .from("user_items")
-        .delete()
-        .eq("user_id", user.id)
-        .in("title", itemsToDelete)
-        .select();
-
-      if (error) throw error;
-
-      console.log("Deleted items:", data);
-
-      // Immediately invalidate and refetch the user items query
-      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
-
-      toast({
-        title: "削除完了",
-        description: "指定されたアイテムを削除しました。",
-      });
-    } catch (error) {
-      console.error("Error deleting items:", error);
-      toast({
-        title: "エラー",
-        description: "アイテムの削除中にエラーが発生しました。",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Call deleteSpecificItems when component mounts
-  useEffect(() => {
-    if (user) {
-      deleteSpecificItems();
-    }
-  }, [user]);
 
   if (!user) {
     return (
