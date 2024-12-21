@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 
 interface MediaSelectorProps {
   value: string;
@@ -25,7 +24,6 @@ export function MediaSelector({
   mediaOptions,
 }: MediaSelectorProps) {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -52,14 +50,8 @@ export function MediaSelector({
 
   const handleAddNew = (type: "artist" | "ip") => {
     if (!searchQuery.trim()) return;
-
-    const value = type === "artist" ? `artist:${searchQuery.trim()}` : `ip:${searchQuery.trim()}`;
-    handleSelect(`custom:${searchQuery.trim()}`);
-    toast({
-      title: "追加しました",
-      description: `「${searchQuery.trim()}」を${type === "artist" ? "アーティスト" : "アニメ"}として追加しました。`,
-    });
-    setSearchQuery("");
+    const value = type === "artist" ? `artist:custom` : `ip:custom`;
+    handleSelect(value);
   };
 
   const filteredIpList = ipList.filter(ip =>
