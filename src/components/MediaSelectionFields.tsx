@@ -56,6 +56,8 @@ export function MediaSelectionFields({
     if (value === "all") {
       onFormDataChange("artist", "");
       onFormDataChange("anime", "");
+      onCustomArtistChange("");
+      onCustomAnimeChange("");
       return;
     }
 
@@ -63,17 +65,23 @@ export function MediaSelectionFields({
       const ipName = value.replace("ip:", "");
       onFormDataChange("anime", ipName);
       onFormDataChange("artist", "");
+      onCustomArtistChange("");
+      onCustomAnimeChange("");
       return;
     }
 
     if (value.startsWith("custom:")) {
       const customValue = value.replace("custom:", "");
-      if (formData.artist) {
+      if (!formData.anime) {
         onFormDataChange("artist", "custom");
         onCustomArtistChange(customValue);
+        onFormDataChange("anime", "");
+        onCustomAnimeChange("");
       } else {
         onFormDataChange("anime", "custom");
         onCustomAnimeChange(customValue);
+        onFormDataChange("artist", "");
+        onCustomArtistChange("");
       }
       return;
     }
@@ -82,9 +90,13 @@ export function MediaSelectionFields({
     if (type === "artist") {
       onFormDataChange("artist", name);
       onFormDataChange("anime", "");
+      onCustomArtistChange("");
+      onCustomAnimeChange("");
     } else {
       onFormDataChange("anime", name);
       onFormDataChange("artist", "");
+      onCustomArtistChange("");
+      onCustomAnimeChange("");
     }
   };
 

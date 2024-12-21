@@ -38,18 +38,14 @@ export function MediaSelector({
       return value.replace("artist:", "");
     }
     if (value.startsWith("custom:")) {
-      return value.replace("custom:", "");
+      const customValue = value.replace("custom:", "");
+      return customValue || "カスタム値を入力";
     }
     return "アニメ/アーティストから選択";
   };
 
   const handleSelect = (value: string) => {
-    if (value === "all") {
-      navigate("/");
-      onValueChange(value);
-    } else {
-      onValueChange(value);
-    }
+    onValueChange(value);
     setIsDialogOpen(false);
     setSearchQuery("");
   };
@@ -77,8 +73,7 @@ export function MediaSelector({
       return;
     }
 
-    const value = type === "artist" ? `custom:${searchQuery}` : `ip:${searchQuery}`;
-    handleSelect(value);
+    handleSelect(`custom:${searchQuery}`);
   };
 
   // Remove duplicates from ipList while preserving order
