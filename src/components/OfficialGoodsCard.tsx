@@ -10,12 +10,6 @@ interface OfficialGoodsCardProps {
   title: string;
   image: string;
   id: string;
-  item_tags?: Array<{
-    tags: {
-      id: string;
-      name: string;
-    } | null;
-  }>;
   artist?: string | null;
   anime?: string | null;
 }
@@ -23,8 +17,7 @@ interface OfficialGoodsCardProps {
 export function OfficialGoodsCard({ 
   title, 
   image, 
-  id, 
-  item_tags = [], 
+  id,
   artist, 
   anime 
 }: OfficialGoodsCardProps) {
@@ -46,7 +39,7 @@ export function OfficialGoodsCard({
           title={title}
           artist={artist}
           anime={anime}
-          item_tags={item_tags}
+          itemId={id}
         />
         <OfficialGoodsCardFooter
           isInCollection={isInCollection}
