@@ -69,9 +69,11 @@ export function MediaSelectionFields({
     if (value.startsWith("custom:")) {
       const customValue = value.replace("custom:", "");
       if (formData.artist) {
-        onFormDataChange("artist", customValue);
-      } else if (formData.anime) {
-        onFormDataChange("anime", customValue);
+        onFormDataChange("artist", "custom");
+        onCustomArtistChange(customValue);
+      } else {
+        onFormDataChange("anime", "custom");
+        onCustomAnimeChange(customValue);
       }
       return;
     }
@@ -87,6 +89,12 @@ export function MediaSelectionFields({
   };
 
   const getCurrentValue = () => {
+    if (formData.artist === "custom") {
+      return `custom:${customArtist}`;
+    }
+    if (formData.anime === "custom") {
+      return `custom:${customAnime}`;
+    }
     if (formData.artist) {
       return `artist:${formData.artist}`;
     }

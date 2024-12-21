@@ -38,7 +38,7 @@ export function MediaSelector({
     if (value.startsWith("custom:")) {
       return value.replace("custom:", "");
     }
-    return value;
+    return "アニメ/アーティストから選択";
   };
 
   const handleSelect = (value: string) => {
