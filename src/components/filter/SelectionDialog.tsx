@@ -23,7 +23,7 @@ export function SelectionDialog({
 }: SelectionDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-4xl max-h-[90vh] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/95">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">カテゴリーから選択</DialogTitle>
         </DialogHeader>
