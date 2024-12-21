@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil, X, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface OfficialGoodsCardContentProps {
   title: string;
@@ -30,6 +31,26 @@ export function OfficialGoodsCardContent({
   const [editedArtist, setEditedArtist] = useState(artist || "");
   const [editedAnime, setEditedAnime] = useState(anime || "");
   const { toast } = useToast();
+
+  const ipList = [
+    "鬼滅の刃",
+    "呪術廻戦",
+    "SPY×FAMILY",
+    "チェンソーマン",
+    "推しの子",
+    "ブルーロック",
+    "葬送のフリーレン",
+    "ワンピース",
+    "進撃の巨人"
+  ];
+
+  const artistList = [
+    "YOASOBI",
+    "Mrs. GREEN APPLE",
+    "Official髭男dism",
+    "King Gnu",
+    "Ado"
+  ];
 
   const handleSave = async () => {
     try {
@@ -72,21 +93,57 @@ export function OfficialGoodsCardContent({
           <div className="space-y-2">
             <div>
               <label className="text-sm font-medium mb-1 block">アーティスト</label>
-              <Input
+              <Select
                 value={editedArtist}
-                onChange={(e) => setEditedArtist(e.target.value)}
-                placeholder="アーティスト名を入力"
-                className="mb-2"
-              />
+                onValueChange={setEditedArtist}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="アーティストを選択" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">その他（カスタム）</SelectItem>
+                  {artistList.map((name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {editedArtist === "custom" && (
+                <Input
+                  value={editedArtist}
+                  onChange={(e) => setEditedArtist(e.target.value)}
+                  placeholder="アーティスト名を入力"
+                  className="mt-2"
+                />
+              )}
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">アニメ</label>
-              <Input
+              <Select
                 value={editedAnime}
-                onChange={(e) => setEditedAnime(e.target.value)}
-                placeholder="アニメ名を入力"
-                className="mb-2"
-              />
+                onValueChange={setEditedAnime}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="アニメを選択" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">その他（カスタム）</SelectItem>
+                  {ipList.map((name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {editedAnime === "custom" && (
+                <Input
+                  value={editedAnime}
+                  onChange={(e) => setEditedAnime(e.target.value)}
+                  placeholder="アニメ名を入力"
+                  className="mt-2"
+                />
+              )}
             </div>
             <div className="flex gap-2">
               <Button size="sm" onClick={handleSave} className="flex items-center gap-1">
