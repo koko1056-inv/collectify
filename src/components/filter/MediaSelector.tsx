@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 interface MediaSelectorProps {
   value: string;
@@ -24,8 +25,10 @@ export function MediaSelector({
   mediaOptions,
 }: MediaSelectorProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
 
   const getDisplayText = () => {
     if (value === "all") return "アニメ/アーティストから選択";
@@ -45,6 +48,19 @@ export function MediaSelector({
       onValueChange(value);
     }
     setIsDialogOpen(false);
+    setSearchQuery("");
+  };
+
+  const handleAddNew = () => {
+    if (!searchQuery.trim()) return;
+
+    handleSelect(`custom:${searchQuery.trim()}`);
+    toast({
+      title: "追加しました",
+      description: `「${searchQuery.trim()}」を追加しました。`,
+    });
+    setSearchQuery("");
+    setIsAdding(false);
   };
 
   const filteredIpList = ipList.filter(ip =>
@@ -57,6 +73,11 @@ export function MediaSelector({
       item.toLowerCase().includes(searchQuery.toLowerCase())
     )
   }));
+
+  const showAddButton = searchQuery.trim() !== "" && 
+    ![...ipList, ...mediaOptions.flatMap(opt => opt.items)]
+      .map(item => item.toLowerCase())
+      .includes(searchQuery.toLowerCase());
 
   return (
     <div className="space-y-4">
@@ -75,6 +96,9 @@ export function MediaSelector({
             <DialogTitle className="text-xl font-bold">
               アニメ/アーティストを選択
             </DialogTitle>
+            <DialogDescription>
+              既存のものから選択するか、新しく追加できます。
+            </DialogDescription>
           </DialogHeader>
           <div className="p-4 pb-0">
             <Input
@@ -118,11 +142,11 @@ export function MediaSelector({
                   </Button>
                 ))
               )}
-              {searchQuery && (
+              {showAddButton && (
                 <Button
                   variant="outline"
                   className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                  onClick={() => handleSelect(`custom:${searchQuery}`)}
+                  onClick={handleAddNew}
                 >
                   「{searchQuery}」を追加
                 </Button>
