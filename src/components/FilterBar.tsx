@@ -31,6 +31,35 @@ export function FilterBar({
   artists,
   animes,
 }: FilterBarProps) {
+  // Combine artists and animes into a single array
+  const mediaOptions = [
+    { type: "artist", label: "アーティスト", items: artists },
+    { type: "anime", label: "アニメ", items: animes },
+  ];
+
+  const handleMediaSelect = (value: string) => {
+    if (value === "all") {
+      onArtistSelect(null);
+      onAnimeSelect(null);
+      return;
+    }
+
+    const [type, name] = value.split(":");
+    if (type === "artist") {
+      onArtistSelect(name);
+      onAnimeSelect(null);
+    } else {
+      onAnimeSelect(name);
+      onArtistSelect(null);
+    }
+  };
+
+  const getCurrentValue = () => {
+    if (selectedArtist) return `artist:${selectedArtist}`;
+    if (selectedAnime) return `anime:${selectedAnime}`;
+    return "all";
+  };
+
   return (
     <div className="space-y-4">
       <SearchBar
@@ -44,37 +73,25 @@ export function FilterBar({
       <div className="flex flex-wrap gap-4">
         <div className="flex-1 min-w-[200px]">
           <Select
-            value={selectedArtist || "all"}
-            onValueChange={(value) => onArtistSelect(value === "all" ? null : value)}
+            value={getCurrentValue()}
+            onValueChange={handleMediaSelect}
           >
             <SelectTrigger>
-              <SelectValue placeholder="アーティストで絞り込む" />
+              <SelectValue placeholder="アーティスト/アニメで絞り込む" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">すべてのアーティスト</SelectItem>
-              {artists.map((artist) => (
-                <SelectItem key={artist} value={artist}>
-                  {artist}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex-1 min-w-[200px]">
-          <Select
-            value={selectedAnime || "all"}
-            onValueChange={(value) => onAnimeSelect(value === "all" ? null : value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="アニメで絞り込む" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">すべてのアニメ</SelectItem>
-              {animes.map((anime) => (
-                <SelectItem key={anime} value={anime}>
-                  {anime}
-                </SelectItem>
+              <SelectItem value="all">すべて表示</SelectItem>
+              {mediaOptions.map(({ type, label, items }) => (
+                <React.Fragment key={type}>
+                  <SelectItem value={`${type}:header`} disabled className="font-semibold">
+                    {label}
+                  </SelectItem>
+                  {items.map((item) => (
+                    <SelectItem key={`${type}:${item}`} value={`${type}:${item}`}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </React.Fragment>
               ))}
             </SelectContent>
           </Select>
