@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import AddItem from "./pages/AddItem";
+import UserProfile from "./pages/UserProfile";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App: React.FC = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/add-item" element={<AddItem />} />
+                <Route path="/user/:userId" element={<UserProfile />} />
               </Routes>
             </BrowserRouter>
           </TooltipProvider>

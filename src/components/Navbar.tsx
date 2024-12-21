@@ -4,14 +4,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { Heart } from "lucide-react";
+import { Heart, Search } from "lucide-react";
 import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
+import { UserSearchModal } from "./UserSearchModal";
 
 export function Navbar() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -42,6 +44,13 @@ export function Navbar() {
               <Button
                 variant="outline"
                 size="icon"
+                onClick={() => setIsSearchModalOpen(true)}
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
                 onClick={() => setIsWishlistModalOpen(true)}
                 className="relative"
               >
@@ -66,6 +75,10 @@ export function Navbar() {
       <WishlistViewModal
         isOpen={isWishlistModalOpen}
         onClose={() => setIsWishlistModalOpen(false)}
+      />
+      <UserSearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
       />
     </nav>
   );
