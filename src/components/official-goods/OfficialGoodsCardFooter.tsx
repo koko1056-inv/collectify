@@ -14,6 +14,8 @@ interface OfficialGoodsCardFooterProps {
   itemTitle: string;
   onAnimeSelect?: (anime: string | null) => void;
   onArtistSelect?: (artist: string | null) => void;
+  currentArtist?: string | null;
+  currentAnime?: string | null;
 }
 
 export function OfficialGoodsCardFooter({
@@ -26,6 +28,8 @@ export function OfficialGoodsCardFooter({
   itemTitle,
   onAnimeSelect,
   onArtistSelect,
+  currentArtist,
+  currentAnime,
 }: OfficialGoodsCardFooterProps) {
   return (
     <CardFooter className="p-4 pt-0 flex justify-between gap-2">
@@ -44,6 +48,8 @@ export function OfficialGoodsCardFooter({
           itemTitle={itemTitle} 
           onAnimeSelect={onAnimeSelect}
           onArtistSelect={onArtistSelect}
+          currentArtist={currentArtist}
+          currentAnime={currentAnime}
         />
         <div className="flex flex-col items-center">
           <Button 
