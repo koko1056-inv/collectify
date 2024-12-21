@@ -47,7 +47,6 @@ export function OfficialGoodsCard({
           artist={artist}
           anime={anime}
           item_tags={item_tags}
-          itemId={id}
         />
         <OfficialGoodsCardFooter
           isInCollection={isInCollection}
