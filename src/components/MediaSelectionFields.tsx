@@ -23,7 +23,6 @@ export function MediaSelectionFields({
   onCustomArtistChange,
   onCustomAnimeChange,
 }: MediaSelectionFieldsProps) {
-  // Fetch official items to get the list of artists and animes
   const { data: items = [] } = useQuery({
     queryKey: ["official-items"],
     queryFn: async () => {
@@ -37,7 +36,6 @@ export function MediaSelectionFields({
     },
   });
 
-  // Extract unique artists and animes from items
   const artists = Array.from(new Set(items.map(item => item.artist).filter(Boolean))).sort();
   const animes = Array.from(new Set(items.map(item => item.anime).filter(Boolean))).sort();
 
@@ -71,11 +69,9 @@ export function MediaSelectionFields({
     if (value.startsWith("custom:")) {
       const customValue = value.replace("custom:", "");
       if (formData.artist) {
-        onFormDataChange("artist", "custom");
-        onCustomArtistChange(customValue);
-      } else {
-        onFormDataChange("anime", "custom");
-        onCustomAnimeChange(customValue);
+        onFormDataChange("artist", customValue);
+      } else if (formData.anime) {
+        onFormDataChange("anime", customValue);
       }
       return;
     }
@@ -91,8 +87,12 @@ export function MediaSelectionFields({
   };
 
   const getCurrentValue = () => {
-    if (formData.artist) return `artist:${formData.artist}`;
-    if (formData.anime) return `ip:${formData.anime}`;
+    if (formData.artist) {
+      return `artist:${formData.artist}`;
+    }
+    if (formData.anime) {
+      return `ip:${formData.anime}`;
+    }
     return "all";
   };
 
