@@ -7,9 +7,10 @@ import { useState } from "react";
 interface TagInputFieldProps {
   itemId: string;
   isUserItem?: boolean;
+  isCategory?: boolean;
 }
 
-export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps) {
+export function TagInputField({ itemId, isUserItem = false, isCategory = false }: TagInputFieldProps) {
   const [tagInput, setTagInput] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -26,6 +27,7 @@ export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps
           .from("tags")
           .select("id")
           .eq("name", newTagName)
+          .eq("is_category", isCategory)
           .maybeSingle();
 
         if (existingTag) {
@@ -41,7 +43,7 @@ export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps
 
           if (existingItemTag) {
             toast({
-              title: "タグが既に存在します",
+              title: isCategory ? "カテゴリが既に存在します" : "タグが既に存在します",
               description: `${newTagName}は既にこのアイテムに追加されています。`,
               variant: "destructive",
             });
@@ -52,7 +54,7 @@ export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps
           // Create new tag if it doesn't exist
           const { data: newTag, error: createTagError } = await supabase
             .from("tags")
-            .insert([{ name: newTagName }])
+            .insert([{ name: newTagName, is_category: isCategory }])
             .select()
             .single();
 
@@ -61,7 +63,7 @@ export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps
         }
 
         if (!tagId) {
-          throw new Error("タグIDが見つかりませんでした。");
+          throw new Error(isCategory ? "カテゴリIDが見つかりませんでした。" : "タグIDが見つかりませんでした。");
         }
 
         // Insert into the appropriate tags table
@@ -83,14 +85,14 @@ export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps
 
         setTagInput("");
         toast({
-          title: "タグを追加しました",
+          title: isCategory ? "カテゴリを追加しました" : "タグを追加しました",
           description: `${newTagName}をアイテムに追加しました。`,
         });
       } catch (error) {
         console.error("Error adding tag:", error);
         toast({
           title: "エラー",
-          description: "タグの追加に失敗しました。",
+          description: isCategory ? "カテゴリの追加に失敗しました。" : "タグの追加に失敗しました。",
           variant: "destructive",
         });
       }
@@ -99,7 +101,7 @@ export function TagInputField({ itemId, isUserItem = false }: TagInputFieldProps
 
   return (
     <Input
-      placeholder="新しいタグを入力してEnterを押してください"
+      placeholder={isCategory ? "新しいカテゴリを入力してEnterを押してください" : "新しいタグを入力してEnterを押してください"}
       value={tagInput}
       onChange={(e) => setTagInput(e.target.value)}
       onKeyDown={handleAddTag}

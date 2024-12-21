@@ -6,18 +6,20 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 interface ExistingTagsProps {
   itemId: string;
   isUserItem?: boolean;
+  isCategory?: boolean;
 }
 
-export function ExistingTags({ itemId, isUserItem = false }: ExistingTagsProps) {
+export function ExistingTags({ itemId, isUserItem = false, isCategory = false }: ExistingTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: existingTags = [] } = useQuery({
-    queryKey: ["tags"],
+    queryKey: ["tags", { isCategory }],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
         .select("*")
+        .eq("is_category", isCategory)
         .order("name");
       if (error) throw error;
       return data;
@@ -41,14 +43,14 @@ export function ExistingTags({ itemId, isUserItem = false }: ExistingTagsProps) 
       });
 
       toast({
-        title: "タグを追加しました",
+        title: isCategory ? "カテゴリを追加しました" : "タグを追加しました",
         description: `${tagName}をアイテムに追加しました。`,
       });
     } catch (error) {
       console.error("Error adding existing tag:", error);
       toast({
         title: "エラー",
-        description: "タグの追加に失敗しました。",
+        description: isCategory ? "カテゴリの追加に失敗しました。" : "タグの追加に失敗しました。",
         variant: "destructive",
       });
     }
@@ -56,7 +58,7 @@ export function ExistingTags({ itemId, isUserItem = false }: ExistingTagsProps) 
 
   return (
     <div className="space-y-2">
-      <h4 className="text-sm font-medium">既存のタグ</h4>
+      <h4 className="text-sm font-medium">{isCategory ? "既存のカテゴリ" : "既存のタグ"}</h4>
       <div className="flex flex-wrap gap-2">
         {existingTags.map((tag) => (
           <Badge

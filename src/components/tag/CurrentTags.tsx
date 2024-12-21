@@ -1,46 +1,47 @@
 import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { X } from "lucide-react";
 
 interface CurrentTagsProps {
   itemId: string;
   isUserItem?: boolean;
+  isCategory?: boolean;
 }
 
-export function CurrentTags({ itemId, isUserItem = false }: CurrentTagsProps) {
+export function CurrentTags({ itemId, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: itemTags = [] } = useQuery({
+  const { data: currentTags = [] } = useQuery({
     queryKey: isUserItem ? ["user-item-tags", itemId] : ["item-tags", itemId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from(isUserItem ? "user_item_tags" : "item_tags")
         .select(`
-          tag_id,
+          id,
           tags (
             id,
             name
           )
         `)
         .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
+
       if (error) throw error;
-      return data.map(tag => ({
-        id: tag.tags.id,
-        name: tag.tags.name,
-      }));
+
+      // Filter tags based on is_category
+      const filteredData = data.filter(tag => tag.tags?.is_category === isCategory);
+      return filteredData;
     },
   });
 
-  const handleRemoveTag = async (tagId: string, tagName: string) => {
+  const handleRemoveTag = async (tagRelationId: string, tagName: string) => {
     try {
       const { error } = await supabase
         .from(isUserItem ? "user_item_tags" : "item_tags")
         .delete()
-        .eq(isUserItem ? "user_item_id" : "official_item_id", itemId)
-        .eq("tag_id", tagId);
+        .eq("id", tagRelationId);
 
       if (error) throw error;
 
@@ -49,14 +50,14 @@ export function CurrentTags({ itemId, isUserItem = false }: CurrentTagsProps) {
       });
 
       toast({
-        title: "タグを削除しました",
+        title: isCategory ? "カテゴリを削除しました" : "タグを削除しました",
         description: `${tagName}をアイテムから削除しました。`,
       });
     } catch (error) {
       console.error("Error removing tag:", error);
       toast({
         title: "エラー",
-        description: "タグの削除に失敗しました。",
+        description: isCategory ? "カテゴリの削除に失敗しました。" : "タグの削除に失敗しました。",
         variant: "destructive",
       });
     }
@@ -64,26 +65,23 @@ export function CurrentTags({ itemId, isUserItem = false }: CurrentTagsProps) {
 
   return (
     <div className="space-y-2">
-      <h4 className="text-sm font-medium">現在のタグ</h4>
+      <h4 className="text-sm font-medium">{isCategory ? "現在のカテゴリ" : "現在のタグ"}</h4>
       <div className="flex flex-wrap gap-2">
-        {itemTags.map((tag) => (
-          <Badge
-            key={tag.id}
-            variant="secondary"
-            className="flex items-center gap-1"
-          >
-            {tag.name}
-            <button
-              onClick={() => handleRemoveTag(tag.id, tag.name)}
-              className="hover:text-destructive"
+        {currentTags
+          .filter((tag) => tag.tags !== null)
+          .map((tag) => (
+            <Badge
+              key={tag.id}
+              variant="secondary"
+              className="pr-2 flex items-center gap-1"
             >
-              <X className="h-3 w-3" />
-            </button>
-          </Badge>
-        ))}
-        {itemTags.length === 0 && (
-          <p className="text-sm text-muted-foreground">タグはまだ追加されていません</p>
-        )}
+              {tag.tags!.name}
+              <X
+                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                onClick={() => handleRemoveTag(tag.id, tag.tags!.name)}
+              />
+            </Badge>
+          ))}
       </div>
     </div>
   );
