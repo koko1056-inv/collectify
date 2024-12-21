@@ -185,6 +185,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_item_likes: {
+        Row: {
+          id: string;
+          user_id: string;
+          user_item_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          user_item_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          user_item_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_item_likes_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_item_likes_user_item_id_fkey";
+            columns: ["user_item_id"];
+            isOneToOne: false;
+            referencedRelation: "user_items";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       user_item_tags: {
         Row: {
           created_at: string
@@ -283,7 +319,7 @@ export type Database = {
           id?: string
           note?: string | null
           official_item_id?: string
-          user_id?: string
+          user_id?: string;
         }
         Relationships: [
           {
