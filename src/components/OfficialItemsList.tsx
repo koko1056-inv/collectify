@@ -33,6 +33,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
             id={item.id}
             title={item.title}
             image={item.image}
+            item_tags={item.item_tags}
           />
         ))}
       </div>

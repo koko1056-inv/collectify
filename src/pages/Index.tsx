@@ -19,8 +19,8 @@ const Index = () => {
         .select(`
           *,
           item_tags (
-            tag_id,
             tags (
+              id,
               name
             )
           )
@@ -50,7 +50,7 @@ const Index = () => {
     if (selectedTag) {
       const itemTags = item.item_tags?.map(
         (itemTag) => itemTag.tags?.name
-      ).filter(Boolean) || [];
+      ) || [];
       return matchesSearch && itemTags.includes(selectedTag);
     }
     

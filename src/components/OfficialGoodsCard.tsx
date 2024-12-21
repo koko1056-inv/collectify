@@ -13,9 +13,15 @@ interface OfficialGoodsCardProps {
   title: string;
   image: string;
   id: string;
+  item_tags?: Array<{
+    tags: {
+      id: string;
+      name: string;
+    } | null;
+  }>;
 }
 
-export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) {
+export function OfficialGoodsCard({ title, image, id, item_tags = [] }: OfficialGoodsCardProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
@@ -50,26 +56,6 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
         .eq("official_item_id", id);
       
       return count || 0;
-    },
-  });
-
-  // Fetch item's tags
-  const { data: itemTags = [] } = useQuery({
-    queryKey: ["item-tags", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("item_tags")
-        .select(`
-          tag_id,
-          tags (
-            id,
-            name,
-            created_at
-          )
-        `)
-        .eq("official_item_id", id);
-      if (error) throw error;
-      return data.map(tag => tag.tags);
     },
   });
 
@@ -127,16 +113,18 @@ export function OfficialGoodsCard({ title, image, id }: OfficialGoodsCardProps) 
         </CardHeader>
         <CardContent className="p-4">
           <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
-          {itemTags.length > 0 && (
+          {item_tags && item_tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
-              {itemTags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-                >
-                  {tag.name}
-                </span>
-              ))}
+              {item_tags
+                .filter((tag) => tag.tags !== null)
+                .map((tag) => (
+                  <span
+                    key={tag.tags!.id}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                  >
+                    {tag.tags!.name}
+                  </span>
+                ))}
             </div>
           )}
         </CardContent>
