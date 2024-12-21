@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Music, Tv, Star } from "lucide-react";
 
 interface SelectionDialogProps {
   isOpen: boolean;
@@ -21,77 +22,56 @@ export function SelectionDialog({
   artists,
   animes,
 }: SelectionDialogProps) {
+  const CategorySection = ({ title, items, icon }: { title: string; items: string[]; icon: React.ReactNode }) => (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="p-2 rounded-full bg-primary/10">{icon}</div>
+        <h3 className="text-lg font-semibold">{title}</h3>
+      </div>
+      <Separator />
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {items.map((item) => (
+          <Button
+            key={item}
+            variant="ghost"
+            className="relative group h-auto py-6 flex flex-col items-center justify-center gap-2 hover:bg-accent hover:text-accent-foreground transition-all duration-200"
+            onClick={() => onSelect(item)}
+          >
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              {icon}
+            </div>
+            <span className="text-sm font-medium text-center line-clamp-2">{item}</span>
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/95">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">カテゴリーから選択</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <span className="w-2 h-2 bg-primary rounded-full" />
-              人気IP
-            </h3>
-            <Separator />
-            <ScrollArea className="h-[400px] pr-4">
-              <div className="space-y-2">
-                {ipList.map((ip) => (
-                  <Button
-                    key={ip}
-                    variant="ghost"
-                    className="w-full justify-start text-left hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => onSelect(ip)}
-                  >
-                    {ip}
-                  </Button>
-                ))}
-              </div>
-            </ScrollArea>
+        <ScrollArea className="h-[70vh] pr-4">
+          <div className="space-y-8 p-4">
+            <CategorySection
+              title="人気IP"
+              items={ipList}
+              icon={<Star className="w-6 h-6 text-primary" />}
+            />
+            <CategorySection
+              title="アーティスト"
+              items={artists}
+              icon={<Music className="w-6 h-6 text-primary" />}
+            />
+            <CategorySection
+              title="アニメ"
+              items={animes}
+              icon={<Tv className="w-6 h-6 text-primary" />}
+            />
           </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <span className="w-2 h-2 bg-primary rounded-full" />
-              アーティスト
-            </h3>
-            <Separator />
-            <ScrollArea className="h-[400px] pr-4">
-              <div className="space-y-2">
-                {artists.map((artist) => (
-                  <Button
-                    key={artist}
-                    variant="ghost"
-                    className="w-full justify-start text-left hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => onSelect(artist)}
-                  >
-                    {artist}
-                  </Button>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <span className="w-2 h-2 bg-primary rounded-full" />
-              アニメ
-            </h3>
-            <Separator />
-            <ScrollArea className="h-[400px] pr-4">
-              <div className="space-y-2">
-                {animes.map((anime) => (
-                  <Button
-                    key={anime}
-                    variant="ghost"
-                    className="w-full justify-start text-left hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => onSelect(anime)}
-                  >
-                    {anime}
-                  </Button>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
