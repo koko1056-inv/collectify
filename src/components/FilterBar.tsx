@@ -49,6 +49,12 @@ export function FilterBar({
     { type: "anime", label: "アニメ", items: animes },
   ];
 
+  const getCurrentValue = () => {
+    if (selectedArtist) return `artist:${selectedArtist}`;
+    if (selectedAnime) return `ip:${selectedAnime}`;
+    return "all";
+  };
+
   const handleMediaSelect = (value: string) => {
     if (value === "all") {
       onArtistSelect(null);
