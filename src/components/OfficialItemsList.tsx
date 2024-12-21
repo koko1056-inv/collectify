@@ -5,11 +5,9 @@ import { OfficialItem } from "@/types";
 
 interface OfficialItemsListProps {
   items: OfficialItem[];
-  onArtistSelect: (artist: string | null) => void;
-  onAnimeSelect: (anime: string | null) => void;
 }
 
-export function OfficialItemsList({ items, onArtistSelect, onAnimeSelect }: OfficialItemsListProps) {
+export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const navigate = useNavigate();
   
   const displayedItems = items.slice(0, -6);
@@ -37,8 +35,6 @@ export function OfficialItemsList({ items, onArtistSelect, onAnimeSelect }: Offi
             item_tags={item.item_tags}
             artist={item.artist}
             anime={item.anime}
-            onArtistSelect={onArtistSelect}
-            onAnimeSelect={onAnimeSelect}
           />
         ))}
       </div>

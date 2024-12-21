@@ -18,19 +18,15 @@ interface OfficialGoodsCardProps {
   }>;
   artist?: string | null;
   anime?: string | null;
-  onArtistSelect?: (artist: string | null) => void;
-  onAnimeSelect?: (anime: string | null) => void;
 }
 
 export function OfficialGoodsCard({ 
   title, 
   image, 
   id, 
-  item_tags = [],
-  artist,
-  anime,
-  onArtistSelect,
-  onAnimeSelect,
+  item_tags = [], 
+  artist, 
+  anime 
 }: OfficialGoodsCardProps) {
   const {
     isInCollection,
@@ -63,29 +59,24 @@ export function OfficialGoodsCard({
           onWishlistClick={() => setIsWishlistModalOpen(true)}
         />
       </Card>
-
       <WishlistModal
         isOpen={isWishlistModalOpen}
         onClose={() => setIsWishlistModalOpen(false)}
         itemId={id}
         itemTitle={title}
       />
-
       <TagManageModal
         isOpen={isTagModalOpen}
         onClose={() => setIsTagModalOpen(false)}
         itemId={id}
         itemTitle={title}
       />
-
       <TagManageModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
         itemId={id}
         itemTitle={title}
         isCategory={true}
-        onArtistSelect={onArtistSelect}
-        onAnimeSelect={onAnimeSelect}
       />
     </>
   );

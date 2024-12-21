@@ -6,19 +6,13 @@ import { Skeleton } from "./ui/skeleton";
 
 interface UserCollectionProps {
   selectedTag: string | null;
-  selectedArtist?: string | null;
-  selectedAnime?: string | null;
 }
 
-export function UserCollection({ 
-  selectedTag,
-  selectedArtist,
-  selectedAnime,
-}: UserCollectionProps) {
+export function UserCollection({ selectedTag }: UserCollectionProps) {
   const { user } = useAuth();
 
   const { data: userItems = [], isLoading: isItemsLoading } = useQuery({
-    queryKey: ["user-items", user?.id, selectedTag, selectedArtist, selectedAnime],
+    queryKey: ["user-items", user?.id, selectedTag],
     queryFn: async () => {
       if (!user) return [];
       
@@ -66,13 +60,11 @@ export function UserCollection({
     );
   }
 
-  const filteredItems = userItems.filter(item => {
-    const matchesTag = !selectedTag || 
-      item.user_item_tags?.some(tag => tag.tags?.name === selectedTag);
-    const matchesArtist = !selectedArtist || item.artist === selectedArtist;
-    const matchesAnime = !selectedAnime || item.anime === selectedAnime;
-    return matchesTag && matchesArtist && matchesAnime;
-  });
+  const filteredItems = selectedTag
+    ? userItems.filter(item => 
+        item.user_item_tags?.some(tag => tag.tags?.name === selectedTag)
+      )
+    : userItems;
 
   if (userItems.length === 0) {
     return (
@@ -85,7 +77,7 @@ export function UserCollection({
   if (filteredItems.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">選択された条件に一致するアイテムがありません。</p>
+        <p className="text-gray-500">選択されたタグに一致するアイテムがありません。</p>
       </div>
     );
   }
@@ -99,8 +91,6 @@ export function UserCollection({
           title={item.title}
           image={item.image}
           isShared={item.is_shared}
-          artist={item.artist}
-          anime={item.anime}
         />
       ))}
     </div>
