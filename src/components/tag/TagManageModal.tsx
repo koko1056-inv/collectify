@@ -13,6 +13,8 @@ interface TagManageModalProps {
   itemTitle: string;
   isUserItem?: boolean;
   isCategory?: boolean;
+  onArtistSelect?: (artist: string | null) => void;
+  onAnimeSelect?: (anime: string | null) => void;
 }
 
 export function TagManageModal({
@@ -22,6 +24,8 @@ export function TagManageModal({
   itemTitle,
   isUserItem = false,
   isCategory = false,
+  onArtistSelect,
+  onAnimeSelect,
 }: TagManageModalProps) {
   const [formData, setFormData] = useState({
     artist: "",
@@ -46,6 +50,15 @@ export function TagManageModal({
       queryClient.invalidateQueries({ 
         queryKey: isUserItem ? ["user-items"] : ["official-items"] 
       });
+
+      // Update the filter state in the parent component
+      if (key === "artist") {
+        onArtistSelect?.(value);
+        onAnimeSelect?.(null);
+      } else {
+        onAnimeSelect?.(value);
+        onArtistSelect?.(null);
+      }
 
       toast({
         title: "更新完了",
