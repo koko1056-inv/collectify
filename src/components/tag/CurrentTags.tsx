@@ -10,6 +10,17 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
+interface Tag {
+  id: string;
+  name: string;
+  is_category: boolean;
+}
+
+interface TagRelation {
+  id: string;
+  tags: Tag | null;
+}
+
 export function CurrentTags({ itemId, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -23,7 +34,8 @@ export function CurrentTags({ itemId, isUserItem = false, isCategory = false }: 
           id,
           tags (
             id,
-            name
+            name,
+            is_category
           )
         `)
         .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
@@ -31,7 +43,7 @@ export function CurrentTags({ itemId, isUserItem = false, isCategory = false }: 
       if (error) throw error;
 
       // Filter tags based on is_category
-      const filteredData = data.filter(tag => tag.tags?.is_category === isCategory);
+      const filteredData = (data as TagRelation[]).filter(tag => tag.tags?.is_category === isCategory);
       return filteredData;
     },
   });
