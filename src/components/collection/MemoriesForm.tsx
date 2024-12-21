@@ -3,6 +3,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
 
 interface MemoriesFormProps {
   isOwner: boolean;
