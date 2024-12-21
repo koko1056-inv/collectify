@@ -21,6 +21,18 @@ export function MediaSelectionFields({
   onCustomArtistChange,
   onCustomAnimeChange,
 }: MediaSelectionFieldsProps) {
+  const ipList = [
+    "鬼滅の刃",
+    "呪術廻戦",
+    "SPY×FAMILY",
+    "チェンソーマン",
+    "推しの子",
+    "ブルーロック",
+    "葬送のフリーレン",
+    "ワンピース",
+    "進撃の巨人"
+  ];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
@@ -65,11 +77,14 @@ export function MediaSelectionFields({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="custom">その他（カスタム）</SelectItem>
-            <SelectItem value="鬼滅の刃">鬼滅の刃</SelectItem>
-            <SelectItem value="呪術廻戦">呪術廻戦</SelectItem>
-            <SelectItem value="SPY×FAMILY">SPY×FAMILY</SelectItem>
-            <SelectItem value="チェンソーマン">チェンソーマン</SelectItem>
-            <SelectItem value="推しの子">推しの子</SelectItem>
+            <SelectItem value={`header`} className="font-semibold">
+              人気IP
+            </SelectItem>
+            {ipList.map((ip) => (
+              <SelectItem key={ip} value={ip}>
+                {ip}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         {formData.anime === "custom" && (

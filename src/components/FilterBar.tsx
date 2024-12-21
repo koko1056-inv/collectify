@@ -32,8 +32,24 @@ export function FilterBar({
   artists,
   animes,
 }: FilterBarProps) {
+  const ipList = [
+    "鬼滅の刃",
+    "呪術廻戦",
+    "SPY×FAMILY",
+    "チェンソーマン",
+    "推しの子",
+    "ブルーロック",
+    "葬送のフリーレン",
+    "ワンピース",
+    "進撃の巨人"
+  ];
+
   const mediaOptions = [
-    { type: "all", label: "すべて表示", items: [] },
+    { 
+      type: "all", 
+      label: "すべて表示", 
+      items: ipList 
+    },
     { type: "artist", label: "アーティスト", items: artists },
     { type: "anime", label: "アニメ", items: animes },
   ];
@@ -42,6 +58,13 @@ export function FilterBar({
     if (value === "all") {
       onArtistSelect(null);
       onAnimeSelect(null);
+      return;
+    }
+
+    if (value.startsWith("ip:")) {
+      const ipName = value.replace("ip:", "");
+      onAnimeSelect(ipName);
+      onArtistSelect(null);
       return;
     }
 
@@ -84,7 +107,17 @@ export function FilterBar({
               {mediaOptions.map(({ type, label, items }) => (
                 <React.Fragment key={type}>
                   {type === "all" ? (
-                    <SelectItem value="all">{label}</SelectItem>
+                    <>
+                      <SelectItem value="all">{label}</SelectItem>
+                      <SelectItem value={`${type}:header`} className="font-semibold">
+                        人気IP
+                      </SelectItem>
+                      {items.map((item) => (
+                        <SelectItem key={`ip:${item}`} value={`ip:${item}`}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </>
                   ) : (
                     <>
                       <SelectItem value={`${type}:header`} className="font-semibold">
