@@ -77,7 +77,8 @@ export function MediaSelectionFields({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="custom">その他（カスタム）</SelectItem>
-            <SelectItem value={`header`} className="font-semibold">
+            <SelectItem value="all">すべて表示</SelectItem>
+            <SelectItem value="header" className="font-semibold">
               人気IP
             </SelectItem>
             {ipList.map((ip) => (
