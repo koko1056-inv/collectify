@@ -1,8 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TagInputField } from "./TagInputField";
-import { ExistingTags } from "./ExistingTags";
-import { CurrentTags } from "./CurrentTags";
-import { MediaSelectionFields } from "../MediaSelectionFields";
+import { MediaSelectionFields } from "@/components/MediaSelectionFields";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,32 +13,36 @@ interface TagManageModalProps {
   itemTitle: string;
   isUserItem?: boolean;
   isCategory?: boolean;
+  onArtistSelect?: (artist: string | null) => void;
+  onAnimeSelect?: (anime: string | null) => void;
 }
 
-export function TagManageModal({ 
-  isOpen, 
-  onClose, 
-  itemId, 
-  itemTitle, 
+export function TagManageModal({
+  isOpen,
+  onClose,
+  itemId,
+  itemTitle,
   isUserItem = false,
-  isCategory = false 
+  isCategory = false,
+  onArtistSelect,
+  onAnimeSelect,
 }: TagManageModalProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     artist: "",
     anime: "",
   });
   const [customArtist, setCustomArtist] = useState("");
   const [customAnime, setCustomAnime] = useState("");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const handleFormDataChange = async (key: "artist" | "anime", value: string) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    setFormData((prev) => ({ ...prev, [key]: value }));
 
     try {
       const { error } = await supabase
         .from(isUserItem ? "user_items" : "official_items")
-        .update({ [key]: value === "custom" ? (key === "artist" ? customArtist : customAnime) : value })
+        .update({ [key]: value })
         .eq("id", itemId);
 
       if (error) throw error;
@@ -49,75 +51,50 @@ export function TagManageModal({
         queryKey: isUserItem ? ["user-items"] : ["official-items"] 
       });
 
+      // Update the filter state in the parent component
+      if (key === "artist") {
+        onArtistSelect?.(value);
+        onAnimeSelect?.(null);
+      } else {
+        onAnimeSelect?.(value);
+        onArtistSelect?.(null);
+      }
+
       toast({
         title: "更新完了",
         description: `${key === "artist" ? "アーティスト" : "アニメ"}を更新しました。`,
       });
     } catch (error) {
-      console.error(`Error updating ${key}:`, error);
+      console.error("Error updating item:", error);
       toast({
         title: "エラー",
-        description: `${key === "artist" ? "アーティスト" : "アニメ"}の更新に失敗しました。`,
+        description: "更新に失敗しました。",
         variant: "destructive",
       });
     }
   };
 
-  const handleCustomValueChange = async (key: "artist" | "anime", value: string) => {
-    if (key === "artist") {
-      setCustomArtist(value);
-    } else {
-      setCustomAnime(value);
-    }
-
-    if (formData[key] === "custom") {
-      try {
-        const { error } = await supabase
-          .from(isUserItem ? "user_items" : "official_items")
-          .update({ [key]: value })
-          .eq("id", itemId);
-
-        if (error) throw error;
-
-        queryClient.invalidateQueries({ 
-          queryKey: isUserItem ? ["user-items"] : ["official-items"] 
-        });
-
-        toast({
-          title: "更新完了",
-          description: `${key === "artist" ? "アーティスト" : "アニメ"}を更新しました。`,
-        });
-      } catch (error) {
-        console.error(`Error updating custom ${key}:`, error);
-        toast({
-          title: "エラー",
-          description: `${key === "artist" ? "アーティスト" : "アニメ"}の更新に失敗しました。`,
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
-            {isCategory ? "カテゴリの管理" : "タグの管理"}: {itemTitle}
+          <DialogTitle>
+            {isCategory ? "カテゴリを管理" : "タグを管理"}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
-          <MediaSelectionFields
-            formData={formData}
-            customArtist={customArtist}
-            customAnime={customAnime}
-            onFormDataChange={handleFormDataChange}
-            onCustomArtistChange={(value) => handleCustomValueChange("artist", value)}
-            onCustomAnimeChange={(value) => handleCustomValueChange("anime", value)}
-          />
-          <TagInputField itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
-          <CurrentTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
-          <ExistingTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
+        <div className="space-y-4">
+          {isCategory ? (
+            <MediaSelectionFields
+              formData={formData}
+              customArtist={customArtist}
+              customAnime={customAnime}
+              onFormDataChange={handleFormDataChange}
+              onCustomArtistChange={setCustomArtist}
+              onCustomAnimeChange={setCustomAnime}
+            />
+          ) : (
+            <TagInputField itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
+          )}
         </div>
       </DialogContent>
     </Dialog>
