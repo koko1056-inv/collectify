@@ -52,6 +52,18 @@ export function MediaSelectionFields({
       return;
     }
 
+    if (value.startsWith("custom:")) {
+      const customValue = value.replace("custom:", "");
+      if (formData.artist) {
+        onFormDataChange("artist", customValue);
+        onCustomArtistChange(customValue);
+      } else {
+        onFormDataChange("anime", customValue);
+        onCustomAnimeChange(customValue);
+      }
+      return;
+    }
+
     const [type, name] = value.split(":");
     if (type === "artist") {
       onFormDataChange("artist", name);

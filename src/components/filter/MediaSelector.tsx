@@ -118,6 +118,15 @@ export function MediaSelector({
                   </Button>
                 ))
               )}
+              {searchQuery && (
+                <Button
+                  variant="outline"
+                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                  onClick={() => handleSelect(`custom:${searchQuery}`)}
+                >
+                  「{searchQuery}」を追加
+                </Button>
+              )}
             </div>
           </ScrollArea>
         </DialogContent>
