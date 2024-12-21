@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import { Heart } from "lucide-react";
 import { TagButton } from "./buttons/TagButton";
-import { CategoryButton } from "./buttons/CategoryButton";
 
 interface OfficialGoodsCardFooterProps {
   isInCollection: boolean;
@@ -12,8 +11,6 @@ interface OfficialGoodsCardFooterProps {
   onWishlistClick: () => void;
   itemId: string;
   itemTitle: string;
-  onAnimeSelect?: (anime: string | null) => void;
-  onArtistSelect?: (artist: string | null) => void;
 }
 
 export function OfficialGoodsCardFooter({
@@ -24,8 +21,6 @@ export function OfficialGoodsCardFooter({
   onWishlistClick,
   itemId,
   itemTitle,
-  onAnimeSelect,
-  onArtistSelect,
 }: OfficialGoodsCardFooterProps) {
   return (
     <CardFooter className="p-4 pt-0 flex justify-between gap-2">
@@ -39,12 +34,6 @@ export function OfficialGoodsCardFooter({
       </Button>
       <div className="flex gap-2">
         <TagButton onClick={onTagManageClick} />
-        <CategoryButton 
-          itemId={itemId} 
-          itemTitle={itemTitle} 
-          onAnimeSelect={onAnimeSelect}
-          onArtistSelect={onArtistSelect}
-        />
         <div className="flex flex-col items-center">
           <Button 
             variant="outline" 
