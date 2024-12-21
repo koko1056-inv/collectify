@@ -11,8 +11,8 @@ interface MediaSelectionFieldsProps {
   onFormDataChange: (key: "artist" | "anime", value: string) => void;
   onCustomArtistChange: (value: string) => void;
   onCustomAnimeChange: (value: string) => void;
-  artists: string[];
-  animes: string[];
+  artists?: string[];
+  animes?: string[];
 }
 
 export function MediaSelectionFields({
@@ -22,8 +22,8 @@ export function MediaSelectionFields({
   onFormDataChange,
   onCustomArtistChange,
   onCustomAnimeChange,
-  artists,
-  animes,
+  artists = [],
+  animes = [],
 }: MediaSelectionFieldsProps) {
   const mediaOptions = [
     {
@@ -55,10 +55,10 @@ export function MediaSelectionFields({
     if (value.startsWith("custom:")) {
       const customValue = value.replace("custom:", "");
       if (formData.artist) {
-        onFormDataChange("artist", customValue);
+        onFormDataChange("artist", "custom");
         onCustomArtistChange(customValue);
       } else {
-        onFormDataChange("anime", customValue);
+        onFormDataChange("anime", "custom");
         onCustomAnimeChange(customValue);
       }
       return;
