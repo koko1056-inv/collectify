@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Tag } from "lucide-react";
+import { Edit2, Heart, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
@@ -28,6 +28,7 @@ export function OfficialGoodsCard({ title, image, id, item_tags = [], artist, an
   const { user } = useAuth();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Check if the item is already in the user's collection
@@ -153,24 +154,34 @@ export function OfficialGoodsCard({ title, image, id, item_tags = [], artist, an
           >
             {isInCollection ? "追加済み" : "コレクションに追加"}
           </Button>
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={() => setIsTagModalOpen(true)}
-            className="border-gray-200 hover:bg-gray-50"
-          >
-            <Tag className="h-4 w-4" />
-          </Button>
-          <div className="flex flex-col items-center">
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => setIsTagModalOpen(true)}
+              className="border-gray-200 hover:bg-gray-50"
+            >
+              <Tag className="h-4 w-4" />
+            </Button>
             <Button 
               variant="outline" 
               size="icon"
-              onClick={() => setIsWishlistModalOpen(true)}
+              onClick={() => setIsCategoryModalOpen(true)}
               className="border-gray-200 hover:bg-gray-50"
             >
-              <Heart className="h-4 w-4" />
+              <Edit2 className="h-4 w-4" />
             </Button>
-            <span className="text-xs text-gray-500 mt-1">{wishlistCount}</span>
+            <div className="flex flex-col items-center">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => setIsWishlistModalOpen(true)}
+                className="border-gray-200 hover:bg-gray-50"
+              >
+                <Heart className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-gray-500 mt-1">{wishlistCount}</span>
+            </div>
           </div>
         </CardFooter>
       </Card>
@@ -185,6 +196,14 @@ export function OfficialGoodsCard({ title, image, id, item_tags = [], artist, an
         onClose={() => setIsTagModalOpen(false)}
         itemId={id}
         itemTitle={title}
+      />
+      {/* Note: You'll need to implement the CategoryManageModal component */}
+      <TagManageModal
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        itemId={id}
+        itemTitle={title}
+        isCategory={true}
       />
     </>
   );
