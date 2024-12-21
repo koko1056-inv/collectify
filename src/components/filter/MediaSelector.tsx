@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 interface MediaSelectorProps {
   value: string;
@@ -26,6 +27,7 @@ export function MediaSelector({
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
 
   const getDisplayText = () => {
     if (value === "all") return "アニメ/アーティストから選択";
@@ -52,8 +54,29 @@ export function MediaSelector({
     setSearchQuery("");
   };
 
+  const isDuplicate = (query: string, type: "artist" | "ip") => {
+    const normalizedQuery = query.toLowerCase().trim();
+    if (type === "artist") {
+      return mediaOptions
+        .find(opt => opt.type === "artist")
+        ?.items.some(item => item.toLowerCase() === normalizedQuery);
+    } else {
+      return ipList.some(ip => ip.toLowerCase() === normalizedQuery);
+    }
+  };
+
   const handleAddNew = (type: "artist" | "ip") => {
     if (!searchQuery.trim()) return;
+    
+    if (isDuplicate(searchQuery, type)) {
+      toast({
+        title: "追加できません",
+        description: `「${searchQuery}」は既に存在します。`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     const value = type === "artist" ? `custom:${searchQuery}` : `ip:${searchQuery}`;
     handleSelect(value);
   };
