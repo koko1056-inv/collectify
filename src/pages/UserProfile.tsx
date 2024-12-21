@@ -105,6 +105,7 @@ const UserProfile = () => {
                     title={item.title}
                     image={item.image}
                     isShared={item.is_shared}
+                    userId={userId}
                   />
                 ))}
               </div>

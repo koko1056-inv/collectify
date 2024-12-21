@@ -12,21 +12,26 @@ import { CardActions } from "./collection/CardActions";
 import { DeleteConfirmDialog } from "./collection/DeleteConfirmDialog";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CollectionGoodsCardProps {
   title: string;
   image: string;
   id: string;
   isShared?: boolean;
+  userId?: string;
 }
 
-export function CollectionGoodsCard({ title, image, id, isShared = false }: CollectionGoodsCardProps) {
+export function CollectionGoodsCard({ title, image, id, isShared = false, userId }: CollectionGoodsCardProps) {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  const isOwner = !userId || (user && user.id === userId);
 
   const { data: itemTags = [] } = useQuery({
     queryKey: ["user-item-tags", id],
@@ -120,27 +125,31 @@ export function CollectionGoodsCard({ title, image, id, isShared = false }: Coll
         <CardContent className="p-4">
           <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
           <TagList tags={itemTags} />
-          <div className="flex items-center justify-between mt-4 space-x-2">
-            <Label htmlFor={`share-toggle-${id}`} className="text-sm text-gray-600">
-              {isShared ? "共有中" : "非公開"}
-            </Label>
-            <Switch
-              id={`share-toggle-${id}`}
-              checked={isShared}
-              onCheckedChange={handleShareToggle}
-            />
-          </div>
+          {isOwner && (
+            <div className="flex items-center justify-between mt-4 space-x-2">
+              <Label htmlFor={`share-toggle-${id}`} className="text-sm text-gray-600">
+                {isShared ? "共有中" : "非公開"}
+              </Label>
+              <Switch
+                id={`share-toggle-${id}`}
+                checked={isShared}
+                onCheckedChange={handleShareToggle}
+              />
+            </div>
+          )}
         </CardContent>
-        <CardFooter className="p-4 pt-0">
-          <CardActions
-            onMemoriesClick={() => setIsMemoriesModalOpen(true)}
-            onTagManageClick={() => setIsTagManageModalOpen(true)}
-            onShareClick={() => setIsShareModalOpen(true)}
-            onDeleteClick={() => setIsDeleteDialogOpen(true)}
-            hasMemories={hasMemories}
-            hasTags={hasTags}
-          />
-        </CardFooter>
+        {isOwner && (
+          <CardFooter className="p-4 pt-0">
+            <CardActions
+              onMemoriesClick={() => setIsMemoriesModalOpen(true)}
+              onTagManageClick={() => setIsTagManageModalOpen(true)}
+              onShareClick={() => setIsShareModalOpen(true)}
+              onDeleteClick={() => setIsDeleteDialogOpen(true)}
+              hasMemories={hasMemories}
+              hasTags={hasTags}
+            />
+          </CardFooter>
+        )}
       </Card>
 
       <ItemMemoriesModal
