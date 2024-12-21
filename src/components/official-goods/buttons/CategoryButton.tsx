@@ -46,6 +46,14 @@ export function CategoryButton({
 
       queryClient.invalidateQueries({ queryKey: ["official-items"] });
 
+      // Update the filter in the index page
+      if (onAnimeSelect) {
+        onAnimeSelect(item);
+      }
+      if (onArtistSelect) {
+        onArtistSelect(null);
+      }
+
       toast({
         title: "カテゴリを更新しました",
         description: `${itemTitle}のカテゴリを${item}に設定しました。`,
