@@ -24,7 +24,7 @@ export function MediaSelector({
         <SelectValue placeholder="アーティスト/アニメで絞り込む" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="all">すべて表示</SelectItem>
+        <SelectItem value="all">カテゴリから選択</SelectItem>
         <SelectItem value="header" className="font-semibold">
           人気IP
         </SelectItem>
