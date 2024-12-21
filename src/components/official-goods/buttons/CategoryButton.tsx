@@ -1,6 +1,6 @@
-import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Edit2, ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -12,17 +12,13 @@ interface CategoryButtonProps {
   itemTitle: string;
   onAnimeSelect?: (anime: string | null) => void;
   onArtistSelect?: (artist: string | null) => void;
-  currentArtist?: string | null;
-  currentAnime?: string | null;
 }
 
 export function CategoryButton({ 
   itemId,
   itemTitle,
   onAnimeSelect,
-  onArtistSelect,
-  currentArtist,
-  currentAnime
+  onArtistSelect
 }: CategoryButtonProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -87,12 +83,6 @@ export function CategoryButton({
     }
   };
 
-  const getDisplayText = () => {
-    if (currentArtist) return currentArtist;
-    if (currentAnime) return currentAnime;
-    return "カテゴリを選択";
-  };
-
   return (
     <>
       <Button 
@@ -120,45 +110,55 @@ export function CategoryButton({
             />
           </div>
           <ScrollArea className="h-[50vh] pr-4">
-            <div className="grid grid-cols-2 gap-2 p-4">
-              {searchQuery === "" && (
-                <>
-                  <Button
-                    variant="outline"
-                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                    onClick={() => handleSelect('anime', null)}
-                  >
-                    クリア
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                    onClick={() => handleSelect('artist', null)}
-                  >
-                    クリア
-                  </Button>
-                </>
-              )}
-              {filteredIpList.map((ip) => (
-                <Button
-                  key={ip}
-                  variant={currentAnime === ip ? "default" : "outline"}
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                  onClick={() => handleSelect('anime', ip)}
-                >
-                  {ip}
-                </Button>
-              ))}
-              {filteredArtists.map((artist) => (
-                <Button
-                  key={artist}
-                  variant={currentArtist === artist ? "default" : "outline"}
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                  onClick={() => handleSelect('artist', artist)}
-                >
-                  {artist}
-                </Button>
-              ))}
+            <div className="space-y-4 p-4">
+              <div>
+                <h3 className="font-semibold mb-2">アニメ</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {searchQuery === "" && (
+                    <Button
+                      variant="outline"
+                      className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                      onClick={() => handleSelect('anime', null)}
+                    >
+                      クリア
+                    </Button>
+                  )}
+                  {filteredIpList.map((ip) => (
+                    <Button
+                      key={ip}
+                      variant="outline"
+                      className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                      onClick={() => handleSelect('anime', ip)}
+                    >
+                      {ip}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">アーティスト</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {searchQuery === "" && (
+                    <Button
+                      variant="outline"
+                      className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                      onClick={() => handleSelect('artist', null)}
+                    >
+                      クリア
+                    </Button>
+                  )}
+                  {filteredArtists.map((artist) => (
+                    <Button
+                      key={artist}
+                      variant="outline"
+                      className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                      onClick={() => handleSelect('artist', artist)}
+                    >
+                      {artist}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
           </ScrollArea>
         </DialogContent>

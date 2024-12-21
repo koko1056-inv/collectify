@@ -56,8 +56,6 @@ export function OfficialGoodsCard({
           onWishlistClick={() => setIsWishlistModalOpen(true)}
           itemId={id}
           itemTitle={title}
-          currentArtist={artist}
-          currentAnime={anime}
         />
       </Card>
       <WishlistModal
