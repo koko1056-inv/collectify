@@ -30,11 +30,15 @@ export function MediaSelector({
   const getDisplayText = () => {
     if (value === "all") return "アニメ/アーティストから選択";
     if (value.startsWith("ip:")) {
-      const ipName = value.replace("ip:", "");
-      return `${ipName}`;
+      return value.replace("ip:", "");
     }
-    const [type, name] = value.split(":");
-    return `${name}`;
+    if (value.startsWith("artist:")) {
+      return value.replace("artist:", "");
+    }
+    if (value.startsWith("custom:")) {
+      return value.replace("custom:", "");
+    }
+    return "アニメ/アーティストから選択";
   };
 
   const handleSelect = (value: string) => {
@@ -50,7 +54,7 @@ export function MediaSelector({
 
   const handleAddNew = (type: "artist" | "ip") => {
     if (!searchQuery.trim()) return;
-    const value = type === "artist" ? `artist:custom` : `ip:custom`;
+    const value = type === "artist" ? `custom:${searchQuery}` : `ip:${searchQuery}`;
     handleSelect(value);
   };
 
