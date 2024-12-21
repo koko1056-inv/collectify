@@ -28,7 +28,6 @@ export function MediaSelector({
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAdding, setIsAdding] = useState(false);
 
   const getDisplayText = () => {
     if (value === "all") return "アニメ/アーティストから選択";
@@ -51,16 +50,16 @@ export function MediaSelector({
     setSearchQuery("");
   };
 
-  const handleAddNew = () => {
+  const handleAddNew = (type: "artist" | "ip") => {
     if (!searchQuery.trim()) return;
 
+    const value = type === "artist" ? `artist:${searchQuery.trim()}` : `ip:${searchQuery.trim()}`;
     handleSelect(`custom:${searchQuery.trim()}`);
     toast({
       title: "追加しました",
-      description: `「${searchQuery.trim()}」を追加しました。`,
+      description: `「${searchQuery.trim()}」を${type === "artist" ? "アーティスト" : "アニメ"}として追加しました。`,
     });
     setSearchQuery("");
-    setIsAdding(false);
   };
 
   const filteredIpList = ipList.filter(ip =>
@@ -143,13 +142,26 @@ export function MediaSelector({
                 ))
               )}
               {showAddButton && (
-                <Button
-                  variant="outline"
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                  onClick={handleAddNew}
-                >
-                  「{searchQuery}」を追加
-                </Button>
+                <div className="col-span-2 grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                    onClick={() => handleAddNew("artist")}
+                  >
+                    「{searchQuery}」を
+                    <br />
+                    アーティストとして追加
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                    onClick={() => handleAddNew("ip")}
+                  >
+                    「{searchQuery}」を
+                    <br />
+                    アニメとして追加
+                  </Button>
+                </div>
               )}
             </div>
           </ScrollArea>
