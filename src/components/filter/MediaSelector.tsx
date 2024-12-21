@@ -101,7 +101,7 @@ export function MediaSelector({
         type="button"
         variant="outline"
         onClick={() => setIsDialogOpen(true)}
-        className="w-full justify-between font-normal"
+        className="w-full justify-between font-normal h-10 px-4 py-2"
       >
         <span>{getDisplayText()}</span>
         <ChevronDown className="h-4 w-4 opacity-50" />
