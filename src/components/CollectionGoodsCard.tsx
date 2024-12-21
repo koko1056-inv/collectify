@@ -18,19 +18,9 @@ interface CollectionGoodsCardProps {
   id: string;
   isShared?: boolean;
   userId?: string;
-  artist?: string;
-  anime?: string;
 }
 
-export function CollectionGoodsCard({ 
-  title, 
-  image, 
-  id, 
-  isShared = false, 
-  userId,
-  artist,
-  anime 
-}: CollectionGoodsCardProps) {
+export function CollectionGoodsCard({ title, image, id, isShared = false, userId }: CollectionGoodsCardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
@@ -134,8 +124,6 @@ export function CollectionGoodsCard({
             memoriesCount={itemMemories.length}
             isOwner={isOwner}
             isShared={isShared}
-            artist={artist}
-            anime={anime}
             onMemoriesClick={() => setIsMemoriesModalOpen(true)}
             onShareToggle={handleShareToggle}
           />

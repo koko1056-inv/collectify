@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
-import { SelectionDialog } from "./filter/SelectionDialog";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MediaSelectionFieldsProps {
   formData: {
@@ -23,8 +21,6 @@ export function MediaSelectionFields({
   onCustomArtistChange,
   onCustomAnimeChange,
 }: MediaSelectionFieldsProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   const ipList = [
     "鬼滅の刃",
     "呪術廻戦",
@@ -37,62 +33,70 @@ export function MediaSelectionFields({
     "進撃の巨人"
   ];
 
-  const artists = [
-    "YOASOBI",
-    "Mrs. GREEN APPLE",
-    "Official髭男dism",
-    "King Gnu",
-    "Ado"
-  ];
-
-  const animes = [
-    "鬼滅の刃",
-    "呪術廻戦",
-    "SPY×FAMILY",
-    "チェンソーマン",
-    "推しの子",
-    "ブルーロック",
-    "葬送のフリーレン",
-    "ワンピース",
-    "進撃の巨人"
-  ];
-
-  const handleItemSelect = (item: string) => {
-    if (artists.includes(item)) {
-      onFormDataChange("artist", item);
-      onFormDataChange("anime", "");
-    } else {
-      onFormDataChange("anime", item);
-      onFormDataChange("artist", "");
-    }
-    setIsDialogOpen(false);
-  };
-
-  const getDisplayText = () => {
-    if (formData.artist) return formData.artist;
-    if (formData.anime) return formData.anime;
-    return "アニメ/アーティストから選択";
-  };
-
   return (
-    <div className="w-full">
-      <Button
-        variant="outline"
-        onClick={() => setIsDialogOpen(true)}
-        className="w-full justify-between font-normal"
-      >
-        <span>{getDisplayText()}</span>
-        <ChevronDown className="h-4 w-4 opacity-50" />
-      </Button>
-
-      <SelectionDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        onSelect={handleItemSelect}
-        ipList={ipList}
-        artists={artists}
-        animes={animes}
-      />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-2">
+        <label htmlFor="artist" className="text-sm font-medium">
+          アーティスト
+        </label>
+        <Select
+          value={formData.artist}
+          onValueChange={(value) => onFormDataChange("artist", value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="アーティストを選択" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="custom">その他（カスタム）</SelectItem>
+            <SelectItem value="YOASOBI">YOASOBI</SelectItem>
+            <SelectItem value="Mrs. GREEN APPLE">Mrs. GREEN APPLE</SelectItem>
+            <SelectItem value="Official髭男dism">Official髭男dism</SelectItem>
+            <SelectItem value="King Gnu">King Gnu</SelectItem>
+            <SelectItem value="Ado">Ado</SelectItem>
+          </SelectContent>
+        </Select>
+        {formData.artist === "custom" && (
+          <Input
+            placeholder="アーティスト名を入力"
+            value={customArtist}
+            onChange={(e) => onCustomArtistChange(e.target.value)}
+            className="mt-2"
+          />
+        )}
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="anime" className="text-sm font-medium">
+          アニメ
+        </label>
+        <Select
+          value={formData.anime}
+          onValueChange={(value) => onFormDataChange("anime", value)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="アニメを選択" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="custom">その他（カスタム）</SelectItem>
+            <SelectItem value="all">すべて表示</SelectItem>
+            <SelectItem value="header" className="font-semibold">
+              人気IP
+            </SelectItem>
+            {ipList.map((ip) => (
+              <SelectItem key={ip} value={ip}>
+                {ip}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {formData.anime === "custom" && (
+          <Input
+            placeholder="アニメ名を入力"
+            value={customAnime}
+            onChange={(e) => onCustomAnimeChange(e.target.value)}
+            className="mt-2"
+          />
+        )}
+      </div>
     </div>
   );
 }
