@@ -19,46 +19,46 @@ export function CardActions({
   hasTags,
 }: CardActionsProps) {
   return (
-    <div className="flex justify-between gap-2">
+    <div className="flex justify-end gap-1.5">
       <Button 
         variant="outline" 
-        size="icon"
+        size="sm"
         onClick={onMemoriesClick}
         className={`${
           hasMemories 
             ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
             : "border-gray-200 hover:bg-gray-50"
-        } transition-colors`}
+        } transition-colors h-8 w-8 p-0`}
       >
-        <BookMarked className={`h-4 w-4 ${hasMemories ? "text-purple-500" : ""}`} />
+        <BookMarked className={`h-3.5 w-3.5 ${hasMemories ? "text-purple-500" : ""}`} />
       </Button>
       <Button 
         variant="outline" 
-        size="icon"
+        size="sm"
         onClick={onTagManageClick}
         className={`${
           hasTags 
             ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
             : "border-gray-200 hover:bg-gray-50"
-        } transition-colors`}
+        } transition-colors h-8 w-8 p-0`}
       >
-        <Tag className={`h-4 w-4 ${hasTags ? "text-purple-500" : ""}`} />
+        <Tag className={`h-3.5 w-3.5 ${hasTags ? "text-purple-500" : ""}`} />
       </Button>
       <Button 
         variant="outline" 
-        size="icon"
+        size="sm"
         onClick={onShareClick}
-        className="border-gray-200 hover:bg-gray-50"
+        className="border-gray-200 hover:bg-gray-50 h-8 w-8 p-0"
       >
-        <Share2 className="h-4 w-4" />
+        <Share2 className="h-3.5 w-3.5" />
       </Button>
       <Button 
         variant="outline" 
-        size="icon"
+        size="sm"
         onClick={onDeleteClick}
-        className="border-gray-200 hover:bg-gray-50 hover:border-red-200 hover:text-red-500"
+        className="border-gray-200 hover:bg-gray-50 hover:border-red-200 hover:text-red-500 h-8 w-8 p-0"
       >
-        <Trash2 className="h-4 w-4" />
+        <Trash2 className="h-3.5 w-3.5" />
       </Button>
     </div>
   );

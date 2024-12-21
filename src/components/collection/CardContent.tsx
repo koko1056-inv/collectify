@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
-import { LikeButton } from "./LikeButton";
-import { TagList } from "./TagList";
+import { CardContent as UICardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { TagList } from "./TagList";
+import { LikeButton } from "./LikeButton";
+import { BookMarked } from "lucide-react";
 
 interface CardContentProps {
   itemId: string;
@@ -24,33 +24,29 @@ export function CardContent({
   onShareToggle,
 }: CardContentProps) {
   return (
-    <div className="p-4">
+    <UICardContent className="px-3 py-2 space-y-2">
       <TagList tags={itemTags} />
-      <div className="flex items-center justify-between mt-4">
-        {!isOwner && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onMemoriesClick}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            思い出を見る ({memoriesCount})
-          </Button>
-        )}
-        <LikeButton itemId={itemId} />
-      </div>
-      {isOwner && (
-        <div className="flex items-center justify-between mt-4 space-x-2">
-          <Label htmlFor={`share-toggle-${itemId}`} className="text-sm text-gray-600">
-            {isShared ? "共有中" : "非公開"}
-          </Label>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <LikeButton itemId={itemId} />
+          {memoriesCount > 0 && (
+            <button
+              onClick={onMemoriesClick}
+              className="flex items-center gap-1 text-xs text-purple-500 hover:text-purple-600 transition-colors"
+            >
+              <BookMarked className="h-3.5 w-3.5" />
+              <span>{memoriesCount}</span>
+            </button>
+          )}
+        </div>
+        {isOwner && (
           <Switch
-            id={`share-toggle-${itemId}`}
             checked={isShared}
             onCheckedChange={onShareToggle}
+            className="scale-75 origin-right"
           />
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </UICardContent>
   );
 }
