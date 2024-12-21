@@ -24,9 +24,9 @@ export function MediaSelector({
 
   const getDisplayText = () => {
     if (value === "all") return "アニメ/アーティストから選択";
-    if (value.startsWith("ip:")) return value.replace("ip:", "");
+    if (value.startsWith("ip:")) return `アニメ: ${value.replace("ip:", "")}`;
     const [type, name] = value.split(":");
-    return name;
+    return type === "artist" ? `アーティスト: ${name}` : `アニメ: ${name}`;
   };
 
   const handleClick = () => {
