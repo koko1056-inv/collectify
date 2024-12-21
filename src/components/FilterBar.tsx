@@ -32,7 +32,6 @@ export function FilterBar({
   artists,
   animes,
 }: FilterBarProps) {
-  // Combine artists and animes into a single array
   const mediaOptions = [
     { type: "artist", label: "アーティスト", items: artists },
     { type: "anime", label: "アニメ", items: animes },
@@ -84,7 +83,7 @@ export function FilterBar({
               <SelectItem value="all">すべて表示</SelectItem>
               {mediaOptions.map(({ type, label, items }) => (
                 <React.Fragment key={type}>
-                  <SelectItem value={`${type}:header`} disabled className="font-semibold">
+                  <SelectItem value={`${type}:header`} className="font-semibold">
                     {label}
                   </SelectItem>
                   {items.map((item) => (
