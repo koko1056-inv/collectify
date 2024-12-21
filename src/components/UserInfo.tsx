@@ -28,7 +28,7 @@ export function UserInfo() {
 
   return (
     <div className="text-sm text-gray-600">
-      ログイン中のユーザー: {username}
+      {username}
     </div>
   );
 }
