@@ -26,7 +26,15 @@ const UserProfile = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("*")
+        .select(`
+          *,
+          user_item_tags (
+            tags (
+              id,
+              name
+            )
+          )
+        `)
         .eq("user_id", userId)
         .eq("is_shared", true)
         .order("created_at", { ascending: false });
@@ -53,6 +61,17 @@ const UserProfile = () => {
       return data;
     },
   });
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8 pt-24">
+          <p className="text-center text-gray-500">ユーザーが見つかりません</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,6 +104,7 @@ const UserProfile = () => {
                     id={item.id}
                     title={item.title}
                     image={item.image}
+                    isShared={item.is_shared}
                   />
                 ))}
               </div>
