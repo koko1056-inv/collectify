@@ -1,7 +1,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
-import { SelectionDialog } from "./SelectionDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface MediaSelectorProps {
   value: string;
@@ -33,21 +34,13 @@ export function MediaSelector({
     setIsDialogOpen(true);
   };
 
-  const handleClose = () => {
-    setIsDialogOpen(false);
-  };
-
-  const handleSelect = (item: string, type?: "artist" | "anime") => {
-    if (type) {
-      onValueChange(`${type}:${item}`);
-    } else {
-      onValueChange(`ip:${item}`);
-    }
+  const handleSelect = (value: string) => {
+    onValueChange(value);
     setIsDialogOpen(false);
   };
 
   return (
-    <>
+    <div className="space-y-4">
       <Button
         variant="outline"
         onClick={handleClick}
@@ -57,14 +50,49 @@ export function MediaSelector({
         <ChevronDown className="h-4 w-4 opacity-50" />
       </Button>
 
-      <SelectionDialog
-        isOpen={isDialogOpen}
-        onClose={handleClose}
-        onSelect={handleSelect}
-        ipList={ipList}
-        artists={mediaOptions.find(opt => opt.type === "artist")?.items || []}
-        animes={mediaOptions.find(opt => opt.type === "anime")?.items || []}
-      />
-    </>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              カテゴリを選択
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[50vh] pr-4">
+            <div className="grid grid-cols-2 gap-2 p-4">
+              <Button
+                key="all"
+                variant={value === "all" ? "default" : "outline"}
+                className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                onClick={() => handleSelect("all")}
+              >
+                すべて
+              </Button>
+              {ipList.map((ip) => (
+                <Button
+                  key={ip}
+                  variant={value === `ip:${ip}` ? "default" : "outline"}
+                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                  onClick={() => handleSelect(`ip:${ip}`)}
+                >
+                  {ip}
+                </Button>
+              ))}
+              {mediaOptions.map((option) =>
+                option.items.map((item) => (
+                  <Button
+                    key={`${option.type}:${item}`}
+                    variant={value === `${option.type}:${item}` ? "default" : "outline"}
+                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                    onClick={() => handleSelect(`${option.type}:${item}`)}
+                  >
+                    {item}
+                  </Button>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
