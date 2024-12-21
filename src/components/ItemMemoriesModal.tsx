@@ -1,14 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { MemoriesForm } from "./collection/MemoriesForm";
+import { MemoriesList } from "./collection/MemoriesList";
 
 interface ItemMemoriesModalProps {
   isOpen: boolean;
@@ -18,16 +14,9 @@ interface ItemMemoriesModalProps {
   userId?: string;
 }
 
-interface MemoryForm {
-  comment: string;
-}
-
 export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }: ItemMemoriesModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const form = useForm<MemoryForm>();
-
   const isOwner = !userId || (user && user.id === userId);
 
   const { data: memories = [], refetch } = useQuery({
@@ -44,13 +33,7 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
     },
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
-    }
-  };
-
-  const onSubmit = async (data: MemoryForm) => {
+  const handleSubmit = async (data: { comment: string }, selectedImage: File | null) => {
     try {
       let imageUrl = null;
 
@@ -88,8 +71,6 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
           : "コレクションにコメントが追加されました。",
       });
 
-      form.reset();
-      setSelectedImage(null);
       refetch();
     } catch (error) {
       console.error("Error adding memory:", error);
@@ -110,69 +91,10 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
           <DialogTitle>{itemTitle}の思い出</DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="comment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>コメント</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder={isOwner ? "思い出を書いてください..." : "コメントを書いてください..."}
-                        className="min-h-[100px]"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormItem>
-                <FormLabel>画像</FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="cursor-pointer"
-                  />
-                </FormControl>
-              </FormItem>
-              <Button type="submit" className="w-full">
-                {isOwner ? "思い出を追加" : "コメントする"}
-              </Button>
-            </form>
-          </Form>
-
+          <MemoriesForm isOwner={isOwner} onSubmit={handleSubmit} />
           <div className="space-y-4 mt-6">
             <h3 className="font-medium text-lg">これまでの思い出</h3>
-            {memories.length === 0 ? (
-              <p className="text-center text-gray-500 py-4">
-                まだ思い出が登録されていません
-              </p>
-            ) : (
-              memories.map((memory) => (
-                <div
-                  key={memory.id}
-                  className="border rounded-lg p-4 space-y-3"
-                >
-                  {memory.image_url && (
-                    <img
-                      src={memory.image_url}
-                      alt="思い出の画像"
-                      className="w-full h-48 object-cover rounded-md"
-                    />
-                  )}
-                  {memory.comment && (
-                    <p className="text-gray-700">{memory.comment}</p>
-                  )}
-                  <p className="text-sm text-gray-500">
-                    {new Date(memory.created_at).toLocaleDateString("ja-JP")}
-                  </p>
-                </div>
-              ))
-            )}
+            <MemoriesList memories={memories} />
           </div>
         </div>
       </DialogContent>

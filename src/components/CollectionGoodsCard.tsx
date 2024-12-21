@@ -1,4 +1,4 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent as UICardContent, CardFooter, CardHeader as UICardHeader } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { ItemMemoriesModal } from "./ItemMemoriesModal";
@@ -6,15 +6,11 @@ import { TagManageModal } from "./tag/TagManageModal";
 import { ShareModal } from "./ShareModal";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CardImage } from "./collection/CardImage";
-import { TagList } from "./collection/TagList";
+import { CardHeader } from "./collection/CardHeader";
+import { CardContent } from "./collection/CardContent";
 import { CardActions } from "./collection/CardActions";
 import { DeleteConfirmDialog } from "./collection/DeleteConfirmDialog";
-import { Switch } from "./ui/switch";
-import { Label } from "./ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "./ui/button";
-import { LikeButton } from "./collection/LikeButton";
 
 interface CollectionGoodsCardProps {
   title: string;
@@ -115,51 +111,32 @@ export function CollectionGoodsCard({ title, image, id, isShared = false, userId
     }
   };
 
-  const hasTags = itemTags.length > 0;
-  const hasMemories = itemMemories.length > 0;
-
   return (
     <>
       <Card className="hover-scale card-shadow bg-white border border-gray-200">
-        <CardHeader className="p-0">
-          <CardImage image={image} title={title} />
-        </CardHeader>
-        <CardContent className="p-4">
-          <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
-          <TagList tags={itemTags} />
-          <div className="flex items-center justify-between mt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMemoriesModalOpen(true)}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              思い出を見る ({itemMemories.length})
-            </Button>
-            <LikeButton itemId={id} />
-          </div>
-          {isOwner && (
-            <div className="flex items-center justify-between mt-4 space-x-2">
-              <Label htmlFor={`share-toggle-${id}`} className="text-sm text-gray-600">
-                {isShared ? "共有中" : "非公開"}
-              </Label>
-              <Switch
-                id={`share-toggle-${id}`}
-                checked={isShared}
-                onCheckedChange={handleShareToggle}
-              />
-            </div>
-          )}
-        </CardContent>
+        <UICardHeader className="p-0">
+          <CardHeader title={title} image={image} />
+        </UICardHeader>
+        <UICardContent className="p-0">
+          <CardContent
+            itemId={id}
+            itemTags={itemTags}
+            memoriesCount={itemMemories.length}
+            isOwner={isOwner}
+            isShared={isShared}
+            onMemoriesClick={() => setIsMemoriesModalOpen(true)}
+            onShareToggle={handleShareToggle}
+          />
+        </UICardContent>
         {isOwner && (
-          <CardFooter className="p-4 pt-0">
+          <CardFooter className="p-4">
             <CardActions
               onMemoriesClick={() => setIsMemoriesModalOpen(true)}
               onTagManageClick={() => setIsTagManageModalOpen(true)}
               onShareClick={() => setIsShareModalOpen(true)}
               onDeleteClick={() => setIsDeleteDialogOpen(true)}
-              hasMemories={hasMemories}
-              hasTags={hasTags}
+              hasMemories={itemMemories.length > 0}
+              hasTags={itemTags.length > 0}
             />
           </CardFooter>
         )}
