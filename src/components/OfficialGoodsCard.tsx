@@ -19,9 +19,11 @@ interface OfficialGoodsCardProps {
       name: string;
     } | null;
   }>;
+  artist?: string | null;
+  anime?: string | null;
 }
 
-export function OfficialGoodsCard({ title, image, id, item_tags = [] }: OfficialGoodsCardProps) {
+export function OfficialGoodsCard({ title, image, id, item_tags = [], artist, anime }: OfficialGoodsCardProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
@@ -113,6 +115,20 @@ export function OfficialGoodsCard({ title, image, id, item_tags = [] }: Official
         </CardHeader>
         <CardContent className="p-4">
           <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
+          {(artist || anime) && (
+            <div className="space-y-1 mb-2">
+              {artist && (
+                <p className="text-sm text-gray-600">
+                  アーティスト: {artist}
+                </p>
+              )}
+              {anime && (
+                <p className="text-sm text-gray-600">
+                  アニメ: {anime}
+                </p>
+              )}
+            </div>
+          )}
           {item_tags && item_tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
               {item_tags

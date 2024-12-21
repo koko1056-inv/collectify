@@ -10,7 +10,6 @@ interface OfficialItemsListProps {
 export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const navigate = useNavigate();
   
-  // Filter out the last 6 items
   const displayedItems = items.slice(0, -6);
 
   return (
@@ -34,6 +33,8 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
             title={item.title}
             image={item.image}
             item_tags={item.item_tags}
+            artist={item.artist}
+            anime={item.anime}
           />
         ))}
       </div>
