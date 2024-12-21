@@ -3,22 +3,14 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
 
 interface TagInputFieldProps {
   itemId: string;
   isUserItem?: boolean;
   isCategory?: boolean;
-  onOpenSelectionDialog?: () => void;
 }
 
-export function TagInputField({ 
-  itemId, 
-  isUserItem = false, 
-  isCategory = false,
-  onOpenSelectionDialog 
-}: TagInputFieldProps) {
+export function TagInputField({ itemId, isUserItem = false, isCategory = false }: TagInputFieldProps) {
   const [tagInput, setTagInput] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -108,22 +100,11 @@ export function TagInputField({
   };
 
   return (
-    <div className="flex gap-2">
-      <Input
-        placeholder={isCategory ? "新しいカテゴリを入力してEnterを押してください" : "新しいタグを入力してEnterを押してください"}
-        value={tagInput}
-        onChange={(e) => setTagInput(e.target.value)}
-        onKeyDown={handleAddTag}
-      />
-      {isCategory && onOpenSelectionDialog && (
-        <Button
-          variant="outline"
-          onClick={onOpenSelectionDialog}
-          className="flex-shrink-0"
-        >
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      )}
-    </div>
+    <Input
+      placeholder={isCategory ? "新しいカテゴリを入力してEnterを押してください" : "新しいタグを入力してEnterを押してください"}
+      value={tagInput}
+      onChange={(e) => setTagInput(e.target.value)}
+      onKeyDown={handleAddTag}
+    />
   );
 }

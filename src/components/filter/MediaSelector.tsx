@@ -6,13 +6,11 @@ interface MediaSelectorProps {
   value: string;
   onValueChange: (value: string) => void;
   ipList: string[];
-  mediaOptions?: {
+  mediaOptions: {
     type: string;
     label: string;
     items: string[];
   }[];
-  type?: 'media' | 'category';
-  placeholder?: string;
 }
 
 export function MediaSelector({
@@ -20,11 +18,9 @@ export function MediaSelector({
   onValueChange,
   ipList,
   mediaOptions,
-  type = 'media',
-  placeholder = "アニメ/アーティストから選択"
 }: MediaSelectorProps) {
   const getDisplayText = () => {
-    if (value === "all") return placeholder;
+    if (value === "all") return "アニメ/アーティストから選択";
     if (value.startsWith("ip:")) return value.replace("ip:", "");
     const [type, name] = value.split(":");
     return name;

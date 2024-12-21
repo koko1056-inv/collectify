@@ -7,7 +7,6 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { SelectionDialog } from "../filter/SelectionDialog";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -34,7 +33,6 @@ export function TagManageModal({
   });
   const [customArtist, setCustomArtist] = useState("");
   const [customAnime, setCustomAnime] = useState("");
-  const [isSelectionDialogOpen, setIsSelectionDialogOpen] = useState(false);
 
   const handleFormDataChange = async (key: "artist" | "anime", value: string) => {
     setFormData(prev => ({ ...prev, [key]: value }));
@@ -100,53 +98,28 @@ export function TagManageModal({
     }
   };
 
-  const handleCategorySelect = (category: string) => {
-    // Handle category selection here
-    setIsSelectionDialogOpen(false);
-  };
-
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
-              {isCategory ? "カテゴリの管理" : "タグの管理"}: {itemTitle}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6">
-            {!isCategory && (
-              <MediaSelectionFields
-                formData={formData}
-                customArtist={customArtist}
-                customAnime={customAnime}
-                onFormDataChange={handleFormDataChange}
-                onCustomArtistChange={(value) => handleCustomValueChange("artist", value)}
-                onCustomAnimeChange={(value) => handleCustomValueChange("anime", value)}
-              />
-            )}
-            <TagInputField 
-              itemId={itemId} 
-              isUserItem={isUserItem} 
-              isCategory={isCategory}
-              onOpenSelectionDialog={() => setIsSelectionDialogOpen(true)}
-            />
-            <CurrentTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
-            <ExistingTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <SelectionDialog
-        isOpen={isSelectionDialogOpen}
-        onClose={() => setIsSelectionDialogOpen(false)}
-        onSelect={handleCategorySelect}
-        ipList={[]}
-        artists={[]}
-        animes={[]}
-        categories={["カテゴリ1", "カテゴリ2", "カテゴリ3"]} // これは実際のカテゴリリストに置き換える必要があります
-        type="category"
-      />
-    </>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">
+            {isCategory ? "カテゴリの管理" : "タグの管理"}: {itemTitle}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6">
+          <MediaSelectionFields
+            formData={formData}
+            customArtist={customArtist}
+            customAnime={customAnime}
+            onFormDataChange={handleFormDataChange}
+            onCustomArtistChange={(value) => handleCustomValueChange("artist", value)}
+            onCustomAnimeChange={(value) => handleCustomValueChange("anime", value)}
+          />
+          <TagInputField itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
+          <CurrentTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
+          <ExistingTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
