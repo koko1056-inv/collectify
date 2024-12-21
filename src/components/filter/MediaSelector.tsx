@@ -1,6 +1,5 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface MediaSelectorProps {
@@ -43,11 +42,12 @@ export function MediaSelector({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button
           key="all"
           variant={value === "all" ? "default" : "outline"}
-          className="h-auto py-2"
+          size="sm"
+          className="rounded-full"
           onClick={() => handleSelect("all")}
         >
           すべて
@@ -56,7 +56,8 @@ export function MediaSelector({
           <Button
             key={ip}
             variant={value === `ip:${ip}` ? "default" : "outline"}
-            className="h-auto py-2"
+            size="sm"
+            className="rounded-full"
             onClick={() => handleSelect(`ip:${ip}`)}
           >
             {ip}
@@ -67,7 +68,8 @@ export function MediaSelector({
             <Button
               key={`${option.type}:${item}`}
               variant={value === `${option.type}:${item}` ? "default" : "outline"}
-              className="h-auto py-2"
+              size="sm"
+              className="rounded-full"
               onClick={() => handleSelect(`${option.type}:${item}`)}
             >
               {item}
