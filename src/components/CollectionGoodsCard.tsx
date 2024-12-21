@@ -13,6 +13,8 @@ import { DeleteConfirmDialog } from "./collection/DeleteConfirmDialog";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "./ui/button";
+import { Heart } from "lucide-react";
 
 interface CollectionGoodsCardProps {
   title: string;
@@ -61,6 +63,32 @@ export function CollectionGoodsCard({ title, image, id, isShared = false, userId
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: likeCount = 0 } = useQuery({
+    queryKey: ["item-likes-count", id],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("user_item_likes")
+        .select("*", { count: 'exact', head: true })
+        .eq("user_item_id", id);
+      return count || 0;
+    },
+  });
+
+  const { data: isLiked = false } = useQuery({
+    queryKey: ["item-is-liked", id, user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase
+        .from("user_item_likes")
+        .select("id")
+        .eq("user_item_id", id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      return !!data;
+    },
+    enabled: !!user,
   });
 
   const handleDelete = async () => {
@@ -113,6 +141,52 @@ export function CollectionGoodsCard({ title, image, id, isShared = false, userId
     }
   };
 
+  const handleLikeToggle = async () => {
+    if (!user) {
+      toast({
+        title: "ログインが必要です",
+        description: "いいねをするにはログインしてください。",
+      });
+      return;
+    }
+
+    try {
+      if (isLiked) {
+        const { error } = await supabase
+          .from("user_item_likes")
+          .delete()
+          .eq("user_item_id", id)
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("user_item_likes")
+          .insert({
+            user_item_id: id,
+            user_id: user.id,
+          });
+
+        if (error) throw error;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["item-likes-count", id] });
+      queryClient.invalidateQueries({ queryKey: ["item-is-liked", id, user.id] });
+
+      toast({
+        title: isLiked ? "いいねを取り消しました" : "いいねしました",
+        description: isLiked ? "コレクションのいいねを取り消しました。" : "コレクションにいいねしました。",
+      });
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      toast({
+        title: "エラー",
+        description: "いいねの更新に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
   const hasTags = itemTags.length > 0;
   const hasMemories = itemMemories.length > 0;
 
@@ -125,6 +199,29 @@ export function CollectionGoodsCard({ title, image, id, isShared = false, userId
         <CardContent className="p-4">
           <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
           <TagList tags={itemTags} />
+          <div className="flex items-center justify-between mt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMemoriesModalOpen(true)}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              思い出を見る ({itemMemories.length})
+            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLikeToggle}
+                className={`${
+                  isLiked ? "text-red-500 hover:text-red-600" : "text-gray-500 hover:text-gray-600"
+                }`}
+              >
+                <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
+              </Button>
+              <span className="text-sm text-gray-500">{likeCount}</span>
+            </div>
+          </div>
           {isOwner && (
             <div className="flex items-center justify-between mt-4 space-x-2">
               <Label htmlFor={`share-toggle-${id}`} className="text-sm text-gray-600">
