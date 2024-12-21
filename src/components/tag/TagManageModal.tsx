@@ -25,7 +25,7 @@ export function TagManageModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
-            {isCategory ? "カテゴリの管理" : "タグの管理"}: {itemTitle}
+            {isCategory ? "アーティスト/アニメの管理" : "タグの管理"}: {itemTitle}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
