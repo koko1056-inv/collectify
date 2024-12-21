@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tag } from "@/types";
+import { Input } from "@/components/ui/input";
 
 interface TagFilterProps {
   selectedTag: string | null;
@@ -13,11 +14,16 @@ interface TagFilterProps {
 
 export function TagFilter({ selectedTag, onTagSelect, tags }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getDisplayText = () => {
     if (!selectedTag) return "タグから選択";
     return selectedTag;
   };
+
+  const filteredTags = tags.filter(tag =>
+    tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-4">
@@ -37,20 +43,30 @@ export function TagFilter({ selectedTag, onTagSelect, tags }: TagFilterProps) {
               タグを選択
             </DialogTitle>
           </DialogHeader>
+          <div className="p-4 pb-0">
+            <Input
+              placeholder="タグを検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="mb-4"
+            />
+          </div>
           <ScrollArea className="h-[50vh] pr-4">
             <div className="grid grid-cols-2 gap-2 p-4">
-              <Button
-                key="all"
-                variant={selectedTag === null ? "default" : "outline"}
-                className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                onClick={() => {
-                  onTagSelect(null);
-                  setIsDialogOpen(false);
-                }}
-              >
-                すべて
-              </Button>
-              {tags.map((tag) => (
+              {searchQuery === "" && (
+                <Button
+                  key="all"
+                  variant={selectedTag === null ? "default" : "outline"}
+                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                  onClick={() => {
+                    onTagSelect(null);
+                    setIsDialogOpen(false);
+                  }}
+                >
+                  すべて
+                </Button>
+              )}
+              {filteredTags.map((tag) => (
                 <Button
                   key={tag.id}
                   variant={selectedTag === tag.name ? "default" : "outline"}
