@@ -81,7 +81,10 @@ export function MediaSelector({
     handleSelect(value);
   };
 
-  const filteredIpList = ipList.filter(ip =>
+  // Remove duplicates from ipList while preserving order
+  const uniqueIpList = Array.from(new Set(ipList));
+  
+  const filteredIpList = uniqueIpList.filter(ip =>
     ip.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -93,7 +96,7 @@ export function MediaSelector({
   }));
 
   const showAddButton = searchQuery.trim() !== "" && 
-    ![...ipList, ...mediaOptions.flatMap(opt => opt.items)]
+    ![...uniqueIpList, ...mediaOptions.flatMap(opt => opt.items)]
       .map(item => item.toLowerCase())
       .includes(searchQuery.toLowerCase());
 
