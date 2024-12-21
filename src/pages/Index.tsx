@@ -12,7 +12,7 @@ const Index = () => {
   const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
   const [selectedAnime, setSelectedAnime] = useState<string | null>(null);
 
-  const { data: items = [] } = useQuery({
+  const { data: items = [] } = useQuery<OfficialItem[]>({
     queryKey: ["official-items"],
     queryFn: async () => {
       const { data, error } = await supabase

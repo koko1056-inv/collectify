@@ -7,8 +7,9 @@ export interface OfficialItem {
   release_date: string;
   created_at: string;
   created_by: string | null;
+  artist: string | null;
+  anime: string | null;
   item_tags?: Array<{
-    tag_id: string;
     tags: {
       id: string;
       name: string;
