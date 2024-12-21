@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useNavigate } from "react-router-dom";
 
 interface MediaSelectorProps {
   value: string;
@@ -22,6 +23,7 @@ export function MediaSelector({
   mediaOptions,
 }: MediaSelectorProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const navigate = useNavigate();
 
   const getDisplayText = () => {
     if (value === "all") return "アニメ/アーティストから選択";
@@ -34,6 +36,13 @@ export function MediaSelector({
   };
 
   const handleSelect = (value: string) => {
+    if (value === "all") {
+      onValueChange("all");
+      navigate("/");
+      setIsDialogOpen(false);
+      return;
+    }
+
     onValueChange(value);
     setIsDialogOpen(false);
   };
