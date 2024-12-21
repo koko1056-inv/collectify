@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { TagInput } from "./TagInput";
 import { ImageUpload } from "./ImageUpload";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MediaSelectionFields } from "./MediaSelectionFields";
 
 export function AdminItemForm() {
   const { toast } = useToast();
@@ -57,15 +57,14 @@ export function AdminItemForm() {
         imageUrl = publicUrl;
       }
 
-      // Insert the item first
       const { data: itemData, error: itemError } = await supabase
         .from("official_items")
         .insert([
           {
             ...formData,
             image: imageUrl,
-            price: "0", // ダミー値として設定
-            release_date: new Date().toISOString(), // ダミー値として設定
+            price: "0",
+            release_date: new Date().toISOString(),
             artist: formData.artist === "custom" ? customArtist : formData.artist,
             anime: formData.anime === "custom" ? customAnime : formData.anime,
           },
@@ -77,7 +76,6 @@ export function AdminItemForm() {
 
       // Process tags
       for (const tagName of selectedTags) {
-        // Check if tag exists using maybeSingle()
         const { data: existingTag, error: tagError } = await supabase
           .from("tags")
           .select("id")
@@ -88,7 +86,6 @@ export function AdminItemForm() {
 
         let tagId;
         if (!existingTag) {
-          // Tag doesn't exist, create it
           const { data: newTag, error: createTagError } = await supabase
             .from("tags")
             .insert([{ name: tagName }])
@@ -101,7 +98,6 @@ export function AdminItemForm() {
           tagId = existingTag.id;
         }
 
-        // Create item-tag relationship
         const { error: relationError } = await supabase
           .from("item_tags")
           .insert([{
@@ -179,64 +175,14 @@ export function AdminItemForm() {
               }
             />
           </div>
-          <div className="space-y-2">
-            <label htmlFor="artist" className="text-sm font-medium">
-              アーティスト
-            </label>
-            <Select
-              value={formData.artist}
-              onValueChange={(value) => setFormData({ ...formData, artist: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="アーティストを選択" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="custom">その他（カスタム）</SelectItem>
-                <SelectItem value="YOASOBI">YOASOBI</SelectItem>
-                <SelectItem value="Mrs. GREEN APPLE">Mrs. GREEN APPLE</SelectItem>
-                <SelectItem value="Official髭男dism">Official髭男dism</SelectItem>
-                <SelectItem value="King Gnu">King Gnu</SelectItem>
-                <SelectItem value="Ado">Ado</SelectItem>
-              </SelectContent>
-            </Select>
-            {formData.artist === "custom" && (
-              <Input
-                placeholder="アーティスト名を入力"
-                value={customArtist}
-                onChange={(e) => setCustomArtist(e.target.value)}
-                className="mt-2"
-              />
-            )}
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="anime" className="text-sm font-medium">
-              アニメ
-            </label>
-            <Select
-              value={formData.anime}
-              onValueChange={(value) => setFormData({ ...formData, anime: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="アニメを選択" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="custom">その他（カスタム）</SelectItem>
-                <SelectItem value="鬼滅の刃">鬼滅の刃</SelectItem>
-                <SelectItem value="呪術廻戦">呪術廻戦</SelectItem>
-                <SelectItem value="SPY×FAMILY">SPY×FAMILY</SelectItem>
-                <SelectItem value="チェンソーマン">チェンソーマン</SelectItem>
-                <SelectItem value="推しの子">推しの子</SelectItem>
-              </SelectContent>
-            </Select>
-            {formData.anime === "custom" && (
-              <Input
-                placeholder="アニメ名を入力"
-                value={customAnime}
-                onChange={(e) => setCustomAnime(e.target.value)}
-                className="mt-2"
-              />
-            )}
-          </div>
+          <MediaSelectionFields
+            formData={formData}
+            customArtist={customArtist}
+            customAnime={customAnime}
+            onFormDataChange={(key, value) => setFormData({ ...formData, [key]: value })}
+            onCustomArtistChange={setCustomArtist}
+            onCustomAnimeChange={setCustomAnime}
+          />
           <TagInput
             selectedTags={selectedTags}
             onTagsChange={setSelectedTags}
