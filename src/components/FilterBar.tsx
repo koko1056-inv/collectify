@@ -33,6 +33,7 @@ export function FilterBar({
   animes,
 }: FilterBarProps) {
   const mediaOptions = [
+    { type: "all", label: "すべて表示", items: [] },
     { type: "artist", label: "アーティスト", items: artists },
     { type: "anime", label: "アニメ", items: animes },
   ];
@@ -80,17 +81,22 @@ export function FilterBar({
               <SelectValue placeholder="アーティスト/アニメで絞り込む" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">すべて表示</SelectItem>
               {mediaOptions.map(({ type, label, items }) => (
                 <React.Fragment key={type}>
-                  <SelectItem value={`${type}:header`} className="font-semibold">
-                    {label}
-                  </SelectItem>
-                  {items.map((item) => (
-                    <SelectItem key={`${type}:${item}`} value={`${type}:${item}`}>
-                      {item}
-                    </SelectItem>
-                  ))}
+                  {type === "all" ? (
+                    <SelectItem value="all">{label}</SelectItem>
+                  ) : (
+                    <>
+                      <SelectItem value={`${type}:header`} className="font-semibold">
+                        {label}
+                      </SelectItem>
+                      {items.map((item) => (
+                        <SelectItem key={`${type}:${item}`} value={`${type}:${item}`}>
+                          {item}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
                 </React.Fragment>
               ))}
             </SelectContent>
