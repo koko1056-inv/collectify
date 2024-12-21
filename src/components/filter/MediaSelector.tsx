@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown } from "lucide-react";
-import { MediaSelectionDialog } from "./MediaSelectionDialog";
+import { Input } from "@/components/ui/input";
 
 interface MediaSelectorProps {
   value: string;
@@ -38,9 +40,23 @@ export function MediaSelector({
   const handleSelect = (value: string) => {
     if (value === "all") {
       navigate("/");
+      onValueChange(value);
+    } else {
+      onValueChange(value);
     }
-    onValueChange(value);
+    setIsDialogOpen(false);
   };
+
+  const filteredIpList = ipList.filter(ip =>
+    ip.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredMediaOptions = mediaOptions.map(option => ({
+    ...option,
+    items: option.items.filter(item =>
+      item.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }));
 
   return (
     <div className="space-y-4">
@@ -53,16 +69,59 @@ export function MediaSelector({
         <ChevronDown className="h-4 w-4 opacity-50" />
       </Button>
 
-      <MediaSelectionDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        onSelect={handleSelect}
-        currentValue={value}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        ipList={ipList}
-        mediaOptions={mediaOptions}
-      />
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              アニメ/アーティストを選択
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4 pb-0">
+            <Input
+              placeholder="検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="mb-4"
+            />
+          </div>
+          <ScrollArea className="h-[50vh] pr-4">
+            <div className="grid grid-cols-2 gap-2 p-4">
+              {searchQuery === "" && (
+                <Button
+                  key="all"
+                  variant={value === "all" ? "default" : "outline"}
+                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                  onClick={() => handleSelect("all")}
+                >
+                  すべて
+                </Button>
+              )}
+              {filteredIpList.map((ip) => (
+                <Button
+                  key={ip}
+                  variant={value === `ip:${ip}` ? "default" : "outline"}
+                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                  onClick={() => handleSelect(`ip:${ip}`)}
+                >
+                  {ip}
+                </Button>
+              ))}
+              {filteredMediaOptions.map((option) =>
+                option.items.map((item) => (
+                  <Button
+                    key={`${option.type}:${item}`}
+                    variant={value === `${option.type}:${item}` ? "default" : "outline"}
+                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                    onClick={() => handleSelect(`${option.type}:${item}`)}
+                  >
+                    {item}
+                  </Button>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

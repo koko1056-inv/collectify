@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MediaSelectionDialog } from "./filter/MediaSelectionDialog";
 
 interface MediaSelectionFieldsProps {
   formData: {
@@ -23,10 +21,6 @@ export function MediaSelectionFields({
   onCustomArtistChange,
   onCustomAnimeChange,
 }: MediaSelectionFieldsProps) {
-  const [isArtistDialogOpen, setIsArtistDialogOpen] = useState(false);
-  const [isAnimeDialogOpen, setIsAnimeDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
   const ipList = [
     "鬼滅の刃",
     "呪術廻戦",
@@ -39,34 +33,6 @@ export function MediaSelectionFields({
     "進撃の巨人"
   ];
 
-  const mediaOptions = [
-    {
-      type: "artist",
-      label: "アーティスト",
-      items: ["YOASOBI", "Mrs. GREEN APPLE", "Official髭男dism", "King Gnu", "Ado"]
-    }
-  ];
-
-  const handleArtistSelect = (value: string) => {
-    if (value.startsWith("artist:")) {
-      const artistName = value.replace("artist:", "");
-      onFormDataChange("artist", artistName);
-    } else if (value === "custom") {
-      onFormDataChange("artist", "custom");
-    }
-    setIsArtistDialogOpen(false);
-  };
-
-  const handleAnimeSelect = (value: string) => {
-    if (value.startsWith("ip:")) {
-      const animeName = value.replace("ip:", "");
-      onFormDataChange("anime", animeName);
-    } else if (value === "custom") {
-      onFormDataChange("anime", "custom");
-    }
-    setIsAnimeDialogOpen(false);
-  };
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
@@ -75,20 +41,18 @@ export function MediaSelectionFields({
         </label>
         <Select
           value={formData.artist}
-          onValueChange={(value) => {
-            if (value === "select") {
-              setIsArtistDialogOpen(true);
-            } else {
-              onFormDataChange("artist", value);
-            }
-          }}
+          onValueChange={(value) => onFormDataChange("artist", value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="アーティストを選択" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="select">アーティストから選択</SelectItem>
             <SelectItem value="custom">その他（カスタム）</SelectItem>
+            <SelectItem value="YOASOBI">YOASOBI</SelectItem>
+            <SelectItem value="Mrs. GREEN APPLE">Mrs. GREEN APPLE</SelectItem>
+            <SelectItem value="Official髭男dism">Official髭男dism</SelectItem>
+            <SelectItem value="King Gnu">King Gnu</SelectItem>
+            <SelectItem value="Ado">Ado</SelectItem>
           </SelectContent>
         </Select>
         {formData.artist === "custom" && (
@@ -99,18 +63,6 @@ export function MediaSelectionFields({
             className="mt-2"
           />
         )}
-        <MediaSelectionDialog
-          isOpen={isArtistDialogOpen}
-          onClose={() => setIsArtistDialogOpen(false)}
-          onSelect={handleArtistSelect}
-          currentValue={`artist:${formData.artist}`}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          ipList={[]}
-          mediaOptions={mediaOptions}
-          showAllOption={false}
-          title="アーティストを選択"
-        />
       </div>
       <div className="space-y-2">
         <label htmlFor="anime" className="text-sm font-medium">
@@ -118,20 +70,22 @@ export function MediaSelectionFields({
         </label>
         <Select
           value={formData.anime}
-          onValueChange={(value) => {
-            if (value === "select") {
-              setIsAnimeDialogOpen(true);
-            } else {
-              onFormDataChange("anime", value);
-            }
-          }}
+          onValueChange={(value) => onFormDataChange("anime", value)}
         >
           <SelectTrigger>
             <SelectValue placeholder="アニメを選択" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="select">アニメから選択</SelectItem>
             <SelectItem value="custom">その他（カスタム）</SelectItem>
+            <SelectItem value="all">すべて表示</SelectItem>
+            <SelectItem value="header" className="font-semibold">
+              人気IP
+            </SelectItem>
+            {ipList.map((ip) => (
+              <SelectItem key={ip} value={ip}>
+                {ip}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         {formData.anime === "custom" && (
@@ -142,18 +96,6 @@ export function MediaSelectionFields({
             className="mt-2"
           />
         )}
-        <MediaSelectionDialog
-          isOpen={isAnimeDialogOpen}
-          onClose={() => setIsAnimeDialogOpen(false)}
-          onSelect={handleAnimeSelect}
-          currentValue={`ip:${formData.anime}`}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          ipList={ipList}
-          mediaOptions={[]}
-          showAllOption={false}
-          title="アニメを選択"
-        />
       </div>
     </div>
   );
