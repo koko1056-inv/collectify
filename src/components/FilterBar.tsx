@@ -44,14 +44,14 @@ export function FilterBar({
       <div className="flex flex-wrap gap-4">
         <div className="flex-1 min-w-[200px]">
           <Select
-            value={selectedArtist || ""}
-            onValueChange={(value) => onArtistSelect(value === "" ? null : value)}
+            value={selectedArtist || "all"}
+            onValueChange={(value) => onArtistSelect(value === "all" ? null : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="アーティストで絞り込む" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">すべてのアーティスト</SelectItem>
+              <SelectItem value="all">すべてのアーティスト</SelectItem>
               {artists.map((artist) => (
                 <SelectItem key={artist} value={artist}>
                   {artist}
@@ -63,14 +63,14 @@ export function FilterBar({
 
         <div className="flex-1 min-w-[200px]">
           <Select
-            value={selectedAnime || ""}
-            onValueChange={(value) => onAnimeSelect(value === "" ? null : value)}
+            value={selectedAnime || "all"}
+            onValueChange={(value) => onAnimeSelect(value === "all" ? null : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="アニメで絞り込む" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">すべてのアニメ</SelectItem>
+              <SelectItem value="all">すべてのアニメ</SelectItem>
               {animes.map((anime) => (
                 <SelectItem key={anime} value={anime}>
                   {anime}
