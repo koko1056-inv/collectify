@@ -73,6 +73,7 @@ export function MediaSelector({
   return (
     <div className="space-y-4">
       <Button
+        type="button"
         variant="outline"
         onClick={() => setIsDialogOpen(true)}
         className="w-full justify-between font-normal"
@@ -103,6 +104,7 @@ export function MediaSelector({
             <div className="grid grid-cols-2 gap-2 p-4">
               {searchQuery === "" && (
                 <Button
+                  type="button"
                   key="all"
                   variant={value === "all" ? "default" : "outline"}
                   className="h-auto py-6 flex flex-col items-center justify-center gap-2"
@@ -113,6 +115,7 @@ export function MediaSelector({
               )}
               {filteredIpList.map((ip) => (
                 <Button
+                  type="button"
                   key={ip}
                   variant={value === `ip:${ip}` ? "default" : "outline"}
                   className="h-auto py-6 flex flex-col items-center justify-center gap-2"
@@ -124,6 +127,7 @@ export function MediaSelector({
               {filteredMediaOptions.map((option) =>
                 option.items.map((item) => (
                   <Button
+                    type="button"
                     key={`${option.type}:${item}`}
                     variant={value === `${option.type}:${item}` ? "default" : "outline"}
                     className="h-auto py-6 flex flex-col items-center justify-center gap-2"
@@ -136,6 +140,7 @@ export function MediaSelector({
               {showAddButton && (
                 <div className="col-span-2 grid grid-cols-2 gap-2">
                   <Button
+                    type="button"
                     variant="outline"
                     className="h-auto py-6 flex flex-col items-center justify-center gap-2"
                     onClick={() => handleAddNew("artist")}
@@ -145,6 +150,7 @@ export function MediaSelector({
                     アーティストとして追加
                   </Button>
                   <Button
+                    type="button"
                     variant="outline"
                     className="h-auto py-6 flex flex-col items-center justify-center gap-2"
                     onClick={() => handleAddNew("ip")}
