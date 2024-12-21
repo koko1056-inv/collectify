@@ -3,6 +3,7 @@ import { LikeButton } from "./LikeButton";
 import { TagList } from "./TagList";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Music, Tv } from "lucide-react";
 
 interface CardContentProps {
   itemId: string;
@@ -10,6 +11,8 @@ interface CardContentProps {
   memoriesCount: number;
   isOwner: boolean;
   isShared: boolean;
+  artist?: string | null;
+  anime?: string | null;
   onMemoriesClick: () => void;
   onShareToggle: (checked: boolean) => void;
 }
@@ -20,12 +23,30 @@ export function CardContent({
   memoriesCount,
   isOwner,
   isShared,
+  artist,
+  anime,
   onMemoriesClick,
   onShareToggle,
 }: CardContentProps) {
   return (
     <div className="p-4">
       <TagList tags={itemTags} />
+      {(artist || anime) && (
+        <div className="space-y-1 mt-2 mb-4">
+          {artist && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Music className="h-4 w-4" />
+              <span>{artist}</span>
+            </div>
+          )}
+          {anime && (
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Tv className="h-4 w-4" />
+              <span>{anime}</span>
+            </div>
+          )}
+        </div>
+      )}
       <div className="flex items-center justify-between mt-4">
         {!isOwner && (
           <Button

@@ -99,6 +99,8 @@ export function UserCollection({
           title={item.title}
           image={item.image}
           isShared={item.is_shared}
+          artist={item.artist}
+          anime={item.anime}
         />
       ))}
     </div>
