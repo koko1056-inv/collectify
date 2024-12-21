@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Music, Tv, Star, Search } from "lucide-react";
+import { Music, Tv, Star, Search, Tag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface SelectionDialogProps {
@@ -13,6 +13,8 @@ interface SelectionDialogProps {
   ipList: string[];
   artists: string[];
   animes: string[];
+  categories?: string[];
+  type?: 'media' | 'category';
 }
 
 export function SelectionDialog({
@@ -22,11 +24,17 @@ export function SelectionDialog({
   ipList,
   artists,
   animes,
+  categories = [],
+  type = 'media'
 }: SelectionDialogProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredArtists = artists.filter(artist =>
     artist.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredCategories = categories.filter(category =>
+    category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const CategorySection = ({ title, items, icon }: { title: string; items: string[]; icon: React.ReactNode }) => (
@@ -58,35 +66,47 @@ export function SelectionDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] bg-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">カテゴリーから選択</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-gray-900">
+            {type === 'media' ? 'カテゴリーから選択' : 'カテゴリを選択'}
+          </DialogTitle>
         </DialogHeader>
         <ScrollArea className="h-[70vh] pr-4">
           <div className="space-y-8 p-4">
             <div className="relative">
               <Input
                 type="text"
-                placeholder="アーティストを検索..."
+                placeholder={type === 'media' ? "アーティストを検索..." : "カテゴリを検索..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             </div>
-            <CategorySection
-              title="人気IP"
-              items={ipList}
-              icon={<Star className="w-6 h-6 text-gray-900" />}
-            />
-            <CategorySection
-              title="アーティスト"
-              items={filteredArtists}
-              icon={<Music className="w-6 h-6 text-gray-900" />}
-            />
-            <CategorySection
-              title="アニメ"
-              items={animes}
-              icon={<Tv className="w-6 h-6 text-gray-900" />}
-            />
+            {type === 'media' ? (
+              <>
+                <CategorySection
+                  title="人気IP"
+                  items={ipList}
+                  icon={<Star className="w-6 h-6 text-gray-900" />}
+                />
+                <CategorySection
+                  title="アーティスト"
+                  items={filteredArtists}
+                  icon={<Music className="w-6 h-6 text-gray-900" />}
+                />
+                <CategorySection
+                  title="アニメ"
+                  items={animes}
+                  icon={<Tv className="w-6 h-6 text-gray-900" />}
+                />
+              </>
+            ) : (
+              <CategorySection
+                title="カテゴリ"
+                items={filteredCategories}
+                icon={<Tag className="w-6 h-6 text-gray-900" />}
+              />
+            )}
           </div>
         </ScrollArea>
       </DialogContent>
