@@ -32,19 +32,19 @@ export function SelectionDialog({
   const CategorySection = ({ title, items, icon }: { title: string; items: string[]; icon: React.ReactNode }) => (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <div className="p-2 rounded-full bg-white/10">{icon}</div>
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <div className="p-2 rounded-full bg-gray-100">{icon}</div>
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
       </div>
-      <Separator className="bg-white/20" />
+      <Separator className="bg-gray-200" />
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {items.map((item) => (
           <Button
             key={item}
             variant="ghost"
-            className="relative group h-auto py-6 flex flex-col items-center justify-center gap-2 hover:bg-white/10 text-white transition-all duration-200"
+            className="relative group h-auto py-6 flex flex-col items-center justify-center gap-2 hover:bg-gray-100 text-gray-900 transition-all duration-200"
             onClick={() => onSelect(item)}
           >
-            <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+            <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
               {icon}
             </div>
             <span className="text-sm font-medium text-center line-clamp-2">{item}</span>
@@ -56,9 +56,9 @@ export function SelectionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/95">
+      <DialogContent className="max-w-4xl max-h-[90vh] bg-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-white">カテゴリーから選択</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-gray-900">カテゴリーから選択</DialogTitle>
         </DialogHeader>
         <ScrollArea className="h-[70vh] pr-4">
           <div className="space-y-8 p-4">
@@ -68,24 +68,24 @@ export function SelectionDialog({
                 placeholder="アーティストを検索..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white/10 text-white placeholder:text-white/60 border-white/20"
+                className="pl-10"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 h-5 w-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             </div>
             <CategorySection
               title="人気IP"
               items={ipList}
-              icon={<Star className="w-6 h-6 text-white" />}
+              icon={<Star className="w-6 h-6 text-gray-900" />}
             />
             <CategorySection
               title="アーティスト"
               items={filteredArtists}
-              icon={<Music className="w-6 h-6 text-white" />}
+              icon={<Music className="w-6 h-6 text-gray-900" />}
             />
             <CategorySection
               title="アニメ"
               items={animes}
-              icon={<Tv className="w-6 h-6 text-white" />}
+              icon={<Tv className="w-6 h-6 text-gray-900" />}
             />
           </div>
         </ScrollArea>
