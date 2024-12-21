@@ -2,6 +2,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { TagInputField } from "./TagInputField";
 import { MediaSelectionFields } from "@/components/MediaSelectionFields";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -12,13 +15,13 @@ interface TagManageModalProps {
   isCategory?: boolean;
 }
 
-export function TagManageModal({ 
-  isOpen, 
-  onClose, 
-  itemId, 
-  itemTitle, 
+export function TagManageModal({
+  isOpen,
+  onClose,
+  itemId,
+  itemTitle,
   isUserItem = false,
-  isCategory = false 
+  isCategory = false,
 }: TagManageModalProps) {
   const [formData, setFormData] = useState({
     artist: "",
@@ -26,20 +29,47 @@ export function TagManageModal({
   });
   const [customArtist, setCustomArtist] = useState("");
   const [customAnime, setCustomAnime] = useState("");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  const handleFormDataChange = (key: "artist" | "anime", value: string) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+  const handleFormDataChange = async (key: "artist" | "anime", value: string) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+
+    try {
+      const { error } = await supabase
+        .from(isUserItem ? "user_items" : "official_items")
+        .update({ [key]: value })
+        .eq("id", itemId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ 
+        queryKey: isUserItem ? ["user-items"] : ["official-items"] 
+      });
+
+      toast({
+        title: "更新完了",
+        description: `${key === "artist" ? "アーティスト" : "アニメ"}を更新しました。`,
+      });
+    } catch (error) {
+      console.error("Error updating item:", error);
+      toast({
+        title: "エラー",
+        description: "更新に失敗しました。",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
-            {isCategory ? "アーティスト/アニメの管理" : "タグの管理"}: {itemTitle}
+          <DialogTitle>
+            {isCategory ? "カテゴリを管理" : "タグを管理"}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
+        <div className="space-y-4">
           {isCategory ? (
             <MediaSelectionFields
               formData={formData}
