@@ -7,12 +7,13 @@ export interface OfficialItem {
   release_date: string;
   created_at: string;
   created_by: string | null;
-  item_tags?: {
+  item_tags?: Array<{
     tag_id: string;
     tags: {
+      id: string;
       name: string;
-    };
-  }[];
+    } | null;
+  }>;
 }
 
 export interface UserItem {
