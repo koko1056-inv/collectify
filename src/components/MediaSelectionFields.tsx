@@ -43,18 +43,7 @@ export function MediaSelectionFields({
     {
       type: "artist",
       label: "アーティスト",
-      items: [
-        "YOASOBI",
-        "Mrs. GREEN APPLE",
-        "Official髭男dism",
-        "King Gnu",
-        "Ado",
-        "米津玄師",
-        "LiSA",
-        "藤井 風",
-        "Vaundy",
-        "ずっと真夜中でいいのに。"
-      ]
+      items: ["YOASOBI", "Mrs. GREEN APPLE", "Official髭男dism", "King Gnu", "Ado"]
     }
   ];
 
