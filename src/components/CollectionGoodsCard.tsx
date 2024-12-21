@@ -170,6 +170,7 @@ export function CollectionGoodsCard({ title, image, id, isShared = false, userId
         onClose={() => setIsMemoriesModalOpen(false)}
         itemId={id}
         itemTitle={title}
+        userId={userId}
       />
 
       <TagManageModal
