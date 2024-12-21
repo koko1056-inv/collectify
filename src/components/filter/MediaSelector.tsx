@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface MediaSelectorProps {
   value: string;
@@ -24,6 +25,7 @@ export function MediaSelector({
 }: MediaSelectorProps) {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getDisplayText = () => {
     if (value === "all") return "アニメ/アーティストから選択";
@@ -45,6 +47,17 @@ export function MediaSelector({
     setIsDialogOpen(false);
   };
 
+  const filteredIpList = ipList.filter(ip =>
+    ip.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredMediaOptions = mediaOptions.map(option => ({
+    ...option,
+    items: option.items.filter(item =>
+      item.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }));
+
   return (
     <div className="space-y-4">
       <Button
@@ -63,17 +76,27 @@ export function MediaSelector({
               アニメ/アーティストを選択
             </DialogTitle>
           </DialogHeader>
+          <div className="p-4 pb-0">
+            <Input
+              placeholder="検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="mb-4"
+            />
+          </div>
           <ScrollArea className="h-[50vh] pr-4">
             <div className="grid grid-cols-2 gap-2 p-4">
-              <Button
-                key="all"
-                variant={value === "all" ? "default" : "outline"}
-                className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                onClick={() => handleSelect("all")}
-              >
-                すべて
-              </Button>
-              {ipList.map((ip) => (
+              {searchQuery === "" && (
+                <Button
+                  key="all"
+                  variant={value === "all" ? "default" : "outline"}
+                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                  onClick={() => handleSelect("all")}
+                >
+                  すべて
+                </Button>
+              )}
+              {filteredIpList.map((ip) => (
                 <Button
                   key={ip}
                   variant={value === `ip:${ip}` ? "default" : "outline"}
@@ -83,7 +106,7 @@ export function MediaSelector({
                   {ip}
                 </Button>
               ))}
-              {mediaOptions.map((option) =>
+              {filteredMediaOptions.map((option) =>
                 option.items.map((item) => (
                   <Button
                     key={`${option.type}:${item}`}
