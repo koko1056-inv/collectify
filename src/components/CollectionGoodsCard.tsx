@@ -4,21 +4,23 @@ import { useState } from "react";
 import { ItemMemoriesModal } from "./ItemMemoriesModal";
 import { TagManageModal } from "./tag/TagManageModal";
 import { ShareModal } from "./ShareModal";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
 import { CardImage } from "./collection/CardImage";
 import { TagList } from "./collection/TagList";
 import { CardActions } from "./collection/CardActions";
 import { DeleteConfirmDialog } from "./collection/DeleteConfirmDialog";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 
 interface CollectionGoodsCardProps {
   title: string;
   image: string;
   id: string;
+  isShared?: boolean;
 }
 
-export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardProps) {
+export function CollectionGoodsCard({ title, image, id, isShared = false }: CollectionGoodsCardProps) {
   const { toast } = useToast();
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
@@ -81,6 +83,31 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
     }
   };
 
+  const handleShareToggle = async (checked: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("user_items")
+        .update({ is_shared: checked })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["user-items"] });
+
+      toast({
+        title: checked ? "共有設定完了" : "非公開設定完了",
+        description: checked ? "アイテムを共有しました。" : "アイテムを非公開にしました。",
+      });
+    } catch (error) {
+      console.error("Error updating share status:", error);
+      toast({
+        title: "エラー",
+        description: "共有設定の更新に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
   const hasTags = itemTags.length > 0;
   const hasMemories = itemMemories.length > 0;
 
@@ -93,6 +120,16 @@ export function CollectionGoodsCard({ title, image, id }: CollectionGoodsCardPro
         <CardContent className="p-4">
           <CardTitle className="text-lg mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
           <TagList tags={itemTags} />
+          <div className="flex items-center justify-between mt-4 space-x-2">
+            <Label htmlFor={`share-toggle-${id}`} className="text-sm text-gray-600">
+              {isShared ? "共有中" : "非公開"}
+            </Label>
+            <Switch
+              id={`share-toggle-${id}`}
+              checked={isShared}
+              onCheckedChange={handleShareToggle}
+            />
+          </div>
         </CardContent>
         <CardFooter className="p-4 pt-0">
           <CardActions

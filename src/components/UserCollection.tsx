@@ -90,6 +90,7 @@ export function UserCollection({ selectedTag }: UserCollectionProps) {
           id={item.id}
           title={item.title}
           image={item.image}
+          isShared={item.is_shared}
         />
       ))}
     </div>
