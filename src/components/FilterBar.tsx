@@ -1,3 +1,4 @@
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Tag } from "@/types";
 import { TagFilter } from "./TagFilter";
