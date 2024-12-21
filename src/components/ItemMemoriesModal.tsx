@@ -8,22 +8,27 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ItemMemoriesModalProps {
   isOpen: boolean;
   onClose: () => void;
   itemId: string;
   itemTitle: string;
+  userId?: string;
 }
 
 interface MemoryForm {
   comment: string;
 }
 
-export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle }: ItemMemoriesModalProps) {
+export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }: ItemMemoriesModalProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const form = useForm<MemoryForm>();
+
+  const isOwner = !userId || (user && user.id === userId);
 
   const { data: memories = [], refetch } = useQuery({
     queryKey: ["item-memories", itemId],
@@ -77,8 +82,10 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle }: ItemMe
       if (error) throw error;
 
       toast({
-        title: "思い出を追加しました",
-        description: "コレクションに新しい思い出が追加されました。",
+        title: isOwner ? "思い出を追加しました" : "コメントを追加しました",
+        description: isOwner 
+          ? "コレクションに新しい思い出が追加されました。"
+          : "コレクションにコメントが追加されました。",
       });
 
       form.reset();
@@ -88,7 +95,9 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle }: ItemMe
       console.error("Error adding memory:", error);
       toast({
         title: "エラー",
-        description: "思い出の追加に失敗しました。",
+        description: isOwner 
+          ? "思い出の追加に失敗しました。"
+          : "コメントの追加に失敗しました。",
         variant: "destructive",
       });
     }
@@ -111,7 +120,7 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle }: ItemMe
                     <FormLabel>コメント</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="思い出を書いてください..."
+                        placeholder={isOwner ? "思い出を書いてください..." : "コメントを書いてください..."}
                         className="min-h-[100px]"
                         {...field}
                       />
@@ -131,7 +140,7 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle }: ItemMe
                 </FormControl>
               </FormItem>
               <Button type="submit" className="w-full">
-                思い出を追加
+                {isOwner ? "思い出を追加" : "コメントする"}
               </Button>
             </form>
           </Form>
