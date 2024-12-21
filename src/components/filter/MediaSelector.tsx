@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 
 interface MediaSelectorProps {
   value: string;
@@ -22,6 +23,7 @@ export function MediaSelector({
   mediaOptions,
 }: MediaSelectorProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const getDisplayText = () => {
     if (value === "all") return "アニメ/アーティストから選択";
@@ -38,6 +40,18 @@ export function MediaSelector({
     onValueChange(value);
     setIsDialogOpen(false);
   };
+
+  // Filter items based on search query
+  const filteredIpList = ipList.filter(ip =>
+    ip.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredMediaOptions = mediaOptions.map(option => ({
+    ...option,
+    items: option.items.filter(item =>
+      item.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }));
 
   return (
     <div className="space-y-4">
@@ -57,40 +71,52 @@ export function MediaSelector({
               カテゴリを選択
             </DialogTitle>
           </DialogHeader>
-          <ScrollArea className="h-[50vh] pr-4">
-            <div className="grid grid-cols-2 gap-2 p-4">
-              <Button
-                key="all"
-                variant={value === "all" ? "default" : "outline"}
-                className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                onClick={() => handleSelect("all")}
-              >
-                すべて
-              </Button>
-              {ipList.map((ip) => (
-                <Button
-                  key={ip}
-                  variant={value === `ip:${ip}` ? "default" : "outline"}
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                  onClick={() => handleSelect(`ip:${ip}`)}
-                >
-                  {ip}
-                </Button>
-              ))}
-              {mediaOptions.map((option) =>
-                option.items.map((item) => (
-                  <Button
-                    key={`${option.type}:${item}`}
-                    variant={value === `${option.type}:${item}` ? "default" : "outline"}
-                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                    onClick={() => handleSelect(`${option.type}:${item}`)}
-                  >
-                    {item}
-                  </Button>
-                ))
-              )}
+          <div className="space-y-4">
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="カテゴリを検索..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
             </div>
-          </ScrollArea>
+            <ScrollArea className="h-[50vh] pr-4">
+              <div className="grid grid-cols-2 gap-2 p-4">
+                <Button
+                  key="all"
+                  variant={value === "all" ? "default" : "outline"}
+                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                  onClick={() => handleSelect("all")}
+                >
+                  すべて
+                </Button>
+                {filteredIpList.map((ip) => (
+                  <Button
+                    key={ip}
+                    variant={value === `ip:${ip}` ? "default" : "outline"}
+                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                    onClick={() => handleSelect(`ip:${ip}`)}
+                  >
+                    {ip}
+                  </Button>
+                ))}
+                {filteredMediaOptions.map((option) =>
+                  option.items.map((item) => (
+                    <Button
+                      key={`${option.type}:${item}`}
+                      variant={value === `${option.type}:${item}` ? "default" : "outline"}
+                      className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                      onClick={() => handleSelect(`${option.type}:${item}`)}
+                    >
+                      {item}
+                    </Button>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
