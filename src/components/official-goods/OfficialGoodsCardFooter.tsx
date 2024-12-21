@@ -12,6 +12,8 @@ interface OfficialGoodsCardFooterProps {
   onWishlistClick: () => void;
   itemId: string;
   itemTitle: string;
+  currentArtist?: string | null;
+  currentAnime?: string | null;
   onAnimeSelect?: (anime: string | null) => void;
   onArtistSelect?: (artist: string | null) => void;
 }
@@ -24,6 +26,8 @@ export function OfficialGoodsCardFooter({
   onWishlistClick,
   itemId,
   itemTitle,
+  currentArtist,
+  currentAnime,
   onAnimeSelect,
   onArtistSelect,
 }: OfficialGoodsCardFooterProps) {
@@ -41,7 +45,9 @@ export function OfficialGoodsCardFooter({
         <TagButton onClick={onTagManageClick} />
         <CategoryButton 
           itemId={itemId} 
-          itemTitle={itemTitle} 
+          itemTitle={itemTitle}
+          currentArtist={currentArtist}
+          currentAnime={currentAnime}
           onAnimeSelect={onAnimeSelect}
           onArtistSelect={onArtistSelect}
         />

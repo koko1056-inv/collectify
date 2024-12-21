@@ -5,6 +5,7 @@ import { OfficialGoodsCardHeader } from "./official-goods/OfficialGoodsCardHeade
 import { OfficialGoodsCardContent } from "./official-goods/OfficialGoodsCardContent";
 import { OfficialGoodsCardFooter } from "./official-goods/OfficialGoodsCardFooter";
 import { useOfficialGoodsCard } from "./official-goods/useOfficialGoodsCard";
+import { useState } from "react";
 
 interface OfficialGoodsCardProps {
   title: string;
@@ -25,9 +26,12 @@ export function OfficialGoodsCard({
   image, 
   id, 
   item_tags = [], 
-  artist, 
-  anime 
+  artist: initialArtist, 
+  anime: initialAnime 
 }: OfficialGoodsCardProps) {
+  const [currentArtist, setCurrentArtist] = useState(initialArtist);
+  const [currentAnime, setCurrentAnime] = useState(initialAnime);
+
   const {
     isInCollection,
     wishlistCount,
@@ -44,8 +48,8 @@ export function OfficialGoodsCard({
         <OfficialGoodsCardHeader image={image} title={title} />
         <OfficialGoodsCardContent
           title={title}
-          artist={artist}
-          anime={anime}
+          artist={currentArtist}
+          anime={currentAnime}
           item_tags={item_tags}
         />
         <OfficialGoodsCardFooter
@@ -56,6 +60,10 @@ export function OfficialGoodsCard({
           onWishlistClick={() => setIsWishlistModalOpen(true)}
           itemId={id}
           itemTitle={title}
+          currentArtist={currentArtist}
+          currentAnime={currentAnime}
+          onArtistSelect={setCurrentArtist}
+          onAnimeSelect={setCurrentAnime}
         />
       </Card>
       <WishlistModal
