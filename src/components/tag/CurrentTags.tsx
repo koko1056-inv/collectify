@@ -43,8 +43,7 @@ export function CurrentTags({ itemId, isUserItem = false, isCategory = false }: 
       if (error) throw error;
 
       // Filter tags based on is_category
-      const filteredData = (data as TagRelation[]).filter(tag => tag.tags?.is_category === isCategory);
-      return filteredData;
+      return (data as TagRelation[]).filter(tag => tag.tags?.is_category === isCategory);
     },
   });
 
