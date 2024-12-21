@@ -27,14 +27,44 @@ export function useAdminItemForm() {
       anime: "",
     });
     setImageFile(null);
-    setPreviewUrl(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
     setSelectedTags([]);
     setCustomArtist("");
     setCustomAnime("");
   };
 
+  const validateForm = () => {
+    if (!formData.title.trim()) {
+      toast({
+        title: "エラー",
+        description: "タイトルを入力してください。",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!imageFile) {
+      toast({
+        title: "エラー",
+        description: "画像を選択してください。",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -57,6 +87,9 @@ export function useAdminItemForm() {
         imageUrl = publicUrl;
       }
 
+      const finalArtist = formData.artist === "custom" ? customArtist : formData.artist;
+      const finalAnime = formData.anime === "custom" ? customAnime : formData.anime;
+
       const { data: itemData, error: itemError } = await supabase
         .from("official_items")
         .insert([
@@ -65,8 +98,8 @@ export function useAdminItemForm() {
             image: imageUrl,
             price: "0",
             release_date: new Date().toISOString(),
-            artist: formData.artist === "custom" ? customArtist : formData.artist,
-            anime: formData.anime === "custom" ? customAnime : formData.anime,
+            artist: finalArtist,
+            anime: finalAnime,
           },
         ])
         .select()
@@ -75,37 +108,39 @@ export function useAdminItemForm() {
       if (itemError) throw itemError;
 
       // Process tags
-      for (const tagName of selectedTags) {
-        const { data: existingTag, error: tagError } = await supabase
-          .from("tags")
-          .select("id")
-          .eq("name", tagName)
-          .maybeSingle();
-
-        if (tagError) throw tagError;
-
-        let tagId;
-        if (!existingTag) {
-          const { data: newTag, error: createTagError } = await supabase
+      if (selectedTags.length > 0) {
+        for (const tagName of selectedTags) {
+          const { data: existingTag, error: tagError } = await supabase
             .from("tags")
-            .insert([{ name: tagName }])
-            .select()
-            .single();
+            .select("id")
+            .eq("name", tagName)
+            .maybeSingle();
 
-          if (createTagError) throw createTagError;
-          tagId = newTag.id;
-        } else {
-          tagId = existingTag.id;
+          if (tagError) throw tagError;
+
+          let tagId;
+          if (!existingTag) {
+            const { data: newTag, error: createTagError } = await supabase
+              .from("tags")
+              .insert([{ name: tagName }])
+              .select()
+              .single();
+
+            if (createTagError) throw createTagError;
+            tagId = newTag.id;
+          } else {
+            tagId = existingTag.id;
+          }
+
+          const { error: relationError } = await supabase
+            .from("item_tags")
+            .insert([{
+              official_item_id: itemData.id,
+              tag_id: tagId,
+            }]);
+
+          if (relationError) throw relationError;
         }
-
-        const { error: relationError } = await supabase
-          .from("item_tags")
-          .insert([{
-            official_item_id: itemData.id,
-            tag_id: tagId,
-          }]);
-
-        if (relationError) throw relationError;
       }
 
       toast({
