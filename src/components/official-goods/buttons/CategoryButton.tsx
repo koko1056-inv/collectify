@@ -9,9 +9,16 @@ import { useQueryClient } from "@tanstack/react-query";
 interface CategoryButtonProps {
   itemId: string;
   itemTitle: string;
+  onAnimeSelect?: (anime: string | null) => void;
+  onArtistSelect?: (artist: string | null) => void;
 }
 
-export function CategoryButton({ itemId, itemTitle }: CategoryButtonProps) {
+export function CategoryButton({ 
+  itemId, 
+  itemTitle,
+  onAnimeSelect,
+  onArtistSelect
+}: CategoryButtonProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -72,6 +79,9 @@ export function CategoryButton({ itemId, itemTitle }: CategoryButtonProps) {
         ipList={ipList}
         artists={[]}
         animes={[]}
+        mode="category"
+        onAnimeSelect={onAnimeSelect}
+        onArtistSelect={onArtistSelect}
       />
     </>
   );

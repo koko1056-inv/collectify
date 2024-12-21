@@ -13,6 +13,9 @@ interface SelectionDialogProps {
   ipList: string[];
   artists: string[];
   animes: string[];
+  mode?: "filter" | "category";
+  onAnimeSelect?: (anime: string | null) => void;
+  onArtistSelect?: (artist: string | null) => void;
 }
 
 export function SelectionDialog({
@@ -22,6 +25,9 @@ export function SelectionDialog({
   ipList,
   artists,
   animes,
+  mode = "filter",
+  onAnimeSelect,
+  onArtistSelect,
 }: SelectionDialogProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -29,7 +35,22 @@ export function SelectionDialog({
     artist.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const CategorySection = ({ title, items, icon }: { title: string; items: string[]; icon: React.ReactNode }) => (
+  const handleSelect = (item: string, type?: "artist" | "anime") => {
+    if (mode === "filter" && type) {
+      if (type === "artist") {
+        onArtistSelect?.(item);
+        onAnimeSelect?.(null);
+      } else {
+        onAnimeSelect?.(item);
+        onArtistSelect?.(null);
+      }
+      onClose();
+    } else {
+      onSelect(item);
+    }
+  };
+
+  const CategorySection = ({ title, items, icon, type }: { title: string; items: string[]; icon: React.ReactNode; type?: "artist" | "anime" }) => (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <div className="p-2 rounded-full bg-gray-100">{icon}</div>
@@ -42,7 +63,7 @@ export function SelectionDialog({
             key={item}
             variant="ghost"
             className="relative group h-auto py-6 flex flex-col items-center justify-center gap-2 hover:bg-gray-100 text-gray-900 transition-all duration-200"
-            onClick={() => onSelect(item)}
+            onClick={() => handleSelect(item, type)}
           >
             <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
               {icon}
@@ -58,7 +79,9 @@ export function SelectionDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] bg-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">カテゴリーから選択</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-gray-900">
+            {mode === "filter" ? "カテゴリーから選択" : "カテゴリを設定"}
+          </DialogTitle>
         </DialogHeader>
         <ScrollArea className="h-[70vh] pr-4">
           <div className="space-y-8 p-4">
@@ -76,16 +99,19 @@ export function SelectionDialog({
               title="人気IP"
               items={ipList}
               icon={<Star className="w-6 h-6 text-gray-900" />}
+              type="anime"
             />
             <CategorySection
               title="アーティスト"
               items={filteredArtists}
               icon={<Music className="w-6 h-6 text-gray-900" />}
+              type="artist"
             />
             <CategorySection
               title="アニメ"
               items={animes}
               icon={<Tv className="w-6 h-6 text-gray-900" />}
+              type="anime"
             />
           </div>
         </ScrollArea>
