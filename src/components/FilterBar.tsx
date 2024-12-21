@@ -4,6 +4,8 @@ import { Tag } from "@/types";
 import { TagFilter } from "./TagFilter";
 import { SearchBar } from "./SearchBar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { ScrollArea } from "./ui/scroll-area";
 
 interface FilterBarProps {
   searchQuery: string;
@@ -32,6 +34,9 @@ export function FilterBar({
   artists,
   animes,
 }: FilterBarProps) {
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
+
   const ipList = [
     "鬼滅の刃",
     "呪術廻戦",
@@ -45,19 +50,13 @@ export function FilterBar({
   ];
 
   const mediaOptions = [
-    { 
-      type: "all", 
-      label: "すべて表示", 
-      items: ipList 
-    },
     { type: "artist", label: "アーティスト", items: artists },
     { type: "anime", label: "アニメ", items: animes },
   ];
 
   const handleMediaSelect = (value: string) => {
     if (value === "all") {
-      onArtistSelect(null);
-      onAnimeSelect(null);
+      setIsDialogOpen(true);
       return;
     }
 
@@ -76,6 +75,22 @@ export function FilterBar({
       onAnimeSelect(name);
       onArtistSelect(null);
     }
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  const handleItemSelect = (item: string) => {
+    if (selectedCategory === "artist") {
+      onArtistSelect(item);
+      onAnimeSelect(null);
+    } else {
+      onAnimeSelect(item);
+      onArtistSelect(null);
+    }
+    setIsDialogOpen(false);
+    setSelectedCategory(null);
   };
 
   const getCurrentValue = () => {
@@ -104,32 +119,25 @@ export function FilterBar({
               <SelectValue placeholder="アーティスト/アニメで絞り込む" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">すべて表示</SelectItem>
+              <SelectItem value="header" className="font-semibold">
+                人気IP
+              </SelectItem>
+              {ipList.map((item) => (
+                <SelectItem key={`ip:${item}`} value={`ip:${item}`}>
+                  {item}
+                </SelectItem>
+              ))}
               {mediaOptions.map(({ type, label, items }) => (
                 <React.Fragment key={type}>
-                  {type === "all" ? (
-                    <>
-                      <SelectItem value="all">{label}</SelectItem>
-                      <SelectItem value={`${type}:header`} className="font-semibold">
-                        人気IP
-                      </SelectItem>
-                      {items.map((item) => (
-                        <SelectItem key={`ip:${item}`} value={`ip:${item}`}>
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </>
-                  ) : (
-                    <>
-                      <SelectItem value={`${type}:header`} className="font-semibold">
-                        {label}
-                      </SelectItem>
-                      {items.map((item) => (
-                        <SelectItem key={`${type}:${item}`} value={`${type}:${item}`}>
-                          {item}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
+                  <SelectItem value={`${type}:header`} className="font-semibold">
+                    {label}
+                  </SelectItem>
+                  {items.map((item) => (
+                    <SelectItem key={`${type}:${item}`} value={`${type}:${item}`}>
+                      {item}
+                    </SelectItem>
+                  ))}
                 </React.Fragment>
               ))}
             </SelectContent>
@@ -155,6 +163,67 @@ export function FilterBar({
         onTagSelect={onTagSelect}
         tags={tags}
       />
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>カテゴリーを選択</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <h3 className="font-semibold">人気IP</h3>
+              <ScrollArea className="h-[300px]">
+                <div className="space-y-1">
+                  {ipList.map((ip) => (
+                    <Button
+                      key={ip}
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => handleItemSelect(ip)}
+                    >
+                      {ip}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold">アーティスト</h3>
+              <ScrollArea className="h-[300px]">
+                <div className="space-y-1">
+                  {artists.map((artist) => (
+                    <Button
+                      key={artist}
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => handleItemSelect(artist)}
+                    >
+                      {artist}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-semibold">アニメ</h3>
+              <ScrollArea className="h-[300px]">
+                <div className="space-y-1">
+                  {animes.map((anime) => (
+                    <Button
+                      key={anime}
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => handleItemSelect(anime)}
+                    >
+                      {anime}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
