@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Music, Tv, Star, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Music, Tv, Star } from "lucide-react";
 
 interface SelectionDialogProps {
   isOpen: boolean;
@@ -29,12 +28,6 @@ export function SelectionDialog({
   onAnimeSelect,
   onArtistSelect,
 }: SelectionDialogProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredArtists = artists.filter(artist =>
-    artist.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const handleSelect = (item: string, type?: "artist" | "anime") => {
     if (mode === "filter" && type) {
       if (type === "artist") {
@@ -85,16 +78,6 @@ export function SelectionDialog({
         </DialogHeader>
         <ScrollArea className="h-[70vh] pr-4">
           <div className="space-y-8 p-4">
-            <div className="relative">
-              <Input
-                type="text"
-                placeholder="アーティストを検索..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            </div>
             <CategorySection
               title="人気IP"
               items={ipList}
@@ -103,7 +86,7 @@ export function SelectionDialog({
             />
             <CategorySection
               title="アーティスト"
-              items={filteredArtists}
+              items={artists}
               icon={<Music className="w-6 h-6 text-gray-900" />}
               type="artist"
             />
