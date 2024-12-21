@@ -1,7 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TagInputField } from "./TagInputField";
-import { ExistingTags } from "./ExistingTags";
-import { CurrentTags } from "./CurrentTags";
 import { MediaSelectionFields } from "@/components/MediaSelectionFields";
 import { useState } from "react";
 
@@ -54,8 +52,6 @@ export function TagManageModal({
           ) : (
             <TagInputField itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
           )}
-          <CurrentTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
-          <ExistingTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
         </div>
       </DialogContent>
     </Dialog>
