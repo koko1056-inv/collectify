@@ -2,6 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { TagInputField } from "./TagInputField";
 import { ExistingTags } from "./ExistingTags";
 import { CurrentTags } from "./CurrentTags";
+import { MediaSelectionFields } from "@/components/MediaSelectionFields";
+import { useState } from "react";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -20,6 +22,17 @@ export function TagManageModal({
   isUserItem = false,
   isCategory = false 
 }: TagManageModalProps) {
+  const [formData, setFormData] = useState({
+    artist: "",
+    anime: "",
+  });
+  const [customArtist, setCustomArtist] = useState("");
+  const [customAnime, setCustomAnime] = useState("");
+
+  const handleFormDataChange = (key: "artist" | "anime", value: string) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
@@ -29,7 +42,18 @@ export function TagManageModal({
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
-          <TagInputField itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
+          {isCategory ? (
+            <MediaSelectionFields
+              formData={formData}
+              customArtist={customArtist}
+              customAnime={customAnime}
+              onFormDataChange={handleFormDataChange}
+              onCustomArtistChange={setCustomArtist}
+              onCustomAnimeChange={setCustomAnime}
+            />
+          ) : (
+            <TagInputField itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
+          )}
           <CurrentTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
           <ExistingTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
         </div>
