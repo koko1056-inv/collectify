@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Tag } from "@/types";
 import { TagFilter } from "./TagFilter";
 import { SearchBar } from "./SearchBar";
-import { SelectionDialog } from "./filter/SelectionDialog";
 import { MediaSelector } from "./filter/MediaSelector";
 
 interface FilterBarProps {
@@ -33,8 +32,6 @@ export function FilterBar({
   artists,
   animes,
 }: FilterBarProps) {
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-
   const ipList = [
     "鬼滅の刃",
     "呪術廻戦",
@@ -54,7 +51,8 @@ export function FilterBar({
 
   const handleMediaSelect = (value: string) => {
     if (value === "all") {
-      setIsDialogOpen(true);
+      onArtistSelect(null);
+      onAnimeSelect(null);
       return;
     }
 
@@ -73,18 +71,6 @@ export function FilterBar({
       onAnimeSelect(name);
       onArtistSelect(null);
     }
-  };
-
-  const handleItemSelect = (item: string) => {
-    onAnimeSelect(item);
-    onArtistSelect(null);
-    setIsDialogOpen(false);
-  };
-
-  const getCurrentValue = () => {
-    if (selectedArtist) return `artist:${selectedArtist}`;
-    if (selectedAnime) return `anime:${selectedAnime}`;
-    return "all";
   };
 
   return (
@@ -125,15 +111,6 @@ export function FilterBar({
         selectedTag={selectedTag}
         onTagSelect={onTagSelect}
         tags={tags}
-      />
-
-      <SelectionDialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        onSelect={handleItemSelect}
-        ipList={ipList}
-        artists={artists}
-        animes={animes}
       />
     </div>
   );
