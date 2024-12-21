@@ -33,10 +33,8 @@ export function OfficialGoodsCard({
     wishlistCount,
     isWishlistModalOpen,
     isTagModalOpen,
-    isCategoryModalOpen,
     setIsWishlistModalOpen,
     setIsTagModalOpen,
-    setIsCategoryModalOpen,
     handleAddToCollection,
   } = useOfficialGoodsCard({ id, title, image });
 
@@ -55,8 +53,9 @@ export function OfficialGoodsCard({
           wishlistCount={wishlistCount}
           onAddToCollection={handleAddToCollection}
           onTagManageClick={() => setIsTagModalOpen(true)}
-          onCategoryManageClick={() => setIsCategoryModalOpen(true)}
           onWishlistClick={() => setIsWishlistModalOpen(true)}
+          itemId={id}
+          itemTitle={title}
         />
       </Card>
       <WishlistModal
@@ -70,13 +69,6 @@ export function OfficialGoodsCard({
         onClose={() => setIsTagModalOpen(false)}
         itemId={id}
         itemTitle={title}
-      />
-      <TagManageModal
-        isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)}
-        itemId={id}
-        itemTitle={title}
-        isCategory={true}
       />
     </>
   );
