@@ -20,7 +20,7 @@ export function MediaSelector({
   mediaOptions,
 }: MediaSelectorProps) {
   const getDisplayText = () => {
-    if (value === "all") return "カテゴリから選択";
+    if (value === "all") return "アニメ/アーティストから選択";
     if (value.startsWith("ip:")) return value.replace("ip:", "");
     const [type, name] = value.split(":");
     return name;
