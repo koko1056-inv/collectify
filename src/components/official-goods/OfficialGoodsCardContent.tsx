@@ -1,4 +1,5 @@
 import { CardContent, CardTitle } from "@/components/ui/card";
+import { Music, Tv } from "lucide-react";
 
 interface OfficialGoodsCardContentProps {
   title: string;
@@ -24,14 +25,16 @@ export function OfficialGoodsCardContent({
       {(artist || anime) && (
         <div className="space-y-1 mb-2">
           {artist && (
-            <p className="text-sm text-gray-600">
-              アーティスト: {artist}
-            </p>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Music className="h-4 w-4" />
+              <span>{artist}</span>
+            </div>
           )}
           {anime && (
-            <p className="text-sm text-gray-600">
-              アニメ: {anime}
-            </p>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Tv className="h-4 w-4" />
+              <span>{anime}</span>
+            </div>
           )}
         </div>
       )}
