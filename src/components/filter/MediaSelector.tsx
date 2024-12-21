@@ -1,5 +1,6 @@
 import React from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
 
 interface MediaSelectorProps {
   value: string;
@@ -18,34 +19,21 @@ export function MediaSelector({
   ipList,
   mediaOptions,
 }: MediaSelectorProps) {
+  const getDisplayText = () => {
+    if (value === "all") return "カテゴリから選択";
+    if (value.startsWith("ip:")) return value.replace("ip:", "");
+    const [type, name] = value.split(":");
+    return name;
+  };
+
   return (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger>
-        <SelectValue placeholder="アーティスト/アニメで絞り込む" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="all">カテゴリから選択</SelectItem>
-        <SelectItem value="header" className="font-semibold">
-          人気IP
-        </SelectItem>
-        {ipList.map((item) => (
-          <SelectItem key={`ip:${item}`} value={`ip:${item}`}>
-            {item}
-          </SelectItem>
-        ))}
-        {mediaOptions.map(({ type, label, items }) => (
-          <React.Fragment key={type}>
-            <SelectItem value={`${type}:header`} className="font-semibold">
-              {label}
-            </SelectItem>
-            {items.map((item) => (
-              <SelectItem key={`${type}:${item}`} value={`${type}:${item}`}>
-                {item}
-              </SelectItem>
-            ))}
-          </React.Fragment>
-        ))}
-      </SelectContent>
-    </Select>
+    <Button
+      variant="outline"
+      onClick={() => onValueChange("all")}
+      className="w-full justify-between font-normal"
+    >
+      <span>{getDisplayText()}</span>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </Button>
   );
 }
