@@ -6,16 +6,9 @@ import { OfficialItem } from "@/types";
 interface CollectionTabsProps {
   filteredItems: OfficialItem[];
   selectedTag: string | null;
-  onAnimeSelect?: (anime: string | null) => void;
-  onArtistSelect?: (artist: string | null) => void;
 }
 
-export function CollectionTabs({ 
-  filteredItems, 
-  selectedTag,
-  onAnimeSelect,
-  onArtistSelect 
-}: CollectionTabsProps) {
+export function CollectionTabs({ filteredItems, selectedTag }: CollectionTabsProps) {
   return (
     <Tabs defaultValue="official" className="space-y-6">
       <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white border border-gray-200">
@@ -28,11 +21,7 @@ export function CollectionTabs({
       </TabsList>
 
       <TabsContent value="official">
-        <OfficialItemsList 
-          items={filteredItems} 
-          onAnimeSelect={onAnimeSelect}
-          onArtistSelect={onArtistSelect}
-        />
+        <OfficialItemsList items={filteredItems} />
       </TabsContent>
 
       <TabsContent value="collection">
