@@ -1,34 +1,28 @@
 import { Button } from "@/components/ui/button";
-import { Edit2 } from "lucide-react";
+import { Edit2, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CategoryButtonProps {
   itemId: string;
   itemTitle: string;
-  currentArtist?: string | null;
-  currentAnime?: string | null;
   onAnimeSelect?: (anime: string | null) => void;
   onArtistSelect?: (artist: string | null) => void;
 }
 
 export function CategoryButton({ 
-  itemId, 
+  itemId,
   itemTitle,
-  currentArtist,
-  currentAnime,
   onAnimeSelect,
   onArtistSelect
 }: CategoryButtonProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const queryClient = useQueryClient();
 
   const ipList = [
     "鬼滅の刃",
@@ -42,7 +36,7 @@ export function CategoryButton({
     "進撃の巨人"
   ];
 
-  const artistList = [
+  const artists = [
     "YOASOBI",
     "Mrs. GREEN APPLE",
     "Official髭男dism",
@@ -50,49 +44,44 @@ export function CategoryButton({
     "Ado"
   ];
 
+  const filteredIpList = ipList.filter(ip =>
+    ip.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredArtists = artists.filter(artist =>
+    artist.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const handleSelect = async (type: 'anime' | 'artist', value: string | null) => {
     try {
-      const updates = {
-        [type]: value
-      };
+      const updateData: { anime?: string | null; artist?: string | null } = {};
+      if (type === 'anime') {
+        updateData.anime = value;
+        updateData.artist = null;
+      } else {
+        updateData.artist = value;
+        updateData.anime = null;
+      }
 
       const { error } = await supabase
         .from('official_items')
-        .update(updates)
+        .update(updateData)
         .eq('id', itemId);
 
       if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["official-items"] });
+      setIsDialogOpen(false);
 
       if (type === 'anime' && onAnimeSelect) {
         onAnimeSelect(value);
       } else if (type === 'artist' && onArtistSelect) {
         onArtistSelect(value);
       }
-
-      queryClient.invalidateQueries({ queryKey: ['official-items'] });
-
-      toast({
-        title: "更新完了",
-        description: `${itemTitle}の${type === 'anime' ? 'アニメ' : 'アーティスト'}を更新しました。`,
-      });
     } catch (error) {
       console.error('Error updating category:', error);
-      toast({
-        title: "エラー",
-        description: "カテゴリの更新に失敗しました。",
-        variant: "destructive",
-      });
     }
-    setIsDialogOpen(false);
   };
-
-  const filteredIpList = ipList.filter(ip =>
-    ip.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredArtistList = artistList.filter(artist =>
-    artist.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <>
@@ -121,21 +110,23 @@ export function CategoryButton({
             />
           </div>
           <ScrollArea className="h-[50vh] pr-4">
-            <div className="grid grid-cols-2 gap-2 p-4">
-              <div className="col-span-2">
+            <div className="space-y-4 p-4">
+              <div>
                 <h3 className="font-semibold mb-2">アニメ</h3>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant={currentAnime === null ? "default" : "outline"}
-                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                    onClick={() => handleSelect('anime', null)}
-                  >
-                    クリア
-                  </Button>
+                  {searchQuery === "" && (
+                    <Button
+                      variant="outline"
+                      className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                      onClick={() => handleSelect('anime', null)}
+                    >
+                      クリア
+                    </Button>
+                  )}
                   {filteredIpList.map((ip) => (
                     <Button
                       key={ip}
-                      variant={currentAnime === ip ? "default" : "outline"}
+                      variant="outline"
                       className="h-auto py-6 flex flex-col items-center justify-center gap-2"
                       onClick={() => handleSelect('anime', ip)}
                     >
@@ -144,20 +135,22 @@ export function CategoryButton({
                   ))}
                 </div>
               </div>
-              <div className="col-span-2 mt-4">
+              <div>
                 <h3 className="font-semibold mb-2">アーティスト</h3>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant={currentArtist === null ? "default" : "outline"}
-                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                    onClick={() => handleSelect('artist', null)}
-                  >
-                    クリア
-                  </Button>
-                  {filteredArtistList.map((artist) => (
+                  {searchQuery === "" && (
+                    <Button
+                      variant="outline"
+                      className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                      onClick={() => handleSelect('artist', null)}
+                    >
+                      クリア
+                    </Button>
+                  )}
+                  {filteredArtists.map((artist) => (
                     <Button
                       key={artist}
-                      variant={currentArtist === artist ? "default" : "outline"}
+                      variant="outline"
                       className="h-auto py-6 flex flex-col items-center justify-center gap-2"
                       onClick={() => handleSelect('artist', artist)}
                     >
