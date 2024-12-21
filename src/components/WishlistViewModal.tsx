@@ -61,7 +61,6 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 />
                 <div className="flex-1">
                   <h3 className="font-medium">{item.official_items.title}</h3>
-                  <p className="text-sm text-gray-600">{item.official_items.price}</p>
                   {item.note && (
                     <p className="text-sm text-gray-500 mt-2">メモ: {item.note}</p>
                   )}
