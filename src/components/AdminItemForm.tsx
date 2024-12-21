@@ -32,6 +32,24 @@ export function AdminItemForm() {
     }
   };
 
+  const handleFormDataChange = (key: "artist" | "anime", value: string) => {
+    if (value === "custom") {
+      setFormData({ ...formData, [key]: value });
+      if (key === "artist") {
+        setCustomArtist("");
+      } else {
+        setCustomAnime("");
+      }
+    } else {
+      setFormData({ ...formData, [key]: value });
+      if (key === "artist") {
+        setCustomArtist("");
+      } else {
+        setCustomAnime("");
+      }
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -72,7 +90,7 @@ export function AdminItemForm() {
             formData={formData}
             customArtist={customArtist}
             customAnime={customAnime}
-            onFormDataChange={(key, value) => setFormData({ ...formData, [key]: value })}
+            onFormDataChange={handleFormDataChange}
             onCustomArtistChange={setCustomArtist}
             onCustomAnimeChange={setCustomAnime}
           />
