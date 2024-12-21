@@ -27,14 +27,16 @@ export function CardContent({
     <div className="p-4">
       <TagList tags={itemTags} />
       <div className="flex items-center justify-between mt-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onMemoriesClick}
-          className="text-gray-600 hover:text-gray-900"
-        >
-          思い出を見る ({memoriesCount})
-        </Button>
+        {!isOwner && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onMemoriesClick}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            思い出を見る ({memoriesCount})
+          </Button>
+        )}
         <LikeButton itemId={itemId} />
       </div>
       {isOwner && (
