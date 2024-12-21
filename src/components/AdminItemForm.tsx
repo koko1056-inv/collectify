@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,22 @@ export function AdminItemForm() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [customArtist, setCustomArtist] = useState("");
   const [customAnime, setCustomAnime] = useState("");
+
+  const { data: items = [] } = useQuery({
+    queryKey: ["official-items"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("official_items")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Extract unique artists and animes from items
+  const artists = Array.from(new Set(items.map(item => item.artist).filter(Boolean))).sort();
+  const animes = Array.from(new Set(items.map(item => item.anime).filter(Boolean))).sort();
 
   const handleImageChange = (file: File | null) => {
     if (file) {
@@ -182,6 +198,8 @@ export function AdminItemForm() {
             onFormDataChange={(key, value) => setFormData({ ...formData, [key]: value })}
             onCustomArtistChange={setCustomArtist}
             onCustomAnimeChange={setCustomAnime}
+            artists={artists}
+            animes={animes}
           />
           <TagInput
             selectedTags={selectedTags}

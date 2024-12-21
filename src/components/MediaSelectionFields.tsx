@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MediaSelector } from "./filter/MediaSelector";
 
 interface MediaSelectionFieldsProps {
@@ -12,6 +11,8 @@ interface MediaSelectionFieldsProps {
   onFormDataChange: (key: "artist" | "anime", value: string) => void;
   onCustomArtistChange: (value: string) => void;
   onCustomAnimeChange: (value: string) => void;
+  artists: string[];
+  animes: string[];
 }
 
 export function MediaSelectionFields({
@@ -21,29 +22,19 @@ export function MediaSelectionFields({
   onFormDataChange,
   onCustomArtistChange,
   onCustomAnimeChange,
+  artists,
+  animes,
 }: MediaSelectionFieldsProps) {
-  const ipList = [
-    "鬼滅の刃",
-    "呪術廻戦",
-    "SPY×FAMILY",
-    "チェンソーマン",
-    "推しの子",
-    "ブルーロック",
-    "葬送のフリーレン",
-    "ワンピース",
-    "進撃の巨人"
-  ];
-
   const mediaOptions = [
     {
       type: "artist",
       label: "アーティスト",
-      items: ["YOASOBI", "Mrs. GREEN APPLE", "Official髭男dism", "King Gnu", "Ado"]
+      items: artists
     },
     {
       type: "anime",
       label: "アニメ",
-      items: ipList
+      items: animes
     }
   ];
 
@@ -86,7 +77,7 @@ export function MediaSelectionFields({
         <MediaSelector
           value={getCurrentValue()}
           onValueChange={handleMediaSelect}
-          ipList={ipList}
+          ipList={animes}
           mediaOptions={mediaOptions}
         />
       </div>
