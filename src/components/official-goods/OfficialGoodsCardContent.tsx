@@ -50,13 +50,13 @@ export function OfficialGoodsCardContent({
         </div>
       )}
       {itemTags && itemTags.length > 0 && (
-        <div className="flex gap-1 mt-1 overflow-hidden whitespace-nowrap">
+        <div className="flex flex-wrap gap-1 mt-1 overflow-hidden">
           {itemTags
             .filter((tag) => tag.tags !== null)
             .map((tag) => (
               <span
                 key={tag.tags.id}
-                className="inline-flex items-center shrink-0 px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 line-clamp-1"
+                className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 line-clamp-1"
               >
                 {tag.tags.name}
               </span>
