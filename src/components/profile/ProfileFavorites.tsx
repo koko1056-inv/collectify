@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
+import { PublicCollectionGoodsCard } from "@/components/public-collection/PublicCollectionGoodsCard";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -113,7 +113,7 @@ export function ProfileFavorites({
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {userItems.map((item) => (
-          <CollectionGoodsCard
+          <PublicCollectionGoodsCard
             key={item.id}
             id={item.id}
             title={item.title}
