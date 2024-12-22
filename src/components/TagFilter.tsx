@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tag } from "@/types";
 import { Input } from "@/components/ui/input";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TagFilterProps {
   selectedTag: string | null;
@@ -12,9 +14,23 @@ interface TagFilterProps {
   tags: Tag[];
 }
 
-export function TagFilter({ selectedTag, onTagSelect, tags }: TagFilterProps) {
+export function TagFilter({ selectedTag, onTagSelect }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: tags = [] } = useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data as Tag[];
+    },
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+  });
 
   const getDisplayText = () => {
     if (!selectedTag) return "タグから選択";
@@ -31,6 +47,13 @@ export function TagFilter({ selectedTag, onTagSelect, tags }: TagFilterProps) {
     if (text.length > 10) return 'text-sm';
     return 'text-base';
   };
+
+  // If the selected tag no longer exists, reset it
+  React.useEffect(() => {
+    if (selectedTag && !tags.some(tag => tag.name === selectedTag)) {
+      onTagSelect(null);
+    }
+  }, [tags, selectedTag, onTagSelect]);
 
   return (
     <div className="space-y-4">
