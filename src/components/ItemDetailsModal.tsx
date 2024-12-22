@@ -106,17 +106,18 @@ export function ItemDetailsModal({
     setIsSaving(true);
     try {
       const table = isUserItem ? "user_items" : "official_items";
+      const updateData = {
+        title: editedData.title,
+        artist: editedData.artist || null,
+        anime: editedData.anime || null,
+        [isUserItem ? "prize" : "price"]: editedData.price || null,
+        release_date: editedData.releaseDate || null,
+        ...(isUserItem ? { quantity: editedData.quantity } : { description: editedData.description || null }),
+      };
+
       const { error } = await supabase
         .from(table)
-        .update({
-          title: editedData.title,
-          artist: editedData.artist || null,
-          anime: editedData.anime || null,
-          [isUserItem ? "prize" : "price"]: editedData.price || null,
-          release_date: editedData.releaseDate || null,
-          description: editedData.description || null,
-          ...(isUserItem && { quantity: editedData.quantity }),
-        })
+        .update(updateData)
         .eq("id", itemId);
 
       if (error) throw error;
@@ -198,6 +199,7 @@ export function ItemDetailsModal({
                 isEditing={isEditing}
                 editedData={editedData}
                 setEditedData={setEditedData}
+                isUserItem={isUserItem}
               />
             </div>
 
