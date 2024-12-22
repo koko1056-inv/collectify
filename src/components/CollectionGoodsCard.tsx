@@ -136,6 +136,7 @@ export function CollectionGoodsCard({
         anime={anime}
         releaseDate={releaseDate}
         prize={prize}
+        quantity={quantity}
       />
     </>
   );

@@ -15,6 +15,7 @@ import { ItemDetailsForm } from "./item-details/ItemDetailsForm";
 import { MemoriesList } from "./collection/MemoriesList";
 import { TagList } from "./collection/TagList";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { QuantityInput } from "./item-details/QuantityInput";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ interface ItemDetailsModalProps {
   description?: string;
   itemId: string;
   isUserItem?: boolean;
+  quantity?: number;
 }
 
 export function ItemDetailsModal({
@@ -42,6 +44,7 @@ export function ItemDetailsModal({
   description,
   itemId,
   isUserItem = false,
+  quantity = 1,
 }: ItemDetailsModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -54,6 +57,7 @@ export function ItemDetailsModal({
     price: price || "",
     releaseDate: releaseDate || "",
     description: description || "",
+    quantity,
   });
 
   const { data: memories = [] } = useQuery({
@@ -111,12 +115,12 @@ export function ItemDetailsModal({
           [isUserItem ? "prize" : "price"]: editedData.price || null,
           release_date: editedData.releaseDate || null,
           description: editedData.description || null,
+          ...(isUserItem && { quantity: editedData.quantity }),
         })
         .eq("id", itemId);
 
       if (error) throw error;
 
-      // Invalidate queries to refresh data
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       await queryClient.invalidateQueries({ queryKey: ["official-items"] });
 
@@ -145,6 +149,7 @@ export function ItemDetailsModal({
       price: price || "",
       releaseDate: releaseDate || "",
       description: description || "",
+      quantity,
     });
     setIsEditing(false);
   };
@@ -182,6 +187,13 @@ export function ItemDetailsModal({
             )}
 
             <div className="space-y-2">
+              {isUserItem && (
+                <QuantityInput
+                  isEditing={isEditing}
+                  quantity={editedData.quantity}
+                  onChange={(value) => setEditedData({ ...editedData, quantity: value })}
+                />
+              )}
               <ItemDetailsForm
                 isEditing={isEditing}
                 editedData={editedData}
