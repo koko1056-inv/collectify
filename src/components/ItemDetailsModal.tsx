@@ -5,17 +5,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CardImage } from "./collection/CardImage";
-import { useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "./ui/use-toast";
 import { ScrollArea } from "./ui/scroll-area";
 import { ItemDetailsForm } from "./item-details/ItemDetailsForm";
 import { MemoriesList } from "./collection/MemoriesList";
 import { TagList } from "./collection/TagList";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { QuantityInput } from "./item-details/QuantityInput";
+import { useItemDetailsForm } from "./item-details/useItemDetailsForm";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -42,16 +41,23 @@ export function ItemDetailsModal({
   isUserItem = false,
   quantity = 1,
 }: ItemDetailsModalProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [editedData, setEditedData] = useState({
+  const {
+    isEditing,
+    isSaving,
+    editedData,
+    setIsEditing,
+    setEditedData,
+    handleSave,
+    handleCancel,
+  } = useItemDetailsForm({
     title,
-    price: price || "0", // Set default price to "0" to satisfy not-null constraint
-    releaseDate: releaseDate || new Date().toISOString().split('T')[0],
-    description: description || "",
+    price,
+    releaseDate,
+    description,
     quantity,
+    itemId,
+    isUserItem,
+    onEditComplete: () => setIsEditing(false),
   });
 
   const { data: memories = [] } = useQuery({
@@ -86,64 +92,6 @@ export function ItemDetailsModal({
     },
     enabled: isUserItem,
   });
-
-  const handleSave = async () => {
-    if (!editedData.title) {
-      toast({
-        title: "エラー",
-        description: "タイトルは必須です",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const table = isUserItem ? "user_items" : "official_items";
-      const updateData = {
-        title: editedData.title,
-        [isUserItem ? "prize" : "price"]: editedData.price || null,
-        release_date: editedData.releaseDate || new Date().toISOString().split('T')[0], // Default to today if not provided
-        ...(isUserItem ? { quantity: editedData.quantity } : { description: editedData.description || null }),
-      };
-
-      const { error } = await supabase
-        .from(table)
-        .update(updateData)
-        .eq("id", itemId);
-
-      if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
-      await queryClient.invalidateQueries({ queryKey: ["official-items"] });
-
-      toast({
-        title: "更新完了",
-        description: "アイテム情報を更新しました",
-      });
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error updating item:", error);
-      toast({
-        title: "エラー",
-        description: "アイテム情報の更新に失敗しました",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setEditedData({
-      title,
-      price: price || "",
-      releaseDate: releaseDate || "",
-      description: description || "",
-      quantity,
-    });
-    setIsEditing(false);
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

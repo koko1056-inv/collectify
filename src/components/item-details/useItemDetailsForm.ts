@@ -1,0 +1,109 @@
+import { useState } from "react";
+import { useToast } from "@/components/ui/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+interface UseItemDetailsFormProps {
+  title: string;
+  price?: string;
+  releaseDate?: string;
+  description?: string;
+  quantity: number;
+  itemId: string;
+  isUserItem: boolean;
+  onEditComplete: () => void;
+}
+
+export function useItemDetailsForm({
+  title,
+  price,
+  releaseDate = new Date().toISOString().split('T')[0],
+  description,
+  quantity,
+  itemId,
+  isUserItem,
+  onEditComplete,
+}: UseItemDetailsFormProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editedData, setEditedData] = useState({
+    title,
+    price: price || "0", // Set default price to "0" to satisfy not-null constraint
+    releaseDate: releaseDate || new Date().toISOString().split('T')[0],
+    description: description || "",
+    quantity,
+  });
+
+  const handleSave = async () => {
+    if (!editedData.title) {
+      toast({
+        title: "エラー",
+        description: "タイトルは必須です",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const table = isUserItem ? "user_items" : "official_items";
+      const updateData = {
+        title: editedData.title,
+        [isUserItem ? "prize" : "price"]: editedData.price || "0", // Ensure prize/price is never null
+        release_date: editedData.releaseDate || new Date().toISOString().split('T')[0],
+        ...(isUserItem 
+          ? { quantity: editedData.quantity } 
+          : { description: editedData.description || null }
+        ),
+      };
+
+      const { error } = await supabase
+        .from(table)
+        .update(updateData)
+        .eq("id", itemId);
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["official-items"] });
+
+      toast({
+        title: "更新完了",
+        description: "アイテム情報を更新しました",
+      });
+      onEditComplete();
+    } catch (error) {
+      console.error("Error updating item:", error);
+      toast({
+        title: "エラー",
+        description: "アイテム情報の更新に失敗しました",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditedData({
+      title,
+      price: price || "0",
+      releaseDate: releaseDate || new Date().toISOString().split('T')[0],
+      description: description || "",
+      quantity,
+    });
+    setIsEditing(false);
+  };
+
+  return {
+    isEditing,
+    isSaving,
+    editedData,
+    setIsEditing,
+    setEditedData,
+    handleSave,
+    handleCancel,
+  };
+}
