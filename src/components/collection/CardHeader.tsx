@@ -10,8 +10,8 @@ export function CardHeader({ title, image }: CardHeaderProps) {
   return (
     <>
       <CardImage image={image} title={title} />
-      <div className="p-4">
-        <CardTitle className="text-base mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
+      <div className="px-3 py-2">
+        <CardTitle className="text-base line-clamp-1 text-gray-900">{title}</CardTitle>
       </div>
     </>
   );
