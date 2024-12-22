@@ -60,6 +60,7 @@ export function CardModals({
         itemId={itemId}
         isUserItem={true}
         quantity={quantity}
+        userId={userId}
       />
 
       <ItemMemoriesModal
