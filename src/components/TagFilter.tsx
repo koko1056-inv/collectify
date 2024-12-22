@@ -25,6 +25,13 @@ export function TagFilter({ selectedTag, onTagSelect, tags }: TagFilterProps) {
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Function to determine text size based on string length
+  const getTextSize = (text: string) => {
+    if (text.length > 15) return 'text-xs';
+    if (text.length > 10) return 'text-sm';
+    return 'text-base';
+  };
+
   return (
     <div className="space-y-4">
       <Button
@@ -63,20 +70,22 @@ export function TagFilter({ selectedTag, onTagSelect, tags }: TagFilterProps) {
                     setIsDialogOpen(false);
                   }}
                 >
-                  すべて
+                  <span className="text-base">すべて</span>
                 </Button>
               )}
               {filteredTags.map((tag) => (
                 <Button
                   key={tag.id}
                   variant={selectedTag === tag.name ? "default" : "outline"}
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                  className="h-auto py-6 flex flex-col items-center justify-center gap-2 px-2"
                   onClick={() => {
                     onTagSelect(tag.name);
                     setIsDialogOpen(false);
                   }}
                 >
-                  {tag.name}
+                  <span className={`${getTextSize(tag.name)} break-words text-center w-full`}>
+                    {tag.name}
+                  </span>
                 </Button>
               ))}
             </div>
