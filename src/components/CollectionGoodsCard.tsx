@@ -129,7 +129,7 @@ export function CollectionGoodsCard({ title, image, id, isShared = false, userId
           />
         </UICardContent>
         {isOwner && (
-          <CardFooter className="px-2 py-1.5">
+          <CardFooter className="px-2 py-1.5 hidden md:block">
             <CardActions
               onMemoriesClick={() => setIsMemoriesModalOpen(true)}
               onTagManageClick={() => setIsTagManageModalOpen(true)}
