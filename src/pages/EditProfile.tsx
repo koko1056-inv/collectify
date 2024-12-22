@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
+import { ShareModal } from "@/components/ShareModal";
+import { Share2 } from "lucide-react";
 
 export default function EditProfile() {
   const { user } = useAuth();
@@ -16,7 +18,9 @@ export default function EditProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [bio, setBio] = useState("");
+  const [username, setUsername] = useState("");
   const [favoriteItems, setFavoriteItems] = useState<any[]>([]);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -41,6 +45,7 @@ export default function EditProfile() {
       }
 
       setBio(profile.bio || "");
+      setUsername(profile.username || "");
       setLoading(false);
     };
 
@@ -116,29 +121,43 @@ export default function EditProfile() {
       <Navbar />
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="max-w-2xl mx-auto space-y-8">
-          <h1 className="text-3xl font-bold">プロフィール編集</h1>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label
-                htmlFor="bio"
-                className="text-sm font-medium text-gray-700 block"
-              >
-                自己紹介
-              </label>
-              <Textarea
-                id="bio"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="好きなアーティスト/キャラクター、推しポイント、収集歴などを自由に書いてください"
-                className="min-h-[200px]"
-              />
-            </div>
-
-            <Button type="submit" disabled={saving}>
-              {saving ? "保存中..." : "保存"}
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">プロフィール編集</h1>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsShareModalOpen(true)}
+              className="gap-2"
+            >
+              <Share2 className="h-4 w-4" />
+              共有
             </Button>
-          </form>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h2 className="text-xl font-semibold mb-4">{username}</h2>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label
+                  htmlFor="bio"
+                  className="text-sm font-medium text-gray-700 block"
+                >
+                  自己紹介
+                </label>
+                <Textarea
+                  id="bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="好きなアーティスト/キャラクター、推しポイント、収集歴などを自由に書いてください"
+                  className="min-h-[200px]"
+                />
+              </div>
+
+              <Button type="submit" disabled={saving}>
+                {saving ? "保存中..." : "保存"}
+              </Button>
+            </form>
+          </div>
 
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold">お気に入りコレクション</h2>
@@ -157,6 +176,14 @@ export default function EditProfile() {
           </div>
         </div>
       </main>
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={`${username}のプロフィール`}
+        url={window.location.href}
+        image={favoriteItems[0]?.image || "/placeholder.svg"}
+      />
     </div>
   );
 }
