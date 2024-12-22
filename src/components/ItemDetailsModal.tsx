@@ -7,10 +7,11 @@ import {
 import { CardImage } from "./collection/CardImage";
 import { useState } from "react";
 import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
+import { ScrollArea } from "./ui/scroll-area";
+import { ItemDetailsForm } from "./item-details/ItemDetailsForm";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -84,7 +85,7 @@ export function ItemDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col">
         <DialogHeader>
           {isEditing ? (
             <Input
@@ -98,107 +99,33 @@ export function ItemDetailsModal({
             <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
           )}
         </DialogHeader>
-        <div className="space-y-4">
-          <div className="w-full aspect-square relative">
-            <CardImage image={image} title={title} />
+        
+        <ScrollArea className="flex-1 px-1">
+          <div className="space-y-4">
+            <div className="w-full aspect-square relative">
+              <CardImage image={image} title={title} />
+            </div>
+            <div className="space-y-2">
+              <ItemDetailsForm
+                isEditing={isEditing}
+                editedData={editedData}
+                setEditedData={setEditedData}
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            {isEditing ? (
-              <>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">アーティスト</label>
-                  <Input
-                    value={editedData.artist}
-                    onChange={(e) =>
-                      setEditedData({ ...editedData, artist: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">アニメ/キャラクター</label>
-                  <Input
-                    value={editedData.anime}
-                    onChange={(e) =>
-                      setEditedData({ ...editedData, anime: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">価格</label>
-                  <Input
-                    value={editedData.price}
-                    onChange={(e) =>
-                      setEditedData({ ...editedData, price: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">発売日</label>
-                  <Input
-                    type="date"
-                    value={editedData.releaseDate}
-                    onChange={(e) =>
-                      setEditedData({ ...editedData, releaseDate: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">詳細</label>
-                  <Textarea
-                    value={editedData.description}
-                    onChange={(e) =>
-                      setEditedData({ ...editedData, description: e.target.value })
-                    }
-                  />
-                </div>
-              </>
-            ) : (
-              <>
-                {artist && (
-                  <div>
-                    <span className="font-semibold">アーティスト：</span>
-                    <span>{artist}</span>
-                  </div>
-                )}
-                {anime && (
-                  <div>
-                    <span className="font-semibold">アニメ/キャラクター：</span>
-                    <span>{anime}</span>
-                  </div>
-                )}
-                {price && (
-                  <div>
-                    <span className="font-semibold">価格：</span>
-                    <span>{price}</span>
-                  </div>
-                )}
-                {releaseDate && (
-                  <div>
-                    <span className="font-semibold">発売日：</span>
-                    <span>{releaseDate}</span>
-                  </div>
-                )}
-                {description && (
-                  <div>
-                    <span className="font-semibold">詳細：</span>
-                    <span>{description}</span>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <div className="flex justify-end space-x-2">
-            {isEditing ? (
-              <>
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  キャンセル
-                </Button>
-                <Button onClick={handleSave}>保存</Button>
-              </>
-            ) : (
-              <Button onClick={() => setIsEditing(true)}>編集</Button>
-            )}
-          </div>
+        </ScrollArea>
+
+        <div className="flex justify-end space-x-2 pt-4 border-t">
+          {isEditing ? (
+            <>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
+                キャンセル
+              </Button>
+              <Button onClick={handleSave}>保存</Button>
+            </>
+          ) : (
+            <Button onClick={() => setIsEditing(true)}>編集</Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
