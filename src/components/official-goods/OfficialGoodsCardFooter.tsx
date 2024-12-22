@@ -23,16 +23,16 @@ export function OfficialGoodsCardFooter({
   itemTitle,
 }: OfficialGoodsCardFooterProps) {
   return (
-    <CardFooter className="p-4 pt-0 flex justify-between gap-2">
+    <CardFooter className="p-2 sm:p-4 pt-0 flex flex-col sm:flex-row gap-2">
       <Button 
         variant={isInCollection ? "secondary" : "default"}
-        className={`flex-1 ${isInCollection ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-gray-900 hover:bg-gray-800'}`}
+        className={`w-full sm:flex-1 ${isInCollection ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-gray-900 hover:bg-gray-800'}`}
         onClick={onAddToCollection}
         disabled={isInCollection}
       >
         {isInCollection ? "追加済み" : "コレクションに追加"}
       </Button>
-      <div className="flex gap-2">
+      <div className="flex justify-end gap-2">
         <TagButton onClick={onTagManageClick} />
         <div className="flex flex-col items-center">
           <Button 
