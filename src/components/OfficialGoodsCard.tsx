@@ -70,8 +70,6 @@ export function OfficialGoodsCard({
         onClose={() => setIsDetailsModalOpen(false)}
         title={title}
         image={image}
-        artist={artist}
-        anime={anime}
         price={price}
         releaseDate={releaseDate}
         description={description}

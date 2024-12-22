@@ -36,7 +36,7 @@ export function ItemDetailsModal({
   title,
   image,
   price,
-  releaseDate,
+  releaseDate = new Date().toISOString().split('T')[0], // Default to today's date
   description,
   itemId,
   isUserItem = false,
@@ -103,7 +103,7 @@ export function ItemDetailsModal({
       const updateData = {
         title: editedData.title,
         [isUserItem ? "prize" : "price"]: editedData.price || null,
-        release_date: editedData.releaseDate || null,
+        release_date: editedData.releaseDate || new Date().toISOString().split('T')[0], // Default to today if not provided
         ...(isUserItem ? { quantity: editedData.quantity } : { description: editedData.description || null }),
       };
 

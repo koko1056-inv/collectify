@@ -20,8 +20,6 @@ interface CardModalsProps {
   itemTitle: string;
   userId?: string;
   image: string;
-  artist?: string | null;
-  anime?: string | null;
   releaseDate?: string;
   prize?: string;
   description?: string;
@@ -44,8 +42,6 @@ export function CardModals({
   itemTitle,
   userId,
   image,
-  artist,
-  anime,
   releaseDate,
   prize,
   description,
@@ -58,8 +54,6 @@ export function CardModals({
         onClose={onDetailsClose}
         title={itemTitle}
         image={image}
-        artist={artist}
-        anime={anime}
         price={prize}
         releaseDate={releaseDate}
         description={description}
