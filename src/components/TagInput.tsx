@@ -51,7 +51,7 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
             .from("tags")
             .select("*")
             .eq("name", newTag)
-            .single();
+            .maybeSingle();
 
           if (!existingTag) {
             // 新しいタグを作成
