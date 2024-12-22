@@ -12,6 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "./ui/use-toast";
 import { ScrollArea } from "./ui/scroll-area";
 import { ItemDetailsForm } from "./item-details/ItemDetailsForm";
+import { MemoriesList } from "./collection/MemoriesList";
+import { TagList } from "./collection/TagList";
+import { useQuery } from "@tanstack/react-query";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -49,6 +52,39 @@ export function ItemDetailsModal({
     price: price || "",
     releaseDate: releaseDate || "",
     description: description || "",
+  });
+
+  const { data: memories = [] } = useQuery({
+    queryKey: ["item-memories", itemId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("item_memories")
+        .select("*")
+        .eq("user_item_id", itemId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: isUserItem,
+  });
+
+  const { data: tags = [] } = useQuery({
+    queryKey: ["user-item-tags", itemId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_item_tags")
+        .select(`
+          tag_id,
+          tags (
+            id,
+            name
+          )
+        `)
+        .eq("user_item_id", itemId);
+      if (error) throw error;
+      return data;
+    },
+    enabled: isUserItem,
   });
 
   const handleSave = async () => {
@@ -105,6 +141,14 @@ export function ItemDetailsModal({
             <div className="w-full aspect-square relative">
               <CardImage image={image} title={title} />
             </div>
+
+            {isUserItem && tags.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">タグ</h3>
+                <TagList tags={tags} />
+              </div>
+            )}
+
             <div className="space-y-2">
               <ItemDetailsForm
                 isEditing={isEditing}
@@ -112,6 +156,13 @@ export function ItemDetailsModal({
                 setEditedData={setEditedData}
               />
             </div>
+
+            {isUserItem && memories.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium">思い出</h3>
+                <MemoriesList memories={memories} />
+              </div>
+            )}
           </div>
         </ScrollArea>
 
