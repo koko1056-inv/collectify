@@ -27,7 +27,9 @@ export const handleAdminLogin = async (password: string) => {
 };
 
 export const handleUserLogin = async (formData: LoginFormData) => {
-  const email = `${formData.username.toLowerCase()}@example.com`;
+  // Convert username to a valid email format
+  const encodedUsername = encodeURIComponent(formData.username.toLowerCase());
+  const email = `user_${encodedUsername}@example.com`;
   console.log("Attempting login for user:", formData.username);
 
   const { data: profile } = await supabase
@@ -54,7 +56,9 @@ export const handleUserLogin = async (formData: LoginFormData) => {
 };
 
 export const handleUserSignup = async (formData: LoginFormData) => {
-  const email = `${formData.username.toLowerCase()}@example.com`;
+  // Convert username to a valid email format
+  const encodedUsername = encodeURIComponent(formData.username.toLowerCase());
+  const email = `user_${encodedUsername}@example.com`;
   console.log("Creating new user:", formData.username);
 
   // Check if username is already taken
