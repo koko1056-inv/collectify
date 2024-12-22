@@ -14,7 +14,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { ItemDetailsForm } from "./item-details/ItemDetailsForm";
 import { MemoriesList } from "./collection/MemoriesList";
 import { TagList } from "./collection/TagList";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -44,7 +44,9 @@ export function ItemDetailsModal({
   isUserItem = false,
 }: ItemDetailsModalProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editedData, setEditedData] = useState({
     title,
     artist: artist || "",
@@ -88,21 +90,35 @@ export function ItemDetailsModal({
   });
 
   const handleSave = async () => {
+    if (!editedData.title) {
+      toast({
+        title: "エラー",
+        description: "タイトルは必須です",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
     try {
       const table = isUserItem ? "user_items" : "official_items";
       const { error } = await supabase
         .from(table)
         .update({
           title: editedData.title,
-          artist: editedData.artist,
-          anime: editedData.anime,
-          [isUserItem ? "prize" : "price"]: editedData.price,
-          release_date: editedData.releaseDate,
-          description: editedData.description,
+          artist: editedData.artist || null,
+          anime: editedData.anime || null,
+          [isUserItem ? "prize" : "price"]: editedData.price || null,
+          release_date: editedData.releaseDate || null,
+          description: editedData.description || null,
         })
         .eq("id", itemId);
 
       if (error) throw error;
+
+      // Invalidate queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["official-items"] });
 
       toast({
         title: "更新完了",
@@ -116,7 +132,21 @@ export function ItemDetailsModal({
         description: "アイテム情報の更新に失敗しました",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    setEditedData({
+      title,
+      artist: artist || "",
+      anime: anime || "",
+      price: price || "",
+      releaseDate: releaseDate || "",
+      description: description || "",
+    });
+    setIsEditing(false);
   };
 
   return (
@@ -130,6 +160,8 @@ export function ItemDetailsModal({
                 setEditedData({ ...editedData, title: e.target.value })
               }
               className="text-xl font-bold"
+              placeholder="タイトルを入力"
+              required
             />
           ) : (
             <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
@@ -169,10 +201,19 @@ export function ItemDetailsModal({
         <div className="flex justify-end space-x-2 pt-4 border-t">
           {isEditing ? (
             <>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
+              <Button 
+                variant="outline" 
+                onClick={handleCancel}
+                disabled={isSaving}
+              >
                 キャンセル
               </Button>
-              <Button onClick={handleSave}>保存</Button>
+              <Button 
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                {isSaving ? "保存中..." : "保存"}
+              </Button>
             </>
           ) : (
             <Button onClick={() => setIsEditing(true)}>編集</Button>
