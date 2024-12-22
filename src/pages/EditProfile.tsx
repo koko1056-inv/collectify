@@ -11,6 +11,9 @@ import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
 import { ShareModal } from "@/components/ShareModal";
 import { Share2, Camera, Edit, Check, X } from "lucide-react";
 import { UserInfo } from "@/components/UserInfo";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ProfileBio } from "@/components/profile/ProfileBio";
+import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
 
 export default function EditProfile() {
   const { user } = useAuth();
@@ -104,20 +107,12 @@ export default function EditProfile() {
     });
   };
 
-  const handleScreenshot = () => {
-    // Here you would implement screenshot functionality
-    toast({
-      title: "スクリーンショット",
-      description: "プロフィールのスクリーンショットを保存しました",
-    });
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <main className="container mx-auto px-4 py-8 pt-24">
-          <div className="max-w-2xl mx-auto space-y-8">
+          <div className="max-w-3xl mx-auto space-y-8">
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-32 w-full" />
             <Skeleton className="h-8 w-32" />
@@ -131,114 +126,28 @@ export default function EditProfile() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="container mx-auto px-4 py-8 pt-24">
-        <div className="max-w-2xl mx-auto space-y-8">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold">プロフィール</h1>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleScreenshot}
-                className="gap-2"
-              >
-                <Camera className="h-4 w-4" />
-                スクショ
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsShareModalOpen(true)}
-                className="gap-2"
-              >
-                <Share2 className="h-4 w-4" />
-                共有
-              </Button>
-            </div>
-          </div>
+        <div className="max-w-3xl mx-auto space-y-6">
+          <ProfileHeader 
+            username={username}
+            onScreenshot={() => {/* TODO */}}
+            onShare={() => setIsShareModalOpen(true)}
+          />
 
-          <div className="bg-white p-6 rounded-lg shadow-sm space-y-6" id="profile-card">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">{username}</h2>
-              {!isEditing && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsEditing(true)}
-                  className="gap-2"
-                >
-                  <Edit className="h-4 w-4" />
-                  編集
-                </Button>
-              )}
-            </div>
+          <ProfileBio
+            bio={bio}
+            isEditing={isEditing}
+            onBioChange={(e) => setBio(e.target.value)}
+            onEdit={() => setIsEditing(true)}
+            onCancel={() => setIsEditing(false)}
+            onSubmit={handleSubmit}
+            saving={saving}
+          />
 
-            {isEditing ? (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <label
-                    htmlFor="bio"
-                    className="text-sm font-medium text-gray-700 block"
-                  >
-                    自己紹介
-                  </label>
-                  <Textarea
-                    id="bio"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="好きなアーティスト/キャラクター、推しポイント、収集歴などを自由に書いてください"
-                    className="min-h-[200px]"
-                  />
-                </div>
-
-                <div className="flex justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsEditing(false)}
-                    className="gap-2"
-                  >
-                    <X className="h-4 w-4" />
-                    キャンセル
-                  </Button>
-                  <Button type="submit" size="sm" disabled={saving} className="gap-2">
-                    <Check className="h-4 w-4" />
-                    {saving ? "保存中..." : "保存"}
-                  </Button>
-                </div>
-              </form>
-            ) : (
-              <div className="prose prose-sm max-w-none">
-                <p className="whitespace-pre-wrap">{bio || "自己紹介文が未設定です"}</p>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold">お気に入りコレクション</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/collection")}
-                className="text-sm text-gray-600 hover:text-gray-900"
-              >
-                編集
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {favoriteItems.map((item) => (
-                <CollectionGoodsCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  image={item.image}
-                  isShared={item.is_shared}
-                  userId={user.id}
-                />
-              ))}
-            </div>
-          </div>
+          <ProfileFavorites
+            favoriteItems={favoriteItems}
+            userId={user?.id}
+            onCollectionEdit={() => navigate("/collection")}
+          />
         </div>
       </main>
 
