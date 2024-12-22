@@ -44,7 +44,12 @@ const Index = () => {
   });
 
   const filteredItems = items.filter((item) => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = searchQuery
+      ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.artist?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+        (item.anime?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+      : true;
+    
     const matchesTag = selectedTag
       ? item.item_tags?.some(itemTag => itemTag.tags?.name === selectedTag)
       : true;
