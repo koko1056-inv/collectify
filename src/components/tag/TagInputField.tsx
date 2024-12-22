@@ -22,14 +22,16 @@ export function TagInputField({ itemId, isUserItem = false, isCategory = false }
 
       try {
         // First check if tag exists
-        let tagId;
-        const { data: existingTag } = await supabase
+        const { data: existingTag, error: searchError } = await supabase
           .from("tags")
           .select("id")
           .eq("name", newTagName)
           .eq("is_category", isCategory)
           .maybeSingle();
 
+        if (searchError) throw searchError;
+
+        let tagId;
         if (existingTag) {
           tagId = existingTag.id;
           
@@ -60,10 +62,6 @@ export function TagInputField({ itemId, isUserItem = false, isCategory = false }
 
           if (createTagError) throw createTagError;
           tagId = newTag.id;
-        }
-
-        if (!tagId) {
-          throw new Error(isCategory ? "カテゴリIDが見つかりませんでした。" : "タグIDが見つかりませんでした。");
         }
 
         // Insert into the appropriate tags table
