@@ -56,14 +56,8 @@ export function OfficialGoodsCard({
           isInCollection={isInCollection}
           wishlistCount={wishlistCount}
           onAddToCollection={handleAddToCollection}
-          onTagManageClick={(e) => {
-            e.stopPropagation();
-            setIsTagModalOpen(true);
-          }}
-          onWishlistClick={(e) => {
-            e.stopPropagation();
-            setIsWishlistModalOpen(true);
-          }}
+          onTagManageClick={() => setIsTagModalOpen(true)}
+          onWishlistClick={() => setIsWishlistModalOpen(true)}
           itemId={id}
           itemTitle={title}
         />
