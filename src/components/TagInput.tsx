@@ -33,8 +33,54 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
     if (e.key === "Enter" && tagInput.trim()) {
       e.preventDefault();
       const newTag = tagInput.trim().toLowerCase();
+
+      // タグの長さチェック
+      if (newTag.length > 50) {
+        toast({
+          title: "エラー",
+          description: "タグは50文字以内で入力してください。",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (!selectedTags.includes(newTag)) {
-        onTagsChange([...selectedTags, newTag]);
+        try {
+          // 既存のタグをチェック
+          const { data: existingTag } = await supabase
+            .from("tags")
+            .select("*")
+            .eq("name", newTag)
+            .single();
+
+          if (!existingTag) {
+            // 新しいタグを作成
+            const { error: insertError } = await supabase
+              .from("tags")
+              .insert([{ name: newTag }]);
+
+            if (insertError) throw insertError;
+          }
+
+          // タグを選択リストに追加
+          onTagsChange([...selectedTags, newTag]);
+          setTagInput("");
+
+          // キャッシュを更新
+          queryClient.invalidateQueries({ queryKey: ["tags"] });
+
+          toast({
+            title: "タグを追加しました",
+            description: `${newTag}を追加しました。`,
+          });
+        } catch (error) {
+          console.error("Error adding tag:", error);
+          toast({
+            title: "エラー",
+            description: "タグの追加に失敗しました。",
+            variant: "destructive",
+          });
+        }
       }
       setTagInput("");
     }
@@ -85,6 +131,7 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
         onChange={(e) => setTagInput(e.target.value)}
         onKeyDown={handleAddTag}
         placeholder="タグを入力してEnterを押してください"
+        maxLength={50}
       />
       <div className="flex flex-wrap gap-2 mt-2">
         {selectedTags.map((tag) => (
