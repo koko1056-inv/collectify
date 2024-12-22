@@ -33,7 +33,7 @@ export function OfficialGoodsCardContent({
   });
 
   return (
-    <CardContent className="p-2 sm:p-3">
+    <CardContent className="p-2 sm:p-3 overflow-hidden">
       <CardTitle className="text-sm sm:text-base mb-1 line-clamp-2 text-gray-900">{title}</CardTitle>
       {(artist || anime) && (
         <div className="space-y-0.5">
@@ -50,13 +50,13 @@ export function OfficialGoodsCardContent({
         </div>
       )}
       {itemTags && itemTags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1">
+        <div className="flex flex-wrap gap-1 mt-1 overflow-hidden">
           {itemTags
             .filter((tag) => tag.tags !== null)
             .map((tag) => (
               <span
                 key={tag.tags.id}
-                className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 line-clamp-1"
               >
                 {tag.tags.name}
               </span>
