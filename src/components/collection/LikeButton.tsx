@@ -69,8 +69,10 @@ export function LikeButton({ itemId }: LikeButtonProps) {
         if (error) throw error;
       }
 
+      // Invalidate both like-related queries and user items query
       queryClient.invalidateQueries({ queryKey: ["item-likes-count", itemId] });
       queryClient.invalidateQueries({ queryKey: ["item-is-liked", itemId, user.id] });
+      queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
 
       toast({
         title: isLiked ? "いいねを取り消しました" : "いいねしました",
