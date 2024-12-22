@@ -9,7 +9,6 @@ import { ShareModal } from "@/components/ShareModal";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
-import html2canvas from "html2canvas";
 
 export default function EditProfile() {
   const { user } = useAuth();
@@ -81,32 +80,6 @@ export default function EditProfile() {
     });
   };
 
-  const handleScreenshot = async () => {
-    const element = document.getElementById('profile-card');
-    if (!element) return;
-
-    try {
-      const canvas = await html2canvas(element);
-      const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = 'profile.png';
-      link.href = dataUrl;
-      link.click();
-
-      toast({
-        title: "スクリーンショット完了",
-        description: "プロフィールカードの画像を保存しました",
-      });
-    } catch (error) {
-      console.error('Screenshot error:', error);
-      toast({
-        variant: "destructive",
-        title: "エラー",
-        description: "スクリーンショットの保存に失敗しました",
-      });
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -129,7 +102,6 @@ export default function EditProfile() {
         <div id="profile-card" className="max-w-3xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow">
           <ProfileHeader 
             username={username}
-            onScreenshot={handleScreenshot}
             onShare={() => setIsShareModalOpen(true)}
           />
 
