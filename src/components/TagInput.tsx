@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types";
+import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface TagInputProps {
   selectedTags: string[];
@@ -13,6 +15,7 @@ interface TagInputProps {
 
 export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
   const [tagInput, setTagInput] = useState("");
+  const [open, setOpen] = useState(false);
 
   const { data: existingTags = [] } = useQuery({
     queryKey: ["tags"],
@@ -26,6 +29,11 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
     },
   });
 
+  const filteredTags = existingTags.filter(tag => 
+    tag.name.toLowerCase().includes(tagInput.toLowerCase()) &&
+    !selectedTags.includes(tag.name)
+  );
+
   const handleAddTag = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim()) {
       e.preventDefault();
@@ -34,6 +42,7 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
         onTagsChange([...selectedTags, newTag]);
       }
       setTagInput("");
+      setOpen(false);
     }
   };
 
@@ -41,18 +50,58 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
     onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
   };
 
+  const handleSelectTag = (tagName: string) => {
+    if (!selectedTags.includes(tagName)) {
+      onTagsChange([...selectedTags, tagName]);
+    }
+    setTagInput("");
+    setOpen(false);
+  };
+
+  useEffect(() => {
+    if (tagInput.length > 0) {
+      setOpen(true);
+    } else {
+      setOpen(false);
+    }
+  }, [tagInput]);
+
   return (
     <div className="space-y-2">
       <label htmlFor="tags" className="text-sm font-medium">
         タグ
       </label>
-      <Input
-        id="tags"
-        value={tagInput}
-        onChange={(e) => setTagInput(e.target.value)}
-        onKeyDown={handleAddTag}
-        placeholder="タグを入力してEnterを押してください"
-      />
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <div>
+            <Input
+              id="tags"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleAddTag}
+              placeholder="タグを入力してEnterを押してください"
+              className="w-full"
+            />
+          </div>
+        </PopoverTrigger>
+        {filteredTags.length > 0 && (
+          <PopoverContent className="p-0" align="start">
+            <Command>
+              <CommandGroup>
+                {filteredTags.map((tag) => (
+                  <CommandItem
+                    key={tag.id}
+                    onSelect={() => handleSelectTag(tag.name)}
+                    className="cursor-pointer"
+                  >
+                    {tag.name}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </Command>
+          </PopoverContent>
+        )}
+      </Popover>
       <div className="flex flex-wrap gap-2 mt-2">
         {selectedTags.map((tag) => (
           <Badge
