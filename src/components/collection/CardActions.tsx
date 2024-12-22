@@ -19,7 +19,7 @@ export function CardActions({
   hasTags,
 }: CardActionsProps) {
   return (
-    <div className="flex justify-end gap-1.5">
+    <div className="flex justify-end gap-1">
       <Button 
         variant="outline" 
         size="sm"
@@ -28,9 +28,9 @@ export function CardActions({
           hasMemories 
             ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
             : "border-gray-200 hover:bg-gray-50"
-        } transition-colors h-8 w-8 p-0`}
+        } transition-colors h-7 w-7 p-0`}
       >
-        <BookMarked className={`h-3.5 w-3.5 ${hasMemories ? "text-purple-500" : ""}`} />
+        <BookMarked className={`h-3 w-3 ${hasMemories ? "text-purple-500" : ""}`} />
       </Button>
       <Button 
         variant="outline" 
@@ -40,25 +40,25 @@ export function CardActions({
           hasTags 
             ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
             : "border-gray-200 hover:bg-gray-50"
-        } transition-colors h-8 w-8 p-0`}
+        } transition-colors h-7 w-7 p-0`}
       >
-        <Tag className={`h-3.5 w-3.5 ${hasTags ? "text-purple-500" : ""}`} />
+        <Tag className={`h-3 w-3 ${hasTags ? "text-purple-500" : ""}`} />
       </Button>
       <Button 
         variant="outline" 
         size="sm"
         onClick={onShareClick}
-        className="border-gray-200 hover:bg-gray-50 h-8 w-8 p-0"
+        className="border-gray-200 hover:bg-gray-50 h-7 w-7 p-0"
       >
-        <Share2 className="h-3.5 w-3.5" />
+        <Share2 className="h-3 w-3" />
       </Button>
       <Button 
         variant="outline" 
         size="sm"
         onClick={onDeleteClick}
-        className="border-gray-200 hover:bg-gray-50 hover:border-red-200 hover:text-red-500 h-8 w-8 p-0"
+        className="border-gray-200 hover:bg-gray-50 hover:border-red-200 hover:text-red-500 h-7 w-7 p-0"
       >
-        <Trash2 className="h-3.5 w-3.5" />
+        <Trash2 className="h-3 w-3" />
       </Button>
     </div>
   );
