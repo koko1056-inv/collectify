@@ -11,6 +11,7 @@ import { CardContent } from "./collection/CardContent";
 import { CardActions } from "./collection/CardActions";
 import { DeleteConfirmDialog } from "./collection/DeleteConfirmDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { ItemDetailsModal } from "./ItemDetailsModal";
 
 interface CollectionGoodsCardProps {
   title: string;
@@ -18,15 +19,30 @@ interface CollectionGoodsCardProps {
   id: string;
   isShared?: boolean;
   userId?: string;
+  artist?: string | null;
+  anime?: string | null;
+  releaseDate?: string;
+  prize?: string;
 }
 
-export function CollectionGoodsCard({ title, image, id, isShared = false, userId }: CollectionGoodsCardProps) {
+export function CollectionGoodsCard({ 
+  title, 
+  image, 
+  id, 
+  isShared = false, 
+  userId,
+  artist,
+  anime,
+  releaseDate,
+  prize
+}: CollectionGoodsCardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const isOwner = !userId || (user && user.id === userId);
@@ -113,7 +129,10 @@ export function CollectionGoodsCard({ title, image, id, isShared = false, userId
 
   return (
     <>
-      <Card className="hover-scale card-shadow bg-white border border-gray-200">
+      <Card 
+        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer"
+        onClick={() => setIsDetailsModalOpen(true)}
+      >
         <UICardHeader className="p-0">
           <CardHeader title={title} image={image} />
         </UICardHeader>
@@ -124,23 +143,49 @@ export function CollectionGoodsCard({ title, image, id, isShared = false, userId
             memoriesCount={itemMemories.length}
             isOwner={isOwner}
             isShared={isShared}
-            onMemoriesClick={() => setIsMemoriesModalOpen(true)}
+            onMemoriesClick={(e) => {
+              e.stopPropagation();
+              setIsMemoriesModalOpen(true);
+            }}
             onShareToggle={handleShareToggle}
           />
         </UICardContent>
         {isOwner && (
           <CardFooter className="px-2 py-1.5">
             <CardActions
-              onMemoriesClick={() => setIsMemoriesModalOpen(true)}
-              onTagManageClick={() => setIsTagManageModalOpen(true)}
-              onShareClick={() => setIsShareModalOpen(true)}
-              onDeleteClick={() => setIsDeleteDialogOpen(true)}
+              onMemoriesClick={(e) => {
+                e.stopPropagation();
+                setIsMemoriesModalOpen(true);
+              }}
+              onTagManageClick={(e) => {
+                e.stopPropagation();
+                setIsTagManageModalOpen(true);
+              }}
+              onShareClick={(e) => {
+                e.stopPropagation();
+                setIsShareModalOpen(true);
+              }}
+              onDeleteClick={(e) => {
+                e.stopPropagation();
+                setIsDeleteDialogOpen(true);
+              }}
               hasMemories={itemMemories.length > 0}
               hasTags={itemTags.length > 0}
             />
           </CardFooter>
         )}
       </Card>
+
+      <ItemDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        title={title}
+        image={image}
+        artist={artist}
+        anime={anime}
+        price={prize}
+        releaseDate={releaseDate}
+      />
 
       <ItemMemoriesModal
         isOpen={isMemoriesModalOpen}

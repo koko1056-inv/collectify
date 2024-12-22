@@ -5,6 +5,8 @@ import { OfficialGoodsCardHeader } from "./official-goods/OfficialGoodsCardHeade
 import { OfficialGoodsCardContent } from "./official-goods/OfficialGoodsCardContent";
 import { OfficialGoodsCardFooter } from "./official-goods/OfficialGoodsCardFooter";
 import { useOfficialGoodsCard } from "./official-goods/useOfficialGoodsCard";
+import { ItemDetailsModal } from "./ItemDetailsModal";
+import { useState } from "react";
 
 interface OfficialGoodsCardProps {
   title: string;
@@ -12,6 +14,8 @@ interface OfficialGoodsCardProps {
   id: string;
   artist?: string | null;
   anime?: string | null;
+  price?: string;
+  releaseDate?: string;
 }
 
 export function OfficialGoodsCard({ 
@@ -19,7 +23,9 @@ export function OfficialGoodsCard({
   image, 
   id,
   artist, 
-  anime 
+  anime,
+  price,
+  releaseDate
 }: OfficialGoodsCardProps) {
   const {
     isInCollection,
@@ -31,9 +37,14 @@ export function OfficialGoodsCard({
     handleAddToCollection,
   } = useOfficialGoodsCard({ id, title, image });
 
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   return (
     <>
-      <Card className="hover-scale card-shadow bg-white border border-gray-200">
+      <Card 
+        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer"
+        onClick={() => setIsDetailsModalOpen(true)}
+      >
         <OfficialGoodsCardHeader image={image} title={title} />
         <OfficialGoodsCardContent
           title={title}
@@ -45,12 +56,30 @@ export function OfficialGoodsCard({
           isInCollection={isInCollection}
           wishlistCount={wishlistCount}
           onAddToCollection={handleAddToCollection}
-          onTagManageClick={() => setIsTagModalOpen(true)}
-          onWishlistClick={() => setIsWishlistModalOpen(true)}
+          onTagManageClick={(e) => {
+            e.stopPropagation();
+            setIsTagModalOpen(true);
+          }}
+          onWishlistClick={(e) => {
+            e.stopPropagation();
+            setIsWishlistModalOpen(true);
+          }}
           itemId={id}
           itemTitle={title}
         />
       </Card>
+
+      <ItemDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        title={title}
+        image={image}
+        artist={artist}
+        anime={anime}
+        price={price}
+        releaseDate={releaseDate}
+      />
+
       <WishlistModal
         isOpen={isWishlistModalOpen}
         onClose={() => setIsWishlistModalOpen(false)}
