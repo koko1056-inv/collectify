@@ -71,7 +71,7 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
       <label htmlFor="tags" className="text-sm font-medium">
         タグ
       </label>
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open && filteredTags.length > 0} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <div>
             <Input
