@@ -5,8 +5,8 @@ import { Tag } from "@/types";
 interface SearchBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  selectedTag: string | null;
-  onTagSelect: (tagName: string | null) => void;
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
   tags: Tag[];
 }
 

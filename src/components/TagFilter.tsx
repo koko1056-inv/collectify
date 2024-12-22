@@ -9,12 +9,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TagFilterProps {
-  selectedTag: string | null;
-  onTagSelect: (tag: string | null) => void;
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
   tags: Tag[];
 }
 
-export function TagFilter({ selectedTag, onTagSelect }: TagFilterProps) {
+export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -28,32 +28,40 @@ export function TagFilter({ selectedTag, onTagSelect }: TagFilterProps) {
       if (error) throw error;
       return data as Tag[];
     },
-    staleTime: 0, // Always fetch fresh data
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const getDisplayText = () => {
-    if (!selectedTag) return "タグから選択";
-    return selectedTag;
+    if (selectedTags.length === 0) return "タグから選択";
+    if (selectedTags.length === 1) return selectedTags[0];
+    return `${selectedTags.length}個のタグを選択中`;
   };
 
   const filteredTags = tags.filter(tag =>
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Function to determine text size based on string length
   const getTextSize = (text: string) => {
     if (text.length > 15) return 'text-xs';
     if (text.length > 10) return 'text-sm';
     return 'text-base';
   };
 
-  // If the selected tag no longer exists, reset it
   React.useEffect(() => {
-    if (selectedTag && !tags.some(tag => tag.name === selectedTag)) {
-      onTagSelect(null);
+    const validTags = selectedTags.filter(tag => tags.some(t => t.name === tag));
+    if (validTags.length !== selectedTags.length) {
+      onTagsChange(validTags);
     }
-  }, [tags, selectedTag, onTagSelect]);
+  }, [tags, selectedTags, onTagsChange]);
+
+  const handleTagToggle = (tagName: string) => {
+    if (selectedTags.includes(tagName)) {
+      onTagsChange(selectedTags.filter(tag => tag !== tagName));
+    } else {
+      onTagsChange([...selectedTags, tagName]);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -86,10 +94,10 @@ export function TagFilter({ selectedTag, onTagSelect }: TagFilterProps) {
               {searchQuery === "" && (
                 <Button
                   key="all"
-                  variant={selectedTag === null ? "default" : "outline"}
+                  variant={selectedTags.length === 0 ? "default" : "outline"}
                   className="h-auto py-6 flex flex-col items-center justify-center gap-2"
                   onClick={() => {
-                    onTagSelect(null);
+                    onTagsChange([]);
                     setIsDialogOpen(false);
                   }}
                 >
@@ -99,11 +107,10 @@ export function TagFilter({ selectedTag, onTagSelect }: TagFilterProps) {
               {filteredTags.map((tag) => (
                 <Button
                   key={tag.id}
-                  variant={selectedTag === tag.name ? "default" : "outline"}
+                  variant={selectedTags.includes(tag.name) ? "default" : "outline"}
                   className="h-auto py-6 flex flex-col items-center justify-center gap-2 px-2"
                   onClick={() => {
-                    onTagSelect(tag.name);
-                    setIsDialogOpen(false);
+                    handleTagToggle(tag.name);
                   }}
                 >
                   <span className={`${getTextSize(tag.name)} break-words text-center w-full`}>

@@ -6,16 +6,16 @@ import { SearchBar } from "./SearchBar";
 interface FilterBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  selectedTag: string | null;
-  onTagSelect: (tagName: string | null) => void;
+  selectedTags: string[];
+  onTagsChange: (tags: string[]) => void;
   tags: Tag[];
 }
 
 export function FilterBar({
   searchQuery,
   onSearchChange,
-  selectedTag,
-  onTagSelect,
+  selectedTags,
+  onTagsChange,
   tags,
 }: FilterBarProps) {
   return (
@@ -23,14 +23,14 @@ export function FilterBar({
       <SearchBar
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
-        selectedTag={selectedTag}
-        onTagSelect={onTagSelect}
+        selectedTags={selectedTags}
+        onTagsChange={onTagsChange}
         tags={tags}
       />
 
       <TagFilter
-        selectedTag={selectedTag}
-        onTagSelect={onTagSelect}
+        selectedTags={selectedTags}
+        onTagsChange={onTagsChange}
         tags={tags}
       />
     </div>

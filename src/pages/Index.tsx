@@ -8,7 +8,7 @@ import { OfficialItem, Tag } from "@/types";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const { data: items = [] } = useQuery<OfficialItem[]>({
     queryKey: ["official-items"],
@@ -50,11 +50,12 @@ const Index = () => {
         (item.anime?.toLowerCase() || "").includes(searchQuery.toLowerCase())
       : true;
     
-    const matchesTag = selectedTag
-      ? item.item_tags?.some(itemTag => itemTag.tags?.name === selectedTag)
-      : true;
+    const matchesTags = selectedTags.length === 0 || 
+      selectedTags.every(tag => 
+        item.item_tags?.some(itemTag => itemTag.tags?.name === tag)
+      );
     
-    return matchesSearch && matchesTag;
+    return matchesSearch && matchesTags;
   });
 
   return (
@@ -65,14 +66,14 @@ const Index = () => {
           <FilterBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            selectedTag={selectedTag}
-            onTagSelect={setSelectedTag}
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
             tags={allTags}
           />
 
           <CollectionTabs
             filteredItems={filteredItems}
-            selectedTag={selectedTag}
+            selectedTags={selectedTags}
           />
         </div>
       </main>

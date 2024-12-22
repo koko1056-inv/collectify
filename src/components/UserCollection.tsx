@@ -5,14 +5,14 @@ import { CollectionGoodsCard } from "./CollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
 
 interface UserCollectionProps {
-  selectedTag: string | null;
+  selectedTags: string[];
 }
 
-export function UserCollection({ selectedTag }: UserCollectionProps) {
+export function UserCollection({ selectedTags }: UserCollectionProps) {
   const { user } = useAuth();
 
   const { data: userItems = [], isLoading: isItemsLoading } = useQuery({
-    queryKey: ["user-items", user?.id, selectedTag],
+    queryKey: ["user-items", user?.id, selectedTags],
     queryFn: async () => {
       if (!user) return [];
       
@@ -60,9 +60,11 @@ export function UserCollection({ selectedTag }: UserCollectionProps) {
     );
   }
 
-  const filteredItems = selectedTag
+  const filteredItems = selectedTags.length > 0
     ? userItems.filter(item => 
-        item.user_item_tags?.some(tag => tag.tags?.name === selectedTag)
+        selectedTags.every(tag => 
+          item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
+        )
       )
     : userItems;
 
