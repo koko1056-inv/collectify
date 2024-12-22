@@ -20,6 +20,16 @@ export function TagInputField({ itemId, isUserItem = false, isCategory = false }
       e.preventDefault();
       const newTagName = tagInput.trim().toLowerCase();
 
+      // Add validation for tag length
+      if (newTagName.length > 50) {
+        toast({
+          title: "エラー",
+          description: "タグは50文字以内で入力してください。",
+          variant: "destructive",
+        });
+        return;
+      }
+
       try {
         // First check if tag exists
         const { data: existingTag, error: searchError } = await supabase
@@ -120,6 +130,7 @@ export function TagInputField({ itemId, isUserItem = false, isCategory = false }
       value={tagInput}
       onChange={(e) => setTagInput(e.target.value)}
       onKeyDown={handleAddTag}
+      maxLength={50}
     />
   );
 }
