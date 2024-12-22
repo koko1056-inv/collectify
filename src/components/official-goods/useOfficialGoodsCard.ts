@@ -61,10 +61,10 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       const { error } = await supabase.from("user_items").insert({
         title,
         image,
-        release_date: new Date().toISOString(),
+        release_date: new Date().toISOString().split('T')[0],
         user_id: user.id,
         is_shared: false,
-        prize: "0",
+        prize: "0", // Set default prize to "0" to satisfy not-null constraint
         official_link: id,
       });
 

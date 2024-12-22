@@ -36,7 +36,7 @@ export function ItemDetailsModal({
   title,
   image,
   price,
-  releaseDate = new Date().toISOString().split('T')[0], // Default to today's date
+  releaseDate = new Date().toISOString().split('T')[0],
   description,
   itemId,
   isUserItem = false,
@@ -48,8 +48,8 @@ export function ItemDetailsModal({
   const [isSaving, setIsSaving] = useState(false);
   const [editedData, setEditedData] = useState({
     title,
-    price: price || "",
-    releaseDate: releaseDate || "",
+    price: price || "0", // Set default price to "0" to satisfy not-null constraint
+    releaseDate: releaseDate || new Date().toISOString().split('T')[0],
     description: description || "",
     quantity,
   });
