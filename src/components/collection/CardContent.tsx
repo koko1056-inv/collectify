@@ -24,7 +24,7 @@ export function CardContent({
   onShareToggle,
 }: CardContentProps) {
   return (
-    <UICardContent className="px-3 py-2 space-y-2">
+    <UICardContent className="px-3 py-2 space-y-1">
       <TagList tags={itemTags} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
