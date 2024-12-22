@@ -33,11 +33,11 @@ export function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b">
-      <div className="flex h-16 items-center px-4 container mx-auto">
+      <div className="flex h-14 sm:h-16 items-center px-2 sm:px-4 container mx-auto">
         <Link to="/" className="logo-text">
           Collectify
         </Link>
-        <div className="ml-auto flex items-center space-x-4">
+        <div className="ml-auto flex items-center gap-2 sm:gap-4">
           <UserInfo />
           {user ? (
             <>
@@ -45,6 +45,7 @@ export function Navbar() {
                 variant="outline"
                 size="icon"
                 onClick={() => setIsSearchModalOpen(true)}
+                className="h-8 w-8 sm:h-9 sm:w-9"
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -52,22 +53,22 @@ export function Navbar() {
                 variant="outline"
                 size="icon"
                 onClick={() => setIsWishlistModalOpen(true)}
-                className="relative"
+                className="relative h-8 w-8 sm:h-9 sm:w-9"
               >
                 <Heart className="h-4 w-4" />
               </Button>
               {user.email === 'admin@example.com' && (
                 <Link to="/admin">
-                  <Button variant="outline">管理画面</Button>
+                  <Button variant="outline" className="text-sm">管理画面</Button>
                 </Link>
               )}
-              <Button onClick={handleLogout} variant="outline">
+              <Button onClick={handleLogout} variant="outline" className="text-sm">
                 ログアウト
               </Button>
             </>
           ) : (
             <Link to="/login">
-              <Button variant="outline">ログイン</Button>
+              <Button variant="outline" className="text-sm">ログイン</Button>
             </Link>
           )}
         </div>
