@@ -5,10 +5,10 @@ import { OfficialItem } from "@/types";
 
 interface CollectionTabsProps {
   filteredItems: OfficialItem[];
-  selectedTag: string | null;
+  selectedTags: string[];
 }
 
-export function CollectionTabs({ filteredItems, selectedTag }: CollectionTabsProps) {
+export function CollectionTabs({ filteredItems, selectedTags }: CollectionTabsProps) {
   return (
     <Tabs defaultValue="official" className="space-y-6">
       <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white border border-gray-200">
@@ -29,7 +29,7 @@ export function CollectionTabs({ filteredItems, selectedTag }: CollectionTabsPro
           <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
             マイコレクション
           </h1>
-          <UserCollection selectedTag={selectedTag} />
+          <UserCollection selectedTags={selectedTags} />
         </div>
       </TabsContent>
     </Tabs>
