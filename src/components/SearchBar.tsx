@@ -14,6 +14,10 @@ export function SearchBar({
   searchQuery,
   onSearchChange,
 }: SearchBarProps) {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onSearchChange(e.target.value);
+  };
+
   return (
     <div className="max-w-xl mx-auto mb-4">
       <div className="relative">
@@ -21,7 +25,7 @@ export function SearchBar({
           type="text"
           placeholder="グッズを検索..."
           value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={handleSearchChange}
           className="pl-10 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
         />
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
