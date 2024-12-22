@@ -9,8 +9,6 @@ import { OfficialItem, Tag } from "@/types";
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [selectedArtist, setSelectedArtist] = useState<string | null>(null);
-  const [selectedAnime, setSelectedAnime] = useState<string | null>(null);
 
   const { data: items = [] } = useQuery<OfficialItem[]>({
     queryKey: ["official-items"],
@@ -45,23 +43,13 @@ const Index = () => {
     },
   });
 
-  // Extract unique artists and animes from items
-  const artists = Array.from(new Set(items.map(item => item.artist).filter(Boolean))).sort();
-  const animes = Array.from(new Set(items.map(item => item.anime).filter(Boolean))).sort();
-
   const filteredItems = items.filter((item) => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTag = selectedTag
       ? item.item_tags?.some(itemTag => itemTag.tags?.name === selectedTag)
       : true;
-    const matchesArtist = selectedArtist
-      ? item.artist === selectedArtist
-      : true;
-    const matchesAnime = selectedAnime
-      ? item.anime === selectedAnime
-      : true;
     
-    return matchesSearch && matchesTag && matchesArtist && matchesAnime;
+    return matchesSearch && matchesTag;
   });
 
   return (
@@ -75,12 +63,6 @@ const Index = () => {
             selectedTag={selectedTag}
             onTagSelect={setSelectedTag}
             tags={allTags}
-            selectedArtist={selectedArtist}
-            onArtistSelect={setSelectedArtist}
-            selectedAnime={selectedAnime}
-            onAnimeSelect={setSelectedAnime}
-            artists={artists}
-            animes={animes}
           />
 
           <CollectionTabs
