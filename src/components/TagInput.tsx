@@ -29,10 +29,10 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
     },
   });
 
-  const filteredTags = existingTags.filter(tag => 
+  const filteredTags = existingTags?.filter(tag => 
     tag.name.toLowerCase().includes(tagInput.toLowerCase()) &&
     !selectedTags.includes(tag.name)
-  );
+  ) || [];
 
   const handleAddTag = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim()) {
