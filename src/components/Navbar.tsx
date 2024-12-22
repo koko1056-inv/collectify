@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { Heart, Search } from "lucide-react";
+import { Heart, UserSearch } from "lucide-react";
 import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
@@ -47,7 +47,7 @@ export function Navbar() {
                 onClick={() => setIsSearchModalOpen(true)}
                 className="h-8 w-8 sm:h-9 sm:w-9"
               >
-                <Search className="h-4 w-4" />
+                <UserSearch className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
