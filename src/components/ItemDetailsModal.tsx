@@ -22,8 +22,6 @@ interface ItemDetailsModalProps {
   onClose: () => void;
   title: string;
   image: string;
-  artist?: string | null;
-  anime?: string | null;
   price?: string;
   releaseDate?: string;
   description?: string;
@@ -37,8 +35,6 @@ export function ItemDetailsModal({
   onClose,
   title,
   image,
-  artist,
-  anime,
   price,
   releaseDate,
   description,
@@ -52,8 +48,6 @@ export function ItemDetailsModal({
   const [isSaving, setIsSaving] = useState(false);
   const [editedData, setEditedData] = useState({
     title,
-    artist: artist || "",
-    anime: anime || "",
     price: price || "",
     releaseDate: releaseDate || "",
     description: description || "",
@@ -108,8 +102,6 @@ export function ItemDetailsModal({
       const table = isUserItem ? "user_items" : "official_items";
       const updateData = {
         title: editedData.title,
-        artist: editedData.artist || null,
-        anime: editedData.anime || null,
         [isUserItem ? "prize" : "price"]: editedData.price || null,
         release_date: editedData.releaseDate || null,
         ...(isUserItem ? { quantity: editedData.quantity } : { description: editedData.description || null }),
@@ -145,8 +137,6 @@ export function ItemDetailsModal({
   const handleCancel = () => {
     setEditedData({
       title,
-      artist: artist || "",
-      anime: anime || "",
       price: price || "",
       releaseDate: releaseDate || "",
       description: description || "",
