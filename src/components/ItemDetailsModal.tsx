@@ -5,6 +5,7 @@ import { useItemDetailsForm } from "./item-details/useItemDetailsForm";
 import { ItemDetailsHeader } from "./item-details/ItemDetailsHeader";
 import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
 import { ItemDetailsFooter } from "./item-details/ItemDetailsFooter";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface ItemDetailsModalProps {
   itemId: string;
   isUserItem?: boolean;
   quantity?: number;
+  userId?: string;
 }
 
 export function ItemDetailsModal({
@@ -30,7 +32,11 @@ export function ItemDetailsModal({
   itemId,
   isUserItem = false,
   quantity = 1,
+  userId,
 }: ItemDetailsModalProps) {
+  const { user } = useAuth();
+  const isOwner = !userId || (user && user.id === userId);
+
   const {
     isEditing,
     isSaving,
@@ -110,6 +116,7 @@ export function ItemDetailsModal({
           onCancel={handleCancel}
           onSave={handleSave}
           onEdit={() => setIsEditing(true)}
+          showEditButton={isOwner}
         />
       </DialogContent>
     </Dialog>

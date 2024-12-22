@@ -6,6 +6,7 @@ interface ItemDetailsFooterProps {
   onCancel: () => void;
   onSave: () => void;
   onEdit: () => void;
+  showEditButton?: boolean;
 }
 
 export function ItemDetailsFooter({
@@ -14,6 +15,7 @@ export function ItemDetailsFooter({
   onCancel,
   onSave,
   onEdit,
+  showEditButton = true,
 }: ItemDetailsFooterProps) {
   return (
     <div className="flex justify-end space-x-2 pt-4 border-t">
@@ -34,7 +36,7 @@ export function ItemDetailsFooter({
           </Button>
         </>
       ) : (
-        <Button onClick={onEdit}>編集</Button>
+        showEditButton && <Button onClick={onEdit}>編集</Button>
       )}
     </div>
   );
