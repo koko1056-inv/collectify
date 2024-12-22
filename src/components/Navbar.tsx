@@ -4,10 +4,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { Heart, Search } from "lucide-react";
+import { Heart, Search, User } from "lucide-react";
 import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
   const { user } = useAuth();
@@ -57,18 +63,36 @@ export function Navbar() {
               >
                 <Heart className="h-4 w-4" />
               </Button>
-              {user.email === 'admin@example.com' && (
-                <Link to="/admin">
-                  <Button variant="outline" className="text-sm">管理画面</Button>
-                </Link>
-              )}
-              <Button onClick={handleLogout} variant="outline" className="text-sm">
-                ログアウト
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 sm:h-9 sm:w-9"
+                  >
+                    <User className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link to="/edit-profile">プロフィール編集</Link>
+                  </DropdownMenuItem>
+                  {user.email === "admin@example.com" && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">管理画面</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={handleLogout}>
+                    ログアウト
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Link to="/login">
-              <Button variant="outline" className="text-sm">ログイン</Button>
+              <Button variant="outline" className="text-sm">
+                ログイン
+              </Button>
             </Link>
           )}
         </div>

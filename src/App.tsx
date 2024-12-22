@@ -10,8 +10,8 @@ import Login from "./pages/Login";
 import Admin from "./pages/Admin";
 import AddItem from "./pages/AddItem";
 import UserProfile from "./pages/UserProfile";
+import EditProfile from "./pages/EditProfile";
 
-// Create a client
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
@@ -29,6 +29,7 @@ const App: React.FC = () => {
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/add-item" element={<AddItem />} />
                 <Route path="/user/:userId" element={<UserProfile />} />
+                <Route path="/edit-profile" element={<EditProfile />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </BrowserRouter>
