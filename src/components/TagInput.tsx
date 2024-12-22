@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types";
+import { useToast } from "@/hooks/use-toast";
 
 interface TagInputProps {
   selectedTags: string[];
@@ -13,6 +14,8 @@ interface TagInputProps {
 
 export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
   const [tagInput, setTagInput] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: existingTags = [] } = useQuery({
     queryKey: ["tags"],
@@ -37,8 +40,38 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
     }
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
+  const handleRemoveTag = async (tagToRemove: string) => {
+    try {
+      // まず、削除するタグのIDを見つける
+      const tagToDelete = existingTags.find(tag => tag.name === tagToRemove);
+      
+      if (tagToDelete) {
+        const { error } = await supabase
+          .from("tags")
+          .delete()
+          .eq("id", tagToDelete.id);
+
+        if (error) throw error;
+
+        // キャッシュを更新
+        queryClient.invalidateQueries({ queryKey: ["tags"] });
+
+        // 選択されたタグのリストから削除
+        onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
+
+        toast({
+          title: "タグを削除しました",
+          description: `${tagToRemove}を削除しました。`,
+        });
+      }
+    } catch (error) {
+      console.error("Error removing tag:", error);
+      toast({
+        title: "エラー",
+        description: "タグの削除に失敗しました。",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
