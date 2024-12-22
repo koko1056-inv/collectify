@@ -60,8 +60,25 @@ export function TagInputField({ itemId, isUserItem = false, isCategory = false }
             .select()
             .single();
 
-          if (createTagError) throw createTagError;
-          tagId = newTag.id;
+          if (createTagError) {
+            // If we get a unique constraint violation, try to fetch the tag again
+            // as it might have been created by another user in the meantime
+            if (createTagError.code === "23505") {
+              const { data: retryTag, error: retryError } = await supabase
+                .from("tags")
+                .select("id")
+                .eq("name", newTagName)
+                .eq("is_category", isCategory)
+                .single();
+
+              if (retryError) throw retryError;
+              tagId = retryTag.id;
+            } else {
+              throw createTagError;
+            }
+          } else {
+            tagId = newTag.id;
+          }
         }
 
         // Insert into the appropriate tags table
