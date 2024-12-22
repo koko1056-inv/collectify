@@ -269,6 +269,7 @@ export type Database = {
           is_shared: boolean
           official_link: string | null
           prize: string
+          quantity: number
           release_date: string
           title: string
           user_id: string
@@ -282,6 +283,7 @@ export type Database = {
           is_shared?: boolean
           official_link?: string | null
           prize: string
+          quantity?: number
           release_date: string
           title: string
           user_id: string
@@ -295,6 +297,7 @@ export type Database = {
           is_shared?: boolean
           official_link?: string | null
           prize?: string
+          quantity?: number
           release_date?: string
           title?: string
           user_id?: string

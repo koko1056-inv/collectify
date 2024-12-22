@@ -8,6 +8,7 @@ import { CardActions } from "./collection/CardActions";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardModals } from "./collection/CardModals";
 import { useCardEventHandlers } from "./collection/CardEventHandlers";
+import { Badge } from "./ui/badge";
 
 interface CollectionGoodsCardProps {
   title: string;
@@ -19,6 +20,7 @@ interface CollectionGoodsCardProps {
   anime?: string | null;
   releaseDate?: string;
   prize?: string;
+  quantity?: number;
 }
 
 export function CollectionGoodsCard({ 
@@ -30,7 +32,8 @@ export function CollectionGoodsCard({
   artist,
   anime,
   releaseDate,
-  prize
+  prize,
+  quantity = 1
 }: CollectionGoodsCardProps) {
   const { user } = useAuth();
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
@@ -75,9 +78,16 @@ export function CollectionGoodsCard({
   return (
     <>
       <Card 
-        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer"
+        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative"
         onClick={() => setIsDetailsModalOpen(true)}
       >
+        {quantity > 1 && (
+          <Badge 
+            className="absolute top-2 right-2 z-10 bg-purple-500 hover:bg-purple-500"
+          >
+            ×{quantity}
+          </Badge>
+        )}
         <UICardHeader className="p-0">
           <CardHeader title={title} image={image} />
         </UICardHeader>
