@@ -3,17 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
 import { ShareModal } from "@/components/ShareModal";
-import { Share2, Camera, Edit, Check, X } from "lucide-react";
-import { UserInfo } from "@/components/UserInfo";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
+import html2canvas from "html2canvas";
 
 export default function EditProfile() {
   const { user } = useAuth();
@@ -23,9 +19,9 @@ export default function EditProfile() {
   const [saving, setSaving] = useState(false);
   const [bio, setBio] = useState("");
   const [username, setUsername] = useState("");
-  const [favoriteItems, setFavoriteItems] = useState<any[]>([]);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingFavorites, setIsEditingFavorites] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -54,29 +50,7 @@ export default function EditProfile() {
       setLoading(false);
     };
 
-    const fetchFavoriteItems = async () => {
-      const { data: items, error } = await supabase
-        .from("user_items")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("is_shared", true)
-        .order("created_at", { ascending: false })
-        .limit(4);
-
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "エラー",
-          description: "お気に入りアイテムの取得に失敗しました",
-        });
-        return;
-      }
-
-      setFavoriteItems(items);
-    };
-
     fetchProfile();
-    fetchFavoriteItems();
   }, [user, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,6 +81,32 @@ export default function EditProfile() {
     });
   };
 
+  const handleScreenshot = async () => {
+    const element = document.getElementById('profile-card');
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element);
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = 'profile.png';
+      link.href = dataUrl;
+      link.click();
+
+      toast({
+        title: "スクリーンショット完了",
+        description: "プロフィールカードの画像を保存しました",
+      });
+    } catch (error) {
+      console.error('Screenshot error:', error);
+      toast({
+        variant: "destructive",
+        title: "エラー",
+        description: "スクリーンショットの保存に失敗しました",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -126,10 +126,10 @@ export default function EditProfile() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="container mx-auto px-4 py-8 pt-24">
-        <div className="max-w-3xl mx-auto space-y-6">
+        <div id="profile-card" className="max-w-3xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow">
           <ProfileHeader 
             username={username}
-            onScreenshot={() => {/* TODO */}}
+            onScreenshot={handleScreenshot}
             onShare={() => setIsShareModalOpen(true)}
           />
 
@@ -144,9 +144,9 @@ export default function EditProfile() {
           />
 
           <ProfileFavorites
-            favoriteItems={favoriteItems}
             userId={user?.id}
-            onCollectionEdit={() => navigate("/collection")}
+            isEditing={isEditingFavorites}
+            onEditComplete={() => setIsEditingFavorites(false)}
           />
         </div>
       </main>
@@ -156,7 +156,7 @@ export default function EditProfile() {
         onClose={() => setIsShareModalOpen(false)}
         title={`${username}のプロフィール`}
         url={window.location.href}
-        image={favoriteItems[0]?.image || "/placeholder.svg"}
+        image="/placeholder.svg"
       />
     </div>
   );
