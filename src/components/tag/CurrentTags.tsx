@@ -18,7 +18,8 @@ interface Tag {
 
 interface TagRelation {
   id: string;
-  tags: Tag | null;
+  tag_id: string;
+  tags: Tag;
 }
 
 export function CurrentTags({ itemId, isUserItem = false, isCategory = false }: CurrentTagsProps) {
@@ -32,18 +33,20 @@ export function CurrentTags({ itemId, isUserItem = false, isCategory = false }: 
         .from(isUserItem ? "user_item_tags" : "item_tags")
         .select(`
           id,
+          tag_id,
           tags (
             id,
             name,
             is_category
           )
         `)
-        .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
+        .eq(isUserItem ? "user_item_id" : "official_item_id", itemId)
+        .single();
 
       if (error) throw error;
 
-      // Filter tags based on is_category
-      return (data as TagRelation[]).filter(tag => tag.tags?.is_category === isCategory);
+      // Filter tags based on is_category and ensure proper type casting
+      return data ? [data].filter(tag => tag.tags?.is_category === isCategory) as TagRelation[] : [];
     },
   });
 
@@ -86,10 +89,10 @@ export function CurrentTags({ itemId, isUserItem = false, isCategory = false }: 
               variant="secondary"
               className="pr-2 flex items-center gap-1"
             >
-              {tag.tags!.name}
+              {tag.tags.name}
               <X
                 className="h-3 w-3 cursor-pointer hover:text-destructive"
-                onClick={() => handleRemoveTag(tag.id, tag.tags!.name)}
+                onClick={() => handleRemoveTag(tag.id, tag.tags.name)}
               />
             </Badge>
           ))}

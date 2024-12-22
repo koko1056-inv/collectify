@@ -28,7 +28,7 @@ export function OfficialGoodsCardContent({
         `)
         .eq("official_item_id", itemId);
       if (error) throw error;
-      return data;
+      return data.map(tag => tag.tags).filter(Boolean);
     },
   });
 
@@ -51,16 +51,14 @@ export function OfficialGoodsCardContent({
       )}
       {itemTags && itemTags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-1 overflow-hidden">
-          {itemTags
-            .filter((tag) => tag.tags !== null)
-            .map((tag) => (
-              <span
-                key={tag.tags.id}
-                className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 line-clamp-1"
-              >
-                {tag.tags.name}
-              </span>
-            ))}
+          {itemTags.map((tag) => (
+            <span
+              key={tag.id}
+              className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 line-clamp-1"
+            >
+              {tag.name}
+            </span>
+          ))}
         </div>
       )}
     </CardContent>

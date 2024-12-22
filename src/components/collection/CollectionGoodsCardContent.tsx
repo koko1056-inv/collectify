@@ -36,7 +36,10 @@ export function CollectionGoodsCardContent({
         `)
         .eq("user_item_id", id);
       if (error) throw error;
-      return data;
+      return data.map(tag => ({
+        tag_id: tag.tag_id,
+        tags: tag.tags
+      }));
     },
   });
 
