@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { Heart, Search, User } from "lucide-react";
+import { Heart, UserSearch, User } from "lucide-react";
 import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
@@ -14,6 +14,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function Navbar() {
   const { user } = useAuth();
@@ -47,14 +53,23 @@ export function Navbar() {
           <UserInfo />
           {user ? (
             <>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setIsSearchModalOpen(true)}
-                className="h-8 w-8 sm:h-9 sm:w-9"
-              >
-                <Search className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setIsSearchModalOpen(true)}
+                      className="h-8 w-8 sm:h-9 sm:w-9"
+                    >
+                      <UserSearch className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>ユーザーを探す</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Button
                 variant="outline"
                 size="icon"
