@@ -13,6 +13,7 @@ export function OfficialGoodsCardHeader({ image, title }: OfficialGoodsCardHeade
           src={image}
           alt={title}
           className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+          loading="lazy"
         />
       </div>
     </CardHeader>

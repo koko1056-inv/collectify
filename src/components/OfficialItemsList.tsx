@@ -23,7 +23,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   
   // Set items per page based on device type
-  const itemsPerPage = isMobile ? 6 : 12;
+  const itemsPerPage = isMobile ? 8 : 12;
   
   // Calculate total pages
   const totalPages = Math.ceil(items.length / itemsPerPage);
@@ -57,7 +57,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
           新規アイテムを追加
         </Button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
         {currentItems.map((item) => (
           <OfficialGoodsCard
             key={item.id}
