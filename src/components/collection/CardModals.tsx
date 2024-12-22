@@ -25,6 +25,7 @@ interface CardModalsProps {
   releaseDate?: string;
   prize?: string;
   description?: string;
+  quantity?: number;
 }
 
 export function CardModals({
@@ -48,6 +49,7 @@ export function CardModals({
   releaseDate,
   prize,
   description,
+  quantity,
 }: CardModalsProps) {
   return (
     <>
@@ -63,6 +65,7 @@ export function CardModals({
         description={description}
         itemId={itemId}
         isUserItem={true}
+        quantity={quantity}
       />
 
       <ItemMemoriesModal
