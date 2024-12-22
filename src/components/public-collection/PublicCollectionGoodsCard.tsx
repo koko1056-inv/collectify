@@ -22,7 +22,7 @@ export function PublicCollectionGoodsCard({
       <UICardHeader className="p-0">
         <CardHeader title={title} image={image} />
       </UICardHeader>
-      <UICardContent className="p-0">
+      <UICardContent className="p-0 pb-1">
         <CardContent
           itemId={id}
           itemTags={[]}
