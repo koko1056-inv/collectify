@@ -24,6 +24,7 @@ interface CardModalsProps {
   anime?: string | null;
   releaseDate?: string;
   prize?: string;
+  description?: string;
 }
 
 export function CardModals({
@@ -46,6 +47,7 @@ export function CardModals({
   anime,
   releaseDate,
   prize,
+  description,
 }: CardModalsProps) {
   return (
     <>
@@ -58,6 +60,9 @@ export function CardModals({
         anime={anime}
         price={prize}
         releaseDate={releaseDate}
+        description={description}
+        itemId={itemId}
+        isUserItem={true}
       />
 
       <ItemMemoriesModal

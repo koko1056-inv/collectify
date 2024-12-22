@@ -16,6 +16,7 @@ interface OfficialGoodsCardProps {
   anime?: string | null;
   price?: string;
   releaseDate?: string;
+  description?: string | null;
 }
 
 export function OfficialGoodsCard({ 
@@ -25,7 +26,8 @@ export function OfficialGoodsCard({
   artist, 
   anime,
   price,
-  releaseDate
+  releaseDate,
+  description
 }: OfficialGoodsCardProps) {
   const {
     isInCollection,
@@ -72,6 +74,8 @@ export function OfficialGoodsCard({
         anime={anime}
         price={price}
         releaseDate={releaseDate}
+        description={description}
+        itemId={id}
       />
 
       <WishlistModal
