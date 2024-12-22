@@ -16,8 +16,6 @@ interface CollectionGoodsCardProps {
   id: string;
   isShared?: boolean;
   userId?: string;
-  artist?: string | null;
-  anime?: string | null;
   releaseDate?: string;
   prize?: string;
   quantity?: number;
@@ -29,9 +27,7 @@ export function CollectionGoodsCard({
   id, 
   isShared = false, 
   userId,
-  artist,
-  anime,
-  releaseDate,
+  releaseDate = new Date().toISOString().split('T')[0],
   prize,
   quantity = 1
 }: CollectionGoodsCardProps) {
@@ -132,8 +128,6 @@ export function CollectionGoodsCard({
         itemTitle={title}
         userId={userId}
         image={image}
-        artist={artist}
-        anime={anime}
         releaseDate={releaseDate}
         prize={prize}
         quantity={quantity}

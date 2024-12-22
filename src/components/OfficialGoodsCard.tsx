@@ -26,7 +26,7 @@ export function OfficialGoodsCard({
   artist, 
   anime,
   price,
-  releaseDate,
+  releaseDate = new Date().toISOString().split('T')[0],
   description
 }: OfficialGoodsCardProps) {
   const {
