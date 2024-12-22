@@ -10,21 +10,15 @@ export function useAdminItemForm() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    artist: "",
-    anime: "",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [customArtist, setCustomArtist] = useState("");
-  const [customAnime, setCustomAnime] = useState("");
 
   const resetForm = () => {
     setFormData({
       title: "",
       description: "",
-      artist: "",
-      anime: "",
     });
     setImageFile(null);
     if (previewUrl) {
@@ -32,8 +26,6 @@ export function useAdminItemForm() {
       setPreviewUrl(null);
     }
     setSelectedTags([]);
-    setCustomArtist("");
-    setCustomAnime("");
   };
 
   const validateForm = () => {
@@ -87,9 +79,6 @@ export function useAdminItemForm() {
         imageUrl = publicUrl;
       }
 
-      const finalArtist = formData.artist === "custom" ? customArtist : formData.artist;
-      const finalAnime = formData.anime === "custom" ? customAnime : formData.anime;
-
       const { data: itemData, error: itemError } = await supabase
         .from("official_items")
         .insert([
@@ -98,8 +87,6 @@ export function useAdminItemForm() {
             image: imageUrl,
             price: "0",
             release_date: new Date().toISOString(),
-            artist: finalArtist,
-            anime: finalAnime,
           },
         ])
         .select()
@@ -172,10 +159,6 @@ export function useAdminItemForm() {
     setPreviewUrl,
     selectedTags,
     setSelectedTags,
-    customArtist,
-    setCustomArtist,
-    customAnime,
-    setCustomAnime,
     loading,
     handleSubmit,
   };

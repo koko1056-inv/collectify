@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TagInput } from "./TagInput";
 import { ImageUpload } from "./ImageUpload";
-import { MediaSelectionFields } from "./MediaSelectionFields";
 import { useAdminItemForm } from "@/hooks/useAdminItemForm";
 
 export function AdminItemForm() {
@@ -16,10 +15,6 @@ export function AdminItemForm() {
     setPreviewUrl,
     selectedTags,
     setSelectedTags,
-    customArtist,
-    setCustomArtist,
-    customAnime,
-    setCustomAnime,
     loading,
     handleSubmit,
   } = useAdminItemForm();
@@ -29,24 +24,6 @@ export function AdminItemForm() {
       setImageFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
-    }
-  };
-
-  const handleFormDataChange = (key: "artist" | "anime", value: string) => {
-    if (value === "custom") {
-      setFormData({ ...formData, [key]: value });
-      if (key === "artist") {
-        setCustomArtist("");
-      } else {
-        setCustomAnime("");
-      }
-    } else {
-      setFormData({ ...formData, [key]: value });
-      if (key === "artist") {
-        setCustomArtist("");
-      } else {
-        setCustomAnime("");
-      }
     }
   };
 
@@ -86,14 +63,6 @@ export function AdminItemForm() {
               }
             />
           </div>
-          <MediaSelectionFields
-            formData={formData}
-            customArtist={customArtist}
-            customAnime={customAnime}
-            onFormDataChange={handleFormDataChange}
-            onCustomArtistChange={setCustomArtist}
-            onCustomAnimeChange={setCustomAnime}
-          />
           <TagInput
             selectedTags={selectedTags}
             onTagsChange={setSelectedTags}
