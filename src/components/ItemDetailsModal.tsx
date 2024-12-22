@@ -1,20 +1,10 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { CardImage } from "./collection/CardImage";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { ScrollArea } from "./ui/scroll-area";
-import { ItemDetailsForm } from "./item-details/ItemDetailsForm";
-import { MemoriesList } from "./collection/MemoriesList";
-import { TagList } from "./collection/TagList";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
-import { QuantityInput } from "./item-details/QuantityInput";
-import { useItemDetailsForm } from "./item-details/useItemDetailsForm";
 import { supabase } from "@/integrations/supabase/client";
+import { useItemDetailsForm } from "./item-details/useItemDetailsForm";
+import { ItemDetailsHeader } from "./item-details/ItemDetailsHeader";
+import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
+import { ItemDetailsFooter } from "./item-details/ItemDetailsFooter";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -96,81 +86,31 @@ export function ItemDetailsModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col">
-        <DialogHeader>
-          {isEditing ? (
-            <Input
-              value={editedData.title}
-              onChange={(e) =>
-                setEditedData({ ...editedData, title: e.target.value })
-              }
-              className="text-xl font-bold"
-              placeholder="タイトルを入力"
-              required
-            />
-          ) : (
-            <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
-          )}
-        </DialogHeader>
+        <ItemDetailsHeader
+          isEditing={isEditing}
+          title={title}
+          editedData={editedData}
+          setEditedData={setEditedData}
+        />
         
-        <ScrollArea className="flex-1 px-1">
-          <div className="space-y-4">
-            <div className="w-full aspect-square relative">
-              <CardImage image={image} title={title} />
-            </div>
+        <ItemDetailsContent
+          image={image}
+          title={title}
+          tags={tags}
+          memories={memories}
+          isUserItem={isUserItem}
+          isEditing={isEditing}
+          editedData={editedData}
+          setEditedData={setEditedData}
+        />
 
-            {isUserItem && tags.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">タグ</h3>
-                <TagList tags={tags} />
-              </div>
-            )}
-
-            <div className="space-y-2">
-              {isUserItem && (
-                <QuantityInput
-                  isEditing={isEditing}
-                  quantity={editedData.quantity}
-                  onChange={(value) => setEditedData({ ...editedData, quantity: value })}
-                />
-              )}
-              <ItemDetailsForm
-                isEditing={isEditing}
-                editedData={editedData}
-                setEditedData={setEditedData}
-                isUserItem={isUserItem}
-              />
-            </div>
-
-            {isUserItem && memories.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium">思い出</h3>
-                <MemoriesList memories={memories} />
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-
-        <div className="flex justify-end space-x-2 pt-4 border-t">
-          {isEditing ? (
-            <>
-              <Button 
-                variant="outline" 
-                onClick={handleCancel}
-                disabled={isSaving}
-              >
-                キャンセル
-              </Button>
-              <Button 
-                onClick={handleSave}
-                disabled={isSaving}
-              >
-                {isSaving ? "保存中..." : "保存"}
-              </Button>
-            </>
-          ) : (
-            <Button onClick={() => setIsEditing(true)}>編集</Button>
-          )}
-        </div>
+        <ItemDetailsFooter
+          isEditing={isEditing}
+          isSaving={isSaving}
+          onCancel={handleCancel}
+          onSave={handleSave}
+          onEdit={() => setIsEditing(true)}
+        />
       </DialogContent>
     </Dialog>
   );
