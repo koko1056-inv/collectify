@@ -7,6 +7,7 @@ import { OfficialGoodsCardFooter } from "./official-goods/OfficialGoodsCardFoote
 import { useOfficialGoodsCard } from "./official-goods/useOfficialGoodsCard";
 import { ItemDetailsModal } from "./ItemDetailsModal";
 import { useState } from "react";
+import { Badge } from "./ui/badge";
 
 interface OfficialGoodsCardProps {
   title: string;
@@ -17,6 +18,7 @@ interface OfficialGoodsCardProps {
   price?: string;
   releaseDate?: string;
   description?: string | null;
+  quantity?: number;
 }
 
 export function OfficialGoodsCard({ 
@@ -27,7 +29,8 @@ export function OfficialGoodsCard({
   anime,
   price,
   releaseDate = new Date().toISOString().split('T')[0],
-  description
+  description,
+  quantity = 1
 }: OfficialGoodsCardProps) {
   const {
     isInCollection,
@@ -44,9 +47,16 @@ export function OfficialGoodsCard({
   return (
     <>
       <Card 
-        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer"
+        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative"
         onClick={() => setIsDetailsModalOpen(true)}
       >
+        {quantity > 1 && (
+          <Badge 
+            className="absolute top-2 right-2 z-10 bg-purple-500 hover:bg-purple-500"
+          >
+            ×{quantity}
+          </Badge>
+        )}
         <OfficialGoodsCardHeader image={image} title={title} />
         <OfficialGoodsCardContent
           title={title}
@@ -74,6 +84,7 @@ export function OfficialGoodsCard({
         releaseDate={releaseDate}
         description={description}
         itemId={id}
+        quantity={quantity}
       />
 
       <WishlistModal
