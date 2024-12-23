@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,12 +7,13 @@ import { AlertCircle, User, Lock } from "lucide-react";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import { PasswordReset } from "@/components/PasswordReset";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
   const {
     isLogin,
     loading,
@@ -24,25 +25,36 @@ export default function Login() {
   } = useLoginForm();
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/");
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (session) {
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Session check error:", error);
+        toast({
+          variant: "destructive",
+          title: "エラーが発生しました",
+          description: "セッションの確認中にエラーが発生しました。",
+        });
       }
     };
     
     checkSession();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   if (showPasswordReset) {
     return (
