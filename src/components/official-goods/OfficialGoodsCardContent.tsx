@@ -15,23 +15,6 @@ export function OfficialGoodsCardContent({
   anime,
   itemId
 }: OfficialGoodsCardContentProps) {
-  const { data: itemTags = [] } = useQuery({
-    queryKey: ["item-tags", itemId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("item_tags")
-        .select(`
-          tags (
-            id,
-            name
-          )
-        `)
-        .eq("official_item_id", itemId);
-      if (error) throw error;
-      return data;
-    },
-  });
-
   return (
     <CardContent className="p-2 sm:p-3 overflow-hidden">
       <CardTitle className="text-sm sm:text-base mb-1 line-clamp-2 text-gray-900">{title}</CardTitle>
@@ -47,20 +30,6 @@ export function OfficialGoodsCardContent({
               アニメ: {anime}
             </p>
           )}
-        </div>
-      )}
-      {itemTags && itemTags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1 overflow-hidden">
-          {itemTags
-            .filter((tag) => tag.tags !== null)
-            .map((tag) => (
-              <span
-                key={tag.tags.id}
-                className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 line-clamp-1"
-              >
-                {tag.tags.name}
-              </span>
-            ))}
         </div>
       )}
     </CardContent>
