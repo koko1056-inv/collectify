@@ -85,19 +85,19 @@ const UserProfile = () => {
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">共有アイテム</h2>
             {isLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="space-y-4">
-                    <Skeleton className="h-[200px] w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="h-[120px] w-full" />
+                    <Skeleton className="h-3 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
                   </div>
                 ))}
               </div>
             ) : userItems.length === 0 ? (
               <p className="text-gray-500">共有されているアイテムはありません</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                 {userItems.map((item) => (
                   <CollectionGoodsCard
                     key={item.id}
