@@ -16,12 +16,13 @@ export function ItemDescriptionField({
       <label className="text-sm font-medium">説明</label>
       {isEditing ? (
         <Textarea
-          value={description}
+          value={description || ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder="説明を入力"
+          className="mt-2"
         />
       ) : (
-        <p className="text-sm text-gray-600 whitespace-pre-wrap">
+        <p className="text-sm text-gray-600 whitespace-pre-wrap mt-2">
           {description || "未設定"}
         </p>
       )}
