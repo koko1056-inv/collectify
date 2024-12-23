@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { useNavigate } from 'react-router-dom'
 
 type AuthContextType = {
   user: User | null
@@ -16,35 +17,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Error fetching session:', error)
+    // Initialize session
+    const initializeSession = async () => {
+      try {
+        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession()
+        
+        if (sessionError) {
+          console.error('Error fetching session:', sessionError)
+          throw sessionError
+        }
+
+        if (initialSession) {
+          setSession(initialSession)
+          setUser(initialSession.user)
+        }
+      } catch (error) {
+        console.error('Session initialization error:', error)
         toast({
           variant: "destructive",
-          title: "エラーが発生しました",
-          description: "セッションの取得に失敗しました。再度ログインしてください。",
+          title: "セッションエラー",
+          description: "セッションの初期化に失敗しました。再度ログインしてください。",
         })
-        return
+        // Clear any existing session data
+        await supabase.auth.signOut()
+        navigate('/login')
+      } finally {
+        setLoading(false)
       }
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    }
+
+    initializeSession()
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
+    } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+      if (currentSession) {
+        setSession(currentSession)
+        setUser(currentSession.user)
+      } else {
+        setSession(null)
+        setUser(null)
+      }
       setLoading(false)
     })
 
-    return () => subscription.unsubscribe()
-  }, [toast])
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [toast, navigate])
 
   return (
     <AuthContext.Provider value={{ user, session, loading }}>
