@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Tag } from "lucide-react";
 
 interface TagButtonProps {
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
 }
 
 export function TagButton({ onClick }: TagButtonProps) {
