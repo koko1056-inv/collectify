@@ -113,7 +113,7 @@ const UserProfile = () => {
           </div>
 
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold">欲しいものリスト</h2>
+            <h2 className="text-2xl font-semibold">ウィッシュリスト</h2>
             {wishlistItems.length === 0 ? (
               <p className="text-gray-500">欲しいものリストは空です</p>
             ) : (
