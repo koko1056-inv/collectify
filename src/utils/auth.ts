@@ -27,20 +27,20 @@ export const handleAdminLogin = async (password: string) => {
 };
 
 export const handleUserLogin = async (formData: LoginFormData) => {
-  // Convert username to a valid email format
-  const encodedUsername = encodeURIComponent(formData.username.toLowerCase());
-  const email = `user_${encodedUsername}@example.com`;
-  console.log("Attempting login for user:", formData.username);
-
-  const { data: profile } = await supabase
+  // First, check if the user exists in profiles
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('username')
+    .select('id')
     .eq('username', formData.username)
-    .maybeSingle();
+    .single();
 
-  if (!profile) {
-    throw new Error("ユーザーが見つかりません");
+  if (profileError) {
+    console.error("Profile lookup error:", profileError);
+    throw new Error("ユーザー名が見つかりません");
   }
+
+  // Generate a consistent email format for the user
+  const email = `${formData.username}@example.com`;
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -49,28 +49,29 @@ export const handleUserLogin = async (formData: LoginFormData) => {
 
   if (error) {
     console.error("Login error:", error);
-    throw new Error("ログインに失敗しました。パスワードを確認してください。");
+    if (error.message.includes("Invalid login credentials")) {
+      throw new Error("パスワードが正しくありません");
+    }
+    throw new Error("ログインに失敗しました");
   }
 
   return data;
 };
 
 export const handleUserSignup = async (formData: LoginFormData) => {
-  // Convert username to a valid email format
-  const encodedUsername = encodeURIComponent(formData.username.toLowerCase());
-  const email = `user_${encodedUsername}@example.com`;
-  console.log("Creating new user:", formData.username);
-
   // Check if username is already taken
   const { data: existingProfile } = await supabase
     .from('profiles')
     .select('username')
     .eq('username', formData.username)
-    .maybeSingle();
+    .single();
 
   if (existingProfile) {
     throw new Error("このユーザー名は既に使用されています");
   }
+
+  // Generate a consistent email format for the user
+  const email = `${formData.username}@example.com`;
 
   const { data, error } = await supabase.auth.signUp({
     email,
