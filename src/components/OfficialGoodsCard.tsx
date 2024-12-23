@@ -49,7 +49,6 @@ export function OfficialGoodsCard({
       <Card 
         className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative"
         onClick={(e) => {
-          // カードのクリックイベントを防ぐ
           if ((e.target as HTMLElement).tagName === 'BUTTON') {
             e.stopPropagation();
             return;
@@ -68,7 +67,6 @@ export function OfficialGoodsCard({
         <OfficialGoodsCardContent
           title={title}
           artist={artist}
-          anime={anime}
           itemId={id}
         />
         <OfficialGoodsCardFooter
