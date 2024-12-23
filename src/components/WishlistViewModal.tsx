@@ -34,7 +34,7 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>欲しいグッズリスト</DialogTitle>
+          <DialogTitle>ウィッシュリスト</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           {isLoading ? (
@@ -49,7 +49,7 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
             ))
           ) : wishlistItems?.length === 0 ? (
             <p className="text-center text-gray-500 py-8">
-              まだ欲しいグッズが登録されていません
+              まだウィッシュリストに登録されていません
             </p>
           ) : (
             wishlistItems?.map((item) => (
