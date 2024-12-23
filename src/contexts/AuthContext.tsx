@@ -20,30 +20,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Initialize session
     const initializeSession = async () => {
       try {
-        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession()
+        const { data: { session: initialSession } } = await supabase.auth.getSession()
         
-        if (sessionError) {
-          console.error('Error fetching session:', sessionError)
-          throw sessionError
-        }
-
         if (initialSession) {
           setSession(initialSession)
           setUser(initialSession.user)
         }
       } catch (error) {
         console.error('Session initialization error:', error)
-        toast({
-          variant: "destructive",
-          title: "セッションエラー",
-          description: "セッションの初期化に失敗しました。再度ログインしてください。",
-        })
-        // Clear any existing session data
         await supabase.auth.signOut()
-        navigate('/login')
       } finally {
         setLoading(false)
       }
@@ -51,10 +38,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initializeSession()
 
-    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       if (currentSession) {
         setSession(currentSession)
         setUser(currentSession.user)
@@ -68,7 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe()
     }
-  }, [toast, navigate])
+  }, [])
 
   return (
     <AuthContext.Provider value={{ user, session, loading }}>
