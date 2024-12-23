@@ -18,6 +18,13 @@ export function ItemDetailsForm({
   setEditedData,
   isUserItem = false,
 }: ItemDetailsFormProps) {
+  const handleDescriptionChange = (value: string) => {
+    setEditedData({
+      ...editedData,
+      description: value
+    });
+  };
+
   return (
     <div className="space-y-4">
       <ItemPriceAndDateForm
@@ -31,7 +38,7 @@ export function ItemDetailsForm({
         <ItemDescriptionField
           isEditing={isEditing}
           description={editedData.description}
-          onChange={(value) => setEditedData({ ...editedData, description: value })}
+          onChange={handleDescriptionChange}
         />
       )}
     </div>
