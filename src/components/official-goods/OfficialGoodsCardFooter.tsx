@@ -6,9 +6,9 @@ import { TagButton } from "./buttons/TagButton";
 interface OfficialGoodsCardFooterProps {
   isInCollection: boolean;
   wishlistCount: number;
-  onAddToCollection: () => void;
-  onTagManageClick: () => void;
-  onWishlistClick: () => void;
+  onAddToCollection: (e: React.MouseEvent) => void;
+  onTagManageClick: (e: React.MouseEvent) => void;
+  onWishlistClick: (e: React.MouseEvent) => void;
   itemId: string;
   itemTitle: string;
 }

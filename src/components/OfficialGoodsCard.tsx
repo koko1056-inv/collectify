@@ -48,7 +48,14 @@ export function OfficialGoodsCard({
     <>
       <Card 
         className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative"
-        onClick={() => setIsDetailsModalOpen(true)}
+        onClick={(e) => {
+          // カードのクリックイベントを防ぐ
+          if ((e.target as HTMLElement).tagName === 'BUTTON') {
+            e.stopPropagation();
+            return;
+          }
+          setIsDetailsModalOpen(true);
+        }}
       >
         {quantity > 1 && (
           <Badge 
@@ -67,25 +74,36 @@ export function OfficialGoodsCard({
         <OfficialGoodsCardFooter
           isInCollection={isInCollection}
           wishlistCount={wishlistCount}
-          onAddToCollection={handleAddToCollection}
-          onTagManageClick={() => setIsTagModalOpen(true)}
-          onWishlistClick={() => setIsWishlistModalOpen(true)}
+          onAddToCollection={(e) => {
+            e.stopPropagation();
+            handleAddToCollection();
+          }}
+          onTagManageClick={(e) => {
+            e.stopPropagation();
+            setIsTagModalOpen(true);
+          }}
+          onWishlistClick={(e) => {
+            e.stopPropagation();
+            setIsWishlistModalOpen(true);
+          }}
           itemId={id}
           itemTitle={title}
         />
       </Card>
 
-      <ItemDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
-        title={title}
-        image={image}
-        price={price}
-        releaseDate={releaseDate}
-        description={description}
-        itemId={id}
-        quantity={quantity}
-      />
+      {isDetailsModalOpen && (
+        <ItemDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={() => setIsDetailsModalOpen(false)}
+          title={title}
+          image={image}
+          price={price}
+          releaseDate={releaseDate}
+          description={description}
+          itemId={id}
+          quantity={quantity}
+        />
+      )}
 
       <WishlistModal
         isOpen={isWishlistModalOpen}
