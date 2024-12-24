@@ -12,6 +12,15 @@ interface ItemOwnersModalProps {
   itemId: string;
 }
 
+interface ItemOwner {
+  user_id: string;
+  profiles: {
+    username: string | null;
+    avatar_url: string | null;
+    display_name: string | null;
+  } | null;
+}
+
 export function ItemOwnersModal({
   isOpen,
   onClose,
@@ -27,7 +36,7 @@ export function ItemOwnersModal({
         .from("user_items")
         .select(`
           user_id,
-          profiles:user_id (
+          profiles:profiles!user_items_user_id_fkey (
             username,
             avatar_url,
             display_name
@@ -36,8 +45,11 @@ export function ItemOwnersModal({
         .eq("title", itemTitle)
         .eq("is_shared", true);
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching item owners:", error);
+        throw error;
+      }
+      return (data || []) as ItemOwner[];
     },
   });
 
