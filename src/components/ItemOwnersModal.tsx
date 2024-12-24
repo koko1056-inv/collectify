@@ -36,7 +36,7 @@ export function ItemOwnersModal({
         .from("user_items")
         .select(`
           user_id,
-          profiles:profiles!user_items_user_id_fkey (
+          profiles!user_items_user_id_fkey (
             username,
             avatar_url,
             display_name
