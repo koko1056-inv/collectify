@@ -14,7 +14,7 @@ const Index = () => {
   const [showInterestDialog, setShowInterestDialog] = useState(false);
   const { user } = useAuth();
 
-  const { data: profile } = useQuery({
+  const { data: profile, refetch: refetchProfile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -83,7 +83,7 @@ const Index = () => {
     return matchesSearch && matchesTags;
   });
 
-  // Sort items to prioritize those with user's interests
+  // Enhanced sorting function that prioritizes items with user's interests
   const sortedItems = [...filteredItems].sort((a, b) => {
     if (!profile?.interests || profile.interests.length === 0) return 0;
 
@@ -94,8 +94,18 @@ const Index = () => {
       itemTag => profile.interests.includes(itemTag.tags?.name || "")
     ).length || 0;
 
-    return bMatchCount - aMatchCount;
+    if (aMatchCount !== bMatchCount) {
+      return bMatchCount - aMatchCount; // Items with more matching tags come first
+    }
+
+    // If match counts are equal, sort by creation date (newest first)
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
+
+  const handleInterestDialogClose = () => {
+    setShowInterestDialog(false);
+    refetchProfile(); // Refresh profile data to get updated interests
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -118,7 +128,7 @@ const Index = () => {
           {user && (
             <InitialInterestSelection
               isOpen={showInterestDialog}
-              onClose={() => setShowInterestDialog(false)}
+              onClose={handleInterestDialogClose}
               tags={allTags}
             />
           )}
