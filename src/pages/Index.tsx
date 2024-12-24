@@ -20,10 +20,13 @@ const Index = () => {
       if (!user) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("interests")
+        .select("*")
         .eq("id", user.id)
-        .single();
-      if (error) throw error;
+        .maybeSingle();
+      if (error) {
+        console.error("Error fetching profile:", error);
+        return null;
+      }
       return data;
     },
     enabled: !!user,
@@ -83,7 +86,6 @@ const Index = () => {
     return matchesSearch && matchesTags;
   });
 
-  // Enhanced sorting function that prioritizes items with user's interests
   const sortedItems = [...filteredItems].sort((a, b) => {
     if (!profile?.interests || profile.interests.length === 0) return 0;
 
@@ -95,16 +97,15 @@ const Index = () => {
     ).length || 0;
 
     if (aMatchCount !== bMatchCount) {
-      return bMatchCount - aMatchCount; // Items with more matching tags come first
+      return bMatchCount - aMatchCount;
     }
 
-    // If match counts are equal, sort by creation date (newest first)
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
   const handleInterestDialogClose = () => {
     setShowInterestDialog(false);
-    refetchProfile(); // Refresh profile data to get updated interests
+    refetchProfile();
   };
 
   return (
