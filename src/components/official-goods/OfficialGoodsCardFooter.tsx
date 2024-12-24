@@ -4,6 +4,8 @@ import { Heart, Users } from "lucide-react";
 import { TagButton } from "./buttons/TagButton";
 import { useState } from "react";
 import { ItemOwnersModal } from "@/components/ItemOwnersModal";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OfficialGoodsCardFooterProps {
   isInCollection: boolean;
@@ -26,22 +28,38 @@ export function OfficialGoodsCardFooter({
 }: OfficialGoodsCardFooterProps) {
   const [isOwnersModalOpen, setIsOwnersModalOpen] = useState(false);
 
+  const { data: ownersCount = 0 } = useQuery({
+    queryKey: ["item-owners-count", itemTitle],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("user_items")
+        .select("*", { count: 'exact', head: true })
+        .eq("title", itemTitle)
+        .eq("is_shared", true);
+      
+      return count || 0;
+    },
+  });
+
   return (
     <>
       <CardFooter className="p-2 sm:p-4 pt-0 flex flex-col gap-2">
         <div className="flex justify-end gap-2">
           <TagButton onClick={onTagManageClick} />
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsOwnersModalOpen(true);
-            }}
-            className="border-gray-200 hover:bg-gray-50"
-          >
-            <Users className="h-4 w-4" />
-          </Button>
+          <div className="flex flex-col items-center">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOwnersModalOpen(true);
+              }}
+              className="border-gray-200 hover:bg-gray-50"
+            >
+              <Users className="h-4 w-4" />
+            </Button>
+            <span className="text-xs text-gray-500 mt-1">{ownersCount}</span>
+          </div>
           <div className="flex flex-col items-center">
             <Button 
               variant="outline" 
