@@ -32,10 +32,14 @@ export const handleUserLogin = async (formData: LoginFormData) => {
     .from('profiles')
     .select('id')
     .eq('username', formData.username)
-    .single();
+    .maybeSingle();
 
   if (profileError) {
     console.error("Profile lookup error:", profileError);
+    throw new Error("プロフィールの取得に失敗しました");
+  }
+
+  if (!profile) {
     throw new Error("ユーザー名が見つかりません");
   }
 
@@ -60,11 +64,16 @@ export const handleUserLogin = async (formData: LoginFormData) => {
 
 export const handleUserSignup = async (formData: LoginFormData) => {
   // Check if username is already taken
-  const { data: existingProfile } = await supabase
+  const { data: existingProfile, error: checkError } = await supabase
     .from('profiles')
     .select('username')
     .eq('username', formData.username)
-    .single();
+    .maybeSingle();
+
+  if (checkError) {
+    console.error("Profile check error:", checkError);
+    throw new Error("ユーザー名の確認に失敗しました");
+  }
 
   if (existingProfile) {
     throw new Error("このユーザー名は既に使用されています");
