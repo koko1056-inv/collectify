@@ -49,6 +49,7 @@ export function ItemOwnersModal({
         console.error("Error fetching item owners:", error);
         throw error;
       }
+
       return (data || []) as ItemOwner[];
     },
   });
