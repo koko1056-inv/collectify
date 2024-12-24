@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { MemoriesForm } from "./collection/MemoriesForm";
 import { MemoriesList } from "./collection/MemoriesList";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ItemMemoriesModalProps {
   isOpen: boolean;
@@ -90,13 +91,15 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
         <DialogHeader>
           <DialogTitle>{itemTitle}の思い出</DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
-          <MemoriesForm isOwner={isOwner} onSubmit={handleSubmit} />
-          <div className="space-y-4 mt-6">
-            <h3 className="font-medium text-lg">これまでの思い出</h3>
-            <MemoriesList memories={memories} />
+        <ScrollArea className="h-[70vh]">
+          <div className="space-y-6 pr-4">
+            <MemoriesForm isOwner={isOwner} onSubmit={handleSubmit} />
+            <div className="space-y-4 mt-6">
+              <h3 className="font-medium text-lg">これまでの思い出</h3>
+              <MemoriesList memories={memories} />
+            </div>
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
