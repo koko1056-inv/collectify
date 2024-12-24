@@ -1,14 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionTabs } from "@/components/CollectionTabs";
 import { FilterBar } from "@/components/FilterBar";
+import { InitialInterestSelection } from "@/components/InitialInterestSelection";
 import { OfficialItem, Tag } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showInterestDialog, setShowInterestDialog] = useState(false);
+  const { user } = useAuth();
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("interests")
+        .eq("id", user.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
   const { data: items = [] } = useQuery<OfficialItem[]>({
     queryKey: ["official-items"],
@@ -43,6 +62,12 @@ const Index = () => {
     },
   });
 
+  useEffect(() => {
+    if (user && profile && (!profile.interests || profile.interests.length === 0)) {
+      setShowInterestDialog(true);
+    }
+  }, [user, profile]);
+
   const filteredItems = items.filter((item) => {
     const matchesSearch = searchQuery
       ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -56,6 +81,20 @@ const Index = () => {
       );
     
     return matchesSearch && matchesTags;
+  });
+
+  // Sort items to prioritize those with user's interests
+  const sortedItems = [...filteredItems].sort((a, b) => {
+    if (!profile?.interests || profile.interests.length === 0) return 0;
+
+    const aMatchCount = a.item_tags?.filter(
+      itemTag => profile.interests.includes(itemTag.tags?.name || "")
+    ).length || 0;
+    const bMatchCount = b.item_tags?.filter(
+      itemTag => profile.interests.includes(itemTag.tags?.name || "")
+    ).length || 0;
+
+    return bMatchCount - aMatchCount;
   });
 
   return (
@@ -72,9 +111,17 @@ const Index = () => {
           />
 
           <CollectionTabs
-            filteredItems={filteredItems}
+            filteredItems={sortedItems}
             selectedTags={selectedTags}
           />
+
+          {user && (
+            <InitialInterestSelection
+              isOpen={showInterestDialog}
+              onClose={() => setShowInterestDialog(false)}
+              tags={allTags}
+            />
+          )}
         </div>
       </main>
     </div>

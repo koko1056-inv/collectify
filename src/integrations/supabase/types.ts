@@ -150,6 +150,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          interests: string[] | null
           is_admin: boolean | null
           username: string | null
         }
@@ -159,6 +160,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          interests?: string[] | null
           is_admin?: boolean | null
           username?: string | null
         }
@@ -168,6 +170,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          interests?: string[] | null
           is_admin?: boolean | null
           username?: string | null
         }
