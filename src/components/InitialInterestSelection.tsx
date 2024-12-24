@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { Tag } from "@/types";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +21,7 @@ export function InitialInterestSelection({
 }: InitialInterestSelectionProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -60,6 +62,10 @@ export function InitialInterestSelection({
     }
   };
 
+  const filteredTags = tags.filter(tag =>
+    tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
@@ -71,9 +77,17 @@ export function InitialInterestSelection({
         <div className="text-center text-gray-600 mb-4">
           好みに合わせたグッズを表示するために、興味のあるタグを選んでください
         </div>
+        <div className="px-4">
+          <Input
+            placeholder="タグを検索..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="mb-4"
+          />
+        </div>
         <ScrollArea className="h-[50vh] pr-4">
           <div className="grid grid-cols-2 gap-2 p-4">
-            {tags.map((tag) => (
+            {filteredTags.map((tag) => (
               <Button
                 key={tag.id}
                 variant={selectedTags.includes(tag.name) ? "default" : "outline"}
