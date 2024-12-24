@@ -18,7 +18,6 @@ export function CollectionGoodsCardContent({
   id,
   isOwner,
   isShared,
-  onMemoriesClick,
 }: CollectionGoodsCardContentProps) {
   const { handleShareToggle } = useCardEventHandlers(id);
 
@@ -59,13 +58,10 @@ export function CollectionGoodsCardContent({
         <div className="flex items-center gap-1.5">
           <LikeButton itemId={id} />
           {itemMemories.length > 0 && (
-            <button
-              onClick={onMemoriesClick}
-              className="flex items-center gap-1 text-xs text-purple-500 hover:text-purple-600 transition-colors"
-            >
+            <div className="flex items-center gap-1 text-xs text-purple-500">
               <BookMarked className="h-3.5 w-3.5" />
               <span>{itemMemories.length}</span>
-            </button>
+            </div>
           )}
         </div>
         {isOwner && (
