@@ -30,7 +30,7 @@ export function useItemDetailsForm({
   const [isSaving, setIsSaving] = useState(false);
   const [editedData, setEditedData] = useState({
     title,
-    price: price || "0", // Set default price to "0" to satisfy not-null constraint
+    price: price || "0",
     releaseDate: releaseDate || new Date().toISOString().split('T')[0],
     description: description || "",
     quantity,
@@ -51,11 +51,11 @@ export function useItemDetailsForm({
       const table = isUserItem ? "user_items" : "official_items";
       const updateData = {
         title: editedData.title,
-        [isUserItem ? "prize" : "price"]: editedData.price || "0", // Ensure prize/price is never null
+        [isUserItem ? "prize" : "price"]: editedData.price || "0",
         release_date: editedData.releaseDate || new Date().toISOString().split('T')[0],
         ...(isUserItem 
           ? { quantity: editedData.quantity } 
-          : { description: editedData.description || null }
+          : { description: editedData.description }
         ),
       };
 
@@ -66,6 +66,7 @@ export function useItemDetailsForm({
 
       if (error) throw error;
 
+      // Invalidate queries to refresh the data
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       await queryClient.invalidateQueries({ queryKey: ["official-items"] });
 
