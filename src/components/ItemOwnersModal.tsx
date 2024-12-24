@@ -14,7 +14,7 @@ interface ItemOwnersModalProps {
 
 interface ItemOwner {
   user_id: string;
-  profile: {
+  profiles: {
     username: string | null;
     avatar_url: string | null;
     display_name: string | null;
@@ -36,7 +36,7 @@ export function ItemOwnersModal({
         .from("user_items")
         .select(`
           user_id,
-          profile:profiles(
+          profiles (
             username,
             avatar_url,
             display_name
@@ -88,13 +88,13 @@ export function ItemOwnersModal({
                 onClick={() => handleUserClick(owner.user_id)}
               >
                 <Avatar>
-                  <AvatarImage src={owner.profile?.avatar_url || ""} />
+                  <AvatarImage src={owner.profiles?.avatar_url || ""} />
                   <AvatarFallback>
-                    {(owner.profile?.display_name || owner.profile?.username || "User")[0].toUpperCase()}
+                    {(owner.profiles?.display_name || owner.profiles?.username || "User")[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <span className="font-medium">
-                  {owner.profile?.display_name || owner.profile?.username || "Unknown User"}
+                  {owner.profiles?.display_name || owner.profiles?.username || "Unknown User"}
                 </span>
               </div>
             ))
