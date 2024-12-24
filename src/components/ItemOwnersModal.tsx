@@ -10,6 +10,7 @@ interface ItemOwnersModalProps {
   onClose: () => void;
   itemTitle: string;
   itemId: string;
+  itemImage: string;
 }
 
 interface ItemOwner {
@@ -26,11 +27,12 @@ export function ItemOwnersModal({
   onClose,
   itemTitle,
   itemId,
+  itemImage,
 }: ItemOwnersModalProps) {
   const navigate = useNavigate();
 
   const { data: owners = [], isLoading } = useQuery({
-    queryKey: ["item-owners", itemId],
+    queryKey: ["item-owners", itemId, itemTitle, itemImage],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
@@ -43,6 +45,7 @@ export function ItemOwnersModal({
           )
         `)
         .eq("title", itemTitle)
+        .eq("image", itemImage)
         .eq("is_shared", true);
 
       if (error) {

@@ -26,7 +26,8 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       const { data } = await supabase
         .from("user_items")
         .select("id")
-        .eq("official_link", id)
+        .eq("title", title)
+        .eq("image", image)
         .eq("user_id", user.id)
         .maybeSingle();
       

@@ -15,6 +15,7 @@ interface OfficialGoodsCardFooterProps {
   onWishlistClick: (e: React.MouseEvent) => void;
   itemId: string;
   itemTitle: string;
+  itemImage: string;
 }
 
 export function OfficialGoodsCardFooter({
@@ -25,16 +26,18 @@ export function OfficialGoodsCardFooter({
   onWishlistClick,
   itemId,
   itemTitle,
+  itemImage,
 }: OfficialGoodsCardFooterProps) {
   const [isOwnersModalOpen, setIsOwnersModalOpen] = useState(false);
 
   const { data: ownersCount = 0 } = useQuery({
-    queryKey: ["item-owners-count", itemTitle],
+    queryKey: ["item-owners-count", itemTitle, itemImage],
     queryFn: async () => {
       const { count } = await supabase
         .from("user_items")
         .select("*", { count: 'exact', head: true })
         .eq("title", itemTitle)
+        .eq("image", itemImage)
         .eq("is_shared", true);
       
       return count || 0;
@@ -87,6 +90,7 @@ export function OfficialGoodsCardFooter({
         onClose={() => setIsOwnersModalOpen(false)}
         itemId={itemId}
         itemTitle={itemTitle}
+        itemImage={itemImage}
       />
     </>
   );

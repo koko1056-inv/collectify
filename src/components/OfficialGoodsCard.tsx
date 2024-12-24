@@ -86,6 +86,7 @@ export function OfficialGoodsCard({
           }}
           itemId={id}
           itemTitle={title}
+          itemImage={image}
         />
       </Card>
 
