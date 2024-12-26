@@ -41,16 +41,21 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
       if (selectedImage) {
         const timestamp = new Date().getTime();
         const fileExt = selectedImage.name.split(".").pop();
-        const filePath = `memories/${itemId}/${timestamp}.${fileExt}`;
+        const fileName = `${timestamp}-${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `memories/${itemId}/${fileName}`;
 
         const { error: uploadError, data: uploadData } = await supabase.storage
           .from("kuji_images")
           .upload(filePath, selectedImage, {
             cacheControl: "3600",
-            upsert: false
+            upsert: false,
+            contentType: selectedImage.type
           });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          throw uploadError;
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from("kuji_images")
