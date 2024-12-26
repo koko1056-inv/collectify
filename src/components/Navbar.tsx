@@ -8,6 +8,8 @@ import { Heart, UserSearch, User } from "lucide-react";
 import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +26,7 @@ import {
 export function Navbar() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
@@ -32,7 +35,7 @@ export function Navbar() {
     if (error) {
       toast({
         variant: "destructive",
-        title: "エラー",
+        title: t("common.error"),
         description: "ログアウトに失敗しました",
       });
     } else {
@@ -50,6 +53,7 @@ export function Navbar() {
           Collectify
         </Link>
         <div className="ml-auto flex items-center gap-2 sm:gap-4">
+          <LanguageSwitcher />
           <UserInfo />
           {user ? (
             <>
@@ -66,7 +70,7 @@ export function Navbar() {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>ユーザーを探す</p>
+                    <p>{t("nav.search.user")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -90,15 +94,15 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link to="/edit-profile">プロフィール編集</Link>
+                    <Link to="/edit-profile">{t("nav.profile")}</Link>
                   </DropdownMenuItem>
                   {user.email === "admin@example.com" && (
                     <DropdownMenuItem asChild>
-                      <Link to="/admin">管理画面</Link>
+                      <Link to="/admin">{t("nav.admin")}</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={handleLogout}>
-                    ログアウト
+                    {t("nav.logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -106,7 +110,7 @@ export function Navbar() {
           ) : (
             <Link to="/login">
               <Button variant="outline" className="text-sm">
-                ログイン
+                {t("nav.login")}
               </Button>
             </Link>
           )}
