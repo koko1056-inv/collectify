@@ -44,11 +44,23 @@ export function OfficialGoodsCardFooter({
     },
   });
 
+  const { data: tagCount = 0 } = useQuery({
+    queryKey: ["item-tags-count", itemId],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("item_tags")
+        .select("*", { count: 'exact', head: true })
+        .eq("official_item_id", itemId);
+      
+      return count || 0;
+    },
+  });
+
   return (
     <>
       <CardFooter className="p-2 sm:p-4 pt-0 flex flex-col gap-2">
         <div className="flex justify-end gap-2">
-          <TagButton onClick={onTagManageClick} />
+          <TagButton onClick={onTagManageClick} tagCount={tagCount} />
           <div className="flex flex-col items-center">
             <Button 
               variant="outline" 
