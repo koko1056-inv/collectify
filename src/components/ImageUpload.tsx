@@ -17,7 +17,9 @@ export function ImageUpload({ onImageChange, previewUrl }: ImageUploadProps) {
     [onImageChange]
   );
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     onImageChange(null);
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
