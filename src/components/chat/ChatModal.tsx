@@ -22,9 +22,9 @@ interface Message {
   sender_id: string;
   created_at: string;
   profiles?: {
-    username: string;
+    username: string | null;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatModalProps) {
@@ -41,13 +41,12 @@ export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatM
         .from("messages")
         .select(`
           *,
-          profiles:sender_id (
+          profiles:sender_id(
             username,
             avatar_url
           )
         `)
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .or(`sender_id.eq.${recipientId},receiver_id.eq.${recipientId}`)
+        .or(`and(sender_id.eq.${user.id},receiver_id.eq.${recipientId}),and(sender_id.eq.${recipientId},receiver_id.eq.${user.id})`)
         .order("created_at", { ascending: true });
 
       if (error) {
@@ -72,7 +71,8 @@ export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatM
           filter: `sender_id=eq.${user.id},receiver_id=eq.${recipientId}`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+          const newMessage = payload.new as Message;
+          setMessages((prev) => [...prev, newMessage]);
         }
       )
       .subscribe();
@@ -123,7 +123,7 @@ export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatM
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={msg.profiles?.avatar_url || ""} />
                     <AvatarFallback>
-                      {msg.profiles?.username?.[0].toUpperCase() || "U"}
+                      {msg.profiles?.username?.[0]?.toUpperCase() || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <div
