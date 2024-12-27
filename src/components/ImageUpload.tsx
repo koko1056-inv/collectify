@@ -17,6 +17,13 @@ export function ImageUpload({ onImageChange, previewUrl }: ImageUploadProps) {
     [onImageChange]
   );
 
+  const handleDelete = () => {
+    onImageChange(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+  };
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -56,7 +63,7 @@ export function ImageUpload({ onImageChange, previewUrl }: ImageUploadProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => onImageChange(null)}
+          onClick={handleDelete}
           className="w-full"
         >
           画像を削除
