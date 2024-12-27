@@ -57,11 +57,17 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
           throw uploadError;
         }
 
+        // Get the public URL after successful upload
         const { data: { publicUrl } } = supabase.storage
           .from("kuji_images")
           .getPublicUrl(filePath);
 
+        if (!publicUrl) {
+          throw new Error("Failed to get public URL for uploaded image");
+        }
+
         imageUrl = publicUrl;
+        console.log("Image uploaded successfully. Public URL:", imageUrl);
       }
 
       const { error } = await supabase
