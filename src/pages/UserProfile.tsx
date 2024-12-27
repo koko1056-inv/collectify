@@ -13,7 +13,7 @@ const UserProfile = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("username")
+        .select("username, bio")
         .eq("id", userId)
         .single();
       if (error) throw error;
@@ -78,9 +78,14 @@ const UserProfile = () => {
       <Navbar />
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="space-y-8">
-          <h1 className="text-3xl font-bold">
-            {profile?.username}さんのコレクション
-          </h1>
+          <div className="space-y-4">
+            <h1 className="text-3xl font-bold">
+              {profile?.username}さんのコレクション
+            </h1>
+            {profile.bio && (
+              <p className="text-gray-600 whitespace-pre-wrap">{profile.bio}</p>
+            )}
+          </div>
 
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">共有アイテム</h2>
