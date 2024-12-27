@@ -19,7 +19,7 @@ export function ItemPriceAndDateForm({
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-sm font-medium">発売日</label>
+        <label className="text-sm font-medium">ゲットした日</label>
         {isEditing ? (
           <Input
             type="date"
