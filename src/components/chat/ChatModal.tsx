@@ -24,7 +24,7 @@ interface Message {
   profiles?: {
     username: string | null;
     avatar_url: string | null;
-  } | null;
+  };
 }
 
 export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatModalProps) {
@@ -41,7 +41,7 @@ export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatM
         .from("messages")
         .select(`
           *,
-          profiles:profiles!messages_sender_id_fkey(
+          profiles:sender_id(
             username,
             avatar_url
           )
