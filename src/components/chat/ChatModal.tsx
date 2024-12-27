@@ -37,7 +37,7 @@ export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatM
         .from("messages")
         .select(`
           *,
-          profiles!messages_sender_id_fkey(
+          profiles:sender_id(
             username,
             avatar_url
           )
