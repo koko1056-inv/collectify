@@ -4,23 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
-import { useState } from "react";
-import { ChatModal } from "@/components/chat/ChatModal";
-import { useAuth } from "@/contexts/AuthContext";
 
 const UserProfile = () => {
   const { userId } = useParams();
-  const { user } = useAuth();
-  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ["user-profile", userId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("username, display_name, bio, avatar_url")
+        .select("username")
         .eq("id", userId)
         .single();
       if (error) throw error;
@@ -80,38 +73,14 @@ const UserProfile = () => {
     );
   }
 
-  const displayName = profile.display_name || profile.username;
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="space-y-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img
-                src={profile.avatar_url || "/placeholder.svg"}
-                alt={displayName}
-                className="h-16 w-16 rounded-full object-cover"
-              />
-              <div>
-                <h1 className="text-3xl font-bold">{displayName}さんのコレクション</h1>
-                {profile.bio && (
-                  <p className="mt-2 text-gray-600">{profile.bio}</p>
-                )}
-              </div>
-            </div>
-            {user && user.id !== userId && (
-              <Button
-                onClick={() => setIsChatModalOpen(true)}
-                variant="outline"
-                className="gap-2"
-              >
-                <MessageCircle className="h-4 w-4" />
-                チャットを開始
-              </Button>
-            )}
-          </div>
+          <h1 className="text-3xl font-bold">
+            {profile?.username}さんのコレクション
+          </h1>
 
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">共有アイテム</h2>
@@ -179,13 +148,6 @@ const UserProfile = () => {
           </div>
         </div>
       </main>
-
-      <ChatModal
-        isOpen={isChatModalOpen}
-        onClose={() => setIsChatModalOpen(false)}
-        recipientId={userId || ""}
-        recipientName={displayName || ""}
-      />
     </div>
   );
 };
