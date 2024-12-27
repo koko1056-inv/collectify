@@ -20,8 +20,8 @@ export function AdminItemForm() {
   } = useAdminItemForm();
 
   const handleImageChange = (file: File | null) => {
+    setImageFile(file);
     if (file) {
-      setImageFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
     }
@@ -37,6 +37,7 @@ export function AdminItemForm() {
           <ImageUpload
             onImageChange={handleImageChange}
             previewUrl={previewUrl}
+            setPreviewUrl={setPreviewUrl}
           />
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-medium">

@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 interface ImageUploadProps {
   onImageChange: (file: File | null) => void;
   previewUrl: string | null;
+  setPreviewUrl: (url: string | null) => void;
 }
 
-export function ImageUpload({ onImageChange, previewUrl }: ImageUploadProps) {
+export function ImageUpload({ onImageChange, previewUrl, setPreviewUrl }: ImageUploadProps) {
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
@@ -18,6 +19,10 @@ export function ImageUpload({ onImageChange, previewUrl }: ImageUploadProps) {
   );
 
   const handleDelete = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
     onImageChange(null);
   };
 
