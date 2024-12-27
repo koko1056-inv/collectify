@@ -29,7 +29,10 @@ export function ChatModal({ isOpen, onClose, userId }: ChatModalProps) {
         .from("messages")
         .select(`
           *,
-          profiles:sender_id(username, avatar_url)
+          sender:profiles!sender_id(
+            username,
+            avatar_url
+          )
         `)
         .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
         .order("created_at", { ascending: true });
@@ -42,8 +45,8 @@ export function ChatModal({ isOpen, onClose, userId }: ChatModalProps) {
       return data.map((message) => ({
         ...message,
         profiles: {
-          username: message.profiles?.username || null,
-          avatar_url: message.profiles?.avatar_url || null,
+          username: message.sender?.username || null,
+          avatar_url: message.sender?.avatar_url || null,
         },
       }));
     },
