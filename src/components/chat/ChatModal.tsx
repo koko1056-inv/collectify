@@ -1,52 +1,40 @@
-import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChatMessageList } from "./ChatMessageList";
+import { ChatInput } from "./ChatInput";
 
 interface ChatModalProps {
   isOpen: boolean;
   onClose: () => void;
-  receiverId: string;
-  relatedItemId?: string;
+  userId: string;
 }
 
-interface Message {
-  id: string;
-  content: string;
-  sender_id: string;
-  receiver_id: string;
-  created_at: string;
-  is_read: boolean;
-  related_item_id: string | null;
-  sender: {
-    username: string | null;
-    avatar_url: string | null;
-  };
-}
-
-export function ChatModal({ isOpen, onClose, receiverId, relatedItemId }: ChatModalProps) {
+export function ChatModal({ isOpen, onClose, userId }: ChatModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [newMessage, setNewMessage] = useState("");
+  const queryClient = useQueryClient();
 
-  const { data: messages = [], refetch } = useQuery({
-    queryKey: ["messages", user?.id, receiverId],
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ["messages", userId],
     queryFn: async () => {
-      if (!user) return [];
-      
       const { data, error } = await supabase
         .from("messages")
         .select(`
           *,
-          sender:profiles!sender_id(username, avatar_url)
+          sender:profiles!sender_id(
+            username,
+            avatar_url
+          )
         `)
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
         .order("created_at", { ascending: true });
 
       if (error) {
@@ -54,88 +42,54 @@ export function ChatModal({ isOpen, onClose, receiverId, relatedItemId }: ChatMo
         throw error;
       }
 
-      return (data || []) as Message[];
+      return data.map((message) => ({
+        ...message,
+        profiles: {
+          username: message.sender?.username || null,
+          avatar_url: message.sender?.avatar_url || null,
+        },
+      }));
     },
     enabled: !!user && isOpen,
   });
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !newMessage.trim()) return;
+  const handleSendMessage = async (content: string) => {
+    if (!user) return;
 
     try {
       const { error } = await supabase.from("messages").insert({
-        content: newMessage.trim(),
+        content,
         sender_id: user.id,
-        receiver_id: receiverId,
-        related_item_id: relatedItemId,
+        receiver_id: userId,
       });
 
       if (error) throw error;
 
-      setNewMessage("");
-      refetch();
-      
-      toast({
-        title: "メッセージを送信しました",
-        description: "相手に通知が届きます",
-      });
+      queryClient.invalidateQueries({ queryKey: ["messages", userId] });
     } catch (error) {
       console.error("Error sending message:", error);
       toast({
-        variant: "destructive",
         title: "エラー",
         description: "メッセージの送信に失敗しました",
+        variant: "destructive",
       });
     }
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="flex flex-col h-full w-full sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>メッセージ</SheetTitle>
-        </SheetHeader>
-
-        <div className="flex-1 overflow-y-auto py-4 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex gap-2 ${
-                message.sender_id === user?.id ? "flex-row-reverse" : "flex-row"
-              }`}
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={message.sender.avatar_url || ""} />
-                <AvatarFallback>
-                  {message.sender.username?.[0]?.toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div
-                className={`rounded-lg px-4 py-2 max-w-[80%] ${
-                  message.sender_id === user?.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted"
-                }`}
-              >
-                <p className="text-sm">{message.content}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <form onSubmit={handleSendMessage} className="flex gap-2 pt-4">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="メッセージを入力..."
-            className="flex-1"
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>メッセージ</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-4">
+          <ChatMessageList messages={messages} />
+          <ChatInput
+            onSendMessage={handleSendMessage}
+            disabled={!user || user.id === userId}
           />
-          <Button type="submit" size="icon">
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </SheetContent>
-    </Sheet>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

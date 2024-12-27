@@ -4,9 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { MessageCircle } from "lucide-react";
+import { useState } from "react";
+import { ChatModal } from "@/components/chat/ChatModal";
 
 const UserProfile = () => {
   const { userId } = useParams();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ["user-profile", userId],
@@ -78,9 +83,20 @@ const UserProfile = () => {
       <Navbar />
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="space-y-8">
-          <h1 className="text-3xl font-bold">
-            {profile?.username}さんのコレクション
-          </h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold">
+              {profile?.username}さんのコレクション
+            </h1>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsChatOpen(true)}
+              className="gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              メッセージを送る
+            </Button>
+          </div>
 
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">共有アイテム</h2>
@@ -148,6 +164,12 @@ const UserProfile = () => {
           </div>
         </div>
       </main>
+
+      <ChatModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        userId={userId || ""}
+      />
     </div>
   );
 };
