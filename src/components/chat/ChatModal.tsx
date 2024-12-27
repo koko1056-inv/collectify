@@ -29,12 +29,7 @@ export function ChatModal({ isOpen, onClose, userId }: ChatModalProps) {
         .from("messages")
         .select(`
           *,
-          sender:sender_id (
-            profile:profiles!inner (
-              username,
-              avatar_url
-            )
-          )
+          profiles:sender_id(username, avatar_url)
         `)
         .or(`sender_id.eq.${user?.id},receiver_id.eq.${user?.id}`)
         .order("created_at", { ascending: true });
@@ -44,10 +39,12 @@ export function ChatModal({ isOpen, onClose, userId }: ChatModalProps) {
         throw error;
       }
 
-      // Transform the nested data structure to match our Message interface
       return data.map((message) => ({
         ...message,
-        profiles: message.sender?.profile || null,
+        profiles: {
+          username: message.profiles?.username || null,
+          avatar_url: message.profiles?.avatar_url || null,
+        },
       }));
     },
     enabled: !!user && isOpen,
