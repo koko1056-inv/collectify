@@ -62,7 +62,8 @@ export function UserCollection({ selectedTags }: UserCollectionProps) {
 
   const filteredItems = selectedTags.length > 0
     ? userItems.filter(item => 
-        selectedTags.every(tag => 
+        // Changed from every to some to implement partial matching
+        selectedTags.some(tag => 
           item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
         )
       )
