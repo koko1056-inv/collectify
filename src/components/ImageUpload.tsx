@@ -17,13 +17,8 @@ export function ImageUpload({ onImageChange, previewUrl }: ImageUploadProps) {
     [onImageChange]
   );
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDelete = () => {
     onImageChange(null);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
