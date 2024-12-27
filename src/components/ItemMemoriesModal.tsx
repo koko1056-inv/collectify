@@ -39,12 +39,12 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
       let imageUrl = null;
 
       if (selectedImage) {
-        const timestamp = new Date().getTime();
+        const timestamp = Date.now();
         const fileExt = selectedImage.name.split(".").pop();
         const fileName = `${timestamp}-${crypto.randomUUID()}.${fileExt}`;
         const filePath = `memories/${itemId}/${fileName}`;
 
-        const { error: uploadError, data: uploadData } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from("kuji_images")
           .upload(filePath, selectedImage, {
             cacheControl: "3600",
