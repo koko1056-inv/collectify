@@ -4,9 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import { FilterBar } from "@/components/FilterBar";
+import { Tag } from "@/types";
 
 const UserProfile = () => {
   const { userId } = useParams();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const { data: profile } = useQuery({
     queryKey: ["user-profile", userId],
@@ -43,6 +48,18 @@ const UserProfile = () => {
     },
   });
 
+  const { data: tags = [] } = useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data as Tag[];
+    },
+  });
+
   const { data: wishlistItems = [] } = useQuery({
     queryKey: ["wishlist", userId],
     queryFn: async () => {
@@ -60,6 +77,15 @@ const UserProfile = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  const filteredItems = userItems.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTags = selectedTags.length === 0 || 
+      selectedTags.some(tag => 
+        item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
+      );
+    return matchesSearch && matchesTags;
   });
 
   if (!profile) {
@@ -89,6 +115,13 @@ const UserProfile = () => {
 
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">共有アイテム</h2>
+            <FilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+              tags={tags}
+            />
             {isLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                 {[...Array(8)].map((_, i) => (
@@ -99,11 +132,15 @@ const UserProfile = () => {
                   </div>
                 ))}
               </div>
-            ) : userItems.length === 0 ? (
-              <p className="text-gray-500">共有されているアイテムはありません</p>
+            ) : filteredItems.length === 0 ? (
+              <p className="text-gray-500">
+                {userItems.length === 0 
+                  ? "共有されているアイテムはありません"
+                  : "検索条件に一致するアイテムはありません"}
+              </p>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                {userItems.map((item) => (
+                {filteredItems.map((item) => (
                   <CollectionGoodsCard
                     key={item.id}
                     id={item.id}
