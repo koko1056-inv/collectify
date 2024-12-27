@@ -1,13 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChatMessageList } from "./ChatMessageList";
+import { ChatInput } from "./ChatInput";
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -28,7 +25,6 @@ interface Message {
 }
 
 export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatModalProps) {
-  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -41,7 +37,7 @@ export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatM
         .from("messages")
         .select(`
           *,
-          profiles(
+          profiles!messages_sender_id_fkey(
             username,
             avatar_url
           )
@@ -59,7 +55,6 @@ export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatM
 
     fetchMessages();
 
-    // Subscribe to new messages
     const channel = supabase
       .channel("messages")
       .on(
@@ -82,9 +77,8 @@ export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatM
     };
   }, [isOpen, user, recipientId]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim() || !user) return;
+  const handleSendMessage = async (message: string) => {
+    if (!user) return;
 
     const { error } = await supabase.from("messages").insert({
       content: message,
@@ -98,10 +92,7 @@ export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatM
         title: "エラー",
         description: "メッセージの送信に失敗しました",
       });
-      return;
     }
-
-    setMessage("");
   };
 
   return (
@@ -111,45 +102,8 @@ export function ChatModal({ isOpen, onClose, recipientId, recipientName }: ChatM
           <DialogTitle>{recipientName}とのチャット</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col h-[400px]">
-          <ScrollArea className="flex-1 pr-4">
-            <div className="space-y-4">
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex items-start gap-2 ${
-                    msg.sender_id === user?.id ? "flex-row-reverse" : ""
-                  }`}
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={msg.profiles?.avatar_url || ""} />
-                    <AvatarFallback>
-                      {msg.profiles?.username?.[0]?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div
-                    className={`rounded-lg px-3 py-2 max-w-[80%] ${
-                      msg.sender_id === user?.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
-                    }`}
-                  >
-                    <p className="text-sm">{msg.content}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-          <form onSubmit={handleSendMessage} className="flex gap-2 mt-4">
-            <Input
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="メッセージを入力..."
-              className="flex-1"
-            />
-            <Button type="submit" size="icon">
-              <Send className="h-4 w-4" />
-            </Button>
-          </form>
+          <ChatMessageList messages={messages} currentUserId={user?.id || ""} />
+          <ChatInput onSendMessage={handleSendMessage} />
         </div>
       </DialogContent>
     </Dialog>
