@@ -8,6 +8,8 @@ export function useCardEventHandlers(id: string) {
 
   const handleDelete = async () => {
     try {
+      console.log("Starting deletion process for item:", id);
+
       // First delete all likes associated with the item
       const { error: likesError } = await supabase
         .from("user_item_likes")
