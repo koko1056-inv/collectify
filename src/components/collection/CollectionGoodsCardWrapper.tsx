@@ -33,7 +33,7 @@ export function CollectionGoodsCardWrapper({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  const { handleShareToggle } = useCardEventHandlers(id);
+  const { handleShareToggle, handleDelete } = useCardEventHandlers(id);
 
   const shareUrl = `${window.location.origin}/user/${userId || ""}`;
 
@@ -62,10 +62,10 @@ export function CollectionGoodsCardWrapper({
         onDeleteClick={() => setIsDeleteDialogOpen(true)}
       />
       <CardModals
-        id={id}
-        title={title}
-        image={image}
+        itemId={id}
+        itemTitle={title}
         userId={userId}
+        image={image}
         releaseDate={releaseDate}
         prize={prize}
         quantity={quantity}
@@ -79,6 +79,7 @@ export function CollectionGoodsCardWrapper({
         onDeleteClose={setIsDeleteDialogOpen}
         onShareClose={() => setIsShareModalOpen(false)}
         onDetailsClose={() => setIsDetailsModalOpen(false)}
+        onDeleteConfirm={handleDelete}
         shareUrl={shareUrl}
       />
     </Card>

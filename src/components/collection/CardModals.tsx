@@ -5,6 +5,14 @@ import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { ItemDetailsModal } from "../ItemDetailsModal";
 
 interface CardModalsProps {
+  itemId: string;
+  itemTitle: string;
+  userId?: string;
+  image: string;
+  releaseDate?: string;
+  prize?: string;
+  description?: string;
+  quantity?: number;
   isMemoriesModalOpen: boolean;
   isTagManageModalOpen: boolean;
   isDeleteDialogOpen: boolean;
@@ -16,17 +24,18 @@ interface CardModalsProps {
   onShareClose: () => void;
   onDetailsClose: () => void;
   onDeleteConfirm: () => void;
-  itemId: string;
-  itemTitle: string;
-  userId?: string;
-  image: string;
-  releaseDate?: string;
-  prize?: string;
-  description?: string;
-  quantity?: number;
+  shareUrl: string;
 }
 
 export function CardModals({
+  itemId,
+  itemTitle,
+  userId,
+  image,
+  releaseDate,
+  prize,
+  description,
+  quantity,
   isMemoriesModalOpen,
   isTagManageModalOpen,
   isDeleteDialogOpen,
@@ -38,14 +47,7 @@ export function CardModals({
   onShareClose,
   onDetailsClose,
   onDeleteConfirm,
-  itemId,
-  itemTitle,
-  userId,
-  image,
-  releaseDate,
-  prize,
-  description,
-  quantity,
+  shareUrl,
 }: CardModalsProps) {
   return (
     <>
@@ -83,7 +85,7 @@ export function CardModals({
         isOpen={isShareModalOpen}
         onClose={onShareClose}
         title={itemTitle}
-        url={window.location.href}
+        url={shareUrl}
         image={image}
       />
 
