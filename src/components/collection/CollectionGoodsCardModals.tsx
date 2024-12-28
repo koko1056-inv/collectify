@@ -23,6 +23,7 @@ interface CollectionGoodsCardModalsProps {
   onDeleteClose: (value: boolean) => void;
   onShareClose: () => void;
   onDetailsClose: () => void;
+  shareUrl: string;
 }
 
 export function CollectionGoodsCardModals({
@@ -43,6 +44,7 @@ export function CollectionGoodsCardModals({
   onDeleteClose,
   onShareClose,
   onDetailsClose,
+  shareUrl,
 }: CollectionGoodsCardModalsProps) {
   const { handleDelete } = useCardEventHandlers(id);
 
@@ -81,7 +83,7 @@ export function CollectionGoodsCardModals({
         isOpen={isShareModalOpen}
         onClose={onShareClose}
         title={title}
-        url={window.location.href}
+        url={shareUrl}
         image={image}
       />
 
