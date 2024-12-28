@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
 import { CollectionGoodsCardContent } from "./CollectionGoodsCardContent";
-import { CardFooter } from "./CardFooter";
+import { CardFooter as UICardFooter } from "@/components/ui/card";
+import { CardActions } from "./CardActions";
 import { CardModals } from "./CardModals";
 import { useCardEventHandlers } from "./CardEventHandlers";
 import { useAuth } from "@/contexts/AuthContext";
@@ -54,14 +55,16 @@ export function CollectionGoodsCardWrapper({
         onMemoriesClick={() => setIsMemoriesModalOpen(true)}
       />
       {isOwner && (
-        <CardFooter
-          hasMemories={false}
-          hasTags={false}
-          onMemoriesClick={() => setIsMemoriesModalOpen(true)}
-          onTagManageClick={() => setIsTagManageModalOpen(true)}
-          onShareClick={() => setIsShareModalOpen(true)}
-          onDeleteClick={() => setIsDeleteDialogOpen(true)}
-        />
+        <UICardFooter className="px-2 py-1.5">
+          <CardActions
+            hasMemories={false}
+            hasTags={false}
+            onMemoriesClick={() => setIsMemoriesModalOpen(true)}
+            onTagManageClick={() => setIsTagManageModalOpen(true)}
+            onShareClick={() => setIsShareModalOpen(true)}
+            onDeleteClick={() => setIsDeleteDialogOpen(true)}
+          />
+        </UICardFooter>
       )}
       <CardModals
         itemId={id}
