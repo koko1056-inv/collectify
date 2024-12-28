@@ -2,48 +2,65 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
+interface DeleteOperationResult {
+  error: any;
+  operation: string;
+}
+
 export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const deleteRelatedRecords = async (tableName: string): Promise<DeleteOperationResult> => {
+    const { error } = await supabase
+      .from(tableName)
+      .delete()
+      .eq("user_item_id", id);
+
+    return {
+      error,
+      operation: tableName
+    };
+  };
+
+  const deleteItem = async (): Promise<DeleteOperationResult> => {
+    const { error } = await supabase
+      .from("user_items")
+      .delete()
+      .eq("id", id);
+
+    return {
+      error,
+      operation: "user_items"
+    };
+  };
 
   const handleDelete = async () => {
     try {
       console.log("Starting deletion process for item:", id);
 
-      // Delete likes first
-      const { error: likesError } = await supabase
-        .from("user_item_likes")
-        .delete()
-        .eq("user_item_id", id);
+      // Delete in specific order due to foreign key constraints
+      const operations = [
+        { name: "user_item_likes", label: "likes" },
+        { name: "item_memories", label: "memories" },
+        { name: "user_item_tags", label: "tags" }
+      ];
 
-      if (likesError) throw likesError;
-      console.log("Successfully deleted likes");
+      for (const op of operations) {
+        const result = await deleteRelatedRecords(op.name);
+        if (result.error) {
+          console.error(`Error deleting ${op.label}:`, result.error);
+          throw result.error;
+        }
+        console.log(`Successfully deleted ${op.label}`);
+      }
 
-      // Delete memories
-      const { error: memoriesError } = await supabase
-        .from("item_memories")
-        .delete()
-        .eq("user_item_id", id);
-
-      if (memoriesError) throw memoriesError;
-      console.log("Successfully deleted memories");
-
-      // Delete tags
-      const { error: tagsError } = await supabase
-        .from("user_item_tags")
-        .delete()
-        .eq("user_item_id", id);
-
-      if (tagsError) throw tagsError;
-      console.log("Successfully deleted tags");
-
-      // Finally delete the item
-      const { error: itemError } = await supabase
-        .from("user_items")
-        .delete()
-        .eq("id", id);
-
-      if (itemError) throw itemError;
+      // Finally delete the main item
+      const itemResult = await deleteItem();
+      if (itemResult.error) {
+        console.error("Error deleting item:", itemResult.error);
+        throw itemResult.error;
+      }
       console.log("Successfully deleted item");
 
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
@@ -71,7 +88,7 @@ export function useCardEventHandlers(id: string) {
 
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       toast({
         title: checked ? "公開設定を変更" : "非公開設定を変更",
         description: checked ? "コレクションを公開しました。" : "コレクションを非公開にしました。",
