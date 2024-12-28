@@ -16,10 +16,7 @@ export function useCardEventHandlers(id: string) {
         .delete()
         .eq("user_item_id", id);
 
-      if (likesError) {
-        console.error("Error deleting likes:", likesError);
-        throw likesError;
-      }
+      if (likesError) throw likesError;
       console.log("Successfully deleted likes");
 
       // Delete memories
@@ -28,10 +25,7 @@ export function useCardEventHandlers(id: string) {
         .delete()
         .eq("user_item_id", id);
 
-      if (memoriesError) {
-        console.error("Error deleting memories:", memoriesError);
-        throw memoriesError;
-      }
+      if (memoriesError) throw memoriesError;
       console.log("Successfully deleted memories");
 
       // Delete tags
@@ -40,10 +34,7 @@ export function useCardEventHandlers(id: string) {
         .delete()
         .eq("user_item_id", id);
 
-      if (tagsError) {
-        console.error("Error deleting tags:", tagsError);
-        throw tagsError;
-      }
+      if (tagsError) throw tagsError;
       console.log("Successfully deleted tags");
 
       // Finally delete the item
@@ -52,13 +43,11 @@ export function useCardEventHandlers(id: string) {
         .delete()
         .eq("id", id);
 
-      if (itemError) {
-        console.error("Error deleting item:", itemError);
-        throw itemError;
-      }
+      if (itemError) throw itemError;
       console.log("Successfully deleted item");
 
-      queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      
       toast({
         title: "削除完了",
         description: "コレクションを削除しました。",
