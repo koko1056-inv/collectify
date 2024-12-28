@@ -18,6 +18,7 @@ export function CollectionGoodsCardContent({
   id,
   isOwner,
   isShared,
+  onMemoriesClick,
 }: CollectionGoodsCardContentProps) {
   const { handleShareToggle } = useCardEventHandlers(id);
 
