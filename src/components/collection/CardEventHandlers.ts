@@ -10,7 +10,7 @@ export function useCardEventHandlers(id: string) {
     try {
       console.log("Starting deletion process for item:", id);
 
-      // First delete all likes associated with the item
+      // First delete all likes
       const { error: likesError } = await supabase
         .from("user_item_likes")
         .delete()
@@ -21,7 +21,7 @@ export function useCardEventHandlers(id: string) {
         throw likesError;
       }
 
-      // Then delete related memories
+      // Then delete memories
       const { error: memoriesError } = await supabase
         .from("item_memories")
         .delete()
