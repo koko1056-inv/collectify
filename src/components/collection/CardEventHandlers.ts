@@ -8,7 +8,18 @@ export function useCardEventHandlers(id: string) {
 
   const handleDelete = async () => {
     try {
-      // まず関連するメモリーを削除
+      // First delete all likes associated with the item
+      const { error: likesError } = await supabase
+        .from("user_item_likes")
+        .delete()
+        .eq("user_item_id", id);
+
+      if (likesError) {
+        console.error("Error deleting likes:", likesError);
+        throw likesError;
+      }
+
+      // Then delete related memories
       const { error: memoriesError } = await supabase
         .from("item_memories")
         .delete()
@@ -19,7 +30,7 @@ export function useCardEventHandlers(id: string) {
         throw memoriesError;
       }
 
-      // 次にアイテムのタグを削除
+      // Then delete item tags
       const { error: tagsError } = await supabase
         .from("user_item_tags")
         .delete()
@@ -30,7 +41,7 @@ export function useCardEventHandlers(id: string) {
         throw tagsError;
       }
 
-      // 最後にアイテム自体を削除
+      // Finally delete the item itself
       const { error: itemError } = await supabase
         .from("user_items")
         .delete()
