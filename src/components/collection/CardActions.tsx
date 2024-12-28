@@ -19,11 +19,14 @@ export function CardActions({
   hasTags,
 }: CardActionsProps) {
   return (
-    <div className="flex justify-end gap-1">
+    <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
       <Button 
         variant="outline" 
         size="sm"
-        onClick={onMemoriesClick}
+        onClick={(e) => {
+          e.stopPropagation();
+          onMemoriesClick();
+        }}
         className={`${
           hasMemories 
             ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
@@ -35,7 +38,10 @@ export function CardActions({
       <Button 
         variant="outline" 
         size="sm"
-        onClick={onTagManageClick}
+        onClick={(e) => {
+          e.stopPropagation();
+          onTagManageClick();
+        }}
         className={`${
           hasTags 
             ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
@@ -47,7 +53,10 @@ export function CardActions({
       <Button 
         variant="outline" 
         size="sm"
-        onClick={onShareClick}
+        onClick={(e) => {
+          e.stopPropagation();
+          onShareClick();
+        }}
         className="border-gray-200 hover:bg-gray-50 h-7 w-7 p-0"
       >
         <Share2 className="h-3 w-3" />
@@ -55,7 +64,10 @@ export function CardActions({
       <Button 
         variant="outline" 
         size="sm"
-        onClick={onDeleteClick}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDeleteClick();
+        }}
         className="border-gray-200 hover:bg-gray-50 hover:border-red-200 hover:text-red-500 h-7 w-7 p-0"
       >
         <Trash2 className="h-3 w-3" />

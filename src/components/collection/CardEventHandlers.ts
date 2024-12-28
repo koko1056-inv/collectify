@@ -8,12 +8,38 @@ export function useCardEventHandlers(id: string) {
 
   const handleDelete = async () => {
     try {
-      const { error } = await supabase
+      // まず関連するメモリーを削除
+      const { error: memoriesError } = await supabase
+        .from("item_memories")
+        .delete()
+        .eq("user_item_id", id);
+
+      if (memoriesError) {
+        console.error("Error deleting memories:", memoriesError);
+        throw memoriesError;
+      }
+
+      // 次にアイテムのタグを削除
+      const { error: tagsError } = await supabase
+        .from("user_item_tags")
+        .delete()
+        .eq("user_item_id", id);
+
+      if (tagsError) {
+        console.error("Error deleting tags:", tagsError);
+        throw tagsError;
+      }
+
+      // 最後にアイテム自体を削除
+      const { error: itemError } = await supabase
         .from("user_items")
         .delete()
         .eq("id", id);
 
-      if (error) throw error;
+      if (itemError) {
+        console.error("Error deleting item:", itemError);
+        throw itemError;
+      }
 
       queryClient.invalidateQueries({ queryKey: ["user-items"] });
       toast({
@@ -21,7 +47,7 @@ export function useCardEventHandlers(id: string) {
         description: "コレクションを削除しました。",
       });
     } catch (error) {
-      console.error("Error deleting item:", error);
+      console.error("Error in deletion process:", error);
       toast({
         title: "エラー",
         description: "コレクションの削除に失敗しました。",
