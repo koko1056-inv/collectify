@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
-import { CardContent } from "./CardContent";
-import { CardActions } from "./CardActions";
+import { CollectionGoodsCardContent } from "./CollectionGoodsCardContent";
+import { CardFooter } from "./CardFooter";
 import { CardModals } from "./CardModals";
 import { useCardEventHandlers } from "./CardEventHandlers";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -34,6 +35,8 @@ export function CollectionGoodsCardWrapper({
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const { handleShareToggle, handleDelete } = useCardEventHandlers(id);
+  const { user } = useAuth();
+  const isOwner = !userId || (user && user.id === userId);
 
   const shareUrl = `${window.location.origin}/user/${userId || ""}`;
 
@@ -44,23 +47,22 @@ export function CollectionGoodsCardWrapper({
         image={image}
         onClick={() => setIsDetailsModalOpen(true)}
       />
-      <CardContent
-        itemId={id}
-        itemTags={[]}
-        memoriesCount={0}
-        isOwner={true}
+      <CollectionGoodsCardContent
+        id={id}
+        isOwner={isOwner}
         isShared={isShared}
         onMemoriesClick={() => setIsMemoriesModalOpen(true)}
-        onShareToggle={handleShareToggle}
       />
-      <CardActions
-        hasMemories={false}
-        hasTags={false}
-        onMemoriesClick={() => setIsMemoriesModalOpen(true)}
-        onTagManageClick={() => setIsTagManageModalOpen(true)}
-        onShareClick={() => setIsShareModalOpen(true)}
-        onDeleteClick={() => setIsDeleteDialogOpen(true)}
-      />
+      {isOwner && (
+        <CardFooter
+          hasMemories={false}
+          hasTags={false}
+          onMemoriesClick={() => setIsMemoriesModalOpen(true)}
+          onTagManageClick={() => setIsTagManageModalOpen(true)}
+          onShareClick={() => setIsShareModalOpen(true)}
+          onDeleteClick={() => setIsDeleteDialogOpen(true)}
+        />
+      )}
       <CardModals
         itemId={id}
         itemTitle={title}

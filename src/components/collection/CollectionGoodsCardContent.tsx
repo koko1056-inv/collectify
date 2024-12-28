@@ -25,6 +25,7 @@ export function CollectionGoodsCardContent({
   const { data: itemTags = [] } = useQuery({
     queryKey: ["user-item-tags", id],
     queryFn: async () => {
+      if (!id) return [];
       const { data, error } = await supabase
         .from("user_item_tags")
         .select(`
@@ -38,18 +39,22 @@ export function CollectionGoodsCardContent({
       if (error) throw error;
       return data;
     },
+    enabled: !!id,
   });
 
   const { data: itemMemories = [] } = useQuery({
     queryKey: ["item-memories", id],
     queryFn: async () => {
+      if (!id) return [];
       const { data, error } = await supabase
         .from("item_memories")
         .select("*")
-        .eq("user_item_id", id);
+        .eq("user_item_id", id)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
+    enabled: !!id,
   });
 
   const handleShareToggleClick = (e: React.MouseEvent) => {
