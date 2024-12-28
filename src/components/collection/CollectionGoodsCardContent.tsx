@@ -52,6 +52,10 @@ export function CollectionGoodsCardContent({
     },
   });
 
+  const handleShareToggleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <UICardContent className="px-3 py-2 space-y-1">
       <TagList tags={itemTags} />
@@ -59,18 +63,26 @@ export function CollectionGoodsCardContent({
         <div className="flex items-center gap-1.5">
           <LikeButton itemId={id} />
           {itemMemories.length > 0 && (
-            <div className="flex items-center gap-1 text-xs text-purple-500">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onMemoriesClick();
+              }}
+              className="flex items-center gap-1 text-xs text-purple-500 hover:text-purple-600 transition-colors"
+            >
               <BookMarked className="h-3.5 w-3.5" />
               <span>{itemMemories.length}</span>
-            </div>
+            </button>
           )}
         </div>
         {isOwner && (
-          <Switch
-            checked={isShared}
-            onCheckedChange={handleShareToggle}
-            className="scale-75 origin-right"
-          />
+          <div onClick={handleShareToggleClick}>
+            <Switch
+              checked={isShared}
+              onCheckedChange={handleShareToggle}
+              className="scale-75 origin-right"
+            />
+          </div>
         )}
       </div>
     </UICardContent>

@@ -40,7 +40,9 @@ export function LikeButton({ itemId }: LikeButtonProps) {
     enabled: !!user,
   });
 
-  const handleLikeToggle = async () => {
+  const handleLikeToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
     if (!user) {
       toast({
         title: "ログインが必要です",
