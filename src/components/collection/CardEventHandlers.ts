@@ -11,56 +11,52 @@ export function useCardEventHandlers(id: string) {
       console.log("Starting deletion process for item:", id);
 
       // Delete likes first
-      const { data: likesData, error: likesError } = await supabase
+      const { error: likesError } = await supabase
         .from("user_item_likes")
         .delete()
-        .eq("user_item_id", id)
-        .select();
+        .eq("user_item_id", id);
 
       if (likesError) {
         console.error("Error deleting likes:", likesError);
         throw likesError;
       }
-      console.log("Successfully deleted likes:", likesData);
+      console.log("Successfully deleted likes");
 
       // Delete memories
-      const { data: memoriesData, error: memoriesError } = await supabase
+      const { error: memoriesError } = await supabase
         .from("item_memories")
         .delete()
-        .eq("user_item_id", id)
-        .select();
+        .eq("user_item_id", id);
 
       if (memoriesError) {
         console.error("Error deleting memories:", memoriesError);
         throw memoriesError;
       }
-      console.log("Successfully deleted memories:", memoriesData);
+      console.log("Successfully deleted memories");
 
       // Delete tags
-      const { data: tagsData, error: tagsError } = await supabase
+      const { error: tagsError } = await supabase
         .from("user_item_tags")
         .delete()
-        .eq("user_item_id", id)
-        .select();
+        .eq("user_item_id", id);
 
       if (tagsError) {
         console.error("Error deleting tags:", tagsError);
         throw tagsError;
       }
-      console.log("Successfully deleted tags:", tagsData);
+      console.log("Successfully deleted tags");
 
       // Finally delete the item
-      const { data: itemData, error: itemError } = await supabase
+      const { error: itemError } = await supabase
         .from("user_items")
         .delete()
-        .eq("id", id)
-        .select();
+        .eq("id", id);
 
       if (itemError) {
         console.error("Error deleting item:", itemError);
         throw itemError;
       }
-      console.log("Successfully deleted item:", itemData);
+      console.log("Successfully deleted item");
 
       queryClient.invalidateQueries({ queryKey: ["user-items"] });
       toast({
