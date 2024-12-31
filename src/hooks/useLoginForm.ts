@@ -15,12 +15,29 @@ export function useLoginForm() {
     password: "",
   });
 
+  const validateUsername = (username: string) => {
+    if (!username) return "ユーザー名を入力してください";
+    if (username.length < 3) return "ユーザー名は3文字以上である必要があります";
+    if (username.length > 20) return "ユーザー名は20文字以下である必要があります";
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) return "ユーザー名は英数字とアンダースコアのみ使用できます";
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
+      if (!isLogin) {
+        const usernameError = validateUsername(formData.username);
+        if (usernameError) {
+          setError(usernameError);
+          setLoading(false);
+          return;
+        }
+      }
+
       if (isLogin) {
         if (formData.username === 'admin') {
           await handleAdminLogin(formData.password);
