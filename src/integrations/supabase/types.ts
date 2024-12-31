@@ -214,6 +214,27 @@ export type Database = {
         }
         Relationships: []
       }
+      scraped_images: {
+        Row: {
+          created_at: string
+          id: string
+          source_url: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          source_url: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          source_url?: string
+          url?: string
+        }
+        Relationships: []
+      }
       tags: {
         Row: {
           created_at: string

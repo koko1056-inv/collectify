@@ -1,0 +1,5 @@
+project_id = "dmgrgzysrzzgsajwqyrh"
+
+[[functions]]
+name = "scrape-images"
+verify_jwt = true
