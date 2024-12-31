@@ -51,11 +51,16 @@ export function useItemDetailsForm({
       const table = isUserItem ? "user_items" : "official_items";
       const updateData = {
         title: editedData.title,
-        [isUserItem ? "prize" : "price"]: editedData.price || "0",
-        release_date: editedData.releaseDate || new Date().toISOString().split('T')[0],
         ...(isUserItem 
-          ? { quantity: editedData.quantity } 
-          : { description: editedData.description }
+          ? { 
+              prize: editedData.price || "0",
+              quantity: editedData.quantity,
+            }
+          : {
+              price: editedData.price || "0",
+              description: editedData.description,
+              release_date: editedData.releaseDate,
+            }
         ),
       };
 
@@ -67,8 +72,8 @@ export function useItemDetailsForm({
       if (error) throw error;
 
       // Invalidate queries to refresh the data
-      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       await queryClient.invalidateQueries({ queryKey: ["official-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
 
       toast({
         title: "更新完了",
