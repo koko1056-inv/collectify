@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
+import { ItemDetailsModal } from "./ItemDetailsModal";
 
 interface EditingWishlist {
   id: string;
@@ -18,6 +19,14 @@ interface EditingWishlist {
 export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { user } = useAuth();
   const [editingWishlist, setEditingWishlist] = useState<EditingWishlist | null>(null);
+  const [selectedItem, setSelectedItem] = useState<{
+    id: string;
+    title: string;
+    image: string;
+    price?: string;
+    releaseDate?: string;
+    description?: string;
+  } | null>(null);
 
   const { data: wishlistItems, isLoading } = useQuery({
     queryKey: ["wishlist", user?.id],
@@ -31,7 +40,9 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
           official_items (
             title,
             image,
-            price
+            price,
+            release_date,
+            description
           )
         `)
         .eq("user_id", user.id);
@@ -66,7 +77,18 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
               </p>
             ) : (
               wishlistItems?.map((item) => (
-                <div key={item.id} className="flex gap-4 items-center border rounded-lg p-4">
+                <div 
+                  key={item.id} 
+                  className="flex gap-4 items-center border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => setSelectedItem({
+                    id: item.official_item_id,
+                    title: item.official_items.title,
+                    image: item.official_items.image,
+                    price: item.official_items.price,
+                    releaseDate: item.official_items.release_date,
+                    description: item.official_items.description,
+                  })}
+                >
                   <img
                     src={item.official_items.image}
                     alt={item.official_items.title}
@@ -83,12 +105,15 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setEditingWishlist({
-                          id: item.id,
-                          title: item.official_items.title,
-                          officialItemId: item.official_item_id,
-                          note: item.note,
-                        })}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingWishlist({
+                            id: item.id,
+                            title: item.official_items.title,
+                            officialItemId: item.official_item_id,
+                            note: item.note,
+                          });
+                        }}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -110,6 +135,19 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
           existingNote={editingWishlist.note || ""}
           wishlistId={editingWishlist.id}
           isEditing={true}
+        />
+      )}
+
+      {selectedItem && (
+        <ItemDetailsModal
+          isOpen={!!selectedItem}
+          onClose={() => setSelectedItem(null)}
+          title={selectedItem.title}
+          image={selectedItem.image}
+          price={selectedItem.price}
+          releaseDate={selectedItem.releaseDate}
+          description={selectedItem.description}
+          itemId={selectedItem.id}
         />
       )}
     </>
