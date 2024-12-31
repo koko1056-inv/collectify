@@ -39,7 +39,7 @@ export function ItemDetailsModal({
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
   // Allow any authenticated user to edit official items
-  const canEdit = !isUserItem && user;
+  const canEdit = !isUserItem && user !== null;
 
   const {
     isEditing,
