@@ -19,6 +19,7 @@ interface ItemDetailsModalProps {
   isUserItem?: boolean;
   quantity?: number;
   userId?: string;
+  createdBy?: string | null;
 }
 
 export function ItemDetailsModal({
@@ -33,9 +34,11 @@ export function ItemDetailsModal({
   isUserItem = false,
   quantity = 1,
   userId,
+  createdBy,
 }: ItemDetailsModalProps) {
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
+  const canEdit = !isUserItem && user && createdBy === user.id;
 
   const {
     isEditing,
@@ -116,7 +119,7 @@ export function ItemDetailsModal({
           onCancel={handleCancel}
           onSave={handleSave}
           onEdit={() => setIsEditing(true)}
-          showEditButton={isOwner}
+          showEditButton={isOwner || canEdit}
         />
       </DialogContent>
     </Dialog>

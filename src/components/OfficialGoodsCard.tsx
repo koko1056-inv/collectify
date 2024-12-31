@@ -19,6 +19,7 @@ interface OfficialGoodsCardProps {
   releaseDate?: string;
   description?: string | null;
   quantity?: number;
+  createdBy?: string | null;
 }
 
 export function OfficialGoodsCard({ 
@@ -30,7 +31,8 @@ export function OfficialGoodsCard({
   price,
   releaseDate = new Date().toISOString().split('T')[0],
   description,
-  quantity = 1
+  quantity = 1,
+  createdBy,
 }: OfficialGoodsCardProps) {
   const {
     isInCollection,
@@ -101,6 +103,7 @@ export function OfficialGoodsCard({
           description={description}
           itemId={id}
           quantity={quantity}
+          createdBy={createdBy}
         />
       )}
 
