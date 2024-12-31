@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { MyCollectionGoodsCard } from "./collection/MyCollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
+import { Button } from "./ui/button";
+import { Grid, List } from "lucide-react";
+import { useState } from "react";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -10,6 +13,7 @@ interface UserCollectionProps {
 
 export function UserCollection({ selectedTags }: UserCollectionProps) {
   const { user } = useAuth();
+  const [isCompact, setIsCompact] = useState(false);
 
   const { data: userItems = [], isLoading: isItemsLoading } = useQuery({
     queryKey: ["user-items", user?.id, selectedTags],
@@ -62,7 +66,6 @@ export function UserCollection({ selectedTags }: UserCollectionProps) {
 
   const filteredItems = selectedTags.length > 0
     ? userItems.filter(item => 
-        // Changed from every to some to implement partial matching
         selectedTags.some(tag => 
           item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
         )
@@ -85,18 +88,44 @@ export function UserCollection({ selectedTags }: UserCollectionProps) {
     );
   }
 
+  const gridClass = isCompact
+    ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
+    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4";
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-      {filteredItems.map((item) => (
-        <MyCollectionGoodsCard
-          key={item.id}
-          id={item.id}
-          title={item.title}
-          image={item.image}
-          isShared={item.is_shared}
-          quantity={item.quantity}
-        />
-      ))}
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsCompact(!isCompact)}
+          className="gap-2"
+        >
+          {isCompact ? (
+            <>
+              <Grid className="h-4 w-4" />
+              <span>通常表示</span>
+            </>
+          ) : (
+            <>
+              <List className="h-4 w-4" />
+              <span>一覧表示</span>
+            </>
+          )}
+        </Button>
+      </div>
+      <div className={gridClass}>
+        {filteredItems.map((item) => (
+          <MyCollectionGoodsCard
+            key={item.id}
+            id={item.id}
+            title={item.title}
+            image={item.image}
+            isShared={item.is_shared}
+            quantity={item.quantity}
+          />
+        ))}
+      </div>
     </div>
   );
 }
