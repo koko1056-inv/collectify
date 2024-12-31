@@ -190,7 +190,7 @@ export type Database = {
           id: string
           interests: string[] | null
           is_admin: boolean | null
-          username: string
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -200,7 +200,7 @@ export type Database = {
           id: string
           interests?: string[] | null
           is_admin?: boolean | null
-          username: string
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -210,7 +210,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_admin?: boolean | null
-          username?: string
+          username?: string | null
         }
         Relationships: []
       }
