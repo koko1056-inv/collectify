@@ -1,24 +1,43 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface WishlistModalProps {
   isOpen: boolean;
   onClose: () => void;
   itemId: string;
   itemTitle: string;
+  existingNote?: string;
+  wishlistId?: string;
+  isEditing?: boolean;
 }
 
-export function WishlistModal({ isOpen, onClose, itemId, itemTitle }: WishlistModalProps) {
+export function WishlistModal({ 
+  isOpen, 
+  onClose, 
+  itemId, 
+  itemTitle,
+  existingNote,
+  wishlistId,
+  isEditing = false
+}: WishlistModalProps) {
   const [note, setNote] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const handleAddToWishlist = async () => {
+  useEffect(() => {
+    if (existingNote) {
+      setNote(existingNote);
+    }
+  }, [existingNote]);
+
+  const handleSave = async () => {
     if (!user) {
       toast({
         title: "ログインが必要です",
@@ -29,23 +48,41 @@ export function WishlistModal({ isOpen, onClose, itemId, itemTitle }: WishlistMo
     }
 
     try {
-      const { error } = await supabase
-        .from("wishlists")
-        .insert([
-          {
-            user_id: user.id,
-            official_item_id: itemId,
-            note: note,
-          },
-        ]);
+      if (isEditing && wishlistId) {
+        const { error } = await supabase
+          .from("wishlists")
+          .update({ note })
+          .eq("id", wishlistId);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "ウィッシュリストに追加しました",
-        description: `${itemTitle}をウィッシュリストに追加しました。`,
-      });
+        toast({
+          title: "ウィッシュリストを更新しました",
+          description: `${itemTitle}のメモを更新しました。`,
+        });
+      } else {
+        const { error } = await supabase
+          .from("wishlists")
+          .insert([
+            {
+              user_id: user.id,
+              official_item_id: itemId,
+              note: note,
+            },
+          ]);
+
+        if (error) throw error;
+
+        toast({
+          title: "ウィッシュリストに追加しました",
+          description: `${itemTitle}をウィッシュリストに追加しました。`,
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      queryClient.invalidateQueries({ queryKey: ["wishlist-count"] });
       onClose();
+      setNote("");
     } catch (error) {
       toast({
         title: "エラーが発生しました",
@@ -59,7 +96,9 @@ export function WishlistModal({ isOpen, onClose, itemId, itemTitle }: WishlistMo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>ウィッシュリストに追加</DialogTitle>
+          <DialogTitle>
+            {isEditing ? "ウィッシュリストを編集" : "ウィッシュリストに追加"}
+          </DialogTitle>
         </DialogHeader>
         <div className="py-4">
           <h4 className="text-sm font-medium mb-2">アイテム</h4>
@@ -76,8 +115,8 @@ export function WishlistModal({ isOpen, onClose, itemId, itemTitle }: WishlistMo
           <Button variant="outline" onClick={onClose}>
             キャンセル
           </Button>
-          <Button onClick={handleAddToWishlist}>
-            追加する
+          <Button onClick={handleSave}>
+            {isEditing ? "更新する" : "追加する"}
           </Button>
         </DialogFooter>
       </DialogContent>
