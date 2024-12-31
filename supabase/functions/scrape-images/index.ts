@@ -49,27 +49,39 @@ serve(async (req) => {
       url.match(/\.(jpg|jpeg|png|gif|webp)/i)
     )
 
-    // Store the scraped images in the database
+    // First, clear existing entries for this source URL
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const scrapedImages = uniqueImageUrls.map(imageUrl => ({
-      url: imageUrl,
-      source_url: url
-    }))
-
-    const { error: insertError } = await supabase
+    const { error: deleteError } = await supabase
       .from('scraped_images')
-      .insert(scrapedImages)
+      .delete()
+      .eq('source_url', url)
 
-    if (insertError) {
-      console.error('Error inserting scraped images:', insertError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to store scraped images' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
+    if (deleteError) {
+      console.error('Error deleting existing scraped images:', deleteError)
+    }
+
+    // Then insert new entries
+    if (uniqueImageUrls.length > 0) {
+      const scrapedImages = uniqueImageUrls.map(imageUrl => ({
+        url: imageUrl,
+        source_url: url
+      }))
+
+      const { error: insertError } = await supabase
+        .from('scraped_images')
+        .insert(scrapedImages)
+
+      if (insertError) {
+        console.error('Error inserting scraped images:', insertError)
+        return new Response(
+          JSON.stringify({ error: 'Failed to store scraped images' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        )
+      }
     }
 
     return new Response(
