@@ -123,6 +123,7 @@ export function UserCollection({ selectedTags }: UserCollectionProps) {
             image={item.image}
             isShared={item.is_shared}
             quantity={item.quantity}
+            isCompact={isCompact}
           />
         ))}
       </div>
