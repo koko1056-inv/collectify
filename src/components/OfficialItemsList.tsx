@@ -23,7 +23,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   
   // Increased items per page for both mobile and desktop
-  const itemsPerPage = isMobile ? 12 : 20;
+  const itemsPerPage = isMobile ? 12 : 24;
   
   // Calculate total pages
   const totalPages = Math.ceil(items.length / itemsPerPage);
