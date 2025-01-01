@@ -6,6 +6,20 @@ import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
 import { Grid, List } from "lucide-react";
 import { useState } from "react";
+import {
+  DndContext,
+  DragEndEvent,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -14,8 +28,23 @@ interface UserCollectionProps {
 export function UserCollection({ selectedTags }: UserCollectionProps) {
   const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
+  const [items, setItems] = useState<any[]>([]);
 
-  const { data: userItems = [], isLoading: isItemsLoading } = useQuery({
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 8,
+      },
+    })
+  );
+
+  const { isLoading: isItemsLoading } = useQuery({
     queryKey: ["user-items", user?.id, selectedTags],
     queryFn: async () => {
       if (!user) return [];
@@ -37,10 +66,26 @@ export function UserCollection({ selectedTags }: UserCollectionProps) {
       const { data, error } = await query;
 
       if (error) throw error;
+      setItems(data);
       return data;
     },
     enabled: !!user,
   });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return;
+
+    if (active.id !== over.id) {
+      setItems((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   if (!user) {
     return (
@@ -65,14 +110,14 @@ export function UserCollection({ selectedTags }: UserCollectionProps) {
   }
 
   const filteredItems = selectedTags.length > 0
-    ? userItems.filter(item => 
+    ? items.filter(item => 
         selectedTags.some(tag => 
           item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
         )
       )
-    : userItems;
+    : items;
 
-  if (userItems.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">まだコレクションに追加されたアイテムがありません。</p>
@@ -114,19 +159,27 @@ export function UserCollection({ selectedTags }: UserCollectionProps) {
           )}
         </Button>
       </div>
-      <div className={gridClass}>
-        {filteredItems.map((item) => (
-          <MyCollectionGoodsCard
-            key={item.id}
-            id={item.id}
-            title={item.title}
-            image={item.image}
-            isShared={item.is_shared}
-            quantity={item.quantity}
-            isCompact={isCompact}
-          />
-        ))}
-      </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext items={filteredItems} strategy={rectSortingStrategy}>
+          <div className={gridClass}>
+            {filteredItems.map((item) => (
+              <MyCollectionGoodsCard
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                image={item.image}
+                isShared={item.is_shared}
+                quantity={item.quantity}
+                isCompact={isCompact}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
