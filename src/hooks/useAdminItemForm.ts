@@ -50,6 +50,16 @@ export function useAdminItemForm() {
     return true;
   };
 
+  const checkDuplicateTitle = async (title: string) => {
+    const { data } = await supabase
+      .from("official_items")
+      .select("id")
+      .eq("title", title)
+      .maybeSingle();
+    
+    return !!data;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -60,6 +70,18 @@ export function useAdminItemForm() {
     setLoading(true);
 
     try {
+      // Check for duplicate title
+      const isDuplicate = await checkDuplicateTitle(formData.title);
+      if (isDuplicate) {
+        toast({
+          title: "エラー",
+          description: "同じタイトルのアイテムが既に存在します。",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       let imageUrl = "";
       
       if (imageFile) {
