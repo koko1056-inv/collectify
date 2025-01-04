@@ -1,26 +1,17 @@
-import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
+import { CollectionLikeButton } from "../collection/CollectionLikeButton";
 
 interface ProfileHeaderProps {
   username: string;
-  onShare: () => void;
+  userId: string;
 }
 
-export function ProfileHeader({ username, onShare }: ProfileHeaderProps) {
+export function ProfileHeader({ username, userId }: ProfileHeaderProps) {
   return (
     <div className="flex items-center justify-between">
-      <h1 className="text-2xl font-bold">{username}のプロフィール</h1>
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onShare}
-          className="gap-2"
-        >
-          <Share2 className="h-4 w-4" />
-          共有
-        </Button>
-      </div>
+      <h1 className="text-3xl font-bold">
+        {username}さんのコレクション
+      </h1>
+      <CollectionLikeButton collectionOwnerId={userId} />
     </div>
   );
 }
