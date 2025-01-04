@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      collection_likes: {
+        Row: {
+          collection_owner_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          collection_owner_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          collection_owner_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       images: {
         Row: {
           created_at: string

@@ -7,6 +7,7 @@ import { CardActions } from "./CardActions";
 import { CardModals } from "./CardModals";
 import { useCardEventHandlers } from "./CardEventHandlers";
 import { useAuth } from "@/contexts/AuthContext";
+import { CardImage } from "./CardImage";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -17,6 +18,7 @@ interface CollectionGoodsCardWrapperProps {
   releaseDate?: string;
   prize?: string;
   quantity?: number;
+  isCompact?: boolean;
 }
 
 export function CollectionGoodsCardWrapper({
@@ -28,6 +30,7 @@ export function CollectionGoodsCardWrapper({
   releaseDate,
   prize,
   quantity,
+  isCompact = false,
 }: CollectionGoodsCardWrapperProps) {
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
@@ -40,6 +43,38 @@ export function CollectionGoodsCardWrapper({
   const isOwner = !userId || (user && user.id === userId);
 
   const shareUrl = `${window.location.origin}/user/${userId || ""}`;
+
+  if (isCompact) {
+    return (
+      <Card 
+        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer"
+        onClick={() => setIsDetailsModalOpen(true)}
+      >
+        <CardImage title={title} image={image} />
+        <CardModals
+          itemId={id}
+          itemTitle={title}
+          userId={userId}
+          image={image}
+          releaseDate={releaseDate}
+          prize={prize}
+          quantity={quantity}
+          isMemoriesModalOpen={isMemoriesModalOpen}
+          isTagManageModalOpen={isTagManageModalOpen}
+          isDeleteDialogOpen={isDeleteDialogOpen}
+          isShareModalOpen={isShareModalOpen}
+          isDetailsModalOpen={isDetailsModalOpen}
+          onMemoriesClose={() => setIsMemoriesModalOpen(false)}
+          onTagManageClose={() => setIsTagManageModalOpen(false)}
+          onDeleteClose={setIsDeleteDialogOpen}
+          onShareClose={() => setIsShareModalOpen(false)}
+          onDetailsClose={() => setIsDetailsModalOpen(false)}
+          onDeleteConfirm={handleDelete}
+          shareUrl={shareUrl}
+        />
+      </Card>
+    );
+  }
 
   return (
     <Card className="hover-scale card-shadow bg-white border border-gray-200">

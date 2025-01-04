@@ -7,11 +7,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { FilterBar } from "@/components/FilterBar";
 import { Tag } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Grid, List } from "lucide-react";
 
 const UserProfile = () => {
   const { userId } = useParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isCompact, setIsCompact] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ["user-profile", userId],
@@ -99,6 +102,10 @@ const UserProfile = () => {
     );
   }
 
+  const gridClass = isCompact
+    ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
+    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4";
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -115,43 +122,66 @@ const UserProfile = () => {
 
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">共有アイテム</h2>
-            <FilterBar
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              selectedTags={selectedTags}
-              onTagsChange={setSelectedTags}
-              tags={tags}
-            />
-            {isLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="h-[120px] w-full" />
-                    <Skeleton className="h-3 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                  </div>
-                ))}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <FilterBar
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                  tags={tags}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsCompact(!isCompact)}
+                  className="gap-2"
+                >
+                  {isCompact ? (
+                    <>
+                      <Grid className="h-4 w-4" />
+                      <span>通常表示</span>
+                    </>
+                  ) : (
+                    <>
+                      <List className="h-4 w-4" />
+                      <span>一覧表示</span>
+                    </>
+                  )}
+                </Button>
               </div>
-            ) : filteredItems.length === 0 ? (
-              <p className="text-gray-500">
-                {userItems.length === 0 
-                  ? "共有されているアイテムはありません"
-                  : "検索条件に一致するアイテムはありません"}
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                {filteredItems.map((item) => (
-                  <CollectionGoodsCard
-                    key={item.id}
-                    id={item.id}
-                    title={item.title}
-                    image={item.image}
-                    isShared={item.is_shared}
-                    userId={userId}
-                  />
-                ))}
-              </div>
-            )}
+              {isLoading ? (
+                <div className={gridClass}>
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="h-[120px] w-full" />
+                      <Skeleton className="h-3 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : filteredItems.length === 0 ? (
+                <p className="text-gray-500">
+                  {userItems.length === 0 
+                    ? "共有されているアイテムはありません"
+                    : "検索条件に一致するアイテムはありません"}
+                </p>
+              ) : (
+                <div className={gridClass}>
+                  {filteredItems.map((item) => (
+                    <CollectionGoodsCard
+                      key={item.id}
+                      id={item.id}
+                      title={item.title}
+                      image={item.image}
+                      isShared={item.is_shared}
+                      userId={userId}
+                      isCompact={isCompact}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-6">
