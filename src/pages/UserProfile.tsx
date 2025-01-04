@@ -2,10 +2,11 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
+import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
-import { ProfileHeader } from "@/components/profile/ProfileHeader";
-import { ProfileBio } from "@/components/profile/ProfileBio";
-import { ProfileCollection } from "@/components/profile/ProfileCollection";
+import { FilterBar } from "@/components/FilterBar";
+import { Tag } from "@/types";
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -55,6 +56,25 @@ const UserProfile = () => {
         .select("*")
         .order("name");
       if (error) throw error;
+      return data as Tag[];
+    },
+  });
+
+  const { data: wishlistItems = [] } = useQuery({
+    queryKey: ["wishlist", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wishlists")
+        .select(`
+          *,
+          official_items (
+            title,
+            image,
+            price
+          )
+        `)
+        .eq("user_id", userId);
+      if (error) throw error;
       return data;
     },
   });
@@ -85,21 +105,88 @@ const UserProfile = () => {
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="space-y-8">
           <div className="space-y-4">
-            {userId && <ProfileHeader username={profile.username} userId={userId} />}
-            <ProfileBio bio={profile.bio} />
+            <h1 className="text-3xl font-bold">
+              {profile?.username}さんのコレクション
+            </h1>
+            {profile.bio && (
+              <p className="text-gray-600 whitespace-pre-wrap">{profile.bio}</p>
+            )}
           </div>
 
           <div className="space-y-6">
             <h2 className="text-2xl font-semibold">共有アイテム</h2>
-            <ProfileCollection
-              isLoading={isLoading}
-              items={filteredItems}
+            <FilterBar
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               selectedTags={selectedTags}
               onTagsChange={setSelectedTags}
               tags={tags}
             />
+            {isLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="h-[120px] w-full" />
+                    <Skeleton className="h-3 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : filteredItems.length === 0 ? (
+              <p className="text-gray-500">
+                {userItems.length === 0 
+                  ? "共有されているアイテムはありません"
+                  : "検索条件に一致するアイテムはありません"}
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+                {filteredItems.map((item) => (
+                  <CollectionGoodsCard
+                    key={item.id}
+                    id={item.id}
+                    title={item.title}
+                    image={item.image}
+                    isShared={item.is_shared}
+                    userId={userId}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-6">
+            <h2 className="text-2xl font-semibold">ウィッシュリスト</h2>
+            {wishlistItems.length === 0 ? (
+              <p className="text-gray-500">欲しいものリストは空です</p>
+            ) : (
+              <div className="grid gap-4">
+                {wishlistItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex gap-4 items-center border rounded-lg p-4 bg-white"
+                  >
+                    <img
+                      src={item.official_items.image}
+                      alt={item.official_items.title}
+                      className="h-24 w-24 object-cover rounded-md"
+                    />
+                    <div>
+                      <h3 className="font-medium">
+                        {item.official_items.title}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {item.official_items.price}
+                      </p>
+                      {item.note && (
+                        <p className="text-sm text-gray-500 mt-2">
+                          メモ: {item.note}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>
