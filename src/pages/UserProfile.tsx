@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { FilterBar } from "@/components/FilterBar";
 import { Tag } from "@/types";
+import { CollectionLikeButton } from "@/components/collection/CollectionLikeButton";
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -105,10 +106,13 @@ const UserProfile = () => {
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="space-y-8">
           <div className="space-y-4">
-            <h1 className="text-3xl font-bold">
-              {profile?.username}さんのコレクション
-            </h1>
-            {profile.bio && (
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold">
+                {profile?.username}さんのコレクション
+              </h1>
+              {userId && <CollectionLikeButton collectionOwnerId={userId} />}
+            </div>
+            {profile?.bio && (
               <p className="text-gray-600 whitespace-pre-wrap">{profile.bio}</p>
             )}
           </div>
