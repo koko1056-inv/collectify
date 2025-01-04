@@ -2,9 +2,10 @@ import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
 import { FilterBar } from "@/components/FilterBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Grid, List } from "lucide-react";
+import { Grid, List, Heart } from "lucide-react";
 import { Tag, UserItem } from "@/types";
 import { useState } from "react";
+import { WishlistViewModal } from "@/components/WishlistViewModal";
 
 interface ProfileCollectionProps {
   isLoading: boolean;
@@ -26,24 +27,23 @@ export function ProfileCollection({
   tags,
 }: ProfileCollectionProps) {
   const [isCompact, setIsCompact] = useState(false);
+  const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
 
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="space-y-3">
-            <Skeleton className="h-[120px] w-full" />
-            <Skeleton className="h-3 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-          </div>
-        ))}
+        {Array(12)
+          .fill(0)
+          .map((_, i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-40 w-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            </div>
+          ))}
       </div>
-    );
-  }
-
-  if (items.length === 0) {
-    return (
-      <p className="text-gray-500">共有されているアイテムはありません</p>
     );
   }
 
@@ -61,24 +61,35 @@ export function ProfileCollection({
           onTagsChange={onTagsChange}
           tags={tags}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsCompact(!isCompact)}
-          className="gap-2 ml-4"
-        >
-          {isCompact ? (
-            <>
-              <Grid className="h-4 w-4" />
-              <span>通常表示</span>
-            </>
-          ) : (
-            <>
-              <List className="h-4 w-4" />
-              <span>一覧表示</span>
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsWishlistModalOpen(true)}
+            className="gap-2"
+          >
+            <Heart className="h-4 w-4" />
+            <span>ウィッシュリスト</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCompact(!isCompact)}
+            className="gap-2"
+          >
+            {isCompact ? (
+              <>
+                <Grid className="h-4 w-4" />
+                <span>通常表示</span>
+              </>
+            ) : (
+              <>
+                <List className="h-4 w-4" />
+                <span>一覧表示</span>
+              </>
+            )}
+          </Button>
+        </div>
       </div>
       <div className={gridClass}>
         {items.map((item) => (
@@ -93,6 +104,10 @@ export function ProfileCollection({
           />
         ))}
       </div>
+      <WishlistViewModal
+        isOpen={isWishlistModalOpen}
+        onClose={() => setIsWishlistModalOpen(false)}
+      />
     </div>
   );
 }

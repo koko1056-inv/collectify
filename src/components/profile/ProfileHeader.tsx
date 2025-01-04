@@ -1,17 +1,18 @@
-import { CollectionLikeButton } from "../collection/CollectionLikeButton";
-
 interface ProfileHeaderProps {
   username: string;
-  userId: string;
+  userId?: string;
+  onShare?: () => void;
 }
 
-export function ProfileHeader({ username, userId }: ProfileHeaderProps) {
+export function ProfileHeader({ username, userId, onShare }: ProfileHeaderProps) {
   return (
     <div className="flex items-center justify-between">
-      <h1 className="text-3xl font-bold">
-        {username}さんのコレクション
-      </h1>
-      <CollectionLikeButton collectionOwnerId={userId} />
+      <h1 className="text-2xl font-bold">{username}</h1>
+      {userId && (
+        <Button variant="outline" onClick={onShare}>
+          共有
+        </Button>
+      )}
     </div>
   );
 }
