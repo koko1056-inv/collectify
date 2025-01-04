@@ -45,7 +45,7 @@ export function ProfileBio({
             placeholder="自己紹介を入力..."
             className="min-h-[100px]"
           />
-          <div className="flex gap-2">
+          <div className="flex gap-2 mt-2">
             <Button type="button" variant="outline" onClick={onCancel}>
               キャンセル
             </Button>
@@ -56,7 +56,7 @@ export function ProfileBio({
         </form>
       ) : (
         <div>
-          <p>{bio || "自己紹介がありません。"}</p>
+          <p className="mb-2">{bio || "自己紹介がありません。"}</p>
           <Button variant="outline" onClick={onEdit}>
             編集
           </Button>
