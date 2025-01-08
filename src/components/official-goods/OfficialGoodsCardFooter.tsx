@@ -33,11 +33,16 @@ export function OfficialGoodsCardFooter({
   const { data: ownersCount = 0 } = useQuery({
     queryKey: ["item-owners-count", itemTitle, itemImage],
     queryFn: async () => {
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from("user_items")
         .select("*", { count: 'exact', head: true })
         .eq("title", itemTitle)
         .eq("image", itemImage);
+      
+      if (error) {
+        console.error("Error getting owners count:", error);
+        return 0;
+      }
       
       return count || 0;
     },
@@ -46,10 +51,15 @@ export function OfficialGoodsCardFooter({
   const { data: tagCount = 0 } = useQuery({
     queryKey: ["item-tags-count", itemId],
     queryFn: async () => {
-      const { count } = await supabase
+      const { count, error } = await supabase
         .from("item_tags")
         .select("*", { count: 'exact', head: true })
         .eq("official_item_id", itemId);
+      
+      if (error) {
+        console.error("Error getting tag count:", error);
+        return 0;
+      }
       
       return count || 0;
     },
