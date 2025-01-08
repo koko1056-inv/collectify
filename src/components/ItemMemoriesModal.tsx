@@ -34,22 +34,22 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
     },
   });
 
-  const handleSubmit = async (data: { comment: string }, selectedImage: File | null) => {
+  const handleSubmit = async (data: { comment?: string; image?: File }) => {
     try {
       let imageUrl = null;
 
-      if (selectedImage) {
+      if (data.image) {
         const timestamp = Date.now();
-        const fileExt = selectedImage.name.split(".").pop();
+        const fileExt = data.image.name.split(".").pop();
         const fileName = `${timestamp}-${crypto.randomUUID()}.${fileExt}`;
         const filePath = `memories/${itemId}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from("kuji_images")
-          .upload(filePath, selectedImage, {
+          .upload(filePath, data.image, {
             cacheControl: "3600",
             upsert: false,
-            contentType: selectedImage.type
+            contentType: data.image.type
           });
 
         if (uploadError) {
@@ -57,7 +57,6 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
           throw uploadError;
         }
 
-        // Get the public URL after successful upload
         const { data: { publicUrl } } = supabase.storage
           .from("kuji_images")
           .getPublicUrl(filePath);
@@ -74,7 +73,7 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
         .from("item_memories")
         .insert({
           user_item_id: itemId,
-          comment: data.comment,
+          comment: data.comment || null,
           image_url: imageUrl,
         });
 
@@ -108,7 +107,7 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
         </DialogHeader>
         <ScrollArea className="h-[70vh]">
           <div className="space-y-6 pr-4">
-            <MemoriesForm isOwner={isOwner} onSubmit={handleSubmit} />
+            <MemoriesForm onSubmit={handleSubmit} />
             <div className="space-y-4 mt-6">
               <h3 className="font-medium text-lg">これまでの思い出</h3>
               <MemoriesList memories={memories} />
