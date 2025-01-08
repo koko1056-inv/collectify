@@ -7,7 +7,6 @@ interface CollectionGoodsCardFooterProps {
   id: string;
   onMemoriesClick: () => void;
   onTagManageClick: () => void;
-  onShareClick: () => void;
   onDeleteClick: () => void;
 }
 
@@ -15,7 +14,6 @@ export function CollectionGoodsCardFooter({
   id,
   onMemoriesClick,
   onTagManageClick,
-  onShareClick,
   onDeleteClick,
 }: CollectionGoodsCardFooterProps) {
   const { data: itemTags = [] } = useQuery({
@@ -47,7 +45,6 @@ export function CollectionGoodsCardFooter({
       <CardActions
         onMemoriesClick={onMemoriesClick}
         onTagManageClick={onTagManageClick}
-        onShareClick={onShareClick}
         onDeleteClick={onDeleteClick}
         hasMemories={itemMemories.length > 0}
         hasTags={itemTags.length > 0}
