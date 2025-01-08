@@ -19,15 +19,16 @@ export function CardActions({
   return (
     <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
       <Button 
-        variant="outline" 
+        variant="default"
         size="sm"
         onClick={(e) => {
           e.stopPropagation();
           onMemoriesClick();
         }}
-        className="border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-500 transition-colors h-7 w-7 p-0"
+        className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-7"
       >
-        <PlusCircle className="h-3 w-3" />
+        <PlusCircle className="h-3 w-3 mr-2" />
+        <span className="text-xs">記録を追加</span>
       </Button>
       <Button 
         variant="outline" 
