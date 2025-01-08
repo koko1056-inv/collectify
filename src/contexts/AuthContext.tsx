@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
+import { trackLogin, trackLogout } from '@/utils/analytics'
 
 type AuthContextType = {
   user: User | null
@@ -27,6 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (initialSession) {
           setSession(initialSession)
           setUser(initialSession.user)
+          trackLogin(initialSession.user.id)
         }
       } catch (error) {
         console.error('Session initialization error:', error)
@@ -44,6 +46,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (currentSession) {
         setSession(currentSession)
         setUser(currentSession.user)
+        if (_event === 'SIGNED_IN') {
+          trackLogin(currentSession.user.id)
+        } else if (_event === 'SIGNED_OUT') {
+          trackLogout(currentSession.user.id)
+        }
       } else {
         setSession(null)
         setUser(null)
