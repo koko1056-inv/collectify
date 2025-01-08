@@ -42,7 +42,7 @@ export function MemoriesForm({ isOwner, onSubmit }: MemoriesFormProps) {
               <FormControl>
                 <Textarea
                   placeholder={isOwner ? "思い出を書いてください..." : "コメントを書いてください..."}
-                  className="min-h-[100px]"
+                  className="min-h-[100px] px-4"
                   {...field}
                 />
               </FormControl>
