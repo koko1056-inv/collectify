@@ -1,31 +1,44 @@
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const formSchema = z.object({
+  comment: z.string().optional(),
+  image: z.any().optional(),
+});
 
 interface MemoriesFormProps {
-  isOwner: boolean;
-  onSubmit: (data: { comment: string }, image: File | null) => void;
+  onSubmit: (data: { comment?: string; image?: File }) => void;
 }
 
-interface MemoryForm {
-  comment: string;
-}
-
-export function MemoriesForm({ isOwner, onSubmit }: MemoriesFormProps) {
-  const form = useForm<MemoryForm>();
+export function MemoriesForm({ onSubmit }: MemoriesFormProps) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+  });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedImage(e.target.files[0]);
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
     }
   };
 
-  const handleSubmit = (data: MemoryForm) => {
-    onSubmit(data, selectedImage);
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    onSubmit({
+      comment: values.comment,
+      image: selectedImage || undefined,
+    });
     form.reset();
     setSelectedImage(null);
   };
@@ -33,17 +46,25 @@ export function MemoriesForm({ isOwner, onSubmit }: MemoriesFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormItem>
-          <FormLabel>画像</FormLabel>
-          <FormControl>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="cursor-pointer h-14 px-6"
-            />
-          </FormControl>
-        </FormItem>
+        <FormField
+          control={form.control}
+          name="image"
+          render={() => (
+            <FormItem>
+              <FormLabel>画像</FormLabel>
+              <FormControl>
+                <div className="h-14 px-6 flex items-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="cursor-pointer w-full"
+                  />
+                </div>
+              </FormControl>
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="comment"
@@ -52,8 +73,8 @@ export function MemoriesForm({ isOwner, onSubmit }: MemoriesFormProps) {
               <FormLabel>コメント</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder={isOwner ? "思い出を書いてください..." : "コメントを書いてください..."}
-                  className="min-h-[100px] px-4"
+                  placeholder="思い出を書いてください"
+                  className="resize-none"
                   {...field}
                 />
               </FormControl>
@@ -61,7 +82,7 @@ export function MemoriesForm({ isOwner, onSubmit }: MemoriesFormProps) {
           )}
         />
         <Button type="submit" className="w-full">
-          {isOwner ? "思い出を追加" : "コメントする"}
+          追加
         </Button>
       </form>
     </Form>
