@@ -11,9 +11,10 @@ export const trackLogin = (userId: string, method: string = 'email') => {
   });
 };
 
-export const trackLogout = (userId: string) => {
-  mixpanel.track('User Logout', {
-    distinct_id: userId,
+export const trackTabChange = (tabName: string, userId?: string) => {
+  mixpanel.track('Tab Change', {
+    distinct_id: userId || 'anonymous',
+    tab: tabName,
     timestamp: new Date().toISOString()
   });
 };

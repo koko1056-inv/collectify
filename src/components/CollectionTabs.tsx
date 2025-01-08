@@ -3,6 +3,8 @@ import { OfficialItemsList } from "@/components/OfficialItemsList";
 import { UserCollection } from "@/components/UserCollection";
 import { OfficialItem } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { trackTabChange } from "@/utils/analytics";
 
 interface CollectionTabsProps {
   filteredItems: OfficialItem[];
@@ -11,9 +13,14 @@ interface CollectionTabsProps {
 
 export function CollectionTabs({ filteredItems, selectedTags }: CollectionTabsProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
+
+  const handleTabChange = (value: string) => {
+    trackTabChange(value, user?.id);
+  };
 
   return (
-    <Tabs defaultValue="official" className="space-y-6">
+    <Tabs defaultValue="official" className="space-y-6" onValueChange={handleTabChange}>
       <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white border border-gray-200">
         <TabsTrigger value="official" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white">
           {t("tabs.official")}
