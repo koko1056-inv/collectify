@@ -33,6 +33,17 @@ export function MemoriesForm({ isOwner, onSubmit }: MemoriesFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <FormItem>
+          <FormLabel>画像</FormLabel>
+          <FormControl>
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="cursor-pointer"
+            />
+          </FormControl>
+        </FormItem>
         <FormField
           control={form.control}
           name="comment"
@@ -49,17 +60,6 @@ export function MemoriesForm({ isOwner, onSubmit }: MemoriesFormProps) {
             </FormItem>
           )}
         />
-        <FormItem>
-          <FormLabel>画像</FormLabel>
-          <FormControl>
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="cursor-pointer"
-            />
-          </FormControl>
-        </FormItem>
         <Button type="submit" className="w-full">
           {isOwner ? "思い出を追加" : "コメントする"}
         </Button>
