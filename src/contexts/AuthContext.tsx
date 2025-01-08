@@ -28,15 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (initialSession) {
           setSession(initialSession)
           setUser(initialSession.user)
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('username')
-            .eq('id', initialSession.user.id)
-            .single()
-          
-          if (profileData) {
-            trackLogin(initialSession.user.id, profileData.username)
-          }
+          trackLogin(initialSession.user.id)
         }
       } catch (error) {
         console.error('Session initialization error:', error)
@@ -50,20 +42,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       if (currentSession) {
         setSession(currentSession)
         setUser(currentSession.user)
         if (_event === 'SIGNED_IN') {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('username')
-            .eq('id', currentSession.user.id)
-            .single()
-          
-          if (profileData) {
-            trackLogin(currentSession.user.id, profileData.username)
-          }
+          trackLogin(currentSession.user.id)
         }
       } else {
         setSession(null)
