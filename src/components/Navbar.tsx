@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { Heart, UserSearch, User } from "lucide-react";
+import { ShoppingBasket, UserSearch, User } from "lucide-react";
 import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
@@ -80,7 +80,7 @@ export function Navbar() {
                 onClick={() => setIsWishlistModalOpen(true)}
                 className="relative h-8 w-8 sm:h-9 sm:w-9"
               >
-                <Heart className="h-4 w-4" />
+                <ShoppingBasket className="h-4 w-4 text-blue-500" />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
