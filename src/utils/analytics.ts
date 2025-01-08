@@ -10,10 +10,3 @@ export const trackLogin = (userId: string, method: string = 'email') => {
     timestamp: new Date().toISOString()
   });
 };
-
-export const trackLogout = (userId: string) => {
-  mixpanel.track('User Logout', {
-    distinct_id: userId,
-    timestamp: new Date().toISOString()
-  });
-};
