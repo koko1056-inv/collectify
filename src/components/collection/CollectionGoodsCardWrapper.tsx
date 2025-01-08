@@ -27,7 +27,7 @@ export function CollectionGoodsCardWrapper({
   userId,
   releaseDate,
   prize,
-  quantity,
+  quantity = 1,
   isCompact = false,
 }: CollectionGoodsCardWrapperProps) {
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
@@ -78,6 +78,7 @@ export function CollectionGoodsCardWrapper({
       <CollectionGoodsCardContent
         id={id}
         isOwner={isOwner}
+        quantity={quantity}
         onMemoriesClick={() => setIsMemoriesModalOpen(true)}
       />
       {isOwner && (

@@ -4,17 +4,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { TagList } from "./TagList";
 import { LikeButton } from "./LikeButton";
 import { BookMarked } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface CollectionGoodsCardContentProps {
   id: string;
   isOwner: boolean;
   onMemoriesClick: () => void;
+  quantity?: number;
 }
 
 export function CollectionGoodsCardContent({
   id,
   isOwner,
   onMemoriesClick,
+  quantity = 1,
 }: CollectionGoodsCardContentProps) {
   const { data: itemTags = [] } = useQuery({
     queryKey: ["user-item-tags", id],
@@ -68,6 +71,11 @@ export function CollectionGoodsCardContent({
               <BookMarked className="h-3.5 w-3.5" />
               <span>{itemMemories.length}</span>
             </button>
+          )}
+          {quantity > 1 && (
+            <Badge variant="secondary" className="text-xs">
+              ×{quantity}
+            </Badge>
           )}
         </div>
       </div>
