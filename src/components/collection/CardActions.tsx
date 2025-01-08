@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Share2, BookMarked, Trash2, Tag } from "lucide-react";
+import { BookMarked, Trash2, Tag } from "lucide-react";
 
 interface CardActionsProps {
   onMemoriesClick: () => void;
   onTagManageClick: () => void;
-  onShareClick: () => void;
   onDeleteClick: () => void;
   hasMemories: boolean;
   hasTags: boolean;
@@ -13,7 +12,6 @@ interface CardActionsProps {
 export function CardActions({
   onMemoriesClick,
   onTagManageClick,
-  onShareClick,
   onDeleteClick,
   hasMemories,
   hasTags,
@@ -49,17 +47,6 @@ export function CardActions({
         } transition-colors h-7 w-7 p-0`}
       >
         <Tag className={`h-3 w-3 ${hasTags ? "text-purple-500" : ""}`} />
-      </Button>
-      <Button 
-        variant="outline" 
-        size="sm"
-        onClick={(e) => {
-          e.stopPropagation();
-          onShareClick();
-        }}
-        className="border-gray-200 hover:bg-gray-50 h-7 w-7 p-0"
-      >
-        <Share2 className="h-3 w-3" />
       </Button>
       <Button 
         variant="outline" 
