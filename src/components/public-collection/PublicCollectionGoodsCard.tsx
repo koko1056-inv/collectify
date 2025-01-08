@@ -28,6 +28,7 @@ export function PublicCollectionGoodsCard({
           isOwner={false}
           onMemoriesClick={() => {}}
           onShareToggle={() => {}}
+          isShared={false}
         />
       </UICardContent>
     </Card>

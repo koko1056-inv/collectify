@@ -109,7 +109,6 @@ export function OfficialGoodsCardFooter({
       <ItemOwnersModal
         isOpen={isOwnersModalOpen}
         onClose={() => setIsOwnersModalOpen(false)}
-        itemId={itemId}
         itemTitle={itemTitle}
         itemImage={itemImage}
       />
