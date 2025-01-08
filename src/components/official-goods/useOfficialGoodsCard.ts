@@ -18,31 +18,42 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: isInCollection } = useQuery({
+  const { data: isInCollection = false } = useQuery({
     queryKey: ["user-item-exists", id, user?.id],
     queryFn: async () => {
       if (!user) return false;
       
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("user_items")
         .select("id")
+        .eq("user_id", user.id)
         .eq("title", title)
         .eq("image", image)
-        .eq("user_id", user.id)
         .maybeSingle();
+      
+      if (error) {
+        console.error("Error checking if item exists in collection:", error);
+        return false;
+      }
       
       return !!data;
     },
     enabled: !!user,
   });
 
-  const { data: wishlistCount = 0 } = useQuery({
-    queryKey: ["wishlist-count", id],
+  const { data: ownersCount = 0 } = useQuery({
+    queryKey: ["item-owners-count", title, image],
     queryFn: async () => {
-      const { count } = await supabase
-        .from("wishlists")
+      const { count, error } = await supabase
+        .from("user_items")
         .select("*", { count: 'exact', head: true })
-        .eq("official_item_id", id);
+        .eq("title", title)
+        .eq("image", image);
+      
+      if (error) {
+        console.error("Error getting owners count:", error);
+        return 0;
+      }
       
       return count || 0;
     },
@@ -65,14 +76,15 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
         release_date: new Date().toISOString().split('T')[0],
         user_id: user.id,
         is_shared: false,
-        prize: "0", // Set default prize to "0" to satisfy not-null constraint
+        prize: "0",
         official_link: id,
       });
 
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user.id] });
-      queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", title, image] });
 
       toast({
         title: "成功",
@@ -90,7 +102,7 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
 
   return {
     isInCollection,
-    wishlistCount,
+    wishlistCount: 0,
     isWishlistModalOpen,
     isTagModalOpen,
     isCategoryModalOpen,
@@ -98,5 +110,6 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     setIsTagModalOpen,
     setIsCategoryModalOpen,
     handleAddToCollection,
+    ownersCount,
   };
 }

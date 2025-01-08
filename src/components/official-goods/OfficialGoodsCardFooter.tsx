@@ -31,7 +31,7 @@ export function OfficialGoodsCardFooter({
   const [isOwnersModalOpen, setIsOwnersModalOpen] = useState(false);
 
   const { data: ownersCount = 0 } = useQuery({
-    queryKey: ["item-owners-count", itemId],
+    queryKey: ["item-owners-count", itemTitle, itemImage],
     queryFn: async () => {
       const { count } = await supabase
         .from("user_items")
