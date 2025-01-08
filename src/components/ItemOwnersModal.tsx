@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
 
 interface ItemOwnersModalProps {
   isOpen: boolean;
@@ -65,7 +66,11 @@ export function ItemOwnersModal({
             </p>
           ) : (
             owners?.map((owner) => (
-              <div key={owner.user_id} className="flex items-center gap-3">
+              <Link
+                key={owner.user_id}
+                to={`/user/${owner.user_id}`}
+                className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors"
+              >
                 <Avatar>
                   <AvatarImage src={owner.profiles?.avatar_url || ""} />
                   <AvatarFallback>
@@ -75,7 +80,7 @@ export function ItemOwnersModal({
                 <span className="font-medium">
                   {owner.profiles?.display_name || owner.profiles?.username}
                 </span>
-              </div>
+              </Link>
             ))
           )}
         </div>
