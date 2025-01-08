@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
-import { Heart, Users } from "lucide-react";
+import { ShoppingBasket, Users } from "lucide-react";
 import { TagButton } from "./buttons/TagButton";
 import { useState } from "react";
 import { ItemOwnersModal } from "@/components/ItemOwnersModal";
@@ -91,7 +91,7 @@ export function OfficialGoodsCardFooter({
               onClick={onWishlistClick}
               className="border-gray-200 hover:bg-gray-50"
             >
-              <Heart className="h-4 w-4 text-red-500" />
+              <ShoppingBasket className="h-4 w-4 text-blue-500" />
             </Button>
             <span className="text-xs text-gray-500 mt-1">{wishlistCount}</span>
           </div>
