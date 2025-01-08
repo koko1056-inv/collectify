@@ -81,32 +81,7 @@ export function useCardEventHandlers(id: string) {
     }
   };
 
-  const handleShareToggle = async (checked: boolean) => {
-    try {
-      const { error } = await supabase
-        .from("user_items")
-        .update({ is_shared: checked })
-        .eq("id", id);
-
-      if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
-      toast({
-        title: checked ? "公開設定を変更" : "非公開設定を変更",
-        description: checked ? "コレクションを公開しました。" : "コレクションを非公開にしました。",
-      });
-    } catch (error) {
-      console.error("Error toggling share:", error);
-      toast({
-        title: "エラー",
-        description: "公開設定の変更に失敗しました。",
-        variant: "destructive",
-      });
-    }
-  };
-
   return {
     handleDelete,
-    handleShareToggle,
   };
 }

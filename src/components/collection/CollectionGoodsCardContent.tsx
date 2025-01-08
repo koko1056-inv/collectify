@@ -4,24 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { TagList } from "./TagList";
 import { LikeButton } from "./LikeButton";
 import { BookMarked } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { useCardEventHandlers } from "./CardEventHandlers";
 
 interface CollectionGoodsCardContentProps {
   id: string;
   isOwner: boolean;
-  isShared: boolean;
   onMemoriesClick: () => void;
 }
 
 export function CollectionGoodsCardContent({
   id,
   isOwner,
-  isShared,
   onMemoriesClick,
 }: CollectionGoodsCardContentProps) {
-  const { handleShareToggle } = useCardEventHandlers(id);
-
   const { data: itemTags = [] } = useQuery({
     queryKey: ["user-item-tags", id],
     queryFn: async () => {
@@ -57,10 +51,6 @@ export function CollectionGoodsCardContent({
     enabled: !!id,
   });
 
-  const handleShareToggleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-  };
-
   return (
     <UICardContent className="px-3 py-2 space-y-1">
       <TagList tags={itemTags} />
@@ -80,15 +70,6 @@ export function CollectionGoodsCardContent({
             </button>
           )}
         </div>
-        {isOwner && (
-          <div onClick={handleShareToggleClick}>
-            <Switch
-              checked={isShared}
-              onCheckedChange={handleShareToggle}
-              className="scale-75 origin-right"
-            />
-          </div>
-        )}
       </div>
     </UICardContent>
   );
