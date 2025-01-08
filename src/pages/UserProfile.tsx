@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Grid, List } from "lucide-react";
 import { CollectionLikeButton } from "@/components/collection/CollectionLikeButton";
 
+// ... keep existing code (imports and component definition)
+
 const UserProfile = () => {
   const { userId } = useParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,7 +47,6 @@ const UserProfile = () => {
           )
         `)
         .eq("user_id", userId)
-        .eq("is_shared", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -125,7 +126,7 @@ const UserProfile = () => {
           </div>
 
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold">共有アイテム</h2>
+            <h2 className="text-2xl font-semibold">コレクション</h2>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <FilterBar
@@ -167,7 +168,7 @@ const UserProfile = () => {
               ) : filteredItems.length === 0 ? (
                 <p className="text-gray-500">
                   {userItems.length === 0 
-                    ? "共有されているアイテムはありません"
+                    ? "コレクションにアイテムはありません"
                     : "検索条件に一致するアイテムはありません"}
                 </p>
               ) : (
@@ -181,6 +182,7 @@ const UserProfile = () => {
                       isShared={item.is_shared}
                       userId={userId}
                       isCompact={isCompact}
+                      quantity={item.quantity}
                     />
                   ))}
                 </div>
