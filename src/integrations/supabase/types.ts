@@ -349,7 +349,6 @@ export type Database = {
           created_at: string
           id: string
           image: string
-          is_shared: boolean
           official_link: string | null
           prize: string
           quantity: number
@@ -363,7 +362,6 @@ export type Database = {
           created_at?: string
           id?: string
           image: string
-          is_shared?: boolean
           official_link?: string | null
           prize: string
           quantity?: number
@@ -377,7 +375,6 @@ export type Database = {
           created_at?: string
           id?: string
           image?: string
-          is_shared?: boolean
           official_link?: string | null
           prize?: string
           quantity?: number

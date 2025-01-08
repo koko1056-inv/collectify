@@ -26,7 +26,6 @@ export interface UserItem {
   official_link: string | null;
   created_at: string;
   user_id: string;
-  is_shared: boolean;
   artist: string | null;
   anime: string | null;
 }

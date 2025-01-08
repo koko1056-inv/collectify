@@ -8,7 +8,6 @@ interface MyCollectionGoodsCardProps {
   id: string;
   title: string;
   image: string;
-  isShared: boolean;
   quantity?: number;
   isCompact?: boolean;
 }
@@ -16,8 +15,7 @@ interface MyCollectionGoodsCardProps {
 export function MyCollectionGoodsCard({ 
   id, 
   title, 
-  image, 
-  isShared, 
+  image,
   quantity,
   isCompact 
 }: MyCollectionGoodsCardProps) {
@@ -60,7 +58,6 @@ export function MyCollectionGoodsCard({
         id={id}
         title={title}
         image={image}
-        isShared={isShared}
         quantity={quantity}
       />
     </div>
