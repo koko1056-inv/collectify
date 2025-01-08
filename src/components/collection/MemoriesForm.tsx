@@ -40,7 +40,7 @@ export function MemoriesForm({ isOwner, onSubmit }: MemoriesFormProps) {
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              className="cursor-pointer"
+              className="cursor-pointer h-14 px-6"
             />
           </FormControl>
         </FormItem>
