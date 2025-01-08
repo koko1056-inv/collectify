@@ -35,7 +35,6 @@ export function ProfileFavorites({
           )
         `)
         .eq("user_id", userId)
-        .eq("is_shared", true)
         .eq("user_item_likes.user_id", userId)
         .order("created_at", { ascending: false });
 
@@ -46,26 +45,31 @@ export function ProfileFavorites({
 
   const handleSaveSelection = async () => {
     try {
-      // Update is_shared status for selected items
-      const { error } = await supabase
-        .from("user_items")
-        .update({ is_shared: true })
-        .in("id", selectedItems);
+      // Add likes for selected items
+      for (const itemId of selectedItems) {
+        const { error: insertError } = await supabase
+          .from("user_item_likes")
+          .upsert({ 
+            user_id: userId,
+            user_item_id: itemId
+          });
 
-      if (error) throw error;
+        if (insertError) throw insertError;
+      }
 
-      // Update is_shared status for unselected items
+      // Remove likes for unselected items
       const unselectedItems = userItems
         .filter(item => !selectedItems.includes(item.id))
         .map(item => item.id);
 
       if (unselectedItems.length > 0) {
-        const { error: unshareError } = await supabase
-          .from("user_items")
-          .update({ is_shared: false })
-          .in("id", unselectedItems);
+        const { error: deleteError } = await supabase
+          .from("user_item_likes")
+          .delete()
+          .eq("user_id", userId)
+          .in("user_item_id", unselectedItems);
 
-        if (unshareError) throw unshareError;
+        if (deleteError) throw deleteError;
       }
 
       queryClient.invalidateQueries({ queryKey: ["user-items"] });
@@ -118,7 +122,6 @@ export function ProfileFavorites({
             id={item.id}
             title={item.title}
             image={item.image}
-            isShared={item.is_shared}
             userId={userId}
           />
         ))}

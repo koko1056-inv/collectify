@@ -6,7 +6,6 @@ interface PublicCollectionGoodsCardProps {
   title: string;
   image: string;
   id: string;
-  isShared: boolean;
   userId?: string;
 }
 
@@ -14,7 +13,6 @@ export function PublicCollectionGoodsCard({
   title, 
   image, 
   id,
-  isShared,
   userId 
 }: PublicCollectionGoodsCardProps) {
   return (
@@ -28,7 +26,6 @@ export function PublicCollectionGoodsCard({
           itemTags={[]}
           memoriesCount={0}
           isOwner={false}
-          isShared={isShared}
           onMemoriesClick={() => {}}
           onShareToggle={() => {}}
         />
