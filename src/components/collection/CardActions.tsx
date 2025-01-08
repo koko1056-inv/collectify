@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { BookMarked, Trash2, Tag } from "lucide-react";
+import { PlusCircle, Trash2, Tag } from "lucide-react";
 
 interface CardActionsProps {
   onMemoriesClick: () => void;
@@ -25,13 +25,9 @@ export function CardActions({
           e.stopPropagation();
           onMemoriesClick();
         }}
-        className={`${
-          hasMemories 
-            ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
-            : "border-gray-200 hover:bg-gray-50"
-        } transition-colors h-7 w-7 p-0`}
+        className="border-gray-200 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-500 transition-colors h-7 w-7 p-0"
       >
-        <BookMarked className={`h-3 w-3 ${hasMemories ? "text-purple-500" : ""}`} />
+        <PlusCircle className="h-3 w-3" />
       </Button>
       <Button 
         variant="outline" 
