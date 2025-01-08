@@ -60,18 +60,16 @@ export function CollectionGoodsCardContent({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <LikeButton itemId={id} />
-          {itemMemories.length > 0 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onMemoriesClick();
-              }}
-              className="flex items-center gap-1 text-xs text-purple-500 hover:text-purple-600 transition-colors"
-            >
-              <BookMarked className="h-3.5 w-3.5" />
-              <span>{itemMemories.length}</span>
-            </button>
-          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onMemoriesClick();
+            }}
+            className="flex items-center gap-1 text-xs text-purple-500 hover:text-purple-600 transition-colors"
+          >
+            <BookMarked className="h-3.5 w-3.5" />
+            <span>{itemMemories.length}</span>
+          </button>
           {quantity > 1 && (
             <Badge variant="secondary" className="text-xs">
               ×{quantity}
