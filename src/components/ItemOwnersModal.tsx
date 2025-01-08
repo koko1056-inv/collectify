@@ -45,8 +45,7 @@ export function ItemOwnersModal({
           )
         `)
         .eq("title", itemTitle)
-        .eq("image", itemImage)
-        .eq("is_shared", true);
+        .eq("image", itemImage);
 
       if (error) {
         console.error("Error fetching item owners:", error);
