@@ -37,8 +37,7 @@ export function OfficialGoodsCardFooter({
         .from("user_items")
         .select("*", { count: 'exact', head: true })
         .eq("title", itemTitle)
-        .eq("image", itemImage)
-        .eq("is_shared", true);
+        .eq("image", itemImage);
       
       return count || 0;
     },
