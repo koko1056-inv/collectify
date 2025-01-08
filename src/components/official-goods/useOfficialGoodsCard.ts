@@ -75,7 +75,6 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
         image,
         release_date: new Date().toISOString().split('T')[0],
         user_id: user.id,
-        is_shared: false,
         prize: "0",
         official_link: id,
       });
