@@ -9,7 +9,6 @@ interface CardContentProps {
   itemTags: any[];
   memoriesCount: number;
   isOwner: boolean;
-  isShared: boolean;
   onMemoriesClick: () => void;
   onShareToggle: (checked: boolean) => void;
 }
@@ -19,7 +18,6 @@ export function CardContent({
   itemTags,
   memoriesCount,
   isOwner,
-  isShared,
   onMemoriesClick,
   onShareToggle,
 }: CardContentProps) {
@@ -41,7 +39,6 @@ export function CardContent({
         </div>
         {isOwner && (
           <Switch
-            checked={isShared}
             onCheckedChange={onShareToggle}
             className="scale-75 origin-right"
           />
