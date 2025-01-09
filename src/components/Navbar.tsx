@@ -80,7 +80,7 @@ export function Navbar() {
                 onClick={() => setIsWishlistModalOpen(true)}
                 className="relative h-8 w-8 sm:h-9 sm:w-9"
               >
-                <ShoppingBasket className="h-4 w-4 text-blue-500" />
+                <ShoppingBasket className="h-4 w-4 text-foreground" />
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
