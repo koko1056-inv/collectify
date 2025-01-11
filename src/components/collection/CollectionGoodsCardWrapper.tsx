@@ -8,6 +8,7 @@ import { CardModals } from "./CardModals";
 import { useCardEventHandlers } from "./CardEventHandlers";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardImage } from "./CardImage";
+import { TradeRequestModal } from "../trade/TradeRequestModal";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -34,10 +35,12 @@ export function CollectionGoodsCardWrapper({
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
 
   const { handleDelete } = useCardEventHandlers(id);
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
+  const canTrade = !isOwner && user;
 
   if (isCompact) {
     return (
@@ -81,7 +84,7 @@ export function CollectionGoodsCardWrapper({
         quantity={quantity}
         onMemoriesClick={() => setIsMemoriesModalOpen(true)}
       />
-      {isOwner && (
+      {(isOwner || canTrade) && (
         <UICardFooter className="px-2 py-1.5">
           <CardActions
             hasMemories={false}
@@ -89,6 +92,8 @@ export function CollectionGoodsCardWrapper({
             onMemoriesClick={() => setIsMemoriesModalOpen(true)}
             onTagManageClick={() => setIsTagManageModalOpen(true)}
             onDeleteClick={() => setIsDeleteDialogOpen(true)}
+            onTradeClick={() => setIsTradeModalOpen(true)}
+            showTradeButton={canTrade}
           />
         </UICardFooter>
       )}
@@ -110,6 +115,15 @@ export function CollectionGoodsCardWrapper({
         onDetailsClose={() => setIsDetailsModalOpen(false)}
         onDeleteConfirm={handleDelete}
       />
+      {canTrade && (
+        <TradeRequestModal
+          isOpen={isTradeModalOpen}
+          onClose={() => setIsTradeModalOpen(false)}
+          requestedItemId={id}
+          requestedItemTitle={title}
+          receiverId={userId!}
+        />
+      )}
     </Card>
   );
 }

@@ -277,6 +277,54 @@ export type Database = {
         }
         Relationships: []
       }
+      trade_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          offered_item_id: string
+          receiver_id: string
+          requested_item_id: string
+          sender_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          offered_item_id: string
+          receiver_id: string
+          requested_item_id: string
+          sender_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          offered_item_id?: string
+          receiver_id?: string
+          requested_item_id?: string
+          sender_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_requests_offered_item_id_fkey"
+            columns: ["offered_item_id"]
+            isOneToOne: false
+            referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_requests_requested_item_id_fkey"
+            columns: ["requested_item_id"]
+            isOneToOne: false
+            referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_item_likes: {
         Row: {
           created_at: string

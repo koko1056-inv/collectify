@@ -1,23 +1,41 @@
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Tag } from "lucide-react";
+import { PlusCircle, Trash2, Tag, Repeat } from "lucide-react";
 
 interface CardActionsProps {
   onMemoriesClick: () => void;
   onTagManageClick: () => void;
   onDeleteClick: () => void;
+  onTradeClick?: () => void;
   hasMemories: boolean;
   hasTags: boolean;
+  showTradeButton?: boolean;
 }
 
 export function CardActions({
   onMemoriesClick,
   onTagManageClick,
   onDeleteClick,
+  onTradeClick,
   hasMemories,
   hasTags,
+  showTradeButton = false,
 }: CardActionsProps) {
   return (
     <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+      {showTradeButton && (
+        <Button
+          variant="default"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onTradeClick?.();
+          }}
+          className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-7"
+        >
+          <Repeat className="h-3 w-3 mr-2" />
+          <span className="text-xs">トレード</span>
+        </Button>
+      )}
       <Button 
         variant="default"
         size="sm"
