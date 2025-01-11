@@ -45,15 +45,24 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
   const fetchTradeRequests = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
+    const { data: tradeRequestsData, error } = await supabase
       .from("trade_requests")
       .select(`
         id,
         message,
         status,
-        sender:profiles!trade_requests_sender_id_fkey(username, display_name),
-        offered_item:user_items!trade_requests_offered_item_id_fkey(title, image),
-        requested_item:user_items!trade_requests_requested_item_id_fkey(title, image)
+        sender:profiles!trade_requests_sender_id_fkey(
+          username,
+          display_name
+        ),
+        offered_item:user_items!trade_requests_offered_item_id_fkey(
+          title,
+          image
+        ),
+        requested_item:user_items!trade_requests_requested_item_id_fkey(
+          title,
+          image
+        )
       `)
       .eq("receiver_id", user.id)
       .eq("status", "pending")
@@ -64,7 +73,17 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
       return;
     }
 
-    setTradeRequests(data as TradeRequest[]);
+    // Ensure the data matches the TradeRequest interface
+    const formattedRequests = tradeRequestsData.map((request: any) => ({
+      id: request.id,
+      message: request.message,
+      status: request.status,
+      sender: request.sender,
+      offered_item: request.offered_item,
+      requested_item: request.requested_item,
+    }));
+
+    setTradeRequests(formattedRequests);
   };
 
   const handleTradeResponse = async (tradeId: string, accept: boolean) => {
