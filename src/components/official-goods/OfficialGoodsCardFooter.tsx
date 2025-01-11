@@ -1,9 +1,11 @@
-import { CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { CardFooter } from "@/components/ui/card";
+import { ShoppingBasket, Users } from "lucide-react";
+import { TagButton } from "./buttons/TagButton";
+import { useState } from "react";
+import { ItemOwnersModal } from "@/components/ItemOwnersModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, Tag, Users } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OfficialGoodsCardFooterProps {
   isInCollection: boolean;
@@ -23,89 +25,93 @@ export function OfficialGoodsCardFooter({
   onTagManageClick,
   onWishlistClick,
   itemId,
+  itemTitle,
+  itemImage,
 }: OfficialGoodsCardFooterProps) {
-  const { t } = useLanguage();
+  const [isOwnersModalOpen, setIsOwnersModalOpen] = useState(false);
 
-  const { data: ownersCount = 0, isError: isOwnersError } = useQuery({
-    queryKey: ["owners-count", itemId],
+  const { data: ownersCount = 0 } = useQuery({
+    queryKey: ["item-owners-count", itemTitle, itemImage],
     queryFn: async () => {
-      try {
-        const { count, error } = await supabase
-          .from("user_items")
-          .select("*", { count: "exact", head: true })
-          .eq("title", itemId);
-
-        if (error) {
-          console.error("Error getting owners count:", error);
-          return 0;
-        }
-
-        return count || 0;
-      } catch (error) {
+      const { count, error } = await supabase
+        .from("user_items")
+        .select("*", { count: 'exact', head: true })
+        .eq("title", itemTitle)
+        .eq("image", itemImage);
+      
+      if (error) {
         console.error("Error getting owners count:", error);
         return 0;
       }
+      
+      return count || 0;
     },
   });
 
-  const { data: tagCount = 0, isError: isTagError } = useQuery({
-    queryKey: ["tag-count", itemId],
+  const { data: tagCount = 0 } = useQuery({
+    queryKey: ["item-tags-count", itemId],
     queryFn: async () => {
-      try {
-        const { count, error } = await supabase
-          .from("item_tags")
-          .select("*", { count: "exact", head: true })
-          .eq("official_item_id", itemId);
-
-        if (error) {
-          console.error("Error getting tag count:", error);
-          return 0;
-        }
-
-        return count || 0;
-      } catch (error) {
+      const { count, error } = await supabase
+        .from("item_tags")
+        .select("*", { count: 'exact', head: true })
+        .eq("official_item_id", itemId);
+      
+      if (error) {
         console.error("Error getting tag count:", error);
         return 0;
       }
+      
+      return count || 0;
     },
   });
 
   return (
-    <CardFooter className="p-2">
-      <div className="flex justify-between items-center w-full">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onWishlistClick}
-          >
-            <Heart className="h-4 w-4" />
-            <span className="ml-1 text-xs">{wishlistCount}</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={onTagManageClick}
-          >
-            <Tag className="h-4 w-4" />
-            <span className="ml-1 text-xs">{tagCount}</span>
-          </Button>
-          <div className="flex items-center text-gray-500">
-            <Users className="h-4 w-4 mr-1" />
-            <span className="text-xs">{ownersCount}</span>
+    <>
+      <CardFooter className="p-2 sm:p-4 pt-0 flex flex-col gap-2">
+        <div className="flex justify-end gap-2">
+          <TagButton onClick={onTagManageClick} tagCount={tagCount} />
+          <div className="flex flex-col items-center">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOwnersModalOpen(true);
+              }}
+              className="border-gray-200 hover:bg-gray-50"
+            >
+              <Users className="h-4 w-4" />
+            </Button>
+            <span className="text-xs text-gray-500 mt-1">{ownersCount}</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={onWishlistClick}
+              className="border-gray-200 hover:bg-gray-50"
+            >
+              <ShoppingBasket className="h-4 w-4 text-foreground" />
+            </Button>
+            <span className="text-xs text-gray-500 mt-1">{wishlistCount}</span>
           </div>
         </div>
-        <Button
+        <Button 
           variant={isInCollection ? "secondary" : "default"}
-          size="sm"
+          className={`w-full ${isInCollection ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-gray-900 hover:bg-gray-800'}`}
           onClick={onAddToCollection}
           disabled={isInCollection}
         >
-          {isInCollection ? t("collection.added") : t("collection.add")}
+          {isInCollection ? "追加済み" : "コレクションに追加"}
         </Button>
-      </div>
-    </CardFooter>
+      </CardFooter>
+
+      <ItemOwnersModal
+        isOpen={isOwnersModalOpen}
+        onClose={() => setIsOwnersModalOpen(false)}
+        itemTitle={itemTitle}
+        itemImage={itemImage}
+      />
+    </>
   );
 }
