@@ -1,6 +1,4 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,27 +7,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { TradeCompletionModal } from "./TradeCompletionModal";
 import { ChatModal } from "../chat/ChatModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface TradeRequest {
-  id: string;
-  sender: {
-    id: string;
-    username: string;
-    display_name: string | null;
-  };
-  offered_item: {
-    id: string;
-    title: string;
-    image: string;
-  };
-  requested_item: {
-    id: string;
-    title: string;
-    image: string;
-  };
-  message: string | null;
-  status: string;
-}
+import { PendingTradesList } from "./PendingTradesList";
+import { AcceptedTradesList } from "./AcceptedTradesList";
+import { TradeRequest } from "./types";
 
 interface TradeRequestsModalProps {
   isOpen: boolean;
@@ -149,7 +129,6 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
         setSelectedRequest(request);
         setShowCompletionModal(true);
 
-        // Create a new chat message for the trade
         const { error: messageError } = await supabase
           .from("messages")
           .insert([
@@ -213,114 +192,17 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
               </TabsTrigger>
             </TabsList>
             <TabsContent value="pending" className="flex-1 mt-0">
-              <ScrollArea className="h-[calc(90vh-180px)]">
-                <div className="space-y-4 pr-4">
-                  {tradeRequests.length === 0 ? (
-                    <p className="text-center text-gray-500">現在、受信したトレードリクエストはありません</p>
-                  ) : (
-                    tradeRequests.map((request) => (
-                      <div
-                        key={request.id}
-                        className="border rounded-lg p-4 space-y-3"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">
-                            {request.sender.display_name || request.sender.username}
-                          </span>
-                          <span className="text-sm text-gray-500">からのリクエスト</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                            <p className="text-xs text-gray-500">提供アイテム:</p>
-                            <img
-                              src={request.offered_item.image}
-                              alt={request.offered_item.title}
-                              className="w-full aspect-square object-cover rounded-md"
-                            />
-                            <p className="text-sm truncate">{request.offered_item.title}</p>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-xs text-gray-500">リクエストアイテム:</p>
-                            <img
-                              src={request.requested_item.image}
-                              alt={request.requested_item.title}
-                              className="w-full aspect-square object-cover rounded-md"
-                            />
-                            <p className="text-sm truncate">{request.requested_item.title}</p>
-                          </div>
-                        </div>
-                        {request.message && (
-                          <div className="text-sm bg-gray-50 rounded p-2">
-                            {request.message}
-                          </div>
-                        )}
-                        <div className="flex gap-2 justify-end">
-                          <Button
-                            variant="outline"
-                            onClick={() => handleTradeResponse(request.id, false)}
-                          >
-                            拒否
-                          </Button>
-                          <Button
-                            onClick={() => handleTradeResponse(request.id, true)}
-                          >
-                            承認
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </ScrollArea>
+              <PendingTradesList
+                trades={tradeRequests}
+                onAccept={(id) => handleTradeResponse(id, true)}
+                onReject={(id) => handleTradeResponse(id, false)}
+              />
             </TabsContent>
             <TabsContent value="accepted" className="flex-1 mt-0">
-              <ScrollArea className="h-[calc(90vh-180px)]">
-                <div className="space-y-4 pr-4">
-                  {acceptedTrades.length === 0 ? (
-                    <p className="text-center text-gray-500">現在、進行中のトレードはありません</p>
-                  ) : (
-                    acceptedTrades.map((trade) => (
-                      <div
-                        key={trade.id}
-                        className="border rounded-lg p-4 space-y-3"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">
-                            {trade.sender.display_name || trade.sender.username}
-                          </span>
-                          <span className="text-sm text-gray-500">とのトレード</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                            <p className="text-xs text-gray-500">提供アイテム:</p>
-                            <img
-                              src={trade.offered_item.image}
-                              alt={trade.offered_item.title}
-                              className="w-full aspect-square object-cover rounded-md"
-                            />
-                            <p className="text-sm truncate">{trade.offered_item.title}</p>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-xs text-gray-500">リクエストアイテム:</p>
-                            <img
-                              src={trade.requested_item.image}
-                              alt={trade.requested_item.title}
-                              className="w-full aspect-square object-cover rounded-md"
-                            />
-                            <p className="text-sm truncate">{trade.requested_item.title}</p>
-                          </div>
-                        </div>
-                        <Button
-                          className="w-full"
-                          onClick={() => openChat(trade)}
-                        >
-                          チャットを開く
-                        </Button>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </ScrollArea>
+              <AcceptedTradesList
+                trades={acceptedTrades}
+                onOpenChat={openChat}
+              />
             </TabsContent>
           </Tabs>
         </DialogContent>
