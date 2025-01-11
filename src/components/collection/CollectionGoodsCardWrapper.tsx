@@ -5,10 +5,12 @@ import { CollectionGoodsCardContent } from "./CollectionGoodsCardContent";
 import { CardFooter as UICardFooter } from "@/components/ui/card";
 import { CardActions } from "./CardActions";
 import { CardModals } from "./CardModals";
-import { useCardEventHandlers } from "./CardEventHandlers";
+import { CardEventHandlers } from "./CardEventHandlers";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardImage } from "./CardImage";
 import { TradeRequestModal } from "../trade/TradeRequestModal";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -37,10 +39,49 @@ export function CollectionGoodsCardWrapper({
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
 
-  const { handleDelete } = useCardEventHandlers(id);
+  const { handleDelete } = CardEventHandlers(id);
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
   const canTrade = !isOwner && !!user;
+  const isOtherUserCollection = !!userId && userId !== user?.id;
+
+  const { data: isLiked = false } = useQuery({
+    queryKey: ["user-item-likes", id, user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase
+        .from("user_item_likes")
+        .select("id")
+        .eq("user_item_id", id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      return !!data;
+    },
+    enabled: !!user && !!id,
+  });
+
+  const handleLikeToggle = async () => {
+    if (!user) return;
+    
+    try {
+      if (isLiked) {
+        await supabase
+          .from("user_item_likes")
+          .delete()
+          .eq("user_item_id", id)
+          .eq("user_id", user.id);
+      } else {
+        await supabase
+          .from("user_item_likes")
+          .insert({
+            user_item_id: id,
+            user_id: user.id,
+          });
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+    }
+  };
 
   if (isCompact) {
     return (
@@ -93,7 +134,10 @@ export function CollectionGoodsCardWrapper({
             onTagManageClick={() => setIsTagManageModalOpen(true)}
             onDeleteClick={() => setIsDeleteDialogOpen(true)}
             onTradeClick={() => setIsTradeModalOpen(true)}
+            onLikeClick={handleLikeToggle}
             showTradeButton={canTrade}
+            isOtherUserCollection={isOtherUserCollection}
+            isLiked={isLiked}
           />
         </UICardFooter>
       )}
