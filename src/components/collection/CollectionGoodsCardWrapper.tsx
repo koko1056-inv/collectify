@@ -5,7 +5,7 @@ import { CollectionGoodsCardContent } from "./CollectionGoodsCardContent";
 import { CardFooter as UICardFooter } from "@/components/ui/card";
 import { CardActions } from "./CardActions";
 import { CardModals } from "./CardModals";
-import { CardEventHandlers } from "./CardEventHandlers";
+import { useCardEventHandlers } from "./CardEventHandlers";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardImage } from "./CardImage";
 import { TradeRequestModal } from "../trade/TradeRequestModal";
@@ -39,7 +39,7 @@ export function CollectionGoodsCardWrapper({
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
 
-  const { handleDelete } = CardEventHandlers(id);
+  const { handleDelete } = useCardEventHandlers(id);
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
   const canTrade = !isOwner && !!user;
