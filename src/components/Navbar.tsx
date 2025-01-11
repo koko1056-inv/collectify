@@ -4,10 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, UserSearch, User } from "lucide-react";
-import { useState } from "react";
+import { ShoppingBasket, UserSearch, User, Repeat2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
+import { TradeRequestsModal } from "./trade/TradeRequestsModal";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
@@ -29,6 +30,51 @@ export function Navbar() {
   const { t } = useLanguage();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
+  const [pendingTradeRequests, setPendingTradeRequests] = useState(0);
+
+  useEffect(() => {
+    if (user) {
+      fetchPendingTradeRequests();
+      subscribeToTradeRequests();
+    }
+  }, [user]);
+
+  const fetchPendingTradeRequests = async () => {
+    if (!user) return;
+
+    const { count, error } = await supabase
+      .from("trade_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("receiver_id", user.id)
+      .eq("status", "pending");
+
+    if (!error && count !== null) {
+      setPendingTradeRequests(count);
+    }
+  };
+
+  const subscribeToTradeRequests = () => {
+    const channel = supabase
+      .channel("trade-requests")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "trade_requests",
+          filter: `receiver_id=eq.${user?.id}`,
+        },
+        () => {
+          fetchPendingTradeRequests();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -82,6 +128,19 @@ export function Navbar() {
               >
                 <ShoppingBasket className="h-4 w-4 text-foreground" />
               </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setIsTradeModalOpen(true)}
+                className="relative h-8 w-8 sm:h-9 sm:w-9"
+              >
+                <Repeat2 className="h-4 w-4 text-foreground" />
+                {pendingTradeRequests > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {pendingTradeRequests}
+                  </span>
+                )}
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -123,6 +182,10 @@ export function Navbar() {
       <UserSearchModal
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
+      />
+      <TradeRequestsModal
+        isOpen={isTradeModalOpen}
+        onClose={() => setIsTradeModalOpen(false)}
       />
     </nav>
   );
