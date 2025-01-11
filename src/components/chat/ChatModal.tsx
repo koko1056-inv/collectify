@@ -11,6 +11,7 @@ interface ChatModalProps {
   isOpen: boolean;
   onClose: () => void;
   partnerId: string;
+  tradeRequestId?: string;
 }
 
 interface Message {
@@ -20,7 +21,7 @@ interface Message {
   created_at: string;
 }
 
-export function ChatModal({ isOpen, onClose, partnerId }: ChatModalProps) {
+export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatModalProps) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -33,7 +34,7 @@ export function ChatModal({ isOpen, onClose, partnerId }: ChatModalProps) {
       fetchPartnerProfile();
       subscribeToMessages();
     }
-  }, [isOpen, user, partnerId]);
+  }, [isOpen, user, partnerId, tradeRequestId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -54,12 +55,18 @@ export function ChatModal({ isOpen, onClose, partnerId }: ChatModalProps) {
   const fetchMessages = async () => {
     if (!user) return;
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("messages")
       .select("*")
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .or(`sender_id.eq.${partnerId},receiver_id.eq.${partnerId}`)
       .order("created_at", { ascending: true });
+
+    if (tradeRequestId) {
+      query = query.eq('trade_request_id', tradeRequestId);
+    }
+
+    const { data, error } = await query;
 
     if (!error && data) {
       setMessages(data);
@@ -75,7 +82,9 @@ export function ChatModal({ isOpen, onClose, partnerId }: ChatModalProps) {
           event: "*",
           schema: "public",
           table: "messages",
-          filter: `sender_id=eq.${partnerId},receiver_id=eq.${user?.id}`,
+          filter: tradeRequestId 
+            ? `trade_request_id=eq.${tradeRequestId}`
+            : `sender_id=eq.${partnerId},receiver_id=eq.${user?.id}`,
         },
         () => {
           fetchMessages();
@@ -97,11 +106,14 @@ export function ChatModal({ isOpen, onClose, partnerId }: ChatModalProps) {
   const handleSendMessage = async () => {
     if (!user || !newMessage.trim()) return;
 
-    const { error } = await supabase.from("messages").insert({
+    const messageData = {
       sender_id: user.id,
       receiver_id: partnerId,
       content: newMessage.trim(),
-    });
+      trade_request_id: tradeRequestId
+    };
+
+    const { error } = await supabase.from("messages").insert(messageData);
 
     if (!error) {
       setNewMessage("");

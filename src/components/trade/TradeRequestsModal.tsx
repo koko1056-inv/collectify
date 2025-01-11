@@ -43,7 +43,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
   const [selectedRequest, setSelectedRequest] = useState<TradeRequest | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
-  const [chatPartnerId, setChatPartnerId] = useState<string | null>(null);
+  const [activeChatTradeId, setActiveChatTradeId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && isOpen) {
@@ -108,33 +108,30 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
       if (accept) {
         setSelectedRequest(request);
         setShowCompletionModal(true);
-        setChatPartnerId(request.sender.id);
 
-        // Send notification to the sender
-        const { error: senderNotificationError } = await supabase
+        // Create a new chat message for the trade
+        const { error: messageError } = await supabase
           .from("messages")
-          .insert({
-            sender_id: user?.id,
-            receiver_id: request.sender.id,
-            content: `あなたのトレードリクエストが承認されました。「${request.offered_item.title}」と「${request.requested_item.title}」の交換を進めましょう。`,
-            related_item_id: request.offered_item.id
-          });
+          .insert([
+            {
+              sender_id: user?.id,
+              receiver_id: request.sender.id,
+              content: `トレードが承認されました。「${request.offered_item.title}」と「${request.requested_item.title}」の交換について詳細を決めましょう。`,
+              trade_request_id: tradeId
+            },
+            {
+              sender_id: request.sender.id,
+              receiver_id: user?.id,
+              content: `あなたのトレードリクエストが承認されました。「${request.offered_item.title}」と「${request.requested_item.title}」の交換を進めましょう。`,
+              trade_request_id: tradeId
+            }
+          ]);
 
-        // Send notification to the receiver (current user)
-        const { error: receiverNotificationError } = await supabase
-          .from("messages")
-          .insert({
-            sender_id: request.sender.id,
-            receiver_id: user?.id,
-            content: `トレードが成立しました。「${request.offered_item.title}」と「${request.requested_item.title}」の交換について詳細を決めましょう。`,
-            related_item_id: request.requested_item.id
-          });
-
-        if (senderNotificationError || receiverNotificationError) {
-          console.error("Error sending notifications:", { senderNotificationError, receiverNotificationError });
+        if (messageError) {
+          console.error("Error creating trade messages:", messageError);
         }
 
-        // Open chat modal
+        setActiveChatTradeId(tradeId);
         setShowChatModal(true);
       } else {
         toast({
@@ -228,11 +225,12 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
         />
       )}
 
-      {chatPartnerId && (
+      {activeChatTradeId && (
         <ChatModal
           isOpen={showChatModal}
           onClose={() => setShowChatModal(false)}
-          partnerId={chatPartnerId}
+          partnerId={selectedRequest?.sender.id || ''}
+          tradeRequestId={activeChatTradeId}
         />
       )}
     </>

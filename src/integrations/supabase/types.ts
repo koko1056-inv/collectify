@@ -134,6 +134,7 @@ export type Database = {
           receiver_id: string
           related_item_id: string | null
           sender_id: string
+          trade_request_id: string | null
         }
         Insert: {
           content: string
@@ -143,6 +144,7 @@ export type Database = {
           receiver_id: string
           related_item_id?: string | null
           sender_id: string
+          trade_request_id?: string | null
         }
         Update: {
           content?: string
@@ -152,6 +154,7 @@ export type Database = {
           receiver_id?: string
           related_item_id?: string | null
           sender_id?: string
+          trade_request_id?: string | null
         }
         Relationships: [
           {
@@ -159,6 +162,13 @@ export type Database = {
             columns: ["related_item_id"]
             isOneToOne: false
             referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_trade_request_id_fkey"
+            columns: ["trade_request_id"]
+            isOneToOne: false
+            referencedRelation: "trade_requests"
             referencedColumns: ["id"]
           },
         ]
