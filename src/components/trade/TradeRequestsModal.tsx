@@ -11,14 +11,17 @@ import { TradeCompletionModal } from "./TradeCompletionModal";
 interface TradeRequest {
   id: string;
   sender: {
+    id: string;
     username: string;
     display_name: string | null;
   };
   offered_item: {
+    id: string;
     title: string;
     image: string;
   };
   requested_item: {
+    id: string;
     title: string;
     image: string;
   };
@@ -55,14 +58,17 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
         message,
         status,
         sender:profiles!trade_requests_sender_id_fkey(
+          id,
           username,
           display_name
         ),
         offered_item:user_items!trade_requests_offered_item_id_fkey(
+          id,
           title,
           image
         ),
         requested_item:user_items!trade_requests_requested_item_id_fkey(
+          id,
           title,
           image
         )
