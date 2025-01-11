@@ -33,7 +33,6 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
       fetchMessages();
       fetchPartnerProfile();
       subscribeToMessages();
-      markMessagesAsRead();
     }
   }, [isOpen, user, partnerId, tradeRequestId]);
 
@@ -88,7 +87,6 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
 
     if (!error && data) {
       setMessages(data);
-      await markMessagesAsRead();
     }
   };
 
@@ -136,6 +134,7 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
 
     if (!error) {
       setNewMessage("");
+      await markMessagesAsRead();
       fetchMessages();
     }
   };
