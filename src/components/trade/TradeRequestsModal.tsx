@@ -7,7 +7,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { TradeCompletionModal } from "./TradeCompletionModal";
-import { ChatModal } from "../chat/ChatModal";
 
 interface TradeRequest {
   id: string;
@@ -42,8 +41,6 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
   const [tradeRequests, setTradeRequests] = useState<TradeRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<TradeRequest | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
-  const [showChatModal, setShowChatModal] = useState(false);
-  const [chatPartnerId, setChatPartnerId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user && isOpen) {
@@ -103,35 +100,31 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
       return;
     }
 
-    const request = tradeRequests.find(req => req.id === tradeId);
-    if (request) {
-      if (accept) {
+    if (accept) {
+      const request = tradeRequests.find(req => req.id === tradeId);
+      if (request) {
         setSelectedRequest(request);
         setShowCompletionModal(true);
-        setChatPartnerId(request.sender.id);
-
-        // Send notification to the sender
-        const { error: notificationError } = await supabase
-          .from("messages")
-          .insert({
-            sender_id: user?.id,
-            receiver_id: request.sender.id,
-            content: `あなたのトレードリクエストが承認されました。「${request.offered_item.title}」と「${request.requested_item.title}」の交換を進めましょう。`,
-            related_item_id: request.offered_item.id
-          });
-
-        if (notificationError) {
-          console.error("Error sending notification:", notificationError);
-        }
-
-        // Open chat modal
-        setShowChatModal(true);
-      } else {
-        toast({
-          title: "更新完了",
-          description: "トレードリクエストを拒否しました",
-        });
       }
+
+      // Send notification to the sender
+      const { error: notificationError } = await supabase
+        .from("messages")
+        .insert({
+          sender_id: user?.id,
+          receiver_id: request?.sender.id,
+          content: `あなたのトレードリクエストが承認されました。「${request?.offered_item.title}」と「${request?.requested_item.title}」の交換を進めましょう。`,
+          related_item_id: request?.offered_item.id
+        });
+
+      if (notificationError) {
+        console.error("Error sending notification:", notificationError);
+      }
+    } else {
+      toast({
+        title: "更新完了",
+        description: "トレードリクエストを拒否しました",
+      });
     }
 
     fetchTradeRequests();
@@ -215,14 +208,6 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
             onClose();
           }}
           tradeRequest={selectedRequest}
-        />
-      )}
-
-      {chatPartnerId && (
-        <ChatModal
-          isOpen={showChatModal}
-          onClose={() => setShowChatModal(false)}
-          partnerId={chatPartnerId}
         />
       )}
     </>
