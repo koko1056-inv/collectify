@@ -43,17 +43,19 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
   const markMessagesAsRead = async () => {
     if (!user) return;
 
-    const query = supabase
+    let query = supabase
       .from("messages")
       .update({ is_read: true })
       .eq("receiver_id", user.id)
       .eq("is_read", false);
 
     if (tradeRequestId) {
-      await query.eq("trade_request_id", tradeRequestId);
+      query = query.eq("trade_request_id", tradeRequestId);
     } else {
-      await query.eq("sender_id", partnerId);
+      query = query.eq("sender_id", partnerId).is("trade_request_id", null);
     }
+
+    await query;
   };
 
   const fetchPartnerProfile = async () => {
