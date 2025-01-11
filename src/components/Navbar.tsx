@@ -9,7 +9,6 @@ import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
 import { TradeRequestsModal } from "./trade/TradeRequestsModal";
-import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   DropdownMenu,
@@ -99,7 +98,6 @@ export function Navbar() {
           Collectify
         </Link>
         <div className="ml-auto flex items-center gap-2 sm:gap-4">
-          <LanguageSwitcher />
           <UserInfo />
           {user ? (
             <>
