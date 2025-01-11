@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -84,48 +85,50 @@ export function TradeRequestModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] h-[90vh]">
         <DialogHeader>
           <DialogTitle>トレードリクエスト</DialogTitle>
           <DialogDescription>
             「{requestedItemTitle}」との交換をリクエストします
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">交換に出すアイテムを選択してください</label>
-            <div className="grid grid-cols-2 gap-2">
-              {userItems?.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setSelectedItem(item.id)}
-                  className={`p-2 rounded-lg border transition-colors ${
-                    selectedItem === item.id
-                      ? "border-purple-500 bg-purple-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full aspect-square object-cover rounded-md"
-                  />
-                  <p className="mt-1 text-xs truncate">{item.title}</p>
-                </button>
-              ))}
+        <ScrollArea className="flex-1 px-1">
+          <div className="space-y-4 pr-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">交換に出すアイテムを選択してください</label>
+              <div className="grid grid-cols-2 gap-2">
+                {userItems?.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setSelectedItem(item.id)}
+                    className={`p-2 rounded-lg border transition-colors ${
+                      selectedItem === item.id
+                        ? "border-purple-500 bg-purple-50"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full aspect-square object-cover rounded-md"
+                    />
+                    <p className="mt-1 text-xs truncate">{item.title}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">メッセージ</label>
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="交換の理由や希望などを記入してください"
+                className="resize-none"
+              />
             </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">メッセージ</label>
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="交換の理由や希望などを記入してください"
-              className="resize-none"
-            />
-          </div>
-        </div>
-        <DialogFooter>
+        </ScrollArea>
+        <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose}>
             キャンセル
           </Button>
