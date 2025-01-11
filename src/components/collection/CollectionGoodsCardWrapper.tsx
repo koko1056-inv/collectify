@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
 import { CollectionGoodsCardContent } from "./CollectionGoodsCardContent";
@@ -9,8 +8,8 @@ import { useCardEventHandlers } from "./CardEventHandlers";
 import { useAuth } from "@/contexts/AuthContext";
 import { CardImage } from "./CardImage";
 import { TradeRequestModal } from "../trade/TradeRequestModal";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { CardContainer } from "./CardContainer";
+import { useCollectionCard } from "@/hooks/collection/useCollectionCard";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -33,62 +32,30 @@ export function CollectionGoodsCardWrapper({
   quantity = 1,
   isCompact = false,
 }: CollectionGoodsCardWrapperProps) {
-  const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
-  const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
-
   const { handleDelete } = useCardEventHandlers(id);
   const { user } = useAuth();
+  const {
+    isMemoriesModalOpen,
+    isTagManageModalOpen,
+    isDeleteDialogOpen,
+    isDetailsModalOpen,
+    isTradeModalOpen,
+    isLiked,
+    setIsMemoriesModalOpen,
+    setIsTagManageModalOpen,
+    setIsDeleteDialogOpen,
+    setIsDetailsModalOpen,
+    setIsTradeModalOpen,
+    handleLikeToggle,
+  } = useCollectionCard(id, user?.id);
+
   const isOwner = !userId || (user && user.id === userId);
   const canTrade = !isOwner && !!user;
   const isOtherUserCollection = !!userId && userId !== user?.id;
 
-  const { data: isLiked = false } = useQuery({
-    queryKey: ["user-item-likes", id, user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-      const { data } = await supabase
-        .from("user_item_likes")
-        .select("id")
-        .eq("user_item_id", id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      return !!data;
-    },
-    enabled: !!user && !!id,
-  });
-
-  const handleLikeToggle = async () => {
-    if (!user) return;
-    
-    try {
-      if (isLiked) {
-        await supabase
-          .from("user_item_likes")
-          .delete()
-          .eq("user_item_id", id)
-          .eq("user_id", user.id);
-      } else {
-        await supabase
-          .from("user_item_likes")
-          .insert({
-            user_item_id: id,
-            user_id: user.id,
-          });
-      }
-    } catch (error) {
-      console.error("Error toggling like:", error);
-    }
-  };
-
   if (isCompact) {
     return (
-      <Card 
-        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer"
-        onClick={() => setIsDetailsModalOpen(true)}
-      >
+      <CardContainer onClick={() => setIsDetailsModalOpen(true)}>
         <CardImage title={title} image={image} />
         <CardModals
           itemId={id}
@@ -108,7 +75,7 @@ export function CollectionGoodsCardWrapper({
           onDetailsClose={() => setIsDetailsModalOpen(false)}
           onDeleteConfirm={handleDelete}
         />
-      </Card>
+      </CardContainer>
     );
   }
 

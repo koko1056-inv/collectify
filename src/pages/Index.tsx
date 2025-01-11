@@ -5,12 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { CollectionTabs } from "@/components/CollectionTabs";
 import { FilterBar } from "@/components/FilterBar";
 import { InitialInterestSelection } from "@/components/InitialInterestSelection";
-import { OfficialItem, Tag } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFilteredItems } from "@/hooks/collection/useFilteredItems";
 
 const Index = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showInterestDialog, setShowInterestDialog] = useState(false);
   const { user } = useAuth();
 
@@ -32,7 +30,7 @@ const Index = () => {
     enabled: !!user,
   });
 
-  const { data: items = [] } = useQuery<OfficialItem[]>({
+  const { data: items = [] } = useQuery({
     queryKey: ["official-items"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -49,7 +47,7 @@ const Index = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as OfficialItem[];
+      return data;
     },
   });
 
@@ -61,47 +59,23 @@ const Index = () => {
         .select("*")
         .order("name");
       if (error) throw error;
-      return data as Tag[];
+      return data;
     },
   });
+
+  const {
+    searchQuery,
+    selectedTags,
+    setSearchQuery,
+    setSelectedTags,
+    sortedItems,
+  } = useFilteredItems(items, profile?.interests);
 
   useEffect(() => {
     if (user && profile && (!profile.interests || profile.interests.length === 0)) {
       setShowInterestDialog(true);
     }
   }, [user, profile]);
-
-  const filteredItems = items.filter((item) => {
-    const matchesSearch = searchQuery
-      ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.artist?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-        (item.anime?.toLowerCase() || "").includes(searchQuery.toLowerCase())
-      : true;
-    
-    const matchesTags = selectedTags.length === 0 || 
-      selectedTags.every(tag => 
-        item.item_tags?.some(itemTag => itemTag.tags?.name === tag)
-      );
-    
-    return matchesSearch && matchesTags;
-  });
-
-  const sortedItems = [...filteredItems].sort((a, b) => {
-    if (!profile?.interests || profile.interests.length === 0) return 0;
-
-    const aMatchCount = a.item_tags?.filter(
-      itemTag => profile.interests.includes(itemTag.tags?.name || "")
-    ).length || 0;
-    const bMatchCount = b.item_tags?.filter(
-      itemTag => profile.interests.includes(itemTag.tags?.name || "")
-    ).length || 0;
-
-    if (aMatchCount !== bMatchCount) {
-      return bMatchCount - aMatchCount;
-    }
-
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
 
   const handleInterestDialogClose = () => {
     setShowInterestDialog(false);
@@ -137,6 +111,6 @@ const Index = () => {
       </main>
     </div>
   );
-};
+}
 
 export default Index;
