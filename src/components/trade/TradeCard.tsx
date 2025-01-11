@@ -1,7 +1,9 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { TradeRequest } from "./types";
-import { TradeCardMessage } from "./TradeCardMessage";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface TradeCardProps {
   trade: TradeRequest;
@@ -20,6 +22,53 @@ export function TradeCard({
   onReject, 
   onOpenChat 
 }: TradeCardProps) {
+  const { user } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!isPending && !isCompleted && user) {
+      fetchUnreadMessages();
+      subscribeToMessages();
+    }
+  }, [trade.id, user, isPending, isCompleted]);
+
+  const fetchUnreadMessages = async () => {
+    if (!user) return;
+
+    const { count, error } = await supabase
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+      .eq("trade_request_id", trade.id)
+      .eq("receiver_id", user.id)
+      .eq("is_read", false);
+
+    if (!error && count !== null) {
+      setUnreadCount(count);
+    }
+  };
+
+  const subscribeToMessages = () => {
+    const channel = supabase
+      .channel("messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "messages",
+          filter: `trade_request_id=eq.${trade.id}`,
+        },
+        () => {
+          fetchUnreadMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
   return (
     <div className="border rounded-lg p-4 space-y-3">
       <div className="flex items-center gap-2">
@@ -75,7 +124,11 @@ export function TradeCard({
           onClick={() => onOpenChat?.(trade)}
         >
           チャットを開く
-          <TradeCardMessage tradeId={trade.id} />
+          {unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
         </Button>
       )}
     </div>

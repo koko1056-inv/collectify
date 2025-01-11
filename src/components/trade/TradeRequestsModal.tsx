@@ -2,7 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { TradeCompletionModal } from "./TradeCompletionModal";
 import { ChatModal } from "../chat/ChatModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +11,6 @@ import { PendingTradesList } from "./PendingTradesList";
 import { AcceptedTradesList } from "./AcceptedTradesList";
 import { CompletedTradesList } from "./CompletedTradesList";
 import { TradeRequest } from "./types";
-import { useTradeRequests } from "@/hooks/trade/useTradeRequests";
 
 interface TradeRequestsModalProps {
   isOpen: boolean;
@@ -20,11 +20,133 @@ interface TradeRequestsModalProps {
 export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { tradeRequests, acceptedTrades, completedTrades, fetchAllTrades } = useTradeRequests();
+  const { t } = useLanguage();
+  const [tradeRequests, setTradeRequests] = useState<TradeRequest[]>([]);
+  const [acceptedTrades, setAcceptedTrades] = useState<TradeRequest[]>([]);
+  const [completedTrades, setCompletedTrades] = useState<TradeRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<TradeRequest | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
   const [activeChatTradeId, setActiveChatTradeId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user && isOpen) {
+      fetchTradeRequests();
+      fetchAcceptedTrades();
+      fetchCompletedTrades();
+    }
+  }, [user, isOpen]);
+
+  const fetchCompletedTrades = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("trade_requests")
+      .select(`
+        id,
+        message,
+        status,
+        sender:profiles!trade_requests_sender_id_fkey(
+          id,
+          username,
+          display_name
+        ),
+        offered_item:user_items!trade_requests_offered_item_id_fkey(
+          id,
+          title,
+          image
+        ),
+        requested_item:user_items!trade_requests_requested_item_id_fkey(
+          id,
+          title,
+          image
+        )
+      `)
+      .eq("status", "completed")
+      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching completed trades:", error);
+      return;
+    }
+
+    setCompletedTrades(data);
+  };
+
+  const fetchAcceptedTrades = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("trade_requests")
+      .select(`
+        id,
+        message,
+        status,
+        sender:profiles!trade_requests_sender_id_fkey(
+          id,
+          username,
+          display_name
+        ),
+        offered_item:user_items!trade_requests_offered_item_id_fkey(
+          id,
+          title,
+          image
+        ),
+        requested_item:user_items!trade_requests_requested_item_id_fkey(
+          id,
+          title,
+          image
+        )
+      `)
+      .eq("status", "accepted")
+      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching accepted trades:", error);
+      return;
+    }
+
+    setAcceptedTrades(data);
+  };
+
+  const fetchTradeRequests = async () => {
+    if (!user) return;
+
+    const { data: tradeRequestsData, error } = await supabase
+      .from("trade_requests")
+      .select(`
+        id,
+        message,
+        status,
+        sender:profiles!trade_requests_sender_id_fkey(
+          id,
+          username,
+          display_name
+        ),
+        offered_item:user_items!trade_requests_offered_item_id_fkey(
+          id,
+          title,
+          image
+        ),
+        requested_item:user_items!trade_requests_requested_item_id_fkey(
+          id,
+          title,
+          image
+        )
+      `)
+      .eq("receiver_id", user.id)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching trade requests:", error);
+      return;
+    }
+
+    setTradeRequests(tradeRequestsData);
+  };
 
   const handleTradeResponse = async (tradeId: string, accept: boolean) => {
     const { error } = await supabase
@@ -35,7 +157,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
     if (error) {
       toast({
         variant: "destructive",
-        title: "エラー",
+        title: t("common.error"),
         description: "トレードリクエストの更新に失敗しました",
       });
       return;
@@ -78,7 +200,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
       }
     }
 
-    fetchAllTrades();
+    fetchTradeRequests();
   };
 
   const openChat = (trade: TradeRequest) => {
@@ -96,9 +218,24 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
           </DialogHeader>
           <Tabs defaultValue="pending" className="flex-1 flex flex-col">
             <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="pending">保留中</TabsTrigger>
-              <TabsTrigger value="accepted">進行中</TabsTrigger>
-              <TabsTrigger value="completed">完了</TabsTrigger>
+              <TabsTrigger 
+                value="pending"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                保留中
+              </TabsTrigger>
+              <TabsTrigger 
+                value="accepted"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                進行中
+              </TabsTrigger>
+              <TabsTrigger 
+                value="completed"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                完了
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="pending" className="flex-1 mt-0">
               <PendingTradesList
@@ -114,7 +251,9 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
               />
             </TabsContent>
             <TabsContent value="completed" className="flex-1 mt-0">
-              <CompletedTradesList trades={completedTrades} />
+              <CompletedTradesList
+                trades={completedTrades}
+              />
             </TabsContent>
           </Tabs>
         </DialogContent>
