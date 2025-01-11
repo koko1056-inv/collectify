@@ -33,12 +33,31 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
       fetchMessages();
       fetchPartnerProfile();
       subscribeToMessages();
+      markMessagesAsRead();
     }
   }, [isOpen, user, partnerId, tradeRequestId]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const markMessagesAsRead = async () => {
+    if (!user) return;
+
+    let query = supabase
+      .from("messages")
+      .update({ is_read: true })
+      .eq("receiver_id", user.id)
+      .eq("is_read", false);
+
+    if (tradeRequestId) {
+      query = query.eq("trade_request_id", tradeRequestId);
+    } else {
+      query = query.eq("sender_id", partnerId);
+    }
+
+    await query;
+  };
 
   const fetchPartnerProfile = async () => {
     const { data, error } = await supabase
@@ -88,6 +107,7 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
         },
         () => {
           fetchMessages();
+          markMessagesAsRead();
         }
       )
       .subscribe();
