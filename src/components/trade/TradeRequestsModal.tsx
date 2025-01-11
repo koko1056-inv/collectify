@@ -193,17 +193,27 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[425px] h-[90vh]">
+        <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>トレードリクエスト</DialogTitle>
           </DialogHeader>
-          <Tabs defaultValue="pending" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="pending">保留中</TabsTrigger>
-              <TabsTrigger value="accepted">進行中</TabsTrigger>
+          <Tabs defaultValue="pending" className="flex-1 flex flex-col">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger 
+                value="pending"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                保留中
+              </TabsTrigger>
+              <TabsTrigger 
+                value="accepted"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                進行中
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="pending">
-              <ScrollArea className="flex-1 px-1">
+            <TabsContent value="pending" className="flex-1 mt-0">
+              <ScrollArea className="h-[calc(90vh-180px)]">
                 <div className="space-y-4 pr-4">
                   {tradeRequests.length === 0 ? (
                     <p className="text-center text-gray-500">現在、受信したトレードリクエストはありません</p>
@@ -263,8 +273,8 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
                 </div>
               </ScrollArea>
             </TabsContent>
-            <TabsContent value="accepted">
-              <ScrollArea className="flex-1 px-1">
+            <TabsContent value="accepted" className="flex-1 mt-0">
+              <ScrollArea className="h-[calc(90vh-180px)]">
                 <div className="space-y-4 pr-4">
                   {acceptedTrades.length === 0 ? (
                     <p className="text-center text-gray-500">現在、進行中のトレードはありません</p>
