@@ -21,7 +21,7 @@ export function CardActions({
   showTradeButton = false,
 }: CardActionsProps) {
   return (
-    <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+    <div className="flex justify-end gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
       {showTradeButton && (
         <Button
           variant="default"
@@ -30,10 +30,10 @@ export function CardActions({
             e.stopPropagation();
             onTradeClick?.();
           }}
-          className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-7"
+          className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-6 px-2 text-xs"
         >
-          <Repeat className="h-3 w-3 mr-2" />
-          <span className="text-xs">トレード</span>
+          <Repeat className="h-3 w-3 mr-1" />
+          トレード
         </Button>
       )}
       <Button 
@@ -43,10 +43,10 @@ export function CardActions({
           e.stopPropagation();
           onMemoriesClick();
         }}
-        className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-7"
+        className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-6 px-2 text-xs whitespace-nowrap"
       >
-        <PlusCircle className="h-3 w-3 mr-2" />
-        <span className="text-xs">記録を追加</span>
+        <PlusCircle className="h-3 w-3 mr-1" />
+        記録を追加
       </Button>
       <Button 
         variant="outline" 
@@ -59,7 +59,7 @@ export function CardActions({
           hasTags 
             ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
             : "border-gray-200 hover:bg-gray-50"
-        } transition-colors h-7 w-7 p-0`}
+        } transition-colors h-6 w-6 p-0`}
       >
         <Tag className={`h-3 w-3 ${hasTags ? "text-purple-500" : ""}`} />
       </Button>
@@ -70,7 +70,7 @@ export function CardActions({
           e.stopPropagation();
           onDeleteClick();
         }}
-        className="border-gray-200 hover:bg-gray-50 hover:border-red-200 hover:text-red-500 h-7 w-7 p-0"
+        className="border-gray-200 hover:bg-gray-50 hover:border-red-200 hover:text-red-500 h-6 w-6 p-0"
       >
         <Trash2 className="h-3 w-3" />
       </Button>
