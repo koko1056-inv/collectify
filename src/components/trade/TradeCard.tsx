@@ -8,21 +8,29 @@ import { useAuth } from "@/contexts/AuthContext";
 interface TradeCardProps {
   trade: TradeRequest;
   isPending?: boolean;
+  isCompleted?: boolean;
   onAccept?: (tradeId: string) => void;
   onReject?: (tradeId: string) => void;
   onOpenChat?: (trade: TradeRequest) => void;
 }
 
-export function TradeCard({ trade, isPending, onAccept, onReject, onOpenChat }: TradeCardProps) {
+export function TradeCard({ 
+  trade, 
+  isPending, 
+  isCompleted,
+  onAccept, 
+  onReject, 
+  onOpenChat 
+}: TradeCardProps) {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (!isPending && user) {
+    if (!isPending && !isCompleted && user) {
       fetchUnreadMessages();
       subscribeToMessages();
     }
-  }, [trade.id, user]);
+  }, [trade.id, user, isPending, isCompleted]);
 
   const fetchUnreadMessages = async () => {
     if (!user) return;
@@ -68,7 +76,7 @@ export function TradeCard({ trade, isPending, onAccept, onReject, onOpenChat }: 
           {trade.sender.display_name || trade.sender.username}
         </span>
         <span className="text-sm text-gray-500">
-          {isPending ? "からのリクエスト" : "とのトレード"}
+          {isPending ? "からのリクエスト" : isCompleted ? "とのトレード（完了）" : "とのトレード"}
         </span>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -110,7 +118,7 @@ export function TradeCard({ trade, isPending, onAccept, onReject, onOpenChat }: 
             承認
           </Button>
         </div>
-      ) : (
+      ) : !isCompleted && (
         <Button
           className="w-full relative"
           onClick={() => onOpenChat?.(trade)}

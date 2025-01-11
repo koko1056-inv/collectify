@@ -9,6 +9,7 @@ import { ChatModal } from "../chat/ChatModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PendingTradesList } from "./PendingTradesList";
 import { AcceptedTradesList } from "./AcceptedTradesList";
+import { CompletedTradesList } from "./CompletedTradesList";
 import { TradeRequest } from "./types";
 
 interface TradeRequestsModalProps {
@@ -22,6 +23,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
   const { t } = useLanguage();
   const [tradeRequests, setTradeRequests] = useState<TradeRequest[]>([]);
   const [acceptedTrades, setAcceptedTrades] = useState<TradeRequest[]>([]);
+  const [completedTrades, setCompletedTrades] = useState<TradeRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<TradeRequest | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
@@ -31,8 +33,46 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
     if (user && isOpen) {
       fetchTradeRequests();
       fetchAcceptedTrades();
+      fetchCompletedTrades();
     }
   }, [user, isOpen]);
+
+  const fetchCompletedTrades = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("trade_requests")
+      .select(`
+        id,
+        message,
+        status,
+        sender:profiles!trade_requests_sender_id_fkey(
+          id,
+          username,
+          display_name
+        ),
+        offered_item:user_items!trade_requests_offered_item_id_fkey(
+          id,
+          title,
+          image
+        ),
+        requested_item:user_items!trade_requests_requested_item_id_fkey(
+          id,
+          title,
+          image
+        )
+      `)
+      .eq("status", "completed")
+      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching completed trades:", error);
+      return;
+    }
+
+    setCompletedTrades(data);
+  };
 
   const fetchAcceptedTrades = async () => {
     if (!user) return;
@@ -177,7 +217,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
             <DialogTitle>トレードリクエスト</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="pending" className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
               <TabsTrigger 
                 value="pending"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -189,6 +229,12 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 進行中
+              </TabsTrigger>
+              <TabsTrigger 
+                value="completed"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                完了
               </TabsTrigger>
             </TabsList>
             <TabsContent value="pending" className="flex-1 mt-0">
@@ -202,6 +248,11 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
               <AcceptedTradesList
                 trades={acceptedTrades}
                 onOpenChat={openChat}
+              />
+            </TabsContent>
+            <TabsContent value="completed" className="flex-1 mt-0">
+              <CompletedTradesList
+                trades={completedTrades}
               />
             </TabsContent>
           </Tabs>
