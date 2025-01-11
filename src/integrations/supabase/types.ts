@@ -317,10 +317,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "trade_requests_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "trade_requests_requested_item_id_fkey"
             columns: ["requested_item_id"]
             isOneToOne: false
             referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_requests_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
