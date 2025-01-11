@@ -111,7 +111,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
         setChatPartnerId(request.sender.id);
 
         // Send notification to the sender
-        const { error: notificationError } = await supabase
+        const { error: senderNotificationError } = await supabase
           .from("messages")
           .insert({
             sender_id: user?.id,
@@ -120,8 +120,18 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
             related_item_id: request.offered_item.id
           });
 
-        if (notificationError) {
-          console.error("Error sending notification:", notificationError);
+        // Send notification to the receiver (current user)
+        const { error: receiverNotificationError } = await supabase
+          .from("messages")
+          .insert({
+            sender_id: request.sender.id,
+            receiver_id: user?.id,
+            content: `トレードが成立しました。「${request.offered_item.title}」と「${request.requested_item.title}」の交換について詳細を決めましょう。`,
+            related_item_id: request.requested_item.id
+          });
+
+        if (senderNotificationError || receiverNotificationError) {
+          console.error("Error sending notifications:", { senderNotificationError, receiverNotificationError });
         }
 
         // Open chat modal
