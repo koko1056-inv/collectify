@@ -44,19 +44,17 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
   const markMessagesAsRead = async () => {
     if (!user) return;
 
-    let query = supabase
+    const query = supabase
       .from("messages")
       .update({ is_read: true })
       .eq("receiver_id", user.id)
       .eq("is_read", false);
 
     if (tradeRequestId) {
-      query = query.eq("trade_request_id", tradeRequestId);
+      await query.eq("trade_request_id", tradeRequestId);
     } else {
-      query = query.eq("sender_id", partnerId);
+      await query.eq("sender_id", partnerId);
     }
-
-    await query;
   };
 
   const fetchPartnerProfile = async () => {
@@ -78,17 +76,19 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
       .from("messages")
       .select("*")
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-      .or(`sender_id.eq.${partnerId},receiver_id.eq.${partnerId}`)
-      .order("created_at", { ascending: true });
+      .or(`sender_id.eq.${partnerId},receiver_id.eq.${partnerId}`);
 
     if (tradeRequestId) {
       query = query.eq('trade_request_id', tradeRequestId);
     }
 
+    query = query.order("created_at", { ascending: true });
+
     const { data, error } = await query;
 
     if (!error && data) {
       setMessages(data);
+      await markMessagesAsRead();
     }
   };
 
@@ -107,7 +107,6 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
         },
         () => {
           fetchMessages();
-          markMessagesAsRead();
         }
       )
       .subscribe();
