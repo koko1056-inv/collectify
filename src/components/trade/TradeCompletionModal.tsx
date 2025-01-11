@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TradeCompletionModalProps {
   isOpen: boolean;
@@ -31,13 +32,35 @@ export function TradeCompletionModal({
 }: TradeCompletionModalProps) {
   const [step, setStep] = useState<'confirmation' | 'shipping' | 'complete'>('confirmation');
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleComplete = () => {
-    toast({
-      title: "トレード完了",
-      description: "トレードが完了しました。お疲れ様でした！",
-    });
-    onClose();
+  const handleComplete = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from("trade_requests")
+        .update({ status: "completed" })
+        .eq("id", tradeRequest.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "トレード完了",
+        description: "トレードが完了しました。お疲れ様でした！",
+      });
+      onClose();
+    } catch (error) {
+      console.error("Error completing trade:", error);
+      toast({
+        variant: "destructive",
+        title: "エラー",
+        description: "トレードの完了に失敗しました。",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -96,7 +119,10 @@ export function TradeCompletionModal({
             </Button>
           )}
           {step === 'complete' && (
-            <Button onClick={handleComplete}>
+            <Button 
+              onClick={handleComplete}
+              disabled={isLoading}
+            >
               トレードを完了する
             </Button>
           )}
