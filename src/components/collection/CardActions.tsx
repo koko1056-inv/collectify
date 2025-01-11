@@ -77,18 +77,6 @@ export function CardActions({
         </Button>
       )}
       <Button 
-        variant="default"
-        size="sm"
-        onClick={(e) => {
-          e.stopPropagation();
-          onMemoriesClick();
-        }}
-        className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-6 px-2 text-xs whitespace-nowrap"
-      >
-        <PlusCircle className="h-3 w-3 mr-1" />
-        記録を追加
-      </Button>
-      <Button 
         variant="outline" 
         size="sm"
         onClick={(e) => {
