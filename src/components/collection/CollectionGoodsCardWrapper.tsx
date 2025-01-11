@@ -40,7 +40,7 @@ export function CollectionGoodsCardWrapper({
   const { handleDelete } = useCardEventHandlers(id);
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
-  const canTrade = !isOwner && user;
+  const canTrade = !isOwner && !!user;
 
   if (isCompact) {
     return (

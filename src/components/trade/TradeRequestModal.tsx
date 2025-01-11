@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Send } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 interface TradeRequestModalProps {
   isOpen: boolean;
