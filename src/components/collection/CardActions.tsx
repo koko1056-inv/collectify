@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Tag, Repeat, Heart } from "lucide-react";
+import { PlusCircle, Trash2, Tag, Repeat } from "lucide-react";
 
 interface CardActionsProps {
   onMemoriesClick: () => void;
@@ -29,19 +29,6 @@ export function CardActions({
   if (isOtherUserCollection) {
     return (
       <div className="flex justify-end gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onLikeClick?.();
-          }}
-          className={`${
-            isLiked ? "text-red-500 hover:text-red-600" : "text-gray-500 hover:text-gray-600"
-          } h-6 w-6 p-0`}
-        >
-          <Heart className={`h-3 w-3 ${isLiked ? "fill-current" : ""}`} />
-        </Button>
         {showTradeButton && (
           <Button
             variant="default"
