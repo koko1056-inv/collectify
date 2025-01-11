@@ -93,7 +93,7 @@ export function TradeRequestModal({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">交換するアイテム</label>
+            <label className="text-sm font-medium">交換に出すアイテムを選択してください</label>
             <div className="grid grid-cols-2 gap-2">
               {userItems?.map((item) => (
                 <button
