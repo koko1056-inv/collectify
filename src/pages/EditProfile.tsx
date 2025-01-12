@@ -9,6 +9,9 @@ import { ShareModal } from "@/components/ShareModal";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
+import { ProfileStats } from "@/components/profile/ProfileStats";
+import { FollowList } from "@/components/profile/FollowList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function EditProfile() {
   const { user } = useAuth();
@@ -105,6 +108,8 @@ export default function EditProfile() {
             onShare={() => setIsShareModalOpen(true)}
           />
 
+          <ProfileStats userId={user.id} />
+
           <ProfileBio
             bio={bio}
             isEditing={isEditing}
@@ -115,8 +120,21 @@ export default function EditProfile() {
             saving={saving}
           />
 
+          <Tabs defaultValue="followers" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="followers">フォロワー</TabsTrigger>
+              <TabsTrigger value="following">フォロー中</TabsTrigger>
+            </TabsList>
+            <TabsContent value="followers">
+              <FollowList userId={user.id} type="followers" />
+            </TabsContent>
+            <TabsContent value="following">
+              <FollowList userId={user.id} type="following" />
+            </TabsContent>
+          </Tabs>
+
           <ProfileFavorites
-            userId={user?.id}
+            userId={user.id}
             isEditing={isEditingFavorites}
             onEditComplete={() => setIsEditingFavorites(false)}
           />
