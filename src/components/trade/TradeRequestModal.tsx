@@ -30,62 +30,19 @@ export function TradeRequestModal({
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // First, get the user's item that matches the official item
-  const { data: receiverItem, isError: receiverItemError } = useQuery({
-    queryKey: ["receiver-item", requestedItemId, receiverId],
-    queryFn: async () => {
-      console.log("Fetching receiver item with:", { requestedItemId, receiverId });
-      const { data, error } = await supabase
-        .from("user_items")
-        .select("*")
-        .eq("user_id", receiverId)
-        .eq("official_item_id", requestedItemId)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("Error fetching receiver item:", error);
-        throw error;
-      }
-      
-      if (!data) {
-        console.error("No receiver item found");
-        throw new Error("No matching item found");
-      }
-      
-      return data;
-    },
-    enabled: !!requestedItemId && !!receiverId,
-  });
-
-  const { data: userItems, isError: userItemsError } = useQuery({
+  const { data: userItems } = useQuery({
     queryKey: ["user-items", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      console.log("Fetching user items for:", user.id);
       const { data, error } = await supabase
         .from("user_items")
         .select("*")
         .eq("user_id", user.id);
-      
-      if (error) {
-        console.error("Error fetching user items:", error);
-        throw error;
-      }
-      
-      return data || [];
+      if (error) throw error;
+      return data;
     },
     enabled: !!user,
   });
-
-  if (receiverItemError || userItemsError) {
-    toast({
-      title: "エラー",
-      description: "アイテムの取得に失敗しました",
-      variant: "destructive",
-    });
-    onClose();
-    return null;
-  }
 
   const handleSubmit = async () => {
     if (!selectedItem) {
@@ -97,22 +54,13 @@ export function TradeRequestModal({
       return;
     }
 
-    if (!receiverItem) {
-      toast({
-        title: "エラー",
-        description: "交換対象のアイテムが見つかりません",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     try {
       const { error } = await supabase.from("trade_requests").insert({
         sender_id: user?.id,
         receiver_id: receiverId,
         offered_item_id: selectedItem,
-        requested_item_id: receiverItem.id, // Use the actual user_item_id
+        requested_item_id: requestedItemId,
         message,
       });
 
