@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Send } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 
 interface TradeRequestModalProps {
   isOpen: boolean;
@@ -73,23 +73,18 @@ export function TradeRequestModal({
     enabled: !!user,
   });
 
-  if (receiverItemError || userItemsError) {
-    toast({
-      title: "エラー",
-      description: "アイテムの取得に失敗しました",
-      variant: "destructive",
-    });
-    onClose();
-    return null;
-  }
+  useEffect(() => {
+    if (isOpen && !receiverItem) {
+      toast({
+        title: "エラー",
+        description: "交換対象のアイテムが見つかりません",
+        variant: "destructive",
+      });
+      onClose();
+    }
+  }, [isOpen, receiverItem, toast, onClose]);
 
-  if (!receiverItem) {
-    toast({
-      title: "エラー",
-      description: "交換対象のアイテムが見つかりません",
-      variant: "destructive",
-    });
-    onClose();
+  if (receiverItemError || userItemsError) {
     return null;
   }
 
