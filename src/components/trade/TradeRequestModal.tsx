@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Send } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
 
 interface TradeRequestModalProps {
   isOpen: boolean;
@@ -30,31 +30,7 @@ export function TradeRequestModal({
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const { data: receiverItem, isError: receiverItemError } = useQuery({
-    queryKey: ["receiver-item", requestedItemId, receiverId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_items")
-        .select("*")
-        .eq("user_id", receiverId)
-        .eq("official_item_id", requestedItemId)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("Error fetching receiver item:", error);
-        throw error;
-      }
-      
-      if (!data) {
-        return null;
-      }
-      
-      return data;
-    },
-    enabled: !!requestedItemId && !!receiverId,
-  });
-
-  const { data: userItems = [], isError: userItemsError } = useQuery({
+  const { data: userItems } = useQuery({
     queryKey: ["user-items", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -62,31 +38,11 @@ export function TradeRequestModal({
         .from("user_items")
         .select("*")
         .eq("user_id", user.id);
-      
-      if (error) {
-        console.error("Error fetching user items:", error);
-        throw error;
-      }
-      
-      return data || [];
+      if (error) throw error;
+      return data;
     },
     enabled: !!user,
   });
-
-  useEffect(() => {
-    if (isOpen && !receiverItem) {
-      toast({
-        title: "エラー",
-        description: "交換対象のアイテムが見つかりません",
-        variant: "destructive",
-      });
-      onClose();
-    }
-  }, [isOpen, receiverItem, toast, onClose]);
-
-  if (receiverItemError || userItemsError) {
-    return null;
-  }
 
   const handleSubmit = async () => {
     if (!selectedItem) {
@@ -104,7 +60,7 @@ export function TradeRequestModal({
         sender_id: user?.id,
         receiver_id: receiverId,
         offered_item_id: selectedItem,
-        requested_item_id: receiverItem.id,
+        requested_item_id: requestedItemId,
         message,
       });
 
