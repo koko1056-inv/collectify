@@ -26,8 +26,8 @@ export function FollowList({ userId, type }: FollowListProps) {
         .from("follows")
         .select(
           type === "followers"
-            ? "follower:follower_id(id, username, avatar_url, bio)"
-            : "following:following_id(id, username, avatar_url, bio)"
+            ? "follower:profiles!follows_follower_id_fkey(id, username, avatar_url, bio)"
+            : "following:profiles!follows_following_id_fkey(id, username, avatar_url, bio)"
         )
         .eq(type === "followers" ? "following_id" : "follower_id", userId);
 
@@ -36,9 +36,10 @@ export function FollowList({ userId, type }: FollowListProps) {
         return;
       }
 
-      const profiles = follows.map((follow) =>
+      const profiles = follows?.map((follow: any) =>
         type === "followers" ? follow.follower : follow.following
-      );
+      ) || [];
+      
       setProfiles(profiles);
       setLoading(false);
     };
