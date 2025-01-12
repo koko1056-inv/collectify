@@ -31,35 +31,61 @@ export function TradeRequestModal({
   const { user } = useAuth();
 
   // First, get the user's item that matches the official item
-  const { data: receiverItem } = useQuery({
+  const { data: receiverItem, isError: receiverItemError } = useQuery({
     queryKey: ["receiver-item", requestedItemId, receiverId],
     queryFn: async () => {
+      console.log("Fetching receiver item with:", { requestedItemId, receiverId });
       const { data, error } = await supabase
         .from("user_items")
         .select("*")
         .eq("user_id", receiverId)
         .eq("official_item_id", requestedItemId)
-        .single();
+        .maybeSingle();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching receiver item:", error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.error("No receiver item found");
+        throw new Error("No matching item found");
+      }
+      
       return data;
     },
     enabled: !!requestedItemId && !!receiverId,
   });
 
-  const { data: userItems } = useQuery({
+  const { data: userItems, isError: userItemsError } = useQuery({
     queryKey: ["user-items", user?.id],
     queryFn: async () => {
       if (!user) return [];
+      console.log("Fetching user items for:", user.id);
       const { data, error } = await supabase
         .from("user_items")
         .select("*")
         .eq("user_id", user.id);
-      if (error) throw error;
-      return data;
+      
+      if (error) {
+        console.error("Error fetching user items:", error);
+        throw error;
+      }
+      
+      return data || [];
     },
     enabled: !!user,
   });
+
+  if (receiverItemError || userItemsError) {
+    toast({
+      title: "エラー",
+      description: "アイテムの取得に失敗しました",
+      variant: "destructive",
+    });
+    onClose();
+    return null;
+  }
 
   const handleSubmit = async () => {
     if (!selectedItem) {
