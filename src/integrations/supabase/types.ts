@@ -30,6 +30,42 @@ export type Database = {
         }
         Relationships: []
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       images: {
         Row: {
           created_at: string
@@ -218,6 +254,8 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          followers_count: number | null
+          following_count: number | null
           id: string
           interests: string[] | null
           is_admin: boolean | null
@@ -228,6 +266,8 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
           id: string
           interests?: string[] | null
           is_admin?: boolean | null
@@ -238,6 +278,8 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          followers_count?: number | null
+          following_count?: number | null
           id?: string
           interests?: string[] | null
           is_admin?: boolean | null

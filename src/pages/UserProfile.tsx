@@ -5,6 +5,8 @@ import { Navbar } from "@/components/Navbar";
 import { CollectionLikeButton } from "@/components/collection/CollectionLikeButton";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { ProfileWishlist } from "@/components/profile/ProfileWishlist";
+import { FollowButton } from "@/components/profile/FollowButton";
+import { ProfileStats } from "@/components/profile/ProfileStats";
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -40,10 +42,16 @@ const UserProfile = () => {
         <div className="space-y-8">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold">
-                {profile.username}さんのコレクション
-              </h1>
-              <CollectionLikeButton collectionOwnerId={userId} />
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold">
+                  {profile.username}さんのコレクション
+                </h1>
+                <ProfileStats userId={userId} />
+              </div>
+              <div className="flex gap-2">
+                <FollowButton userId={userId} />
+                <CollectionLikeButton collectionOwnerId={userId} />
+              </div>
             </div>
             {profile.bio && (
               <p className="text-gray-600 whitespace-pre-wrap">{profile.bio}</p>
