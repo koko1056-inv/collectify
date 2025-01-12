@@ -30,6 +30,23 @@ export function TradeRequestModal({
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // First, get the user's item that matches the official item
+  const { data: receiverItem } = useQuery({
+    queryKey: ["receiver-item", requestedItemId, receiverId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("*")
+        .eq("user_id", receiverId)
+        .eq("official_item_id", requestedItemId)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!requestedItemId && !!receiverId,
+  });
+
   const { data: userItems } = useQuery({
     queryKey: ["user-items", user?.id],
     queryFn: async () => {
@@ -54,13 +71,22 @@ export function TradeRequestModal({
       return;
     }
 
+    if (!receiverItem) {
+      toast({
+        title: "エラー",
+        description: "交換対象のアイテムが見つかりません",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await supabase.from("trade_requests").insert({
         sender_id: user?.id,
         receiver_id: receiverId,
         offered_item_id: selectedItem,
-        requested_item_id: requestedItemId,
+        requested_item_id: receiverItem.id, // Use the actual user_item_id
         message,
       });
 
