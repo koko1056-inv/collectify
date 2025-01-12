@@ -11,7 +11,12 @@ import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { FollowList } from "@/components/profile/FollowList";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function EditProfile() {
   const { user } = useAuth();
@@ -108,7 +113,25 @@ export default function EditProfile() {
             onShare={() => setIsShareModalOpen(true)}
           />
 
-          <ProfileStats userId={user.id} />
+          <Accordion type="single" collapsible>
+            <AccordionItem value="followers">
+              <AccordionTrigger>
+                <ProfileStats userId={user.id} />
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <h4 className="text-lg font-semibold mb-4">フォロワー</h4>
+                    <FollowList userId={user.id} type="followers" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold mb-4">フォロー中</h4>
+                    <FollowList userId={user.id} type="following" />
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
 
           <ProfileBio
             bio={bio}
@@ -119,19 +142,6 @@ export default function EditProfile() {
             onSubmit={handleSubmit}
             saving={saving}
           />
-
-          <Tabs defaultValue="followers" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="followers">フォロワー</TabsTrigger>
-              <TabsTrigger value="following">フォロー中</TabsTrigger>
-            </TabsList>
-            <TabsContent value="followers">
-              <FollowList userId={user.id} type="followers" />
-            </TabsContent>
-            <TabsContent value="following">
-              <FollowList userId={user.id} type="following" />
-            </TabsContent>
-          </Tabs>
 
           <ProfileFavorites
             userId={user.id}

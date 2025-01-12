@@ -21,12 +21,12 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
   });
 
   return (
-    <div className="flex gap-4 text-sm text-gray-600">
-      <div>
+    <div className="flex gap-4 text-sm text-gray-600 w-full">
+      <div className="flex-1">
         <span className="font-bold">{profile?.followers_count || 0}</span>{" "}
         フォロワー
       </div>
-      <div>
+      <div className="flex-1">
         <span className="font-bold">{profile?.following_count || 0}</span>{" "}
         フォロー中
       </div>
