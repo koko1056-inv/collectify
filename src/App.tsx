@@ -6,14 +6,38 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Admin from "./pages/Admin";
-import AddItem from "./pages/AddItem";
-import UserProfile from "./pages/UserProfile";
-import EditProfile from "./pages/EditProfile";
+import { Suspense, lazy } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const queryClient = new QueryClient();
+// Lazy load pages
+const Index = lazy(() => import("./pages/Index"));
+const Login = lazy(() => import("./pages/Login"));
+const Admin = lazy(() => import("./pages/Admin"));
+const AddItem = lazy(() => import("./pages/AddItem"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
+const EditProfile = lazy(() => import("./pages/EditProfile"));
+
+// Optimize React Query settings
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      cacheTime: 1000 * 60 * 30, // 30 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="space-y-4">
+      <Skeleton className="h-12 w-48" />
+      <Skeleton className="h-4 w-32" />
+    </div>
+  </div>
+);
 
 const App: React.FC = () => {
   return (
@@ -25,15 +49,17 @@ const App: React.FC = () => {
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/add-item" element={<AddItem />} />
-                  <Route path="/user/:userId" element={<UserProfile />} />
-                  <Route path="/edit-profile" element={<EditProfile />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/admin" element={<Admin />} />
+                    <Route path="/add-item" element={<AddItem />} />
+                    <Route path="/user/:userId" element={<UserProfile />} />
+                    <Route path="/edit-profile" element={<EditProfile />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Suspense>
               </TooltipProvider>
             </LanguageProvider>
           </AuthProvider>

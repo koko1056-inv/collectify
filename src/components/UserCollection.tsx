@@ -5,7 +5,7 @@ import { MyCollectionGoodsCard } from "./collection/MyCollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
 import { Grid, List } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo, memo } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -24,6 +24,9 @@ import {
 interface UserCollectionProps {
   selectedTags: string[];
 }
+
+// Memoize MyCollectionGoodsCard
+const MemoizedMyCollectionGoodsCard = memo(MyCollectionGoodsCard);
 
 export function UserCollection({ selectedTags }: UserCollectionProps) {
   const { user } = useAuth();
@@ -87,6 +90,17 @@ export function UserCollection({ selectedTags }: UserCollectionProps) {
     }
   };
 
+  // Memoize filtered items
+  const filteredItems = useMemo(() => {
+    if (selectedTags.length === 0) return items;
+    
+    return items.filter(item => 
+      selectedTags.some(tag => 
+        item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
+      )
+    );
+  }, [items, selectedTags]);
+
   if (!user) {
     return (
       <div className="text-center py-8">
@@ -108,14 +122,6 @@ export function UserCollection({ selectedTags }: UserCollectionProps) {
       </div>
     );
   }
-
-  const filteredItems = selectedTags.length > 0
-    ? items.filter(item => 
-        selectedTags.some(tag => 
-          item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
-        )
-      )
-    : items;
 
   if (items.length === 0) {
     return (
@@ -167,7 +173,7 @@ export function UserCollection({ selectedTags }: UserCollectionProps) {
         <SortableContext items={filteredItems} strategy={rectSortingStrategy}>
           <div className={gridClass}>
             {filteredItems.map((item) => (
-              <MyCollectionGoodsCard
+              <MemoizedMyCollectionGoodsCard
                 key={item.id}
                 id={item.id}
                 title={item.title}

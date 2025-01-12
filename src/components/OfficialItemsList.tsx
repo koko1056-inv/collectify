@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { OfficialItem } from "@/types";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
+import { useState, useMemo, memo } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -17,32 +17,30 @@ interface OfficialItemsListProps {
   items: OfficialItem[];
 }
 
+// Memoize OfficialGoodsCard to prevent unnecessary re-renders
+const MemoizedOfficialGoodsCard = memo(OfficialGoodsCard);
+
 export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Increased items per page for both mobile and desktop
   const itemsPerPage = isMobile ? 12 : 24;
   
-  // Calculate total pages
-  const totalPages = Math.ceil(items.length / itemsPerPage);
-  
-  // Calculate start and end index for current page
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  
-  // Get items for current page
-  const currentItems = items.slice(startIndex, endIndex);
-
-  // Generate page numbers array
-  const getPageNumbers = () => {
-    const pageNumbers = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pageNumbers.push(i);
-    }
-    return pageNumbers;
-  };
+  // Memoize calculations
+  const { totalPages, currentItems, pageNumbers } = useMemo(() => {
+    const total = Math.ceil(items.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const current = items.slice(startIndex, endIndex);
+    const pages = Array.from({ length: total }, (_, i) => i + 1);
+    
+    return {
+      totalPages: total,
+      currentItems: current,
+      pageNumbers: pages,
+    };
+  }, [items, currentPage, itemsPerPage]);
 
   return (
     <div className="space-y-6">
@@ -59,7 +57,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
         {currentItems.map((item) => (
-          <OfficialGoodsCard
+          <MemoizedOfficialGoodsCard
             key={item.id}
             id={item.id}
             title={item.title}
@@ -82,7 +80,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
               />
             </PaginationItem>
             
-            {getPageNumbers().map((pageNum) => (
+            {pageNumbers.map((pageNum) => (
               <PaginationItem key={pageNum}>
                 <PaginationLink
                   onClick={() => setCurrentPage(pageNum)}
