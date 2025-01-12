@@ -190,6 +190,8 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
     }
   };
 
+  const HEADQUARTERS_ADDRESS = "〒150-0001\n東京都渋谷区神宮前1-1-1\nトレードシステム運営本部";
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] h-[90vh] flex flex-col">
@@ -256,18 +258,22 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
                 以下の手順で郵送手続きを進めてください：
               </p>
               <ol className="list-decimal list-inside space-y-2 text-sm">
-                <li>トレード相手と配送方法を決定</li>
-                <li>お互いの配送先住所を確認</li>
-                <li>配送料金の支払い方法を決定</li>
-                <li>商品の発送準備</li>
+                <li>運営本部へ商品を郵送してください</li>
+                <li>運営本部で商品の確認を行います</li>
+                <li>確認後、運営本部からトレード相手に商品を郵送します</li>
+                <li>トレード相手への配送が完了次第、取引完了となります</li>
               </ol>
+              <div className="mt-6 p-4 bg-muted rounded-lg">
+                <h4 className="font-medium mb-2">運営本部 郵送先住所</h4>
+                <p className="text-sm whitespace-pre-line">{HEADQUARTERS_ADDRESS}</p>
+              </div>
               <Button 
                 onClick={handleShippingComplete} 
                 className="w-full mt-4"
                 variant="secondary"
               >
                 <Truck className="mr-2 h-4 w-4" />
-                発送手続き完了
+                運営本部への発送完了
               </Button>
             </div>
           </div>
