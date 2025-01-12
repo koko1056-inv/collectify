@@ -30,11 +30,9 @@ export function TradeRequestModal({
   const { toast } = useToast();
   const { user } = useAuth();
 
-  // First, get the user's item that matches the official item
   const { data: receiverItem, isError: receiverItemError } = useQuery({
     queryKey: ["receiver-item", requestedItemId, receiverId],
     queryFn: async () => {
-      console.log("Fetching receiver item with:", { requestedItemId, receiverId });
       const { data, error } = await supabase
         .from("user_items")
         .select("*")
@@ -48,8 +46,7 @@ export function TradeRequestModal({
       }
       
       if (!data) {
-        console.error("No receiver item found");
-        throw new Error("No matching item found");
+        return null;
       }
       
       return data;
@@ -57,11 +54,10 @@ export function TradeRequestModal({
     enabled: !!requestedItemId && !!receiverId,
   });
 
-  const { data: userItems, isError: userItemsError } = useQuery({
+  const { data: userItems = [], isError: userItemsError } = useQuery({
     queryKey: ["user-items", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      console.log("Fetching user items for:", user.id);
       const { data, error } = await supabase
         .from("user_items")
         .select("*")
@@ -87,20 +83,21 @@ export function TradeRequestModal({
     return null;
   }
 
+  if (!receiverItem) {
+    toast({
+      title: "エラー",
+      description: "交換対象のアイテムが見つかりません",
+      variant: "destructive",
+    });
+    onClose();
+    return null;
+  }
+
   const handleSubmit = async () => {
     if (!selectedItem) {
       toast({
         title: "エラー",
         description: "交換するアイテムを選択してください",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!receiverItem) {
-      toast({
-        title: "エラー",
-        description: "交換対象のアイテムが見つかりません",
         variant: "destructive",
       });
       return;
@@ -112,7 +109,7 @@ export function TradeRequestModal({
         sender_id: user?.id,
         receiver_id: receiverId,
         offered_item_id: selectedItem,
-        requested_item_id: receiverItem.id, // Use the actual user_item_id
+        requested_item_id: receiverItem.id,
         message,
       });
 
