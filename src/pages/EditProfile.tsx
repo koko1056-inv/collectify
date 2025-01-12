@@ -10,13 +10,6 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
 import { ProfileStats } from "@/components/profile/ProfileStats";
-import { FollowList } from "@/components/profile/FollowList";
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 export default function EditProfile() {
   const { user } = useAuth();
@@ -113,25 +106,7 @@ export default function EditProfile() {
             onShare={() => setIsShareModalOpen(true)}
           />
 
-          <Accordion type="single" collapsible>
-            <AccordionItem value="followers">
-              <AccordionTrigger>
-                <ProfileStats userId={user.id} />
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <h4 className="text-lg font-semibold mb-4">フォロワー</h4>
-                    <FollowList userId={user.id} type="followers" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold mb-4">フォロー中</h4>
-                    <FollowList userId={user.id} type="following" />
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <ProfileStats userId={user.id} />
 
           <ProfileBio
             bio={bio}
