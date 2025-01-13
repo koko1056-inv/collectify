@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionTabs } from "@/components/CollectionTabs";
@@ -132,7 +133,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="container mx-auto px-2 py-4 pt-20 sm:px-4 sm:py-8 sm:pt-24">
+      <main className="container mx-auto px-2 py-4 pt-20 pb-24 sm:px-4 sm:py-8 sm:pt-24 sm:pb-8">
         <div className="space-y-4 sm:space-y-6">
           {userId && viewedProfile && (
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 px-2">
@@ -165,6 +166,7 @@ const Index = () => {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 };
