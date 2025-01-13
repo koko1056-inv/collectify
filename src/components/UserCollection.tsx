@@ -70,10 +70,12 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       const { data, error } = await query;
 
       if (error) throw error;
-      setItems(data);
+      setItems(data || []);
       return data;
     },
     enabled: !!effectiveUserId,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    cacheTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
   });
 
   const handleDragEnd = (event: DragEndEvent) => {
