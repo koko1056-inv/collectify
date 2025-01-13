@@ -23,12 +23,12 @@ import {
 
 interface UserCollectionProps {
   selectedTags: string[];
-  userId?: string;
 }
 
+// Memoize MyCollectionGoodsCard
 const MemoizedMyCollectionGoodsCard = memo(MyCollectionGoodsCard);
 
-export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
+export function UserCollection({ selectedTags }: UserCollectionProps) {
   const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
   const [items, setItems] = useState<any[]>([]);
@@ -47,12 +47,10 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     })
   );
 
-  const targetUserId = userId || user?.id;
-
   const { isLoading: isItemsLoading } = useQuery({
-    queryKey: ["user-items", targetUserId, selectedTags],
+    queryKey: ["user-items", user?.id, selectedTags],
     queryFn: async () => {
-      if (!targetUserId) return [];
+      if (!user) return [];
       
       const query = supabase
         .from("user_items")
@@ -65,7 +63,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
             )
           )
         `)
-        .eq("user_id", targetUserId)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       const { data, error } = await query;
@@ -74,7 +72,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       setItems(data);
       return data;
     },
-    enabled: !!targetUserId,
+    enabled: !!user,
   });
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -92,6 +90,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     }
   };
 
+  // Memoize filtered items
   const filteredItems = useMemo(() => {
     if (selectedTags.length === 0) return items;
     
@@ -102,7 +101,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     );
   }, [items, selectedTags]);
 
-  if (!targetUserId) {
+  if (!user) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">コレクションを表示するにはログインしてください。</p>
