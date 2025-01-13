@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, ShoppingBasket, Repeat2, User } from "lucide-react";
+import { Home, Search, ShoppingBasket, Repeat2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -13,16 +13,14 @@ export function Footer() {
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t sm:hidden">
       <div className="flex justify-around items-center h-16">
         <Link
-          to="/"
+          to="/search"
           className={cn(
             "flex flex-col items-center",
-            isActive("/") && "text-primary"
+            isActive("/search") && "text-primary"
           )}
         >
-          <div className="bg-primary rounded-full p-3 -mt-6">
-            <Home className="h-6 w-6 text-white" />
-          </div>
-          <span className="text-xs mt-1">{t('footer.home')}</span>
+          <Search className="h-6 w-6" />
+          <span className="text-xs mt-1">{t('footer.search')}</span>
         </Link>
 
         <Link
@@ -34,6 +32,19 @@ export function Footer() {
         >
           <ShoppingBasket className="h-6 w-6" />
           <span className="text-xs mt-1">{t('footer.wishlist')}</span>
+        </Link>
+
+        <Link
+          to="/"
+          className={cn(
+            "flex flex-col items-center",
+            isActive("/") && "text-primary"
+          )}
+        >
+          <div className="bg-primary rounded-full p-3 -mt-6">
+            <Home className="h-6 w-6 text-white" />
+          </div>
+          <span className="text-xs mt-1">{t('footer.home')}</span>
         </Link>
 
         <Link
