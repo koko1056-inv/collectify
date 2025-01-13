@@ -1,34 +1,20 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { MyCollectionGoodsCard } from "./collection/MyCollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
-import { Button } from "./ui/button";
-import { Grid, List, Tags, PlusCircle } from "lucide-react";
-import { useState, useMemo, memo } from "react";
-import {
-  DndContext,
-  DragEndEvent,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  rectSortingStrategy,
-} from "@dnd-kit/sortable";
+import { useState, useMemo } from "react";
+import { DragEndEvent } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import { TagManageModal } from "./tag/TagManageModal";
 import { ItemMemoriesModal } from "./ItemMemoriesModal";
+import { SelectionModeControls } from "./collection/SelectionModeControls";
+import { CollectionActions } from "./collection/CollectionActions";
+import { CollectionGrid } from "./collection/CollectionGrid";
 
 interface UserCollectionProps {
   selectedTags: string[];
   userId?: string | null;
 }
-
-const MemoizedMyCollectionGoodsCard = memo(MyCollectionGoodsCard);
 
 export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const { user } = useAuth();
@@ -40,20 +26,6 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const [selectionAction, setSelectionAction] = useState<'tags' | 'memories' | null>(null);
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 8,
-      },
-    })
-  );
 
   const { data: items = [], isLoading: isItemsLoading } = useQuery({
     queryKey: ["user-items", effectiveUserId, selectedTags],
@@ -84,6 +56,16 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     gcTime: 1000 * 60 * 10,
   });
 
+  const filteredItems = useMemo(() => {
+    if (selectedTags.length === 0) return items;
+    
+    return items.filter(item => 
+      selectedTags.some(tag => 
+        item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
+      )
+    );
+  }, [items, selectedTags]);
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
@@ -97,16 +79,6 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       queryClient.setQueryData(["user-items", effectiveUserId, selectedTags], newItems);
     }
   };
-
-  const filteredItems = useMemo(() => {
-    if (selectedTags.length === 0) return items;
-    
-    return items.filter(item => 
-      selectedTags.some(tag => 
-        item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
-      )
-    );
-  }, [items, selectedTags]);
 
   const handleSelectItem = (itemId: string) => {
     setSelectedItems(prev => {
@@ -196,123 +168,38 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     );
   }
 
-  const gridClass = isCompact
-    ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
-    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4";
-
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          {isSelectionMode ? (
-            <>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
-                >
-                  {selectedItems.length === filteredItems.length ? "選択解除" : "全て選択"}
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {selectedItems.length}個選択中
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handleConfirmSelection}
-                  disabled={selectedItems.length === 0}
-                >
-                  確定
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setIsSelectionMode(false);
-                    setSelectionAction(null);
-                    setSelectedItems([]);
-                  }}
-                >
-                  キャンセル
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => startSelection('tags')}
-                className="gap-2"
-              >
-                <Tags className="h-4 w-4" />
-                <span>タグを管理</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => startSelection('memories')}
-                className="gap-2"
-              >
-                <PlusCircle className="h-4 w-4" />
-                <span>記録を追加</span>
-              </Button>
-            </>
-          )}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsCompact(!isCompact)}
-          className="gap-2"
-        >
-          {isCompact ? (
-            <>
-              <Grid className="h-4 w-4" />
-              <span>通常表示</span>
-            </>
-          ) : (
-            <>
-              <List className="h-4 w-4" />
-              <span>一覧表示</span>
-            </>
-          )}
-        </Button>
-      </div>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
+      {isSelectionMode ? (
+        <SelectionModeControls
+          selectedItems={selectedItems}
+          totalItems={filteredItems.length}
+          onSelectAll={handleSelectAll}
+          onConfirm={handleConfirmSelection}
+          onCancel={() => {
+            setIsSelectionMode(false);
+            setSelectionAction(null);
+            setSelectedItems([]);
+          }}
+        />
+      ) : (
+        <CollectionActions
+          isCompact={isCompact}
+          onTagManage={() => startSelection('tags')}
+          onMemoryAdd={() => startSelection('memories')}
+          onViewToggle={() => setIsCompact(!isCompact)}
+        />
+      )}
+
+      <CollectionGrid
+        items={filteredItems}
+        isCompact={isCompact}
+        isSelectionMode={isSelectionMode}
+        selectedItems={selectedItems}
+        onSelectItem={handleSelectItem}
         onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={filteredItems} strategy={rectSortingStrategy}>
-          <div className={gridClass}>
-            {filteredItems.map((item) => (
-              <div key={item.id} className="relative">
-                {isSelectionMode && (
-                  <div className="absolute top-2 left-2 z-10">
-                    <input
-                      type="checkbox"
-                      checked={selectedItems.includes(item.id)}
-                      onChange={() => handleSelectItem(item.id)}
-                      className="w-4 h-4"
-                    />
-                  </div>
-                )}
-                <MemoizedMyCollectionGoodsCard
-                  id={item.id}
-                  title={item.title}
-                  image={item.image}
-                  quantity={item.quantity}
-                  isCompact={isCompact}
-                />
-              </div>
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+      />
+
       {isTagModalOpen && selectedItems.length > 0 && (
         <TagManageModal
           isOpen={isTagModalOpen}

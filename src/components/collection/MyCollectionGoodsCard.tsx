@@ -3,6 +3,7 @@ import { CardImage } from "./CardImage";
 import { CollectionGoodsCard } from "../CollectionGoodsCard";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { memo } from "react";
 
 interface MyCollectionGoodsCardProps {
   id: string;
@@ -12,7 +13,7 @@ interface MyCollectionGoodsCardProps {
   isCompact?: boolean;
 }
 
-export function MyCollectionGoodsCard({ 
+function MyCollectionGoodsCardComponent({ 
   id, 
   title, 
   image,
@@ -63,3 +64,5 @@ export function MyCollectionGoodsCard({
     </div>
   );
 }
+
+export const MemoizedMyCollectionGoodsCard = memo(MyCollectionGoodsCardComponent);
