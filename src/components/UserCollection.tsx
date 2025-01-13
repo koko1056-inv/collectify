@@ -23,16 +23,15 @@ import {
 
 interface UserCollectionProps {
   selectedTags: string[];
-  userId?: string | null;
 }
 
+// Memoize MyCollectionGoodsCard
 const MemoizedMyCollectionGoodsCard = memo(MyCollectionGoodsCard);
 
-export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
+export function UserCollection({ selectedTags }: UserCollectionProps) {
   const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
   const [items, setItems] = useState<any[]>([]);
-  const effectiveUserId = userId || user?.id;
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -49,9 +48,9 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   );
 
   const { isLoading: isItemsLoading } = useQuery({
-    queryKey: ["user-items", effectiveUserId, selectedTags],
+    queryKey: ["user-items", user?.id, selectedTags],
     queryFn: async () => {
-      if (!effectiveUserId) return [];
+      if (!user) return [];
       
       const query = supabase
         .from("user_items")
@@ -64,7 +63,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
             )
           )
         `)
-        .eq("user_id", effectiveUserId)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       const { data, error } = await query;
@@ -73,7 +72,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       setItems(data);
       return data;
     },
-    enabled: !!effectiveUserId,
+    enabled: !!user,
   });
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -91,6 +90,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     }
   };
 
+  // Memoize filtered items
   const filteredItems = useMemo(() => {
     if (selectedTags.length === 0) return items;
     
@@ -101,7 +101,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     );
   }, [items, selectedTags]);
 
-  if (!effectiveUserId) {
+  if (!user) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">コレクションを表示するにはログインしてください。</p>

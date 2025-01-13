@@ -7,15 +7,12 @@ import { FilterBar } from "@/components/FilterBar";
 import { InitialInterestSelection } from "@/components/InitialInterestSelection";
 import { OfficialItem, Tag } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSearchParams } from "react-router-dom";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showInterestDialog, setShowInterestDialog] = useState(false);
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
-  const userId = searchParams.get("userId");
 
   const { data: profile, refetch: refetchProfile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -33,24 +30,6 @@ const Index = () => {
       return data;
     },
     enabled: !!user,
-  });
-
-  const { data: viewedProfile } = useQuery({
-    queryKey: ["viewed-profile", userId],
-    queryFn: async () => {
-      if (!userId) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
-      if (error) {
-        console.error("Error fetching viewed profile:", error);
-        return null;
-      }
-      return data;
-    },
-    enabled: !!userId,
   });
 
   const { data: items = [] } = useQuery<OfficialItem[]>({
@@ -134,12 +113,6 @@ const Index = () => {
       <Navbar />
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="space-y-6">
-          {userId && viewedProfile && (
-            <h1 className="text-2xl font-bold text-gray-900">
-              {viewedProfile.username}さんのコレクション
-            </h1>
-          )}
-
           <FilterBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -151,7 +124,6 @@ const Index = () => {
           <CollectionTabs
             filteredItems={sortedItems}
             selectedTags={selectedTags}
-            userId={userId}
           />
 
           {user && (
