@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { MyCollectionGoodsCard } from "./collection/MyCollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Grid, List, Tags } from "lucide-react";
+import { Grid, List, Tags, PlusCircle } from "lucide-react";
 import { useState, useMemo, memo } from "react";
 import {
   DndContext,
@@ -21,7 +21,7 @@ import {
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { TagManageModal } from "./tag/TagManageModal";
-import { Checkbox } from "./ui/checkbox";
+import { ItemMemoriesModal } from "./ItemMemoriesModal";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -35,6 +35,9 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const [isCompact, setIsCompact] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectionAction, setSelectionAction] = useState<'tags' | 'memories' | null>(null);
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
 
@@ -122,6 +125,33 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     }
   };
 
+  const startSelection = (action: 'tags' | 'memories') => {
+    setIsSelectionMode(true);
+    setSelectionAction(action);
+    setSelectedItems([]);
+  };
+
+  const handleActionComplete = () => {
+    setIsSelectionMode(false);
+    setSelectionAction(null);
+    setSelectedItems([]);
+    if (selectionAction === 'tags') {
+      setIsTagModalOpen(false);
+    } else if (selectionAction === 'memories') {
+      setIsMemoriesModalOpen(false);
+    }
+  };
+
+  const handleConfirmSelection = () => {
+    if (selectedItems.length === 0) return;
+    
+    if (selectionAction === 'tags') {
+      setIsTagModalOpen(true);
+    } else if (selectionAction === 'memories') {
+      setIsMemoriesModalOpen(true);
+    }
+  };
+
   if (!effectiveUserId) {
     return (
       <div className="text-center py-8">
@@ -168,26 +198,63 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={selectedItems.length === filteredItems.length && filteredItems.length > 0}
-              onCheckedChange={handleSelectAll}
-              aria-label="全て選択"
-            />
-            <span className="text-sm text-muted-foreground">
-              {selectedItems.length > 0 ? `${selectedItems.length}個選択中` : "選択"}
-            </span>
-          </div>
-          {selectedItems.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsTagModalOpen(true)}
-              className="gap-2"
-            >
-              <Tags className="h-4 w-4" />
-              <span>タグを管理</span>
-            </Button>
+          {isSelectionMode ? (
+            <>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAll}
+                >
+                  {selectedItems.length === filteredItems.length ? "選択解除" : "全て選択"}
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  {selectedItems.length}個選択中
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={handleConfirmSelection}
+                  disabled={selectedItems.length === 0}
+                >
+                  確定
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setIsSelectionMode(false);
+                    setSelectionAction(null);
+                    setSelectedItems([]);
+                  }}
+                >
+                  キャンセル
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => startSelection('tags')}
+                className="gap-2"
+              >
+                <Tags className="h-4 w-4" />
+                <span>タグを管理</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => startSelection('memories')}
+                className="gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                <span>記録を追加</span>
+              </Button>
+            </>
           )}
         </div>
         <Button
@@ -218,13 +285,16 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
           <div className={gridClass}>
             {filteredItems.map((item) => (
               <div key={item.id} className="relative">
-                <div className="absolute top-2 left-2 z-10">
-                  <Checkbox
-                    checked={selectedItems.includes(item.id)}
-                    onCheckedChange={() => handleSelectItem(item.id)}
-                    aria-label={`${item.title}を選択`}
-                  />
-                </div>
+                {isSelectionMode && (
+                  <div className="absolute top-2 left-2 z-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedItems.includes(item.id)}
+                      onChange={() => handleSelectItem(item.id)}
+                      className="w-4 h-4"
+                    />
+                  </div>
+                )}
                 <MemoizedMyCollectionGoodsCard
                   id={item.id}
                   title={item.title}
@@ -240,12 +310,16 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       {isTagModalOpen && selectedItems.length > 0 && (
         <TagManageModal
           isOpen={isTagModalOpen}
-          onClose={() => {
-            setIsTagModalOpen(false);
-            setSelectedItems([]);
-          }}
+          onClose={handleActionComplete}
           itemIds={selectedItems}
           isUserItem={true}
+        />
+      )}
+      {isMemoriesModalOpen && selectedItems.length > 0 && (
+        <ItemMemoriesModal
+          isOpen={isMemoriesModalOpen}
+          onClose={handleActionComplete}
+          itemId={selectedItems[0]}
         />
       )}
     </div>
