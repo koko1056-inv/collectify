@@ -43,7 +43,7 @@ export function Footer() {
             isActive("/") && "text-primary"
           )}
         >
-          <div className="bg-primary rounded-full p-3 -mt-8">
+          <div className="bg-primary rounded-full p-3 -mt-4">
             <Home className="h-6 w-6 text-white" />
           </div>
           <span className="text-xs mt-1">{t('footer.home')}</span>
