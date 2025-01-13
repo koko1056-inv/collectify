@@ -8,6 +8,13 @@ export const jaTranslations = {
       user: "ユーザーを探す"
     }
   },
+  footer: {
+    home: "決定",
+    search: "検索",
+    trade: "トレード",
+    wishlist: "ウィッシュ",
+    mypage: "マイページ"
+  },
   tabs: {
     official: "公式グッズ",
     collection: "マイコレクション"
