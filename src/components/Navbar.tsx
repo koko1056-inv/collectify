@@ -93,7 +93,7 @@ export function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b">
-      <div className="flex h-14 sm:h-16 items-center px-2 sm:px-4 container mx-auto">
+      <div className="flex h-14 sm:h-16 items-center px-2 sm:px-4 sm:container sm:mx-auto">
         <Link to="/" className="logo-text">
           Collectify
         </Link>
