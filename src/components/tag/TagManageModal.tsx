@@ -6,8 +6,8 @@ import { CurrentTags } from "./CurrentTags";
 interface TagManageModalProps {
   isOpen: boolean;
   onClose: () => void;
-  itemId: string;
-  itemTitle: string;
+  itemIds: string[];
+  itemTitle?: string;
   isUserItem?: boolean;
   isCategory?: boolean;
 }
@@ -15,23 +15,27 @@ interface TagManageModalProps {
 export function TagManageModal({ 
   isOpen, 
   onClose, 
-  itemId, 
-  itemTitle, 
+  itemIds,
+  itemTitle,
   isUserItem = false,
   isCategory = false 
 }: TagManageModalProps) {
+  const title = itemIds.length === 1 
+    ? `${isCategory ? "カテゴリの管理" : "タグの管理"}: ${itemTitle}`
+    : `${itemIds.length}個のアイテムのタグを管理`;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
-            {isCategory ? "カテゴリの管理" : "タグの管理"}: {itemTitle}
+            {title}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
-          <TagInputField itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
-          <CurrentTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
-          <ExistingTags itemId={itemId} isUserItem={isUserItem} isCategory={isCategory} />
+          <TagInputField itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
+          <CurrentTags itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
+          <ExistingTags itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
         </div>
       </DialogContent>
     </Dialog>

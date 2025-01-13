@@ -5,12 +5,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 interface TagInputFieldProps {
-  itemId: string;
+  itemIds: string[];
   isUserItem?: boolean;
   isCategory?: boolean;
 }
 
-export function TagInputField({ itemId, isUserItem = false, isCategory = false }: TagInputFieldProps) {
+export function TagInputField({ itemIds, isUserItem = false, isCategory = false }: TagInputFieldProps) {
   const [tagInput, setTagInput] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -32,24 +32,6 @@ export function TagInputField({ itemId, isUserItem = false, isCategory = false }
 
         if (existingTag) {
           tagId = existingTag.id;
-          
-          // Check if this tag is already associated with the item
-          const { data: existingItemTag } = await supabase
-            .from(isUserItem ? "user_item_tags" : "item_tags")
-            .select("id")
-            .eq(isUserItem ? "user_item_id" : "official_item_id", itemId)
-            .eq("tag_id", tagId)
-            .maybeSingle();
-
-          if (existingItemTag) {
-            toast({
-              title: isCategory ? "カテゴリが既に存在します" : "タグが既に存在します",
-              description: `${newTagName}は既にこのアイテムに追加されています。`,
-              variant: "destructive",
-            });
-            setTagInput("");
-            return;
-          }
         } else {
           // Create new tag if it doesn't exist
           const { data: newTag, error: createTagError } = await supabase
@@ -66,27 +48,31 @@ export function TagInputField({ itemId, isUserItem = false, isCategory = false }
           throw new Error(isCategory ? "カテゴリIDが見つかりませんでした。" : "タグIDが見つかりませんでした。");
         }
 
-        // Insert into the appropriate tags table
+        // Add tag to all selected items
+        const tagsToInsert = itemIds.map(itemId => ({
+          [isUserItem ? "user_item_id" : "official_item_id"]: itemId,
+          tag_id: tagId
+        }));
+
         const { error: relationError } = await supabase
           .from(isUserItem ? "user_item_tags" : "item_tags")
-          .insert(
-            isUserItem
-              ? [{ user_item_id: itemId, tag_id: tagId }]
-              : [{ official_item_id: itemId, tag_id: tagId }]
-          );
+          .insert(tagsToInsert);
 
         if (relationError) throw relationError;
 
         // Invalidate queries
-        queryClient.invalidateQueries({
-          queryKey: isUserItem ? ["user-item-tags", itemId] : ["item-tags", itemId],
-        });
+        for (const itemId of itemIds) {
+          queryClient.invalidateQueries({
+            queryKey: isUserItem ? ["user-item-tags", itemId] : ["item-tags", itemId],
+          });
+        }
         queryClient.invalidateQueries({ queryKey: ["tags"] });
+        queryClient.invalidateQueries({ queryKey: ["user-items"] });
 
         setTagInput("");
         toast({
           title: isCategory ? "カテゴリを追加しました" : "タグを追加しました",
-          description: `${newTagName}をアイテムに追加しました。`,
+          description: `${newTagName}を${itemIds.length}個のアイテムに追加しました。`,
         });
       } catch (error) {
         console.error("Error adding tag:", error);

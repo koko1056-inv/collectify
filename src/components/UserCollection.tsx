@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { MyCollectionGoodsCard } from "./collection/MyCollectionGoodsCard";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
-import { Grid, List } from "lucide-react";
+import { Grid, List, Tags } from "lucide-react";
 import { useState, useMemo, memo } from "react";
 import {
   DndContext,
@@ -20,6 +20,8 @@ import {
   arrayMove,
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
+import { TagManageModal } from "./tag/TagManageModal";
+import { Checkbox } from "./ui/checkbox";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -31,6 +33,8 @@ const MemoizedMyCollectionGoodsCard = memo(MyCollectionGoodsCard);
 export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
 
@@ -73,8 +77,8 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       return data || [];
     },
     enabled: !!effectiveUserId,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
   });
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -86,11 +90,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       const oldIndex = items.findIndex((item) => item.id === active.id);
       const newIndex = items.findIndex((item) => item.id === over.id);
       
-      // Update the order in the UI
       const newItems = arrayMove([...items], oldIndex, newIndex);
-      
-      // Here you could also update the order in the database if needed
-      // For now, we'll just update the local state through React Query's cache
       queryClient.setQueryData(["user-items", effectiveUserId, selectedTags], newItems);
     }
   };
@@ -104,6 +104,23 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       )
     );
   }, [items, selectedTags]);
+
+  const handleSelectItem = (itemId: string) => {
+    setSelectedItems(prev => {
+      if (prev.includes(itemId)) {
+        return prev.filter(id => id !== itemId);
+      }
+      return [...prev, itemId];
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.length === filteredItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(filteredItems.map(item => item.id));
+    }
+  };
 
   if (!effectiveUserId) {
     return (
@@ -149,7 +166,30 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={selectedItems.length === filteredItems.length && filteredItems.length > 0}
+              onCheckedChange={handleSelectAll}
+              aria-label="全て選択"
+            />
+            <span className="text-sm text-muted-foreground">
+              {selectedItems.length > 0 ? `${selectedItems.length}個選択中` : "選択"}
+            </span>
+          </div>
+          {selectedItems.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsTagModalOpen(true)}
+              className="gap-2"
+            >
+              <Tags className="h-4 w-4" />
+              <span>タグを管理</span>
+            </Button>
+          )}
+        </div>
         <Button
           variant="outline"
           size="sm"
@@ -177,18 +217,37 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
         <SortableContext items={filteredItems} strategy={rectSortingStrategy}>
           <div className={gridClass}>
             {filteredItems.map((item) => (
-              <MemoizedMyCollectionGoodsCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                image={item.image}
-                quantity={item.quantity}
-                isCompact={isCompact}
-              />
+              <div key={item.id} className="relative">
+                <div className="absolute top-2 left-2 z-10">
+                  <Checkbox
+                    checked={selectedItems.includes(item.id)}
+                    onCheckedChange={() => handleSelectItem(item.id)}
+                    aria-label={`${item.title}を選択`}
+                  />
+                </div>
+                <MemoizedMyCollectionGoodsCard
+                  id={item.id}
+                  title={item.title}
+                  image={item.image}
+                  quantity={item.quantity}
+                  isCompact={isCompact}
+                />
+              </div>
             ))}
           </div>
         </SortableContext>
       </DndContext>
+      {isTagModalOpen && selectedItems.length > 0 && (
+        <TagManageModal
+          isOpen={isTagModalOpen}
+          onClose={() => {
+            setIsTagModalOpen(false);
+            setSelectedItems([]);
+          }}
+          itemIds={selectedItems}
+          isUserItem={true}
+        />
+      )}
     </div>
   );
 }
