@@ -10,23 +10,23 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 interface ItemMemoriesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  itemId: string;
-  itemTitle: string;
+  itemIds: string[];
+  itemTitles: string[];
   userId?: string;
 }
 
-export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }: ItemMemoriesModalProps) {
+export function ItemMemoriesModal({ isOpen, onClose, itemIds, itemTitles, userId }: ItemMemoriesModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
 
   const { data: memories = [], refetch } = useQuery({
-    queryKey: ["item-memories", itemId],
+    queryKey: ["item-memories", itemIds],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("item_memories")
         .select("*")
-        .eq("user_item_id", itemId)
+        .in("user_item_id", itemIds)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -42,7 +42,7 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
         const timestamp = Date.now();
         const fileExt = data.image.name.split(".").pop();
         const fileName = `${timestamp}-${crypto.randomUUID()}.${fileExt}`;
-        const filePath = `memories/${itemId}/${fileName}`;
+        const filePath = `memories/${itemIds[0]}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from("kuji_images")
@@ -69,13 +69,16 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
         console.log("Image uploaded successfully. Public URL:", imageUrl);
       }
 
+      // Insert memories for all selected items
+      const memoriesToInsert = itemIds.map(itemId => ({
+        user_item_id: itemId,
+        comment: data.comment || null,
+        image_url: imageUrl,
+      }));
+
       const { error } = await supabase
         .from("item_memories")
-        .insert({
-          user_item_id: itemId,
-          comment: data.comment || null,
-          image_url: imageUrl,
-        });
+        .insert(memoriesToInsert);
 
       if (error) throw error;
 
@@ -99,11 +102,15 @@ export function ItemMemoriesModal({ isOpen, onClose, itemId, itemTitle, userId }
     }
   };
 
+  const title = itemTitles.length === 1 
+    ? `${itemTitles[0]}の思い出`
+    : `${itemTitles.length}個のコレクションの思い出`;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{itemTitle}の思い出</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <ScrollArea className="h-[70vh]">
           <div className="space-y-6 pr-4">

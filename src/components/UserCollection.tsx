@@ -148,8 +148,11 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     if (selectionAction === 'tags') {
       setIsTagModalOpen(true);
     } else if (selectionAction === 'memories') {
-      const selectedItem = items.find(item => item.id === selectedItems[0]);
-      if (selectedItem) {
+      const selectedItemTitles = selectedItems
+        .map(id => items.find(item => item.id === id)?.title)
+        .filter((title): title is string => title !== undefined);
+
+      if (selectedItemTitles.length > 0) {
         setIsMemoriesModalOpen(true);
       }
     }
@@ -322,8 +325,12 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
         <ItemMemoriesModal
           isOpen={isMemoriesModalOpen}
           onClose={handleActionComplete}
-          itemId={selectedItems[0]}
-          itemTitle={items.find(item => item.id === selectedItems[0])?.title || ""}
+          itemIds={selectedItems}
+          itemTitles={selectedItems
+            .map(id => items.find(item => item.id === id)?.title)
+            .filter((title): title is string => title !== undefined)
+          }
+          userId={userId}
         />
       )}
     </div>
