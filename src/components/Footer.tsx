@@ -1,4 +1,4 @@
-import { Home, Search, Bell, User } from "lucide-react";
+import { Home, Search, Swap, Heart, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +15,7 @@ export function Footer() {
         <Link
           to="/search"
           className={cn(
-            "flex flex-col items-center justify-center w-1/4 text-gray-500",
+            "flex flex-col items-center justify-center w-1/5 text-gray-500",
             isActive("/search") && "text-primary"
           )}
         >
@@ -24,20 +24,20 @@ export function Footer() {
         </Link>
         
         <Link
-          to="/notifications"
+          to="/trade"
           className={cn(
-            "flex flex-col items-center justify-center w-1/4 text-gray-500",
-            isActive("/notifications") && "text-primary"
+            "flex flex-col items-center justify-center w-1/5 text-gray-500",
+            isActive("/trade") && "text-primary"
           )}
         >
-          <Bell className="h-6 w-6" />
-          <span className="text-xs mt-1">通知</span>
+          <Swap className="h-6 w-6" />
+          <span className="text-xs mt-1">トレード</span>
         </Link>
 
         <Link
           to="/"
           className={cn(
-            "flex flex-col items-center justify-center w-1/4 text-gray-500",
+            "flex flex-col items-center justify-center w-1/5 text-gray-500",
             isActive("/") && "text-primary"
           )}
         >
@@ -48,9 +48,20 @@ export function Footer() {
         </Link>
 
         <Link
+          to="/wishlist"
+          className={cn(
+            "flex flex-col items-center justify-center w-1/5 text-gray-500",
+            isActive("/wishlist") && "text-primary"
+          )}
+        >
+          <Heart className="h-6 w-6" />
+          <span className="text-xs mt-1">ウィッシュ</span>
+        </Link>
+
+        <Link
           to={user ? `/user/${user.id}` : "/login"}
           className={cn(
-            "flex flex-col items-center justify-center w-1/4 text-gray-500",
+            "flex flex-col items-center justify-center w-1/5 text-gray-500",
             (user && isActive(`/user/${user.id}`)) && "text-primary"
           )}
         >
