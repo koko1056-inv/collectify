@@ -9,9 +9,10 @@ import { trackTabChange } from "@/utils/analytics";
 interface CollectionTabsProps {
   filteredItems: OfficialItem[];
   selectedTags: string[];
+  userId?: string | null;
 }
 
-export function CollectionTabs({ filteredItems, selectedTags }: CollectionTabsProps) {
+export function CollectionTabs({ filteredItems, selectedTags, userId }: CollectionTabsProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
 
@@ -36,10 +37,7 @@ export function CollectionTabs({ filteredItems, selectedTags }: CollectionTabsPr
 
       <TabsContent value="collection">
         <div className="space-y-8">
-          <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
-            {t("collection.title")}
-          </h1>
-          <UserCollection selectedTags={selectedTags} />
+          <UserCollection selectedTags={selectedTags} userId={userId} />
         </div>
       </TabsContent>
     </Tabs>
