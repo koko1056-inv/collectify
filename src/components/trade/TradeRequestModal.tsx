@@ -30,7 +30,31 @@ export function TradeRequestModal({
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const { data: userItems } = useQuery({
+  const { data: receiverItem, isError: receiverItemError } = useQuery({
+    queryKey: ["receiver-item", requestedItemId, receiverId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("*")
+        .eq("user_id", receiverId)
+        .eq("official_item_id", requestedItemId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error fetching receiver item:", error);
+        throw error;
+      }
+      
+      if (!data) {
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!requestedItemId && !!receiverId,
+  });
+
+  const { data: userItems = [], isError: userItemsError } = useQuery({
     queryKey: ["user-items", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -38,11 +62,36 @@ export function TradeRequestModal({
         .from("user_items")
         .select("*")
         .eq("user_id", user.id);
-      if (error) throw error;
-      return data;
+      
+      if (error) {
+        console.error("Error fetching user items:", error);
+        throw error;
+      }
+      
+      return data || [];
     },
     enabled: !!user,
   });
+
+  if (receiverItemError || userItemsError) {
+    toast({
+      title: "エラー",
+      description: "アイテムの取得に失敗しました",
+      variant: "destructive",
+    });
+    onClose();
+    return null;
+  }
+
+  if (!receiverItem) {
+    toast({
+      title: "エラー",
+      description: "交換対象のアイテムが見つかりません",
+      variant: "destructive",
+    });
+    onClose();
+    return null;
+  }
 
   const handleSubmit = async () => {
     if (!selectedItem) {
@@ -60,7 +109,7 @@ export function TradeRequestModal({
         sender_id: user?.id,
         receiver_id: receiverId,
         offered_item_id: selectedItem,
-        requested_item_id: requestedItemId,
+        requested_item_id: receiverItem.id,
         message,
       });
 
