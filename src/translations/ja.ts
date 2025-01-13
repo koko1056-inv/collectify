@@ -9,7 +9,7 @@ export const jaTranslations = {
     }
   },
   footer: {
-    home: "決定",
+    home: "",
     search: "検索",
     trade: "トレード",
     wishlist: "ウィッシュ",
