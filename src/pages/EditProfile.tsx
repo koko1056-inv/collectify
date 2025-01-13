@@ -11,6 +11,8 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
 import { ProfileStats } from "@/components/profile/ProfileStats";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 export default function EditProfile() {
   const { user } = useAuth();
@@ -82,6 +84,24 @@ export default function EditProfile() {
     });
   };
 
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "エラー",
+        description: "ログアウトに失敗しました",
+      });
+      return;
+    }
+    
+    toast({
+      title: "ログアウト完了",
+      description: "ログアウトしました",
+    });
+    navigate("/login");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -102,29 +122,40 @@ export default function EditProfile() {
     <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar />
       <main className="container mx-auto px-4 py-8 pt-24">
-        <div id="profile-card" className="max-w-3xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow">
-          <ProfileHeader 
-            username={username}
-            onShare={() => setIsShareModalOpen(true)}
-          />
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div className="bg-white p-6 rounded-lg shadow">
+            <ProfileHeader 
+              username={username}
+              onShare={() => setIsShareModalOpen(true)}
+            />
 
-          <ProfileStats userId={user.id} />
+            <ProfileStats userId={user.id} />
 
-          <ProfileBio
-            bio={bio}
-            isEditing={isEditing}
-            onBioChange={(e) => setBio(e.target.value)}
-            onEdit={() => setIsEditing(true)}
-            onCancel={() => setIsEditing(false)}
-            onSubmit={handleSubmit}
-            saving={saving}
-          />
+            <ProfileBio
+              bio={bio}
+              isEditing={isEditing}
+              onBioChange={(e) => setBio(e.target.value)}
+              onEdit={() => setIsEditing(true)}
+              onCancel={() => setIsEditing(false)}
+              onSubmit={handleSubmit}
+              saving={saving}
+            />
 
-          <ProfileFavorites
-            userId={user.id}
-            isEditing={isEditingFavorites}
-            onEditComplete={() => setIsEditingFavorites(false)}
-          />
+            <ProfileFavorites
+              userId={user.id}
+              isEditing={isEditingFavorites}
+              onEditComplete={() => setIsEditingFavorites(false)}
+            />
+          </div>
+          
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4" />
+            ログアウト
+          </Button>
         </div>
       </main>
 
