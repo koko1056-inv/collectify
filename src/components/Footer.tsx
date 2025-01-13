@@ -4,11 +4,13 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
+import { TradeRequestsModal } from "./trade/TradeRequestsModal";
 
 export function Footer() {
   const location = useLocation();
   const { t } = useLanguage();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -48,16 +50,13 @@ export function Footer() {
             <span className="text-xs mt-1">{t('footer.home')}</span>
           </Link>
 
-          <Link
-            to="/trade"
-            className={cn(
-              "flex flex-col items-center",
-              isActive("/trade") && "text-primary"
-            )}
+          <button
+            onClick={() => setIsTradeModalOpen(true)}
+            className="flex flex-col items-center"
           >
             <Repeat2 className="h-6 w-6" />
             <span className="text-xs mt-1">{t('footer.trade')}</span>
-          </Link>
+          </button>
 
           <Link
             to="/edit-profile"
@@ -75,6 +74,11 @@ export function Footer() {
       <WishlistViewModal
         isOpen={isWishlistModalOpen}
         onClose={() => setIsWishlistModalOpen(false)}
+      />
+
+      <TradeRequestsModal
+        isOpen={isTradeModalOpen}
+        onClose={() => setIsTradeModalOpen(false)}
       />
     </>
   );
