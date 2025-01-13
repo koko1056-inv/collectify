@@ -134,7 +134,7 @@ export function Navbar() {
               >
                 <Repeat2 className="h-4 w-4 text-foreground" />
                 {pendingTradeRequests > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5 animate-bounce shadow-md">
                     {pendingTradeRequests}
                   </span>
                 )}
