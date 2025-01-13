@@ -74,7 +74,7 @@ export function CollectionGoodsCardModals({
       <TagManageModal
         isOpen={isTagManageModalOpen}
         onClose={onTagManageClose}
-        itemId={id}
+        itemIds={[id]}
         itemTitle={title}
         isUserItem={true}
       />

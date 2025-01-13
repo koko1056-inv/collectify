@@ -61,13 +61,10 @@ export function TagInputField({ itemIds, isUserItem = false, isCategory = false 
         if (relationError) throw relationError;
 
         // Invalidate queries
-        for (const itemId of itemIds) {
-          queryClient.invalidateQueries({
-            queryKey: isUserItem ? ["user-item-tags", itemId] : ["item-tags", itemId],
-          });
-        }
+        queryClient.invalidateQueries({
+          queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
+        });
         queryClient.invalidateQueries({ queryKey: ["tags"] });
-        queryClient.invalidateQueries({ queryKey: ["user-items"] });
 
         setTagInput("");
         toast({

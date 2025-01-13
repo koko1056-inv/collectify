@@ -15,13 +15,13 @@ interface TagManageModalProps {
 export function TagManageModal({ 
   isOpen, 
   onClose, 
-  itemIds,
+  itemIds = [],
   itemTitle,
   isUserItem = false,
   isCategory = false 
 }: TagManageModalProps) {
   const title = itemIds.length === 1 
-    ? `${isCategory ? "カテゴリの管理" : "タグの管理"}: ${itemTitle}`
+    ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
     : `${itemIds.length}個のアイテムのタグを管理`;
 
   return (

@@ -69,7 +69,7 @@ export function CardModals({
       <TagManageModal
         isOpen={isTagManageModalOpen}
         onClose={onTagManageClose}
-        itemId={itemId}
+        itemIds={[itemId]}
         itemTitle={itemTitle}
         isUserItem={true}
       />

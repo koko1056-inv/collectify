@@ -4,12 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface ExistingTagsProps {
-  itemId: string;
+  itemIds: string[];
   isUserItem?: boolean;
   isCategory?: boolean;
 }
 
-export function ExistingTags({ itemId, isUserItem = false, isCategory = false }: ExistingTagsProps) {
+export function ExistingTags({ itemIds, isUserItem = false, isCategory = false }: ExistingTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -28,23 +28,24 @@ export function ExistingTags({ itemId, isUserItem = false, isCategory = false }:
 
   const handleSelectExistingTag = async (tagId: string, tagName: string) => {
     try {
+      const tagsToInsert = itemIds.map(itemId => ({
+        [isUserItem ? "user_item_id" : "official_item_id"]: itemId,
+        tag_id: tagId
+      }));
+
       const { error } = await supabase
         .from(isUserItem ? "user_item_tags" : "item_tags")
-        .insert(
-          isUserItem
-            ? [{ user_item_id: itemId, tag_id: tagId }]
-            : [{ official_item_id: itemId, tag_id: tagId }]
-        );
+        .insert(tagsToInsert);
 
       if (error) throw error;
 
       queryClient.invalidateQueries({
-        queryKey: isUserItem ? ["user-item-tags", itemId] : ["item-tags", itemId],
+        queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
       });
 
       toast({
         title: isCategory ? "カテゴリを追加しました" : "タグを追加しました",
-        description: `${tagName}をアイテムに追加しました。`,
+        description: `${tagName}を${itemIds.length}個のアイテムに追加しました。`,
       });
     } catch (error) {
       console.error("Error adding existing tag:", error);

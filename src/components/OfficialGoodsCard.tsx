@@ -116,7 +116,7 @@ export function OfficialGoodsCard({
       <TagManageModal
         isOpen={isTagModalOpen}
         onClose={() => setIsTagModalOpen(false)}
-        itemId={id}
+        itemIds={[id]}
         itemTitle={title}
       />
     </>
