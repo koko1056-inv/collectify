@@ -44,7 +44,7 @@ const UserProfile = () => {
             <div className="flex justify-between items-center">
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold">
-                  {profile.username}さんのコレクション
+                  {profile.username}
                 </h1>
                 <ProfileStats userId={userId} />
               </div>
