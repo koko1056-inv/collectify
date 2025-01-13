@@ -21,7 +21,6 @@ export function TagInputField({ itemIds, isUserItem = false, isCategory = false 
       const newTagName = tagInput.trim().toLowerCase();
 
       try {
-        // First check if tag exists
         let tagId;
         const { data: existingTag } = await supabase
           .from("tags")
@@ -33,7 +32,6 @@ export function TagInputField({ itemIds, isUserItem = false, isCategory = false 
         if (existingTag) {
           tagId = existingTag.id;
         } else {
-          // Create new tag if it doesn't exist
           const { data: newTag, error: createTagError } = await supabase
             .from("tags")
             .insert([{ name: newTagName, is_category: isCategory }])
@@ -48,10 +46,9 @@ export function TagInputField({ itemIds, isUserItem = false, isCategory = false 
           throw new Error(isCategory ? "カテゴリIDが見つかりませんでした。" : "タグIDが見つかりませんでした。");
         }
 
-        // Add tag to all selected items
         const tagsToInsert = itemIds.map(itemId => ({
-          [isUserItem ? "user_item_id" : "official_item_id"]: itemId,
-          tag_id: tagId
+          tag_id: tagId,
+          ...(isUserItem ? { user_item_id: itemId } : { official_item_id: itemId })
         }));
 
         const { error: relationError } = await supabase
@@ -60,7 +57,6 @@ export function TagInputField({ itemIds, isUserItem = false, isCategory = false 
 
         if (relationError) throw relationError;
 
-        // Invalidate queries
         queryClient.invalidateQueries({
           queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
         });

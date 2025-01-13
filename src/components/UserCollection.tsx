@@ -148,7 +148,10 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     if (selectionAction === 'tags') {
       setIsTagModalOpen(true);
     } else if (selectionAction === 'memories') {
-      setIsMemoriesModalOpen(true);
+      const selectedItem = items.find(item => item.id === selectedItems[0]);
+      if (selectedItem) {
+        setIsMemoriesModalOpen(true);
+      }
     }
   };
 
@@ -320,6 +323,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
           isOpen={isMemoriesModalOpen}
           onClose={handleActionComplete}
           itemId={selectedItems[0]}
+          itemTitle={items.find(item => item.id === selectedItems[0])?.title || ""}
         />
       )}
     </div>

@@ -29,8 +29,8 @@ export function ExistingTags({ itemIds, isUserItem = false, isCategory = false }
   const handleSelectExistingTag = async (tagId: string, tagName: string) => {
     try {
       const tagsToInsert = itemIds.map(itemId => ({
-        [isUserItem ? "user_item_id" : "official_item_id"]: itemId,
-        tag_id: tagId
+        tag_id: tagId,
+        ...(isUserItem ? { user_item_id: itemId } : { official_item_id: itemId })
       }));
 
       const { error } = await supabase
