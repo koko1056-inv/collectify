@@ -463,6 +463,7 @@ export type Database = {
           created_at: string
           id: string
           image: string
+          official_item_id: string | null
           official_link: string | null
           prize: string
           quantity: number
@@ -476,6 +477,7 @@ export type Database = {
           created_at?: string
           id?: string
           image: string
+          official_item_id?: string | null
           official_link?: string | null
           prize: string
           quantity?: number
@@ -489,6 +491,7 @@ export type Database = {
           created_at?: string
           id?: string
           image?: string
+          official_item_id?: string | null
           official_link?: string | null
           prize?: string
           quantity?: number
@@ -497,6 +500,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_items_official_item_id_fkey"
+            columns: ["official_item_id"]
+            isOneToOne: false
+            referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_items_user_id_fkey"
             columns: ["user_id"]
