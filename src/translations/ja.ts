@@ -13,7 +13,7 @@ export const jaTranslations = {
     search: "検索",
     trade: "トレード",
     wishlist: "ウィッシュ",
-    mypage: "マイページ"
+    profile: "プロフィール"
   },
   tabs: {
     official: "公式グッズ",
