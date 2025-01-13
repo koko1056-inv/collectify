@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { MyCollectionGoodsCard } from "./collection/MyCollectionGoodsCard";
@@ -31,8 +31,8 @@ const MemoizedMyCollectionGoodsCard = memo(MyCollectionGoodsCard);
 export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
-  const [items, setItems] = useState<any[]>([]);
   const effectiveUserId = userId || user?.id;
+  const queryClient = useQueryClient();
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -48,7 +48,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     })
   );
 
-  const { isLoading: isItemsLoading } = useQuery({
+  const { data: items = [], isLoading: isItemsLoading } = useQuery({
     queryKey: ["user-items", effectiveUserId, selectedTags],
     queryFn: async () => {
       if (!effectiveUserId) return [];
@@ -70,12 +70,11 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       const { data, error } = await query;
 
       if (error) throw error;
-      setItems(data || []);
-      return data;
+      return data || [];
     },
     enabled: !!effectiveUserId,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes (renamed from cacheTime)
+    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
   });
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -84,12 +83,15 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     if (!over) return;
 
     if (active.id !== over.id) {
-      setItems((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
+      
+      // Update the order in the UI
+      const newItems = arrayMove([...items], oldIndex, newIndex);
+      
+      // Here you could also update the order in the database if needed
+      // For now, we'll just update the local state through React Query's cache
+      queryClient.setQueryData(["user-items", effectiveUserId, selectedTags], newItems);
     }
   };
 
