@@ -79,9 +79,11 @@ export function CardModals({
         onClose={onDetailsClose}
         title={itemTitle}
         image={image}
+        price={prize}
         releaseDate={releaseDate}
-        prize={prize}
         quantity={quantity}
+        itemId={itemId}
+        isUserItem={true}
       />
     </>
   );
