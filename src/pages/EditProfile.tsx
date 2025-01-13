@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareModal } from "@/components/ShareModal";
@@ -92,12 +93,13 @@ export default function EditProfile() {
             <Skeleton className="h-8 w-32" />
           </div>
         </main>
+        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar />
       <main className="container mx-auto px-4 py-8 pt-24">
         <div id="profile-card" className="max-w-3xl mx-auto space-y-6 bg-white p-6 rounded-lg shadow">
@@ -133,6 +135,7 @@ export default function EditProfile() {
         url={window.location.href}
         image="/placeholder.svg"
       />
+      <Footer />
     </div>
   );
 }
