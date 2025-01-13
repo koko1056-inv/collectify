@@ -17,7 +17,6 @@ interface OfficialItemsListProps {
   items: OfficialItem[];
 }
 
-// Memoize OfficialGoodsCard to prevent unnecessary re-renders
 const MemoizedOfficialGoodsCard = memo(OfficialGoodsCard);
 
 export function OfficialItemsList({ items }: OfficialItemsListProps) {
@@ -25,9 +24,8 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState(1);
   
-  const itemsPerPage = isMobile ? 12 : 24;
+  const itemsPerPage = isMobile ? 8 : 24;
   
-  // Memoize calculations
   const { totalPages, currentItems, pageNumbers } = useMemo(() => {
     const total = Math.ceil(items.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -43,19 +41,20 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   }, [items, currentPage, itemsPerPage]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold animate-fade-in text-gray-900">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex justify-between items-center mb-4 px-2">
+        <h1 className="text-2xl font-bold animate-fade-in text-gray-900">
           公式グッズ
         </h1>
         <Button 
           onClick={() => navigate("/add-item")}
-          className="bg-gray-900 hover:bg-gray-800"
+          className="bg-gray-900 hover:bg-gray-800 text-sm"
+          size="sm"
         >
-          新規アイテムを追加
+          新規追加
         </Button>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4 px-2">
         {currentItems.map((item) => (
           <MemoizedOfficialGoodsCard
             key={item.id}
@@ -71,7 +70,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
       </div>
       
       {totalPages > 1 && (
-        <Pagination className="mt-8">
+        <Pagination className="mt-4">
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
@@ -81,7 +80,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
             </PaginationItem>
             
             {pageNumbers.map((pageNum) => (
-              <PaginationItem key={pageNum}>
+              <PaginationItem key={pageNum} className="hidden sm:block">
                 <PaginationLink
                   onClick={() => setCurrentPage(pageNum)}
                   isActive={currentPage === pageNum}

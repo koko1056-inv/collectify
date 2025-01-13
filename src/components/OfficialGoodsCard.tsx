@@ -49,7 +49,7 @@ export function OfficialGoodsCard({
   return (
     <>
       <Card 
-        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative"
+        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden"
         onClick={(e) => {
           if ((e.target as HTMLElement).tagName === 'BUTTON') {
             e.stopPropagation();

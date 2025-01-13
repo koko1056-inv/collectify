@@ -19,7 +19,7 @@ export function FilterBar({
   tags,
 }: FilterBarProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 px-2">
       <SearchBar
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}

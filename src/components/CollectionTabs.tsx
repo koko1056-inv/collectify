@@ -21,22 +21,28 @@ export function CollectionTabs({ filteredItems, selectedTags, userId }: Collecti
   };
 
   return (
-    <Tabs defaultValue="official" className="space-y-6" onValueChange={handleTabChange}>
-      <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white border border-gray-200">
-        <TabsTrigger value="official" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white">
+    <Tabs defaultValue="official" className="space-y-4 sm:space-y-6" onValueChange={handleTabChange}>
+      <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-white border border-gray-200 rounded-full">
+        <TabsTrigger 
+          value="official" 
+          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+        >
           {t("tabs.official")}
         </TabsTrigger>
-        <TabsTrigger value="collection" className="data-[state=active]:bg-gray-900 data-[state=active]:text-white">
+        <TabsTrigger 
+          value="collection" 
+          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+        >
           {t("tabs.collection")}
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="official">
+      <TabsContent value="official" className="mt-2 sm:mt-4">
         <OfficialItemsList items={filteredItems} />
       </TabsContent>
 
-      <TabsContent value="collection">
-        <div className="space-y-8">
+      <TabsContent value="collection" className="mt-2 sm:mt-4">
+        <div className="space-y-6">
           <UserCollection selectedTags={selectedTags} userId={userId} />
         </div>
       </TabsContent>

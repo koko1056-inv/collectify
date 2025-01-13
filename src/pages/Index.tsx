@@ -132,21 +132,23 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="container mx-auto px-4 py-8 pt-24">
-        <div className="space-y-6">
+      <main className="container mx-auto px-2 py-4 pt-20 sm:px-4 sm:py-8 sm:pt-24">
+        <div className="space-y-4 sm:space-y-6">
           {userId && viewedProfile && (
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 px-2">
               {viewedProfile.username}さんのコレクション
             </h1>
           )}
 
-          <FilterBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            tags={allTags}
-          />
+          <div className="sticky top-16 z-10 bg-gray-50 pb-2">
+            <FilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+              tags={allTags}
+            />
+          </div>
 
           <CollectionTabs
             filteredItems={sortedItems}
