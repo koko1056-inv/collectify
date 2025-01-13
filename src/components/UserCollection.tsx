@@ -75,7 +75,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     },
     enabled: !!effectiveUserId,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    cacheTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
+    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes (renamed from cacheTime)
   });
 
   const handleDragEnd = (event: DragEndEvent) => {
