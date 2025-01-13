@@ -48,10 +48,15 @@ export function CollectionGoodsCardContent({
         .select("*")
         .eq("user_item_id", id)
         .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching memories:", error);
+        throw error;
+      }
+      return data || [];
     },
     enabled: !!id,
+    refetchOnWindowFocus: true,
+    staleTime: 1000,
   });
 
   return (
