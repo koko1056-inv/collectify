@@ -141,7 +141,7 @@ const Index = () => {
             </h1>
           )}
 
-          <div className="sm:sticky sm:top-16 z-10 bg-gray-50 pb-2">
+          <div className="z-10 bg-gray-50 pb-2">
             <FilterBar
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
