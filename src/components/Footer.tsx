@@ -1,4 +1,4 @@
-import { Home, Search, Swap, Heart, User } from "lucide-react";
+import { Home, Search, RefreshCw, Heart, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,7 +30,7 @@ export function Footer() {
             isActive("/trade") && "text-primary"
           )}
         >
-          <Swap className="h-6 w-6" />
+          <RefreshCw className="h-6 w-6" />
           <span className="text-xs mt-1">トレード</span>
         </Link>
 
