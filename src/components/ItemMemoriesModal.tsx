@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { MemoriesForm } from "./collection/MemoriesForm";
@@ -18,21 +18,27 @@ interface ItemMemoriesModalProps {
 export function ItemMemoriesModal({ isOpen, onClose, itemIds, itemTitles, userId }: ItemMemoriesModalProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const isOwner = !userId || (user && user.id === userId);
 
   const { data: memories = [], refetch } = useQuery({
     queryKey: ["item-memories", itemIds],
     queryFn: async () => {
+      if (!itemIds.length) return [];
+
       const { data, error } = await supabase
         .from("item_memories")
         .select("*")
         .in("user_item_id", itemIds)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching memories:", error);
+        throw error;
+      }
+      return data || [];
     },
-    enabled: itemIds.length > 0,
+    enabled: isOpen && itemIds.length > 0,
   });
 
   const handleSubmit = async (data: { comment?: string; image?: File }) => {
@@ -83,14 +89,16 @@ export function ItemMemoriesModal({ isOpen, onClose, itemIds, itemTitles, userId
 
       if (error) throw error;
 
+      // Invalidate and refetch queries
+      await queryClient.invalidateQueries({ queryKey: ["item-memories", itemIds] });
+      await refetch();
+
       toast({
         title: isOwner ? "思い出を追加しました" : "コメントを追加しました",
         description: isOwner 
           ? "コレクションに新しい思い出が追加されました。"
           : "コレクションにコメントが追加されました。",
       });
-
-      refetch();
     } catch (error) {
       console.error("Error adding memory:", error);
       toast({
