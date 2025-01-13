@@ -61,8 +61,8 @@ export function CardModals({
       <ItemMemoriesModal
         isOpen={isMemoriesModalOpen}
         onClose={onMemoriesClose}
-        itemId={itemId}
-        itemTitle={itemTitle}
+        itemIds={[itemId]}
+        itemTitles={[itemTitle]}
         userId={userId}
       />
 

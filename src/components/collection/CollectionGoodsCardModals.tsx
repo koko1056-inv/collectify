@@ -3,7 +3,6 @@ import { TagManageModal } from "../tag/TagManageModal";
 import { ShareModal } from "../ShareModal";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
 import { ItemDetailsModal } from "../ItemDetailsModal";
-import { useCardEventHandlers } from "./CardEventHandlers";
 
 interface CollectionGoodsCardModalsProps {
   id: string;
@@ -46,7 +45,6 @@ export function CollectionGoodsCardModals({
   onDetailsClose,
   shareUrl,
 }: CollectionGoodsCardModalsProps) {
-  const { handleDelete } = useCardEventHandlers(id);
 
   return (
     <>
@@ -66,8 +64,8 @@ export function CollectionGoodsCardModals({
       <ItemMemoriesModal
         isOpen={isMemoriesModalOpen}
         onClose={onMemoriesClose}
-        itemId={id}
-        itemTitle={title}
+        itemIds={[id]}
+        itemTitles={[title]}
         userId={userId}
       />
 
@@ -90,7 +88,7 @@ export function CollectionGoodsCardModals({
       <DeleteConfirmDialog
         isOpen={isDeleteDialogOpen}
         onOpenChange={onDeleteClose}
-        onConfirm={handleDelete}
+        onConfirm={() => {}}
       />
     </>
   );
