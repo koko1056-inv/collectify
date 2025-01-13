@@ -1,6 +1,6 @@
-import { ItemMemoriesModal } from "../ItemMemoriesModal";
-import { TagManageModal } from "../tag/TagManageModal";
-import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
+import { TagManageModal } from "@/components/tag/TagManageModal";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ItemDetailsModal } from "../ItemDetailsModal";
 
 interface CardModalsProps {
@@ -10,7 +10,6 @@ interface CardModalsProps {
   image: string;
   releaseDate?: string;
   prize?: string;
-  description?: string;
   quantity?: number;
   isMemoriesModalOpen: boolean;
   isTagManageModalOpen: boolean;
@@ -30,7 +29,6 @@ export function CardModals({
   image,
   releaseDate,
   prize,
-  description,
   quantity,
   isMemoriesModalOpen,
   isTagManageModalOpen,
@@ -44,20 +42,6 @@ export function CardModals({
 }: CardModalsProps) {
   return (
     <>
-      <ItemDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={onDetailsClose}
-        title={itemTitle}
-        image={image}
-        price={prize}
-        releaseDate={releaseDate}
-        description={description}
-        itemId={itemId}
-        isUserItem={true}
-        quantity={quantity}
-        userId={userId}
-      />
-
       <ItemMemoriesModal
         isOpen={isMemoriesModalOpen}
         onClose={onMemoriesClose}
@@ -65,19 +49,39 @@ export function CardModals({
         itemTitles={[itemTitle]}
         userId={userId}
       />
-
       <TagManageModal
         isOpen={isTagManageModalOpen}
         onClose={onTagManageClose}
         itemIds={[itemId]}
-        itemTitle={itemTitle}
         isUserItem={true}
       />
-
-      <DeleteConfirmDialog
-        isOpen={isDeleteDialogOpen}
-        onOpenChange={onDeleteClose}
-        onConfirm={onDeleteConfirm}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={onDeleteClose}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>コレクションの削除</AlertDialogTitle>
+            <AlertDialogDescription>
+              このコレクションを削除してもよろしいですか？この操作は取り消せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={onDeleteConfirm}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              削除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <ItemDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={onDetailsClose}
+        title={itemTitle}
+        image={image}
+        releaseDate={releaseDate}
+        prize={prize}
+        quantity={quantity}
       />
     </>
   );

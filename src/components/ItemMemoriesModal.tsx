@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,6 +32,7 @@ export function ItemMemoriesModal({ isOpen, onClose, itemIds, itemTitles, userId
       if (error) throw error;
       return data;
     },
+    enabled: itemIds.length > 0,
   });
 
   const handleSubmit = async (data: { comment?: string; image?: File }) => {
@@ -102,15 +103,18 @@ export function ItemMemoriesModal({ isOpen, onClose, itemIds, itemTitles, userId
     }
   };
 
-  const title = itemTitles.length === 1 
+  const title = itemTitles && itemTitles.length === 1 
     ? `${itemTitles[0]}の思い出`
-    : `${itemTitles.length}個のコレクションの思い出`;
+    : `${itemTitles?.length || 0}個のコレクションの思い出`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            コレクションの思い出やコメントを追加できます。
+          </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[70vh]">
           <div className="space-y-6 pr-4">

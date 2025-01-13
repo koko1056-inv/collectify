@@ -1,94 +1,87 @@
-import { ItemMemoriesModal } from "../ItemMemoriesModal";
-import { TagManageModal } from "../tag/TagManageModal";
-import { ShareModal } from "../ShareModal";
-import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
+import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
+import { TagManageModal } from "@/components/tag/TagManageModal";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ItemDetailsModal } from "../ItemDetailsModal";
 
 interface CollectionGoodsCardModalsProps {
-  id: string;
-  title: string;
-  image: string;
+  itemId: string;
+  itemTitle: string;
   userId?: string;
+  image: string;
   releaseDate?: string;
   prize?: string;
   quantity?: number;
   isMemoriesModalOpen: boolean;
   isTagManageModalOpen: boolean;
   isDeleteDialogOpen: boolean;
-  isShareModalOpen: boolean;
   isDetailsModalOpen: boolean;
   onMemoriesClose: () => void;
   onTagManageClose: () => void;
   onDeleteClose: (value: boolean) => void;
-  onShareClose: () => void;
   onDetailsClose: () => void;
-  shareUrl: string;
+  onDeleteConfirm: () => void;
 }
 
 export function CollectionGoodsCardModals({
-  id,
-  title,
-  image,
+  itemId,
+  itemTitle,
   userId,
+  image,
   releaseDate,
   prize,
   quantity,
   isMemoriesModalOpen,
   isTagManageModalOpen,
   isDeleteDialogOpen,
-  isShareModalOpen,
   isDetailsModalOpen,
   onMemoriesClose,
   onTagManageClose,
   onDeleteClose,
-  onShareClose,
   onDetailsClose,
-  shareUrl,
+  onDeleteConfirm,
 }: CollectionGoodsCardModalsProps) {
-
   return (
     <>
-      <ItemDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={onDetailsClose}
-        title={title}
-        image={image}
-        price={prize}
-        releaseDate={releaseDate}
-        itemId={id}
-        isUserItem={true}
-        quantity={quantity}
-        userId={userId}
-      />
-
       <ItemMemoriesModal
         isOpen={isMemoriesModalOpen}
         onClose={onMemoriesClose}
-        itemIds={[id]}
-        itemTitles={[title]}
+        itemIds={[itemId]}
+        itemTitles={[itemTitle]}
         userId={userId}
       />
-
       <TagManageModal
         isOpen={isTagManageModalOpen}
         onClose={onTagManageClose}
-        itemIds={[id]}
-        itemTitle={title}
+        itemIds={[itemId]}
         isUserItem={true}
       />
-
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onClose={onShareClose}
-        title={title}
-        url={shareUrl}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={onDeleteClose}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>コレクションの削除</AlertDialogTitle>
+            <AlertDialogDescription>
+              このコレクションを削除してもよろしいですか？この操作は取り消せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={onDeleteConfirm}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              削除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <ItemDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={onDetailsClose}
+        title={itemTitle}
         image={image}
-      />
-
-      <DeleteConfirmDialog
-        isOpen={isDeleteDialogOpen}
-        onOpenChange={onDeleteClose}
-        onConfirm={() => {}}
+        releaseDate={releaseDate}
+        prize={prize}
+        quantity={quantity}
       />
     </>
   );
