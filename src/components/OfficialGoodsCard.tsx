@@ -49,7 +49,7 @@ export function OfficialGoodsCard({
   return (
     <>
       <Card 
-        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden"
+        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden flex flex-col h-full"
         onClick={(e) => {
           if ((e.target as HTMLElement).tagName === 'BUTTON') {
             e.stopPropagation();
@@ -71,25 +71,27 @@ export function OfficialGoodsCard({
           artist={artist}
           itemId={id}
         />
-        <OfficialGoodsCardFooter
-          isInCollection={isInCollection}
-          wishlistCount={wishlistCount}
-          onAddToCollection={(e) => {
-            e.stopPropagation();
-            handleAddToCollection();
-          }}
-          onTagManageClick={(e) => {
-            e.stopPropagation();
-            setIsTagModalOpen(true);
-          }}
-          onWishlistClick={(e) => {
-            e.stopPropagation();
-            setIsWishlistModalOpen(true);
-          }}
-          itemId={id}
-          itemTitle={title}
-          itemImage={image}
-        />
+        <div className="mt-auto">
+          <OfficialGoodsCardFooter
+            isInCollection={isInCollection}
+            wishlistCount={wishlistCount}
+            onAddToCollection={(e) => {
+              e.stopPropagation();
+              handleAddToCollection();
+            }}
+            onTagManageClick={(e) => {
+              e.stopPropagation();
+              setIsTagModalOpen(true);
+            }}
+            onWishlistClick={(e) => {
+              e.stopPropagation();
+              setIsWishlistModalOpen(true);
+            }}
+            itemId={id}
+            itemTitle={title}
+            itemImage={image}
+          />
+        </div>
       </Card>
 
       {isDetailsModalOpen && (
