@@ -1,42 +1,85 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Home, UserSearch } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Home, Search, ShoppingBasket, Repeat2, User } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
-import { UserSearchModal } from "./UserSearchModal";
+import { WishlistViewModal } from "./WishlistViewModal";
+import { TradeRequestsModal } from "./trade/TradeRequestsModal";
 
 export function Footer() {
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const location = useLocation();
+  const { t } = useLanguage();
+  const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 sm:hidden">
-      <div className="bg-white border-t px-4 py-2">
-        <div className="flex items-center justify-center -mt-3">
-          <Link to="/">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-12 w-12 rounded-full border-2 bg-white shadow-lg"
-            >
-              <Home className="h-6 w-6" />
-            </Button>
+    <>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t sm:hidden">
+        <div className="flex justify-around items-center h-16">
+          <Link
+            to="/search"
+            className={cn(
+              "flex flex-col items-center",
+              isActive("/search") && "text-primary"
+            )}
+          >
+            <Search className="h-6 w-6" />
+            <span className="text-xs mt-1">{t('footer.search')}</span>
+          </Link>
+
+          <button
+            onClick={() => setIsWishlistModalOpen(true)}
+            className="flex flex-col items-center"
+          >
+            <ShoppingBasket className="h-6 w-6" />
+            <span className="text-xs mt-1">{t('footer.wishlist')}</span>
+          </button>
+
+          <Link
+            to="/"
+            className={cn(
+              "flex flex-col items-center",
+              isActive("/") && "text-primary"
+            )}
+          >
+            <div className="bg-primary rounded-full p-3 -mt-3">
+              <Home className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-xs mt-1">{t('footer.home')}</span>
+          </Link>
+
+          <button
+            onClick={() => setIsTradeModalOpen(true)}
+            className="flex flex-col items-center"
+          >
+            <Repeat2 className="h-6 w-6" />
+            <span className="text-xs mt-1">{t('footer.trade')}</span>
+          </button>
+
+          <Link
+            to="/edit-profile"
+            className={cn(
+              "flex flex-col items-center",
+              isActive("/edit-profile") && "text-primary"
+            )}
+          >
+            <User className="h-6 w-6" />
+            <span className="text-xs mt-1">{t('footer.profile')}</span>
           </Link>
         </div>
-        <div className="flex items-center justify-center mt-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs"
-            onClick={() => setIsSearchModalOpen(true)}
-          >
-            <UserSearch className="h-4 w-4 mr-1" />
-            フレンドを探す
-          </Button>
-        </div>
       </div>
-      <UserSearchModal
-        isOpen={isSearchModalOpen}
-        onClose={() => setIsSearchModalOpen(false)}
+
+      <WishlistViewModal
+        isOpen={isWishlistModalOpen}
+        onClose={() => setIsWishlistModalOpen(false)}
       />
-    </footer>
+
+      <TradeRequestsModal
+        isOpen={isTradeModalOpen}
+        onClose={() => setIsTradeModalOpen(false)}
+      />
+    </>
   );
 }
