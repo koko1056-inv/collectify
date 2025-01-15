@@ -23,52 +23,47 @@ export function Footer() {
           <button
             onClick={() => setIsSearchSheetOpen(true)}
             className={cn(
-              "flex flex-col items-center",
+              "flex items-center justify-center w-12 h-12",
               isActive("/search") && "text-primary"
             )}
           >
             <Search className="h-6 w-6" />
-            <span className="text-xs mt-1">{t('footer.search')}</span>
           </button>
 
           <button
             onClick={() => setIsWishlistModalOpen(true)}
-            className="flex flex-col items-center"
+            className="flex items-center justify-center w-12 h-12"
           >
             <ShoppingBasket className="h-6 w-6" />
-            <span className="text-xs mt-1">{t('footer.wishlist')}</span>
           </button>
 
           <Link
             to="/"
             className={cn(
-              "flex flex-col items-center",
+              "flex items-center justify-center",
               isActive("/") && "text-primary"
             )}
           >
-            <div className="bg-primary rounded-full p-3 -mt-3">
+            <div className="bg-primary rounded-full p-3">
               <Home className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xs mt-1">{t('footer.home')}</span>
           </Link>
 
           <button
             onClick={() => setIsTradeModalOpen(true)}
-            className="flex flex-col items-center"
+            className="flex items-center justify-center w-12 h-12"
           >
             <Repeat2 className="h-6 w-6" />
-            <span className="text-xs mt-1">{t('footer.trade')}</span>
           </button>
 
           <Link
             to="/edit-profile"
             className={cn(
-              "flex flex-col items-center",
+              "flex items-center justify-center w-12 h-12",
               isActive("/edit-profile") && "text-primary"
             )}
           >
             <User className="h-6 w-6" />
-            <span className="text-xs mt-1">{t('footer.profile')}</span>
           </Link>
         </div>
       </div>
