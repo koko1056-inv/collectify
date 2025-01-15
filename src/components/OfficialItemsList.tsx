@@ -22,7 +22,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState(1);
   
-  const itemsPerPage = isMobile ? 20 : 24;
+  const itemsPerPage = isMobile ? 21 : 24;
   
   const { totalPages, currentItems, pageNumbers } = useMemo(() => {
     const total = Math.ceil(items.length / itemsPerPage);
