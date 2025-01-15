@@ -9,8 +9,6 @@ import {
   PaginationContent,
   PaginationItem,
   PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
 } from "@/components/ui/pagination";
 
 interface OfficialItemsListProps {
@@ -24,7 +22,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState(1);
   
-  const itemsPerPage = isMobile ? 8 : 24;
+  const itemsPerPage = isMobile ? 20 : 24;
   
   const { totalPages, currentItems, pageNumbers } = useMemo(() => {
     const total = Math.ceil(items.length / itemsPerPage);
@@ -72,31 +70,17 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
       {totalPages > 1 && (
         <Pagination className="mt-4">
           <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-              />
-            </PaginationItem>
-            
             {pageNumbers.map((pageNum) => (
-              <PaginationItem key={pageNum} className="hidden sm:block">
+              <PaginationItem key={pageNum}>
                 <PaginationLink
                   onClick={() => setCurrentPage(pageNum)}
                   isActive={currentPage === pageNum}
-                  className="cursor-pointer"
+                  className={`cursor-pointer ${currentPage === pageNum ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}`}
                 >
                   {pageNum}
                 </PaginationLink>
               </PaginationItem>
             ))}
-            
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-              />
-            </PaginationItem>
           </PaginationContent>
         </Pagination>
       )}
