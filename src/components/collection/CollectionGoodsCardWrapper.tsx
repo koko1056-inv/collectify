@@ -11,6 +11,7 @@ import { CardImage } from "./CardImage";
 import { TradeRequestModal } from "../trade/TradeRequestModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -86,9 +87,16 @@ export function CollectionGoodsCardWrapper({
   if (isCompact) {
     return (
       <Card 
-        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer"
+        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden"
         onClick={() => setIsDetailsModalOpen(true)}
       >
+        {quantity > 1 && (
+          <Badge 
+            className="absolute top-2 right-2 z-10 bg-purple-500 hover:bg-purple-500"
+          >
+            ×{quantity}
+          </Badge>
+        )}
         <CardImage title={title} image={image} />
         <CardModals
           itemId={id}
@@ -113,7 +121,14 @@ export function CollectionGoodsCardWrapper({
   }
 
   return (
-    <Card className="hover-scale card-shadow bg-white border border-gray-200">
+    <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
+      {quantity > 1 && (
+        <Badge 
+          className="absolute top-2 right-2 z-10 bg-purple-500 hover:bg-purple-500"
+        >
+          ×{quantity}
+        </Badge>
+      )}
       <CardHeader
         title={title}
         image={image}
@@ -122,7 +137,6 @@ export function CollectionGoodsCardWrapper({
       <CollectionGoodsCardContent
         id={id}
         isOwner={isOwner}
-        quantity={quantity}
         onMemoriesClick={() => setIsMemoriesModalOpen(true)}
       />
       {(isOwner || canTrade) && (
