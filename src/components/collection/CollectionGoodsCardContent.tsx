@@ -63,7 +63,7 @@ export function CollectionGoodsCardContent({
     <UICardContent className="px-3 py-2 space-y-1">
       <TagList tags={itemTags} />
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <LikeButton itemId={id} />
           {itemMemories.length > 0 && (
             <button
@@ -71,14 +71,14 @@ export function CollectionGoodsCardContent({
                 e.stopPropagation();
                 onMemoriesClick();
               }}
-              className="flex items-center gap-1 text-xs text-purple-500 hover:text-purple-600 transition-colors"
+              className="flex flex-col items-center gap-0.5"
             >
-              <BookMarked className="h-3.5 w-3.5" />
-              <span>{itemMemories.length}</span>
+              <BookMarked className="h-4 w-4 text-purple-500" />
+              <span className="text-[10px] text-purple-500">{itemMemories.length}</span>
             </button>
           )}
           {quantity > 1 && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-[10px] h-5">
               ×{quantity}
             </Badge>
           )}

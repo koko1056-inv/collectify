@@ -90,18 +90,18 @@ export function LikeButton({ itemId }: LikeButtonProps) {
   };
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex flex-col items-center gap-0.5">
       <Button
         variant="ghost"
         size="icon"
         onClick={handleLikeToggle}
-        className={`h-7 w-7 sm:h-9 sm:w-9 ${
+        className={`h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${
           isLiked ? "text-red-500 hover:text-red-600" : "text-gray-500 hover:text-gray-600"
         }`}
       >
-        <Heart className={`h-3 w-3 sm:h-4 sm:w-4 ${isLiked ? "fill-current" : ""}`} />
+        <Heart className={`h-full w-full ${isLiked ? "fill-current" : ""}`} />
       </Button>
-      <span className="text-[10px] sm:text-xs text-gray-500">{likeCount}</span>
+      <span className="text-[10px] sm:text-xs text-gray-500 -mt-1">{likeCount}</span>
     </div>
   );
 }
