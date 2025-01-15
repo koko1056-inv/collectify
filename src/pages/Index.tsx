@@ -9,7 +9,6 @@ import { InitialInterestSelection } from "@/components/InitialInterestSelection"
 import { OfficialItem, Tag } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
-import { Box } from "lucide-react";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -137,8 +136,7 @@ const Index = () => {
       <main className="container mx-auto px-2 py-4 pt-16 pb-24 sm:px-4 sm:py-8 sm:pt-20 sm:pb-8">
         {/* Mobile App Title */}
         <div className="flex items-center justify-center mb-4 sm:hidden">
-          <Box className="w-6 h-6 mr-2" />
-          <span className="text-xl font-bold">アニコレ！</span>
+          <span className="logo-text">Collectify</span>
         </div>
 
         <div className="space-y-4 sm:space-y-6">
