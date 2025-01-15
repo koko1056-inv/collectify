@@ -73,8 +73,10 @@ export function CollectionGoodsCardContent({
               }}
               className="flex flex-col items-center gap-0.5"
             >
-              <BookMarked className="h-4 w-4 text-purple-500" />
-              <span className="text-[10px] text-purple-500">{itemMemories.length}</span>
+              <div className="h-7 w-7 sm:h-9 sm:w-9 p-1.5 text-purple-500">
+                <BookMarked className="h-full w-full" />
+              </div>
+              <span className="text-[10px] sm:text-xs text-purple-500 -mt-1">{itemMemories.length}</span>
             </button>
           )}
           {quantity > 1 && (
