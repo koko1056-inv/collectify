@@ -133,7 +133,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="container mx-auto px-2 py-4 pt-16 pb-24 sm:px-4 sm:py-8 sm:pt-20 sm:pb-8">
+      <main className="container mx-auto px-2 py-4 pt-0 pb-24 sm:px-4 sm:py-8 sm:pt-20 sm:pb-8">
         {/* Mobile App Title */}
         <div className="flex items-center justify-center mb-2 sm:hidden mt-1">
           <span className="logo-text">Collectify</span>
