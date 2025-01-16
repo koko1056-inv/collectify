@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Grid, List } from "lucide-react";
 import { FilterBar } from "@/components/FilterBar";
 import { Tag } from "@/types";
+import { MemoizedMyCollectionGoodsCard } from "@/components/collection/MyCollectionGoodsCard";
 
 interface ProfileCollectionProps {
   userId: string;
@@ -116,15 +116,13 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
         ) : (
           <div className={gridClass}>
             {filteredItems.map((item) => (
-              <CollectionGoodsCard
+              <MemoizedMyCollectionGoodsCard
                 key={item.id}
                 id={item.id}
                 title={item.title}
                 image={item.image}
-                userId={userId}
-                isCompact={isCompact}
                 quantity={item.quantity}
-                memoriesCount={item.item_memories?.length || 0}
+                isCompact={isCompact}
               />
             ))}
           </div>
