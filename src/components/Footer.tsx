@@ -3,12 +3,40 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { MemoriesListModal } from "./memories/MemoriesListModal";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export function Footer() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
+
+  const { data: memories = [] } = useQuery({
+    queryKey: ["memories", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from("item_memories")
+        .select(`
+          *,
+          user_items (
+            title,
+            image
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error fetching memories:", error);
+        throw error;
+      }
+
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4">
@@ -53,6 +81,7 @@ export function Footer() {
       <MemoriesListModal
         isOpen={isMemoriesModalOpen}
         onClose={() => setIsMemoriesModalOpen(false)}
+        memories={memories}
       />
     </footer>
   );
