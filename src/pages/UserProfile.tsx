@@ -8,6 +8,7 @@ import { ProfileWishlist } from "@/components/profile/ProfileWishlist";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { Footer } from "@/components/Footer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sidebar,
   SidebarContent,
@@ -127,8 +128,28 @@ const UserProfile = () => {
               )}
             </div>
 
-            <ProfileCollection userId={userId} />
-            <ProfileWishlist userId={userId} />
+            <Tabs defaultValue="collection" className="space-y-4">
+              <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-white border border-gray-200 rounded-full">
+                <TabsTrigger 
+                  value="collection" 
+                  className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+                >
+                  コレクション
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="wishlist" 
+                  className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+                >
+                  ウィッシュリスト
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="collection">
+                <ProfileCollection userId={userId} />
+              </TabsContent>
+              <TabsContent value="wishlist">
+                <ProfileWishlist userId={userId} />
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
         <Footer />
