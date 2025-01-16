@@ -1,102 +1,76 @@
-import { Home, BookMarked, PlusCircle, User, UserSearch } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { Home, User, PlusCircle, Search, BookMarked } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { MemoriesListModal } from "./memories/MemoriesListModal";
 import { UserSearchModal } from "./UserSearchModal";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 export function Footer() {
-  const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
-  const { data: memories = [] } = useQuery({
-    queryKey: ["memories", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      
-      const { data, error } = await supabase
-        .from("item_memories")
-        .select(`
-          *,
-          user_items (
-            title,
-            image
-          )
-        `)
-        .order('created_at', { ascending: false });
+  if (!user) return null;
 
-      if (error) {
-        console.error("Error fetching memories:", error);
-        throw error;
-      }
-
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4">
-      <div className="flex justify-around items-center">
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center justify-center w-12 h-12"
-        >
-          <Home
-            className={`h-6 w-6 ${
-              location.pathname === "/" ? "text-purple-500" : "text-gray-500"
+    <>
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-6 z-50">
+        <div className="flex justify-between items-center max-w-screen-xl mx-auto">
+          <Link
+            to="/"
+            className={`flex flex-col items-center gap-1 min-w-[64px] ${
+              isActive("/") ? "text-purple-500" : "text-gray-500"
             }`}
-          />
-        </button>
+          >
+            <Home className="h-6 w-6" />
+            <span className="text-xs">ホーム</span>
+          </Link>
 
-        <button
-          onClick={() => setIsMemoriesModalOpen(true)}
-          className="flex items-center justify-center w-12 h-12"
-        >
-          <BookMarked className="h-6 w-6 text-gray-500" />
-        </button>
-
-        <button
-          onClick={() => navigate("/add-item")}
-          className="flex items-center justify-center w-12 h-12"
-        >
-          <PlusCircle className="h-6 w-6 text-gray-500" />
-        </button>
-
-        <button
-          onClick={() => setIsSearchModalOpen(true)}
-          className="flex items-center justify-center w-12 h-12"
-        >
-          <UserSearch className="h-6 w-6 text-gray-500" />
-        </button>
-
-        <button
-          onClick={() => navigate(user ? `/user/${user.id}` : "/login")}
-          className="flex items-center justify-center w-12 h-12"
-        >
-          <User
-            className={`h-6 w-6 ${
-              location.pathname === `/user/${user?.id}` ? "text-purple-500" : "text-gray-500"
+          <Link
+            to="/memories"
+            className={`flex flex-col items-center gap-1 min-w-[64px] ${
+              isActive("/memories") ? "text-purple-500" : "text-gray-500"
             }`}
-          />
-        </button>
+          >
+            <BookMarked className="h-6 w-6" />
+            <span className="text-xs">思い出</span>
+          </Link>
+
+          <Link
+            to="/add-item"
+            className={`flex flex-col items-center gap-1 min-w-[64px] ${
+              isActive("/add-item") ? "text-purple-500" : "text-gray-500"
+            }`}
+          >
+            <PlusCircle className="h-6 w-6" />
+            <span className="text-xs">追加</span>
+          </Link>
+
+          <button
+            onClick={() => setIsSearchModalOpen(true)}
+            className="flex flex-col items-center gap-1 min-w-[64px] text-gray-500"
+          >
+            <Search className="h-6 w-6" />
+            <span className="text-xs">検索</span>
+          </button>
+
+          <Link
+            to={`/user/${user.id}`}
+            className={`flex flex-col items-center gap-1 min-w-[64px] ${
+              isActive(`/user/${user.id}`) ? "text-purple-500" : "text-gray-500"
+            }`}
+          >
+            <User className="h-6 w-6" />
+            <span className="text-xs">マイページ</span>
+          </Link>
+        </div>
       </div>
-
-      <MemoriesListModal
-        isOpen={isMemoriesModalOpen}
-        onClose={() => setIsMemoriesModalOpen(false)}
-        memories={memories}
-      />
 
       <UserSearchModal
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
       />
-    </footer>
+    </>
   );
 }
