@@ -21,37 +21,50 @@ export function Footer() {
         <div className="flex justify-between items-center max-w-screen-xl mx-auto">
           <Link
             to="/"
-            className={isActive("/") ? "text-purple-500" : "text-gray-500"}
+            className={`flex flex-col items-center gap-1 min-w-[64px] ${
+              isActive("/") ? "text-purple-500" : "text-gray-500"
+            }`}
           >
             <Home className="h-6 w-6" />
+            <span className="text-xs">ホーム</span>
           </Link>
 
           <Link
             to="/memories"
-            className={isActive("/memories") ? "text-purple-500" : "text-gray-500"}
+            className={`flex flex-col items-center gap-1 min-w-[64px] ${
+              isActive("/memories") ? "text-purple-500" : "text-gray-500"
+            }`}
           >
             <BookMarked className="h-6 w-6" />
+            <span className="text-xs">思い出</span>
           </Link>
 
           <Link
             to="/add-item"
-            className={isActive("/add-item") ? "text-purple-500" : "text-gray-500"}
+            className={`flex flex-col items-center gap-1 min-w-[64px] ${
+              isActive("/add-item") ? "text-purple-500" : "text-gray-500"
+            }`}
           >
             <PlusCircle className="h-6 w-6" />
+            <span className="text-xs">追加</span>
           </Link>
 
           <button
             onClick={() => setIsSearchModalOpen(true)}
-            className="text-gray-500"
+            className="flex flex-col items-center gap-1 min-w-[64px] text-gray-500"
           >
             <Search className="h-6 w-6" />
+            <span className="text-xs">検索</span>
           </button>
 
           <Link
             to={`/user/${user.id}`}
-            className={isActive(`/user/${user.id}`) ? "text-purple-500" : "text-gray-500"}
+            className={`flex flex-col items-center gap-1 min-w-[64px] ${
+              isActive(`/user/${user.id}`) ? "text-purple-500" : "text-gray-500"
+            }`}
           >
             <User className="h-6 w-6" />
+            <span className="text-xs">マイページ</span>
           </Link>
         </div>
       </div>
