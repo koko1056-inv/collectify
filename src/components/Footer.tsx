@@ -3,13 +3,15 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { UserSearchModal } from "./UserSearchModal";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function Footer() {
   const location = useLocation();
   const { user } = useAuth();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const isMobile = useIsMobile();
 
-  if (!user) return null;
+  if (!user || !isMobile) return null;
 
   const isActive = (path: string) => location.pathname === path;
 
