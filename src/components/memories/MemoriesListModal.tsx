@@ -89,8 +89,9 @@ export function MemoriesListModal({
                               className="bg-white rounded-lg shadow-sm border p-3 space-y-3"
                             >
                               <Link
-                                to={`/?userId=${memory.user_item_id}`}
+                                to={`/?itemId=${memory.user_item_id}`}
                                 className="flex gap-3 items-center hover:opacity-80 transition-opacity"
+                                onClick={onClose}
                               >
                                 {memory.user_items?.image && (
                                   <img
