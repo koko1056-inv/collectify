@@ -2,14 +2,12 @@ import { Home, BookMarked, PlusCircle, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { AddItemModal } from "./AddItemModal";
 import { MemoriesListModal } from "./memories/MemoriesListModal";
 
 export function Footer() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
 
   return (
@@ -34,7 +32,7 @@ export function Footer() {
         </button>
 
         <button
-          onClick={() => setIsAddItemModalOpen(true)}
+          onClick={() => navigate("/add-item")}
           className="flex items-center justify-center w-12 h-12"
         >
           <PlusCircle className="h-6 w-6 text-gray-500" />
@@ -51,11 +49,6 @@ export function Footer() {
           />
         </button>
       </div>
-
-      <AddItemModal
-        isOpen={isAddItemModalOpen}
-        onClose={() => setIsAddItemModalOpen(false)}
-      />
 
       <MemoriesListModal
         isOpen={isMemoriesModalOpen}
