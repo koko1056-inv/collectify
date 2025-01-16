@@ -61,10 +61,10 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
 
   const gridClass = isCompact
     ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
-    : "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3";
+    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3";
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-4">
       <h2 className="text-2xl font-semibold">コレクション</h2>
       <div className="space-y-4">
         <div className="flex justify-between items-center">
