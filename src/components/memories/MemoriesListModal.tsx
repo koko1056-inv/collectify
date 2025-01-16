@@ -1,125 +1,135 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { format } from "date-fns";
+import { ja } from "date-fns/locale";
+import { Link } from "react-router-dom";
+
+interface Memory {
+  id: string;
+  comment?: string | null;
+  image_url?: string | null;
+  created_at: string;
+  user_item_id: string;
+  user_items?: {
+    title: string;
+    image: string;
+  };
+}
 
 interface MemoriesListModalProps {
   isOpen: boolean;
   onClose: () => void;
+  memories: Memory[];
 }
 
-export function MemoriesListModal({ isOpen, onClose }: MemoriesListModalProps) {
-  const { user } = useAuth();
+export function MemoriesListModal({
+  isOpen,
+  onClose,
+  memories,
+}: MemoriesListModalProps) {
+  // Group memories by year
+  const yearGroups = memories.reduce((groups: { [key: string]: Memory[] }, memory) => {
+    const year = format(new Date(memory.created_at), 'yyyy年', { locale: ja });
+    if (!groups[year]) {
+      groups[year] = [];
+    }
+    groups[year].push(memory);
+    return groups;
+  }, {});
 
-  const { data: memories = [] } = useQuery({
-    queryKey: ["user-memories", user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-
-      const { data, error } = await supabase
-        .from("item_memories")
-        .select(`
-          id,
-          comment,
-          image_url,
-          created_at,
-          user_items (
-            title,
-            image
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user && isOpen,
+  // Sort years in descending order
+  const sortedYears = Object.keys(yearGroups).sort((a, b) => {
+    return parseInt(b) - parseInt(a);
   });
 
-  // メモリーを年月ごとにグループ化
-  const groupedMemories = memories.reduce((acc: Record<string, typeof memories>, memory) => {
-    const date = new Date(memory.created_at);
-    const yearMonth = format(date, 'yyyy年M月', { locale: ja });
-    
-    if (!acc[yearMonth]) {
-      acc[yearMonth] = [];
-    }
-    acc[yearMonth].push(memory);
-    return acc;
-  }, {});
-
-  // 年ごとにグループ化
-  const yearGroups = Object.entries(groupedMemories).reduce((acc: Record<string, Record<string, typeof memories>>, [yearMonth, memories]) => {
-    const year = yearMonth.split('年')[0];
-    if (!acc[year]) {
-      acc[year] = {};
-    }
-    acc[year][yearMonth] = memories;
-    return acc;
-  }, {});
+  // Default to the most recent year
+  const defaultYear = sortedYears[0] || '';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>記録一覧</DialogTitle>
+          <DialogTitle>思い出一覧</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue={Object.keys(yearGroups)[0]} className="w-full">
-          <TabsList className="w-full justify-start mb-4 overflow-x-auto">
-            {Object.keys(yearGroups).map((year) => (
-              <TabsTrigger key={year} value={year} className="px-4">
-                {year}年
+        <Tabs defaultValue={defaultYear} className="flex-1 overflow-hidden">
+          <TabsList className="mb-4">
+            {sortedYears.map((year) => (
+              <TabsTrigger key={year} value={year}>
+                {year}
               </TabsTrigger>
             ))}
           </TabsList>
-          {Object.entries(yearGroups).map(([year, monthGroups]) => (
-            <TabsContent key={year} value={year} className="mt-0">
-              <ScrollArea className="h-[65vh]">
-                <div className="space-y-6 pr-4">
-                  {Object.entries(monthGroups).map(([yearMonth, monthMemories]) => (
-                    <div key={yearMonth} className="space-y-4">
-                      <h3 className="font-medium text-base sticky top-0 bg-white py-2 px-2 shadow-sm rounded-lg z-10">
-                        {yearMonth.split('年')[1]}
-                      </h3>
-                      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
-                        {monthMemories.map((memory) => (
-                          <div key={memory.id} className="border rounded-lg p-3 space-y-2 text-sm">
-                            <div className="flex gap-3 items-center">
-                              <img
-                                src={memory.user_items.image}
-                                alt={memory.user_items.title}
-                                className="w-12 h-12 object-cover rounded-md"
-                              />
-                              <div>
-                                <h4 className="font-medium line-clamp-1">{memory.user_items.title}</h4>
-                                <p className="text-xs text-gray-500">
-                                  {format(new Date(memory.created_at), 'M月d日', { locale: ja })}
+          {sortedYears.map((year) => {
+            const yearMemories = yearGroups[year];
+            
+            // Group memories by month within the year
+            const monthGroups = yearMemories.reduce((groups: { [key: string]: Memory[] }, memory) => {
+              const monthKey = format(new Date(memory.created_at), 'yyyy年M月', { locale: ja });
+              if (!groups[monthKey]) {
+                groups[monthKey] = [];
+              }
+              groups[monthKey].push(memory);
+              return groups;
+            }, {});
+
+            return (
+              <TabsContent key={year} value={year} className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full">
+                  <div className="space-y-6 pr-4">
+                    {Object.entries(monthGroups).map(([yearMonth, monthMemories]) => (
+                      <div key={yearMonth} className="space-y-4">
+                        <h3 className="font-medium text-base sticky top-0 bg-white py-2 px-2 shadow-sm rounded-lg z-10">
+                          {yearMonth.split('年')[1]}
+                        </h3>
+                        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
+                          {monthMemories.map((memory) => (
+                            <div
+                              key={memory.id}
+                              className="bg-white rounded-lg shadow-sm border p-3 space-y-3"
+                            >
+                              <Link
+                                to={`/?userId=${memory.user_item_id}`}
+                                className="flex gap-3 items-center hover:opacity-80 transition-opacity"
+                              >
+                                {memory.user_items?.image && (
+                                  <img
+                                    src={memory.user_items.image}
+                                    alt={memory.user_items.title}
+                                    className="w-12 h-12 object-cover rounded-md"
+                                  />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm line-clamp-1">
+                                    {memory.user_items?.title}
+                                  </p>
+                                  <p className="text-gray-500 text-xs">
+                                    {format(new Date(memory.created_at), 'M月d日', { locale: ja })}
+                                  </p>
+                                </div>
+                              </Link>
+                              {memory.comment && (
+                                <p className="text-sm text-gray-600 break-words">
+                                  {memory.comment}
                                 </p>
-                              </div>
+                              )}
+                              {memory.image_url && (
+                                <img
+                                  src={memory.image_url}
+                                  alt="Memory"
+                                  className="w-full h-32 object-cover rounded-md"
+                                />
+                              )}
                             </div>
-                            {memory.image_url && (
-                              <img
-                                src={memory.image_url}
-                                alt="思い出の画像"
-                                className="w-full h-32 object-cover rounded-lg"
-                              />
-                            )}
-                            {memory.comment && (
-                              <p className="text-gray-700 text-sm line-clamp-3">{memory.comment}</p>
-                            )}
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-          ))}
+                    ))}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            );
+          })}
         </Tabs>
       </DialogContent>
     </Dialog>
