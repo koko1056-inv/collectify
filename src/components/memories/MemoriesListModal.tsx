@@ -82,7 +82,7 @@ export function MemoriesListModal({ isOpen, onClose }: MemoriesListModalProps) {
                 <div className="space-y-6 pr-4">
                   {Object.entries(monthGroups).map(([yearMonth, monthMemories]) => (
                     <div key={yearMonth} className="space-y-4">
-                      <h3 className="font-medium text-lg sticky top-0 bg-white py-3 px-2 shadow-sm rounded-lg z-10">
+                      <h3 className="font-medium text-base sticky top-0 bg-white py-2 px-2 shadow-sm rounded-lg z-10">
                         {yearMonth.split('年')[1]}
                       </h3>
                       <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
