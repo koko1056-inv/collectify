@@ -11,7 +11,7 @@ export function Footer() {
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4 sm:hidden">
+    <footer className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-2 px-4">
       <div className="flex justify-around items-center">
         <button
           onClick={() => navigate("/")}
