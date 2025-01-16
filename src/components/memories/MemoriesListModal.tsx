@@ -52,7 +52,7 @@ export function MemoriesListModal({
         <DialogHeader>
           <DialogTitle>思い出一覧</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue={defaultYear} className="flex-1 overflow-hidden">
+        <Tabs defaultValue={defaultYear} className="flex-1 flex flex-col overflow-hidden">
           <TabsList className="mb-4">
             {sortedYears.map((year) => (
               <TabsTrigger key={year} value={year}>
@@ -74,9 +74,13 @@ export function MemoriesListModal({
             }, {});
 
             return (
-              <TabsContent key={year} value={year} className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
-                  <div className="space-y-6 pr-4">
+              <TabsContent 
+                key={year} 
+                value={year} 
+                className="flex-1 overflow-hidden"
+              >
+                <ScrollArea className="h-full pr-4">
+                  <div className="space-y-6">
                     {Object.entries(monthGroups).map(([yearMonth, monthMemories]) => (
                       <div key={yearMonth} className="space-y-4">
                         <h3 className="font-medium text-base sticky top-0 bg-white py-2 px-2 shadow-sm rounded-lg z-10">
