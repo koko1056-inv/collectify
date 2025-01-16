@@ -65,7 +65,7 @@ export function MemoriesListModal({
             
             // Group memories by month within the year
             const monthGroups = yearMemories.reduce((groups: { [key: string]: Memory[] }, memory) => {
-              const monthKey = format(new Date(memory.created_at), 'yyyy年M月', { locale: ja });
+              const monthKey = format(new Date(memory.created_at), 'M月', { locale: ja });
               if (!groups[monthKey]) {
                 groups[monthKey] = [];
               }
@@ -73,21 +73,36 @@ export function MemoriesListModal({
               return groups;
             }, {});
 
+            // Sort months in descending order
+            const sortedMonths = Object.keys(monthGroups).sort((a, b) => {
+              return parseInt(b) - parseInt(a);
+            });
+
+            const defaultMonth = sortedMonths[0] || '';
+
             return (
               <TabsContent 
                 key={year} 
                 value={year} 
                 className="flex-1 overflow-hidden"
               >
-                <ScrollArea className="h-full pr-4">
-                  <div className="space-y-6">
-                    {Object.entries(monthGroups).map(([yearMonth, monthMemories]) => (
-                      <div key={yearMonth} className="space-y-4">
-                        <h3 className="font-medium text-base sticky top-0 bg-white py-2 px-2 shadow-sm rounded-lg z-10">
-                          {yearMonth.split('年')[1]}
-                        </h3>
+                <Tabs defaultValue={defaultMonth} className="h-full flex flex-col">
+                  <TabsList className="mb-4">
+                    {sortedMonths.map((month) => (
+                      <TabsTrigger key={month} value={month}>
+                        {month}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {sortedMonths.map((month) => (
+                    <TabsContent
+                      key={month}
+                      value={month}
+                      className="flex-1 overflow-hidden"
+                    >
+                      <ScrollArea className="h-full pr-4">
                         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
-                          {monthMemories.map((memory) => (
+                          {monthGroups[month].map((memory) => (
                             <div
                               key={memory.id}
                               className="bg-white rounded-lg shadow-sm border p-3 space-y-3"
@@ -128,10 +143,10 @@ export function MemoriesListModal({
                             </div>
                           ))}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                      </ScrollArea>
+                    </TabsContent>
+                  ))}
+                </Tabs>
               </TabsContent>
             );
           })}
