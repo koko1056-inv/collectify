@@ -5,6 +5,7 @@ import { ja } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Memory {
   id: string;
@@ -19,6 +20,7 @@ interface Memory {
 }
 
 export default function Memories() {
+  const isMobile = useIsMobile();
   const { data: memories = [] } = useQuery({
     queryKey: ["memories"],
     queryFn: async () => {
@@ -57,7 +59,7 @@ export default function Memories() {
   const defaultYear = sortedYears[0] || '';
 
   return (
-    <div className="container mx-auto px-4 py-6 pb-20">
+    <div className={`container mx-auto px-4 py-6 ${isMobile ? "pb-24" : "pb-6"}`}>
       <h1 className="text-2xl font-bold mb-6">思い出一覧</h1>
       
       <Tabs defaultValue={defaultYear} className="w-full">
