@@ -25,3 +25,12 @@ export const trackTabChange = (tabName: string, userId?: string) => {
     timestamp: new Date().toISOString()
   });
 };
+
+export const trackAddToCollection = (itemId: string, itemTitle: string, userId?: string) => {
+  mixpanel.track('Add to Collection', {
+    distinct_id: userId || 'anonymous',
+    itemId,
+    itemTitle,
+    timestamp: new Date().toISOString()
+  });
+};

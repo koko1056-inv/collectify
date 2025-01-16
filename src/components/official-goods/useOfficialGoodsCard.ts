@@ -3,6 +3,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { trackAddToCollection } from "@/utils/analytics";
 
 interface UseOfficialGoodsCardProps {
   id: string;
@@ -84,6 +85,9 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       await queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user.id] });
       await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["item-owners-count", title, image] });
+
+      // Track the event in Mixpanel
+      trackAddToCollection(id, title, user.id);
 
       toast({
         title: "成功",
