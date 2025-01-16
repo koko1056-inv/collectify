@@ -42,7 +42,7 @@ const UserProfile = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <main className="container mx-auto px-4 py-8 pt-24">
+        <main className="container mx-auto px-4 py-4 sm:py-8 sm:pt-24">
           <p className="text-center text-gray-500">ユーザーが見つかりません</p>
         </main>
         <Footer />
@@ -107,7 +107,7 @@ const UserProfile = () => {
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>
-        <main className="container mx-auto px-4 py-8 pt-24 pb-24">
+        <main className="container mx-auto px-4 py-4 sm:py-8 sm:pt-24 pb-24">
           <div className="space-y-8">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
