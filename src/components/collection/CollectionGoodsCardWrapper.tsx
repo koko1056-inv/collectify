@@ -22,7 +22,6 @@ interface CollectionGoodsCardWrapperProps {
   prize?: string;
   quantity?: number;
   isCompact?: boolean;
-  memoriesCount?: number;
 }
 
 export function CollectionGoodsCardWrapper({
@@ -34,7 +33,6 @@ export function CollectionGoodsCardWrapper({
   prize,
   quantity = 1,
   isCompact = false,
-  memoriesCount = 0,
 }: CollectionGoodsCardWrapperProps) {
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
@@ -99,7 +97,7 @@ export function CollectionGoodsCardWrapper({
             ×{quantity}
           </Badge>
         )}
-        <CardImage title={title} image={image} memoriesCount={memoriesCount} />
+        <CardImage title={title} image={image} />
         <CardModals
           itemId={id}
           itemTitle={title}
