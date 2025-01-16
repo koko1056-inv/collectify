@@ -5,16 +5,12 @@ import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Grid, List } from "lucide-react";
-import { FilterBar } from "@/components/FilterBar";
-import { Tag } from "@/types";
 
 interface ProfileCollectionProps {
   userId: string;
 }
 
 export function ProfileCollection({ userId }: ProfileCollectionProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isCompact, setIsCompact] = useState(false);
 
   const { data: userItems = [], isLoading } = useQuery({
@@ -41,27 +37,6 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
     },
   });
 
-  const { data: tags = [] } = useQuery({
-    queryKey: ["tags"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tags")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data as Tag[];
-    },
-  });
-
-  const filteredItems = userItems.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTags = selectedTags.length === 0 || 
-      selectedTags.some(tag => 
-        item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
-      );
-    return matchesSearch && matchesTags;
-  });
-
   const gridClass = isCompact
     ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
     : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3";
@@ -70,14 +45,7 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
     <div className="space-y-4">
       <h2 className="text-2xl font-semibold">コレクション</h2>
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <FilterBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            tags={tags}
-          />
+        <div className="flex justify-end">
           <Button
             variant="outline"
             size="sm"
@@ -107,15 +75,11 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
               </div>
             ))}
           </div>
-        ) : filteredItems.length === 0 ? (
-          <p className="text-gray-500">
-            {userItems.length === 0 
-              ? "コレクションにアイテムはありません"
-              : "検索条件に一致するアイテムはありません"}
-          </p>
+        ) : userItems.length === 0 ? (
+          <p className="text-gray-500">コレクションにアイテムはありません</p>
         ) : (
           <div className={gridClass}>
-            {filteredItems.map((item) => (
+            {userItems.map((item) => (
               <CollectionGoodsCard
                 key={item.id}
                 id={item.id}
