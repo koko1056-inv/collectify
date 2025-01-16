@@ -29,6 +29,9 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
               id,
               name
             )
+          ),
+          item_memories (
+            id
           )
         `)
         .eq("user_id", userId)
@@ -121,6 +124,7 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
                 userId={userId}
                 isCompact={isCompact}
                 quantity={item.quantity}
+                memoriesCount={item.item_memories?.length || 0}
               />
             ))}
           </div>
