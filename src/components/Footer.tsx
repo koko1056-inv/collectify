@@ -1,8 +1,9 @@
-import { Home, BookMarked, PlusCircle, User } from "lucide-react";
+import { Home, BookMarked, PlusCircle, User, UserSearch } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { MemoriesListModal } from "./memories/MemoriesListModal";
+import { UserSearchModal } from "./UserSearchModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -11,6 +12,7 @@ export function Footer() {
   const location = useLocation();
   const { user } = useAuth();
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   const { data: memories = [] } = useQuery({
     queryKey: ["memories", user?.id],
@@ -67,6 +69,13 @@ export function Footer() {
         </button>
 
         <button
+          onClick={() => setIsSearchModalOpen(true)}
+          className="flex items-center justify-center w-12 h-12"
+        >
+          <UserSearch className="h-6 w-6 text-gray-500" />
+        </button>
+
+        <button
           onClick={() => navigate(user ? `/user/${user.id}` : "/login")}
           className="flex items-center justify-center w-12 h-12"
         >
@@ -82,6 +91,11 @@ export function Footer() {
         isOpen={isMemoriesModalOpen}
         onClose={() => setIsMemoriesModalOpen(false)}
         memories={memories}
+      />
+
+      <UserSearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
       />
     </footer>
   );
