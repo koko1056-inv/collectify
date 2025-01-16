@@ -7,6 +7,7 @@ import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { ProfileWishlist } from "@/components/profile/ProfileWishlist";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { ProfileStats } from "@/components/profile/ProfileStats";
+import { Footer } from "@/components/Footer";
 import {
   Sidebar,
   SidebarContent,
@@ -44,6 +45,7 @@ const UserProfile = () => {
         <main className="container mx-auto px-4 py-8 pt-24">
           <p className="text-center text-gray-500">ユーザーが見つかりません</p>
         </main>
+        <Footer />
       </div>
     );
   }
@@ -105,7 +107,7 @@ const UserProfile = () => {
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>
-        <main className="container mx-auto px-4 py-8 pt-24">
+        <main className="container mx-auto px-4 py-8 pt-24 pb-24">
           <div className="space-y-8">
             <div className="space-y-4">
               <div className="flex justify-between items-center">
@@ -129,6 +131,7 @@ const UserProfile = () => {
             <ProfileWishlist userId={userId} />
           </div>
         </main>
+        <Footer />
       </div>
     </SidebarProvider>
   );
