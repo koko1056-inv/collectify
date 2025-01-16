@@ -18,20 +18,20 @@ export function CardImage({ image, title, memoriesCount = 0 }: CardImageProps) {
       {memoriesCount > 0 && (
         <div className="absolute bottom-1 left-1 flex gap-0.5">
           {memoriesCount >= 1 && (
-            <Badge className="bg-amber-600 hover:bg-amber-600 text-[10px] py-0 px-1.5">
-              <Medal className="h-2.5 w-2.5 mr-0.5" />
+            <Badge className="bg-amber-600 hover:bg-amber-600 text-[8px] sm:text-[10px] py-0 px-1 sm:px-1.5">
+              <Medal className="h-2 w-2 sm:h-2.5 sm:w-2.5 mr-0.5" />
               1日
             </Badge>
           )}
           {memoriesCount >= 10 && (
-            <Badge className="bg-gray-400 hover:bg-gray-400 text-[10px] py-0 px-1.5">
-              <Star className="h-2.5 w-2.5 mr-0.5" />
+            <Badge className="bg-gray-400 hover:bg-gray-400 text-[8px] sm:text-[10px] py-0 px-1 sm:px-1.5">
+              <Star className="h-2 w-2 sm:h-2.5 sm:w-2.5 mr-0.5" />
               10日
             </Badge>
           )}
           {memoriesCount >= 100 && (
-            <Badge className="bg-yellow-500 hover:bg-yellow-500 text-[10px] py-0 px-1.5">
-              <Trophy className="h-2.5 w-2.5 mr-0.5" />
+            <Badge className="bg-yellow-500 hover:bg-yellow-500 text-[8px] sm:text-[10px] py-0 px-1 sm:px-1.5">
+              <Trophy className="h-2 w-2 sm:h-2.5 sm:w-2.5 mr-0.5" />
               100日
             </Badge>
           )}
