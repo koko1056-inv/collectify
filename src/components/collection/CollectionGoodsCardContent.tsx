@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TagList } from "./TagList";
 import { LikeButton } from "./LikeButton";
-import { BookMarked } from "lucide-react";
+import { BookMarked, Medal, Star, Trophy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface CollectionGoodsCardContentProps {
   id: string;
@@ -56,6 +57,8 @@ export function CollectionGoodsCardContent({
     staleTime: 1000,
   });
 
+  const memoriesCount = itemMemories.length;
+
   return (
     <UICardContent className="px-3 py-2 space-y-1">
       <TagList tags={itemTags} />
@@ -75,6 +78,26 @@ export function CollectionGoodsCardContent({
               </div>
               <span className="text-[10px] sm:text-xs text-purple-500 -mt-1">{itemMemories.length}</span>
             </button>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          {memoriesCount >= 1 && memoriesCount < 10 && (
+            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
+              <Medal className="h-3 w-3 mr-1" />
+              1日達成
+            </Badge>
+          )}
+          {memoriesCount >= 10 && memoriesCount < 100 && (
+            <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">
+              <Star className="h-3 w-3 mr-1" />
+              10日達成
+            </Badge>
+          )}
+          {memoriesCount >= 100 && (
+            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+              <Trophy className="h-3 w-3 mr-1" />
+              100日達成
+            </Badge>
           )}
         </div>
       </div>
