@@ -11,6 +11,7 @@ interface MyCollectionGoodsCardProps {
   image: string;
   quantity?: number;
   isCompact?: boolean;
+  memoriesCount?: number;
 }
 
 function MyCollectionGoodsCardComponent({ 
@@ -18,7 +19,8 @@ function MyCollectionGoodsCardComponent({
   title, 
   image,
   quantity,
-  isCompact 
+  isCompact,
+  memoriesCount = 0
 }: MyCollectionGoodsCardProps) {
   const {
     attributes,
@@ -43,7 +45,7 @@ function MyCollectionGoodsCardComponent({
         {...listeners}
         className="hover-scale card-shadow bg-white border border-gray-200"
       >
-        <CardImage image={image} title={title} />
+        <CardImage image={image} title={title} memoriesCount={memoriesCount} />
       </Card>
     );
   }
@@ -60,6 +62,7 @@ function MyCollectionGoodsCardComponent({
         title={title}
         image={image}
         quantity={quantity}
+        memoriesCount={memoriesCount}
       />
     </div>
   );
