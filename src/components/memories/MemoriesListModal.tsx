@@ -61,20 +61,22 @@ export function MemoriesListModal({ isOpen, onClose }: MemoriesListModalProps) {
           <div className="space-y-6">
             {Object.entries(groupedMemories).map(([yearMonth, monthMemories]) => (
               <div key={yearMonth} className="space-y-4">
-                <h3 className="font-medium text-lg sticky top-0 bg-white py-2">{yearMonth}</h3>
-                <div className="grid gap-4">
+                <h3 className="font-medium text-lg sticky top-0 bg-white py-3 px-2 shadow-sm rounded-lg z-10">
+                  {yearMonth}
+                </h3>
+                <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
                   {monthMemories.map((memory) => (
-                    <div key={memory.id} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex gap-4 items-center">
+                    <div key={memory.id} className="border rounded-lg p-3 space-y-2 text-sm">
+                      <div className="flex gap-3 items-center">
                         <img
                           src={memory.user_items.image}
                           alt={memory.user_items.title}
-                          className="w-16 h-16 object-cover rounded-md"
+                          className="w-12 h-12 object-cover rounded-md"
                         />
                         <div>
-                          <h4 className="font-medium">{memory.user_items.title}</h4>
-                          <p className="text-sm text-gray-500">
-                            {format(new Date(memory.created_at), 'yyyy年M月d日', { locale: ja })}
+                          <h4 className="font-medium line-clamp-1">{memory.user_items.title}</h4>
+                          <p className="text-xs text-gray-500">
+                            {format(new Date(memory.created_at), 'M月d日', { locale: ja })}
                           </p>
                         </div>
                       </div>
@@ -82,11 +84,11 @@ export function MemoriesListModal({ isOpen, onClose }: MemoriesListModalProps) {
                         <img
                           src={memory.image_url}
                           alt="思い出の画像"
-                          className="w-full rounded-lg"
+                          className="w-full h-32 object-cover rounded-lg"
                         />
                       )}
                       {memory.comment && (
-                        <p className="text-gray-700">{memory.comment}</p>
+                        <p className="text-gray-700 text-sm line-clamp-3">{memory.comment}</p>
                       )}
                     </div>
                   ))}
