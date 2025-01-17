@@ -21,10 +21,12 @@ import {
 import { Home, Search, Repeat2, ShoppingBasket, User } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const UserProfile = () => {
   const { userId } = useParams();
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
 
   const { data: profile } = useQuery({
     queryKey: ["user-profile", userId],
@@ -51,63 +53,67 @@ const UserProfile = () => {
     );
   }
 
+  const sidebarContent = (
+    <>
+      <SidebarHeader>
+        <div className="p-2">
+          <Link to="/" className="logo-text">
+            Collectify
+          </Link>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link to="/">
+                <Home className="h-4 w-4" />
+                <span>ホーム</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link to="/search">
+                <Search className="h-4 w-4" />
+                <span>検索</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link to="/trade">
+                <Repeat2 className="h-4 w-4" />
+                <span>トレード</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link to="/wishlist">
+                <ShoppingBasket className="h-4 w-4" />
+                <span>ウィッシュリスト</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link to="/profile">
+                <User className="h-4 w-4" />
+                <span>プロフィール</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarContent>
+    </>
+  );
+
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <Sidebar>
-          <SidebarHeader>
-            <div className="p-2">
-              <Link to="/" className="logo-text">
-                Collectify
-              </Link>
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/">
-                    <Home className="h-4 w-4" />
-                    <span>ホーム</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/search">
-                    <Search className="h-4 w-4" />
-                    <span>検索</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/trade">
-                    <Repeat2 className="h-4 w-4" />
-                    <span>トレード</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/wishlist">
-                    <ShoppingBasket className="h-4 w-4" />
-                    <span>ウィッシュリスト</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/profile">
-                    <User className="h-4 w-4" />
-                    <span>プロフィール</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-        </Sidebar>
+        {isMobile && <Sidebar>{sidebarContent}</Sidebar>}
         <main className="container mx-auto px-4 py-2 sm:py-8 sm:pt-24 pb-20">
           <div className="space-y-4 sm:space-y-8">
             <div className="space-y-2 sm:space-y-4">
