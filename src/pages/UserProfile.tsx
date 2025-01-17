@@ -117,7 +117,9 @@ const UserProfile = () => {
                   </h1>
                   <ProfileStats userId={userId} />
                 </div>
-                <FollowButton userId={userId} />
+                <div className="ml-auto">
+                  <FollowButton userId={userId} />
+                </div>
               </div>
               {profile.bio && (
                 <p className="text-gray-600 text-sm sm:text-base whitespace-pre-wrap">{profile.bio}</p>
