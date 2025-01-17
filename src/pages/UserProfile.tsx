@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
+import { CollectionLikeButton } from "@/components/collection/CollectionLikeButton";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { ProfileWishlist } from "@/components/profile/ProfileWishlist";
 import { FollowButton } from "@/components/profile/FollowButton";
@@ -117,7 +118,10 @@ const UserProfile = () => {
                   </h1>
                   <ProfileStats userId={userId} />
                 </div>
-                <FollowButton userId={userId} />
+                <div className="flex gap-2">
+                  <FollowButton userId={userId} />
+                  <CollectionLikeButton collectionOwnerId={userId} />
+                </div>
               </div>
               {profile.bio && (
                 <p className="text-gray-600 text-sm sm:text-base whitespace-pre-wrap">{profile.bio}</p>
