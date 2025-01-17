@@ -107,9 +107,9 @@ const UserProfile = () => {
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>
-        <main className="container mx-auto px-0 sm:px-4 py-2 sm:py-8 sm:pt-24 pb-20">
+        <main className="container mx-auto px-4 py-2 sm:py-8 sm:pt-24 pb-20">
           <div className="space-y-4 sm:space-y-8">
-            <div className="space-y-2 sm:space-y-4 px-4 sm:px-0">
+            <div className="space-y-2 sm:space-y-4">
               <div className="flex justify-between items-center">
                 <div className="space-y-1 sm:space-y-2">
                   <h1 className="text-2xl sm:text-3xl font-bold">
@@ -117,9 +117,7 @@ const UserProfile = () => {
                   </h1>
                   <ProfileStats userId={userId} />
                 </div>
-                <div className="ml-auto">
-                  <FollowButton userId={userId} />
-                </div>
+                <FollowButton userId={userId} />
               </div>
               {profile.bio && (
                 <p className="text-gray-600 text-sm sm:text-base whitespace-pre-wrap">{profile.bio}</p>
