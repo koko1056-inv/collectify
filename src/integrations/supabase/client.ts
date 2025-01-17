@@ -12,12 +12,11 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      flowType: 'pkce'
     },
     global: {
       headers: {
-        'X-Client-Info': 'supabase-js-web'
-      }
-    }
+        'X-Client-Info': 'supabase-js-web',
+      },
+    },
   }
 );

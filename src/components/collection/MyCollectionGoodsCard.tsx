@@ -4,8 +4,6 @@ import { CollectionGoodsCard } from "../CollectionGoodsCard";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { memo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 interface MyCollectionGoodsCardProps {
   id: string;
@@ -30,24 +28,6 @@ function MyCollectionGoodsCardComponent({
     transition,
   } = useSortable({ id });
 
-  const { data: itemMemories = [] } = useQuery({
-    queryKey: ["item-memories", id],
-    queryFn: async () => {
-      if (!id) return [];
-      const { data, error } = await supabase
-        .from("item_memories")
-        .select("*")
-        .eq("user_item_id", id)
-        .order("created_at", { ascending: false });
-      if (error) {
-        console.error("Error fetching memories:", error);
-        throw error;
-      }
-      return data || [];
-    },
-    enabled: !!id,
-  });
-
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -63,7 +43,7 @@ function MyCollectionGoodsCardComponent({
         {...listeners}
         className="hover-scale card-shadow bg-white border border-gray-200"
       >
-        <CardImage image={image} title={title} memoriesCount={itemMemories.length} />
+        <CardImage image={image} title={title} />
       </Card>
     );
   }
@@ -80,7 +60,6 @@ function MyCollectionGoodsCardComponent({
         title={title}
         image={image}
         quantity={quantity}
-        memoriesCount={itemMemories.length}
       />
     </div>
   );

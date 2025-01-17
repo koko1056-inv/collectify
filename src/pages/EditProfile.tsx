@@ -33,42 +33,28 @@ export default function EditProfile() {
     }
 
     const fetchProfile = async () => {
-      try {
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
 
-        if (error) {
-          toast({
-            variant: "destructive",
-            title: "エラー",
-            description: "プロフィールの取得に失敗しました",
-          });
-          return;
-        }
-
-        setBio(profile.bio || "");
-        setUsername(profile.username || "");
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching profile:", error);
+      if (error) {
         toast({
           variant: "destructive",
           title: "エラー",
           description: "プロフィールの取得に失敗しました",
         });
+        return;
       }
+
+      setBio(profile.bio || "");
+      setUsername(profile.username || "");
+      setLoading(false);
     };
 
     fetchProfile();
   }, [user, navigate, toast]);
-
-  // Early return if user is not authenticated
-  if (!user) {
-    return null;
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

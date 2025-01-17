@@ -45,7 +45,7 @@ export function AdminItemForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>新規公式アイテムの追加</CardTitle>
+        <CardTitle>新規アイテムの追加</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

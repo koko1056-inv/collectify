@@ -10,7 +10,6 @@ interface CollectionGoodsCardProps {
   prize?: string;
   quantity?: number;
   isCompact?: boolean;
-  memoriesCount?: number;
 }
 
 export function CollectionGoodsCard(props: CollectionGoodsCardProps) {
