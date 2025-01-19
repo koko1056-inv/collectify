@@ -11,6 +11,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
 import { FeaturedCarousel } from "@/components/home/FeaturedCarousel";
 import { RecommendedUsers } from "@/components/home/RecommendedUsers";
+import { PersonalizedContent } from "@/components/home/PersonalizedContent";
+import { NotificationHistory } from "@/components/home/NotificationHistory";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -153,6 +155,22 @@ const Index = () => {
             <h2 className="text-2xl font-bold mb-4">おすすめのユーザー</h2>
             <RecommendedUsers />
           </section>
+
+          {/* Personalized Content */}
+          {user && (
+            <section className="animate-fade-in">
+              <h2 className="text-2xl font-bold mb-4">あなたにおすすめ</h2>
+              <PersonalizedContent userId={user.id} />
+            </section>
+          )}
+
+          {/* Notification History */}
+          {user && (
+            <section className="animate-fade-in">
+              <h2 className="text-2xl font-bold mb-4">最新の通知</h2>
+              <NotificationHistory userId={user.id} />
+            </section>
+          )}
 
           {userId && viewedProfile && (
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 px-2">
