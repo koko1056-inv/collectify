@@ -10,7 +10,6 @@ import { useSearchParams } from "react-router-dom";
 import { RecommendedUsers } from "@/components/home/RecommendedUsers";
 import { PersonalizedContent } from "@/components/home/PersonalizedContent";
 import { NotificationHistory } from "@/components/home/NotificationHistory";
-import { QuickActions } from "@/components/home/QuickActions";
 import { HomeTitle } from "@/components/home/HomeTitle";
 
 const Index = () => {
@@ -67,8 +66,6 @@ const Index = () => {
         <HomeTitle />
 
         <div className="space-y-8">
-          <QuickActions />
-
           {/* Recommended Users */}
           <section className="animate-fade-in">
             <h2 className="text-2xl font-bold mb-4">おすすめのユーザー</h2>
