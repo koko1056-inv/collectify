@@ -11,14 +11,16 @@ import { MoreVertical } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FeedPostHeaderProps {
   post: any;
   userId?: string;
   onShare: () => void;
+  onEdit: () => void;
 }
 
-export function FeedPostHeader({ post, userId, onShare }: FeedPostHeaderProps) {
+export function FeedPostHeader({ post, userId, onShare, onEdit }: FeedPostHeaderProps) {
   const { toast } = useToast();
 
   const handleReport = () => {
@@ -33,6 +35,32 @@ export function FeedPostHeader({ post, userId, onShare }: FeedPostHeaderProps) {
       title: "非表示にしました",
       description: "この投稿は今後表示されません",
     });
+  };
+
+  const handleDelete = async () => {
+    try {
+      const { error } = await supabase
+        .from("user_items")
+        .delete()
+        .eq("id", post.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "削除完了",
+        description: "投稿を削除しました",
+      });
+
+      // ページをリロードして最新の状態を反映
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast({
+        title: "エラー",
+        description: "投稿の削除に失敗しました",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -72,8 +100,13 @@ export function FeedPostHeader({ post, userId, onShare }: FeedPostHeaderProps) {
         <DropdownMenuContent align="end">
           {userId === post.user_id ? (
             <>
-              <DropdownMenuItem>編集</DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600">削除</DropdownMenuItem>
+              <DropdownMenuItem onClick={onEdit}>編集</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleDelete}
+                className="text-red-600"
+              >
+                削除
+              </DropdownMenuItem>
             </>
           ) : (
             <>

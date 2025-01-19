@@ -7,6 +7,7 @@ import { FeedPostHeader } from "./FeedPostHeader";
 import { FeedPostContent } from "./FeedPostContent";
 import { FeedPostActions } from "./FeedPostActions";
 import { FeedPostModals } from "./FeedPostModals";
+import { ItemDetailsModal } from "@/components/ItemDetailsModal";
 
 interface FeedPostProps {
   post: any; // TODO: Add proper type
@@ -21,6 +22,7 @@ export function FeedPost({ post }: FeedPostProps) {
   const [likeCount, setLikeCount] = useState(post.user_item_likes?.length || 0);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const handleLike = async () => {
     if (!user) {
@@ -64,6 +66,7 @@ export function FeedPost({ post }: FeedPostProps) {
           post={post}
           userId={user?.id}
           onShare={() => setIsShareModalOpen(true)}
+          onEdit={() => setIsEditModalOpen(true)}
         />
         <FeedPostContent post={post} />
         <FeedPostActions
@@ -82,6 +85,15 @@ export function FeedPost({ post }: FeedPostProps) {
         onShareClose={() => setIsShareModalOpen(false)}
         onMemoriesClose={() => setIsMemoriesModalOpen(false)}
       />
+
+      {isEditModalOpen && (
+        <ItemDetailsModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          initialData={post}
+          mode="edit"
+        />
+      )}
     </Card>
   );
 }
