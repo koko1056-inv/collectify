@@ -7,20 +7,17 @@ import { InitialInterestSelection } from "@/components/InitialInterestSelection"
 import { Tag } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
-import { FeaturedCarousel } from "@/components/home/FeaturedCarousel";
 import { RecommendedUsers } from "@/components/home/RecommendedUsers";
 import { PersonalizedContent } from "@/components/home/PersonalizedContent";
 import { NotificationHistory } from "@/components/home/NotificationHistory";
-import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { QuickActions } from "@/components/home/QuickActions";
+import { HomeTitle } from "@/components/home/HomeTitle";
 
 const Index = () => {
   const [showInterestDialog, setShowInterestDialog] = useState(false);
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const userId = searchParams.get("userId");
-  const navigate = useNavigate();
 
   const { data: profile, refetch: refetchProfile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -67,38 +64,10 @@ const Index = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="container mx-auto px-2 py-4 pt-0 pb-24 sm:px-4 sm:py-8 sm:pt-20 sm:pb-8">
-        {/* Mobile App Title */}
-        <div className="flex items-center justify-center mb-6 sm:hidden mt-1">
-          <span className="logo-text">Collectify</span>
-        </div>
+        <HomeTitle />
 
         <div className="space-y-8">
-          {/* Quick Actions */}
-          <section className="animate-fade-in">
-            <div className="flex gap-4 justify-center sm:justify-start">
-              <Button
-                onClick={() => navigate("/add-item")}
-                className="flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                アイテムを追加
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate("/feed")}
-                className="flex items-center gap-2"
-              >
-                <TrendingUp className="w-4 h-4" />
-                トレンド
-              </Button>
-            </div>
-          </section>
-
-          {/* Featured Content */}
-          <section className="animate-fade-in">
-            <h2 className="text-2xl font-bold mb-4">注目のコレクション</h2>
-            <FeaturedCarousel />
-          </section>
+          <QuickActions />
 
           {/* Recommended Users */}
           <section className="animate-fade-in">
