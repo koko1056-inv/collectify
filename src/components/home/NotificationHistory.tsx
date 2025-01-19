@@ -19,10 +19,10 @@ export function NotificationHistory({ userId }: NotificationHistoryProps) {
         .from("user_item_likes")
         .select(`
           *,
-          user_items!inner (
+          user_items (
             title
           ),
-          profiles!user_item_likes_user_id_fkey (
+          profiles (
             username,
             avatar_url
           )
@@ -36,7 +36,7 @@ export function NotificationHistory({ userId }: NotificationHistoryProps) {
         .from("messages")
         .select(`
           *,
-          sender:profiles!messages_sender_id_fkey (
+          profiles (
             username,
             avatar_url
           )
@@ -73,7 +73,7 @@ export function NotificationHistory({ userId }: NotificationHistoryProps) {
           ...message,
           type: "message",
           created_at: message.created_at,
-          profiles: message.sender,
+          profiles: message.profiles,
         })),
         ...(trades || []).map(trade => ({
           ...trade,
