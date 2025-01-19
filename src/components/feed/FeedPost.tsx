@@ -16,6 +16,7 @@ import { ja } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ShareModal } from "@/components/ShareModal";
 
 interface FeedPostProps {
   post: any; // TODO: Add proper type
@@ -28,6 +29,7 @@ export function FeedPost({ post }: FeedPostProps) {
     post.user_item_likes?.some((like: any) => like.user_id === user?.id)
   );
   const [likeCount, setLikeCount] = useState(post.user_item_likes?.length || 0);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const handleLike = async () => {
     if (!user) {
@@ -62,6 +64,24 @@ export function FeedPost({ post }: FeedPostProps) {
         variant: "destructive",
       });
     }
+  };
+
+  const handleShare = () => {
+    setIsShareModalOpen(true);
+  };
+
+  const handleReport = () => {
+    toast({
+      title: "報告完了",
+      description: "投稿を報告しました。ご協力ありがとうございます。",
+    });
+  };
+
+  const handleHide = () => {
+    toast({
+      title: "非表示にしました",
+      description: "この投稿は今後表示されません",
+    });
   };
 
   return (
@@ -111,11 +131,11 @@ export function FeedPost({ post }: FeedPostProps) {
                 </>
               ) : (
                 <>
-                  <DropdownMenuItem>報告</DropdownMenuItem>
-                  <DropdownMenuItem>非表示にする</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleReport}>報告</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleHide}>非表示にする</DropdownMenuItem>
                 </>
               )}
-              <DropdownMenuItem>共有</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleShare}>共有</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -162,11 +182,19 @@ export function FeedPost({ post }: FeedPostProps) {
             <MessageSquare className="h-4 w-4" />
             <span>0</span>
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={handleShare}>
             <Share2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={post.title}
+        url={window.location.href}
+        image={post.image}
+      />
     </Card>
   );
 }
