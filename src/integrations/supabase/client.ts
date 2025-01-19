@@ -12,6 +12,7 @@ export const supabase = createClient<Database>(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      storage: localStorage // 明示的にlocalStorageを指定
     },
     global: {
       headers: {
