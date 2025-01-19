@@ -8,6 +8,26 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const PAGE_SIZE = 10;
 
+interface FeedPost {
+  id: string;
+  title: string;
+  image: string;
+  created_at: string;
+  user_id: string;
+  profiles: {
+    username: string;
+    avatar_url: string | null;
+  };
+  user_item_likes: Array<{
+    user_id: string;
+  }>;
+}
+
+interface FeedPage {
+  data: FeedPost[];
+  nextPage: number | null;
+}
+
 export function FeedContent() {
   const { user } = useAuth();
   const { ref, inView } = useInView();
@@ -58,10 +78,11 @@ export function FeedContent() {
       return {
         data: posts,
         nextPage,
-      };
+      } as FeedPage;
     },
-    getNextPageParam: (lastPage) => lastPage.nextPage,
+    getNextPageParam: (lastPage: FeedPage) => lastPage.nextPage,
     enabled: !!user,
+    initialPageParam: 0,
   });
 
   useEffect(() => {
