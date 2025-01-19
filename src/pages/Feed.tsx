@@ -1,117 +1,114 @@
-import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { FeedHeader } from "@/components/feed/FeedHeader";
+import { FeedPost } from "@/components/feed/FeedPost";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FeedPost } from "@/components/feed/FeedPost";
-import { FeedHeader } from "@/components/feed/FeedHeader";
-import { PostSkeleton } from "@/components/feed/PostSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { PostSkeleton } from "@/components/feed/PostSkeleton";
 
-const Feed = () => {
-  const [currentTab, setCurrentTab] = useState<"following" | "recommended" | "all">("all");
+export default function Feed() {
   const { user } = useAuth();
 
-  const { data: posts = [], isLoading } = useQuery({
-    queryKey: ["feed-posts", currentTab],
+  const { data: followingPosts, isLoading: isLoadingFollowing } = useQuery({
+    queryKey: ["following-posts", user?.id],
     queryFn: async () => {
-      let query = supabase
+      if (!user) return [];
+      
+      const { data: followingIds } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", user.id);
+
+      if (!followingIds?.length) return [];
+
+      const { data: posts } = await supabase
         .from("user_items")
         .select(`
           *,
-          profiles:user_id (
-            username,
-            avatar_url,
-            display_name
-          ),
+          profiles:user_id (username, avatar_url),
           user_item_likes (
-            id,
             user_id
-          ),
-          user_item_tags (
-            tags (
-              id,
-              name
-            )
           )
         `)
+        .in("user_id", followingIds.map(f => f.following_id))
         .order("created_at", { ascending: false });
 
-      if (currentTab === "following" && user) {
-        const { data: followingIds } = await supabase
-          .from("follows")
-          .select("following_id")
-          .eq("follower_id", user.id);
-
-        if (followingIds?.length) {
-          query = query.in(
-            "user_id",
-            followingIds.map((f) => f.following_id)
-          );
-        }
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return data;
+      return posts || [];
     },
-    enabled: currentTab === "all" || (currentTab === "following" && !!user),
+    enabled: !!user
+  });
+
+  const { data: recommendedPosts, isLoading: isLoadingRecommended } = useQuery({
+    queryKey: ["recommended-posts"],
+    queryFn: async () => {
+      const { data: posts } = await supabase
+        .from("user_items")
+        .select(`
+          *,
+          profiles:user_id (username, avatar_url),
+          user_item_likes (
+            user_id
+          )
+        `)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      return posts || [];
+    }
   });
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <FeedHeader />
-      
-      <main className="container mx-auto px-4 py-4">
-        <Tabs
-          defaultValue="all"
-          value={currentTab}
-          onValueChange={(value) => setCurrentTab(value as typeof currentTab)}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="following">フォロー中</TabsTrigger>
-            <TabsTrigger value="recommended">おすすめ</TabsTrigger>
-            <TabsTrigger value="all">すべて</TabsTrigger>
+      <Navbar />
+      <main className="container mx-auto px-4 py-4 pt-20 sm:py-8 sm:pt-24">
+        <FeedHeader />
+        
+        <Tabs defaultValue="recommended" className="w-full mt-6">
+          <TabsList className="w-full">
+            <TabsTrigger value="following" className="w-full">
+              フォロー中
+            </TabsTrigger>
+            <TabsTrigger value="recommended" className="w-full">
+              おすすめ
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="following" className="space-y-4 mt-4">
-            {isLoading ? (
-              Array(3)
-                .fill(0)
-                .map((_, i) => <PostSkeleton key={i} />)
-            ) : posts.length === 0 ? (
+          <TabsContent value="following" className="mt-6 space-y-6">
+            {isLoadingFollowing ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <PostSkeleton key={i} />
+              ))
+            ) : followingPosts?.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                投稿がありません
+                フォローしているユーザーの投稿がありません
               </div>
             ) : (
-              posts.map((post) => <FeedPost key={post.id} post={post} />)
+              followingPosts?.map((post) => (
+                <FeedPost key={post.id} post={post} />
+              ))
             )}
           </TabsContent>
 
-          <TabsContent value="recommended" className="space-y-4 mt-4">
-            <div className="text-center py-8 text-gray-500">
-              準備中です
-            </div>
-          </TabsContent>
-
-          <TabsContent value="all" className="space-y-4 mt-4">
-            {isLoading ? (
-              Array(3)
-                .fill(0)
-                .map((_, i) => <PostSkeleton key={i} />)
-            ) : posts.length === 0 ? (
+          <TabsContent value="recommended" className="mt-6 space-y-6">
+            {isLoadingRecommended ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <PostSkeleton key={i} />
+              ))
+            ) : recommendedPosts?.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 投稿がありません
               </div>
             ) : (
-              posts.map((post) => <FeedPost key={post.id} post={post} />)
+              recommendedPosts?.map((post) => (
+                <FeedPost key={post.id} post={post} />
+              ))
             )}
           </TabsContent>
         </Tabs>
       </main>
+      <Footer />
     </div>
   );
-};
-
-export default Feed;
+}
