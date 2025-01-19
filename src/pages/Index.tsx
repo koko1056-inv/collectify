@@ -9,6 +9,8 @@ import { InitialInterestSelection } from "@/components/InitialInterestSelection"
 import { OfficialItem, Tag } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
+import { FeaturedCarousel } from "@/components/home/FeaturedCarousel";
+import { RecommendedUsers } from "@/components/home/RecommendedUsers";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -135,11 +137,23 @@ const Index = () => {
       <Navbar />
       <main className="container mx-auto px-2 py-4 pt-0 pb-24 sm:px-4 sm:py-8 sm:pt-20 sm:pb-8">
         {/* Mobile App Title */}
-        <div className="flex items-center justify-center mb-2 sm:hidden mt-1">
+        <div className="flex items-center justify-center mb-6 sm:hidden mt-1">
           <span className="logo-text">Collectify</span>
         </div>
 
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-8">
+          {/* Featured Content */}
+          <section className="animate-fade-in">
+            <h2 className="text-2xl font-bold mb-4">注目のコレクション</h2>
+            <FeaturedCarousel />
+          </section>
+
+          {/* Recommended Users */}
+          <section className="animate-fade-in">
+            <h2 className="text-2xl font-bold mb-4">おすすめのユーザー</h2>
+            <RecommendedUsers />
+          </section>
+
           {userId && viewedProfile && (
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 px-2">
               {viewedProfile.username}さんのコレクション
