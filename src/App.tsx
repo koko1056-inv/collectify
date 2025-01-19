@@ -17,6 +17,7 @@ const AddItem = lazy(() => import("./pages/AddItem"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const EditProfile = lazy(() => import("./pages/EditProfile"));
 const Feed = lazy(() => import("./pages/Feed"));
+const Collection = lazy(() => import("./pages/Collection"));
 
 // Optimize React Query settings
 const queryClient = new QueryClient({
@@ -59,6 +60,7 @@ const App: React.FC = () => {
                     <Route path="/user/:userId" element={<UserProfile />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
                     <Route path="/feed" element={<Feed />} />
+                    <Route path="/collection" element={<Collection />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Suspense>

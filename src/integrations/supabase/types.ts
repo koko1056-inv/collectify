@@ -463,6 +463,7 @@ export type Database = {
           created_at: string
           id: string
           image: string
+          images: string[] | null
           official_item_id: string | null
           official_link: string | null
           prize: string
@@ -477,6 +478,7 @@ export type Database = {
           created_at?: string
           id?: string
           image: string
+          images?: string[] | null
           official_item_id?: string | null
           official_link?: string | null
           prize: string
@@ -491,6 +493,7 @@ export type Database = {
           created_at?: string
           id?: string
           image?: string
+          images?: string[] | null
           official_item_id?: string | null
           official_link?: string | null
           prize?: string
