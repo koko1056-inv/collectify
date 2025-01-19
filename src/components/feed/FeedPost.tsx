@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ShareModal } from "@/components/ShareModal";
+import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
 
 interface FeedPostProps {
   post: any; // TODO: Add proper type
@@ -30,6 +31,7 @@ export function FeedPost({ post }: FeedPostProps) {
   );
   const [likeCount, setLikeCount] = useState(post.user_item_likes?.length || 0);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
 
   const handleLike = async () => {
     if (!user) {
@@ -82,6 +84,10 @@ export function FeedPost({ post }: FeedPostProps) {
       title: "非表示にしました",
       description: "この投稿は今後表示されません",
     });
+  };
+
+  const handleComment = () => {
+    setIsMemoriesModalOpen(true);
   };
 
   return (
@@ -178,9 +184,9 @@ export function FeedPost({ post }: FeedPostProps) {
             />
             <span>{likeCount}</span>
           </Button>
-          <Button variant="ghost" size="sm" className="space-x-2">
+          <Button variant="ghost" size="sm" className="space-x-2" onClick={handleComment}>
             <MessageSquare className="h-4 w-4" />
-            <span>0</span>
+            <span>コメント</span>
           </Button>
           <Button variant="ghost" size="sm" onClick={handleShare}>
             <Share2 className="h-4 w-4" />
@@ -194,6 +200,14 @@ export function FeedPost({ post }: FeedPostProps) {
         title={post.title}
         url={window.location.href}
         image={post.image}
+      />
+
+      <ItemMemoriesModal
+        isOpen={isMemoriesModalOpen}
+        onClose={() => setIsMemoriesModalOpen(false)}
+        itemIds={[post.id]}
+        itemTitles={[post.title]}
+        userId={post.user_id}
       />
     </Card>
   );
