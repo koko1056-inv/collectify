@@ -90,8 +90,16 @@ export function FeedPost({ post }: FeedPostProps) {
         <ItemDetailsModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
-          initialData={post}
-          mode="edit"
+          title={post.title}
+          image={post.image}
+          price={post.prize}
+          releaseDate={post.release_date}
+          description={post.description}
+          itemId={post.id}
+          isUserItem={true}
+          quantity={post.quantity}
+          userId={post.user_id}
+          createdBy={post.created_by}
         />
       )}
     </Card>
