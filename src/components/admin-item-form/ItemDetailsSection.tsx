@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { TagInput } from "../TagInput";
+import { TagInput } from "@/components/TagInput";
 import { ContentNameSelect } from "./ContentNameSelect";
 
 interface ItemDetailsSectionProps {
@@ -23,7 +23,7 @@ export function ItemDetailsSection({
     if (value === "other") {
       return;
     }
-    setFormData({ ...formData, content: value });
+    setFormData({ ...formData, content: value, anime: value });
   };
 
   return (

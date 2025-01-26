@@ -4,9 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 
 type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
 
-type DeleteResult = {
+interface DeleteResult {
   error: Error | null;
-};
+}
 
 export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
