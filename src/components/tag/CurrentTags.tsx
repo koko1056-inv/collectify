@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-// 基本的な型定義
+// Basic type definitions with readonly properties
 interface Tag {
   readonly id: string;
   readonly name: string;
@@ -16,11 +16,16 @@ interface TagRelation {
   readonly tags: Tag | null;
 }
 
-// プロパティの型定義
+// Props type definition with readonly properties
 interface CurrentTagsProps {
   readonly itemIds: readonly string[];
   readonly isUserItem?: boolean;
   readonly isCategory?: boolean;
+}
+
+// Type guard for TagRelation with non-null tags
+function isValidTagRelation(tag: TagRelation): tag is TagRelation & { tags: Tag } {
+  return tag.tags !== null;
 }
 
 export function CurrentTags({ 
@@ -33,8 +38,11 @@ export function CurrentTags({
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
-  const { data: currentTags = [] } = useQuery({
-    queryKey: [tableName, itemIds, isCategory] as const,
+  type QueryData = TagRelation[];
+  type QueryKey = readonly [string, readonly string[], boolean];
+
+  const { data: currentTags = [] } = useQuery<QueryData, Error, QueryData, QueryKey>({
+    queryKey: [tableName, itemIds, isCategory],
     queryFn: async () => {
       if (!itemIds.length) return [];
       
@@ -88,7 +96,7 @@ export function CurrentTags({
       <h4 className="text-sm font-medium">{isCategory ? "現在のカテゴリ" : "現在のタグ"}</h4>
       <div className="flex flex-wrap gap-2">
         {currentTags
-          .filter((tag): tag is TagRelation & { tags: Tag } => tag.tags !== null)
+          .filter(isValidTagRelation)
           .map((tag) => (
             <Badge
               key={tag.id}
