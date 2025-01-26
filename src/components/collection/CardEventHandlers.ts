@@ -2,13 +2,13 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
-// Define table names as a union type
-type TableName = 'user_item_likes' | 'item_memories' | 'user_item_tags' | 'user_items';
+// Define table names using a const assertion to prevent type recursion
+const TABLE_NAMES = ['user_item_likes', 'item_memories', 'user_item_tags', 'user_items'] as const;
+type TableName = (typeof TABLE_NAMES)[number];
 
-// Define the result type
-type DeleteResult = {
+interface DeleteResult {
   error: Error | null;
-};
+}
 
 export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
@@ -25,7 +25,7 @@ export function useCardEventHandlers(id: string) {
 
   const deleteItem = async (): Promise<DeleteResult> => {
     const { error } = await supabase
-      .from('user_items' as const)
+      .from('user_items')
       .delete()
       .eq("id", id);
 
@@ -34,14 +34,9 @@ export function useCardEventHandlers(id: string) {
 
   const handleDelete = async () => {
     try {
-      // Define tables to delete as a tuple
-      const tablesToDelete: readonly TableName[] = [
-        'user_item_likes',
-        'item_memories',
-        'user_item_tags'
-      ] as const;
-
-      // Delete related records
+      // Delete related records first
+      const tablesToDelete: TableName[] = ['user_item_likes', 'item_memories', 'user_item_tags'];
+      
       for (const table of tablesToDelete) {
         const result = await deleteRelatedRecords(table);
         if (result.error) {
