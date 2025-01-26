@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, Search, ShoppingBasket, Repeat2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { TradeRequestsModal } from "./trade/TradeRequestsModal";
@@ -8,6 +9,7 @@ import { UserSearchSheet } from "./UserSearchSheet";
 
 export function Footer() {
   const location = useLocation();
+  const { t } = useLanguage();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [isSearchSheetOpen, setIsSearchSheetOpen] = useState(false);
@@ -18,56 +20,50 @@ export function Footer() {
     <>
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t sm:hidden">
         <div className="flex justify-around items-center h-16">
+          <button
+            onClick={() => setIsSearchSheetOpen(true)}
+            className={cn(
+              "flex items-center justify-center w-12 h-12",
+              isActive("/search") && "text-primary"
+            )}
+          >
+            <Search className="h-6 w-6" />
+          </button>
+
+          <button
+            onClick={() => setIsWishlistModalOpen(true)}
+            className="flex items-center justify-center w-12 h-12"
+          >
+            <ShoppingBasket className="h-6 w-6" />
+          </button>
+
           <Link
             to="/"
             className={cn(
-              "flex flex-col items-center justify-center text-xs",
-              isActive("/") ? "text-primary" : "text-gray-500"
+              "flex items-center justify-center",
+              isActive("/") && "text-primary"
             )}
           >
-            <Home className="h-6 w-6 mb-1" />
-            ホーム
-          </Link>
-
-          <Link
-            to="/collection"
-            className={cn(
-              "flex flex-col items-center justify-center text-xs",
-              isActive("/collection") ? "text-primary" : "text-gray-500"
-            )}
-          >
-            <ShoppingBasket className="h-6 w-6 mb-1" />
-            コレクション
-          </Link>
-
-          <Link
-            to="/feed"
-            className={cn(
-              "flex flex-col items-center justify-center text-xs",
-              isActive("/feed") ? "text-primary" : "text-gray-500"
-            )}
-          >
-            <Search className="h-6 w-6 mb-1" />
-            コミュニティ
+            <div className="bg-primary rounded-full p-3">
+              <Home className="h-6 w-6 text-white" />
+            </div>
           </Link>
 
           <button
             onClick={() => setIsTradeModalOpen(true)}
-            className="flex flex-col items-center justify-center text-xs text-gray-500"
+            className="flex items-center justify-center w-12 h-12"
           >
-            <Repeat2 className="h-6 w-6 mb-1" />
-            トレード
+            <Repeat2 className="h-6 w-6" />
           </button>
 
           <Link
             to="/edit-profile"
             className={cn(
-              "flex flex-col items-center justify-center text-xs",
-              isActive("/edit-profile") ? "text-primary" : "text-gray-500"
+              "flex items-center justify-center w-12 h-12",
+              isActive("/edit-profile") && "text-primary"
             )}
           >
-            <User className="h-6 w-6 mb-1" />
-            マイページ
+            <User className="h-6 w-6" />
           </Link>
         </div>
       </div>

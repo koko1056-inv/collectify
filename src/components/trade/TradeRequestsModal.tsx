@@ -37,57 +37,6 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
     }
   }, [user, isOpen]);
 
-  const fetchAcceptedTrades = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("trade_requests")
-        .select(`
-          id,
-          message,
-          status,
-          sender:profiles!trade_requests_sender_id_fkey(
-            id,
-            username,
-            display_name
-          ),
-          offered_item:user_items!trade_requests_offered_item_id_fkey(
-            id,
-            title,
-            image
-          ),
-          requested_item:user_items!trade_requests_requested_item_id_fkey(
-            id,
-            title,
-            image
-          )
-        `)
-        .eq("status", "accepted")
-        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching accepted trades:", error);
-        toast({
-          variant: "destructive",
-          title: t("common.error"),
-          description: "トレード情報の取得に失敗しました",
-        });
-        return;
-      }
-
-      setAcceptedTrades(data || []);
-    } catch (error) {
-      console.error("Error fetching accepted trades:", error);
-      toast({
-        variant: "destructive",
-        title: t("common.error"),
-        description: "トレード情報の取得に失敗しました",
-      });
-    }
-  };
-
   const fetchCompletedTrades = async () => {
     if (!user) return;
 
@@ -123,6 +72,43 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
     }
 
     setCompletedTrades(data);
+  };
+
+  const fetchAcceptedTrades = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("trade_requests")
+      .select(`
+        id,
+        message,
+        status,
+        sender:profiles!trade_requests_sender_id_fkey(
+          id,
+          username,
+          display_name
+        ),
+        offered_item:user_items!trade_requests_offered_item_id_fkey(
+          id,
+          title,
+          image
+        ),
+        requested_item:user_items!trade_requests_requested_item_id_fkey(
+          id,
+          title,
+          image
+        )
+      `)
+      .eq("status", "accepted")
+      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching accepted trades:", error);
+      return;
+    }
+
+    setAcceptedTrades(data);
   };
 
   const fetchTradeRequests = async () => {

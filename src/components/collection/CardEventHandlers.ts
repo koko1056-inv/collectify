@@ -4,36 +4,36 @@ import { useQueryClient } from "@tanstack/react-query";
 
 type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
 
-interface DeleteResult {
-  error: Error | null;
-  tableName: TableName;
+interface DeleteOperationResult {
+  error: any;
+  operation: TableName;
 }
 
 export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteResult> => {
+  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteOperationResult> => {
     const { error } = await supabase
       .from(tableName)
       .delete()
       .eq("user_item_id", id);
 
     return {
-      error: error,
-      tableName
+      error,
+      operation: tableName
     };
   };
 
-  const deleteItem = async (): Promise<DeleteResult> => {
+  const deleteItem = async (): Promise<DeleteOperationResult> => {
     const { error } = await supabase
       .from("user_items")
       .delete()
       .eq("id", id);
 
     return {
-      error: error,
-      tableName: "user_items"
+      error,
+      operation: "user_items"
     };
   };
 
@@ -41,6 +41,7 @@ export function useCardEventHandlers(id: string) {
     try {
       console.log("Starting deletion process for item:", id);
 
+      // Delete in specific order due to foreign key constraints
       const operations: { name: TableName; label: string }[] = [
         { name: "user_item_likes", label: "likes" },
         { name: "item_memories", label: "memories" },
@@ -56,6 +57,7 @@ export function useCardEventHandlers(id: string) {
         console.log(`Successfully deleted ${op.label}`);
       }
 
+      // Finally delete the main item
       const itemResult = await deleteItem();
       if (itemResult.error) {
         console.error("Error deleting item:", itemResult.error);
