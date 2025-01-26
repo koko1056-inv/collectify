@@ -17,6 +17,7 @@ import {
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ContentNameSelectProps {
   type: "anime" | "artist" | "content";
@@ -35,6 +36,7 @@ export function ContentNameSelect({
   const [newName, setNewName] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names", type],
@@ -62,7 +64,11 @@ export function ContentNameSelect({
     try {
       const { error } = await supabase
         .from("content_names")
-        .insert([{ name: newName.trim(), type }]);
+        .insert([{ 
+          name: newName.trim(), 
+          type,
+          created_by: user?.id 
+        }]);
 
       if (error) throw error;
 
@@ -85,10 +91,18 @@ export function ContentNameSelect({
     }
   };
 
+  const handleSelectChange = (selectedValue: string) => {
+    if (selectedValue === "other") {
+      setIsDialogOpen(true);
+    } else {
+      onChange(selectedValue);
+    }
+  };
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">{label}</label>
-      <Select value={value} onValueChange={onChange}>
+      <Select value={value} onValueChange={handleSelectChange}>
         <SelectTrigger>
           <SelectValue placeholder={`${label}を選択`} />
         </SelectTrigger>
