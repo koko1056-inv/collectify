@@ -9,14 +9,14 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
-interface TagData {
+type TagData = {
   id: string;
   tag_id: string;
   tags: {
     id: string;
     name: string;
   } | null;
-}
+};
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
@@ -39,7 +39,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .eq("tags.is_category", isCategory);
 
       if (error) throw error;
-      return data;
+      return data as TagData[];
     },
   });
 
