@@ -6,25 +6,22 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // 基本的な型定義
 interface Tag {
-  id: string;
-  name: string;
-  is_category: boolean;
+  readonly id: string;
+  readonly name: string;
+  readonly is_category: boolean;
 }
 
 interface TagRelation {
-  id: string;
-  tags: Tag | null;
+  readonly id: string;
+  readonly tags: Tag | null;
 }
 
 // プロパティの型定義
 interface CurrentTagsProps {
-  itemIds: string[];
-  isUserItem?: boolean;
-  isCategory?: boolean;
+  readonly itemIds: readonly string[];
+  readonly isUserItem?: boolean;
+  readonly isCategory?: boolean;
 }
-
-// クエリキーの型を明示的に定義
-type TagQueryKey = readonly [string, string[], boolean];
 
 export function CurrentTags({ 
   itemIds, 
@@ -36,10 +33,8 @@ export function CurrentTags({
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
-  const queryKey: TagQueryKey = [tableName, itemIds, isCategory] as const;
-
-  const { data: currentTags = [] } = useQuery<TagRelation[]>({
-    queryKey,
+  const { data: currentTags = [] } = useQuery({
+    queryKey: [tableName, itemIds, isCategory] as const,
     queryFn: async () => {
       if (!itemIds.length) return [];
       
@@ -57,7 +52,7 @@ export function CurrentTags({
         .eq("tags.is_category", isCategory);
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as TagRelation[];
     },
   });
 
@@ -93,17 +88,17 @@ export function CurrentTags({
       <h4 className="text-sm font-medium">{isCategory ? "現在のカテゴリ" : "現在のタグ"}</h4>
       <div className="flex flex-wrap gap-2">
         {currentTags
-          .filter((tag) => tag.tags !== null)
+          .filter((tag): tag is TagRelation & { tags: Tag } => tag.tags !== null)
           .map((tag) => (
             <Badge
               key={tag.id}
               variant="secondary"
               className="pr-2 flex items-center gap-1"
             >
-              {tag.tags!.name}
+              {tag.tags.name}
               <X
                 className="h-3 w-3 cursor-pointer hover:text-destructive"
-                onClick={() => handleRemoveTag(tag.id, tag.tags!.name)}
+                onClick={() => handleRemoveTag(tag.id, tag.tags.name)}
               />
             </Badge>
           ))}

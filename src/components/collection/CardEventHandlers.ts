@@ -2,17 +2,15 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
-// テーブル名を定数として定義
-const TABLES = {
-  USER_ITEM_LIKES: "user_item_likes",
-  ITEM_MEMORIES: "item_memories",
-  USER_ITEM_TAGS: "user_item_tags",
-  USER_ITEMS: "user_items",
-} as const;
+// テーブル名を列挙型として定義
+enum TableName {
+  USER_ITEM_LIKES = "user_item_likes",
+  ITEM_MEMORIES = "item_memories",
+  USER_ITEM_TAGS = "user_item_tags",
+  USER_ITEMS = "user_items"
+}
 
-// 明示的な型定義
-type TableName = (typeof TABLES)[keyof typeof TABLES];
-
+// 削除操作の結果型を定義
 interface DeleteResult {
   error: Error | null;
 }
@@ -32,7 +30,7 @@ export function useCardEventHandlers(id: string) {
 
   const deleteItem = async (): Promise<DeleteResult> => {
     const { error } = await supabase
-      .from(TABLES.USER_ITEMS)
+      .from(TableName.USER_ITEMS)
       .delete()
       .eq("id", id);
 
@@ -41,12 +39,14 @@ export function useCardEventHandlers(id: string) {
 
   const handleDelete = async () => {
     try {
-      const tablesToDelete = [
-        TABLES.USER_ITEM_LIKES,
-        TABLES.ITEM_MEMORIES,
-        TABLES.USER_ITEM_TAGS
-      ] as const;
+      // 削除するテーブルを配列として定義
+      const tablesToDelete: readonly TableName[] = [
+        TableName.USER_ITEM_LIKES,
+        TableName.ITEM_MEMORIES,
+        TableName.USER_ITEM_TAGS
+      ];
 
+      // 関連レコードの削除
       for (const table of tablesToDelete) {
         const result = await deleteRelatedRecords(table);
         if (result.error) {
@@ -55,12 +55,14 @@ export function useCardEventHandlers(id: string) {
         }
       }
 
+      // アイテム自体の削除
       const itemResult = await deleteItem();
       if (itemResult.error) {
         console.error("Error deleting item:", itemResult.error);
         throw itemResult.error;
       }
 
+      // キャッシュの更新
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       
       toast({
