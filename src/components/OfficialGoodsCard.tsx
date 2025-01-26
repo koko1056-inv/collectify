@@ -15,6 +15,7 @@ interface OfficialGoodsCardProps {
   id: string;
   artist?: string | null;
   anime?: string | null;
+  content?: string | null;
   price?: string;
   releaseDate?: string;
   description?: string | null;
@@ -28,6 +29,7 @@ export function OfficialGoodsCard({
   id,
   artist, 
   anime,
+  content,
   price,
   releaseDate = new Date().toISOString().split('T')[0],
   description,
@@ -69,6 +71,7 @@ export function OfficialGoodsCard({
         <OfficialGoodsCardContent
           title={title}
           artist={artist}
+          content={content}
           itemId={id}
         />
         <div className="mt-auto">
