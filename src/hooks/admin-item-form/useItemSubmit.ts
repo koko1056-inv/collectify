@@ -7,6 +7,8 @@ interface UseItemSubmitProps {
   formData: {
     title: string;
     description: string;
+    anime: string;
+    artist: string;
   };
   uploadImage: () => Promise<string>;
   selectedTags: string[];
