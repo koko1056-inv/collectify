@@ -8,8 +8,6 @@ export function useItemDetails() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    anime: "",
-    artist: "",
   });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const debouncedTitle = useDebounce(formData.title, 500);

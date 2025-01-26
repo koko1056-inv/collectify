@@ -26,8 +26,6 @@ export function AdminItemForm() {
     setFormData({
       title: "",
       description: "",
-      anime: "",
-      artist: "",
     });
     setImageFile(null);
     if (previewUrl) {
