@@ -4,56 +4,49 @@ import { useQueryClient } from "@tanstack/react-query";
 
 type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
 
-interface DeleteOperationResult {
+interface DeleteResult {
   error: Error | null;
-  operation: TableName;
 }
 
 export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteOperationResult> => {
+  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteResult> => {
     const { error } = await supabase
       .from(tableName)
       .delete()
       .eq("user_item_id", id);
 
-    return {
-      error: error as Error | null,
-      operation: tableName
-    };
+    return { error: error as Error | null };
   };
 
-  const deleteItem = async (): Promise<DeleteOperationResult> => {
+  const deleteItem = async (): Promise<DeleteResult> => {
     const { error } = await supabase
       .from("user_items")
       .delete()
       .eq("id", id);
 
-    return {
-      error: error as Error | null,
-      operation: "user_items"
-    };
+    return { error: error as Error | null };
   };
 
   const handleDelete = async () => {
     try {
       console.log("Starting deletion process for item:", id);
 
-      const operations: { name: TableName; label: string }[] = [
-        { name: "user_item_likes", label: "likes" },
-        { name: "item_memories", label: "memories" },
-        { name: "user_item_tags", label: "tags" }
+      const operations: TableName[] = [
+        "user_item_likes",
+        "item_memories",
+        "user_item_tags"
       ];
 
-      for (const op of operations) {
-        const result = await deleteRelatedRecords(op.name);
+      for (const tableName of operations) {
+        const result = await deleteRelatedRecords(tableName);
         if (result.error) {
-          console.error(`Error deleting ${op.label}:`, result.error);
+          console.error(`Error deleting ${tableName}:`, result.error);
           throw result.error;
         }
-        console.log(`Successfully deleted ${op.label}`);
+        console.log(`Successfully deleted ${tableName}`);
       }
 
       const itemResult = await deleteItem();

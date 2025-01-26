@@ -26,7 +26,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   const queryClient = useQueryClient();
 
   const { data: currentTags = [] } = useQuery<TagRelation[]>({
-    queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
+    queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
     queryFn: async () => {
       if (!itemIds.length) return [];
       
@@ -44,7 +44,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
 
       if (error) throw error;
 
-      return (data as TagRelation[]).filter(tag => tag.tags?.is_category === isCategory);
+      return (data || []).filter(tag => tag.tags?.is_category === isCategory);
     },
   });
 
@@ -58,7 +58,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
       if (error) throw error;
 
       queryClient.invalidateQueries({
-        queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
+        queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
       });
 
       toast({
