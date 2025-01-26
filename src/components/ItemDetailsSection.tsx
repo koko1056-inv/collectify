@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
-import { TagInput } from "../TagInput";
-import { ContentNameSelect } from "./ContentNameSelect";
+import { TagInput } from "@/components/TagInput";
+import { ContentNameSelect } from "@/components/admin-item-form/ContentNameSelect";
 
 interface ItemDetailsSectionProps {
   formData: {
