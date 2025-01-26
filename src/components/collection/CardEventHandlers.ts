@@ -2,6 +2,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
+// テーブル名を定数として定義
 const TABLES = {
   USER_ITEM_LIKES: "user_item_likes",
   ITEM_MEMORIES: "item_memories",
@@ -9,7 +10,8 @@ const TABLES = {
   USER_ITEMS: "user_items",
 } as const;
 
-type TableName = typeof TABLES[keyof typeof TABLES];
+// 明示的な型定義
+type TableName = (typeof TABLES)[keyof typeof TABLES];
 
 interface DeleteResult {
   error: Error | null;
@@ -39,11 +41,11 @@ export function useCardEventHandlers(id: string) {
 
   const handleDelete = async () => {
     try {
-      const tablesToDelete: TableName[] = [
+      const tablesToDelete = [
         TABLES.USER_ITEM_LIKES,
         TABLES.ITEM_MEMORIES,
         TABLES.USER_ITEM_TAGS
-      ];
+      ] as const;
 
       for (const table of tablesToDelete) {
         const result = await deleteRelatedRecords(table);

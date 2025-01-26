@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+// 基本的な型定義
 interface Tag {
   id: string;
   name: string;
@@ -15,11 +16,15 @@ interface TagRelation {
   tags: Tag | null;
 }
 
+// プロパティの型定義
 interface CurrentTagsProps {
   itemIds: string[];
   isUserItem?: boolean;
   isCategory?: boolean;
 }
+
+// クエリキーの型を明示的に定義
+type TagQueryKey = readonly [string, string[], boolean];
 
 export function CurrentTags({ 
   itemIds, 
@@ -31,8 +36,10 @@ export function CurrentTags({
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
+  const queryKey: TagQueryKey = [tableName, itemIds, isCategory] as const;
+
   const { data: currentTags = [] } = useQuery<TagRelation[]>({
-    queryKey: [tableName, itemIds, isCategory],
+    queryKey,
     queryFn: async () => {
       if (!itemIds.length) return [];
       
