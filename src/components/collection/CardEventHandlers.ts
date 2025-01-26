@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
 
 interface DeleteOperationResult {
-  error: any;
+  error: Error | null;
   operation: TableName;
 }
 
@@ -20,7 +20,7 @@ export function useCardEventHandlers(id: string) {
       .eq("user_item_id", id);
 
     return {
-      error,
+      error: error as Error | null,
       operation: tableName
     };
   };
@@ -32,7 +32,7 @@ export function useCardEventHandlers(id: string) {
       .eq("id", id);
 
     return {
-      error,
+      error: error as Error | null,
       operation: "user_items"
     };
   };
@@ -41,7 +41,6 @@ export function useCardEventHandlers(id: string) {
     try {
       console.log("Starting deletion process for item:", id);
 
-      // Delete in specific order due to foreign key constraints
       const operations: { name: TableName; label: string }[] = [
         { name: "user_item_likes", label: "likes" },
         { name: "item_memories", label: "memories" },
@@ -57,7 +56,6 @@ export function useCardEventHandlers(id: string) {
         console.log(`Successfully deleted ${op.label}`);
       }
 
-      // Finally delete the main item
       const itemResult = await deleteItem();
       if (itemResult.error) {
         console.error("Error deleting item:", itemResult.error);
