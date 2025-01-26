@@ -4,16 +4,16 @@ import { useQueryClient } from "@tanstack/react-query";
 
 type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
 
-interface DeleteOperationResult {
+interface DeleteResult {
   error: any;
-  operation: TableName;
+  tableName: TableName;
 }
 
 export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteOperationResult> => {
+  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteResult> => {
     const { error } = await supabase
       .from(tableName)
       .delete()
@@ -21,11 +21,11 @@ export function useCardEventHandlers(id: string) {
 
     return {
       error,
-      operation: tableName
+      tableName
     };
   };
 
-  const deleteItem = async (): Promise<DeleteOperationResult> => {
+  const deleteItem = async (): Promise<DeleteResult> => {
     const { error } = await supabase
       .from("user_items")
       .delete()
@@ -33,7 +33,7 @@ export function useCardEventHandlers(id: string) {
 
     return {
       error,
-      operation: "user_items"
+      tableName: "user_items"
     };
   };
 

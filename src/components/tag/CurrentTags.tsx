@@ -25,7 +25,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: currentTags = [] } = useQuery({
+  const { data: currentTags = [] } = useQuery<TagRelation[]>({
     queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
     queryFn: async () => {
       if (!itemIds.length) return [];
