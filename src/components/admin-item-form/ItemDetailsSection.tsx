@@ -6,8 +6,7 @@ interface ItemDetailsSectionProps {
   formData: {
     title: string;
     description: string;
-    anime: string;
-    artist: string;
+    content: string;
   };
   setFormData: (data: any) => void;
   selectedTags: string[];
@@ -20,11 +19,11 @@ export function ItemDetailsSection({
   selectedTags,
   setSelectedTags,
 }: ItemDetailsSectionProps) {
-  const handleContentChange = (type: "anime" | "artist", value: string) => {
+  const handleContentChange = (value: string) => {
     if (value === "other") {
       return;
     }
-    setFormData({ ...formData, [type]: value });
+    setFormData({ ...formData, content: value });
   };
 
   return (
@@ -44,17 +43,10 @@ export function ItemDetailsSection({
       </div>
 
       <ContentNameSelect
-        type="anime"
-        value={formData.anime}
-        onChange={(value) => handleContentChange("anime", value)}
-        label="アニメ"
-      />
-
-      <ContentNameSelect
-        type="artist"
-        value={formData.artist}
-        onChange={(value) => handleContentChange("artist", value)}
-        label="アーティスト"
+        type="content"
+        value={formData.content}
+        onChange={handleContentChange}
+        label="コンテンツ"
       />
 
       <div className="space-y-2">

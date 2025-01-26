@@ -7,6 +7,7 @@ interface UseItemSubmitProps {
   formData: {
     title: string;
     description: string;
+    content: string;
   };
   uploadImage: () => Promise<string>;
   selectedTags: string[];
@@ -50,6 +51,8 @@ export function useItemSubmit({
         .insert([
           {
             ...formData,
+            anime: formData.content,
+            artist: formData.content,
             image: imageUrl,
             price: "0",
             release_date: new Date().toISOString(),
@@ -60,7 +63,6 @@ export function useItemSubmit({
 
       if (itemError) throw itemError;
 
-      // Process tags
       if (selectedTags.length > 0) {
         for (const tagName of selectedTags) {
           const { data: existingTag, error: tagError } = await supabase
