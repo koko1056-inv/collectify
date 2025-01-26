@@ -30,6 +30,30 @@ export type Database = {
         }
         Relationships: []
       }
+      content_names: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: []
+      }
       event_participants: {
         Row: {
           created_at: string
