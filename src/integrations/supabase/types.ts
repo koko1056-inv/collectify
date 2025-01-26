@@ -332,10 +332,24 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "messages_receiver_id_fkey_profiles"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "messages_related_item_id_fkey"
             columns: ["related_item_id"]
             isOneToOne: false
             referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey_profiles"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -549,6 +563,13 @@ export type Database = {
           user_item_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_item_likes_user_id_fkey_profiles"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_item_likes_user_item_id_fkey"
             columns: ["user_item_id"]

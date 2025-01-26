@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, UserSearch, User, Repeat2 } from "lucide-react";
+import { ShoppingBasket, UserSearch, User, Repeat2, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
@@ -118,27 +118,67 @@ export function Navbar() {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setIsWishlistModalOpen(true)}
-                className="relative h-8 w-8 sm:h-9 sm:w-9"
-              >
-                <ShoppingBasket className="h-4 w-4 text-foreground" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setIsTradeModalOpen(true)}
-                className="relative h-8 w-8 sm:h-9 sm:w-9"
-              >
-                <Repeat2 className="h-4 w-4 text-foreground" />
-                {pendingTradeRequests > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    {pendingTradeRequests}
-                  </span>
-                )}
-              </Button>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setIsWishlistModalOpen(true)}
+                      className="h-8 w-8 sm:h-9 sm:w-9"
+                    >
+                      <ShoppingBasket className="h-4 w-4 text-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>ウィッシュリスト</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setIsTradeModalOpen(true)}
+                      className="relative h-8 w-8 sm:h-9 sm:w-9"
+                    >
+                      <Repeat2 className="h-4 w-4 text-foreground" />
+                      {pendingTradeRequests > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                          {pendingTradeRequests}
+                        </span>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>トレードリクエスト</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link to="/add-item">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 sm:h-9 sm:w-9"
+                      >
+                        <Plus className="h-4 w-4 text-foreground" />
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>アイテムを追加</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

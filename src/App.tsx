@@ -1,76 +1,41 @@
-import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import Login from "./pages/Login";
+import Collection from "./pages/Collection";
+import EditProfile from "./pages/EditProfile";
+import UserProfile from "./pages/UserProfile";
+import Admin from "./pages/Admin";
+import Feed from "./pages/Feed";
+import AddItem from "./pages/AddItem";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import { Suspense, lazy } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { AuthProvider } from "./contexts/AuthContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
 
-// Lazy load pages
-const Index = lazy(() => import("./pages/Index"));
-const Login = lazy(() => import("./pages/Login"));
-const Admin = lazy(() => import("./pages/Admin"));
-const AddItem = lazy(() => import("./pages/AddItem"));
-const UserProfile = lazy(() => import("./pages/UserProfile"));
-const EditProfile = lazy(() => import("./pages/EditProfile"));
-const Feed = lazy(() => import("./pages/Feed"));
-const Collection = lazy(() => import("./pages/Collection"));
+const queryClient = new QueryClient();
 
-// Optimize React Query settings
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes (previously cacheTime)
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
-// Loading fallback component
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="space-y-4">
-      <Skeleton className="h-12 w-48" />
-      <Skeleton className="h-4 w-32" />
-    </div>
-  </div>
-);
-
-const App: React.FC = () => {
+function App() {
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <LanguageProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <Suspense fallback={<LoadingFallback />}>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/add-item" element={<AddItem />} />
-                    <Route path="/user/:userId" element={<UserProfile />} />
-                    <Route path="/edit-profile" element={<EditProfile />} />
-                    <Route path="/feed" element={<Feed />} />
-                    <Route path="/collection" element={<Collection />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
-                </Suspense>
-              </TooltipProvider>
-            </LanguageProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <AuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/collection" element={<Collection />} />
+              <Route path="/edit-profile" element={<EditProfile />} />
+              <Route path="/user/:userId" element={<UserProfile />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/feed" element={<Feed />} />
+              <Route path="/add-item" element={<AddItem />} />
+            </Routes>
+          </Router>
+          <Toaster />
+        </AuthProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
   );
-};
+}
 
 export default App;
