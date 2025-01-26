@@ -16,7 +16,7 @@ interface Tag {
   is_category: boolean;
 }
 
-interface TagData {
+interface TagRelation {
   id: string;
   tags: Tag | null;
 }
@@ -27,7 +27,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const queryKey = [tableName, itemIds] as const;
 
-  const { data: currentTags = [] } = useQuery<TagData[]>({
+  const { data: currentTags = [] } = useQuery<TagRelation[]>({
     queryKey,
     queryFn: async () => {
       if (!itemIds.length) return [];
