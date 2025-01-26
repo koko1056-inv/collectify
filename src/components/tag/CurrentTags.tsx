@@ -10,12 +10,14 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
+interface Tag {
+  id: string;
+  name: string;
+}
+
 interface TagData {
   tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-  } | null;
+  tags: Tag | null;
 }
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {

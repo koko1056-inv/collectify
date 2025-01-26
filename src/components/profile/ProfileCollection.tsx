@@ -15,6 +15,7 @@ interface ProfileCollectionProps {
 export function ProfileCollection({ userId }: ProfileCollectionProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedContent, setSelectedContent] = useState<string[]>([]);
   const [isCompact, setIsCompact] = useState(false);
 
   const { data: userItems = [], isLoading } = useQuery({
@@ -56,7 +57,8 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
       selectedTags.some(tag => 
         item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
       );
-    return matchesSearch && matchesTags;
+    const matchesContent = selectedContent.length === 0 || selectedContent.includes(item.content || "");
+    return matchesSearch && matchesTags && matchesContent;
   });
 
   const gridClass = isCompact
@@ -73,6 +75,8 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
             onSearchChange={setSearchQuery}
             selectedTags={selectedTags}
             onTagsChange={setSelectedTags}
+            selectedContent={selectedContent}
+            onContentChange={setSelectedContent}
             tags={tags}
           />
           <Button
