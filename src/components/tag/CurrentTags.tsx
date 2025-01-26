@@ -10,11 +10,19 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
+interface TagData {
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+  } | null;
+}
+
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: currentTags = [] } = useQuery({
+  const { data: currentTags = [] } = useQuery<TagData[]>({
     queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
     queryFn: async () => {
       const { data, error } = await supabase
