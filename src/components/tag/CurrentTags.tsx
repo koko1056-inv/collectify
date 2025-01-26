@@ -17,7 +17,10 @@ interface Tag {
 interface TagData {
   id: string;
   tag_id: string;
-  tags: Tag | null;
+  tags: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
@@ -41,7 +44,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .eq("tags.is_category", isCategory);
 
       if (error) throw error;
-      return data as TagData[];
+      return data;
     },
   });
 
