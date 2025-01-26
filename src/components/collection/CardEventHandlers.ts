@@ -2,7 +2,14 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
-type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
+const TABLES = {
+  USER_ITEM_LIKES: "user_item_likes",
+  ITEM_MEMORIES: "item_memories",
+  USER_ITEM_TAGS: "user_item_tags",
+  USER_ITEMS: "user_items",
+} as const;
+
+type TableName = typeof TABLES[keyof typeof TABLES];
 
 interface DeleteResult {
   error: Error | null;
@@ -23,7 +30,7 @@ export function useCardEventHandlers(id: string) {
 
   const deleteItem = async (): Promise<DeleteResult> => {
     const { error } = await supabase
-      .from("user_items")
+      .from(TABLES.USER_ITEMS)
       .delete()
       .eq("id", id);
 
@@ -33,9 +40,9 @@ export function useCardEventHandlers(id: string) {
   const handleDelete = async () => {
     try {
       const tablesToDelete: TableName[] = [
-        "user_item_likes",
-        "item_memories",
-        "user_item_tags"
+        TABLES.USER_ITEM_LIKES,
+        TABLES.ITEM_MEMORIES,
+        TABLES.USER_ITEM_TAGS
       ];
 
       for (const table of tablesToDelete) {

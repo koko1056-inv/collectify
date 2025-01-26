@@ -4,12 +4,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-interface CurrentTagsProps {
-  itemIds: string[];
-  isUserItem?: boolean;
-  isCategory?: boolean;
-}
-
 interface Tag {
   id: string;
   name: string;
@@ -21,14 +15,24 @@ interface TagRelation {
   tags: Tag | null;
 }
 
-export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
+interface CurrentTagsProps {
+  itemIds: string[];
+  isUserItem?: boolean;
+  isCategory?: boolean;
+}
+
+export function CurrentTags({ 
+  itemIds, 
+  isUserItem = false, 
+  isCategory = false 
+}: CurrentTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
-  const queryKey = [tableName, itemIds] as const;
+  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
   const { data: currentTags = [] } = useQuery<TagRelation[]>({
-    queryKey,
+    queryKey: [tableName, itemIds, isCategory],
     queryFn: async () => {
       if (!itemIds.length) return [];
       
@@ -42,7 +46,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
             is_category
           )
         `)
-        .in(isUserItem ? "user_item_id" : "official_item_id", itemIds)
+        .in(idColumn, itemIds)
         .eq("tags.is_category", isCategory);
 
       if (error) throw error;
@@ -60,7 +64,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
       if (error) throw error;
 
       queryClient.invalidateQueries({
-        queryKey,
+        queryKey: [tableName, itemIds],
       });
 
       toast({
