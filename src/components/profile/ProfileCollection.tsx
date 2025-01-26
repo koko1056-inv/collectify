@@ -18,7 +18,15 @@ interface UserItem {
   title: string;
   image: string;
   quantity: number;
-  content?: string | null;
+  anime: string | null;
+  artist: string | null;
+  created_at: string;
+  images: string[] | null;
+  official_item_id: string | null;
+  official_link: string | null;
+  prize: string;
+  release_date: string;
+  user_id: string;
   user_item_tags?: {
     tags: {
       id: string;
@@ -72,7 +80,7 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
       selectedTags.some(tag => 
         item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
       );
-    const matchesContent = selectedContent.length === 0 || selectedContent.includes(item.content || "");
+    const matchesContent = selectedContent.length === 0 || selectedContent.includes(item.anime || "");
     return matchesSearch && matchesTags && matchesContent;
   });
 

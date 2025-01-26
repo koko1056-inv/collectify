@@ -24,7 +24,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: currentTags = [] } = useQuery({
+  const { data: currentTags = [] } = useQuery<TagData[]>({
     queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
     queryFn: async () => {
       const { data, error } = await supabase
