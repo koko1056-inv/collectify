@@ -32,8 +32,6 @@ export function useCardEventHandlers(id: string) {
 
   const handleDelete = async () => {
     try {
-      console.log("Starting deletion process for item:", id);
-
       const tablesToDelete: TableName[] = [
         "user_item_likes",
         "item_memories",
@@ -46,7 +44,6 @@ export function useCardEventHandlers(id: string) {
           console.error(`Error deleting ${table}:`, result.error);
           throw result.error;
         }
-        console.log(`Successfully deleted ${table}`);
       }
 
       const itemResult = await deleteItem();
@@ -54,7 +51,6 @@ export function useCardEventHandlers(id: string) {
         console.error("Error deleting item:", itemResult.error);
         throw itemResult.error;
       }
-      console.log("Successfully deleted item");
 
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       

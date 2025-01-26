@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { TagInput } from "@/components/TagInput";
-import { ContentNameSelect } from "./ContentNameSelect";
+import { ContentNameSelect } from "@/components/admin-item-form/ContentNameSelect";
 
 interface ItemDetailsSectionProps {
   formData: {
@@ -20,10 +20,7 @@ export function ItemDetailsSection({
   setSelectedTags,
 }: ItemDetailsSectionProps) {
   const handleContentChange = (value: string) => {
-    if (value === "other") {
-      return;
-    }
-    setFormData({ ...formData, content: value, anime: value });
+    setFormData({ ...formData, content: value });
   };
 
   return (

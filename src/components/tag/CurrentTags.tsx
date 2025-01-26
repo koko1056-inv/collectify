@@ -42,11 +42,11 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
             is_category
           )
         `)
-        .in(isUserItem ? "user_item_id" : "official_item_id", itemIds);
+        .in(isUserItem ? "user_item_id" : "official_item_id", itemIds)
+        .eq("tags.is_category", isCategory);
 
       if (error) throw error;
-
-      return (data || []).filter(tag => tag.tags?.is_category === isCategory);
+      return data || [];
     },
   });
 
