@@ -97,7 +97,8 @@ const Index = () => {
     const matchesSearch = searchQuery
       ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.artist?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-        (item.anime?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+        (item.anime?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+        (item.content?.toLowerCase() || "").includes(searchQuery.toLowerCase())  // Added content search
       : true;
     
     const matchesTags = selectedTags.length === 0 || 
