@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 interface ContentNameSelectProps {
-  type: "anime" | "artist";
+  type: "anime" | "artist" | "content";
   value: string;
   onChange: (value: string) => void;
   label: string;
