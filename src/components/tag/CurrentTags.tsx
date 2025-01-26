@@ -10,16 +10,16 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
-interface Tag {
+type Tag = {
   id: string;
   name: string;
   is_category: boolean;
-}
+};
 
-interface TagRelation {
+type TagRelation = {
   id: string;
   tags: Tag | null;
-}
+};
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
