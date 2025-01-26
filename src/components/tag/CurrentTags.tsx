@@ -16,7 +16,7 @@ interface Tag {
   is_category: boolean;
 }
 
-interface TagRelation {
+interface TagData {
   id: string;
   tags: Tag | null;
 }
@@ -24,16 +24,16 @@ interface TagRelation {
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const tableName = isUserItem ? "user_item_tags" : "item_tags";
+  const queryKey = [tableName, itemIds] as const;
 
-  const queryKey = isUserItem ? "user-item-tags" : "item-tags";
-
-  const { data: currentTags = [] } = useQuery<TagRelation[]>({
-    queryKey: [queryKey, itemIds],
+  const { data: currentTags = [] } = useQuery<TagData[]>({
+    queryKey,
     queryFn: async () => {
       if (!itemIds.length) return [];
       
       const { data, error } = await supabase
-        .from(isUserItem ? "user_item_tags" : "item_tags")
+        .from(tableName)
         .select(`
           id,
           tags (
@@ -53,14 +53,14 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   const handleRemoveTag = async (tagRelationId: string, tagName: string) => {
     try {
       const { error } = await supabase
-        .from(isUserItem ? "user_item_tags" : "item_tags")
+        .from(tableName)
         .delete()
         .eq("id", tagRelationId);
 
       if (error) throw error;
 
       queryClient.invalidateQueries({
-        queryKey: [queryKey, itemIds],
+        queryKey,
       });
 
       toast({
