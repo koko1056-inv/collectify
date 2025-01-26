@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
 
-interface DeleteResult {
+interface SupabaseDeleteResult {
   error: Error | null;
 }
 
@@ -12,7 +12,7 @@ export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteResult> => {
+  const deleteRelatedRecords = async (tableName: TableName): Promise<SupabaseDeleteResult> => {
     const { error } = await supabase
       .from(tableName)
       .delete()
@@ -21,7 +21,7 @@ export function useCardEventHandlers(id: string) {
     return { error: error as Error | null };
   };
 
-  const deleteItem = async (): Promise<DeleteResult> => {
+  const deleteItem = async (): Promise<SupabaseDeleteResult> => {
     const { error } = await supabase
       .from("user_items")
       .delete()
@@ -34,19 +34,19 @@ export function useCardEventHandlers(id: string) {
     try {
       console.log("Starting deletion process for item:", id);
 
-      const operations: TableName[] = [
+      const tables: TableName[] = [
         "user_item_likes",
         "item_memories",
         "user_item_tags"
       ];
 
-      for (const tableName of operations) {
-        const result = await deleteRelatedRecords(tableName);
+      for (const table of tables) {
+        const result = await deleteRelatedRecords(table);
         if (result.error) {
-          console.error(`Error deleting ${tableName}:`, result.error);
+          console.error(`Error deleting ${table}:`, result.error);
           throw result.error;
         }
-        console.log(`Successfully deleted ${tableName}`);
+        console.log(`Successfully deleted ${table}`);
       }
 
       const itemResult = await deleteItem();

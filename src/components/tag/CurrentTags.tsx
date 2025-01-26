@@ -25,8 +25,10 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const queryKey = isUserItem ? "user-item-tags" : "item-tags";
+
   const { data: currentTags = [] } = useQuery<TagRelation[]>({
-    queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
+    queryKey: [queryKey, itemIds],
     queryFn: async () => {
       if (!itemIds.length) return [];
       
@@ -58,7 +60,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
       if (error) throw error;
 
       queryClient.invalidateQueries({
-        queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
+        queryKey: [queryKey, itemIds],
       });
 
       toast({
