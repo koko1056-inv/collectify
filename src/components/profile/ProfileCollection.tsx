@@ -7,9 +7,24 @@ import { Button } from "@/components/ui/button";
 import { Grid, List } from "lucide-react";
 import { FilterBar } from "@/components/FilterBar";
 import { Tag } from "@/types";
+import { CollectionGrid } from "../collection/CollectionGrid";
 
 interface ProfileCollectionProps {
   userId: string;
+}
+
+interface UserItem {
+  id: string;
+  title: string;
+  image: string;
+  quantity: number;
+  content?: string | null;
+  user_item_tags?: {
+    tags: {
+      id: string;
+      name: string;
+    } | null;
+  }[];
 }
 
 export function ProfileCollection({ userId }: ProfileCollectionProps) {
@@ -35,7 +50,7 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data as UserItem[];
     },
   });
 
@@ -115,19 +130,14 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
               : "検索条件に一致するアイテムはありません"}
           </p>
         ) : (
-          <div className={gridClass}>
-            {filteredItems.map((item) => (
-              <CollectionGoodsCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                image={item.image}
-                userId={userId}
-                isCompact={isCompact}
-                quantity={item.quantity}
-              />
-            ))}
-          </div>
+          <CollectionGrid
+            items={filteredItems}
+            isCompact={isCompact}
+            isSelectionMode={false}
+            selectedItems={[]}
+            onSelectItem={() => {}}
+            onDragEnd={() => {}}
+          />
         )}
       </div>
     </div>
