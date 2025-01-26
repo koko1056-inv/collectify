@@ -1,20 +1,8 @@
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-
-// Simplified type definitions to avoid recursion
-interface Tag {
-  id: string;
-  name: string;
-  is_category: boolean;
-}
-
-interface TagRelation {
-  id: string;
-  tags: Tag | null;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { X } from "lucide-react";
 
 interface CurrentTagsProps {
   itemIds: string[];
@@ -22,55 +10,47 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
-export function CurrentTags({ 
-  itemIds, 
-  isUserItem = false, 
-  isCategory = false 
-}: CurrentTagsProps) {
+export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const tableName = isUserItem ? "user_item_tags" : "item_tags";
-  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
   const { data: currentTags = [] } = useQuery({
-    queryKey: [tableName, itemIds, isCategory] as const,
+    queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
     queryFn: async () => {
-      if (!itemIds.length) return [];
-      
       const { data, error } = await supabase
-        .from(tableName)
+        .from(isUserItem ? "user_item_tags" : "item_tags")
         .select(`
-          id,
+          tag_id,
           tags (
             id,
-            name,
-            is_category
+            name
           )
         `)
-        .in(idColumn, itemIds)
+        .in(isUserItem ? "user_item_id" : "official_item_id", itemIds)
         .eq("tags.is_category", isCategory);
 
       if (error) throw error;
-      return (data || []) as TagRelation[];
+      return data;
     },
   });
 
-  const handleRemoveTag = async (tagRelationId: string, tagName: string) => {
+  const handleRemoveTag = async (tagId: string, tagName: string) => {
     try {
       const { error } = await supabase
-        .from(tableName)
+        .from(isUserItem ? "user_item_tags" : "item_tags")
         .delete()
-        .eq("id", tagRelationId);
+        .in(isUserItem ? "user_item_id" : "official_item_id", itemIds)
+        .eq("tag_id", tagId);
 
       if (error) throw error;
 
       queryClient.invalidateQueries({
-        queryKey: [tableName, itemIds],
+        queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
       });
 
       toast({
         title: isCategory ? "カテゴリを削除しました" : "タグを削除しました",
-        description: `${tagName}をアイテムから削除しました。`,
+        description: `${tagName}を${itemIds.length}個のアイテムから削除しました。`,
       });
     } catch (error) {
       console.error("Error removing tag:", error);
@@ -84,23 +64,23 @@ export function CurrentTags({
 
   return (
     <div className="space-y-2">
-      <h4 className="text-sm font-medium">{isCategory ? "現在のカテゴリ" : "現在のタグ"}</h4>
+      <h4 className="text-sm font-medium">
+        {isCategory ? "現在のカテゴリ" : "現在のタグ"}
+      </h4>
       <div className="flex flex-wrap gap-2">
-        {currentTags
-          .filter((tag): tag is TagRelation & { tags: NonNullable<Tag> } => tag.tags !== null)
-          .map((tag) => (
-            <Badge
-              key={tag.id}
-              variant="secondary"
-              className="pr-2 flex items-center gap-1"
-            >
-              {tag.tags.name}
-              <X
-                className="h-3 w-3 cursor-pointer hover:text-destructive"
-                onClick={() => handleRemoveTag(tag.id, tag.tags.name)}
-              />
-            </Badge>
-          ))}
+        {currentTags.map((tag) => (
+          <Badge
+            key={tag.tag_id}
+            variant="secondary"
+            className="pr-2 flex items-center gap-1"
+          >
+            {tag.tags?.name}
+            <X
+              className="h-3 w-3 cursor-pointer hover:text-destructive"
+              onClick={() => handleRemoveTag(tag.tag_id, tag.tags?.name || "")}
+            />
+          </Badge>
+        ))}
       </div>
     </div>
   );
