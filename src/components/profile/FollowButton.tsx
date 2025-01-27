@@ -11,7 +11,8 @@ interface FollowButtonProps {
 export function FollowButton({ userId, className }: FollowButtonProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const isFollowing = useQuery({
+
+  const { data: isFollowing } = useQuery({
     queryKey: ["is-following", userId],
     queryFn: async () => {
       if (!user) return false;
@@ -19,43 +20,48 @@ export function FollowButton({ userId, className }: FollowButtonProps) {
         .from("follows")
         .select("id")
         .eq("follower_id", user.id)
-        .eq("followed_id", userId)
-        .single();
+        .eq("following_id", userId)
+        .maybeSingle();
       if (error && error.code !== "PGRST116") throw error;
       return !!data;
     },
+    enabled: !!user,
   });
 
   const handleFollowToggle = async () => {
     if (!user) return;
 
-    const isCurrentlyFollowing = isFollowing.data;
+    try {
+      if (isFollowing) {
+        await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", user.id)
+          .eq("following_id", userId);
+      } else {
+        await supabase
+          .from("follows")
+          .insert({
+            follower_id: user.id,
+            following_id: userId,
+          });
+      }
 
-    if (isCurrentlyFollowing) {
-      await supabase
-        .from("follows")
-        .delete()
-        .eq("follower_id", user.id)
-        .eq("followed_id", userId);
-    } else {
-      await supabase
-        .from("follows")
-        .insert({
-          follower_id: user.id,
-          followed_id: userId,
-        });
+      await queryClient.invalidateQueries({
+        queryKey: ["is-following", userId],
+      });
+    } catch (error) {
+      console.error("Error toggling follow:", error);
     }
-
-    queryClient.invalidateQueries(["is-following", userId]);
   };
 
   return (
     <Button
-      variant={isFollowing.data ? "outline" : "primary"}
+      variant={isFollowing ? "outline" : "default"}
       onClick={handleFollowToggle}
       className={className}
     >
-      {isFollowing.data ? "フォロー中" : "フォローする"}
+      {isFollowing ? "フォロー中" : "フォローする"}
     </Button>
   );
 }

@@ -50,7 +50,9 @@ export function CollectionLikeButton({ collectionOwnerId, className }: Collectio
           });
         setIsLiked(true);
       }
-      queryClient.invalidateQueries(["collection-likes", collectionOwnerId]);
+      await queryClient.invalidateQueries({
+        queryKey: ["collection-likes", collectionOwnerId],
+      });
     } catch (error) {
       console.error("Error toggling like:", error);
     }
