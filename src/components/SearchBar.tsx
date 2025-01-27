@@ -26,7 +26,7 @@ export function SearchBar({
           placeholder="グッズを検索..."
           value={searchQuery}
           onChange={handleSearchChange}
-          className="pl-10 w-full bg-white border-gray-200 hover:border-gray-300 focus:border-gray-300 focus:ring-1 focus:ring-gray-300 transition-colors duration-200"
+          className="pl-10 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
         />
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
       </div>

@@ -1,32 +1,22 @@
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
-import { Button } from "../ui/button";
+import { useState } from "react";
 
 interface CollectionLikeButtonProps {
   collectionOwnerId: string;
+  className?: string;
 }
 
-export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButtonProps) {
+export function CollectionLikeButton({ collectionOwnerId, className }: CollectionLikeButtonProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isLiked, setIsLiked] = useState(false);
 
-  const { data: likeCount = 0 } = useQuery({
-    queryKey: ["collection-likes-count", collectionOwnerId],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("collection_likes")
-        .select("*", { count: 'exact', head: true })
-        .eq("collection_owner_id", collectionOwnerId);
-      return count || 0;
-    },
-  });
-
-  const { data: isLiked = false } = useQuery({
-    queryKey: ["collection-is-liked", collectionOwnerId, user?.id],
+  const { data: likeData } = useQuery({
+    queryKey: ["collection-likes", collectionOwnerId, user?.id],
     queryFn: async () => {
       if (!user) return false;
       const { data } = await supabase
@@ -40,67 +30,42 @@ export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButton
     enabled: !!user,
   });
 
-  const handleLikeToggle = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (!user) {
-      toast({
-        title: "ログインが必要です",
-        description: "いいねをするにはログインしてください。",
-      });
-      return;
-    }
+  const handleLikeToggle = async () => {
+    if (!user) return;
 
     try {
-      if (isLiked) {
-        const { error } = await supabase
+      if (likeData) {
+        await supabase
           .from("collection_likes")
           .delete()
           .eq("collection_owner_id", collectionOwnerId)
           .eq("user_id", user.id);
-
-        if (error) throw error;
+        setIsLiked(false);
       } else {
-        const { error } = await supabase
+        await supabase
           .from("collection_likes")
           .insert({
             collection_owner_id: collectionOwnerId,
             user_id: user.id,
           });
-
-        if (error) throw error;
+        setIsLiked(true);
       }
-
-      queryClient.invalidateQueries({ queryKey: ["collection-likes-count", collectionOwnerId] });
-      queryClient.invalidateQueries({ queryKey: ["collection-is-liked", collectionOwnerId, user.id] });
-
-      toast({
-        title: isLiked ? "いいねを取り消しました" : "いいねしました",
-        description: isLiked ? "コレクションのいいねを取り消しました。" : "コレクションにいいねしました。",
+      await queryClient.invalidateQueries({
+        queryKey: ["collection-likes", collectionOwnerId],
       });
     } catch (error) {
-      console.error("Error toggling collection like:", error);
-      toast({
-        title: "エラー",
-        description: "いいねの更新に失敗しました。",
-        variant: "destructive",
-      });
+      console.error("Error toggling like:", error);
     }
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleLikeToggle}
-        className={`${
-          isLiked ? "text-red-500 hover:text-red-600" : "text-gray-500 hover:text-gray-600"
-        }`}
-      >
-        <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
-      </Button>
-      <span className="text-sm text-gray-500">{likeCount}</span>
-    </div>
+    <Button
+      variant="outline"
+      className={className}
+      onClick={handleLikeToggle}
+      aria-label={isLiked ? "Unlike" : "Like"}
+    >
+      <Heart className={`h-5 w-5 ${isLiked ? "text-red-500" : "text-gray-500"}`} />
+    </Button>
   );
 }
