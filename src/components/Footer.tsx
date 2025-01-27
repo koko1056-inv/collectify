@@ -20,50 +20,55 @@ export function Footer() {
     <>
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t sm:hidden">
         <div className="flex justify-around items-center h-16">
-          <button
-            onClick={() => setIsSearchSheetOpen(true)}
+          <Link
+            to="/search"
             className={cn(
-              "flex items-center justify-center w-12 h-12",
+              "flex flex-col items-center justify-center w-12 h-12",
               isActive("/search") && "text-primary"
             )}
           >
             <Search className="h-6 w-6" />
-          </button>
+            <span className="text-xs mt-1">検索</span>
+          </Link>
 
-          <button
-            onClick={() => setIsWishlistModalOpen(true)}
-            className="flex items-center justify-center w-12 h-12"
+          <Link
+            to="/wishlist"
+            className="flex flex-col items-center justify-center w-12 h-12"
           >
             <ShoppingBasket className="h-6 w-6" />
-          </button>
+            <span className="text-xs mt-1">ウィッシュ</span>
+          </Link>
 
           <Link
             to="/"
             className={cn(
-              "flex items-center justify-center",
+              "flex flex-col items-center justify-center",
               isActive("/") && "text-primary"
             )}
           >
             <div className="bg-primary rounded-full p-3">
               <Home className="h-6 w-6 text-white" />
             </div>
+            <span className="text-xs mt-1">ホーム</span>
           </Link>
 
-          <button
-            onClick={() => setIsTradeModalOpen(true)}
-            className="flex items-center justify-center w-12 h-12"
+          <Link
+            to="/trade"
+            className="flex flex-col items-center justify-center w-12 h-12"
           >
             <Repeat2 className="h-6 w-6" />
-          </button>
+            <span className="text-xs mt-1">トレード</span>
+          </Link>
 
           <Link
             to="/edit-profile"
             className={cn(
-              "flex items-center justify-center w-12 h-12",
+              "flex flex-col items-center justify-center w-12 h-12",
               isActive("/edit-profile") && "text-primary"
             )}
           >
             <User className="h-6 w-6" />
+            <span className="text-xs mt-1">プロフィール</span>
           </Link>
         </div>
       </div>
