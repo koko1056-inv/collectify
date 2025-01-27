@@ -12,7 +12,6 @@ import { TradeRequestModal } from "../trade/TradeRequestModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { CardTitle } from "@/components/ui/card";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -85,8 +84,7 @@ export function CollectionGoodsCardWrapper({
     }
   };
 
-  // Simplified card for other users' collections
-  if (isOtherUserCollection || isCompact) {
+  if (isCompact) {
     return (
       <Card 
         className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden"
@@ -100,9 +98,6 @@ export function CollectionGoodsCardWrapper({
           </Badge>
         )}
         <CardImage title={title} image={image} />
-        <div className="px-3 py-2">
-          <CardTitle className="text-base line-clamp-1 text-gray-900">{title}</CardTitle>
-        </div>
         <CardModals
           itemId={id}
           itemTitle={title}
@@ -125,7 +120,6 @@ export function CollectionGoodsCardWrapper({
     );
   }
 
-  // Full card for owner's collection
   return (
     <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
       {quantity > 1 && (
