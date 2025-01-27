@@ -33,16 +33,20 @@ export function FilterBar({
         tags={tags}
       />
 
-      <div className="grid grid-cols-2 gap-3">
-        <TagFilter
-          selectedTags={selectedTags}
-          onTagsChange={onTagsChange}
-          tags={tags}
-        />
-        <ContentFilter
-          selectedContent={selectedContent}
-          onContentChange={onContentChange}
-        />
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <TagFilter
+            selectedTags={selectedTags}
+            onTagsChange={onTagsChange}
+            tags={tags}
+          />
+        </div>
+        <div className="flex-1">
+          <ContentFilter
+            selectedContent={selectedContent}
+            onContentChange={onContentChange}
+          />
+        </div>
       </div>
     </div>
   );
