@@ -1,8 +1,7 @@
-import React from "react";
-import { Tag } from "@/types";
-import { TagFilter } from "./TagFilter";
 import { SearchBar } from "./SearchBar";
+import { TagFilter } from "./TagFilter";
 import { ContentFilter } from "./ContentFilter";
+import { Tag } from "@/types";
 
 interface FilterBarProps {
   searchQuery: string;
@@ -26,22 +25,21 @@ export function FilterBar({
   return (
     <div className="space-y-3">
       <SearchBar
-        searchQuery={searchQuery}
-        onSearchChange={onSearchChange}
-        selectedTags={selectedTags}
-        onTagsChange={onTagsChange}
+        value={searchQuery}
+        onChange={onSearchChange}
+        placeholder="コレクションを検索"
         tags={tags}
       />
 
-      <div className="flex gap-3">
-        <div className="flex-1">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="w-full sm:flex-1">
           <TagFilter
             selectedTags={selectedTags}
             onTagsChange={onTagsChange}
             tags={tags}
           />
         </div>
-        <div className="flex-1">
+        <div className="w-full sm:flex-1">
           <ContentFilter
             selectedContent={selectedContent}
             onContentChange={onContentChange}
