@@ -116,7 +116,6 @@ export function ItemDetailsModal({
               </div>
               
               <div>
-                <label className="text-sm font-medium">コンテンツ</label>
                 <ContentNameSelect
                   type="content"
                   value={editedData.content || ""}
