@@ -41,7 +41,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .eq("tags.is_category", isCategory);
 
       if (error) throw error;
-      return data as TagData[];
+      return (data || []) as TagData[];
     },
   });
 
@@ -60,7 +60,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
 
       toast({
         title: isCategory ? "カテゴリを削除しました" : "タグを削除しました",
-        description: `${tagData.tags?.name}を削除しました。`,
+        description: `${tagData.tags.name}を削除しました。`,
       });
     } catch (error) {
       console.error("Error removing tag:", error);
@@ -81,7 +81,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
           className="cursor-pointer hover:bg-secondary/80"
           onClick={() => handleRemoveTag(tagData)}
         >
-          {tagData.tags?.name}
+          {tagData.tags.name}
         </Badge>
       ))}
     </div>
