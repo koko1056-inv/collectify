@@ -61,7 +61,7 @@ export const SidebarMenuButton = React.forwardRef<HTMLButtonElement, SidebarMenu
     const Comp = asChild ? "div" : "button";
     return (
       <Comp
-        ref={ref as any}
+        ref={ref}
         className={cn("flex items-center w-full text-left gap-2", className)}
         {...props}
       />

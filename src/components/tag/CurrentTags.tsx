@@ -17,7 +17,7 @@ interface Tag {
 interface TagData {
   id: string;
   tag_id: string;
-  tags: Tag | null;
+  tags: Tag;
 }
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {

@@ -25,8 +25,8 @@ export function FilterBar({
   return (
     <div className="space-y-3">
       <SearchBar
-        value={searchQuery}
-        onChange={onSearchChange}
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
         placeholder="コレクションを検索"
         tags={tags}
       />
