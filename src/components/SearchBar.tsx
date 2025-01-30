@@ -5,14 +5,15 @@ import { Tag } from "@/types";
 interface SearchBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  selectedTags: string[];
-  onTagsChange: (tags: string[]) => void;
-  tags: Tag[];
+  placeholder?: string;
+  tags?: Tag[];
 }
 
 export function SearchBar({
   searchQuery,
   onSearchChange,
+  placeholder = "検索...",
+  tags,
 }: SearchBarProps) {
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSearchChange(e.target.value);
@@ -23,7 +24,7 @@ export function SearchBar({
       <div className="relative">
         <Input
           type="text"
-          placeholder="グッズを検索..."
+          placeholder={placeholder}
           value={searchQuery}
           onChange={handleSearchChange}
           className="pl-10 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
