@@ -1,9 +1,5 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { CardImage } from "../collection/CardImage";
-import { TagList } from "../collection/TagList";
-import { MemoriesList } from "../collection/MemoriesList";
-import { QuantityInput } from "./QuantityInput";
-import { ItemDetailsForm } from "./ItemDetailsForm";
+import { CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -14,55 +10,61 @@ interface ItemDetailsContentProps {
   isEditing: boolean;
   editedData: any;
   setEditedData: (data: any) => void;
+  content?: string | null;
 }
 
 export function ItemDetailsContent({
   image,
-  title,
   tags,
   memories,
   isUserItem,
-  isEditing,
-  editedData,
-  setEditedData,
+  content,
 }: ItemDetailsContentProps) {
   return (
-    <ScrollArea className="flex-1 px-1">
-      <div className="space-y-4">
-        <div className="w-full aspect-square relative">
-          <CardImage image={image} title={title} />
-        </div>
-
-        {isUserItem && tags.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">タグ</h3>
-            <TagList tags={tags} />
-          </div>
-        )}
-
-        <div className="space-y-2">
-          {isUserItem && (
-            <QuantityInput
-              isEditing={isEditing}
-              quantity={editedData.quantity}
-              onChange={(value) => setEditedData({ ...editedData, quantity: value })}
-            />
-          )}
-          <ItemDetailsForm
-            isEditing={isEditing}
-            editedData={editedData}
-            setEditedData={setEditedData}
-            isUserItem={isUserItem}
-          />
-        </div>
-
-        {isUserItem && memories.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">思い出</h3>
-            <MemoriesList memories={memories} />
-          </div>
-        )}
+    <CardContent className="space-y-4">
+      <div className="aspect-square relative overflow-hidden rounded-lg">
+        <img
+          src={image}
+          alt="Item preview"
+          className="w-full h-full object-contain bg-gray-100"
+        />
       </div>
-    </ScrollArea>
+
+      {content && (
+        <div>
+          <h3 className="text-sm font-medium mb-2">コンテンツ</h3>
+          <Badge variant="secondary">{content}</Badge>
+        </div>
+      )}
+
+      {tags.length > 0 && (
+        <div>
+          <h3 className="text-sm font-medium mb-2">タグ</h3>
+          <div className="flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <Badge key={tag.tag_id} variant="outline">
+                {tag.tags?.name}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isUserItem && memories.length > 0 && (
+        <div>
+          <h3 className="text-sm font-medium mb-2">メモリー</h3>
+          <div className="space-y-2">
+            {memories.map((memory) => (
+              <div
+                key={memory.id}
+                className="p-2 bg-gray-50 rounded-lg text-sm"
+              >
+                {memory.comment}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </CardContent>
   );
 }
