@@ -126,16 +126,13 @@ export function ItemDetailsModal({
                 />
               </div>
 
-              <div>
-                <label className="text-sm font-medium">タグ</label>
-                <TagInput
-                  selectedTags={selectedTags}
-                  onTagsChange={(newTags) => {
-                    // Handle tag changes here
-                    console.log("Tags updated:", newTags);
-                  }}
-                />
-              </div>
+              <TagInput
+                selectedTags={selectedTags}
+                onTagsChange={(newTags) => {
+                  // Handle tag changes here
+                  console.log("Tags updated:", newTags);
+                }}
+              />
             </div>
           ) : (
             <>
