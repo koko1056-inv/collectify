@@ -14,7 +14,7 @@ interface Tag {
   name: string;
 }
 
-interface TagData {
+interface ItemTag {
   id: string;
   tag_id: string;
   tags: Tag;
@@ -41,11 +41,11 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .eq("tags.is_category", isCategory);
 
       if (error) throw error;
-      return data as TagData[];
+      return (data || []) as ItemTag[];
     },
   });
 
-  const handleRemoveTag = async (tagData: TagData) => {
+  const handleRemoveTag = async (tagData: ItemTag) => {
     try {
       const { error } = await supabase
         .from(isUserItem ? "user_item_tags" : "item_tags")
