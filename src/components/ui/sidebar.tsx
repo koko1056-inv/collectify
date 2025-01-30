@@ -59,13 +59,11 @@ interface SidebarMenuButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEl
 export const SidebarMenuButton = React.forwardRef<HTMLButtonElement, SidebarMenuButtonProps>(
   ({ className, asChild = false, ...props }, ref) => {
     const Comp = asChild ? "div" : "button";
-    return (
-      <Comp
-        ref={ref}
-        className={cn("flex items-center w-full text-left gap-2", className)}
-        {...props}
-      />
-    );
+    return React.createElement(Comp, {
+      ref,
+      className: cn("flex items-center w-full text-left gap-2", className),
+      ...props,
+    });
   }
 );
 SidebarMenuButton.displayName = "SidebarMenuButton";
