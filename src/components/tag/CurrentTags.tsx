@@ -41,7 +41,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .eq("tags.is_category", isCategory);
 
       if (error) throw error;
-      return (data || []) as TagData[];
+      return data as TagData[];
     },
   });
 
