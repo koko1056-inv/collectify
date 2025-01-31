@@ -7,6 +7,7 @@ import { Tag } from "@/types";
 import { Input } from "@/components/ui/input";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface TagFilterProps {
   selectedTags: string[];
@@ -18,6 +19,7 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: tags = [] } = useQuery({
     queryKey: ["tags"],
@@ -54,14 +56,32 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
     }
   }, [tags, selectedTags, onTagsChange]);
 
-  const handleTagToggle = (tagName: string) => {
-    if (selectedTags.includes(tagName)) {
-      onTagsChange(selectedTags.filter(tag => tag !== tagName));
-    } else {
-      onTagsChange([...selectedTags, tagName]);
+  const handleTagToggle = async (tagName: string) => {
+    try {
+      if (selectedTags.includes(tagName)) {
+        onTagsChange(selectedTags.filter(tag => tag !== tagName));
+      } else {
+        onTagsChange([...selectedTags, tagName]);
+      }
+      
+      // Invalidate queries to refresh the UI
+      await queryClient.invalidateQueries({ queryKey: ["tags"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-item-tags"] });
+      
+      toast({
+        title: selectedTags.includes(tagName) ? "タグを削除しました" : "タグを追加しました",
+        description: `${tagName}を${selectedTags.includes(tagName) ? "削除" : "追加"}しました。`,
+      });
+      
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Error toggling tag:", error);
+      toast({
+        title: "エラー",
+        description: "タグの更新に失敗しました。",
+        variant: "destructive",
+      });
     }
-    queryClient.invalidateQueries({ queryKey: ["tags"] });
-    setIsDialogOpen(false);
   };
 
   return (
