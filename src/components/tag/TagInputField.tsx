@@ -57,6 +57,7 @@ export function TagInputField({ itemIds, isUserItem = false, isCategory = false 
 
         if (relationError) throw relationError;
 
+        // Update both queries to ensure UI is refreshed
         queryClient.invalidateQueries({
           queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
         });
