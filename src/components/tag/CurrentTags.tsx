@@ -41,7 +41,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .eq("tags.is_category", isCategory);
 
       if (error) throw error;
-      return (data || []) as TagRelation[];
+      return data as TagRelation[];
     },
   });
 
@@ -54,8 +54,12 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
 
       if (error) throw error;
 
+      // Invalidate both queries to ensure UI is refreshed
       queryClient.invalidateQueries({
-        queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
+        queryKey: [isUserItem ? "user-item-tags" : "item-tags"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["tags"],
       });
 
       toast({

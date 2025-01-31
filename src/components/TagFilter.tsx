@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tag } from "@/types";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TagFilterProps {
@@ -17,6 +17,7 @@ interface TagFilterProps {
 export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: tags = [] } = useQuery({
     queryKey: ["tags"],
@@ -59,6 +60,7 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
     } else {
       onTagsChange([...selectedTags, tagName]);
     }
+    queryClient.invalidateQueries({ queryKey: ["tags"] });
     setIsDialogOpen(false);
   };
 
