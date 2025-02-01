@@ -2,10 +2,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { TableName, ItemTagInsert, UserItemTagInsert } from "@/types/tag";
 
 export const deleteRelatedRecords = async (tableName: TableName, itemId: string) => {
+  const columnName = tableName === "item_tags" ? "official_item_id" : "user_item_id";
+  
   const { error } = await supabase
     .from(tableName)
     .delete()
-    .eq("user_item_id", itemId);
+    .eq(columnName, itemId);
 
   return {
     error,
@@ -13,24 +15,15 @@ export const deleteRelatedRecords = async (tableName: TableName, itemId: string)
   };
 };
 
-export const deleteItem = async (itemId: string) => {
-  const { error } = await supabase
-    .from("user_items")
-    .delete()
-    .eq("id", itemId);
-
-  return {
-    error,
-    operation: "user_items"
-  };
-};
-
 export const addTagToItem = async (itemId: string, tagId: string, isUserItem: boolean = false) => {
+  const tableName = isUserItem ? "user_item_tags" : "item_tags";
+  const columnName = isUserItem ? "user_item_id" : "official_item_id";
+
   // First check if the relation already exists
   const { data: existingTag, error: checkError } = await supabase
-    .from(isUserItem ? "user_item_tags" : "item_tags")
+    .from(tableName)
     .select("id")
-    .eq(isUserItem ? "user_item_id" : "official_item_id", itemId)
+    .eq(columnName, itemId)
     .eq("tag_id", tagId)
     .maybeSingle();
 
@@ -49,7 +42,7 @@ export const addTagToItem = async (itemId: string, tagId: string, isUserItem: bo
     : { official_item_id: itemId, tag_id: tagId };
 
   const { data, error } = await supabase
-    .from(isUserItem ? "user_item_tags" : "item_tags")
+    .from(tableName)
     .insert(insertData)
     .select()
     .single();

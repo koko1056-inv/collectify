@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TagRelation } from "@/types/tag";
+import { Tag } from "@/types/tag";
 
 interface CurrentTagsProps {
   itemIds: string[];
@@ -33,7 +33,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .in(isUserItem ? "user_item_id" : "official_item_id", itemIds);
 
       if (error) throw error;
-      return data as TagRelation[];
+      return data;
     },
   });
 
@@ -64,19 +64,15 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
     }
   };
 
-  const validTags = currentTags.filter((tag): tag is TagRelation & { tags: NonNullable<TagRelation["tags"]> } => 
-    tag.tags !== null
-  );
-
-  const filteredTags = validTags.filter(tag => 
-    Boolean(tag.tags?.is_category) === isCategory
+  const validTags = currentTags.filter((tag): tag is { id: string; tags: Tag } => 
+    tag.tags !== null && (!isCategory === !tag.tags.is_category)
   );
 
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-medium">{isCategory ? "現在のカテゴリ" : "現在のタグ"}</h4>
       <div className="flex flex-wrap gap-2">
-        {filteredTags.map((tag) => (
+        {validTags.map((tag) => (
           <Badge
             key={tag.id}
             variant="secondary"

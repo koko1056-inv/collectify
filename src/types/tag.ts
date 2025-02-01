@@ -1,5 +1,3 @@
-export type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
-
 export interface Tag {
   id: string;
   name: string;
@@ -11,6 +9,8 @@ export interface TagRelation {
   id: string;
   tags: Tag | null;
 }
+
+export type TableName = "item_tags" | "user_item_tags";
 
 export interface TagOperationResult {
   error: any;
