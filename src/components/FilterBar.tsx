@@ -52,13 +52,22 @@ export function FilterBar({
           value={selectedContent}
           onValueChange={onContentChange}
         >
-          <SelectTrigger>
+          <SelectTrigger className="bg-background border-input">
             <SelectValue placeholder="コンテンツで絞り込む" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">すべて</SelectItem>
+          <SelectContent className="bg-popover border rounded-md shadow-md">
+            <SelectItem 
+              value="all" 
+              className="hover:bg-accent hover:text-accent-foreground py-2.5"
+            >
+              すべて
+            </SelectItem>
             {contentNames.map((content) => (
-              <SelectItem key={content.id} value={content.name}>
+              <SelectItem 
+                key={content.id} 
+                value={content.name}
+                className="hover:bg-accent hover:text-accent-foreground py-2.5"
+              >
                 {content.name}
               </SelectItem>
             ))}
