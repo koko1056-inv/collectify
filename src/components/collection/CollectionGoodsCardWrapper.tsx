@@ -40,7 +40,7 @@ export function CollectionGoodsCardWrapper({
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
 
-  const { handleDelete } = useCardEventHandlers();
+  const { handleDelete } = useCardEventHandlers(id);
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
   const canTrade = !isOwner && !!user;

@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { deleteUserItem, deleteRelatedRecords } from "@/utils/tag-operations";
 import { TableName } from "@/types/tag";
 
-export const useCardEventHandlers = () => {
+export const useCardEventHandlers = (itemId: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -12,11 +12,11 @@ export const useCardEventHandlers = () => {
       const tables: TableName[] = ["user_item_likes", "item_memories", "user_item_tags"];
       
       for (const table of tables) {
-        const { error } = await deleteRelatedRecords(table, id);
+        const { error } = await deleteRelatedRecords(table, itemId);
         if (error) throw error;
       }
 
-      const { error: deleteError } = await deleteUserItem(id);
+      const { error: deleteError } = await deleteUserItem(itemId);
       if (deleteError) throw deleteError;
 
       queryClient.invalidateQueries({ queryKey: ["user-items"] });

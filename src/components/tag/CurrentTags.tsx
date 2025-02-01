@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tag, TagRelation } from "@/types/tag";
+import { TagRelation } from "@/types/tag";
 
 interface CurrentTagsProps {
   itemIds: string[];
