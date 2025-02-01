@@ -2,16 +2,12 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
-type TableName = 
-  | "user_item_likes"
-  | "item_memories"
-  | "user_item_tags"
-  | "user_items";
+type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
 
-interface DeleteResult {
+type DeleteResult = {
   error: any;
   operation: TableName;
-}
+};
 
 export function useCardEventHandlers(id: string) {
   const { toast } = useToast();

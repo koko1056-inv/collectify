@@ -10,16 +10,16 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
-interface Tag {
+type Tag = {
   id: string;
   name: string;
   is_category: boolean;
-}
+};
 
-interface TagRelation {
+type TagRelation = {
   id: string;
   tags: Tag | null;
-}
+};
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
@@ -74,9 +74,13 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
     }
   };
 
-  const filteredTags = currentTags
-    .filter((tag): tag is TagRelation & { tags: Tag } => tag.tags !== null)
-    .filter((tag) => tag.tags.is_category === isCategory);
+  const validTags = currentTags.filter((tag): tag is TagRelation & { tags: Tag } => 
+    tag.tags !== null
+  );
+
+  const filteredTags = validTags.filter(tag => 
+    tag.tags.is_category === isCategory
+  );
 
   return (
     <div className="space-y-2">
