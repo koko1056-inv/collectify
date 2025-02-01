@@ -84,7 +84,10 @@ export function ImageSection({
 
   const handleSelectScrapedImage = async (imageUrl: string) => {
     try {
-      const response = await fetch(imageUrl);
+      const response = await fetch(imageUrl, { mode: 'cors' });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const blob = await response.blob();
       const file = new File([blob], 'scraped-image.jpg', { type: 'image/jpeg' });
       handleImageChange(file);
@@ -95,7 +98,7 @@ export function ImageSection({
       console.error('Error selecting image:', error);
       toast({
         title: "エラー",
-        description: "画像の選択に失敗しました。",
+        description: "この画像は取得できません。別の画像を選択してください。",
         variant: "destructive",
       });
     }
