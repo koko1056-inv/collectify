@@ -60,13 +60,15 @@ export function useItemDetailsForm({
         title: editedData.title,
         [isUserItem ? "prize" : "price"]: editedData.price,
         release_date: editedData.release_date,
-        description: editedData.description,
         quantity: editedData.quantity,
       };
 
-      // Only include content_name for official items
+      // Only include description and content_name for official items
       if (!isUserItem) {
-        Object.assign(updateData, { content_name: editedData.content_name });
+        Object.assign(updateData, { 
+          description: editedData.description,
+          content_name: editedData.content_name 
+        });
       }
 
       const { error: updateError } = await supabase
