@@ -67,15 +67,16 @@ export function ItemDetailsSection({
           コンテンツ
         </label>
         <Select
-          value={formData.content_name || ""}
+          value={formData.content_name || "none"}
           onValueChange={(value) =>
-            setFormData({ ...formData, content_name: value })
+            setFormData({ ...formData, content_name: value === "none" ? null : value })
           }
         >
           <SelectTrigger>
             <SelectValue placeholder="コンテンツを選択" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="none">選択なし</SelectItem>
             {contentNames.map((content) => (
               <SelectItem key={content.id} value={content.name}>
                 {content.name}

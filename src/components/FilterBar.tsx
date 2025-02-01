@@ -56,7 +56,7 @@ export function FilterBar({
             <SelectValue placeholder="コンテンツで絞り込む" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">すべて</SelectItem>
+            <SelectItem value="all">すべて</SelectItem>
             {contentNames.map((content) => (
               <SelectItem key={content.id} value={content.name}>
                 {content.name}
