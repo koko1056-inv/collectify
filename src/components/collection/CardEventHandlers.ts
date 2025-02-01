@@ -13,7 +13,7 @@ export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteOperationResult> => {
+  const deleteRelatedRecords = async (tableName: TableName) => {
     const { error } = await supabase
       .from(tableName)
       .delete()
@@ -25,7 +25,7 @@ export function useCardEventHandlers(id: string) {
     };
   };
 
-  const deleteItem = async (): Promise<DeleteOperationResult> => {
+  const deleteItem = async () => {
     const { error } = await supabase
       .from("user_items")
       .delete()
@@ -33,7 +33,7 @@ export function useCardEventHandlers(id: string) {
 
     return {
       error,
-      operation: "user_items"
+      operation: "user_items" as const
     };
   };
 
@@ -41,7 +41,6 @@ export function useCardEventHandlers(id: string) {
     try {
       console.log("Starting deletion process for item:", id);
 
-      // Delete in specific order due to foreign key constraints
       const operations: { name: TableName; label: string }[] = [
         { name: "user_item_likes", label: "likes" },
         { name: "item_memories", label: "memories" },
@@ -57,7 +56,6 @@ export function useCardEventHandlers(id: string) {
         console.log(`Successfully deleted ${op.label}`);
       }
 
-      // Finally delete the main item
       const itemResult = await deleteItem();
       if (itemResult.error) {
         console.error("Error deleting item:", itemResult.error);
