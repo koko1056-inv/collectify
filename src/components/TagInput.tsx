@@ -53,26 +53,48 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
             .eq("name", newTag)
             .maybeSingle();
 
+          let tagId;
           if (!existingTag) {
             // 新しいタグを作成
-            const { error: insertError } = await supabase
+            const { data: newTagData, error: insertError } = await supabase
               .from("tags")
-              .insert([{ name: newTag }]);
+              .insert([{ name: newTag }])
+              .select()
+              .single();
 
             if (insertError) throw insertError;
+            tagId = newTagData.id;
+          } else {
+            tagId = existingTag.id;
           }
 
-          // タグを選択リストに追加
-          onTagsChange([...selectedTags, newTag]);
-          setTagInput("");
+          // Check if the tag-item relationship already exists
+          const { data: existingRelation } = await supabase
+            .from("item_tags")
+            .select("id")
+            .eq("tag_id", tagId)
+            .eq("official_item_id", selectedTags)
+            .maybeSingle();
 
-          // キャッシュを更新
-          queryClient.invalidateQueries({ queryKey: ["tags"] });
+          if (!existingRelation) {
+            // タグを選択リストに追加
+            onTagsChange([...selectedTags, newTag]);
+            setTagInput("");
 
-          toast({
-            title: "タグを追加しました",
-            description: `${newTag}を追加しました。`,
-          });
+            // キャッシュを更新
+            queryClient.invalidateQueries({ queryKey: ["tags"] });
+
+            toast({
+              title: "タグを追加しました",
+              description: `${newTag}を追加しました。`,
+            });
+          } else {
+            toast({
+              title: "注意",
+              description: "このタグは既に追加されています。",
+              variant: "default",
+            });
+          }
         } catch (error) {
           console.error("Error adding tag:", error);
           toast({

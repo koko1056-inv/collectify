@@ -397,6 +397,7 @@ export type Database = {
           id: string
           image: string
           price: string
+          quantity: number
           release_date: string
           title: string
         }
@@ -411,6 +412,7 @@ export type Database = {
           id?: string
           image: string
           price: string
+          quantity?: number
           release_date: string
           title: string
         }
@@ -425,6 +427,7 @@ export type Database = {
           id?: string
           image?: string
           price?: string
+          quantity?: number
           release_date?: string
           title?: string
         }
