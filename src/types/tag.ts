@@ -16,3 +16,13 @@ export interface TagOperationResult {
   error: any;
   operation: TableName;
 }
+
+export interface ItemTagInsert {
+  official_item_id: string;
+  tag_id: string;
+}
+
+export interface UserItemTagInsert {
+  user_item_id: string;
+  tag_id: string;
+}

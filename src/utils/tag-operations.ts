@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
+import { TableName, ItemTagInsert, UserItemTagInsert } from "@/types/tag";
 
-export const deleteRelatedRecords = async (tableName: string, itemId: string) => {
+export const deleteRelatedRecords = async (tableName: TableName, itemId: string) => {
   const { error } = await supabase
     .from(tableName)
     .delete()
@@ -8,7 +9,7 @@ export const deleteRelatedRecords = async (tableName: string, itemId: string) =>
 
   return {
     error,
-    operation: tableName as const
+    operation: tableName
   };
 };
 
@@ -20,7 +21,7 @@ export const deleteItem = async (itemId: string) => {
 
   return {
     error,
-    operation: "user_items" as const
+    operation: "user_items"
   };
 };
 
@@ -43,12 +44,13 @@ export const addTagToItem = async (itemId: string, tagId: string, isUserItem: bo
   }
 
   // If no existing relation, create a new one
+  const insertData: ItemTagInsert | UserItemTagInsert = isUserItem 
+    ? { user_item_id: itemId, tag_id: tagId }
+    : { official_item_id: itemId, tag_id: tagId };
+
   const { data, error } = await supabase
     .from(isUserItem ? "user_item_tags" : "item_tags")
-    .insert([{
-      [isUserItem ? "user_item_id" : "official_item_id"]: itemId,
-      tag_id: tagId
-    }])
+    .insert(insertData)
     .select()
     .single();
 
