@@ -51,7 +51,7 @@ export function ItemDetailsContent({
     try {
       const { data, error } = await supabase
         .from("content_names")
-        .insert([{ name, type: "other" }])
+        .insert([{ name, type: "anime" }]) // Set a default type to satisfy the check constraint
         .select()
         .single();
       
