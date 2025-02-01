@@ -16,10 +16,10 @@ interface Tag {
   is_category: boolean;
 }
 
-type TagRelation = {
+interface TagRelation {
   id: string;
   tags: Tag | null;
-};
+}
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
@@ -80,19 +80,17 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
       <h4 className="text-sm font-medium">{isCategory ? "現在のカテゴリ" : "現在のタグ"}</h4>
       <div className="flex flex-wrap gap-2">
         {currentTags
-          .filter((tag): tag is TagRelation & { tags: NonNullable<TagRelation["tags"]> } => 
-            tag.tags !== null
-          )
+          .filter((tag) => tag.tags !== null)
           .map((tag) => (
             <Badge
               key={tag.id}
               variant="secondary"
               className="pr-2 flex items-center gap-1"
             >
-              {tag.tags.name}
+              {tag.tags!.name}
               <X
                 className="h-3 w-3 cursor-pointer hover:text-destructive"
-                onClick={() => handleRemoveTag(tag.id, tag.tags.name)}
+                onClick={() => handleRemoveTag(tag.id, tag.tags!.name)}
               />
             </Badge>
           ))}

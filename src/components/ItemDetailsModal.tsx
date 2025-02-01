@@ -6,8 +6,6 @@ import { ItemDetailsHeader } from "./item-details/ItemDetailsHeader";
 import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
 import { ItemDetailsFooter } from "./item-details/ItemDetailsFooter";
 import { useAuth } from "@/contexts/AuthContext";
-import { TagInput } from "./TagInput";
-import { useState } from "react";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -40,8 +38,8 @@ export function ItemDetailsModal({
 }: ItemDetailsModalProps) {
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
+  // Allow any authenticated user to edit official items
   const canEdit = !isUserItem && user !== null;
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const {
     isEditing,
@@ -115,15 +113,6 @@ export function ItemDetailsModal({
           editedData={editedData}
           setEditedData={setEditedData}
         />
-
-        {isEditing && (
-          <div className="px-4 py-2">
-            <TagInput
-              selectedTags={selectedTags}
-              onTagsChange={setSelectedTags}
-            />
-          </div>
-        )}
 
         <ItemDetailsFooter
           isEditing={isEditing}
