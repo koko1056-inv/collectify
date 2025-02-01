@@ -7,11 +7,7 @@ export interface Tag {
 
 export interface TagRelation {
   id: string;
-  tags: {
-    id: string;
-    name: string;
-    is_category?: boolean;
-  } | null;
+  tags: Tag | null;
 }
 
 export type TableName = "user_item_tags" | "item_tags" | "user_item_likes" | "item_memories";
