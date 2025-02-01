@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ItemTag, Tag } from "@/types/tag";
+import { ItemTag, Tag, TableName } from "@/types/tag";
 
 export async function addTagToItem(itemId: string, tagId: string, isUserItem: boolean = true) {
   const table = isUserItem ? 'user_item_tags' : 'item_tags';
@@ -7,10 +7,10 @@ export async function addTagToItem(itemId: string, tagId: string, isUserItem: bo
 
   const { error } = await supabase
     .from(table)
-    .insert({
-      [itemColumn]: itemId,
-      tag_id: tagId,
-    });
+    .insert(isUserItem 
+      ? { user_item_id: itemId, tag_id: tagId }
+      : { official_item_id: itemId, tag_id: tagId }
+    );
 
   if (error) throw error;
 }
@@ -47,4 +47,24 @@ export async function getItemTags(itemId: string, isUserItem: boolean = true): P
 
   if (error) throw error;
   return data || [];
+}
+
+export async function deleteRelatedRecords(tableName: TableName, itemId: string) {
+  const columnName = tableName === "item_tags" ? "official_item_id" : "user_item_id";
+  
+  const { error } = await supabase
+    .from(tableName)
+    .delete()
+    .eq(columnName, itemId);
+
+  return { error };
+}
+
+export async function deleteUserItem(itemId: string) {
+  const { error } = await supabase
+    .from("user_items")
+    .delete()
+    .eq("id", itemId);
+
+  return { error };
 }
