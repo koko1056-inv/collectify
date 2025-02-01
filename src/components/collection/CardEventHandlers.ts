@@ -9,7 +9,7 @@ const TABLES = {
   user_items: "user_items",
 } as const;
 
-type TableName = typeof TABLES[keyof typeof TABLES];
+type TableName = keyof typeof TABLES;
 
 interface DeleteOperationResult {
   error: any;
@@ -20,7 +20,7 @@ export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const deleteRelatedRecords = async (tableName: TableName) => {
+  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteOperationResult> => {
     const { error } = await supabase
       .from(tableName)
       .delete()
@@ -32,7 +32,7 @@ export function useCardEventHandlers(id: string) {
     };
   };
 
-  const deleteItem = async () => {
+  const deleteItem = async (): Promise<DeleteOperationResult> => {
     const { error } = await supabase
       .from(TABLES.user_items)
       .delete()
@@ -48,10 +48,10 @@ export function useCardEventHandlers(id: string) {
     try {
       console.log("Starting deletion process for item:", id);
 
-      const operations = [
-        { name: TABLES.user_item_likes as TableName, label: "likes" },
-        { name: TABLES.item_memories as TableName, label: "memories" },
-        { name: TABLES.user_item_tags as TableName, label: "tags" }
+      const operations: Array<{ name: TableName; label: string }> = [
+        { name: "user_item_likes", label: "likes" },
+        { name: "item_memories", label: "memories" },
+        { name: "user_item_tags", label: "tags" }
       ];
 
       for (const op of operations) {
