@@ -57,31 +57,21 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
   }, [tags, selectedTags, onTagsChange]);
 
   const handleTagToggle = async (tagName: string) => {
-    try {
-      if (selectedTags.includes(tagName)) {
-        onTagsChange(selectedTags.filter(tag => tag !== tagName));
-      } else {
-        onTagsChange([...selectedTags, tagName]);
-      }
-      
-      // Invalidate queries to refresh the UI
-      await queryClient.invalidateQueries({ queryKey: ["tags"] });
-      await queryClient.invalidateQueries({ queryKey: ["user-item-tags"] });
-      
-      toast({
-        title: selectedTags.includes(tagName) ? "タグを削除しました" : "タグを追加しました",
-        description: `${tagName}を${selectedTags.includes(tagName) ? "削除" : "追加"}しました。`,
-      });
-      
-      setIsDialogOpen(false);
-    } catch (error) {
-      console.error("Error toggling tag:", error);
-      toast({
-        title: "エラー",
-        description: "タグの更新に失敗しました。",
-        variant: "destructive",
-      });
-    }
+    const newSelectedTags = selectedTags.includes(tagName)
+      ? selectedTags.filter(tag => tag !== tagName)
+      : [...selectedTags, tagName];
+    
+    onTagsChange(newSelectedTags);
+
+    // Immediately update the UI
+    await queryClient.invalidateQueries({ queryKey: ["tags"] });
+    await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+    await queryClient.invalidateQueries({ queryKey: ["user-item-tags"] });
+
+    toast({
+      title: selectedTags.includes(tagName) ? "タグを削除しました" : "タグを追加しました",
+      description: `${tagName}を${selectedTags.includes(tagName) ? "削除" : "追加"}しました。`,
+    });
   };
 
   return (
@@ -119,7 +109,7 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
                   className="h-auto py-6 flex flex-col items-center justify-center gap-2"
                   onClick={() => {
                     onTagsChange([]);
-                    setIsDialogOpen(false);
+                    queryClient.invalidateQueries({ queryKey: ["user-items"] });
                   }}
                 >
                   <span className="text-base">すべて</span>
