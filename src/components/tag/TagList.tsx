@@ -1,11 +1,12 @@
 import { Badge } from "@/components/ui/badge";
+import { Tag } from "@/types/tag";
 
 interface TagListProps {
-  tags: Array<{ tags: { id: string; name: string; } | null; }>;
+  tags: Array<{ tags: Tag | null }>;
 }
 
 export function TagList({ tags }: TagListProps) {
-  const validTags = tags.filter((tag): tag is { tags: { id: string; name: string; } } => 
+  const validTags = tags.filter((tag): tag is { tags: Tag } => 
     tag.tags !== null
   );
 

@@ -5,9 +5,9 @@ export interface Tag {
   is_category?: boolean;
 }
 
-export interface TagRelation {
+export interface TagWithRelation {
   id: string;
-  tags: Tag | null;
+  tag: Tag;
 }
 
-export type TableName = "user_item_tags" | "item_tags" | "user_item_likes" | "item_memories";
+export type TableName = "user_item_tags" | "item_tags";

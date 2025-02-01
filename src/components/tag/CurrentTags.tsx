@@ -3,12 +3,17 @@ import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TagRelation } from "@/types/tag";
+import { Tag } from "@/types/tag";
 
 interface CurrentTagsProps {
   itemIds: string[];
   isUserItem?: boolean;
   isCategory?: boolean;
+}
+
+interface TagRelation {
+  id: string;
+  tags: Tag;
 }
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
