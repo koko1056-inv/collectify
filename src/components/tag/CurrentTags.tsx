@@ -2,13 +2,23 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { Tag } from "@/types";
 
-interface CurrentTagsProps {
+export interface CurrentTagsProps {
   selectedTags: string[];
   onRemoveTag: (tag: string) => void;
   tags: Tag[];
+  itemIds?: string[];
+  isUserItem?: boolean;
+  isCategory?: boolean;
 }
 
-export function CurrentTags({ selectedTags, onRemoveTag, tags }: CurrentTagsProps) {
+export function CurrentTags({ 
+  selectedTags, 
+  onRemoveTag, 
+  tags,
+  itemIds,
+  isUserItem,
+  isCategory 
+}: CurrentTagsProps) {
   if (selectedTags.length === 0) return null;
 
   return (
