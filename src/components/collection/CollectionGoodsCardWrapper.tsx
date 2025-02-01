@@ -43,8 +43,6 @@ export function CollectionGoodsCardWrapper({
   const { handleDelete } = useCardEventHandlers(id);
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
-  const canTrade = !isOwner && !!user;
-  const isOtherUserCollection = !!userId && userId !== user?.id;
 
   const { data: isLiked = false } = useQuery({
     queryKey: ["user-item-likes", id, user?.id],
@@ -97,7 +95,12 @@ export function CollectionGoodsCardWrapper({
             ×{quantity}
           </Badge>
         )}
-        <CardImage title={title} image={image} />
+        <CardImage 
+          title={title} 
+          image={image} 
+          itemId={id}
+          isEditable={isOwner}
+        />
         <CardModals
           itemId={id}
           itemTitle={title}
@@ -133,6 +136,8 @@ export function CollectionGoodsCardWrapper({
         title={title}
         image={image}
         onClick={() => setIsDetailsModalOpen(true)}
+        itemId={id}
+        isEditable={isOwner}
       />
       <CollectionGoodsCardContent
         id={id}
