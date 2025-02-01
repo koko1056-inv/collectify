@@ -1,8 +1,8 @@
 export interface Tag {
   id: string;
   name: string;
-  created_at: string;
-  is_category?: boolean;
+  created_at?: string;
+  is_category: boolean;
 }
 
 export interface TagRelation {
@@ -10,7 +10,7 @@ export interface TagRelation {
   tags: Tag | null;
 }
 
-export type TableName = "item_tags" | "user_item_tags";
+export type TableName = "item_tags" | "user_item_tags" | "user_item_likes" | "item_memories" | "user_items";
 
 export interface TagOperationResult {
   error: any;

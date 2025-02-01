@@ -64,7 +64,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
     }
   };
 
-  const validTags = currentTags.filter((tag): tag is { id: string; tags: Tag } => 
+  const validTags = currentTags.filter((tag): tag is { id: string; tags: Required<Tag> } => 
     tag.tags !== null && (!isCategory === !tag.tags.is_category)
   );
 

@@ -15,6 +15,18 @@ export const deleteRelatedRecords = async (tableName: TableName, itemId: string)
   };
 };
 
+export const deleteItem = async (itemId: string) => {
+  const { error } = await supabase
+    .from("user_items")
+    .delete()
+    .eq("id", itemId);
+
+  return {
+    error,
+    operation: "user_items" as TableName
+  };
+};
+
 export const addTagToItem = async (itemId: string, tagId: string, isUserItem: boolean = false) => {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const columnName = isUserItem ? "user_item_id" : "official_item_id";
