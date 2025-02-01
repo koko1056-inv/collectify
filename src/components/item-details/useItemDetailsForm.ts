@@ -1,88 +1,139 @@
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface UseItemDetailsFormProps {
   title: string;
   price?: string;
   releaseDate?: string;
   description?: string;
-  quantity: number;
+  quantity?: number;
   itemId: string;
-  isUserItem: boolean;
+  isUserItem?: boolean;
+  content_name?: string | null;
   onEditComplete: () => void;
 }
 
 export function useItemDetailsForm({
   title,
-  price,
-  releaseDate = new Date().toISOString().split('T')[0],
-  description,
-  quantity,
+  price = "",
+  releaseDate = "",
+  description = "",
+  quantity = 1,
   itemId,
-  isUserItem,
+  isUserItem = false,
+  content_name = null,
   onEditComplete,
 }: UseItemDetailsFormProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const [editedData, setEditedData] = useState({
     title,
-    price: price || "0",
-    releaseDate: releaseDate || new Date().toISOString().split('T')[0],
-    description: description || "",
+    price,
+    release_date: releaseDate,
+    description,
     quantity,
+    content_name,
+    tags: [] as string[],
   });
 
-  const handleSave = async () => {
-    if (!editedData.title) {
-      toast({
-        title: "エラー",
-        description: "タイトルは必須です",
-        variant: "destructive",
-      });
-      return;
-    }
+  const handleCancel = () => {
+    setEditedData({
+      title,
+      price,
+      release_date: releaseDate,
+      description,
+      quantity,
+      content_name,
+      tags: [],
+    });
+    setIsEditing(false);
+  };
 
+  const handleSave = async () => {
     setIsSaving(true);
     try {
       const table = isUserItem ? "user_items" : "official_items";
-      const updateData = isUserItem 
-        ? {
-            title: editedData.title,
-            prize: editedData.price,
-            quantity: editedData.quantity,
-            release_date: editedData.releaseDate,
-          }
-        : {
-            title: editedData.title,
-            price: editedData.price,
-            description: editedData.description,
-            release_date: editedData.releaseDate,
-          };
-
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from(table)
-        .update(updateData)
+        .update({
+          title: editedData.title,
+          price: editedData.price,
+          release_date: editedData.release_date,
+          description: editedData.description,
+          quantity: editedData.quantity,
+          content_name: editedData.content_name,
+        })
         .eq("id", itemId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      await queryClient.invalidateQueries({ queryKey: ["official-items"] });
-      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      // Handle tags update for official items
+      if (!isUserItem && editedData.tags.length > 0) {
+        // Delete existing tags
+        const { error: deleteError } = await supabase
+          .from("item_tags")
+          .delete()
+          .eq("official_item_id", itemId);
+
+        if (deleteError) throw deleteError;
+
+        // Add new tags
+        for (const tagName of editedData.tags) {
+          // Check if tag exists
+          const { data: existingTag } = await supabase
+            .from("tags")
+            .select("id")
+            .eq("name", tagName)
+            .maybeSingle();
+
+          let tagId;
+          if (!existingTag) {
+            // Create new tag
+            const { data: newTag, error: createTagError } = await supabase
+              .from("tags")
+              .insert([{ name: tagName }])
+              .select()
+              .single();
+
+            if (createTagError) throw createTagError;
+            tagId = newTag.id;
+          } else {
+            tagId = existingTag.id;
+          }
+
+          // Create tag relation
+          const { error: relationError } = await supabase
+            .from("item_tags")
+            .insert([{
+              official_item_id: itemId,
+              tag_id: tagId,
+            }]);
+
+          if (relationError) throw relationError;
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["official-items"] });
+      queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      queryClient.invalidateQueries({ queryKey: ["item-tags"] });
 
       toast({
         title: "更新完了",
-        description: "アイテム情報を更新しました",
+        description: "アイテム情報を更新しました。",
       });
+
+      setIsEditing(false);
       onEditComplete();
     } catch (error) {
       console.error("Error updating item:", error);
       toast({
         title: "エラー",
-        description: "アイテム情報の更新に失敗しました",
+        description: "アイテムの更新に失敗しました。",
         variant: "destructive",
       });
     } finally {
@@ -90,22 +141,11 @@ export function useItemDetailsForm({
     }
   };
 
-  const handleCancel = () => {
-    setEditedData({
-      title,
-      price: price || "0",
-      releaseDate: releaseDate || new Date().toISOString().split('T')[0],
-      description: description || "",
-      quantity,
-    });
-    setIsEditing(false);
-  };
-
   return {
     isEditing,
+    setIsEditing,
     isSaving,
     editedData,
-    setIsEditing,
     setEditedData,
     handleSave,
     handleCancel,
