@@ -10,16 +10,16 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
-type Tag = {
+interface Tag {
   id: string;
   name: string;
   is_category: boolean;
-};
+}
 
-type TagRelation = {
+interface TagRelation {
   id: string;
   tags: Tag | null;
-};
+}
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
@@ -75,7 +75,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   };
 
   const validTags = currentTags.filter((tag): tag is TagRelation & { tags: Tag } => 
-    tag.tags !== null
+    tag.tags !== null && typeof tag.tags === 'object'
   );
 
   const filteredTags = validTags.filter(tag => 
