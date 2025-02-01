@@ -11,6 +11,11 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
+interface TagWithRelation {
+  id: string;
+  tags: Tag;
+}
+
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -64,7 +69,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
     }
   };
 
-  const validTags = currentTags.filter((tag): tag is { id: string; tags: Required<Tag> } => 
+  const validTags = currentTags.filter((tag): tag is TagWithRelation => 
     tag.tags !== null && (!isCategory === !tag.tags.is_category)
   );
 

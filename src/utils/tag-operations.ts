@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
-import { TableName, ItemTagInsert, UserItemTagInsert } from "@/types/tag";
+import { TableName, ItemTagInsert, UserItemTagInsert, TagOperationResult } from "@/types/tag";
 
-export const deleteRelatedRecords = async (tableName: TableName, itemId: string) => {
+export const deleteRelatedRecords = async (tableName: TableName, itemId: string): Promise<TagOperationResult> => {
   const columnName = tableName === "item_tags" ? "official_item_id" : "user_item_id";
   
   const { error } = await supabase
@@ -15,7 +15,7 @@ export const deleteRelatedRecords = async (tableName: TableName, itemId: string)
   };
 };
 
-export const deleteItem = async (itemId: string) => {
+export const deleteUserItem = async (itemId: string): Promise<TagOperationResult> => {
   const { error } = await supabase
     .from("user_items")
     .delete()
@@ -23,7 +23,7 @@ export const deleteItem = async (itemId: string) => {
 
   return {
     error,
-    operation: "user_items" as TableName
+    operation: "user_items"
   };
 };
 
@@ -31,7 +31,6 @@ export const addTagToItem = async (itemId: string, tagId: string, isUserItem: bo
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const columnName = isUserItem ? "user_item_id" : "official_item_id";
 
-  // First check if the relation already exists
   const { data: existingTag, error: checkError } = await supabase
     .from(tableName)
     .select("id")
@@ -43,12 +42,10 @@ export const addTagToItem = async (itemId: string, tagId: string, isUserItem: bo
     return { error: checkError };
   }
 
-  // If the relation already exists, return early
   if (existingTag) {
     return { data: existingTag, error: null };
   }
 
-  // If no existing relation, create a new one
   const insertData: ItemTagInsert | UserItemTagInsert = isUserItem 
     ? { user_item_id: itemId, tag_id: tagId }
     : { official_item_id: itemId, tag_id: tagId };
