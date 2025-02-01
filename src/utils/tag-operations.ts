@@ -1,6 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-
-type TableName = "item_tags" | "user_item_tags" | "user_item_likes" | "item_memories" | "user_items";
+import { TableName } from "@/types/tag";
 
 export const deleteRelatedRecords = async (tableName: TableName, itemId: string) => {
   const columnName = tableName === "item_tags" ? "official_item_id" : "user_item_id";
@@ -23,7 +22,7 @@ export const deleteUserItem = async (itemId: string) => {
 };
 
 export const addTagToItem = async (itemId: string, tagId: string, isUserItem: boolean = false) => {
-  const tableName = isUserItem ? "user_item_tags" : "item_tags";
+  const tableName: TableName = isUserItem ? "user_item_tags" : "item_tags";
   const columnName = isUserItem ? "user_item_id" : "official_item_id";
 
   const { data: existingTag, error: checkError } = await supabase

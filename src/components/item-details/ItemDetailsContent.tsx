@@ -9,9 +9,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { ImageUpload } from "@/components/ImageUpload";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Pencil } from "lucide-react";
+import { ItemImageEditor } from "./ItemImageEditor";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -42,41 +40,9 @@ export function ItemDetailsContent({
   const [isAddingNewContent, setIsAddingNewContent] = useState(false);
   const [newContentName, setNewContentName] = useState("");
   const queryClient = useQueryClient();
-  const [isImageEditModalOpen, setIsImageEditModalOpen] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleImageChange = async (file: File | null) => {
-    if (!file) return;
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${crypto.randomUUID()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('kuji_images')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('kuji_images')
-        .getPublicUrl(filePath);
-
-      setEditedData({ ...editedData, image: publicUrl });
-      setIsImageEditModalOpen(false);
-      
-      toast({
-        title: "画像を更新しました",
-        description: "アイテムの画像が正常に更新されました。",
-      });
-    } catch (error) {
-      console.error('Error updating image:', error);
-      toast({
-        title: "エラーが発生しました",
-        description: "画像の更新中にエラーが発生しました。もう一度お試しください。",
-        variant: "destructive",
-      });
-    }
+  const handleImageUpdate = (newImageUrl: string) => {
+    setEditedData({ ...editedData, image: newImageUrl });
   };
 
   const { data: contentNames = [] } = useQuery({
@@ -147,23 +113,12 @@ export function ItemDetailsContent({
   return (
     <ScrollArea className="flex-1 px-6">
       <div className="space-y-4">
-        <div className="aspect-square relative overflow-hidden rounded-lg group">
-          <img
-            src={isEditing ? editedData.image : image}
-            alt={title}
-            className="w-full h-full object-contain bg-gray-100"
-          />
-          {isEditing && (
-            <Button
-              variant="secondary"
-              size="icon"
-              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => setIsImageEditModalOpen(true)}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        <ItemImageEditor
+          image={isEditing ? editedData.image : image}
+          title={title}
+          isEditing={isEditing}
+          onImageUpdate={handleImageUpdate}
+        />
 
         {!isUserItem && (
           <div className="space-y-2">
@@ -274,17 +229,6 @@ export function ItemDetailsContent({
             ))}
           </div>
         )}
-
-        <Dialog open={isImageEditModalOpen} onOpenChange={setIsImageEditModalOpen}>
-          <DialogContent>
-            <h3 className="text-lg font-semibold mb-4">画像を編集</h3>
-            <ImageUpload
-              onImageChange={handleImageChange}
-              previewUrl={previewUrl}
-              setPreviewUrl={setPreviewUrl}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
     </ScrollArea>
   );
