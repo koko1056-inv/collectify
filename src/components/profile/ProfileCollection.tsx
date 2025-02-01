@@ -1,44 +1,38 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import { FilterBar } from "../FilterBar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Grid, List } from "lucide-react";
-import { FilterBar } from "@/components/FilterBar";
-import { Tag } from "@/types";
+import { OfficialItem, Tag } from "@/types";
+import { CollectionTabs } from "../CollectionTabs";
 
-interface ProfileCollectionProps {
-  userId: string;
-}
-
-export function ProfileCollection({ userId }: ProfileCollectionProps) {
+export function ProfileCollection({ userId }: { userId: string }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [isCompact, setIsCompact] = useState(false);
+  const [selectedContent, setSelectedContent] = useState("");
 
-  const { data: userItems = [], isLoading } = useQuery({
+  const { data: items = [] } = useQuery<OfficialItem[]>({
     queryKey: ["user-items", userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("user_items")
+        .from("official_items")
         .select(`
           *,
-          user_item_tags (
+          item_tags (
             tags (
               id,
               name
             )
           )
         `)
-        .eq("user_id", userId)
+        .eq("created_by", userId)
         .order("created_at", { ascending: false });
+
       if (error) throw error;
-      return data;
+      return data as OfficialItem[];
     },
   });
 
-  const { data: tags = [] } = useQuery({
+  const { data: allTags = [] } = useQuery<Tag[]>({
     queryKey: ["tags"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -46,86 +40,43 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
         .select("*")
         .order("name");
       if (error) throw error;
-      return data as Tag[];
+      return data;
     },
   });
 
-  const filteredItems = userItems.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredItems = items.filter((item) => {
+    const matchesSearch = searchQuery
+      ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.artist?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+        (item.anime?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+      : true;
+
     const matchesTags = selectedTags.length === 0 || 
-      selectedTags.some(tag => 
-        item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
+      selectedTags.every(tag => 
+        item.item_tags?.some(itemTag => itemTag.tags?.name === tag)
       );
-    return matchesSearch && matchesTags;
+
+    const matchesContent = !selectedContent || item.content_name === selectedContent;
+
+    return matchesSearch && matchesTags && matchesContent;
   });
 
-  const gridClass = isCompact
-    ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
-    : "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4";
-
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">コレクション</h2>
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <FilterBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            tags={tags}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsCompact(!isCompact)}
-            className="gap-2"
-          >
-            {isCompact ? (
-              <>
-                <Grid className="h-4 w-4" />
-                <span>通常表示</span>
-              </>
-            ) : (
-              <>
-                <List className="h-4 w-4" />
-                <span>一覧表示</span>
-              </>
-            )}
-          </Button>
-        </div>
-        {isLoading ? (
-          <div className={gridClass}>
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="space-y-3">
-                <Skeleton className="h-[120px] w-full" />
-                <Skeleton className="h-3 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </div>
-            ))}
-          </div>
-        ) : filteredItems.length === 0 ? (
-          <p className="text-gray-500">
-            {userItems.length === 0 
-              ? "コレクションにアイテムはありません"
-              : "検索条件に一致するアイテムはありません"}
-          </p>
-        ) : (
-          <div className={gridClass}>
-            {filteredItems.map((item) => (
-              <CollectionGoodsCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                image={item.image}
-                userId={userId}
-                isCompact={isCompact}
-                quantity={item.quantity}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="space-y-4">
+      <FilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedTags={selectedTags}
+        onTagsChange={setSelectedTags}
+        selectedContent={selectedContent}
+        onContentChange={setSelectedContent}
+        tags={allTags}
+      />
+      <CollectionTabs
+        filteredItems={filteredItems}
+        selectedTags={selectedTags}
+        userId={userId}
+      />
     </div>
   );
 }
