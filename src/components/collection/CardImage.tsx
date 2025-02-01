@@ -44,27 +44,34 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
 
       if (updateError) throw updateError;
 
-      // 画像更新後にキャッシュを即時更新
+      // すべての関連キャッシュを無効化
       await Promise.all([
+        // ユーザーアイテム一覧のキャッシュを更新
         queryClient.invalidateQueries({ 
           queryKey: ["user-items"],
-          refetchType: "all" 
+          refetchType: "all"
         }),
+        // アイテム詳細のキャッシュを更新
         queryClient.invalidateQueries({ 
           queryKey: ["item-details", itemId],
+          refetchType: "all"
+        }),
+        // コレクション関連のキャッシュを更新
+        queryClient.invalidateQueries({ 
+          queryKey: ["collection"],
           refetchType: "all"
         })
       ]);
 
-      // 強制的にキャッシュを更新
-      queryClient.setQueryData(["user-items"], (oldData: any) => {
+      // 即時的なUIの更新のためにキャッシュを直接更新
+      queryClient.setQueriesData({ queryKey: ["user-items"] }, (oldData: any) => {
         if (!Array.isArray(oldData)) return oldData;
         return oldData.map(item => 
           item.id === itemId ? { ...item, image: publicUrl } : item
         );
       });
 
-      queryClient.setQueryData(["item-details", itemId], (oldData: any) => ({
+      queryClient.setQueriesData({ queryKey: ["item-details", itemId] }, (oldData: any) => ({
         ...oldData,
         image: publicUrl
       }));
@@ -88,7 +95,7 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
   return (
     <div className="aspect-square relative overflow-hidden rounded-t-lg group">
       <img
-        key={image} // キーを追加して強制的に再レンダリング
+        key={`${image}-${Date.now()}`}
         src={image}
         alt={title}
         className="w-full h-full transition-all duration-300 hover:scale-105 object-cover"
