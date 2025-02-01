@@ -7,7 +7,7 @@ export interface Tag {
 
 export interface TagWithRelation {
   id: string;
-  tag: Tag;
+  tags: Tag;
 }
 
-export type TableName = "user_item_tags" | "item_tags";
+export type TableName = "user_item_tags" | "item_tags" | "user_item_likes" | "item_memories";
