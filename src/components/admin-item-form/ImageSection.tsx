@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -84,11 +85,17 @@ export function ImageSection({
 
   const handleSelectScrapedImage = async (imageUrl: string) => {
     try {
-      const response = await fetch(imageUrl, { mode: 'cors' });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // First, try to fetch the image through our Edge Function to bypass CORS
+      const { data: { imageBlob }, error } = await supabase.functions.invoke('proxy-image', {
+        body: { url: imageUrl }
+      });
+
+      if (error) throw error;
+
+      // Convert base64 to blob
+      const response = await fetch(`data:image/jpeg;base64,${imageBlob}`);
       const blob = await response.blob();
+      
       const file = new File([blob], 'scraped-image.jpg', { type: 'image/jpeg' });
       handleImageChange(file);
       setShowImageSelector(false);
@@ -142,6 +149,9 @@ export function ImageSection({
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>画像を選択</DialogTitle>
+            <DialogDescription>
+              スクレイピングされた画像から選択してください
+            </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-[60vh]">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
