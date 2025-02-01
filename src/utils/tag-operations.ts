@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { TableName } from "@/types/tag";
+
+type TableName = "item_tags" | "user_item_tags" | "user_item_likes" | "item_memories" | "user_items";
 
 export const deleteRelatedRecords = async (tableName: TableName, itemId: string) => {
   const columnName = tableName === "item_tags" ? "official_item_id" : "user_item_id";

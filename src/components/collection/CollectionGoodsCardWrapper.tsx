@@ -43,6 +43,8 @@ export function CollectionGoodsCardWrapper({
   const { handleDelete } = useCardEventHandlers(id);
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
+  const canTrade = !isOwner && user !== null;
+  const isOtherUserCollection = !isOwner && userId !== undefined;
 
   const { data: isLiked = false } = useQuery({
     queryKey: ["user-item-likes", id, user?.id],

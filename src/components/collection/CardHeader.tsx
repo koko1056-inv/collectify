@@ -1,3 +1,5 @@
+import { CardImage } from "./CardImage";
+
 interface CardHeaderProps {
   title: string;
   image: string;

@@ -18,7 +18,12 @@ export function PublicCollectionGoodsCard({
   return (
     <Card className="hover-scale card-shadow bg-white border border-gray-200">
       <UICardHeader className="p-0">
-        <CardHeader title={title} image={image} />
+        <CardHeader 
+          title={title} 
+          image={image} 
+          onClick={() => {}} 
+          itemId={id}
+        />
       </UICardHeader>
       <UICardContent className="p-0 pb-1">
         <CardContent
