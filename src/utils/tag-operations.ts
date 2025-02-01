@@ -3,8 +3,7 @@ import { ItemTag, Tag, TableName } from "@/types/tag";
 
 export async function addTagToItem(itemId: string, tagId: string, isUserItem: boolean = true) {
   const table = isUserItem ? 'user_item_tags' : 'item_tags';
-  const itemColumn = isUserItem ? 'user_item_id' : 'official_item_id';
-
+  
   const { error } = await supabase
     .from(table)
     .insert(isUserItem 
@@ -28,25 +27,22 @@ export async function removeTagFromItem(itemId: string, tagId: string, isUserIte
   if (error) throw error;
 }
 
-export async function getItemTags(itemId: string, isUserItem: boolean = true): Promise<ItemTag[]> {
+export async function getTagsForItem(itemId: string, isUserItem: boolean = true): Promise<Tag[]> {
   const table = isUserItem ? 'user_item_tags' : 'item_tags';
   const itemColumn = isUserItem ? 'user_item_id' : 'official_item_id';
 
   const { data, error } = await supabase
     .from(table)
     .select(`
-      tag_id,
       tags (
         id,
-        name,
-        created_at,
-        is_category
+        name
       )
     `)
     .eq(itemColumn, itemId);
 
   if (error) throw error;
-  return data || [];
+  return data?.map(item => item.tags) || [];
 }
 
 export async function deleteRelatedRecords(tableName: TableName, itemId: string) {

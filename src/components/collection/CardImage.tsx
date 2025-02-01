@@ -44,9 +44,16 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
 
       if (updateError) throw updateError;
 
-      // 画像更新後にキャッシュを更新
-      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
-      await queryClient.invalidateQueries({ queryKey: ["item-details", itemId] });
+      // 画像更新後にキャッシュを即時更新
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["user-items"] }),
+        queryClient.invalidateQueries({ queryKey: ["item-details", itemId] }),
+        // 特定のアイテムのキャッシュも更新
+        queryClient.setQueryData(["item-details", itemId], (oldData: any) => ({
+          ...oldData,
+          image: publicUrl
+        }))
+      ]);
 
       toast({
         title: "画像を更新しました",
@@ -67,6 +74,7 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
   return (
     <div className="aspect-square relative overflow-hidden rounded-t-lg group">
       <img
+        key={image} // キーを追加して強制的に再レンダリング
         src={image}
         alt={title}
         className="w-full h-full transition-all duration-300 hover:scale-105 object-cover"
