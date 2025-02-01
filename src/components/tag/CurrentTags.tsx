@@ -1,8 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { TagRelation } from "@/types/tag";
 
 interface CurrentTagsProps {
@@ -65,7 +65,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   };
 
   const validTags = currentTags.filter((tag): tag is TagRelation & { tags: NonNullable<TagRelation["tags"]> } => 
-    tag.tags !== null && typeof tag.tags === 'object'
+    tag.tags !== null
   );
 
   const filteredTags = validTags.filter(tag => 

@@ -11,3 +11,8 @@ export interface TagRelation {
 }
 
 export type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
+
+export interface TagOperationResult {
+  error: any;
+  operation: TableName;
+}
