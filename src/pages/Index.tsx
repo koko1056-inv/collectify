@@ -106,7 +106,7 @@ const Index = () => {
         item.item_tags?.some(itemTag => itemTag.tags?.name === tag)
       );
     
-    const matchesContent = !selectedContent || item.content_name === selectedContent;
+    const matchesContent = !selectedContent || selectedContent === "all" || item.content_name === selectedContent;
     
     return matchesSearch && matchesTags && matchesContent;
   });
