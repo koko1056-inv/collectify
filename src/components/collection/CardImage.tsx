@@ -46,14 +46,28 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
 
       // 画像更新後にキャッシュを即時更新
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["user-items"] }),
-        queryClient.invalidateQueries({ queryKey: ["item-details", itemId] }),
-        // 特定のアイテムのキャッシュも更新
-        queryClient.setQueryData(["item-details", itemId], (oldData: any) => ({
-          ...oldData,
-          image: publicUrl
-        }))
+        queryClient.invalidateQueries({ 
+          queryKey: ["user-items"],
+          refetchType: "all" 
+        }),
+        queryClient.invalidateQueries({ 
+          queryKey: ["item-details", itemId],
+          refetchType: "all"
+        })
       ]);
+
+      // 強制的にキャッシュを更新
+      queryClient.setQueryData(["user-items"], (oldData: any) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.map(item => 
+          item.id === itemId ? { ...item, image: publicUrl } : item
+        );
+      });
+
+      queryClient.setQueryData(["item-details", itemId], (oldData: any) => ({
+        ...oldData,
+        image: publicUrl
+      }));
 
       toast({
         title: "画像を更新しました",
