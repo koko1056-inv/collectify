@@ -44,7 +44,9 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
 
       if (updateError) throw updateError;
 
+      // 画像更新後にキャッシュを更新
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["item-details", itemId] });
 
       toast({
         title: "画像を更新しました",
