@@ -70,10 +70,10 @@ export function CardActions({
           e.stopPropagation();
           onMemoriesClick();
         }}
-        className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-6 px-2 text-xs whitespace-nowrap"
+        className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-6 px-2.5 text-xs flex-shrink-0"
       >
         <PlusCircle className="h-3 w-3 mr-1" />
-        記録を追加
+        記録
       </Button>
       <Button 
         variant="outline" 
