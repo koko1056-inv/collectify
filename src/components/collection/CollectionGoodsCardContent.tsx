@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TagList } from "./TagList";
 import { LikeButton } from "./LikeButton";
-import { BookMarked, History } from "lucide-react";
+import { BookMarked } from "lucide-react";
 
 interface CollectionGoodsCardContentProps {
   id: string;
@@ -62,18 +62,6 @@ export function CollectionGoodsCardContent({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <LikeButton itemId={id} />
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onMemoriesClick();
-            }}
-            className="flex flex-col items-center gap-0.5"
-          >
-            <div className="h-7 w-7 sm:h-9 sm:w-9 p-1.5 text-purple-500 hover:text-purple-600 transition-colors">
-              <History className="h-full w-full" />
-            </div>
-            <span className="text-[10px] sm:text-xs text-purple-500">思い出</span>
-          </button>
           {itemMemories.length > 0 && (
             <button
               onClick={(e) => {
