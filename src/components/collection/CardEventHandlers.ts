@@ -2,18 +2,11 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
-type TableName = "user_item_likes" | "item_memories" | "user_item_tags" | "user_items";
-
-interface DeleteOperationResult {
-  error: any;
-  operation: TableName;
-}
-
 export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteOperationResult> => {
+  const deleteRelatedRecords = async (tableName: string): Promise<{ error: any; operation: string }> => {
     const { error } = await supabase
       .from(tableName)
       .delete()
@@ -25,7 +18,7 @@ export function useCardEventHandlers(id: string) {
     };
   };
 
-  const deleteItem = async (): Promise<DeleteOperationResult> => {
+  const deleteItem = async (): Promise<{ error: any; operation: string }> => {
     const { error } = await supabase
       .from("user_items")
       .delete()
@@ -41,7 +34,7 @@ export function useCardEventHandlers(id: string) {
     try {
       console.log("Starting deletion process for item:", id);
 
-      const operations: Array<{ name: TableName; label: string }> = [
+      const operations = [
         { name: "user_item_likes", label: "likes" },
         { name: "item_memories", label: "memories" },
         { name: "user_item_tags", label: "tags" }
