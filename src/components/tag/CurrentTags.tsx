@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { TagRelation } from "@/types/tag";
 
 interface CurrentTagsProps {
   itemIds: string[];
@@ -10,22 +11,11 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
-interface Tag {
-  id: string;
-  name: string;
-  is_category: boolean;
-}
-
-interface TagRelation {
-  id: string;
-  tags: Tag | null;
-}
-
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: currentTags = [] } = useQuery({
+  const { data: currentTags = [] } = useQuery<TagRelation[]>({
     queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
     queryFn: async () => {
       if (!itemIds.length) return [];
@@ -74,7 +64,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
     }
   };
 
-  const validTags = currentTags.filter((tag): tag is TagRelation & { tags: Tag } => 
+  const validTags = currentTags.filter((tag): tag is TagRelation & { tags: NonNullable<TagRelation["tags"]> } => 
     tag.tags !== null && typeof tag.tags === 'object'
   );
 
