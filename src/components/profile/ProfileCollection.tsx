@@ -7,38 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Grid, List } from "lucide-react";
 import { FilterBar } from "@/components/FilterBar";
 import { Tag } from "@/types";
-import { CollectionGrid } from "../collection/CollectionGrid";
 
 interface ProfileCollectionProps {
   userId: string;
 }
 
-interface UserItem {
-  id: string;
-  title: string;
-  image: string;
-  quantity: number;
-  anime: string | null;
-  artist: string | null;
-  created_at: string;
-  images: string[] | null;
-  official_item_id: string | null;
-  official_link: string | null;
-  prize: string;
-  release_date: string;
-  user_id: string;
-  user_item_tags?: {
-    tags: {
-      id: string;
-      name: string;
-    } | null;
-  }[];
-}
-
 export function ProfileCollection({ userId }: ProfileCollectionProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedContent, setSelectedContent] = useState<string[]>([]);
   const [isCompact, setIsCompact] = useState(false);
 
   const { data: userItems = [], isLoading } = useQuery({
@@ -58,7 +34,7 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as UserItem[];
+      return data;
     },
   });
 
@@ -80,8 +56,7 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
       selectedTags.some(tag => 
         item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
       );
-    const matchesContent = selectedContent.length === 0 || selectedContent.includes(item.anime || "");
-    return matchesSearch && matchesTags && matchesContent;
+    return matchesSearch && matchesTags;
   });
 
   const gridClass = isCompact
@@ -98,8 +73,6 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
             onSearchChange={setSearchQuery}
             selectedTags={selectedTags}
             onTagsChange={setSelectedTags}
-            selectedContent={selectedContent}
-            onContentChange={setSelectedContent}
             tags={tags}
           />
           <Button
@@ -138,14 +111,19 @@ export function ProfileCollection({ userId }: ProfileCollectionProps) {
               : "検索条件に一致するアイテムはありません"}
           </p>
         ) : (
-          <CollectionGrid
-            items={filteredItems}
-            isCompact={isCompact}
-            isSelectionMode={false}
-            selectedItems={[]}
-            onSelectItem={() => {}}
-            onDragEnd={() => {}}
-          />
+          <div className={gridClass}>
+            {filteredItems.map((item) => (
+              <CollectionGoodsCard
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                image={item.image}
+                userId={userId}
+                isCompact={isCompact}
+                quantity={item.quantity}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>

@@ -26,7 +26,6 @@ export function AdminItemForm() {
     setFormData({
       title: "",
       description: "",
-      content: "",
     });
     setImageFile(null);
     if (previewUrl) {

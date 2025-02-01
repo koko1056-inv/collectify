@@ -13,7 +13,6 @@ import { useSearchParams } from "react-router-dom";
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedContent, setSelectedContent] = useState<string[]>([]);
   const [showInterestDialog, setShowInterestDialog] = useState(false);
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
@@ -98,8 +97,7 @@ const Index = () => {
     const matchesSearch = searchQuery
       ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.artist?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-        (item.anime?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
-        (item.content?.toLowerCase() || "").includes(searchQuery.toLowerCase())
+        (item.anime?.toLowerCase() || "").includes(searchQuery.toLowerCase())
       : true;
     
     const matchesTags = selectedTags.length === 0 || 
@@ -107,10 +105,7 @@ const Index = () => {
         item.item_tags?.some(itemTag => itemTag.tags?.name === tag)
       );
     
-    const matchesContent = selectedContent.length === 0 ||
-      selectedContent.includes(item.content || "");
-    
-    return matchesSearch && matchesTags && matchesContent;
+    return matchesSearch && matchesTags;
   });
 
   const sortedItems = [...filteredItems].sort((a, b) => {
@@ -157,8 +152,6 @@ const Index = () => {
               onSearchChange={setSearchQuery}
               selectedTags={selectedTags}
               onTagsChange={setSelectedTags}
-              selectedContent={selectedContent}
-              onContentChange={setSelectedContent}
               tags={allTags}
             />
           </div>

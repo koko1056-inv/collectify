@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -12,12 +13,12 @@ interface CurrentTagsProps {
 interface Tag {
   id: string;
   name: string;
+  is_category: boolean;
 }
 
 interface TagRelation {
   id: string;
-  tag_id: string;
-  tags: Tag;
+  tags: Tag | null;
 }
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
@@ -25,46 +26,44 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   const queryClient = useQueryClient();
 
   const { data: currentTags = [] } = useQuery({
-    queryKey: [isUserItem ? "user-item-tags" : "item-tags", itemIds],
+    queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
     queryFn: async () => {
+      if (!itemIds.length) return [];
+      
       const { data, error } = await supabase
         .from(isUserItem ? "user_item_tags" : "item_tags")
         .select(`
           id,
-          tag_id,
           tags (
             id,
-            name
+            name,
+            is_category
           )
         `)
-        .in(isUserItem ? "user_item_id" : "official_item_id", itemIds)
-        .eq("tags.is_category", isCategory);
+        .in(isUserItem ? "user_item_id" : "official_item_id", itemIds);
 
       if (error) throw error;
-      return data as TagRelation[];
+
+      return (data as TagRelation[]).filter(tag => tag.tags?.is_category === isCategory);
     },
   });
 
-  const handleRemoveTag = async (tagData: TagRelation) => {
+  const handleRemoveTag = async (tagRelationId: string, tagName: string) => {
     try {
       const { error } = await supabase
         .from(isUserItem ? "user_item_tags" : "item_tags")
         .delete()
-        .eq("id", tagData.id);
+        .eq("id", tagRelationId);
 
       if (error) throw error;
 
-      // Invalidate both queries to ensure UI is refreshed
       queryClient.invalidateQueries({
-        queryKey: [isUserItem ? "user-item-tags" : "item-tags"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["tags"],
+        queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
       });
 
       toast({
         title: isCategory ? "カテゴリを削除しました" : "タグを削除しました",
-        description: `${tagData.tags.name}を削除しました。`,
+        description: `${tagName}をアイテムから削除しました。`,
       });
     } catch (error) {
       console.error("Error removing tag:", error);
@@ -77,17 +76,25 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {currentTags.map((tagData) => (
-        <Badge
-          key={tagData.id}
-          variant="secondary"
-          className="cursor-pointer hover:bg-secondary/80"
-          onClick={() => handleRemoveTag(tagData)}
-        >
-          {tagData.tags.name}
-        </Badge>
-      ))}
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium">{isCategory ? "現在のカテゴリ" : "現在のタグ"}</h4>
+      <div className="flex flex-wrap gap-2">
+        {currentTags
+          .filter((tag) => tag.tags !== null)
+          .map((tag) => (
+            <Badge
+              key={tag.id}
+              variant="secondary"
+              className="pr-2 flex items-center gap-1"
+            >
+              {tag.tags!.name}
+              <X
+                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                onClick={() => handleRemoveTag(tag.id, tag.tags!.name)}
+              />
+            </Badge>
+          ))}
+      </div>
     </div>
   );
 }

@@ -30,109 +30,6 @@ export type Database = {
         }
         Relationships: []
       }
-      content_names: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          id: string
-          name: string
-          type: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          name: string
-          type: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          name?: string
-          type?: string
-        }
-        Relationships: []
-      }
-      event_participants: {
-        Row: {
-          created_at: string
-          event_id: string | null
-          id: string
-          status: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          event_id?: string | null
-          id?: string
-          status?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          event_id?: string | null
-          id?: string
-          status?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_participants_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      events: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          description: string | null
-          end_date: string | null
-          group_id: string | null
-          id: string
-          image_url: string | null
-          location: string | null
-          start_date: string
-          title: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          end_date?: string | null
-          group_id?: string | null
-          id?: string
-          image_url?: string | null
-          location?: string | null
-          start_date: string
-          title: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          end_date?: string | null
-          group_id?: string | null
-          id?: string
-          image_url?: string | null
-          location?: string | null
-          start_date?: string
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "events_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       follows: {
         Row: {
           created_at: string
@@ -168,65 +65,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      group_members: {
-        Row: {
-          created_at: string
-          group_id: string | null
-          id: string
-          role: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          group_id?: string | null
-          id?: string
-          role?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          group_id?: string | null
-          id?: string
-          role?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_members_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      groups: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          description: string | null
-          id: string
-          image_url: string | null
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          name: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          image_url?: string | null
-          name?: string
-        }
-        Relationships: []
       }
       images: {
         Row: {
@@ -356,24 +194,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "messages_receiver_id_fkey_profiles"
-            columns: ["receiver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "messages_related_item_id_fkey"
             columns: ["related_item_id"]
             isOneToOne: false
             referencedRelation: "user_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey_profiles"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -389,7 +213,6 @@ export type Database = {
         Row: {
           anime: string | null
           artist: string | null
-          content: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -402,7 +225,6 @@ export type Database = {
         Insert: {
           anime?: string | null
           artist?: string | null
-          content?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -415,7 +237,6 @@ export type Database = {
         Update: {
           anime?: string | null
           artist?: string | null
-          content?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -591,13 +412,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "user_item_likes_user_id_fkey_profiles"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "user_item_likes_user_item_id_fkey"
             columns: ["user_item_id"]
             isOneToOne: false
@@ -649,7 +463,6 @@ export type Database = {
           created_at: string
           id: string
           image: string
-          images: string[] | null
           official_item_id: string | null
           official_link: string | null
           prize: string
@@ -664,7 +477,6 @@ export type Database = {
           created_at?: string
           id?: string
           image: string
-          images?: string[] | null
           official_item_id?: string | null
           official_link?: string | null
           prize: string
@@ -679,7 +491,6 @@ export type Database = {
           created_at?: string
           id?: string
           image?: string
-          images?: string[] | null
           official_item_id?: string | null
           official_link?: string | null
           prize?: string

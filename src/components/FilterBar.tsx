@@ -1,15 +1,13 @@
-import { SearchBar } from "./SearchBar";
-import { TagFilter } from "./TagFilter";
-import { ContentFilter } from "./ContentFilter";
+import React from "react";
 import { Tag } from "@/types";
+import { TagFilter } from "./TagFilter";
+import { SearchBar } from "./SearchBar";
 
 interface FilterBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
-  selectedContent: string[];
-  onContentChange: (content: string[]) => void;
   tags: Tag[];
 }
 
@@ -18,8 +16,6 @@ export function FilterBar({
   onSearchChange,
   selectedTags,
   onTagsChange,
-  selectedContent,
-  onContentChange,
   tags,
 }: FilterBarProps) {
   return (
@@ -27,25 +23,16 @@ export function FilterBar({
       <SearchBar
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
-        placeholder="コレクションを検索"
+        selectedTags={selectedTags}
+        onTagsChange={onTagsChange}
         tags={tags}
       />
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="w-full sm:flex-1">
-          <TagFilter
-            selectedTags={selectedTags}
-            onTagsChange={onTagsChange}
-            tags={tags}
-          />
-        </div>
-        <div className="w-full sm:flex-1">
-          <ContentFilter
-            selectedContent={selectedContent}
-            onContentChange={onContentChange}
-          />
-        </div>
-      </div>
+      <TagFilter
+        selectedTags={selectedTags}
+        onTagsChange={onTagsChange}
+        tags={tags}
+      />
     </div>
   );
 }

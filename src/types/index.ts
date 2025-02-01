@@ -9,7 +9,6 @@ export interface OfficialItem {
   created_by: string | null;
   artist: string | null;
   anime: string | null;
-  content: string | null;
   item_tags?: Array<{
     tags: {
       id: string;

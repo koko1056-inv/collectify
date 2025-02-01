@@ -1,12 +1,10 @@
 import { Input } from "@/components/ui/input";
-import { TagInput } from "@/components/TagInput";
-import { ContentNameSelect } from "@/components/admin-item-form/ContentNameSelect";
+import { TagInput } from "../TagInput";
 
 interface ItemDetailsSectionProps {
   formData: {
     title: string;
     description: string;
-    content: string;
   };
   setFormData: (data: any) => void;
   selectedTags: string[];
@@ -19,10 +17,6 @@ export function ItemDetailsSection({
   selectedTags,
   setSelectedTags,
 }: ItemDetailsSectionProps) {
-  const handleContentChange = (value: string) => {
-    setFormData({ ...formData, content: value });
-  };
-
   return (
     <>
       <div className="space-y-2">
@@ -38,13 +32,6 @@ export function ItemDetailsSection({
           required
         />
       </div>
-
-      <ContentNameSelect
-        type="content"
-        value={formData.content}
-        onChange={handleContentChange}
-        label="コンテンツ"
-      />
 
       <div className="space-y-2">
         <label htmlFor="description" className="text-sm font-medium">

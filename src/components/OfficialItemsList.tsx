@@ -61,7 +61,6 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
             image={item.image}
             artist={item.artist}
             anime={item.anime}
-            content={item.content}
             price={item.price}
             releaseDate={item.release_date}
           />

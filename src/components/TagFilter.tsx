@@ -5,9 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tag } from "@/types";
 import { Input } from "@/components/ui/input";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface TagFilterProps {
   selectedTags: string[];
@@ -18,8 +17,6 @@ interface TagFilterProps {
 export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   const { data: tags = [] } = useQuery({
     queryKey: ["tags"],
@@ -31,6 +28,8 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
       if (error) throw error;
       return data as Tag[];
     },
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const getDisplayText = () => {
@@ -56,22 +55,12 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
     }
   }, [tags, selectedTags, onTagsChange]);
 
-  const handleTagToggle = async (tagName: string) => {
-    const newSelectedTags = selectedTags.includes(tagName)
-      ? selectedTags.filter(tag => tag !== tagName)
-      : [...selectedTags, tagName];
-    
-    onTagsChange(newSelectedTags);
-
-    // Immediately update the UI
-    await queryClient.invalidateQueries({ queryKey: ["tags"] });
-    await queryClient.invalidateQueries({ queryKey: ["user-items"] });
-    await queryClient.invalidateQueries({ queryKey: ["user-item-tags"] });
-
-    toast({
-      title: selectedTags.includes(tagName) ? "タグを削除しました" : "タグを追加しました",
-      description: `${tagName}を${selectedTags.includes(tagName) ? "削除" : "追加"}しました。`,
-    });
+  const handleTagToggle = (tagName: string) => {
+    if (selectedTags.includes(tagName)) {
+      onTagsChange(selectedTags.filter(tag => tag !== tagName));
+    } else {
+      onTagsChange([...selectedTags, tagName]);
+    }
   };
 
   return (
@@ -109,7 +98,7 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
                   className="h-auto py-6 flex flex-col items-center justify-center gap-2"
                   onClick={() => {
                     onTagsChange([]);
-                    queryClient.invalidateQueries({ queryKey: ["user-items"] });
+                    setIsDialogOpen(false);
                   }}
                 >
                   <span className="text-base">すべて</span>
@@ -120,7 +109,9 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
                   key={tag.id}
                   variant={selectedTags.includes(tag.name) ? "default" : "outline"}
                   className="h-auto py-6 flex flex-col items-center justify-center gap-2 px-2"
-                  onClick={() => handleTagToggle(tag.name)}
+                  onClick={() => {
+                    handleTagToggle(tag.name);
+                  }}
                 >
                   <span className={`${getTextSize(tag.name)} break-words text-center w-full`}>
                     {tag.name}

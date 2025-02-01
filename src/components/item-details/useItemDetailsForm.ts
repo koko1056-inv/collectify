@@ -11,7 +11,6 @@ interface UseItemDetailsFormProps {
   quantity: number;
   itemId: string;
   isUserItem: boolean;
-  content?: string | null;
   onEditComplete: () => void;
 }
 
@@ -23,7 +22,6 @@ export function useItemDetailsForm({
   quantity,
   itemId,
   isUserItem,
-  content,
   onEditComplete,
 }: UseItemDetailsFormProps) {
   const { toast } = useToast();
@@ -36,7 +34,6 @@ export function useItemDetailsForm({
     releaseDate: releaseDate || new Date().toISOString().split('T')[0],
     description: description || "",
     quantity,
-    content: content || "",
   });
 
   const handleSave = async () => {
@@ -64,7 +61,6 @@ export function useItemDetailsForm({
             price: editedData.price,
             description: editedData.description,
             release_date: editedData.releaseDate,
-            content: editedData.content,
           };
 
       const { error } = await supabase
@@ -101,7 +97,6 @@ export function useItemDetailsForm({
       releaseDate: releaseDate || new Date().toISOString().split('T')[0],
       description: description || "",
       quantity,
-      content: content || "",
     });
     setIsEditing(false);
   };
