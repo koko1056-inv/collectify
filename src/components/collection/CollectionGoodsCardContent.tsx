@@ -57,7 +57,7 @@ export function CollectionGoodsCardContent({
   });
 
   return (
-    <UICardContent className="px-3 py-2 space-y-1">
+    <UICardContent className="px-3 py-1 space-y-0.5">
       <TagList tags={itemTags} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
