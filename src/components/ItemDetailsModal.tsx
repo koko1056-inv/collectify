@@ -132,7 +132,7 @@ export function ItemDetailsModal({
           isEditing={isEditing}
           editedData={editedData}
           setEditedData={setEditedData}
-          contentName={contentName}
+          contentName={isUserItem ? undefined : contentName}
           releaseDate={releaseDate}
         />
 
