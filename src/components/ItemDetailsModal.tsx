@@ -20,6 +20,7 @@ interface ItemDetailsModalProps {
   quantity?: number;
   userId?: string;
   createdBy?: string | null;
+  contentName?: string | null;
 }
 
 export function ItemDetailsModal({
@@ -35,10 +36,10 @@ export function ItemDetailsModal({
   quantity = 1,
   userId,
   createdBy,
+  contentName,
 }: ItemDetailsModalProps) {
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
-  // Allow any authenticated user to edit official items
   const canEdit = !isUserItem && user !== null;
 
   const {
@@ -93,6 +94,25 @@ export function ItemDetailsModal({
     enabled: isUserItem,
   });
 
+  const { data: officialTags = [] } = useQuery({
+    queryKey: ["item-tags", itemId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("item_tags")
+        .select(`
+          tag_id,
+          tags (
+            id,
+            name
+          )
+        `)
+        .eq("official_item_id", itemId);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !isUserItem,
+  });
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col">
@@ -106,12 +126,14 @@ export function ItemDetailsModal({
         <ItemDetailsContent
           image={image}
           title={title}
-          tags={tags}
+          tags={isUserItem ? tags : officialTags}
           memories={memories}
           isUserItem={isUserItem}
           isEditing={isEditing}
           editedData={editedData}
           setEditedData={setEditedData}
+          contentName={contentName}
+          releaseDate={releaseDate}
         />
 
         <ItemDetailsFooter

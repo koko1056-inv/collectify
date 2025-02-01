@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -18,6 +19,8 @@ interface ItemDetailsContentProps {
   isEditing: boolean;
   editedData: any;
   setEditedData: (data: any) => void;
+  contentName?: string | null;
+  releaseDate?: string;
 }
 
 export function ItemDetailsContent({
@@ -29,6 +32,8 @@ export function ItemDetailsContent({
   isEditing,
   editedData,
   setEditedData,
+  contentName,
+  releaseDate,
 }: ItemDetailsContentProps) {
   const { toast } = useToast();
   const [isAddingNewContent, setIsAddingNewContent] = useState(false);
@@ -53,7 +58,7 @@ export function ItemDetailsContent({
         .from("content_names")
         .insert([{ 
           name, 
-          type: "anime" // Set a valid type to satisfy the check constraint
+          type: "anime"
         }])
         .select()
         .single();
@@ -110,6 +115,23 @@ export function ItemDetailsContent({
             className="w-full h-full object-contain bg-gray-100"
           />
         </div>
+
+        {!isUserItem && (
+          <div className="space-y-2">
+            {!isEditing && contentName && (
+              <div className="text-sm">
+                <span className="font-medium">コンテンツ: </span>
+                <span>{contentName}</span>
+              </div>
+            )}
+            {!isEditing && releaseDate && (
+              <div className="text-sm">
+                <span className="font-medium">登録日: </span>
+                <span>{format(new Date(releaseDate), 'yyyy/MM/dd')}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {!isUserItem && isEditing && (
           <div className="space-y-4">
@@ -168,16 +190,19 @@ export function ItemDetailsContent({
         )}
 
         {!isEditing && tags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {tags
-              .filter((tag): tag is { tags: { id: string; name: string; } } => 
-                tag.tags !== null
-              )
-              .map((tag) => (
-                <Badge key={tag.tags.id} variant="secondary">
-                  {tag.tags.name}
-                </Badge>
-              ))}
+          <div className="space-y-2">
+            <div className="text-sm font-medium">タグ</div>
+            <div className="flex flex-wrap gap-2">
+              {tags
+                .filter((tag): tag is { tags: { id: string; name: string; } } => 
+                  tag.tags !== null
+                )
+                .map((tag) => (
+                  <Badge key={tag.tags.id} variant="secondary">
+                    {tag.tags.name}
+                  </Badge>
+                ))}
+            </div>
           </div>
         )}
 

@@ -20,6 +20,7 @@ interface OfficialGoodsCardProps {
   description?: string | null;
   quantity?: number;
   createdBy?: string | null;
+  contentName?: string | null;
 }
 
 export function OfficialGoodsCard({ 
@@ -33,6 +34,7 @@ export function OfficialGoodsCard({
   description,
   quantity = 1,
   createdBy,
+  contentName,
 }: OfficialGoodsCardProps) {
   const {
     isInCollection,
@@ -106,6 +108,7 @@ export function OfficialGoodsCard({
           itemId={id}
           quantity={quantity}
           createdBy={createdBy}
+          contentName={contentName}
         />
       )}
 
