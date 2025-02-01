@@ -43,8 +43,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .in(isUserItem ? "user_item_id" : "official_item_id", itemIds);
 
       if (error) throw error;
-
-      return data as TagRelation[];
+      return data;
     },
   });
 
@@ -76,8 +75,8 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
   };
 
   const filteredTags = currentTags
-    .filter((tag) => tag.tags !== null)
-    .filter((tag) => tag.tags?.is_category === isCategory);
+    .filter((tag): tag is TagRelation & { tags: Tag } => tag.tags !== null)
+    .filter((tag) => tag.tags.is_category === isCategory);
 
   return (
     <div className="space-y-2">
@@ -89,10 +88,10 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
             variant="secondary"
             className="pr-2 flex items-center gap-1"
           >
-            {tag.tags!.name}
+            {tag.tags.name}
             <X
               className="h-3 w-3 cursor-pointer hover:text-destructive"
-              onClick={() => handleRemoveTag(tag.id, tag.tags!.name)}
+              onClick={() => handleRemoveTag(tag.id, tag.tags.name)}
             />
           </Badge>
         ))}

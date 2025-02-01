@@ -8,7 +8,7 @@ type TableName =
   | "user_item_tags"
   | "user_items";
 
-interface DeleteOperationResult {
+interface DeleteResult {
   error: any;
   operation: TableName;
 }
@@ -17,7 +17,7 @@ export function useCardEventHandlers(id: string) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const deleteRelatedRecords = async (tableName: TableName) => {
+  const deleteRelatedRecords = async (tableName: TableName): Promise<DeleteResult> => {
     const { error } = await supabase
       .from(tableName)
       .delete()
@@ -29,7 +29,7 @@ export function useCardEventHandlers(id: string) {
     };
   };
 
-  const deleteItem = async () => {
+  const deleteItem = async (): Promise<DeleteResult> => {
     const { error } = await supabase
       .from("user_items")
       .delete()
@@ -37,7 +37,7 @@ export function useCardEventHandlers(id: string) {
 
     return {
       error,
-      operation: "user_items" as const
+      operation: "user_items"
     };
   };
 
