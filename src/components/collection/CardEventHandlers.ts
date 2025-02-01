@@ -2,14 +2,11 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
-const TABLES = {
-  user_item_likes: "user_item_likes",
-  item_memories: "item_memories",
-  user_item_tags: "user_item_tags",
-  user_items: "user_items",
-} as const;
-
-type TableName = typeof TABLES[keyof typeof TABLES];
+type TableName = 
+  | "user_item_likes"
+  | "item_memories"
+  | "user_item_tags"
+  | "user_items";
 
 interface DeleteOperationResult {
   error: any;
@@ -34,13 +31,13 @@ export function useCardEventHandlers(id: string) {
 
   const deleteItem = async () => {
     const { error } = await supabase
-      .from(TABLES.user_items)
+      .from("user_items")
       .delete()
       .eq("id", id);
 
     return {
       error,
-      operation: TABLES.user_items
+      operation: "user_items" as const
     };
   };
 
@@ -48,10 +45,10 @@ export function useCardEventHandlers(id: string) {
     try {
       console.log("Starting deletion process for item:", id);
 
-      const operations = [
-        { name: TABLES.user_item_likes as TableName, label: "likes" },
-        { name: TABLES.item_memories as TableName, label: "memories" },
-        { name: TABLES.user_item_tags as TableName, label: "tags" }
+      const operations: Array<{ name: TableName; label: string }> = [
+        { name: "user_item_likes", label: "likes" },
+        { name: "item_memories", label: "memories" },
+        { name: "user_item_tags", label: "tags" }
       ];
 
       for (const op of operations) {

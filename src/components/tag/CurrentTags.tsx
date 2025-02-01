@@ -44,7 +44,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
 
       if (error) throw error;
 
-      return (data as TagRelation[]).filter(tag => tag.tags?.is_category === isCategory);
+      return data as TagRelation[];
     },
   });
 
@@ -75,25 +75,27 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
     }
   };
 
+  const filteredTags = currentTags
+    .filter((tag) => tag.tags !== null)
+    .filter((tag) => tag.tags?.is_category === isCategory);
+
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-medium">{isCategory ? "現在のカテゴリ" : "現在のタグ"}</h4>
       <div className="flex flex-wrap gap-2">
-        {currentTags
-          .filter((tag) => tag.tags !== null)
-          .map((tag) => (
-            <Badge
-              key={tag.id}
-              variant="secondary"
-              className="pr-2 flex items-center gap-1"
-            >
-              {tag.tags!.name}
-              <X
-                className="h-3 w-3 cursor-pointer hover:text-destructive"
-                onClick={() => handleRemoveTag(tag.id, tag.tags!.name)}
-              />
-            </Badge>
-          ))}
+        {filteredTags.map((tag) => (
+          <Badge
+            key={tag.id}
+            variant="secondary"
+            className="pr-2 flex items-center gap-1"
+          >
+            {tag.tags!.name}
+            <X
+              className="h-3 w-3 cursor-pointer hover:text-destructive"
+              onClick={() => handleRemoveTag(tag.id, tag.tags!.name)}
+            />
+          </Badge>
+        ))}
       </div>
     </div>
   );
