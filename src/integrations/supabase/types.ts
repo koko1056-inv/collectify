@@ -390,6 +390,7 @@ export type Database = {
           anime: string | null
           artist: string | null
           content: string | null
+          content_name: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -403,6 +404,7 @@ export type Database = {
           anime?: string | null
           artist?: string | null
           content?: string | null
+          content_name?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -416,6 +418,7 @@ export type Database = {
           anime?: string | null
           artist?: string | null
           content?: string | null
+          content_name?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -425,7 +428,15 @@ export type Database = {
           release_date?: string
           title?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "official_items_content_name_fkey"
+            columns: ["content_name"]
+            isOneToOne: false
+            referencedRelation: "content_names"
+            referencedColumns: ["name"]
+          },
+        ]
       }
       profiles: {
         Row: {

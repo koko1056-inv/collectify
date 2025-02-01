@@ -13,6 +13,7 @@ import { useSearchParams } from "react-router-dom";
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedContent, setSelectedContent] = useState("");
   const [showInterestDialog, setShowInterestDialog] = useState(false);
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
@@ -105,7 +106,9 @@ const Index = () => {
         item.item_tags?.some(itemTag => itemTag.tags?.name === tag)
       );
     
-    return matchesSearch && matchesTags;
+    const matchesContent = !selectedContent || item.content_name === selectedContent;
+    
+    return matchesSearch && matchesTags && matchesContent;
   });
 
   const sortedItems = [...filteredItems].sort((a, b) => {
@@ -151,6 +154,8 @@ const Index = () => {
               onSearchChange={setSearchQuery}
               selectedTags={selectedTags}
               onTagsChange={setSelectedTags}
+              selectedContent={selectedContent}
+              onContentChange={setSelectedContent}
               tags={allTags}
             />
           </div>
