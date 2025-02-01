@@ -21,6 +21,6 @@ export const deleteItem = async (itemId: string) => {
 
   return {
     error,
-    operation: "user_items" as TableName
+    operation: "user_items" as const
   };
 };
