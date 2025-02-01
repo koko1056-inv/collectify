@@ -2,9 +2,10 @@ import { useState } from "react";
 import { ImageUpload } from "../ImageUpload";
 import { Button } from "../ui/button";
 import { Pencil } from "lucide-react";
-import { Dialog, DialogContent } from "../ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CardImageProps {
   image: string;
@@ -17,6 +18,7 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
   const [isEditing, setIsEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleImageChange = async (file: File | null) => {
     if (!file || !itemId) return;
@@ -42,13 +44,14 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
 
       if (updateError) throw updateError;
 
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+
       toast({
         title: "画像を更新しました",
         description: "コレクションの画像が正常に更新されました。",
       });
 
       setIsEditing(false);
-      window.location.reload(); // Refresh to show the new image
     } catch (error) {
       console.error('Error updating image:', error);
       toast({
@@ -79,7 +82,7 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent>
-          <h3 className="text-lg font-semibold mb-4">画像を編集</h3>
+          <DialogTitle>画像を編集</DialogTitle>
           <ImageUpload
             onImageChange={handleImageChange}
             previewUrl={previewUrl}
