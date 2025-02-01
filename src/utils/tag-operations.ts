@@ -22,7 +22,7 @@ export const deleteUserItem = async (itemId: string) => {
 };
 
 export const addTagToItem = async (itemId: string, tagId: string, isUserItem: boolean = false) => {
-  const tableName: TableName = isUserItem ? "user_item_tags" : "item_tags";
+  const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const columnName = isUserItem ? "user_item_id" : "official_item_id";
 
   const { data: existingTag, error: checkError } = await supabase
