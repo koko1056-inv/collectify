@@ -7,7 +7,7 @@ export interface Tag {
 
 export interface TagRelation {
   id: string;
-  tags: Tag | null;
+  tags: Tag;
 }
 
 export type TableName = 
@@ -19,7 +19,6 @@ export type TableName =
 
 export interface TagOperationResult {
   error: any;
-  operation: TableName;
 }
 
 export interface ItemTagInsert {

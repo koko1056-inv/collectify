@@ -7,16 +7,16 @@ export const useCardEventHandlers = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const handleDelete = async (itemId: string) => {
+  const handleDelete = async () => {
     try {
       const tables: TableName[] = ["user_item_likes", "item_memories", "user_item_tags"];
       
       for (const table of tables) {
-        const { error } = await deleteRelatedRecords(table, itemId);
+        const { error } = await deleteRelatedRecords(table, id);
         if (error) throw error;
       }
 
-      const { error: deleteError } = await deleteUserItem(itemId);
+      const { error: deleteError } = await deleteUserItem(id);
       if (deleteError) throw deleteError;
 
       queryClient.invalidateQueries({ queryKey: ["user-items"] });

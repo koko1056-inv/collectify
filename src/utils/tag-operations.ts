@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
-import { TableName, ItemTagInsert, UserItemTagInsert, TagOperationResult } from "@/types/tag";
+import { TableName } from "@/types/tag";
 
-export const deleteRelatedRecords = async (tableName: TableName, itemId: string): Promise<TagOperationResult> => {
+export const deleteRelatedRecords = async (tableName: TableName, itemId: string) => {
   const columnName = tableName === "item_tags" ? "official_item_id" : "user_item_id";
   
   const { error } = await supabase
@@ -9,22 +9,16 @@ export const deleteRelatedRecords = async (tableName: TableName, itemId: string)
     .delete()
     .eq(columnName, itemId);
 
-  return {
-    error,
-    operation: tableName
-  };
+  return { error };
 };
 
-export const deleteUserItem = async (itemId: string): Promise<TagOperationResult> => {
+export const deleteUserItem = async (itemId: string) => {
   const { error } = await supabase
     .from("user_items")
     .delete()
     .eq("id", itemId);
 
-  return {
-    error,
-    operation: "user_items"
-  };
+  return { error };
 };
 
 export const addTagToItem = async (itemId: string, tagId: string, isUserItem: boolean = false) => {
@@ -46,7 +40,7 @@ export const addTagToItem = async (itemId: string, tagId: string, isUserItem: bo
     return { data: existingTag, error: null };
   }
 
-  const insertData: ItemTagInsert | UserItemTagInsert = isUserItem 
+  const insertData = isUserItem 
     ? { user_item_id: itemId, tag_id: tagId }
     : { official_item_id: itemId, tag_id: tagId };
 
