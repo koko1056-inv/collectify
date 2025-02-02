@@ -3,7 +3,6 @@ import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tag } from "@/types/tag";
 
 interface CurrentTagsProps {
   itemIds: string[];
@@ -11,9 +10,15 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
+interface Tag {
+  id: string;
+  name: string;
+  is_category?: boolean;
+}
+
 interface TagRelation {
   id: string;
-  tags: Tag;
+  tags: Tag | null;
 }
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
@@ -38,7 +43,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .in(isUserItem ? "user_item_id" : "official_item_id", itemIds);
 
       if (error) throw error;
-      return data as TagRelation[];
+      return (data || []) as TagRelation[];
     },
   });
 
@@ -83,10 +88,10 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
             variant="secondary"
             className="pr-2 flex items-center gap-1"
           >
-            {tag.tags.name}
+            {tag.tags?.name}
             <X
               className="h-3 w-3 cursor-pointer hover:text-destructive"
-              onClick={() => handleRemoveTag(tag.id, tag.tags.name)}
+              onClick={() => handleRemoveTag(tag.id, tag.tags?.name || '')}
             />
           </Badge>
         ))}
