@@ -23,25 +23,25 @@ export function CardContent({
 }: CardContentProps) {
   return (
     <UICardContent className="px-3 py-2 space-y-1">
-      <TagList tags={itemTags} />
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <LikeButton itemId={itemId} />
-          {memoriesCount > 0 && (
-            <button
-              onClick={onMemoriesClick}
-              className="flex items-center gap-1 text-xs text-purple-500 hover:text-purple-600 transition-colors"
-            >
-              <BookMarked className="h-3.5 w-3.5" />
-              <span>{memoriesCount}</span>
-            </button>
-          )}
-        </div>
+        <TagList tags={itemTags} />
         {isOwner && (
           <Switch
             onCheckedChange={onShareToggle}
             className="scale-75 origin-right"
           />
+        )}
+      </div>
+      <div className="flex items-center gap-1.5">
+        <LikeButton itemId={itemId} />
+        {memoriesCount > 0 && (
+          <button
+            onClick={onMemoriesClick}
+            className="flex items-center gap-1 text-xs text-purple-500 hover:text-purple-600 transition-colors"
+          >
+            <BookMarked className="h-3.5 w-3.5" />
+            <span>{memoriesCount}</span>
+          </button>
         )}
       </div>
     </UICardContent>
