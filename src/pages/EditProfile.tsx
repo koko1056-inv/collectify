@@ -9,7 +9,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShareModal } from "@/components/ShareModal";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileBio } from "@/components/profile/ProfileBio";
-import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -124,29 +123,34 @@ export default function EditProfile() {
       <main className="container mx-auto px-4 py-8 pt-24">
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="bg-white p-6 rounded-lg shadow">
-            <ProfileHeader 
-              username={username}
-              onShare={() => setIsShareModalOpen(true)}
-            />
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <img
+                  src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"
+                  alt="Profile"
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+                <ProfileHeader 
+                  username={username}
+                  onShare={() => setIsShareModalOpen(true)}
+                />
+              </div>
+            </div>
 
             <ProfileStats userId={user.id} />
 
-            <ProfileBio
-              bio={bio}
-              isEditing={isEditing}
-              onBioChange={(e) => setBio(e.target.value)}
-              onEdit={() => setIsEditing(true)}
-              onCancel={() => setIsEditing(false)}
-              onSubmit={handleSubmit}
-              saving={saving}
-              isOwnProfile={true}
-            />
-
-            <ProfileFavorites
-              userId={user.id}
-              isEditing={isEditingFavorites}
-              onEditComplete={() => setIsEditingFavorites(false)}
-            />
+            <div className="mt-6">
+              <ProfileBio
+                bio={bio}
+                isEditing={isEditing}
+                onBioChange={(e) => setBio(e.target.value)}
+                onEdit={() => setIsEditing(true)}
+                onCancel={() => setIsEditing(false)}
+                onSubmit={handleSubmit}
+                saving={saving}
+                isOwnProfile={true}
+              />
+            </div>
           </div>
           
           <Button 
@@ -163,7 +167,7 @@ export default function EditProfile() {
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        title={`${username}のプロフィール`}
+        title={username}
         url={window.location.href}
         image="/placeholder.svg"
       />
