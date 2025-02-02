@@ -2,7 +2,10 @@ import React from "react";
 import { Tag } from "@/types";
 import { TagFilter } from "./TagFilter";
 import { SearchBar } from "./SearchBar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,6 +28,8 @@ export function FilterBar({
   onContentChange,
   tags,
 }: FilterBarProps) {
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
     queryFn: async () => {
@@ -37,6 +42,11 @@ export function FilterBar({
     },
   });
 
+  const getDisplayText = () => {
+    if (!selectedContent || selectedContent === "all") return "コンテンツで絞り込む";
+    return selectedContent;
+  };
+
   return (
     <div className="space-y-3">
       <SearchBar
@@ -48,31 +58,54 @@ export function FilterBar({
       />
 
       <div className="max-w-xl mx-auto">
-        <Select
-          value={selectedContent}
-          onValueChange={onContentChange}
+        <Button
+          variant="outline"
+          onClick={() => setIsDialogOpen(true)}
+          className="w-full justify-between font-normal"
         >
-          <SelectTrigger className="bg-background border-input">
-            <SelectValue placeholder="コンテンツで絞り込む" />
-          </SelectTrigger>
-          <SelectContent className="bg-popover border rounded-md shadow-md">
-            <SelectItem 
-              value="all" 
-              className="hover:bg-accent hover:text-accent-foreground py-2.5"
-            >
-              すべて
-            </SelectItem>
-            {contentNames.map((content) => (
-              <SelectItem 
-                key={content.id} 
-                value={content.name}
-                className="hover:bg-accent hover:text-accent-foreground py-2.5"
-              >
-                {content.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          <span>{getDisplayText()}</span>
+          <ChevronDown className="h-4 w-4 opacity-50" />
+        </Button>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">
+                コンテンツを選択
+              </DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[50vh] pr-4">
+              <div className="grid grid-cols-2 gap-2 p-4">
+                <Button
+                  key="all"
+                  variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
+                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                  onClick={() => {
+                    onContentChange("all");
+                    setIsDialogOpen(false);
+                  }}
+                >
+                  <span className="text-base">すべて</span>
+                </Button>
+                {contentNames.map((content) => (
+                  <Button
+                    key={content.id}
+                    variant={selectedContent === content.name ? "default" : "outline"}
+                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                    onClick={() => {
+                      onContentChange(content.name);
+                      setIsDialogOpen(false);
+                    }}
+                  >
+                    <span className="text-base break-words text-center w-full">
+                      {content.name}
+                    </span>
+                  </Button>
+                ))}
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <TagFilter
