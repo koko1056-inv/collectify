@@ -23,6 +23,7 @@ export function PublicCollectionGoodsCard({
           image={image} 
           onClick={() => {}} 
           itemId={id}
+          className="aspect-square"
         />
       </UICardHeader>
       <UICardContent className="p-0 pb-1">
