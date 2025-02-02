@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import { ShoppingBasket, Users } from "lucide-react";
 import { TagButton } from "./buttons/TagButton";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ItemOwnersModal } from "@/components/ItemOwnersModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,23 +48,6 @@ export function OfficialGoodsCardFooter({
     },
   });
 
-  const { data: wishlistsCount = 0, refetch: refetchWishlistCount } = useQuery({
-    queryKey: ["item-wishlists-count", itemId],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("wishlists")
-        .select("*", { count: 'exact', head: true })
-        .eq("official_item_id", itemId);
-      
-      if (error) {
-        console.error("Error getting wishlists count:", error);
-        return 0;
-      }
-      
-      return count || 0;
-    },
-  });
-
   const { data: tagCount = 0 } = useQuery({
     queryKey: ["item-tags-count", itemId],
     queryFn: async () => {
@@ -81,28 +64,6 @@ export function OfficialGoodsCardFooter({
       return count || 0;
     },
   });
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('wishlist-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'wishlists',
-          filter: `official_item_id=eq.${itemId}`
-        },
-        () => {
-          refetchWishlistCount();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [itemId, refetchWishlistCount]);
 
   return (
     <>
@@ -132,7 +93,7 @@ export function OfficialGoodsCardFooter({
             >
               <ShoppingBasket className="h-3 w-3 sm:h-4 sm:w-4 text-foreground" />
             </Button>
-            <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{wishlistsCount}</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{wishlistCount}</span>
           </div>
         </div>
         <Button 
