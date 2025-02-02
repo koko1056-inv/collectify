@@ -97,7 +97,7 @@ export function FilterBar({
                       setIsDialogOpen(false);
                     }}
                   >
-                    <span className="text-sm break-words text-center w-full line-clamp-2">
+                    <span className="text-xs break-words text-center w-full line-clamp-2">
                       {content.name}
                     </span>
                   </Button>
