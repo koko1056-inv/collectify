@@ -48,6 +48,23 @@ export function OfficialGoodsCardFooter({
     },
   });
 
+  const { data: wishlistsCount = 0 } = useQuery({
+    queryKey: ["item-wishlists-count", itemId],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("wishlists")
+        .select("*", { count: 'exact', head: true })
+        .eq("official_item_id", itemId);
+      
+      if (error) {
+        console.error("Error getting wishlists count:", error);
+        return 0;
+      }
+      
+      return count || 0;
+    },
+  });
+
   const { data: tagCount = 0 } = useQuery({
     queryKey: ["item-tags-count", itemId],
     queryFn: async () => {
@@ -93,7 +110,7 @@ export function OfficialGoodsCardFooter({
             >
               <ShoppingBasket className="h-3 w-3 sm:h-4 sm:w-4 text-foreground" />
             </Button>
-            <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{wishlistCount}</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{wishlistsCount}</span>
           </div>
         </div>
         <Button 
