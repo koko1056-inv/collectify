@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "./ui/input";
 
 interface FilterBarProps {
   searchQuery: string;
@@ -29,6 +30,7 @@ export function FilterBar({
   tags,
 }: FilterBarProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [contentSearchQuery, setContentSearchQuery] = React.useState("");
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
@@ -41,6 +43,10 @@ export function FilterBar({
       return data;
     },
   });
+
+  const filteredContentNames = contentNames.filter(content =>
+    content.name.toLowerCase().includes(contentSearchQuery.toLowerCase())
+  );
 
   const getDisplayText = () => {
     if (!selectedContent || selectedContent === "all") return "コンテンツで絞り込む";
@@ -74,20 +80,30 @@ export function FilterBar({
                 コンテンツを選択
               </DialogTitle>
             </DialogHeader>
+            <div className="p-4 pb-0">
+              <Input
+                placeholder="コンテンツを検索..."
+                value={contentSearchQuery}
+                onChange={(e) => setContentSearchQuery(e.target.value)}
+                className="mb-4"
+              />
+            </div>
             <ScrollArea className="h-[50vh] pr-4">
               <div className="grid grid-cols-2 gap-2 p-4">
-                <Button
-                  key="all"
-                  variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
-                  className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
-                  onClick={() => {
-                    onContentChange("all");
-                    setIsDialogOpen(false);
-                  }}
-                >
-                  <span className="text-base">すべて</span>
-                </Button>
-                {contentNames.map((content) => (
+                {contentSearchQuery === "" && (
+                  <Button
+                    key="all"
+                    variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
+                    className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
+                    onClick={() => {
+                      onContentChange("all");
+                      setIsDialogOpen(false);
+                    }}
+                  >
+                    <span className="text-base">すべて</span>
+                  </Button>
+                )}
+                {filteredContentNames.map((content) => (
                   <Button
                     key={content.id}
                     variant={selectedContent === content.name ? "default" : "outline"}
