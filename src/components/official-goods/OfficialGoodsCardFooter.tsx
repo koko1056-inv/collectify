@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import { ShoppingBasket, Users } from "lucide-react";
 import { TagButton } from "./buttons/TagButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ItemOwnersModal } from "@/components/ItemOwnersModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +29,7 @@ export function OfficialGoodsCardFooter({
   itemImage,
 }: OfficialGoodsCardFooterProps) {
   const [isOwnersModalOpen, setIsOwnersModalOpen] = useState(false);
+  const [realtimeWishlistCount, setRealtimeWishlistCount] = useState(0);
 
   const { data: ownersCount = 0 } = useQuery({
     queryKey: ["item-owners-count", itemTitle, itemImage],
@@ -64,6 +65,42 @@ export function OfficialGoodsCardFooter({
       return count || 0;
     },
   });
+
+  useEffect(() => {
+    setRealtimeWishlistCount(wishlistsCount);
+  }, [wishlistsCount]);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('wishlist-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'wishlists',
+          filter: `official_item_id=eq.${itemId}`
+        },
+        async () => {
+          const { count, error } = await supabase
+            .from("wishlists")
+            .select("*", { count: 'exact', head: true })
+            .eq("official_item_id", itemId);
+          
+          if (error) {
+            console.error("Error getting realtime wishlist count:", error);
+            return;
+          }
+          
+          setRealtimeWishlistCount(count || 0);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [itemId]);
 
   const { data: tagCount = 0 } = useQuery({
     queryKey: ["item-tags-count", itemId],
@@ -110,7 +147,7 @@ export function OfficialGoodsCardFooter({
             >
               <ShoppingBasket className="h-3 w-3 sm:h-4 sm:w-4 text-foreground" />
             </Button>
-            <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{wishlistsCount}</span>
+            <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{realtimeWishlistCount}</span>
           </div>
         </div>
         <Button 
