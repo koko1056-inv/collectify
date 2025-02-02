@@ -43,7 +43,10 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = true)
     .eq(itemColumn, itemId);
 
   if (error) throw error;
-  return data?.map(item => item.tags).filter((tag): tag is Tag => tag !== null) || [];
+  
+  return (data?.map(item => item.tags).filter((tag): tag is Tag => 
+    tag !== null && typeof tag.is_category === 'boolean'
+  )) || [];
 }
 
 export async function deleteRelatedRecords(tableName: TableName, itemId: string) {
