@@ -21,7 +21,7 @@ export function CollectionActions({
           variant="outline"
           size="sm"
           onClick={onTagManage}
-          className="gap-2"
+          className="gap-2 w-full sm:w-auto whitespace-nowrap"
         >
           <Tags className="h-4 w-4" />
           <span>タグを管理</span>
@@ -30,7 +30,7 @@ export function CollectionActions({
           variant="outline"
           size="sm"
           onClick={onMemoryAdd}
-          className="gap-2"
+          className="gap-2 w-full sm:w-auto whitespace-nowrap"
         >
           <PlusCircle className="h-4 w-4" />
           <span>記録を追加</span>
@@ -39,7 +39,7 @@ export function CollectionActions({
           variant="outline"
           size="sm"
           onClick={onViewToggle}
-          className="gap-2"
+          className="gap-2 w-full sm:w-auto whitespace-nowrap"
         >
           {isCompact ? (
             <>
