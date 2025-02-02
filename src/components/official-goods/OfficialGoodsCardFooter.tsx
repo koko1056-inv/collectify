@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import { ShoppingBasket, Users } from "lucide-react";
 import { TagButton } from "./buttons/TagButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ItemOwnersModal } from "@/components/ItemOwnersModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +48,7 @@ export function OfficialGoodsCardFooter({
     },
   });
 
-  const { data: wishlistsCount = 0 } = useQuery({
+  const { data: wishlistsCount = 0, refetch: refetchWishlistCount } = useQuery({
     queryKey: ["item-wishlists-count", itemId],
     queryFn: async () => {
       const { count, error } = await supabase
@@ -81,6 +81,28 @@ export function OfficialGoodsCardFooter({
       return count || 0;
     },
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('wishlist-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'wishlists',
+          filter: `official_item_id=eq.${itemId}`
+        },
+        () => {
+          refetchWishlistCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [itemId, refetchWishlistCount]);
 
   return (
     <>
