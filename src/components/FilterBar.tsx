@@ -79,7 +79,7 @@ export function FilterBar({
                 <Button
                   key="all"
                   variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                  className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
                   onClick={() => {
                     onContentChange("all");
                     setIsDialogOpen(false);
@@ -91,13 +91,13 @@ export function FilterBar({
                   <Button
                     key={content.id}
                     variant={selectedContent === content.name ? "default" : "outline"}
-                    className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                    className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
                     onClick={() => {
                       onContentChange(content.name);
                       setIsDialogOpen(false);
                     }}
                   >
-                    <span className="text-base break-words text-center w-full">
+                    <span className="text-sm break-words text-center w-full line-clamp-2">
                       {content.name}
                     </span>
                   </Button>
