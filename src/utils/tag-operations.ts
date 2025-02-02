@@ -36,13 +36,14 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = true)
     .select(`
       tags (
         id,
-        name
+        name,
+        is_category
       )
     `)
     .eq(itemColumn, itemId);
 
   if (error) throw error;
-  return data?.map(item => item.tags) || [];
+  return data?.map(item => item.tags).filter((tag): tag is Tag => tag !== null) || [];
 }
 
 export async function deleteRelatedRecords(tableName: TableName, itemId: string) {

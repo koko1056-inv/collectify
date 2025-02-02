@@ -13,7 +13,7 @@ interface CurrentTagsProps {
 
 interface TagRelation {
   id: string;
-  tags: Tag;
+  tags: Tag | null;
 }
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
@@ -83,10 +83,10 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
             variant="secondary"
             className="pr-2 flex items-center gap-1"
           >
-            {tag.tags.name}
+            {tag.tags?.name}
             <X
               className="h-3 w-3 cursor-pointer hover:text-destructive"
-              onClick={() => handleRemoveTag(tag.id, tag.tags.name)}
+              onClick={() => handleRemoveTag(tag.id, tag.tags?.name || '')}
             />
           </Badge>
         ))}

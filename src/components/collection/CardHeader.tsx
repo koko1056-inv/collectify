@@ -6,11 +6,12 @@ interface CardHeaderProps {
   onClick: () => void;
   itemId?: string;
   isEditable?: boolean;
+  className?: string;
 }
 
-export function CardHeader({ title, image, onClick, itemId, isEditable }: CardHeaderProps) {
+export function CardHeader({ title, image, onClick, itemId, isEditable, className }: CardHeaderProps) {
   return (
-    <div onClick={onClick}>
+    <div onClick={onClick} className={className}>
       <CardImage 
         title={title} 
         image={image} 
