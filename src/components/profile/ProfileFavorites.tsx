@@ -21,8 +21,8 @@ export function ProfileFavorites({
   const queryClient = useQueryClient();
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-  const { data: userLikedItems = [] } = useQuery({
-    queryKey: ["user-liked-items", userId],
+  const { data: userItems = [] } = useQuery({
+    queryKey: ["user-items", userId],
     queryFn: async () => {
       if (!userId) return [];
       
@@ -34,6 +34,7 @@ export function ProfileFavorites({
             user_id
           )
         `)
+        .eq("user_id", userId)
         .eq("user_item_likes.user_id", userId)
         .order("created_at", { ascending: false });
 
@@ -57,7 +58,7 @@ export function ProfileFavorites({
       }
 
       // Remove likes for unselected items
-      const unselectedItems = userLikedItems
+      const unselectedItems = userItems
         .filter(item => !selectedItems.includes(item.id))
         .map(item => item.id);
 
@@ -71,17 +72,17 @@ export function ProfileFavorites({
         if (deleteError) throw deleteError;
       }
 
-      queryClient.invalidateQueries({ queryKey: ["user-liked-items"] });
+      queryClient.invalidateQueries({ queryKey: ["user-items"] });
       toast({
         title: "更新完了",
-        description: "お気に入りアイテムを更新しました",
+        description: "お気に入りコレクションを更新しました",
       });
       onEditComplete();
     } catch (error) {
       console.error("Error updating favorites:", error);
       toast({
         title: "エラー",
-        description: "お気に入りアイテムの更新に失敗しました",
+        description: "お気に入りコレクションの更新に失敗しました",
         variant: "destructive",
       });
     }
@@ -90,7 +91,7 @@ export function ProfileFavorites({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">お気に入りグッズ</h2>
+        <h2 className="text-lg font-semibold">お気に入りコレクション</h2>
         {isEditing && (
           <div className="flex gap-2">
             <Button
@@ -115,7 +116,7 @@ export function ProfileFavorites({
         )}
       </div>
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-        {userLikedItems.map((item) => (
+        {userItems.map((item) => (
           <PublicCollectionGoodsCard
             key={item.id}
             id={item.id}
