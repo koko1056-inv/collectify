@@ -1,41 +1,34 @@
-import { Card, CardContent as UICardContent, CardHeader as UICardHeader } from "@/components/ui/card";
-import { CardHeader } from "../collection/CardHeader";
-import { CardContent } from "../collection/CardContent";
+import { Card as UICard, CardContent as UICardContent, CardHeader as UICardHeader } from "@/components/ui/card";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
+import Image from "next/image";
 
 interface PublicCollectionGoodsCardProps {
+  id: string;
   title: string;
   image: string;
-  id: string;
   userId?: string;
 }
 
-export function PublicCollectionGoodsCard({ 
-  title, 
-  image, 
+export function PublicCollectionGoodsCard({
   id,
-  userId 
+  title,
+  image,
+  userId,
 }: PublicCollectionGoodsCardProps) {
   return (
-    <Card className="hover-scale card-shadow bg-white border border-gray-200">
+    <UICard className="overflow-hidden border border-gray-200 bg-white hover:shadow-md transition-shadow">
       <UICardHeader className="p-0">
-        <CardHeader 
-          title={title} 
-          image={image} 
-          onClick={() => {}} 
-          itemId={id}
-          className="aspect-square"
-        />
+        <AspectRatio ratio={1}>
+          <img
+            src={image}
+            alt={title}
+            className="object-cover w-full h-full"
+          />
+        </AspectRatio>
       </UICardHeader>
-      <UICardContent className="p-0 pb-1">
-        <CardContent
-          itemId={id}
-          itemTags={[]}
-          memoriesCount={0}
-          isOwner={false}
-          onMemoriesClick={() => {}}
-          onShareToggle={() => {}}
-        />
+      <UICardContent className="p-2">
+        <p className="text-sm font-medium truncate">{title}</p>
       </UICardContent>
-    </Card>
+    </UICard>
   );
 }
