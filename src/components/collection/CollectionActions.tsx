@@ -15,8 +15,8 @@ export function CollectionActions({
   onViewToggle,
 }: CollectionActionsProps) {
   return (
-    <div className="flex justify-between items-center">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4">
+      <div className="grid grid-cols-3 sm:flex sm:items-center gap-2 sm:gap-4">
         <Button
           variant="outline"
           size="sm"
@@ -35,25 +35,25 @@ export function CollectionActions({
           <PlusCircle className="h-4 w-4" />
           <span>記録を追加</span>
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onViewToggle}
+          className="gap-2"
+        >
+          {isCompact ? (
+            <>
+              <Grid className="h-4 w-4" />
+              <span>通常表示</span>
+            </>
+          ) : (
+            <>
+              <List className="h-4 w-4" />
+              <span>一覧表示</span>
+            </>
+          )}
+        </Button>
       </div>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onViewToggle}
-        className="gap-2"
-      >
-        {isCompact ? (
-          <>
-            <Grid className="h-4 w-4" />
-            <span>通常表示</span>
-          </>
-        ) : (
-          <>
-            <List className="h-4 w-4" />
-            <span>一覧表示</span>
-          </>
-        )}
-      </Button>
     </div>
   );
 }
