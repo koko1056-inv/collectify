@@ -139,6 +139,7 @@ export default function EditProfile() {
               onCancel={() => setIsEditing(false)}
               onSubmit={handleSubmit}
               saving={saving}
+              isOwnProfile={true}
             />
 
             <ProfileFavorites

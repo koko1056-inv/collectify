@@ -91,6 +91,7 @@ export default function UserProfile() {
                 onEdit={() => {}}
                 onCancel={() => {}}
                 onSubmit={() => {}}
+                isOwnProfile={false}
               />
             </div>
           </div>

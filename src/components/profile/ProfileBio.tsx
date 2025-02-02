@@ -10,6 +10,7 @@ interface ProfileBioProps {
   onEdit: () => void;
   onCancel: () => void;
   onSubmit: (e: React.FormEvent) => void;
+  isOwnProfile?: boolean;
 }
 
 export function ProfileBio({
@@ -20,12 +21,13 @@ export function ProfileBio({
   onEdit,
   onCancel,
   onSubmit,
+  isOwnProfile = false,
 }: ProfileBioProps) {
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">自己紹介</h2>
-        {!isEditing && (
+        {!isEditing && isOwnProfile && (
           <Button
             variant="ghost"
             size="sm"
