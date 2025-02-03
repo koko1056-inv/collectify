@@ -25,14 +25,14 @@ export function OfficialItemsHeader({ sortBy, onSortChange }: OfficialItemsHeade
           公式グッズ
         </h1>
         <Select value={sortBy} onValueChange={(value) => onSortChange(value as SortOption)}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] bg-white/90 backdrop-blur-sm border-gray-200">
             <SelectValue placeholder="並び順を選択" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">新しい順</SelectItem>
-            <SelectItem value="oldest">古い順</SelectItem>
-            <SelectItem value="wishlist">ウィッシュリスト登録数順</SelectItem>
-            <SelectItem value="owners">保有者数順</SelectItem>
+          <SelectContent className="bg-white/95 backdrop-blur-sm">
+            <SelectItem value="newest" className="hover:bg-gray-100">新しい順</SelectItem>
+            <SelectItem value="oldest" className="hover:bg-gray-100">古い順</SelectItem>
+            <SelectItem value="wishlist" className="hover:bg-gray-100">ウィッシュリスト登録数順</SelectItem>
+            <SelectItem value="owners" className="hover:bg-gray-100">保有者数順</SelectItem>
           </SelectContent>
         </Select>
       </div>
