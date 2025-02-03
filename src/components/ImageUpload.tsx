@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
+import { Camera } from "lucide-react";
 
 interface ImageUploadProps {
   onImageChange: (file: File | null) => void;
@@ -12,10 +13,13 @@ export function ImageUpload({ onImageChange, previewUrl, setPreviewUrl }: ImageU
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
-        onImageChange(acceptedFiles[0]);
+        const file = acceptedFiles[0];
+        const objectUrl = URL.createObjectURL(file);
+        setPreviewUrl(objectUrl);
+        onImageChange(file);
       }
     },
-    [onImageChange]
+    [onImageChange, setPreviewUrl]
   );
 
   const handleDelete = () => {
@@ -35,42 +39,27 @@ export function ImageUpload({ onImageChange, previewUrl, setPreviewUrl }: ImageU
   });
 
   return (
-    <div className="space-y-4">
+    <div className="relative group">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
-          isDragActive ? "border-primary bg-accent" : "border-border"
-        }`}
+        className="w-16 h-16 rounded-full overflow-hidden cursor-pointer relative"
       >
         <input {...getInputProps()} />
         {previewUrl ? (
-          <div className="aspect-square relative overflow-hidden rounded-lg">
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="w-full h-full object-contain bg-gray-100"
-            />
-          </div>
+          <img
+            src={previewUrl}
+            alt="Preview"
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <div className="py-8">
-            <p className="text-sm text-gray-600">
-              {isDragActive
-                ? "ドロップしてアップロード"
-                : "クリックまたはドラッグ&ドロップでアップロード"}
-            </p>
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <Camera className="w-6 h-6 text-gray-400" />
           </div>
         )}
+        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+          <Camera className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-all" />
+        </div>
       </div>
-      {previewUrl && (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleDelete}
-          className="w-full"
-        >
-          画像を削除
-        </Button>
-      )}
     </div>
   );
 }

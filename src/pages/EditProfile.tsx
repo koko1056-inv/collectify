@@ -12,6 +12,7 @@ import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
+import { ImageUpload } from "@/components/ImageUpload";
 
 export default function EditProfile() {
   const { user } = useAuth();
@@ -21,9 +22,10 @@ export default function EditProfile() {
   const [saving, setSaving] = useState(false);
   const [bio, setBio] = useState("");
   const [username, setUsername] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isEditingFavorites, setIsEditingFavorites] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -49,6 +51,7 @@ export default function EditProfile() {
 
       setBio(profile.bio || "");
       setUsername(profile.username || "");
+      setAvatarUrl(profile.avatar_url);
       setLoading(false);
     };
 
@@ -81,6 +84,49 @@ export default function EditProfile() {
       title: "更新完了",
       description: "プロフィールを更新しました",
     });
+  };
+
+  const handleImageChange = async (file: File | null) => {
+    if (!file || !user) return;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('kuji_images')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('kuji_images')
+        .getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setAvatarUrl(publicUrl);
+      toast({
+        title: "画像アップロード完了",
+        description: "プロフィール画像を更新しました",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "エラー",
+        description: "画像のアップロードに失敗しました",
+      });
+      console.error('Error uploading image:', error);
+    }
   };
 
   const handleLogout = async () => {
@@ -125,11 +171,13 @@ export default function EditProfile() {
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <img
-                  src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"
-                  alt="Profile"
-                  className="w-16 h-16 rounded-full object-cover"
-                />
+                <div className="w-16 h-16">
+                  <ImageUpload
+                    onImageChange={handleImageChange}
+                    previewUrl={previewUrl}
+                    setPreviewUrl={setPreviewUrl}
+                  />
+                </div>
                 <ProfileHeader 
                   username={username}
                   onShare={() => setIsShareModalOpen(true)}
