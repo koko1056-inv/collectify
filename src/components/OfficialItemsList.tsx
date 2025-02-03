@@ -5,15 +5,26 @@ import { OfficialItem } from "@/types";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useMemo, memo } from "react";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Pagination,
   PaginationContent,
   PaginationItem,
   PaginationLink,
 } from "@/components/ui/pagination";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OfficialItemsListProps {
   items: OfficialItem[];
 }
+
+type SortOption = "newest" | "oldest" | "wishlist" | "owners";
 
 const MemoizedOfficialGoodsCard = memo(OfficialGoodsCard);
 
@@ -21,14 +32,69 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
   
   const itemsPerPage = isMobile ? 21 : 24;
+
+  // Fetch wishlist counts
+  const { data: wishlistCounts = {} } = useQuery({
+    queryKey: ["wishlist-counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wishlists")
+        .select("official_item_id, count")
+        .select("official_item_id, count(*)")
+        .group_by("official_item_id");
+
+      if (error) throw error;
+      
+      return data.reduce((acc: Record<string, number>, curr) => {
+        acc[curr.official_item_id] = Number(curr.count);
+        return acc;
+      }, {});
+    },
+  });
+
+  // Fetch owner counts
+  const { data: ownerCounts = {} } = useQuery({
+    queryKey: ["owner-counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("official_item_id, count")
+        .select("official_item_id, count(*)")
+        .group_by("official_item_id");
+
+      if (error) throw error;
+      
+      return data.reduce((acc: Record<string, number>, curr) => {
+        acc[curr.official_item_id] = Number(curr.count);
+        return acc;
+      }, {});
+    },
+  });
   
   const { totalPages, currentItems, pageNumbers } = useMemo(() => {
-    const total = Math.ceil(items.length / itemsPerPage);
+    // Sort items based on selected option
+    const sortedItems = [...items].sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "oldest":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "wishlist":
+          return (wishlistCounts[b.id] || 0) - (wishlistCounts[a.id] || 0);
+        case "owners":
+          return (ownerCounts[b.id] || 0) - (ownerCounts[a.id] || 0);
+        default:
+          return 0;
+      }
+    });
+
+    const total = Math.ceil(sortedItems.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const current = items.slice(startIndex, endIndex);
+    const current = sortedItems.slice(startIndex, endIndex);
     const pages = Array.from({ length: total }, (_, i) => i + 1);
     
     return {
@@ -36,14 +102,27 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
       currentItems: current,
       pageNumbers: pages,
     };
-  }, [items, currentPage, itemsPerPage]);
+  }, [items, currentPage, itemsPerPage, sortBy, wishlistCounts, ownerCounts]);
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex justify-between items-center mb-4 px-2">
-        <h1 className="text-2xl font-bold animate-fade-in text-gray-900">
-          公式グッズ
-        </h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold animate-fade-in text-gray-900">
+            公式グッズ
+          </h1>
+          <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="並び順を選択" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">新しい順</SelectItem>
+              <SelectItem value="oldest">古い順</SelectItem>
+              <SelectItem value="wishlist">ウィッシュリスト登録数順</SelectItem>
+              <SelectItem value="owners">保有者数順</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Button 
           onClick={() => navigate("/add-item")}
           className="bg-gray-900 hover:bg-gray-800 text-sm"
