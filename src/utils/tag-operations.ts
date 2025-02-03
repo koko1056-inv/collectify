@@ -27,7 +27,7 @@ export async function removeTagFromItem(itemId: string, tagId: string, isUserIte
   if (error) throw error;
 }
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean = true): Promise<Tag[]> {
+export async function getTagsForItem(itemId: string, isUserItem: boolean = true) {
   const table = isUserItem ? 'user_item_tags' : 'item_tags';
   const itemColumn = isUserItem ? 'user_item_id' : 'official_item_id';
 

@@ -3,12 +3,18 @@ import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tag, TagRelation } from "@/types/tag";
+import { Tag } from "@/types/tag";
 
 interface CurrentTagsProps {
   itemIds: string[];
   isUserItem?: boolean;
   isCategory?: boolean;
+}
+
+interface TagRelation {
+  id: string;
+  tag_id: string;
+  tags: Tag | null;
 }
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
@@ -35,7 +41,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .in(isUserItem ? "user_item_id" : "official_item_id", itemIds);
 
       if (error) throw error;
-      return data as TagRelation[];
+      return data;
     },
   });
 
