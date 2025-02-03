@@ -1,14 +1,13 @@
 export interface Tag {
   id: string;
   name: string;
-  created_at?: string;
-  is_category: boolean;
+  is_category?: boolean;
 }
 
 export interface TagRelation {
   id: string;
   tag_id: string;
-  tags: Tag;
+  tags: Tag | null;
 }
 
-export type TableName = "user_item_tags" | "item_tags" | "user_item_likes" | "item_memories";
+export type TableName = "item_tags" | "user_item_tags";
