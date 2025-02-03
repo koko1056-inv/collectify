@@ -19,7 +19,6 @@ export const useItemCounts = () => {
       });
       return counts;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const { data: ownerCounts = {} } = useQuery({
@@ -27,22 +26,21 @@ export const useItemCounts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("official_item_id, quantity")
-        .not("official_item_id", "is", null);
+        .select("official_item_id, quantity");
 
       if (error) throw error;
 
       const counts: Record<string, number> = {};
       data?.forEach(item => {
         if (item.official_item_id) {
-          // 数量を考慮してカウント
           const quantity = item.quantity || 1;
           counts[item.official_item_id] = (counts[item.official_item_id] || 0) + quantity;
         }
       });
+      
+      console.log("Fetched owner counts:", counts);
       return counts;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   return { wishlistCounts, ownerCounts };

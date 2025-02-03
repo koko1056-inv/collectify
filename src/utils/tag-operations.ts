@@ -1,37 +1,34 @@
 import { supabase } from "@/integrations/supabase/client";
-import { TableName } from "@/types/tag";
+import { Tag } from "@/types";
 
-interface Tag {
-  id: string;
-  name: string;
-  created_at: string;
-  is_category?: boolean;
+interface TagOperationResult {
+  success: boolean;
+  error?: string;
 }
 
-export async function addTagToItem(itemId: string, tagId: string, isUserItem: boolean = true) {
-  const table = isUserItem ? 'user_item_tags' : 'item_tags';
-  
-  const { error } = await supabase
-    .from(table)
-    .insert(isUserItem 
-      ? { user_item_id: itemId, tag_id: tagId }
-      : { official_item_id: itemId, tag_id: tagId }
-    );
-
-  if (error) throw error;
-}
-
-export async function removeTagFromItem(itemId: string, tagId: string, isUserItem: boolean = true) {
+export async function addTagToItem(
+  itemId: string,
+  tagId: string,
+  isUserItem: boolean = true
+): Promise<TagOperationResult> {
   const table = isUserItem ? 'user_item_tags' : 'item_tags';
   const itemColumn = isUserItem ? 'user_item_id' : 'official_item_id';
 
   const { error } = await supabase
     .from(table)
-    .delete()
-    .eq(itemColumn, itemId)
-    .eq('tag_id', tagId);
+    .insert([
+      {
+        [itemColumn]: itemId,
+        tag_id: tagId,
+      },
+    ]);
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error adding tag:', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
 }
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean = true): Promise<Tag[]> {
@@ -41,36 +38,40 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = true)
   const { data, error } = await supabase
     .from(table)
     .select(`
+      tag_id,
       tags (
         id,
-        name,
-        created_at,
-        is_category
+        name
       )
     `)
     .eq(itemColumn, itemId);
 
-  if (error) throw error;
-  
-  return (data?.map(item => item.tags).filter(Boolean) as Tag[]) || [];
+  if (error) {
+    console.error('Error fetching tags:', error);
+    return [];
+  }
+
+  return data.map(item => item.tags).filter(Boolean);
 }
 
-export async function deleteRelatedRecords(tableName: TableName, itemId: string) {
-  const columnName = tableName === "item_tags" ? "official_item_id" : "user_item_id";
-  
+export async function removeTagFromItem(
+  itemId: string,
+  tagId: string,
+  isUserItem: boolean = true
+): Promise<TagOperationResult> {
+  const table = isUserItem ? 'user_item_tags' : 'item_tags';
+  const itemColumn = isUserItem ? 'user_item_id' : 'official_item_id';
+
   const { error } = await supabase
-    .from(tableName)
+    .from(table)
     .delete()
-    .eq(columnName, itemId);
+    .eq(itemColumn, itemId)
+    .eq('tag_id', tagId);
 
-  return { error };
-}
+  if (error) {
+    console.error('Error removing tag:', error);
+    return { success: false, error: error.message };
+  }
 
-export async function deleteUserItem(itemId: string) {
-  const { error } = await supabase
-    .from("user_items")
-    .delete()
-    .eq("id", itemId);
-
-  return { error };
+  return { success: true };
 }
