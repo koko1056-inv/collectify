@@ -20,7 +20,6 @@ export const useSortedItems = (
           const wishlistCountA = wishlistCounts[a.id] || 0;
           const wishlistCountB = wishlistCounts[b.id] || 0;
           if (wishlistCountA === wishlistCountB) {
-            // If wishlist counts are equal, sort by newest
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           }
           return wishlistCountB - wishlistCountA;
@@ -29,7 +28,6 @@ export const useSortedItems = (
           const ownerCountA = ownerCounts[a.id] || 0;
           const ownerCountB = ownerCounts[b.id] || 0;
           if (ownerCountA === ownerCountB) {
-            // If owner counts are equal, sort by newest
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           }
           return ownerCountB - ownerCountA;

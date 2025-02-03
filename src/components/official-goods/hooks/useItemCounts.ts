@@ -7,17 +7,15 @@ export const useItemCounts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wishlists")
-        .select("official_item_id")
-        .then(result => {
-          const counts: Record<string, number> = {};
-          result.data?.forEach(item => {
-            counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
-          });
-          return counts;
-        });
+        .select("official_item_id");
 
       if (error) throw error;
-      return data;
+
+      const counts: Record<string, number> = {};
+      data?.forEach(item => {
+        counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
+      });
+      return counts;
     },
   });
 
@@ -26,17 +24,17 @@ export const useItemCounts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("official_item_id")
-        .then(result => {
-          const counts: Record<string, number> = {};
-          result.data?.forEach(item => {
-            counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
-          });
-          return counts;
-        });
+        .select("official_item_id");
 
       if (error) throw error;
-      return data;
+
+      const counts: Record<string, number> = {};
+      data?.forEach(item => {
+        if (item.official_item_id) {
+          counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
+        }
+      });
+      return counts;
     },
   });
 
