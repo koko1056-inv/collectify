@@ -10,6 +10,9 @@ export const useSortedItems = (
   ownerCounts: Record<string, number>
 ) => {
   return useMemo(() => {
+    console.log('Sorting items by:', sortBy);
+    console.log('Owner counts:', ownerCounts);
+    
     const itemsWithCounts = items.map(item => ({
       ...item,
       wishlistCount: wishlistCounts[item.id] || 0,
@@ -26,8 +29,10 @@ export const useSortedItems = (
           return b.wishlistCount - a.wishlistCount || 
                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case "owners":
-          // 保有者数で並び替え、同じ場合は新しい順
-          return ownerCounts[b.id] - ownerCounts[a.id] || 
+          const aCount = ownerCounts[a.id] || 0;
+          const bCount = ownerCounts[b.id] || 0;
+          console.log(`Comparing items - ${a.title}: ${aCount} owners, ${b.title}: ${bCount} owners`);
+          return bCount - aCount || 
                  new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         default:
           return 0;
