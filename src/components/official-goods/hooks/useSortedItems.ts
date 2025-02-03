@@ -23,17 +23,12 @@ export const useSortedItems = (
         case "oldest":
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case "wishlist":
-          if (b.wishlistCount === a.wishlistCount) {
-            // ウィッシュリスト数が同じ場合は新しい順
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-          }
-          return b.wishlistCount - a.wishlistCount;
+          return b.wishlistCount - a.wishlistCount || 
+                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case "owners":
-          if (b.ownerCount === a.ownerCount) {
-            // 保有者数が同じ場合は新しい順
-            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-          }
-          return b.ownerCount - a.ownerCount;
+          // 保有者数で並び替え、同じ場合は新しい順
+          return ownerCounts[b.id] - ownerCounts[a.id] || 
+                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         default:
           return 0;
       }
