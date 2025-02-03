@@ -41,7 +41,8 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wishlists")
-        .select("count(*), official_item_id")
+        .select("official_item_id, count")
+        .select("count(*)")
         .group("official_item_id");
 
       if (error) throw error;
@@ -58,7 +59,8 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("count(*), official_item_id")
+        .select("official_item_id, count")
+        .select("count(*)")
         .group("official_item_id");
 
       if (error) throw error;
@@ -78,10 +80,16 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case "oldest":
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case "wishlist":
-          return (wishlistCounts[b.id] || 0) - (wishlistCounts[a.id] || 0);
-        case "owners":
-          return (ownerCounts[b.id] || 0) - (ownerCounts[a.id] || 0);
+        case "wishlist": {
+          const wishlistCountA = wishlistCounts[a.id] || 0;
+          const wishlistCountB = wishlistCounts[b.id] || 0;
+          return wishlistCountB - wishlistCountA;
+        }
+        case "owners": {
+          const ownerCountA = ownerCounts[a.id] || 0;
+          const ownerCountB = ownerCounts[b.id] || 0;
+          return ownerCountB - ownerCountA;
+        }
         default:
           return 0;
       }
