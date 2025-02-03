@@ -1,12 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { TableName } from "@/types/tag";
-
-interface Tag {
-  id: string;
-  name: string;
-  created_at: string;
-  is_category?: boolean;
-}
+import { Tag } from "@/types";
 
 export async function addTagToItem(itemId: string, tagId: string, isUserItem: boolean = true) {
   const table = isUserItem ? 'user_item_tags' : 'item_tags';

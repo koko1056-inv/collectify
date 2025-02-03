@@ -7,15 +7,16 @@ export const useItemCounts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wishlists")
-        .select("official_item_id, count", { count: 'exact' })
-        .not('official_item_id', 'is', null)
-        .groupBy('official_item_id');
+        .select("official_item_id")
+        .not('official_item_id', 'is', null);
 
       if (error) throw error;
 
       const counts: Record<string, number> = {};
       data?.forEach(item => {
-        counts[item.official_item_id] = parseInt(item.count) || 0;
+        if (item.official_item_id) {
+          counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
+        }
       });
       return counts;
     },
@@ -26,16 +27,15 @@ export const useItemCounts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("official_item_id, count", { count: 'exact' })
-        .not('official_item_id', 'is', null)
-        .groupBy('official_item_id');
+        .select("official_item_id")
+        .not('official_item_id', 'is', null);
 
       if (error) throw error;
 
       const counts: Record<string, number> = {};
       data?.forEach(item => {
         if (item.official_item_id) {
-          counts[item.official_item_id] = parseInt(item.count) || 0;
+          counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
         }
       });
       return counts;

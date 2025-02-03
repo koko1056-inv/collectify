@@ -3,11 +3,7 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Tag {
-  id: string;
-  name: string;
-}
+import { Tag } from "@/types";
 
 interface CurrentTagsProps {
   itemIds: string[];
