@@ -8,8 +8,9 @@ export const useItemCounts = () => {
       const { data, error } = await supabase
         .from("wishlists")
         .select("official_item_id, count")
-        .select("official_item_id, count(*)")
-        .groupBy("official_item_id");
+        .select("official_item_id")
+        .count()
+        .group_by("official_item_id");
 
       if (error) throw error;
       
@@ -25,8 +26,9 @@ export const useItemCounts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("official_item_id, count(*)")
-        .groupBy("official_item_id");
+        .select("official_item_id")
+        .count()
+        .group_by("official_item_id");
 
       if (error) throw error;
       
