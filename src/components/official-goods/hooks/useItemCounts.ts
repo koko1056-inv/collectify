@@ -7,8 +7,7 @@ export const useItemCounts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wishlists")
-        .select("official_item_id")
-        .not('official_item_id', 'is', null);
+        .select("official_item_id");
 
       if (error) throw error;
 
@@ -28,7 +27,7 @@ export const useItemCounts = () => {
       const { data, error } = await supabase
         .from("user_items")
         .select("official_item_id")
-        .not('official_item_id', 'is', null);
+        .not("official_item_id", "is", null);
 
       if (error) throw error;
 
