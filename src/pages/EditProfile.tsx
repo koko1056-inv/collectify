@@ -10,6 +10,7 @@ import { ShareModal } from "@/components/ShareModal";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileStats } from "@/components/profile/ProfileStats";
+import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
@@ -25,6 +26,7 @@ export default function EditProfile() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isFavoritesEditing, setIsFavoritesEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -197,6 +199,14 @@ export default function EditProfile() {
                 onSubmit={handleSubmit}
                 saving={saving}
                 isOwnProfile={true}
+              />
+            </div>
+
+            <div className="mt-6">
+              <ProfileFavorites
+                userId={user?.id}
+                isEditing={isFavoritesEditing}
+                onEditComplete={() => setIsFavoritesEditing(false)}
               />
             </div>
           </div>

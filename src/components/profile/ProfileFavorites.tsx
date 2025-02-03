@@ -45,32 +45,12 @@ export function ProfileFavorites({
 
   const handleSaveSelection = async () => {
     try {
-      // Add likes for selected items
-      for (const itemId of selectedItems) {
-        const { error: insertError } = await supabase
-          .from("user_item_likes")
-          .upsert({ 
-            user_id: userId,
-            user_item_id: itemId
-          });
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ favorite_item_ids: selectedItems })
+        .eq("id", userId);
 
-        if (insertError) throw insertError;
-      }
-
-      // Remove likes for unselected items
-      const unselectedItems = userItems
-        .filter(item => !selectedItems.includes(item.id))
-        .map(item => item.id);
-
-      if (unselectedItems.length > 0) {
-        const { error: deleteError } = await supabase
-          .from("user_item_likes")
-          .delete()
-          .eq("user_id", userId)
-          .in("user_item_id", unselectedItems);
-
-        if (deleteError) throw deleteError;
-      }
+      if (updateError) throw updateError;
 
       queryClient.invalidateQueries({ queryKey: ["user-items"] });
       toast({

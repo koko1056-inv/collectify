@@ -447,6 +447,7 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          favorite_item_ids: string[] | null
           followers_count: number | null
           following_count: number | null
           id: string
@@ -459,6 +460,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          favorite_item_ids?: string[] | null
           followers_count?: number | null
           following_count?: number | null
           id: string
@@ -471,6 +473,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          favorite_item_ids?: string[] | null
           followers_count?: number | null
           following_count?: number | null
           id?: string
