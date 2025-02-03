@@ -5,7 +5,8 @@ export interface Tag {
   is_category: boolean;
 }
 
-export interface ItemTag {
+export interface TagRelation {
+  id: string;
   tag_id: string;
   tags: Tag;
 }
