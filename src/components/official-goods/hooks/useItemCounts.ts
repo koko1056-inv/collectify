@@ -7,17 +7,17 @@ export const useItemCounts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wishlists")
-        .select("official_item_id, count")
         .select("official_item_id")
-        .count()
-        .group_by("official_item_id");
+        .then(result => {
+          const counts: Record<string, number> = {};
+          result.data?.forEach(item => {
+            counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
+          });
+          return counts;
+        });
 
       if (error) throw error;
-      
-      return data.reduce((acc: Record<string, number>, curr) => {
-        acc[curr.official_item_id] = Number(curr.count);
-        return acc;
-      }, {});
+      return data;
     },
   });
 
@@ -27,15 +27,16 @@ export const useItemCounts = () => {
       const { data, error } = await supabase
         .from("user_items")
         .select("official_item_id")
-        .count()
-        .group_by("official_item_id");
+        .then(result => {
+          const counts: Record<string, number> = {};
+          result.data?.forEach(item => {
+            counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
+          });
+          return counts;
+        });
 
       if (error) throw error;
-      
-      return data.reduce((acc: Record<string, number>, curr) => {
-        acc[curr.official_item_id] = Number(curr.count);
-        return acc;
-      }, {});
+      return data;
     },
   });
 
