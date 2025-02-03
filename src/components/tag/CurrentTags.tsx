@@ -28,13 +28,14 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
           tags (
             id,
             name,
+            created_at,
             is_category
           )
         `)
         .in(isUserItem ? "user_item_id" : "official_item_id", itemIds);
 
       if (error) throw error;
-      return data;
+      return data as TagRelation[];
     },
   });
 
@@ -65,7 +66,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
     }
   };
 
-  const validTags = currentTags.filter(tag => 
+  const validTags = (currentTags || []).filter(tag => 
     tag.tags !== null && (!isCategory === !tag.tags.is_category)
   );
 

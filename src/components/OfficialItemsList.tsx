@@ -36,13 +36,13 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   
   const itemsPerPage = isMobile ? 21 : 24;
 
-  // Fetch wishlist counts
   const { data: wishlistCounts = {} } = useQuery({
     queryKey: ["wishlist-counts"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wishlists")
-        .select("official_item_id, count(*)")
+        .select("official_item_id")
+        .select("count(*)")
         .group_by("official_item_id");
 
       if (error) throw error;
@@ -54,13 +54,13 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
     },
   });
 
-  // Fetch owner counts
   const { data: ownerCounts = {} } = useQuery({
     queryKey: ["owner-counts"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("official_item_id, count(*)")
+        .select("official_item_id")
+        .select("count(*)")
         .group_by("official_item_id");
 
       if (error) throw error;
