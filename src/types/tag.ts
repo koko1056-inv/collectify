@@ -10,4 +10,4 @@ export interface TagRelation {
   tags: Tag | null;
 }
 
-export type TableName = "item_tags" | "user_item_tags";
+export type TableName = "item_tags" | "user_item_tags" | "user_item_likes" | "item_memories";
