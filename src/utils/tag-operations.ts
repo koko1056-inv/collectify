@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ItemTag, Tag, TableName } from "@/types/tag";
+import { Tag, TableName } from "@/types/tag";
 
 export async function addTagToItem(itemId: string, tagId: string, isUserItem: boolean = true) {
   const table = isUserItem ? 'user_item_tags' : 'item_tags';
@@ -33,20 +33,12 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = true)
 
   const { data, error } = await supabase
     .from(table)
-    .select(`
-      tags (
-        id,
-        name,
-        is_category
-      )
-    `)
+    .select('tags:tag_id(*)')
     .eq(itemColumn, itemId);
 
   if (error) throw error;
   
-  return (data?.map(item => item.tags).filter((tag): tag is Tag => 
-    tag !== null && typeof tag.is_category === 'boolean'
-  )) || [];
+  return (data?.map(item => item.tags).filter(Boolean) as Tag[]) || [];
 }
 
 export async function deleteRelatedRecords(tableName: TableName, itemId: string) {

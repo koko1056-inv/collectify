@@ -11,16 +11,16 @@ interface CurrentTagsProps {
   isCategory?: boolean;
 }
 
-interface TagRelation {
+type TagWithRelation = {
   id: string;
   tags: Tag | null;
-}
+};
 
 export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }: CurrentTagsProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: currentTags = [] } = useQuery({
+  const { data: currentTags = [] } = useQuery<TagWithRelation[]>({
     queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
     queryFn: async () => {
       if (!itemIds.length) return [];
@@ -38,7 +38,7 @@ export function CurrentTags({ itemIds, isUserItem = false, isCategory = false }:
         .in(isUserItem ? "user_item_id" : "official_item_id", itemIds);
 
       if (error) throw error;
-      return data as TagRelation[];
+      return data;
     },
   });
 
