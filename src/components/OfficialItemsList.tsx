@@ -41,9 +41,8 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wishlists")
-        .select("official_item_id")
-        .select("count(*)")
-        .group_by("official_item_id");
+        .select("count(*), official_item_id")
+        .group("official_item_id");
 
       if (error) throw error;
       
@@ -59,9 +58,8 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("official_item_id")
-        .select("count(*)")
-        .group_by("official_item_id");
+        .select("count(*), official_item_id")
+        .group("official_item_id");
 
       if (error) throw error;
       

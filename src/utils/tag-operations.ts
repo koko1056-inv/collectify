@@ -33,7 +33,14 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = true)
 
   const { data, error } = await supabase
     .from(table)
-    .select('tags:tag_id(*)')
+    .select(`
+      tags:tag_id (
+        id,
+        name,
+        created_at,
+        is_category
+      )
+    `)
     .eq(itemColumn, itemId);
 
   if (error) throw error;
