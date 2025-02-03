@@ -20,6 +20,7 @@ export const useSortedItems = (
           const wishlistCountA = wishlistCounts[a.id] || 0;
           const wishlistCountB = wishlistCounts[b.id] || 0;
           if (wishlistCountA === wishlistCountB) {
+            // ウィッシュリスト数が同じ場合は新しい順
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           }
           return wishlistCountB - wishlistCountA;
@@ -28,9 +29,10 @@ export const useSortedItems = (
           const ownerCountA = ownerCounts[a.id] || 0;
           const ownerCountB = ownerCounts[b.id] || 0;
           if (ownerCountA === ownerCountB) {
+            // 保有者数が同じ場合は新しい順
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           }
-          return ownerCountB - ownerCountA; // 保有者数の多い順（降順）にソート
+          return ownerCountB - ownerCountA; // 保有者数の多い順（降順）
         }
         default:
           return 0;
