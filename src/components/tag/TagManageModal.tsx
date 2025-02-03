@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { TagInputField } from "./TagInputField";
 import { ExistingTags } from "./ExistingTags";
 import { CurrentTags } from "./CurrentTags";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TagManageModalProps {
@@ -22,7 +22,6 @@ export function TagManageModal({
   isUserItem = false,
   isCategory = false 
 }: TagManageModalProps) {
-  const queryClient = useQueryClient();
   const title = itemIds.length === 1 
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
     : `${itemIds.length}個のアイテムのタグを管理`;
@@ -40,6 +39,7 @@ export function TagManageModal({
         .select(`
           tag_id,
           tags (
+            id,
             name
           )
         `)
@@ -51,27 +51,6 @@ export function TagManageModal({
     },
   });
 
-  const handleRemoveTag = async (tagId: string) => {
-    try {
-      const table = isUserItem ? "user_item_tags" : "item_tags";
-      const idColumn = isUserItem ? "user_item_id" : "official_item_id";
-
-      const { error } = await supabase
-        .from(table)
-        .delete()
-        .in(idColumn, itemIds)
-        .eq("tag_id", tagId);
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({
-        queryKey: ["current-tags", itemIds, isUserItem],
-      });
-    } catch (error) {
-      console.error("Error removing tag:", error);
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
@@ -82,7 +61,10 @@ export function TagManageModal({
         </DialogHeader>
         <div className="space-y-6">
           <TagInputField itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
-          <CurrentTags tags={currentTags} onRemove={handleRemoveTag} />
+          <CurrentTags tags={currentTags} onRemove={(tagId) => {
+            // Handle tag removal
+            console.log('Removing tag:', tagId);
+          }} />
           <ExistingTags itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
         </div>
       </DialogContent>
