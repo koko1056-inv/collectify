@@ -36,7 +36,8 @@ export const useItemCounts = () => {
       data?.forEach(item => {
         if (item.official_item_id) {
           // 数量を考慮してカウント
-          counts[item.official_item_id] = (counts[item.official_item_id] || 0) + (item.quantity || 1);
+          const quantity = item.quantity || 1;
+          counts[item.official_item_id] = (counts[item.official_item_id] || 0) + quantity;
         }
       });
       return counts;

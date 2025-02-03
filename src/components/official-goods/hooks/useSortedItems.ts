@@ -10,30 +10,30 @@ export const useSortedItems = (
   ownerCounts: Record<string, number>
 ) => {
   return useMemo(() => {
-    return [...items].sort((a, b) => {
+    const itemsWithCounts = items.map(item => ({
+      ...item,
+      wishlistCount: wishlistCounts[item.id] || 0,
+      ownerCount: ownerCounts[item.id] || 0,
+    }));
+
+    return [...itemsWithCounts].sort((a, b) => {
       switch (sortBy) {
         case "newest":
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case "oldest":
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case "wishlist": {
-          const wishlistCountA = wishlistCounts[a.id] || 0;
-          const wishlistCountB = wishlistCounts[b.id] || 0;
-          if (wishlistCountA === wishlistCountB) {
+        case "wishlist":
+          if (b.wishlistCount === a.wishlistCount) {
             // ウィッシュリスト数が同じ場合は新しい順
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           }
-          return wishlistCountB - wishlistCountA;
-        }
-        case "owners": {
-          const ownerCountA = ownerCounts[a.id] || 0;
-          const ownerCountB = ownerCounts[b.id] || 0;
-          if (ownerCountA === ownerCountB) {
+          return b.wishlistCount - a.wishlistCount;
+        case "owners":
+          if (b.ownerCount === a.ownerCount) {
             // 保有者数が同じ場合は新しい順
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           }
-          return ownerCountB - ownerCountA; // 保有者数の多い順（降順）
-        }
+          return b.ownerCount - a.ownerCount;
         default:
           return 0;
       }
