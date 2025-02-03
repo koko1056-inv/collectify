@@ -30,7 +30,7 @@ export const useSortedItems = (
           if (ownerCountA === ownerCountB) {
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
           }
-          return ownerCountB - ownerCountA;
+          return ownerCountB - ownerCountA; // 保有者数の多い順（降順）にソート
         }
         default:
           return 0;
