@@ -1,73 +1,63 @@
-import { DndContext, DragEndEvent, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { MemoizedMyCollectionGoodsCard } from "./MyCollectionGoodsCard";
+import { PublicCollectionGoodsCard } from "./PublicCollectionGoodsCard";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CollectionGridProps {
   items: any[];
-  isCompact: boolean;
-  isSelectionMode: boolean;
-  selectedItems: string[];
-  onSelectItem: (itemId: string) => void;
-  onDragEnd: (event: DragEndEvent) => void;
+  isCompact?: boolean;
+  isSelectionMode?: boolean;
+  selectedItems?: string[];
+  onSelectItem?: (itemId: string) => void;
+  onDragEnd?: (event: DragEndEvent) => void;
+  userId?: string;
 }
 
 export function CollectionGrid({
   items,
-  isCompact,
-  isSelectionMode,
-  selectedItems,
+  isCompact = false,
+  isSelectionMode = false,
+  selectedItems = [],
   onSelectItem,
   onDragEnd,
+  userId
 }: CollectionGridProps) {
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 8,
-      },
-    })
-  );
+  const { user } = useAuth();
+  const isOwnCollection = !userId || (user && user.id === userId);
 
-  const gridClass = isCompact
-    ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
-    : "grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1 sm:gap-4";
-
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={onDragEnd}
-    >
-      <SortableContext items={items} strategy={rectSortingStrategy}>
-        <div className={gridClass}>
-          {items.map((item) => (
-            <div key={item.id} className="relative">
-              {isSelectionMode && (
-                <div className="absolute top-2 left-2 z-10">
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.includes(item.id)}
-                    onChange={() => onSelectItem(item.id)}
-                    className="w-4 h-4"
-                  />
-                </div>
-              )}
+  if (isOwnCollection) {
+    return (
+      <DndContext onDragEnd={onDragEnd}>
+        <SortableContext items={items} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+            {items.map((item) => (
               <MemoizedMyCollectionGoodsCard
+                key={item.id}
                 id={item.id}
                 title={item.title}
                 image={item.image}
                 quantity={item.quantity}
                 isCompact={isCompact}
               />
-            </div>
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+      {items.map((item) => (
+        <PublicCollectionGoodsCard
+          key={item.id}
+          id={item.id}
+          title={item.title}
+          image={item.image}
+          quantity={item.quantity}
+        />
+      ))}
+    </div>
   );
 }
