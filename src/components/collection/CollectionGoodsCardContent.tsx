@@ -1,10 +1,8 @@
 import { CardContent as UICardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TagList } from "./TagList";
 import { LikeButton } from "./LikeButton";
 import { BookMarked } from "lucide-react";
-import { ItemTag } from "@/types/tag";
 
 interface CollectionGoodsCardContentProps {
   id: string;
@@ -17,30 +15,6 @@ export function CollectionGoodsCardContent({
   isOwner,
   onMemoriesClick,
 }: CollectionGoodsCardContentProps) {
-  const { data: itemTags = [] } = useQuery({
-    queryKey: ["user-item-tags", id],
-    queryFn: async () => {
-      if (!id) return [];
-      const { data, error } = await supabase
-        .from("user_item_tags")
-        .select(`
-          id,
-          tag_id,
-          created_at,
-          tags (
-            id,
-            name,
-            created_at,
-            is_category
-          )
-        `)
-        .eq("user_item_id", id);
-      if (error) throw error;
-      return data as ItemTag[];
-    },
-    enabled: !!id,
-  });
-
   const { data: itemMemories = [] } = useQuery({
     queryKey: ["item-memories", id],
     queryFn: async () => {
@@ -63,7 +37,6 @@ export function CollectionGoodsCardContent({
 
   return (
     <UICardContent className="px-3 py-1 space-y-0.5">
-      <TagList tags={itemTags} />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <LikeButton itemId={id} />
