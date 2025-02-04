@@ -11,7 +11,7 @@ export interface TagWithRelation {
     id: string;
     name: string;
     is_category: boolean;
-  };
+  } | null;
 }
 
 export type TableName = "item_tags" | "user_item_tags" | "user_item_likes" | "item_memories";

@@ -4,7 +4,7 @@ import { ExistingTags } from "./ExistingTags";
 import { CurrentTags } from "./CurrentTags";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TagWithRelation } from "@/types/tag";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -23,11 +23,12 @@ export function TagManageModal({
   isUserItem = false,
   isCategory = false 
 }: TagManageModalProps) {
+  const { user } = useAuth();
   const title = itemIds.length === 1 
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
     : `${itemIds.length}個のアイテムのタグを管理`;
 
-  const { data: currentTags = [] } = useQuery<TagWithRelation[]>({
+  const { data: currentTags = [] } = useQuery({
     queryKey: ["current-tags", itemIds, isUserItem],
     queryFn: async () => {
       if (!itemIds.length) return [];
