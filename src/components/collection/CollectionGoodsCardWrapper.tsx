@@ -113,7 +113,7 @@ export function CollectionGoodsCardWrapper({
         isOwner={isOwner}
         onMemoriesClick={() => setIsMemoriesModalOpen(true)}
       />
-      {canTrade && (
+      {(isOwner || canTrade) && (
         <UICardFooter className="px-2 py-1">
           <CardActions
             hasMemories={false}
