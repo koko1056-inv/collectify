@@ -44,6 +44,9 @@ function MyCollectionGoodsCardComponent({
         className="hover-scale card-shadow bg-white border border-gray-200"
       >
         <CardImage image={image} title={title} />
+        <div className="p-2">
+          <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
+        </div>
       </Card>
     );
   }
