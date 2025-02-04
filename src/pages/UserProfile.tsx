@@ -25,6 +25,7 @@ export default function UserProfile() {
   const [username, setUsername] = useState("");
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+  const [selectedWishlistItem, setSelectedWishlistItem] = useState<any>(null);
 
   const { data: wishlistItems = [] } = useQuery({
     queryKey: ["wishlist", userId],
@@ -164,7 +165,10 @@ export default function UserProfile() {
                       <div
                         key={item.id}
                         className="flex gap-4 items-center border rounded-lg p-4 bg-white cursor-pointer hover:bg-gray-50"
-                        onClick={() => setIsWishlistModalOpen(true)}
+                        onClick={() => {
+                          setSelectedWishlistItem(item);
+                          setIsWishlistModalOpen(true);
+                        }}
                       >
                         <img
                           src={item.official_items.image}
@@ -202,10 +206,15 @@ export default function UserProfile() {
         image="/placeholder.svg"
       />
 
-      <WishlistViewModal
-        isOpen={isWishlistModalOpen}
-        onClose={() => setIsWishlistModalOpen(false)}
-      />
+      {selectedWishlistItem && (
+        <WishlistViewModal
+          isOpen={isWishlistModalOpen}
+          onClose={() => {
+            setIsWishlistModalOpen(false);
+            setSelectedWishlistItem(null);
+          }}
+        />
+      )}
 
       <Footer />
     </div>
