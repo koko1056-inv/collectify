@@ -1,13 +1,14 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
 import { ItemDetailsModal } from "./ItemDetailsModal";
+import { useToast } from "@/hooks/use-toast";
 
 interface EditingWishlist {
   id: string;
@@ -18,6 +19,8 @@ interface EditingWishlist {
 
 export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [editingWishlist, setEditingWishlist] = useState<EditingWishlist | null>(null);
   const [selectedItem, setSelectedItem] = useState<{
     id: string;
@@ -52,6 +55,55 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
     },
     enabled: !!user && isOpen,
   });
+
+  const handleAddToCollection = async (item: any) => {
+    if (!user) {
+      toast({
+        title: "エラー",
+        description: "コレクションに追加するにはログインが必要です。",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Add to user's collection
+      const { error: insertError } = await supabase.from("user_items").insert({
+        title: item.official_items.title,
+        image: item.official_items.image,
+        release_date: item.official_items.release_date || new Date().toISOString().split('T')[0],
+        user_id: user.id,
+        prize: item.official_items.price || "0",
+        official_item_id: item.official_item_id,
+      });
+
+      if (insertError) throw insertError;
+
+      // Remove from wishlist
+      const { error: deleteError } = await supabase
+        .from("wishlists")
+        .delete()
+        .eq("id", item.id);
+
+      if (deleteError) throw deleteError;
+
+      // Invalidate relevant queries
+      await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+
+      toast({
+        title: "成功",
+        description: "コレクションに追加しました。",
+      });
+    } catch (error) {
+      console.error("Error adding to collection:", error);
+      toast({
+        title: "エラー",
+        description: "コレクションへの追加に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <>
@@ -102,21 +154,33 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
                           <p className="text-sm text-gray-500 mt-2">メモ: {item.note}</p>
                         )}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingWishlist({
-                            id: item.id,
-                            title: item.official_items.title,
-                            officialItemId: item.official_item_id,
-                            note: item.note,
-                          });
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingWishlist({
+                              id: item.id,
+                              title: item.official_items.title,
+                              officialItemId: item.official_item_id,
+                              note: item.note,
+                            });
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToCollection(item);
+                          }}
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
