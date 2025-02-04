@@ -1,10 +1,22 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Tag, ItemTag, TableName } from "@/types/tag";
+import { Tag } from "@/types/tag";
+
+interface TagWithDetails {
+  id: string;
+  tag_id: string;
+  created_at: string;
+  tags: {
+    id: string;
+    name: string;
+    created_at: string;
+    is_category?: boolean;
+  } | null;
+}
 
 export async function getTagsForItem(
   itemId: string, 
   isUserItem: boolean = false
-): Promise<ItemTag[]> {
+): Promise<TagWithDetails[]> {
   const table = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
@@ -24,7 +36,7 @@ export async function getTagsForItem(
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return (data || []) as ItemTag[];
+  return (data || []) as TagWithDetails[];
 }
 
 export async function addTagToItem(
