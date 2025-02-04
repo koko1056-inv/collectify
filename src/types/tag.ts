@@ -5,13 +5,16 @@ export interface Tag {
   is_category?: boolean;
 }
 
-export interface TagWithRelation {
+export interface TagWithItem {
   tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    is_category: boolean;
-  } | null;
+  tags: Tag | null;
 }
 
-export type TableName = "item_tags" | "user_item_tags" | "user_item_likes" | "item_memories";
+export interface ItemTag {
+  id: string;
+  tag_id: string;
+  user_item_id?: string;
+  official_item_id?: string;
+  created_at: string;
+  tags: Tag | null;
+}

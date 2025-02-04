@@ -1,14 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { ItemTag } from "@/types/tag";
 
 interface CurrentTagsProps {
-  tags: Array<{
-    tag_id: string;
-    tags: {
-      name: string;
-    } | null;
-  }>;
+  tags: ItemTag[];
   onRemove?: (tagId: string) => void;
   className?: string;
 }
