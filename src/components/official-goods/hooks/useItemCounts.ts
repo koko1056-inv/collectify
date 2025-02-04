@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useItemCounts = () => {
+export function useItemCounts() {
   const { data: wishlistCounts = {} } = useQuery({
     queryKey: ["wishlist-counts"],
     queryFn: async () => {
@@ -13,9 +13,7 @@ export const useItemCounts = () => {
 
       const counts: Record<string, number> = {};
       data?.forEach(item => {
-        if (item.official_item_id) {
-          counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
-        }
+        counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
       });
       return counts;
     },
@@ -26,7 +24,8 @@ export const useItemCounts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("official_item_id, quantity");
+        .select("official_item_id, quantity")
+        .not("official_item_id", "is", null);
 
       if (error) throw error;
 
@@ -38,10 +37,10 @@ export const useItemCounts = () => {
         }
       });
       
-      console.log("Fetched owner counts:", counts);
+      console.log("Owner counts:", counts);
       return counts;
     },
   });
 
   return { wishlistCounts, ownerCounts };
-};
+}

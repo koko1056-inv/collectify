@@ -1,42 +1,62 @@
 import { OfficialItem } from "@/types";
-import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 type SortOption = "newest" | "oldest" | "wishlist" | "owners";
 
-export const useSortedItems = (
-  items: OfficialItem[],
-  sortBy: SortOption,
-  wishlistCounts: Record<string, number>,
-  ownerCounts: Record<string, number>
-) => {
-  return useMemo(() => {
-    console.log('Sorting items by:', sortBy);
-    console.log('Owner counts:', ownerCounts);
-    
-    const itemsWithCounts = items.map(item => ({
-      ...item,
-      wishlistCount: wishlistCounts[item.id] || 0,
-      ownerCount: ownerCounts[item.id] || 0,
-    }));
+export function useSortedItems(items: OfficialItem[], sortBy: SortOption, ownerCounts: Record<string, number>) {
+  const { data: wishlistCounts = {} } = useQuery({
+    queryKey: ["wishlist-counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wishlists")
+        .select("official_item_id, created_at")
+        .order("created_at", { ascending: false });
 
-    return [...itemsWithCounts].sort((a, b) => {
-      switch (sortBy) {
-        case "newest":
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case "oldest":
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case "wishlist":
-          return b.wishlistCount - a.wishlistCount || 
-                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case "owners":
-          const aCount = ownerCounts[a.id] || 0;
-          const bCount = ownerCounts[b.id] || 0;
-          console.log(`Comparing items - ${a.title}: ${aCount} owners, ${b.title}: ${bCount} owners`);
-          return bCount - aCount || 
-                 new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        default:
-          return 0;
+      if (error) throw error;
+
+      const counts: Record<string, number> = {};
+      data?.forEach(item => {
+        counts[item.official_item_id] = (counts[item.official_item_id] || 0) + 1;
+      });
+
+      return counts;
+    },
+  });
+
+  console.log("Sorting items by:", sortBy);
+
+  return [...items].sort((a, b) => {
+    if (sortBy === "newest") {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    
+    if (sortBy === "oldest") {
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    }
+    
+    if (sortBy === "wishlist") {
+      const aCount = wishlistCounts[a.id] || 0;
+      const bCount = wishlistCounts[b.id] || 0;
+      
+      if (aCount !== bCount) {
+        return bCount - aCount;
       }
-    });
-  }, [items, sortBy, wishlistCounts, ownerCounts]);
-};
+      // If wishlist counts are equal, sort by newest
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    
+    if (sortBy === "owners") {
+      const aCount = ownerCounts[a.id] || 0;
+      const bCount = ownerCounts[b.id] || 0;
+      
+      if (aCount !== bCount) {
+        return bCount - aCount;
+      }
+      // If owner counts are equal, sort by newest
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    
+    return 0;
+  });
+}
