@@ -14,7 +14,7 @@ export async function getTagsForItem(
       id,
       tag_id,
       created_at,
-      tags (
+      tags:tags (
         id,
         name,
         created_at,

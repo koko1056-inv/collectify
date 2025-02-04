@@ -1,12 +1,26 @@
+import { Badge } from "@/components/ui/badge";
+import { ItemTag } from "@/types/tag";
+
 interface TagListProps {
-  tags: Array<{
-    tag_id: string;
-    tags: {
-      name: string;
-    } | null;
-  }>;
+  tags: ItemTag[];
 }
 
 export function TagList({ tags }: TagListProps) {
-  return null;
+  if (!tags || tags.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {tags.map((tag) => (
+        tag.tags && (
+          <Badge
+            key={tag.id}
+            variant="secondary"
+            className="text-xs px-2 py-0.5"
+          >
+            {tag.tags.name}
+          </Badge>
+        )
+      ))}
+    </div>
+  );
 }
