@@ -34,12 +34,12 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = true)
 
   const { data, error } = await supabase
     .from(table)
-    .select('tags:tag_id (id, name, created_at, is_category)')
+    .select('tags (id, name, created_at, is_category)')
     .eq(itemColumn, itemId);
 
   if (error) throw error;
   
-  return (data?.map(item => item.tags).filter(Boolean) as Tag[]) || [];
+  return data?.map(item => item.tags).filter(Boolean) as Tag[] || [];
 }
 
 export async function deleteRelatedRecords(tableName: TableName, itemId: string) {
