@@ -1,6 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Tag } from "@/types/tag";
 
+// Define the TableName type
+type TableName = "user_item_likes" | "item_memories" | "user_item_tags";
+
+// Define a clear interface for the tag details to prevent infinite recursion
 interface TagWithDetails {
   id: string;
   tag_id: string;
