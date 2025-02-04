@@ -30,8 +30,6 @@ export async function addTagToItem(
   isUserItem: boolean = false
 ): Promise<void> {
   const table = isUserItem ? "user_item_tags" : "item_tags";
-  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
-
   const insertData = isUserItem 
     ? { tag_id: tagId, user_item_id: itemId }
     : { tag_id: tagId, official_item_id: itemId };
