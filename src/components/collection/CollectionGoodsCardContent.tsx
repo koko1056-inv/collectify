@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TagList } from "./TagList";
 import { LikeButton } from "./LikeButton";
 import { BookMarked } from "lucide-react";
+import { ItemTag } from "@/types/tag";
 
 interface CollectionGoodsCardContentProps {
   id: string;
@@ -23,15 +24,19 @@ export function CollectionGoodsCardContent({
       const { data, error } = await supabase
         .from("user_item_tags")
         .select(`
+          id,
           tag_id,
+          created_at,
           tags (
             id,
-            name
+            name,
+            created_at,
+            is_category
           )
         `)
         .eq("user_item_id", id);
       if (error) throw error;
-      return data;
+      return data as ItemTag[];
     },
     enabled: !!id,
   });
