@@ -25,7 +25,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   
   const itemsPerPage = isMobile ? 21 : 24;
   const { wishlistCounts, ownerCounts } = useItemCounts();
-  const sortedItems = useSortedItems(items, sortBy, wishlistCounts, ownerCounts);
+  const sortedItems = useSortedItems(items, sortBy, ownerCounts);
 
   const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;

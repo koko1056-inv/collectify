@@ -61,10 +61,7 @@ export function TagManageModal({
         </DialogHeader>
         <div className="space-y-6">
           <TagInputField itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
-          <CurrentTags tags={currentTags} onRemove={(tagId) => {
-            // Handle tag removal
-            console.log('Removing tag:', tagId);
-          }} />
+          <CurrentTags tags={currentTags} />
           <ExistingTags itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
         </div>
       </DialogContent>
