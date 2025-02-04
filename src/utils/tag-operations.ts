@@ -1,7 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Tag, ItemTag, TableName } from "@/types/tag";
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean = false): Promise<ItemTag[]> {
+export async function getTagsForItem(
+  itemId: string, 
+  isUserItem: boolean = false
+): Promise<ItemTag[]> {
   const table = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
@@ -58,12 +61,12 @@ export async function removeTagFromItem(
   if (error) throw error;
 }
 
-export async function deleteRelatedRecords(table: TableName, itemId: string): Promise<{ error: Error | null }> {
+export async function deleteUserItem(itemId: string): Promise<{ error: Error | null }> {
   try {
     const { error } = await supabase
-      .from(table)
+      .from("user_items")
       .delete()
-      .eq("user_item_id", itemId);
+      .eq("id", itemId);
     
     if (error) throw error;
     return { error: null };
@@ -72,12 +75,15 @@ export async function deleteRelatedRecords(table: TableName, itemId: string): Pr
   }
 }
 
-export async function deleteUserItem(itemId: string): Promise<{ error: Error | null }> {
+export async function deleteRelatedRecords(
+  table: TableName,
+  itemId: string
+): Promise<{ error: Error | null }> {
   try {
     const { error } = await supabase
-      .from("user_items")
+      .from(table)
       .delete()
-      .eq("id", itemId);
+      .eq("user_item_id", itemId);
     
     if (error) throw error;
     return { error: null };
