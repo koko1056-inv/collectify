@@ -18,3 +18,5 @@ export interface ItemTag {
   created_at: string;
   tags: Tag | null;
 }
+
+export type TableName = "user_item_likes" | "item_memories" | "user_item_tags";

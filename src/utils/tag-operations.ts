@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Tag, ItemTag } from "@/types/tag";
+import { Tag, ItemTag, TableName } from "@/types/tag";
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean = false): Promise<ItemTag[]> {
   const table = isUserItem ? "user_item_tags" : "item_tags";
@@ -33,12 +33,10 @@ export async function addTagToItem(
 
   const { error } = await supabase
     .from(table)
-    .insert([
-      {
-        tag_id: tagId,
-        [idColumn]: itemId,
-      },
-    ]);
+    .insert({
+      tag_id: tagId,
+      [idColumn]: itemId,
+    });
 
   if (error) throw error;
 }
@@ -58,4 +56,32 @@ export async function removeTagFromItem(
     .eq(idColumn, itemId);
 
   if (error) throw error;
+}
+
+export async function deleteRelatedRecords(table: TableName, itemId: string): Promise<{ error: Error | null }> {
+  try {
+    const { error } = await supabase
+      .from(table)
+      .delete()
+      .eq("user_item_id", itemId);
+    
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    return { error: error as Error };
+  }
+}
+
+export async function deleteUserItem(itemId: string): Promise<{ error: Error | null }> {
+  try {
+    const { error } = await supabase
+      .from("user_items")
+      .delete()
+      .eq("id", itemId);
+    
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    return { error: error as Error };
+  }
 }
