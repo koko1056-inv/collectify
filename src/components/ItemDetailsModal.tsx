@@ -134,6 +134,7 @@ export function ItemDetailsModal({
           setEditedData={setEditedData}
           contentName={isUserItem ? undefined : contentName}
           releaseDate={releaseDate}
+          createdBy={createdBy}
         />
 
         <ItemDetailsFooter

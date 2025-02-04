@@ -22,6 +22,7 @@ interface ItemDetailsContentProps {
   setEditedData: (data: any) => void;
   contentName?: string | null;
   releaseDate?: string;
+  createdBy?: string | null;
 }
 
 export function ItemDetailsContent({
@@ -35,11 +36,27 @@ export function ItemDetailsContent({
   setEditedData,
   contentName,
   releaseDate,
+  createdBy,
 }: ItemDetailsContentProps) {
   const { toast } = useToast();
   const [isAddingNewContent, setIsAddingNewContent] = useState(false);
   const [newContentName, setNewContentName] = useState("");
   const queryClient = useQueryClient();
+
+  const { data: creatorProfile } = useQuery({
+    queryKey: ["creator-profile", createdBy],
+    queryFn: async () => {
+      if (!createdBy) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username, display_name")
+        .eq("id", createdBy)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!createdBy && !isUserItem,
+  });
 
   const handleImageUpdate = (newImageUrl: string) => {
     setEditedData({ ...editedData, image: newImageUrl });
@@ -132,6 +149,12 @@ export function ItemDetailsContent({
               <div className="text-sm">
                 <span className="font-medium">登録日: </span>
                 <span>{format(new Date(releaseDate), 'yyyy/MM/dd')}</span>
+              </div>
+            )}
+            {!isEditing && creatorProfile && (
+              <div className="text-sm">
+                <span className="font-medium">登録者: </span>
+                <span>{creatorProfile.display_name || creatorProfile.username}</span>
               </div>
             )}
           </div>
