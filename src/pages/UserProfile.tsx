@@ -12,9 +12,9 @@ import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CollectionTabs } from "@/components/CollectionTabs";
 import { WishlistViewModal } from "@/components/WishlistViewModal";
 import { useQuery } from "@tanstack/react-query";
+import { CollectionGrid } from "@/components/collection/CollectionGrid";
 
 export default function UserProfile() {
   const { userId } = useParams();
@@ -26,6 +26,31 @@ export default function UserProfile() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [selectedWishlistItem, setSelectedWishlistItem] = useState<any>(null);
+
+  const { data: userItems = [] } = useQuery({
+    queryKey: ["user-items", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      
+      const { data, error } = await supabase
+        .from("user_items")
+        .select(`
+          *,
+          user_item_tags (
+            tags (
+              id,
+              name
+            )
+          )
+        `)
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!userId,
+  });
 
   const { data: wishlistItems = [] } = useQuery({
     queryKey: ["wishlist", userId],
@@ -145,11 +170,16 @@ export default function UserProfile() {
             </TabsList>
 
             <TabsContent value="collection" className="mt-6">
-              <CollectionTabs
-                filteredItems={[]}
-                selectedTags={[]}
-                userId={userId}
-              />
+              <div className="bg-white p-6 rounded-lg shadow">
+                <CollectionGrid
+                  items={userItems}
+                  isCompact={false}
+                  isSelectionMode={false}
+                  selectedItems={[]}
+                  onSelectItem={() => {}}
+                  onDragEnd={() => {}}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="wishlist" className="mt-6">
