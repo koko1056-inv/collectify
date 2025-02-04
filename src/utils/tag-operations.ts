@@ -14,6 +14,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
       tags (
         id,
         name,
+        created_at,
         is_category
       )
     `)
@@ -31,12 +32,13 @@ export async function addTagToItem(
   const table = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
+  const insertData = isUserItem 
+    ? { tag_id: tagId, user_item_id: itemId }
+    : { tag_id: tagId, official_item_id: itemId };
+
   const { error } = await supabase
     .from(table)
-    .insert({
-      tag_id: tagId,
-      [idColumn]: itemId,
-    });
+    .insert(insertData);
 
   if (error) throw error;
 }
