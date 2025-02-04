@@ -46,45 +46,7 @@ export function CollectionGoodsCardWrapper({
   const canTrade = !isOwner && user !== null;
   const isOtherUserCollection = !isOwner && userId !== undefined;
 
-  const { data: isLiked = false } = useQuery({
-    queryKey: ["user-item-likes", id, user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-      const { data } = await supabase
-        .from("user_item_likes")
-        .select("id")
-        .eq("user_item_id", id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      return !!data;
-    },
-    enabled: !!user && !!id,
-  });
-
-  const handleLikeToggle = async () => {
-    if (!user) return;
-    
-    try {
-      if (isLiked) {
-        await supabase
-          .from("user_item_likes")
-          .delete()
-          .eq("user_item_id", id)
-          .eq("user_id", user.id);
-      } else {
-        await supabase
-          .from("user_item_likes")
-          .insert({
-            user_item_id: id,
-            user_id: user.id,
-          });
-      }
-    } catch (error) {
-      console.error("Error toggling like:", error);
-    }
-  };
-
-  if (isCompact) {
+  if (isOtherUserCollection || isCompact) {
     return (
       <Card 
         className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden"
@@ -97,12 +59,17 @@ export function CollectionGoodsCardWrapper({
             ×{quantity}
           </Badge>
         )}
-        <CardImage 
-          title={title} 
-          image={image} 
-          itemId={id}
-          isEditable={isOwner}
-        />
+        <div className="space-y-2">
+          <CardImage 
+            title={title} 
+            image={image} 
+            itemId={id}
+            isEditable={false}
+          />
+          <div className="p-2">
+            <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
+          </div>
+        </div>
         <CardModals
           itemId={id}
           itemTitle={title}
@@ -155,10 +122,10 @@ export function CollectionGoodsCardWrapper({
             onTagManageClick={() => setIsTagManageModalOpen(true)}
             onDeleteClick={() => setIsDeleteDialogOpen(true)}
             onTradeClick={() => setIsTradeModalOpen(true)}
-            onLikeClick={handleLikeToggle}
+            onLikeClick={() => {}}
             showTradeButton={canTrade}
             isOtherUserCollection={isOtherUserCollection}
-            isLiked={isLiked}
+            isLiked={false}
           />
         </UICardFooter>
       )}
