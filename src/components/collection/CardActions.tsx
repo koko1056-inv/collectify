@@ -27,6 +27,24 @@ export function CardActions({
   isLiked = false,
 }: CardActionsProps) {
   if (isOtherUserCollection) {
+    if (showTradeButton) {
+      return (
+        <div className="flex justify-end gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onTradeClick?.();
+            }}
+            className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-6 px-2 text-xs"
+          >
+            <Repeat className="h-3 w-3 mr-1" />
+            トレード
+          </Button>
+        </div>
+      );
+    }
     return null;
   }
 
