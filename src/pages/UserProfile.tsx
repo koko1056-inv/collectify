@@ -11,6 +11,10 @@ import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { FollowButton } from "@/components/profile/FollowButton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CollectionTabs } from "@/components/CollectionTabs";
+import { WishlistViewModal } from "@/components/WishlistViewModal";
+import { useQuery } from "@tanstack/react-query";
 
 export default function UserProfile() {
   const { userId } = useParams();
@@ -20,6 +24,33 @@ export default function UserProfile() {
   const [bio, setBio] = useState("");
   const [username, setUsername] = useState("");
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
+
+  const { data: wishlistItems = [] } = useQuery({
+    queryKey: ["wishlist", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      
+      const { data, error } = await supabase
+        .from("wishlists")
+        .select(`
+          *,
+          official_items (
+            id,
+            title,
+            image,
+            price,
+            release_date,
+            description
+          )
+        `)
+        .eq("user_id", userId);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -95,6 +126,71 @@ export default function UserProfile() {
               />
             </div>
           </div>
+
+          <Tabs defaultValue="collection" className="w-full">
+            <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-white border border-gray-200 rounded-full">
+              <TabsTrigger 
+                value="collection" 
+                className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+              >
+                コレクション
+              </TabsTrigger>
+              <TabsTrigger 
+                value="wishlist" 
+                className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+              >
+                ウィッシュリスト
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="collection" className="mt-6">
+              <CollectionTabs
+                filteredItems={[]}
+                selectedTags={[]}
+                userId={userId}
+              />
+            </TabsContent>
+
+            <TabsContent value="wishlist" className="mt-6">
+              <div className="bg-white p-6 rounded-lg shadow">
+                <h2 className="text-xl font-semibold mb-4">ウィッシュリスト</h2>
+                {wishlistItems.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">
+                    ウィッシュリストは空です
+                  </p>
+                ) : (
+                  <div className="grid gap-4">
+                    {wishlistItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex gap-4 items-center border rounded-lg p-4 bg-white cursor-pointer hover:bg-gray-50"
+                        onClick={() => setIsWishlistModalOpen(true)}
+                      >
+                        <img
+                          src={item.official_items.image}
+                          alt={item.official_items.title}
+                          className="h-24 w-24 object-cover rounded-md"
+                        />
+                        <div>
+                          <h3 className="font-medium">
+                            {item.official_items.title}
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            {item.official_items.price}円
+                          </p>
+                          {item.note && (
+                            <p className="text-sm text-gray-500 mt-2">
+                              メモ: {item.note}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
@@ -105,6 +201,12 @@ export default function UserProfile() {
         url={window.location.href}
         image="/placeholder.svg"
       />
+
+      <WishlistViewModal
+        isOpen={isWishlistModalOpen}
+        onClose={() => setIsWishlistModalOpen(false)}
+      />
+
       <Footer />
     </div>
   );
