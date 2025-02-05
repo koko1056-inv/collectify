@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ItemTag, Tag } from "@/types/tag";
+import { ItemTag, TableName } from "@/types/tag";
 
 export async function getTagsForItem(
   itemId: string, 
@@ -76,7 +76,7 @@ export async function deleteUserItem(itemId: string): Promise<{ error: Error | n
 }
 
 export async function deleteRelatedRecords(
-  table: "user_item_likes" | "item_memories" | "user_item_tags",
+  table: TableName,
   itemId: string
 ): Promise<{ error: Error | null }> {
   try {

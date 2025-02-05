@@ -17,18 +17,6 @@ const AddItem = lazy(() => import("./pages/AddItem").catch(() => ({ default: () 
 const UserProfile = lazy(() => import("./pages/UserProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 const EditProfile = lazy(() => import("./pages/EditProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 
-// Optimize React Query settings
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes (previously cacheTime)
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -40,6 +28,18 @@ const LoadingFallback = () => (
 );
 
 const App: React.FC = () => {
+  // Create a new QueryClient instance inside the component
+  const [queryClient] = React.useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        gcTime: 1000 * 60 * 30, // 30 minutes
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
