@@ -35,7 +35,9 @@ export function TagManageModal({
     },
   });
 
-  const tagNames = currentTags.map(tag => tag.tags?.name || '').filter(Boolean);
+  const tagNames = currentTags
+    .map(tag => tag.tags?.name)
+    .filter((name): name is string => name !== undefined);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -50,7 +52,10 @@ export function TagManageModal({
             selectedTags={tagNames} 
             onTagsChange={(tags: string[]) => console.log('Tags changed:', tags)} 
           />
-          <CurrentTags tags={currentTags} />
+          <CurrentTags 
+            tags={tagNames}
+            onRemove={(tag: string) => console.log('Remove tag:', tag)} 
+          />
           <ExistingTags itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
         </div>
       </DialogContent>

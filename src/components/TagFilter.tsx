@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tag } from "@/types";
-import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Tag } from "@/types";
+import { FilterButton } from "./tag/FilterButton";
+import { PopularTags } from "./tag/PopularTags";
+import { TagDialog } from "./tag/TagDialog";
 
 interface TagFilterProps {
   selectedTags: string[];
@@ -42,14 +40,7 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Get top 5 most used tags
   const popularTags = tags.slice(0, 5);
-
-  const getTextSize = (text: string) => {
-    if (text.length > 15) return 'text-xs';
-    if (text.length > 10) return 'text-sm';
-    return 'text-base';
-  };
 
   React.useEffect(() => {
     const validTags = selectedTags.filter(tag => tags.some(t => t.name === tag));
@@ -68,88 +59,28 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
 
   return (
     <div className="space-y-2">
-      <Button
-        variant="outline"
+      <FilterButton
+        displayText={getDisplayText()}
         onClick={() => setIsDialogOpen(true)}
-        className="w-full justify-between font-normal text-xs h-8"
-      >
-        <span>{getDisplayText()}</span>
-        <ChevronDown className="h-3 w-3 opacity-50" />
-      </Button>
+      />
 
-      <div className="relative w-full">
-        <ScrollArea className="w-full">
-          <div className="flex gap-1.5 pb-2">
-            <Button
-              key="all"
-              variant={selectedTags.length === 0 ? "default" : "outline"}
-              size="sm"
-              className="text-xs h-6 px-2 shrink-0"
-              onClick={() => onTagsChange([])}
-            >
-              すべて
-            </Button>
-            {popularTags.map((tag) => (
-              <Button
-                key={tag.id}
-                variant={selectedTags.includes(tag.name) ? "default" : "outline"}
-                size="sm"
-                className="text-xs h-6 px-2 shrink-0"
-                onClick={() => handleTagToggle(tag.name)}
-              >
-                {tag.name}
-              </Button>
-            ))}
-          </div>
-        </ScrollArea>
-      </div>
+      <PopularTags
+        tags={popularTags}
+        selectedTags={selectedTags}
+        onTagSelect={handleTagToggle}
+        onClearTags={() => onTagsChange([])}
+      />
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
-              タグを選択
-            </DialogTitle>
-          </DialogHeader>
-          <div className="p-4 pb-0">
-            <Input
-              placeholder="タグを検索..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="mb-4"
-            />
-          </div>
-          <ScrollArea className="h-[50vh] pr-4">
-            <div className="grid grid-cols-2 gap-2 p-4">
-              {searchQuery === "" && (
-                <Button
-                  key="all"
-                  variant={selectedTags.length === 0 ? "default" : "outline"}
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                  onClick={() => {
-                    onTagsChange([]);
-                    setIsDialogOpen(false);
-                  }}
-                >
-                  <span className="text-base">すべて</span>
-                </Button>
-              )}
-              {filteredTags.map((tag) => (
-                <Button
-                  key={tag.id}
-                  variant={selectedTags.includes(tag.name) ? "default" : "outline"}
-                  className="h-auto py-6 flex flex-col items-center justify-center gap-2 px-2"
-                  onClick={() => handleTagToggle(tag.name)}
-                >
-                  <span className={`${getTextSize(tag.name)} break-words text-center w-full`}>
-                    {tag.name}
-                  </span>
-                </Button>
-              ))}
-            </div>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+      <TagDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        filteredTags={filteredTags}
+        selectedTags={selectedTags}
+        onTagSelect={handleTagToggle}
+        onClearTags={() => onTagsChange([])}
+      />
     </div>
   );
 }

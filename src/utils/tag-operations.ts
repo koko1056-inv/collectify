@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ItemTag } from "@/types/tag";
+import { ItemTag, Tag } from "@/types/tag";
 
 export async function getTagsForItem(
   itemId: string, 
@@ -14,7 +14,7 @@ export async function getTagsForItem(
       id,
       tag_id,
       created_at,
-      tags (
+      tags:tag_id (
         id,
         name,
         created_at,
