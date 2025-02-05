@@ -13,6 +13,16 @@ export interface ItemTag {
   tags: Tag;
 }
 
+interface UserItemTag {
+  tag_id: string;
+  user_item_id: string;
+}
+
+interface OfficialItemTag {
+  tag_id: string;
+  official_item_id: string;
+}
+
 export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
@@ -34,14 +44,13 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
-  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
+  const payload = isUserItem 
+    ? { tag_id: tagId, user_item_id: itemId } as UserItemTag
+    : { tag_id: tagId, official_item_id: itemId } as OfficialItemTag;
 
   const { error } = await supabase
     .from(tableName)
-    .insert({
-      tag_id: tagId,
-      [idColumn]: itemId
-    });
+    .insert(payload);
 
   if (error) throw error;
 }
