@@ -13,7 +13,7 @@ import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import { ImageUpload } from "@/components/ImageUpload";
+import { ProfileImageUpload } from "@/components/profile/ProfileImageUpload";
 
 export default function EditProfile() {
   const { user } = useAuth();
@@ -174,7 +174,7 @@ export default function EditProfile() {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16">
-                  <ImageUpload
+                  <ProfileImageUpload
                     onImageChange={handleImageChange}
                     previewUrl={previewUrl}
                     setPreviewUrl={setPreviewUrl}

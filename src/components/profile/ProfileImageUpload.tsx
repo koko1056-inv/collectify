@@ -1,14 +1,19 @@
+
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Camera } from "lucide-react";
 
-interface ImageUploadProps {
+interface ProfileImageUploadProps {
   onImageChange: (file: File | null) => void;
   previewUrl: string | null;
   setPreviewUrl: (url: string | null) => void;
 }
 
-export function ImageUpload({ onImageChange, previewUrl, setPreviewUrl }: ImageUploadProps) {
+export function ProfileImageUpload({ 
+  onImageChange, 
+  previewUrl, 
+  setPreviewUrl 
+}: ProfileImageUploadProps) {
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
