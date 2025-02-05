@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { ImageUpload } from "../ImageUpload";
+import { ItemImageUpload } from "../item/ItemImageUpload";
 import { Button } from "../ui/button";
 import { Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
@@ -44,26 +45,21 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
 
       if (updateError) throw updateError;
 
-      // すべての関連キャッシュを無効化
       await Promise.all([
-        // ユーザーアイテム一覧のキャッシュを更新
         queryClient.invalidateQueries({ 
           queryKey: ["user-items"],
           refetchType: "all"
         }),
-        // アイテム詳細のキャッシュを更新
         queryClient.invalidateQueries({ 
           queryKey: ["item-details", itemId],
           refetchType: "all"
         }),
-        // コレクション関連のキャッシュを更新
         queryClient.invalidateQueries({ 
           queryKey: ["collection"],
           refetchType: "all"
         })
       ]);
 
-      // 即時的なUIの更新のためにキャッシュを直接更新
       queryClient.setQueriesData({ queryKey: ["user-items"] }, (oldData: any) => {
         if (!Array.isArray(oldData)) return oldData;
         return oldData.map(item => 
@@ -114,7 +110,7 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent>
           <DialogTitle>画像を編集</DialogTitle>
-          <ImageUpload
+          <ItemImageUpload
             onImageChange={handleImageChange}
             previewUrl={previewUrl}
             setPreviewUrl={setPreviewUrl}

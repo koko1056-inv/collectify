@@ -1,6 +1,7 @@
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ImageUpload } from "@/components/ImageUpload";
+import { ItemImageUpload } from "@/components/item/ItemImageUpload";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -73,7 +74,7 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
       <Dialog open={isImageEditModalOpen} onOpenChange={setIsImageEditModalOpen}>
         <DialogContent>
           <h3 className="text-lg font-semibold mb-4">画像を編集</h3>
-          <ImageUpload
+          <ItemImageUpload
             onImageChange={handleImageChange}
             previewUrl={previewUrl}
             setPreviewUrl={setPreviewUrl}

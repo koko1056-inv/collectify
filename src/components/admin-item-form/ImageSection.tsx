@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { ImageUpload } from "../ImageUpload";
+import { ItemImageUpload } from "../item/ItemImageUpload";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -85,14 +86,12 @@ export function ImageSection({
 
   const handleSelectScrapedImage = async (imageUrl: string) => {
     try {
-      // First, try to fetch the image through our Edge Function to bypass CORS
       const { data: { imageBlob }, error } = await supabase.functions.invoke('proxy-image', {
         body: { url: imageUrl }
       });
 
       if (error) throw error;
 
-      // Convert base64 to blob
       const response = await fetch(`data:image/jpeg;base64,${imageBlob}`);
       const blob = await response.blob();
       
@@ -139,7 +138,7 @@ export function ImageSection({
         </div>
       </div>
 
-      <ImageUpload
+      <ItemImageUpload
         onImageChange={handleImageChange}
         previewUrl={previewUrl}
         setPreviewUrl={setPreviewUrl}
