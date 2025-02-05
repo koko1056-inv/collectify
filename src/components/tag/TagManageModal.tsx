@@ -48,7 +48,7 @@ export function TagManageModal({
         <div className="space-y-6">
           <TagInputField 
             selectedTags={tagNames} 
-            onTagsChange={(tags) => console.log('Tags changed:', tags)} 
+            onTagsChange={(tags: string[]) => console.log('Tags changed:', tags)} 
           />
           <CurrentTags tags={currentTags} />
           <ExistingTags itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />

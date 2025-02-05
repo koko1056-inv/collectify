@@ -139,15 +139,13 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
                   key={tag.id}
                   variant={selectedTags.includes(tag.name) ? "default" : "outline"}
                   className="h-auto py-6 flex flex-col items-center justify-center gap-2 px-2"
-                  onClick={() => {
-                    handleTagToggle(tag.name);
-                  }}
+                  onClick={() => handleTagToggle(tag.name)}
                 >
                   <span className={`${getTextSize(tag.name)} break-words text-center w-full`}>
                     {tag.name}
                   </span>
                 </Button>
-              )}
+              ))}
             </div>
           </ScrollArea>
         </DialogContent>
