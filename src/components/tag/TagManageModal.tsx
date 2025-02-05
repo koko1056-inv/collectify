@@ -31,10 +31,11 @@ export function TagManageModal({
     queryKey: ["current-tags", itemIds, isUserItem],
     queryFn: async () => {
       if (!itemIds.length) return [];
-      // For multiple items, get tags for the first item only
       return getTagsForItem(itemIds[0], isUserItem);
     },
   });
+
+  const tagNames = currentTags.map(tag => tag.tags?.name || '').filter(Boolean);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -45,7 +46,10 @@ export function TagManageModal({
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-6">
-          <TagInputField itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
+          <TagInputField 
+            selectedTags={tagNames} 
+            onTagsChange={(tags) => console.log('Tags changed:', tags)} 
+          />
           <CurrentTags tags={currentTags} />
           <ExistingTags itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
         </div>
