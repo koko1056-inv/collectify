@@ -77,27 +77,31 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
         <ChevronDown className="h-3 w-3 opacity-50" />
       </Button>
 
-      <div className="flex flex-wrap gap-1.5">
-        <Button
-          key="all"
-          variant={selectedTags.length === 0 ? "default" : "outline"}
-          size="sm"
-          className="text-xs h-6 px-2"
-          onClick={() => onTagsChange([])}
-        >
-          すべて
-        </Button>
-        {popularTags.map((tag) => (
-          <Button
-            key={tag.id}
-            variant={selectedTags.includes(tag.name) ? "default" : "outline"}
-            size="sm"
-            className="text-xs h-6 px-2"
-            onClick={() => handleTagToggle(tag.name)}
-          >
-            {tag.name}
-          </Button>
-        ))}
+      <div className="relative w-full">
+        <ScrollArea className="w-full" orientation="horizontal">
+          <div className="flex gap-1.5 pb-2">
+            <Button
+              key="all"
+              variant={selectedTags.length === 0 ? "default" : "outline"}
+              size="sm"
+              className="text-xs h-6 px-2 shrink-0"
+              onClick={() => onTagsChange([])}
+            >
+              すべて
+            </Button>
+            {popularTags.map((tag) => (
+              <Button
+                key={tag.id}
+                variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-6 px-2 shrink-0"
+                onClick={() => handleTagToggle(tag.name)}
+              >
+                {tag.name}
+              </Button>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
