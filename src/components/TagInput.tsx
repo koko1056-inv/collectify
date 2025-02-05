@@ -29,6 +29,39 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
     },
   });
 
+  const { data: userPreviousTags = [] } = useQuery({
+    queryKey: ["user-previous-tags"],
+    queryFn: async () => {
+      const { data: userItems, error: userItemsError } = await supabase
+        .from("user_items")
+        .select("id")
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
+      
+      if (userItemsError) throw userItemsError;
+
+      if (!userItems.length) return [];
+
+      const { data: tagIds, error: tagsError } = await supabase
+        .from("user_item_tags")
+        .select("tag_id")
+        .in("user_item_id", userItems.map(item => item.id))
+        .distinct();
+
+      if (tagsError) throw tagsError;
+
+      if (!tagIds.length) return [];
+
+      const { data: tags, error: tagNamesError } = await supabase
+        .from("tags")
+        .select("*")
+        .in("id", tagIds.map(t => t.tag_id))
+        .order("name");
+
+      if (tagNamesError) throw tagNamesError;
+      return tags as Tag[];
+    },
+  });
+
   const handleAddTag = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim()) {
       e.preventDefault();
@@ -146,15 +179,38 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
           </Badge>
         ))}
       </div>
+
+      {userPreviousTags.length > 0 && (
+        <div className="mt-4">
+          <p className="text-sm text-muted-foreground mb-1">使ったことのあるタグ:</p>
+          <div className="flex flex-wrap gap-2">
+            {userPreviousTags.map((tag) => (
+              <Badge
+                key={tag.id}
+                variant="outline"
+                className="cursor-pointer hover:bg-secondary bg-white"
+                onClick={() => {
+                  if (!selectedTags.includes(tag.name)) {
+                    onTagsChange([...selectedTags, tag.name]);
+                  }
+                }}
+              >
+                {tag.name}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
       {existingTags.length > 0 && (
-        <div className="mt-2">
+        <div className="mt-4">
           <p className="text-sm text-muted-foreground mb-1">既存のタグ:</p>
           <div className="flex flex-wrap gap-2">
             {existingTags.map((tag) => (
               <Badge
                 key={tag.id}
                 variant="outline"
-                className="cursor-pointer hover:bg-secondary"
+                className="cursor-pointer hover:bg-secondary bg-white"
                 onClick={() => {
                   if (!selectedTags.includes(tag.name)) {
                     onTagsChange([...selectedTags, tag.name]);
