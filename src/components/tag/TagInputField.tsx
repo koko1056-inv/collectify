@@ -65,6 +65,10 @@ export function TagInputField({
             await addTagToItem(tagId, itemId, isUserItem);
           }
 
+          // Update the local state with the new tag
+          const updatedTags = [...selectedTags, newTag];
+          onTagsChange(updatedTags);
+
           // Invalidate queries to refresh the data
           await queryClient.invalidateQueries({ 
             queryKey: ["current-tags", itemIds]
@@ -80,16 +84,12 @@ export function TagInputField({
             });
           }
 
-          onTagsChange([...selectedTags, newTag]);
           setTagInput("");
           
           toast({
             title: "タグを追加しました",
             description: `${newTag}を追加しました。`,
           });
-
-          // Close the modal after successful addition
-          onClose();
         } catch (error) {
           console.error("Error adding tag:", error);
           toast({
