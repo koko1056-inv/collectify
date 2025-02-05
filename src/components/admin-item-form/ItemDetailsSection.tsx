@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { TagInput } from "../TagInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -161,14 +160,18 @@ export function ItemDetailsSection({
               <SelectTrigger className="w-full bg-white">
                 <SelectValue placeholder="コンテンツを選択" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">選択なし</SelectItem>
+              <SelectContent className="bg-white">
+                <SelectItem value="none" className="hover:bg-gray-100">選択なし</SelectItem>
                 {contentNames.map((content) => (
-                  <SelectItem key={content.id} value={content.name}>
+                  <SelectItem 
+                    key={content.id} 
+                    value={content.name}
+                    className="hover:bg-gray-100"
+                  >
                     {content.name}
                   </SelectItem>
                 ))}
-                <SelectItem value="other">その他（新規追加）</SelectItem>
+                <SelectItem value="other" className="hover:bg-gray-100">その他（新規追加）</SelectItem>
               </SelectContent>
             </Select>
           )}
