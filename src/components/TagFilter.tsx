@@ -42,6 +42,9 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Get top 5 most used tags
+  const popularTags = tags.slice(0, 5);
+
   const getTextSize = (text: string) => {
     if (text.length > 15) return 'text-xs';
     if (text.length > 10) return 'text-sm';
@@ -64,15 +67,38 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <Button
         variant="outline"
         onClick={() => setIsDialogOpen(true)}
-        className="w-full justify-between font-normal"
+        className="w-full justify-between font-normal text-xs h-8"
       >
         <span>{getDisplayText()}</span>
-        <ChevronDown className="h-4 w-4 opacity-50" />
+        <ChevronDown className="h-3 w-3 opacity-50" />
       </Button>
+
+      <div className="flex flex-wrap gap-1.5">
+        <Button
+          key="all"
+          variant={selectedTags.length === 0 ? "default" : "outline"}
+          size="sm"
+          className="text-xs h-6 px-2"
+          onClick={() => onTagsChange([])}
+        >
+          すべて
+        </Button>
+        {popularTags.map((tag) => (
+          <Button
+            key={tag.id}
+            variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+            size="sm"
+            className="text-xs h-6 px-2"
+            onClick={() => handleTagToggle(tag.name)}
+          >
+            {tag.name}
+          </Button>
+        ))}
+      </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-lg">
