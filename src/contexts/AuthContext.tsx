@@ -13,7 +13,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType>({ user: null, session: null, loading: true })
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
@@ -24,7 +24,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeSession = async () => {
       try {
         const { data: { session: initialSession } } = await supabase.auth.getSession()
-        
         if (initialSession) {
           setSession(initialSession)
           setUser(initialSession.user)

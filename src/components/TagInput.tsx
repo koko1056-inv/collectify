@@ -39,22 +39,24 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
       
       if (userItemsError) throw userItemsError;
 
-      if (!userItems.length) return [];
+      if (!userItems?.length) return [];
 
       const { data: tagIds, error: tagsError } = await supabase
         .from("user_item_tags")
         .select("tag_id")
-        .in("user_item_id", userItems.map(item => item.id))
-        .distinct();
+        .in("user_item_id", userItems.map(item => item.id));
 
       if (tagsError) throw tagsError;
 
-      if (!tagIds.length) return [];
+      if (!tagIds?.length) return [];
+
+      // Use a Set to ensure unique tag IDs
+      const uniqueTagIds = [...new Set(tagIds.map(t => t.tag_id))];
 
       const { data: tags, error: tagNamesError } = await supabase
         .from("tags")
         .select("*")
-        .in("id", tagIds.map(t => t.tag_id))
+        .in("id", uniqueTagIds)
         .order("name");
 
       if (tagNamesError) throw tagNamesError;
