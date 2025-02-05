@@ -78,7 +78,7 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
       </Button>
 
       <div className="relative w-full">
-        <ScrollArea className="w-full" orientation="horizontal">
+        <ScrollArea className="w-full">
           <div className="flex gap-1.5 pb-2">
             <Button
               key="all"
@@ -147,7 +147,7 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
                     {tag.name}
                   </span>
                 </Button>
-              ))}
+              )}
             </div>
           </ScrollArea>
         </DialogContent>
