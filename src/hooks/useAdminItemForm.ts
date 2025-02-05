@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -40,51 +41,6 @@ export function useAdminItemForm() {
     checkDuplicateTitle();
   }, [debouncedTitle, toast]);
 
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      description: "",
-    });
-    setImageFile(null);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
-    setSelectedTags([]);
-  };
-
-  const validateForm = () => {
-    if (!formData.title.trim()) {
-      toast({
-        title: "エラー",
-        description: "タイトルを入力してください。",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (!imageFile) {
-      toast({
-        title: "エラー",
-        description: "画像を選択してください。",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  const checkDuplicateTitle = async (title: string) => {
-    const { data } = await supabase
-      .from("official_items")
-      .select("id")
-      .eq("title", title)
-      .maybeSingle();
-    
-    return !!data;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -95,18 +51,6 @@ export function useAdminItemForm() {
     setLoading(true);
 
     try {
-      // Check for duplicate title
-      const isDuplicate = await checkDuplicateTitle(formData.title);
-      if (isDuplicate) {
-        toast({
-          title: "エラー",
-          description: "同じタイトルのアイテムが既に存在します。",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
       let imageUrl = "";
       
       if (imageFile) {
@@ -141,7 +85,6 @@ export function useAdminItemForm() {
 
       if (itemError) throw itemError;
 
-      // Process tags
       if (selectedTags.length > 0) {
         for (const tagName of selectedTags) {
           const { data: existingTag, error: tagError } = await supabase
@@ -195,6 +138,41 @@ export function useAdminItemForm() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const validateForm = () => {
+    if (!formData.title.trim()) {
+      toast({
+        title: "エラー",
+        description: "タイトルを入力してください。",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!imageFile) {
+      toast({
+        title: "エラー",
+        description: "画像を選択してください。",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      description: "",
+    });
+    setImageFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    setSelectedTags([]);
   };
 
   return {

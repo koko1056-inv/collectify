@@ -1,19 +1,22 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 // Define the TableName type
 type TableName = "user_item_likes" | "item_memories" | "user_item_tags";
 
-// Define a clear interface for the tag details to prevent infinite recursion
+// Define a clear interface for the tag details
+interface Tag {
+  id: string;
+  name: string;
+  created_at: string;
+  is_category?: boolean;
+}
+
 interface TagWithDetails {
   id: string;
   tag_id: string;
   created_at: string;
-  tags: {
-    id: string;
-    name: string;
-    created_at: string;
-    is_category?: boolean;
-  } | null;
+  tags: Tag | null;
 }
 
 export async function getTagsForItem(

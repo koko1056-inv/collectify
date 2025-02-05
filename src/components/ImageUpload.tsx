@@ -1,6 +1,7 @@
+
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Camera } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 
 interface ImageUploadProps {
   onImageChange: (file: File | null) => void;
@@ -30,26 +31,33 @@ export function ImageUpload({ onImageChange, previewUrl, setPreviewUrl }: ImageU
   });
 
   return (
-    <div className="relative group">
+    <div className="w-full">
       <div
         {...getRootProps()}
-        className="w-16 h-16 rounded-full overflow-hidden cursor-pointer relative"
+        className={`
+          border-2 border-dashed rounded-lg p-4 text-center cursor-pointer
+          transition-colors duration-200
+          ${isDragActive ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"}
+        `}
       >
         <input {...getInputProps()} />
         {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt="Preview"
-            className="w-full h-full object-cover"
-          />
+          <div className="relative aspect-video w-full">
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="w-full h-full object-contain rounded-md"
+            />
+          </div>
         ) : (
-          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-            <Camera className="w-6 h-6 text-gray-400" />
+          <div className="py-8 space-y-2">
+            <ImageIcon className="w-8 h-8 mx-auto text-gray-400" />
+            <div className="text-sm text-gray-600">
+              <p className="font-medium">クリックまたはドラッグ＆ドロップで画像をアップロード</p>
+              <p className="text-xs text-gray-500">PNG, JPG, GIF (最大 10MB)</p>
+            </div>
           </div>
         )}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
-          <Camera className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-all" />
-        </div>
       </div>
     </div>
   );
