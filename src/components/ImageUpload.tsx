@@ -30,12 +30,12 @@ export function ImageUpload({ onImageChange, previewUrl, setPreviewUrl }: ImageU
   });
 
   return (
-    <div className="relative group">
-      <div
-        {...getRootProps()}
-        className="w-16 h-16 rounded-full overflow-hidden cursor-pointer relative"
-      >
-        <input {...getInputProps()} />
+    <div
+      {...getRootProps()}
+      className="flex items-center gap-4 p-4 border border-dashed border-gray-300 rounded-md cursor-pointer hover:border-gray-400 transition-colors"
+    >
+      <input {...getInputProps()} />
+      <div className="w-16 h-16 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
         {previewUrl ? (
           <img
             src={previewUrl}
@@ -43,13 +43,22 @@ export function ImageUpload({ onImageChange, previewUrl, setPreviewUrl }: ImageU
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center">
             <Camera className="w-6 h-6 text-gray-400" />
           </div>
         )}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
-          <Camera className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-all" />
-        </div>
+      </div>
+      <div className="flex-grow">
+        <p className="text-sm font-medium text-gray-700">
+          {isDragActive ? (
+            "ここにドロップしてください"
+          ) : (
+            "クリックまたはドラッグ＆ドロップで画像をアップロード"
+          )}
+        </p>
+        <p className="text-xs text-gray-500 mt-1">
+          PNG, JPG, GIF (最大 10MB)
+        </p>
       </div>
     </div>
   );
