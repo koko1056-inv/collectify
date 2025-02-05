@@ -1,9 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Define the TableName type
 type TableName = "user_item_likes" | "item_memories" | "user_item_tags";
 
-// Define a simplified tag interface to prevent recursion
 interface Tag {
   id: string;
   name: string;
@@ -11,7 +9,6 @@ interface Tag {
   is_category?: boolean;
 }
 
-// Define the tag with details interface
 interface TagWithDetails {
   id: string;
   tag_id: string;

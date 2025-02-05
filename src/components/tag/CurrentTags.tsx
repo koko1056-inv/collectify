@@ -1,38 +1,28 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
-import { ItemTag } from "@/types/tag";
 
 interface CurrentTagsProps {
-  tags: ItemTag[];
-  onRemove?: (tagId: string) => void;
-  className?: string;
+  tags: string[];
+  onRemove: (tag: string) => void;
 }
 
-export function CurrentTags({ tags, onRemove, className = "" }: CurrentTagsProps) {
-  if (!tags || tags.length === 0) {
-    return null;
-  }
-
+export function CurrentTags({ tags, onRemove }: CurrentTagsProps) {
   return (
-    <div className={`flex flex-wrap gap-2 ${className}`}>
+    <div className="flex flex-wrap gap-2">
       {tags.map((tag) => (
         <Badge
-          key={tag.tag_id}
+          key={tag}
           variant="secondary"
-          className="flex items-center gap-1 text-xs"
+          className="flex items-center gap-1"
         >
-          {tag.tags?.name}
-          {onRemove && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-4 w-4 p-0 hover:bg-transparent"
-              onClick={() => onRemove(tag.tag_id)}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          )}
+          {tag}
+          <button
+            type="button"
+            onClick={() => onRemove(tag)}
+            className="hover:text-destructive"
+          >
+            <X className="h-3 w-3" />
+          </button>
         </Badge>
       ))}
     </div>
