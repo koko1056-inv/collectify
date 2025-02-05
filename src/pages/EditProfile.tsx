@@ -14,11 +14,13 @@ import { ProfileFavorites } from "@/components/profile/ProfileFavorites";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { ProfileImageUpload } from "@/components/profile/ProfileImageUpload";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function EditProfile() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [bio, setBio] = useState("");
@@ -153,7 +155,7 @@ export default function EditProfile() {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <main className="container mx-auto px-4 py-8 pt-24">
+        <main className={`container mx-auto px-4 ${isMobile ? 'pt-16' : 'pt-24'}`}>
           <div className="max-w-3xl mx-auto space-y-8">
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-32 w-full" />
@@ -168,7 +170,7 @@ export default function EditProfile() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar />
-      <main className="container mx-auto px-4 py-8 pt-24">
+      <main className={`container mx-auto px-4 ${isMobile ? 'pt-16' : 'pt-24'}`}>
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between mb-6">
