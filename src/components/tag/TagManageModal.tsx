@@ -5,6 +5,8 @@ import { CurrentTags } from "./CurrentTags";
 import { useQuery } from "@tanstack/react-query";
 import { getTagsForItem } from "@/utils/tag-operations";
 import { ItemTag } from "@/types/tag";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -23,6 +25,8 @@ export function TagManageModal({
   isUserItem = false,
   isCategory = false 
 }: TagManageModalProps) {
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  
   const title = itemIds.length === 1 
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
     : `${itemIds.length}個のアイテムのタグを管理`;
@@ -39,6 +43,10 @@ export function TagManageModal({
     .map(tag => tag.tags?.name)
     .filter((name): name is string => name !== undefined);
 
+  const handleTagsChange = (tags: string[]) => {
+    setSelectedTags(tags);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
@@ -49,9 +57,25 @@ export function TagManageModal({
         </DialogHeader>
         <div className="space-y-6">
           <TagInputField 
-            selectedTags={tagNames} 
-            onTagsChange={(tags: string[]) => console.log('Tags changed:', tags)} 
+            selectedTags={selectedTags} 
+            onTagsChange={handleTagsChange}
           />
+          {selectedTags.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium">追加予定のタグ</h4>
+              <div className="flex flex-wrap gap-2">
+                {selectedTags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="text-xs px-2 py-0.5"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
           <CurrentTags 
             tags={tagNames}
             onRemove={(tag: string) => console.log('Remove tag:', tag)} 
