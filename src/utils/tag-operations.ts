@@ -23,7 +23,7 @@ export async function getTagsForItem(
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return (data || []) as ItemTag[];
+  return data || [];
 }
 
 export async function addTagToItem(

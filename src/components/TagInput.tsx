@@ -9,9 +9,16 @@ import { Tag } from "@/types";
 interface TagInputProps {
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
+  itemIds?: string[];
+  onClose?: () => void;
 }
 
-export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
+export function TagInput({ 
+  selectedTags, 
+  onTagsChange,
+  itemIds = [],
+  onClose = () => {} 
+}: TagInputProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -89,6 +96,8 @@ export function TagInput({ selectedTags, onTagsChange }: TagInputProps) {
       <TagInputField
         selectedTags={selectedTags}
         onTagsChange={onTagsChange}
+        itemIds={itemIds}
+        onClose={onClose}
       />
       <CurrentTags
         tags={selectedTags}
