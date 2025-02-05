@@ -48,6 +48,9 @@ export function FilterBar({
     content.name.toLowerCase().includes(contentSearchQuery.toLowerCase())
   );
 
+  // Get top 5 most used content names
+  const popularContentNames = contentNames.slice(0, 5);
+
   const getDisplayText = () => {
     if (!selectedContent || selectedContent === "all") return "コンテンツで絞り込む";
     return selectedContent;
@@ -63,7 +66,7 @@ export function FilterBar({
         tags={tags}
       />
 
-      <div className="max-w-xl mx-auto">
+      <div className="max-w-xl mx-auto space-y-2">
         <Button
           variant="outline"
           onClick={() => setIsDialogOpen(true)}
@@ -72,6 +75,27 @@ export function FilterBar({
           <span>{getDisplayText()}</span>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            key="all"
+            variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => onContentChange("all")}
+          >
+            すべて
+          </Button>
+          {popularContentNames.map((content) => (
+            <Button
+              key={content.id}
+              variant={selectedContent === content.name ? "default" : "outline"}
+              size="sm"
+              onClick={() => onContentChange(content.name)}
+            >
+              {content.name}
+            </Button>
+          ))}
+        </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-lg">
