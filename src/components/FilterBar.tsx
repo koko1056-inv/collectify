@@ -70,17 +70,18 @@ export function FilterBar({
         <Button
           variant="outline"
           onClick={() => setIsDialogOpen(true)}
-          className="w-full justify-between font-normal"
+          className="w-full justify-between font-normal text-xs h-8"
         >
           <span>{getDisplayText()}</span>
-          <ChevronDown className="h-4 w-4 opacity-50" />
+          <ChevronDown className="h-3 w-3 opacity-50" />
         </Button>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           <Button
             key="all"
             variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
             size="sm"
+            className="text-xs h-6 px-2"
             onClick={() => onContentChange("all")}
           >
             すべて
@@ -90,6 +91,7 @@ export function FilterBar({
               key={content.id}
               variant={selectedContent === content.name ? "default" : "outline"}
               size="sm"
+              className="text-xs h-6 px-2"
               onClick={() => onContentChange(content.name)}
             >
               {content.name}
