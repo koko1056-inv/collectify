@@ -2,11 +2,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { TagInputField } from "./TagInputField";
 import { ExistingTags } from "./ExistingTags";
 import { CurrentTags } from "./CurrentTags";
-import { useQuery } from "@tanstack/react-query";
-import { getTagsForItem } from "@/utils/tag-operations";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getTagsForItem, removeTagFromItem } from "@/utils/tag-operations";
 import { ItemTag } from "@/types/tag";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -26,6 +27,8 @@ export function TagManageModal({
   isCategory = false 
 }: TagManageModalProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const title = itemIds.length === 1 
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
@@ -47,6 +50,43 @@ export function TagManageModal({
     setSelectedTags(tags);
   };
 
+  const handleRemoveTag = async (tagToRemove: string) => {
+    try {
+      const tagToRemoveObj = currentTags.find(tag => tag.tags?.name === tagToRemove);
+      if (!tagToRemoveObj?.tags?.id) return;
+
+      for (const itemId of itemIds) {
+        await removeTagFromItem(tagToRemoveObj.tags.id, itemId, isUserItem);
+      }
+
+      await queryClient.invalidateQueries({ 
+        queryKey: ["current-tags", itemIds]
+      });
+
+      if (isUserItem) {
+        await queryClient.invalidateQueries({ 
+          queryKey: ["user-items"]
+        });
+      } else {
+        await queryClient.invalidateQueries({ 
+          queryKey: ["official-items"]
+        });
+      }
+
+      toast({
+        title: "タグを削除しました",
+        description: `${tagToRemove}を削除しました。`,
+      });
+    } catch (error) {
+      console.error("Error removing tag:", error);
+      toast({
+        title: "エラー",
+        description: "タグの削除に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
@@ -59,6 +99,9 @@ export function TagManageModal({
           <TagInputField 
             selectedTags={selectedTags} 
             onTagsChange={handleTagsChange}
+            itemIds={itemIds}
+            isUserItem={isUserItem}
+            onClose={onClose}
           />
           {selectedTags.length > 0 && (
             <div className="space-y-2">
@@ -78,9 +121,13 @@ export function TagManageModal({
           )}
           <CurrentTags 
             tags={tagNames}
-            onRemove={(tag: string) => console.log('Remove tag:', tag)} 
+            onRemove={handleRemoveTag}
           />
-          <ExistingTags itemIds={itemIds} isUserItem={isUserItem} isCategory={isCategory} />
+          <ExistingTags 
+            itemIds={itemIds} 
+            isUserItem={isUserItem} 
+            isCategory={isCategory} 
+          />
         </div>
       </DialogContent>
     </Dialog>

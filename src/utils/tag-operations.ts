@@ -13,7 +13,6 @@ export async function getTagsForItem(
     .select(`
       id,
       tag_id,
-      created_at,
       tags:tag_id (
         id,
         name,

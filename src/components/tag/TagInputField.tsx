@@ -8,9 +8,18 @@ import { addTagToItem } from '@/utils/tag-operations';
 interface TagInputFieldProps {
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
+  itemIds: string[];
+  isUserItem?: boolean;
+  onClose: () => void;
 }
 
-export function TagInputField({ selectedTags, onTagsChange }: TagInputFieldProps) {
+export function TagInputField({ 
+  selectedTags, 
+  onTagsChange,
+  itemIds,
+  isUserItem = false,
+  onClose
+}: TagInputFieldProps) {
   const [tagInput, setTagInput] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -51,15 +60,36 @@ export function TagInputField({ selectedTags, onTagsChange }: TagInputFieldProps
             tagId = existingTag.id;
           }
 
+          // Add tag to all selected items
+          for (const itemId of itemIds) {
+            await addTagToItem(tagId, itemId, isUserItem);
+          }
+
+          // Invalidate queries to refresh the data
+          await queryClient.invalidateQueries({ 
+            queryKey: ["current-tags", itemIds]
+          });
+
+          if (isUserItem) {
+            await queryClient.invalidateQueries({ 
+              queryKey: ["user-items"]
+            });
+          } else {
+            await queryClient.invalidateQueries({ 
+              queryKey: ["official-items"]
+            });
+          }
+
           onTagsChange([...selectedTags, newTag]);
           setTagInput("");
-
-          queryClient.invalidateQueries({ queryKey: ["tags"] });
-
+          
           toast({
             title: "タグを追加しました",
             description: `${newTag}を追加しました。`,
           });
+
+          // Close the modal after successful addition
+          onClose();
         } catch (error) {
           console.error("Error adding tag:", error);
           toast({
