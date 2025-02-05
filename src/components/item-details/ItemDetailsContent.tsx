@@ -145,16 +145,16 @@ export function ItemDetailsContent({
                 <span>{contentName}</span>
               </div>
             )}
+            {!isEditing && creatorProfile && (
+              <div className="text-sm">
+                <span className="font-medium">グッズ登録者: </span>
+                <span>{creatorProfile.display_name || creatorProfile.username}</span>
+              </div>
+            )}
             {!isEditing && releaseDate && (
               <div className="text-sm">
                 <span className="font-medium">登録日: </span>
                 <span>{format(new Date(releaseDate), 'yyyy/MM/dd')}</span>
-              </div>
-            )}
-            {!isEditing && creatorProfile && (
-              <div className="text-sm">
-                <span className="font-medium">登録者: </span>
-                <span>{creatorProfile.display_name || creatorProfile.username}</span>
               </div>
             )}
           </div>
