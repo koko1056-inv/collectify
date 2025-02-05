@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { TagInput } from "../TagInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -128,48 +129,50 @@ export function ItemDetailsSection({
         <label className="text-sm font-medium">
           コンテンツ
         </label>
-        {isAddingNewContent ? (
-          <div className="flex gap-2">
-            <Input
-              value={newContentName}
-              onChange={(e) => setNewContentName(e.target.value)}
-              placeholder="新しいコンテンツ名"
-            />
-            <Button 
-              onClick={handleAddNewContent}
-              disabled={addContentMutation.isPending}
+        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+          {isAddingNewContent ? (
+            <div className="flex gap-2">
+              <Input
+                value={newContentName}
+                onChange={(e) => setNewContentName(e.target.value)}
+                placeholder="新しいコンテンツ名"
+              />
+              <Button 
+                onClick={handleAddNewContent}
+                disabled={addContentMutation.isPending}
+              >
+                {addContentMutation.isPending ? "追加中..." : "追加"}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsAddingNewContent(false);
+                  setNewContentName("");
+                }}
+              >
+                キャンセル
+              </Button>
+            </div>
+          ) : (
+            <Select
+              value={formData.content_name || "none"}
+              onValueChange={handleContentChange}
             >
-              {addContentMutation.isPending ? "追加中..." : "追加"}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsAddingNewContent(false);
-                setNewContentName("");
-              }}
-            >
-              キャンセル
-            </Button>
-          </div>
-        ) : (
-          <Select
-            value={formData.content_name || "none"}
-            onValueChange={handleContentChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="コンテンツを選択" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">選択なし</SelectItem>
-              {contentNames.map((content) => (
-                <SelectItem key={content.id} value={content.name}>
-                  {content.name}
-                </SelectItem>
-              ))}
-              <SelectItem value="other">その他（新規追加）</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
+              <SelectTrigger className="w-full bg-white">
+                <SelectValue placeholder="コンテンツを選択" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">選択なし</SelectItem>
+                {contentNames.map((content) => (
+                  <SelectItem key={content.id} value={content.name}>
+                    {content.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value="other">その他（新規追加）</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </div>
 
       <TagInput
