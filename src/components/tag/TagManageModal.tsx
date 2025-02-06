@@ -8,6 +8,7 @@ import { ItemTag } from "@/types/tag";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -89,46 +90,48 @@ export function TagManageModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {title}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
-          <TagInputField 
-            selectedTags={selectedTags} 
-            onTagsChange={handleTagsChange}
-            itemIds={itemIds}
-            isUserItem={isUserItem}
-            onClose={onClose}
-          />
-          {selectedTags.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">追加予定のタグ</h4>
-              <div className="flex flex-wrap gap-2">
-                {selectedTags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="text-xs px-2 py-0.5"
-                  >
-                    {tag}
-                  </Badge>
-                ))}
+        <ScrollArea className="max-h-[80vh]">
+          <div className="space-y-6 p-4">
+            <TagInputField 
+              selectedTags={selectedTags} 
+              onTagsChange={handleTagsChange}
+              itemIds={itemIds}
+              isUserItem={isUserItem}
+              onClose={onClose}
+            />
+            {selectedTags.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium">追加予定のタグ</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedTags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="text-xs px-2 py-0.5"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          <CurrentTags 
-            tags={tagNames}
-            onRemove={handleRemoveTag}
-          />
-          <ExistingTags 
-            itemIds={itemIds} 
-            isUserItem={isUserItem} 
-            isCategory={isCategory} 
-          />
-        </div>
+            )}
+            <CurrentTags 
+              tags={tagNames}
+              onRemove={handleRemoveTag}
+            />
+            <ExistingTags 
+              itemIds={itemIds} 
+              isUserItem={isUserItem} 
+              isCategory={isCategory} 
+            />
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
