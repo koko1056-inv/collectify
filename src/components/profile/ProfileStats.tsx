@@ -57,50 +57,55 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
   });
 
   return (
-    <div className="flex flex-wrap gap-4 md:gap-4 text-xs md:text-sm text-gray-600">
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" className="h-auto px-1 md:px-0 py-0 font-normal">
-            <span className="font-bold">{profile?.followers_count || 0}</span>{" "}
-            フォロワー
-          </Button>
-        </SheetTrigger>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>フォロワー</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            <FollowList userId={userId} type="followers" />
-          </div>
-        </SheetContent>
-      </Sheet>
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-4 md:gap-4 text-xs md:text-sm text-gray-600">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" className="h-auto px-1 md:px-0 py-0 font-normal">
+              <span className="font-bold">{profile?.followers_count || 0}</span>{" "}
+              フォロワー
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>フォロワー</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6">
+              <FollowList userId={userId} type="followers" />
+            </div>
+          </SheetContent>
+        </Sheet>
 
-      <Sheet>
-        <SheetTrigger asChild>
-          <Button variant="ghost" className="h-auto px-1 md:px-0 py-0 font-normal">
-            <span className="font-bold">{profile?.following_count || 0}</span>{" "}
-            フォロー中
-          </Button>
-        </SheetTrigger>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>フォロー中</SheetTitle>
-          </SheetHeader>
-          <div className="mt-6">
-            <FollowList userId={userId} type="following" />
-          </div>
-        </SheetContent>
-      </Sheet>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" className="h-auto px-1 md:px-0 py-0 font-normal">
+              <span className="font-bold">{profile?.following_count || 0}</span>{" "}
+              フォロー中
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>フォロー中</SheetTitle>
+            </SheetHeader>
+            <div className="mt-6">
+              <FollowList userId={userId} type="following" />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
 
-      <Button variant="ghost" className="h-auto px-1 md:px-0 py-0 font-normal">
-        <span className="font-bold">{collectionCount}</span>{" "}
-        コレクション
-      </Button>
+      <div className="flex flex-wrap gap-4 md:gap-4 text-xs md:text-sm text-gray-600">
+        <Button variant="ghost" className="h-auto px-1 md:px-0 py-0 font-normal">
+          <span className="font-bold">{collectionCount}</span>{" "}
+          コレクション
+        </Button>
 
-      <Button variant="ghost" className="h-auto px-1 md:px-0 py-0 font-normal">
-        <span className="font-bold">{wishlistCount}</span>{" "}
-        ウィッシュリスト
-      </Button>
+        <Button variant="ghost" className="h-auto px-1 md:px-0 py-0 font-normal">
+          <span className="font-bold">{wishlistCount}</span>{" "}
+          ウィッシュリスト
+        </Button>
+      </div>
     </div>
   );
 }
+
