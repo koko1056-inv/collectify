@@ -30,8 +30,8 @@ export function FilterBar({
   onContentChange,
   tags,
 }: FilterBarProps) {
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [contentSearchQuery, setContentSearchQuery] = React.useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [contentSearchQuery, setContentSearchQuery] = useState("");
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
