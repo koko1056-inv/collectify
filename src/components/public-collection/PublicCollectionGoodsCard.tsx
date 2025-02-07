@@ -1,6 +1,8 @@
+
 import { Card, CardContent as UICardContent, CardHeader as UICardHeader } from "@/components/ui/card";
 import { CardHeader } from "../collection/CardHeader";
 import { CardContent } from "../collection/CardContent";
+import { CollectionGoodsCardContent } from "../collection/CollectionGoodsCardContent";
 
 interface PublicCollectionGoodsCardProps {
   title: string;
@@ -26,14 +28,12 @@ export function PublicCollectionGoodsCard({
           className="aspect-square"
         />
       </UICardHeader>
-      <UICardContent className="p-0 pb-1">
-        <CardContent
-          itemId={id}
-          itemTags={[]}
-          memoriesCount={0}
+      <UICardContent className="p-4 space-y-2">
+        <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
+        <CollectionGoodsCardContent
+          id={id}
           isOwner={false}
           onMemoriesClick={() => {}}
-          onShareToggle={() => {}}
         />
       </UICardContent>
     </Card>
