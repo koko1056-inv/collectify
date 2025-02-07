@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,32 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
       
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: collectionCount = 0 } = useQuery({
+    queryKey: ["collection-count", userId],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("user_items")
+        .select("*", { count: 'exact', head: true })
+        .eq("user_id", userId);
+      
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  const { data: wishlistCount = 0 } = useQuery({
+    queryKey: ["wishlist-count", userId],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("wishlists")
+        .select("*", { count: 'exact', head: true })
+        .eq("user_id", userId);
+      
+      if (error) throw error;
+      return count || 0;
     },
   });
 
@@ -64,6 +91,16 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
           </div>
         </SheetContent>
       </Sheet>
+
+      <Button variant="ghost" className="h-auto p-0 font-normal">
+        <span className="font-bold">{collectionCount}</span>{" "}
+        コレクション
+      </Button>
+
+      <Button variant="ghost" className="h-auto p-0 font-normal">
+        <span className="font-bold">{wishlistCount}</span>{" "}
+        ウィッシュリスト
+      </Button>
     </div>
   );
 }
