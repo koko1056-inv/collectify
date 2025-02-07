@@ -1,11 +1,10 @@
-
 import React from "react";
 import { Tag } from "@/types";
 import { TagFilter } from "./TagFilter";
 import { SearchBar } from "./SearchBar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +48,7 @@ export function FilterBar({
     content.name.toLowerCase().includes(contentSearchQuery.toLowerCase())
   );
 
+  // Get top 5 most used content names
   const popularContentNames = contentNames.slice(0, 5);
 
   const getDisplayText = () => {
@@ -76,31 +76,28 @@ export function FilterBar({
           <ChevronDown className="h-3 w-3 opacity-50" />
         </Button>
 
-        <ScrollArea className="w-full">
-          <div className="flex gap-1.5 pb-2 whitespace-nowrap">
+        <div className="flex flex-wrap gap-1.5">
+          <Button
+            key="all"
+            variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
+            size="sm"
+            className="text-xs h-6 px-2"
+            onClick={() => onContentChange("all")}
+          >
+            すべて
+          </Button>
+          {popularContentNames.map((content) => (
             <Button
-              key="all"
-              variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
+              key={content.id}
+              variant={selectedContent === content.name ? "default" : "outline"}
               size="sm"
-              className="text-xs h-6 px-2 shrink-0"
-              onClick={() => onContentChange("all")}
+              className="text-xs h-6 px-2"
+              onClick={() => onContentChange(content.name)}
             >
-              すべて
+              {content.name}
             </Button>
-            {popularContentNames.map((content) => (
-              <Button
-                key={content.id}
-                variant={selectedContent === content.name ? "default" : "outline"}
-                size="sm"
-                className="text-xs h-6 px-2 shrink-0"
-                onClick={() => onContentChange(content.name)}
-              >
-                {content.name}
-              </Button>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+          ))}
+        </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-lg">

@@ -37,7 +37,7 @@ export function PopularTags({ tags, selectedTags, onTagSelect, onClearTags }: Po
             </Button>
           ))}
         </div>
-        <ScrollBar orientation="horizontal" className="h-2" />
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
   );
