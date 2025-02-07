@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { TableName } from "@/types/tag";
 
@@ -10,7 +11,7 @@ export interface Tag {
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tags: Tag;
+  tags: Tag | null;
 }
 
 interface UserItemTag {
@@ -45,8 +46,8 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const payload = isUserItem 
-    ? { tag_id: tagId, user_item_id: itemId } as UserItemTag
-    : { tag_id: tagId, official_item_id: itemId } as OfficialItemTag;
+    ? { tag_id: tagId, user_item_id: itemId }
+    : { tag_id: tagId, official_item_id: itemId };
 
   const { error } = await supabase
     .from(tableName)
