@@ -1,6 +1,7 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tag } from "@/types";
 
 interface PopularTagsProps {
@@ -13,7 +14,7 @@ interface PopularTagsProps {
 export function PopularTags({ tags, selectedTags, onTagSelect, onClearTags }: PopularTagsProps) {
   return (
     <div className="relative w-full">
-      <ScrollArea className="w-full">
+      <ScrollArea className="w-full whitespace-nowrap">
         <div className="flex gap-1.5 pb-2">
           <Button
             key="all"
@@ -36,6 +37,7 @@ export function PopularTags({ tags, selectedTags, onTagSelect, onClearTags }: Po
             </Button>
           ))}
         </div>
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
   );
