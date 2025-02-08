@@ -20,7 +20,7 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: isInCollection = false } = useQuery({
+  const { data: isInCollection = false, refetch: refetchIsInCollection } = useQuery({
     queryKey: ["user-item-exists", id, user?.id],
     queryFn: async () => {
       if (!user) return false;
@@ -54,8 +54,7 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
           filter: `user_id=eq.${user?.id} and official_item_id=eq.${id}`
         },
         async () => {
-          // Invalidate and refetch relevant queries
-          await queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user?.id] });
+          await refetchIsInCollection();
           await queryClient.invalidateQueries({ queryKey: ["user-items", user?.id] });
           await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
         }
@@ -65,7 +64,7 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id, user?.id, queryClient]);
+  }, [id, user?.id, queryClient, refetchIsInCollection]);
 
   const { data: ownersCount = 0 } = useQuery({
     queryKey: ["item-owners-count", id],
@@ -108,6 +107,11 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
 
       // Track the event in Mixpanel
       trackAddToCollection(id, title, user.id);
+
+      // Immediately refetch the queries
+      await refetchIsInCollection();
+      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
 
       toast({
         title: "成功",
