@@ -115,11 +115,11 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
             <DialogTitle>ウィッシュリスト</DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[calc(80vh-8rem)]">
-            <div className="space-y-4 pr-4">
+            <div className="space-y-2 pr-4">
               {isLoading ? (
                 Array(3).fill(0).map((_, i) => (
-                  <div key={i} className="flex gap-4 items-center">
-                    <Skeleton className="h-24 w-24" />
+                  <div key={i} className="flex gap-2 items-center">
+                    <Skeleton className="h-16 w-16" />
                     <div className="space-y-2 flex-1">
                       <Skeleton className="h-4 w-3/4" />
                       <Skeleton className="h-4 w-1/4" />
@@ -127,14 +127,14 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
                   </div>
                 ))
               ) : wishlistItems?.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">
+                <p className="text-center text-gray-500 py-4">
                   まだウィッシュリストに登録されていません
                 </p>
               ) : (
                 wishlistItems?.map((item) => (
                   <div 
                     key={item.id} 
-                    className="flex gap-4 items-center border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="flex gap-2 items-center border rounded-lg p-2 cursor-pointer hover:bg-gray-50 transition-colors"
                     onClick={() => setSelectedItem({
                       id: item.official_item_id,
                       title: item.official_items.title,
@@ -147,20 +147,21 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
                     <img
                       src={item.official_items.image}
                       alt={item.official_items.title}
-                      className="h-24 w-24 object-cover rounded-md"
+                      className="h-16 w-16 object-cover rounded-md"
                     />
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-medium">{item.official_items.title}</h3>
+                          <h3 className="font-medium text-sm">{item.official_items.title}</h3>
                           {item.note && (
-                            <p className="text-sm text-gray-500 mt-2">メモ: {item.note}</p>
+                            <p className="text-xs text-gray-500 mt-1">メモ: {item.note}</p>
                           )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-8 w-8"
                             onClick={(e) => {
                               e.stopPropagation();
                               setEditingWishlist({
@@ -171,17 +172,18 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
                               });
                             }}
                           >
-                            <Pencil className="h-4 w-4" />
+                            <Pencil className="h-3 w-3" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
+                            className="h-8 w-8"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleAddToCollection(item);
                             }}
                           >
-                            <CheckCircle className="h-4 w-4" />
+                            <CheckCircle className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
