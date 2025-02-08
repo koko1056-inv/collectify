@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,8 +29,7 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
         .from("user_items")
         .select("id")
         .eq("user_id", user.id)
-        .eq("title", title)
-        .eq("image", image)
+        .eq("official_item_id", id)
         .maybeSingle();
       
       if (error) {
@@ -43,13 +43,12 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
   });
 
   const { data: ownersCount = 0 } = useQuery({
-    queryKey: ["item-owners-count", title, image],
+    queryKey: ["item-owners-count", id],
     queryFn: async () => {
       const { count, error } = await supabase
         .from("user_items")
         .select("*", { count: 'exact', head: true })
-        .eq("title", title)
-        .eq("image", image);
+        .eq("official_item_id", id);
       
       if (error) {
         console.error("Error getting owners count:", error);
@@ -77,14 +76,14 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
         release_date: new Date().toISOString().split('T')[0],
         user_id: user.id,
         prize: "0",
-        official_link: id,
+        official_item_id: id,
       });
 
       if (error) throw error;
 
       await queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user.id] });
       await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
-      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", title, image] });
+      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
 
       // Track the event in Mixpanel
       trackAddToCollection(id, title, user.id);

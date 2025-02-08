@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import { ShoppingBasket, Users } from "lucide-react";
@@ -32,13 +33,12 @@ export function OfficialGoodsCardFooter({
   const [realtimeWishlistCount, setRealtimeWishlistCount] = useState(0);
 
   const { data: ownersCount = 0 } = useQuery({
-    queryKey: ["item-owners-count", itemTitle, itemImage],
+    queryKey: ["item-owners-count", itemId],
     queryFn: async () => {
       const { count, error } = await supabase
         .from("user_items")
         .select("*", { count: 'exact', head: true })
-        .eq("title", itemTitle)
-        .eq("image", itemImage);
+        .eq("official_item_id", itemId);
       
       if (error) {
         console.error("Error getting owners count:", error);
