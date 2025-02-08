@@ -1,18 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { TableName } from "@/types/tag";
-
-export interface Tag {
-  id: string;
-  name: string;
-  created_at?: string;
-}
-
-export interface ItemTag {
-  id: string;
-  tag_id: string;
-  tags?: Tag;
-}
+import { TableName, Tag, ItemTag } from "@/types/tag";
 
 interface UserItemTag {
   tag_id: string;

@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TagInputField } from "./TagInputField";
 import { ExistingTags } from "./ExistingTags";
@@ -37,8 +38,8 @@ export function TagManageModal({
 
   const { data: currentTags = [] } = useQuery<ItemTag[]>({
     queryKey: ["current-tags", itemIds, isUserItem],
-    queryFn: async () => {
-      if (!itemIds.length) return [];
+    queryFn: () => {
+      if (!itemIds.length) return Promise.resolve([]);
       return getTagsForItem(itemIds[0], isUserItem);
     },
   });
