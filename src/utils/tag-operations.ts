@@ -77,11 +77,7 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
     // Delete related records first
     const tables: TableName[] = ["user_item_likes", "item_memories", "user_item_tags"];
     for (const table of tables) {
-      const { error } = await supabase
-        .from(table)
-        .delete()
-        .eq("user_item_id", itemId);
-      
+      const { error } = await deleteRelatedRecords(table, itemId);
       if (error) throw error;
     }
 
