@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { TableName } from "@/types/tag";
 
@@ -10,7 +11,7 @@ export interface Tag {
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tags: Tag;
+  tags?: Tag;
 }
 
 interface UserItemTag {
@@ -30,7 +31,8 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
   const { data, error } = await supabase
     .from(tableName)
     .select(`
-      *,
+      id,
+      tag_id,
       tags (
         id,
         name

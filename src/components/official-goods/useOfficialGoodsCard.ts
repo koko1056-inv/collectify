@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trackAddToCollection } from "@/utils/analytics";
 
 interface UseOfficialGoodsCardProps {
@@ -41,6 +41,31 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     },
     enabled: !!user,
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('user-items-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_items',
+          filter: `user_id=eq.${user?.id} and official_item_id=eq.${id}`
+        },
+        async () => {
+          // Invalidate and refetch relevant queries
+          await queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user?.id] });
+          await queryClient.invalidateQueries({ queryKey: ["user-items", user?.id] });
+          await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, user?.id, queryClient]);
 
   const { data: ownersCount = 0 } = useQuery({
     queryKey: ["item-owners-count", id],
@@ -80,10 +105,6 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       });
 
       if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user.id] });
-      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
-      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
 
       // Track the event in Mixpanel
       trackAddToCollection(id, title, user.id);
