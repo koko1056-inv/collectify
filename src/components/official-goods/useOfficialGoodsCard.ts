@@ -42,6 +42,23 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     enabled: !!user,
   });
 
+  const { data: ownersCount = 0 } = useQuery({
+    queryKey: ["item-owners-count", id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("user_items")
+        .select("*", { count: 'exact', head: true })
+        .eq("official_item_id", id);
+      
+      if (error) {
+        console.error("Error getting owners count:", error);
+        return 0;
+      }
+      
+      return count || 0;
+    },
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel('user-items-changes')
@@ -65,23 +82,6 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       supabase.removeChannel(channel);
     };
   }, [id, user?.id, queryClient, refetchIsInCollection]);
-
-  const { data: ownersCount = 0 } = useQuery({
-    queryKey: ["item-owners-count", id],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("user_items")
-        .select("*", { count: 'exact', head: true })
-        .eq("official_item_id", id);
-      
-      if (error) {
-        console.error("Error getting owners count:", error);
-        return 0;
-      }
-      
-      return count || 0;
-    },
-  });
 
   const handleAddToCollection = async () => {
     if (!user) {

@@ -60,13 +60,32 @@ export async function removeTagFromItem(tagId: string, itemId: string, isUserIte
 
 export async function deleteUserItem(itemId: string): Promise<{ error: Error | null }> {
   try {
-    const { error } = await supabase
+    // First, get the official_item_id before deleting
+    const { data: userItem, error: fetchError } = await supabase
+      .from("user_items")
+      .select("official_item_id")
+      .eq("id", itemId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Delete related records first
+    const tables: TableName[] = ["user_item_likes", "item_memories", "user_item_tags"];
+    for (const table of tables) {
+      const { error } = await deleteRelatedRecords(table, itemId);
+      if (error) throw error;
+    }
+
+    // Delete the user item
+    const { error: deleteError } = await supabase
       .from("user_items")
       .delete()
       .eq("id", itemId);
-    
-    if (error) throw error;
-    return { error: null };
+
+    if (deleteError) throw deleteError;
+
+    // Return the official_item_id for query invalidation
+    return { error: null, officialItemId: userItem?.official_item_id };
   } catch (error) {
     return { error: error as Error };
   }
