@@ -54,6 +54,38 @@ export type Database = {
         }
         Relationships: []
       }
+      content_reactions: {
+        Row: {
+          content_id: string | null
+          created_at: string
+          id: string
+          reaction_type: string
+          user_id: string | null
+        }
+        Insert: {
+          content_id?: string | null
+          created_at?: string
+          id?: string
+          reaction_type: string
+          user_id?: string | null
+        }
+        Update: {
+          content_id?: string | null
+          created_at?: string
+          id?: string
+          reaction_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_reactions_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "recommended_content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_participants: {
         Row: {
           created_at: string
@@ -480,6 +512,60 @@ export type Database = {
           interests?: string[] | null
           is_admin?: boolean | null
           username?: string
+        }
+        Relationships: []
+      }
+      recommended_content: {
+        Row: {
+          category: string
+          channel_title: string | null
+          content_url: string
+          created_at: string
+          id: string
+          image_url: string
+          is_trending: boolean | null
+          published_at: string | null
+          source_type: string
+          source_url: string | null
+          summary: string
+          theme: string | null
+          title: string
+          updated_at: string | null
+          video_id: string | null
+        }
+        Insert: {
+          category: string
+          channel_title?: string | null
+          content_url: string
+          created_at?: string
+          id?: string
+          image_url: string
+          is_trending?: boolean | null
+          published_at?: string | null
+          source_type?: string
+          source_url?: string | null
+          summary: string
+          theme?: string | null
+          title: string
+          updated_at?: string | null
+          video_id?: string | null
+        }
+        Update: {
+          category?: string
+          channel_title?: string | null
+          content_url?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_trending?: boolean | null
+          published_at?: string | null
+          source_type?: string
+          source_url?: string | null
+          summary?: string
+          theme?: string | null
+          title?: string
+          updated_at?: string | null
+          video_id?: string | null
         }
         Relationships: []
       }

@@ -1,3 +1,4 @@
+
 import { CardContent as UICardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,7 +38,7 @@ export function CollectionGoodsCardContent({
 
   return (
     <UICardContent className="px-3 py-1 space-y-0.5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-center">
         <div className="flex items-center gap-2">
           <LikeButton itemId={id} />
           {itemMemories.length > 0 && (
