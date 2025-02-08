@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,7 @@ import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
 import { ItemDetailsModal } from "./ItemDetailsModal";
 import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface EditingWishlist {
   id: string;
@@ -108,85 +110,87 @@ export function WishlistViewModal({ isOpen, onClose }: { isOpen: boolean; onClos
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>ウィッシュリスト</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            {isLoading ? (
-              Array(3).fill(0).map((_, i) => (
-                <div key={i} className="flex gap-4 items-center">
-                  <Skeleton className="h-24 w-24" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/4" />
+          <ScrollArea className="h-[calc(80vh-8rem)]">
+            <div className="space-y-4 pr-4">
+              {isLoading ? (
+                Array(3).fill(0).map((_, i) => (
+                  <div key={i} className="flex gap-4 items-center">
+                    <Skeleton className="h-24 w-24" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/4" />
+                    </div>
                   </div>
-                </div>
-              ))
-            ) : wishlistItems?.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
-                まだウィッシュリストに登録されていません
-              </p>
-            ) : (
-              wishlistItems?.map((item) => (
-                <div 
-                  key={item.id} 
-                  className="flex gap-4 items-center border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => setSelectedItem({
-                    id: item.official_item_id,
-                    title: item.official_items.title,
-                    image: item.official_items.image,
-                    price: item.official_items.price,
-                    releaseDate: item.official_items.release_date,
-                    description: item.official_items.description,
-                  })}
-                >
-                  <img
-                    src={item.official_items.image}
-                    alt={item.official_items.title}
-                    className="h-24 w-24 object-cover rounded-md"
-                  />
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{item.official_items.title}</h3>
-                        {item.note && (
-                          <p className="text-sm text-gray-500 mt-2">メモ: {item.note}</p>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingWishlist({
-                              id: item.id,
-                              title: item.official_items.title,
-                              officialItemId: item.official_item_id,
-                              note: item.note,
-                            });
-                          }}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCollection(item);
-                          }}
-                        >
-                          <CheckCircle className="h-4 w-4" />
-                        </Button>
+                ))
+              ) : wishlistItems?.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">
+                  まだウィッシュリストに登録されていません
+                </p>
+              ) : (
+                wishlistItems?.map((item) => (
+                  <div 
+                    key={item.id} 
+                    className="flex gap-4 items-center border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => setSelectedItem({
+                      id: item.official_item_id,
+                      title: item.official_items.title,
+                      image: item.official_items.image,
+                      price: item.official_items.price,
+                      releaseDate: item.official_items.release_date,
+                      description: item.official_items.description,
+                    })}
+                  >
+                    <img
+                      src={item.official_items.image}
+                      alt={item.official_items.title}
+                      className="h-24 w-24 object-cover rounded-md"
+                    />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{item.official_items.title}</h3>
+                          {item.note && (
+                            <p className="text-sm text-gray-500 mt-2">メモ: {item.note}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingWishlist({
+                                id: item.id,
+                                title: item.official_items.title,
+                                officialItemId: item.official_item_id,
+                                note: item.note,
+                              });
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCollection(item);
+                            }}
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
