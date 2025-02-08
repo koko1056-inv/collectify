@@ -1,8 +1,7 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { deleteUserItem, deleteRelatedRecords } from "@/utils/tag-operations";
-import { TableName } from "@/types/tag";
+import { deleteUserItem } from "@/utils/tag-operations";
 import { useAuth } from "@/contexts/AuthContext";
 
 export const useCardEventHandlers = (itemId: string) => {

@@ -12,6 +12,11 @@ interface OfficialItemTag {
   official_item_id: string;
 }
 
+interface DeleteUserItemResult {
+  error: Error | null;
+  officialItemId?: string;
+}
+
 export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
@@ -58,7 +63,7 @@ export async function removeTagFromItem(tagId: string, itemId: string, isUserIte
   if (error) throw error;
 }
 
-export async function deleteUserItem(itemId: string): Promise<{ error: Error | null }> {
+export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResult> {
   try {
     // First, get the official_item_id before deleting
     const { data: userItem, error: fetchError } = await supabase
