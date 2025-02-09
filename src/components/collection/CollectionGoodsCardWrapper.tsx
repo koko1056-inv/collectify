@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
@@ -108,6 +109,9 @@ export function CollectionGoodsCardWrapper({
         itemId={id}
         isEditable={isOwner}
       />
+      <div className="px-3 py-2">
+        <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
+      </div>
       <CollectionGoodsCardContent
         id={id}
         isOwner={isOwner}
