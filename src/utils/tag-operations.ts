@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { TableName } from "@/types/tag";
 
@@ -32,22 +31,20 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
-  const query = supabase
+  const { data, error } = await supabase
     .from(tableName)
     .select(`
       id,
       tag_id,
-      tags (
+      tags!inner (
         id,
         name
       )
     `)
     .eq(idColumn, itemId);
 
-  const { data, error } = await query;
-
   if (error) throw error;
-  return (data || []) as ItemTag[];
+  return data || [];
 }
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
