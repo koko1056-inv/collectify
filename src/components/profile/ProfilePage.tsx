@@ -1,3 +1,4 @@
+
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProfileCard } from "./ProfileCard";
@@ -14,8 +15,8 @@ export function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar />
-      <main className={`container mx-auto px-4 ${isMobile ? 'pt-16' : 'pt-24'}`}>
-        <div className="max-w-3xl mx-auto space-y-6">
+      <main className={`container mx-auto ${isMobile ? 'px-0 pt-16' : 'px-4 pt-24'}`}>
+        <div className={`${isMobile ? '' : 'max-w-3xl mx-auto'} space-y-6`}>
           <ProfileCard 
             onShare={() => setIsShareModalOpen(true)}
             setUsername={setUsername}

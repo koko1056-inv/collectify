@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,7 @@ import { ProfileBio } from "./ProfileBio";
 import { ProfileFavorites } from "./ProfileFavorites";
 import { ProfileImageUpload } from "./ProfileImageUpload";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -25,6 +27,7 @@ export function ProfileCard({ onShare, setUsername }: ProfileCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isFavoritesEditing, setIsFavoritesEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!user) return;
@@ -137,7 +140,7 @@ export function ProfileCard({ onShare, setUsername }: ProfileCardProps) {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
+    <div className={`${isMobile ? 'bg-white' : 'bg-white p-6 rounded-lg shadow'}`}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16">
