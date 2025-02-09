@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { TableName, Tag, ItemTag } from "@/types/tag";
 
 interface UserItemTag {
   tag_id: string;
@@ -16,6 +15,15 @@ interface DeleteUserItemResult {
   error: Error | null;
   officialItemId?: string;
 }
+
+export type ItemTag = {
+  id: string;
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+  } | null;
+};
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
@@ -75,7 +83,7 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
     if (fetchError) throw fetchError;
 
     // Delete related records first
-    const tables: TableName[] = ["user_item_likes", "item_memories", "user_item_tags"];
+    const tables = ["user_item_likes", "item_memories", "user_item_tags"] as const;
     for (const table of tables) {
       const { error } = await deleteRelatedRecords(table, itemId);
       if (error) throw error;
@@ -97,7 +105,7 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 }
 
 export async function deleteRelatedRecords(
-  table: TableName,
+  table: "user_item_likes" | "item_memories" | "user_item_tags",
   itemId: string
 ): Promise<{ error: Error | null }> {
   try {
