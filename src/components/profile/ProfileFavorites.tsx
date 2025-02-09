@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { PublicCollectionGoodsCard } from "@/components/public-collection/PublicCollectionGoodsCard";
 import { useState } from "react";
@@ -71,7 +72,7 @@ export function ProfileFavorites({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">お気に入りコレクション</h2>
+        <h2 className="text-lg font-semibold">コレクション一覧</h2>
         {isEditing && (
           <div className="flex gap-2">
             <Button
