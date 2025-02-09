@@ -41,20 +41,20 @@ export function CollectionGoodsCardContent({
       <div className="flex items-center justify-center">
         <div className="flex items-center gap-2">
           <LikeButton itemId={id} />
-          {itemMemories.length > 0 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onMemoriesClick();
-              }}
-              className="flex flex-col items-center gap-0.5"
-            >
-              <div className="h-7 w-7 sm:h-9 sm:w-9 p-1.5 text-purple-500">
-                <BookMarked className="h-full w-full" />
-              </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onMemoriesClick();
+            }}
+            className="flex flex-col items-center gap-0.5"
+          >
+            <div className={`h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${itemMemories.length > 0 ? 'text-purple-500' : 'text-gray-400'}`}>
+              <BookMarked className="h-full w-full" />
+            </div>
+            {itemMemories.length > 0 && (
               <span className="text-[10px] sm:text-xs text-purple-500 -mt-1">{itemMemories.length}</span>
-            </button>
-          )}
+            )}
+          </button>
         </div>
       </div>
     </UICardContent>
