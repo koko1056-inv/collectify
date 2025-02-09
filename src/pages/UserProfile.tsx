@@ -13,6 +13,7 @@ import { ProfileBio } from "@/components/profile/ProfileBio";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { Avatar } from "@/components/ui/avatar";
+import { ProfileCollection } from "@/components/profile/ProfileCollection";
 
 export default function UserProfile() {
   const { userId } = useParams();
@@ -110,6 +111,8 @@ export default function UserProfile() {
               />
             </div>
           </div>
+
+          <ProfileCollection userId={userId} />
         </div>
       </main>
 
