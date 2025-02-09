@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { TableName, Tag, ItemTag } from "@/types/tag";
+import { TableName } from "@/types/tag";
 
 interface UserItemTag {
   tag_id: string;
@@ -15,6 +15,17 @@ interface OfficialItemTag {
 interface DeleteUserItemResult {
   error: Error | null;
   officialItemId?: string;
+}
+
+interface Tag {
+  id: string;
+  name: string;
+}
+
+interface ItemTag {
+  id: string;
+  tag_id: string;
+  tags: Tag;
 }
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {

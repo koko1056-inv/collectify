@@ -146,6 +146,7 @@ export default function UserProfile() {
                 isEditing={false}
                 saving={false}
                 onBioChange={() => {}}
+                onEdit={() => {}}
                 onCancel={() => {}}
                 onSubmit={() => {}}
                 isOwnProfile={false}
