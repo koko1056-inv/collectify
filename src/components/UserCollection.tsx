@@ -6,9 +6,6 @@ import { Skeleton } from "./ui/skeleton";
 import { useState, useMemo } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { TagManageModal } from "./tag/TagManageModal";
-import { ItemMemoriesModal } from "./ItemMemoriesModal";
-import { SelectionModeControls } from "./collection/SelectionModeControls";
 import { CollectionGrid } from "./collection/CollectionGrid";
 
 interface UserCollectionProps {
@@ -19,11 +16,6 @@ interface UserCollectionProps {
 export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
-  const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [selectionAction, setSelectionAction] = useState<'tags' | 'memories' | null>(null);
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
 
@@ -80,56 +72,6 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     }
   };
 
-  const handleSelectItem = (itemId: string) => {
-    setSelectedItems(prev => {
-      if (prev.includes(itemId)) {
-        return prev.filter(id => id !== itemId);
-      }
-      return [...prev, itemId];
-    });
-  };
-
-  const handleSelectAll = () => {
-    if (selectedItems.length === filteredItems.length) {
-      setSelectedItems([]);
-    } else {
-      setSelectedItems(filteredItems.map(item => item.id));
-    }
-  };
-
-  const startSelection = (action: 'tags' | 'memories') => {
-    setIsSelectionMode(true);
-    setSelectionAction(action);
-    setSelectedItems([]);
-  };
-
-  const handleActionComplete = () => {
-    setIsSelectionMode(false);
-    setSelectionAction(null);
-    setSelectedItems([]);
-    if (selectionAction === 'tags') {
-      setIsTagModalOpen(false);
-    } else if (selectionAction === 'memories') {
-      setIsMemoriesModalOpen(false);
-    }
-  };
-
-  const handleConfirmSelection = () => {
-    if (selectedItems.length === 0) return;
-    
-    if (selectionAction === 'tags') {
-      setIsTagModalOpen(true);
-    } else if (selectionAction === 'memories') {
-      const selectedItemTitles = selectedItems
-        .map(id => items.find(item => item.id === id)?.title)
-        .filter((title): title is string => title !== undefined);
-
-      if (selectedItemTitles.length > 0) {
-        setIsMemoriesModalOpen(true);
-      }
-    }
-  };
-
   if (!effectiveUserId) {
     return (
       <div className="text-center py-8">
@@ -170,49 +112,14 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
 
   return (
     <div className="space-y-4">
-      {isSelectionMode && (
-        <SelectionModeControls
-          selectedItems={selectedItems}
-          totalItems={filteredItems.length}
-          onSelectAll={handleSelectAll}
-          onConfirm={handleConfirmSelection}
-          onCancel={() => {
-            setIsSelectionMode(false);
-            setSelectionAction(null);
-            setSelectedItems([]);
-          }}
-        />
-      )}
-
       <CollectionGrid
         items={filteredItems}
         isCompact={isCompact}
-        isSelectionMode={isSelectionMode}
-        selectedItems={selectedItems}
-        onSelectItem={handleSelectItem}
+        isSelectionMode={false}
+        selectedItems={[]}
+        onSelectItem={() => {}}
         onDragEnd={handleDragEnd}
       />
-
-      {isTagModalOpen && selectedItems.length > 0 && (
-        <TagManageModal
-          isOpen={isTagModalOpen}
-          onClose={handleActionComplete}
-          itemIds={selectedItems}
-          isUserItem={true}
-        />
-      )}
-      {isMemoriesModalOpen && selectedItems.length > 0 && (
-        <ItemMemoriesModal
-          isOpen={isMemoriesModalOpen}
-          onClose={handleActionComplete}
-          itemIds={selectedItems}
-          itemTitles={selectedItems
-            .map(id => items.find(item => item.id === id)?.title)
-            .filter((title): title is string => title !== undefined)
-          }
-          userId={userId}
-        />
-      )}
     </div>
   );
 }
