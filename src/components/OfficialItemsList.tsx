@@ -1,3 +1,4 @@
+
 import { OfficialItem } from "@/types";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -34,26 +35,35 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6 bg-white rounded-lg p-4 sm:p-6 shadow-sm">
       <OfficialItemsHeader sortBy={sortBy} onSortChange={setSortBy} />
-      <OfficialItemsGrid items={currentItems} />
+      
+      <div className="bg-gray-50 rounded-lg p-2 sm:p-4">
+        <OfficialItemsGrid items={currentItems} />
+      </div>
       
       {totalPages > 1 && (
-        <Pagination className="mt-4">
-          <PaginationContent>
-            {pageNumbers.map((pageNum) => (
-              <PaginationItem key={pageNum}>
-                <PaginationLink
-                  onClick={() => setCurrentPage(pageNum)}
-                  isActive={currentPage === pageNum}
-                  className={`cursor-pointer ${currentPage === pageNum ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}`}
-                >
-                  {pageNum}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-          </PaginationContent>
-        </Pagination>
+        <div className="flex justify-center mt-6">
+          <Pagination>
+            <PaginationContent>
+              {pageNumbers.map((pageNum) => (
+                <PaginationItem key={pageNum}>
+                  <PaginationLink
+                    onClick={() => setCurrentPage(pageNum)}
+                    isActive={currentPage === pageNum}
+                    className={`cursor-pointer ${
+                      currentPage === pageNum 
+                        ? 'bg-gray-900 text-white hover:bg-gray-800' 
+                        : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    {pageNum}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
     </div>
   );
