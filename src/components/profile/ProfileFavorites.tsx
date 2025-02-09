@@ -69,7 +69,7 @@ export function ProfileFavorites({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-1">
         <h2 className="text-lg font-semibold">コレクション一覧</h2>
         {isEditing && (
           <div className="flex gap-2">
