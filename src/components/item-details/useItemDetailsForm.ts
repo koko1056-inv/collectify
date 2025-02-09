@@ -37,9 +37,9 @@ export function useItemDetailsForm({
   const [editedData, setEditedData] = useState({
     title,
     price,
-    purchaseDate,
-    purchasePrice,
-    releaseDate,
+    purchase_date: purchaseDate,
+    purchase_price: purchasePrice,
+    release_date: releaseDate,
     description,
     quantity,
     content_name: null,
@@ -50,9 +50,9 @@ export function useItemDetailsForm({
     setEditedData({
       title,
       price,
-      purchaseDate,
-      purchasePrice,
-      releaseDate,
+      purchase_date: purchaseDate,
+      purchase_price: purchasePrice,
+      release_date: releaseDate,
       description,
       quantity,
       content_name: null,
@@ -68,14 +68,14 @@ export function useItemDetailsForm({
       const updateData = {
         title: editedData.title,
         [isUserItem ? "prize" : "price"]: editedData.price,
-        releaseDate: editedData.releaseDate,
+        release_date: editedData.release_date,
         quantity: editedData.quantity,
       };
 
       if (isUserItem) {
         Object.assign(updateData, {
-          purchase_date: editedData.purchaseDate || null,
-          purchase_price: editedData.purchasePrice || null,
+          purchase_date: editedData.purchase_date || null,
+          purchase_price: editedData.purchase_price || null,
         });
       } else {
         Object.assign(updateData, { 

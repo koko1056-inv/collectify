@@ -5,10 +5,10 @@ interface ItemPriceAndDateFormProps {
   isEditing: boolean;
   editedData: {
     price: string;
-    purchaseDate?: string;
-    purchasePrice?: string;
+    purchase_date?: string;
+    purchase_price?: string;
     quantity: number;
-    releaseDate?: string;
+    release_date?: string;
   };
   setEditedData: (data: any) => void;
   isUserItem?: boolean;
@@ -28,14 +28,14 @@ export function ItemPriceAndDateForm({
           {isEditing ? (
             <Input
               type="date"
-              value={editedData.releaseDate}
+              value={editedData.release_date}
               onChange={(e) =>
-                setEditedData((prev: any) => ({ ...prev, releaseDate: e.target.value }))
+                setEditedData((prev: any) => ({ ...prev, release_date: e.target.value }))
               }
             />
           ) : (
             <p className="text-sm text-gray-600">
-              {editedData.releaseDate || "未設定"}
+              {editedData.release_date || "未設定"}
             </p>
           )}
         </div>
@@ -65,14 +65,14 @@ export function ItemPriceAndDateForm({
         {isEditing ? (
           <Input
             type="date"
-            value={editedData.purchaseDate || ""}
+            value={editedData.purchase_date || ""}
             onChange={(e) =>
-              setEditedData((prev: any) => ({ ...prev, purchaseDate: e.target.value }))
+              setEditedData((prev: any) => ({ ...prev, purchase_date: e.target.value }))
             }
           />
         ) : (
           <p className="text-sm text-gray-600">
-            {editedData.purchaseDate || "未設定"}
+            {editedData.purchase_date || "未設定"}
           </p>
         )}
       </div>
@@ -81,15 +81,15 @@ export function ItemPriceAndDateForm({
         {isEditing ? (
           <Input
             type="text"
-            value={editedData.purchasePrice || ""}
+            value={editedData.purchase_price || ""}
             onChange={(e) =>
-              setEditedData((prev: any) => ({ ...prev, purchasePrice: e.target.value }))
+              setEditedData((prev: any) => ({ ...prev, purchase_price: e.target.value }))
             }
             placeholder="¥0"
           />
         ) : (
           <p className="text-sm text-gray-600">
-            {editedData.purchasePrice ? `¥${editedData.purchasePrice}` : "未設定"}
+            {editedData.purchase_price ? `¥${editedData.purchase_price}` : "未設定"}
           </p>
         )}
       </div>
