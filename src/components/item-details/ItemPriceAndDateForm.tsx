@@ -5,9 +5,10 @@ interface ItemPriceAndDateFormProps {
   isEditing: boolean;
   editedData: {
     price: string;
-    purchaseDate: string;
-    purchasePrice: string;
+    purchaseDate?: string;
+    purchasePrice?: string;
     quantity: number;
+    releaseDate?: string;
   };
   setEditedData: (data: any) => void;
   isUserItem?: boolean;
@@ -29,7 +30,7 @@ export function ItemPriceAndDateForm({
               type="date"
               value={editedData.releaseDate}
               onChange={(e) =>
-                setEditedData({ ...editedData, releaseDate: e.target.value })
+                setEditedData((prev: any) => ({ ...prev, releaseDate: e.target.value }))
               }
             />
           ) : (
@@ -51,7 +52,7 @@ export function ItemPriceAndDateForm({
             type="date"
             value={editedData.purchaseDate || ""}
             onChange={(e) =>
-              setEditedData({ ...editedData, purchaseDate: e.target.value })
+              setEditedData((prev: any) => ({ ...prev, purchaseDate: e.target.value }))
             }
           />
         ) : (
@@ -67,7 +68,7 @@ export function ItemPriceAndDateForm({
             type="text"
             value={editedData.purchasePrice || ""}
             onChange={(e) =>
-              setEditedData({ ...editedData, purchasePrice: e.target.value })
+              setEditedData((prev: any) => ({ ...prev, purchasePrice: e.target.value }))
             }
             placeholder="¥0"
           />
@@ -85,7 +86,7 @@ export function ItemPriceAndDateForm({
             min="1"
             value={editedData.quantity}
             onChange={(e) =>
-              setEditedData({ ...editedData, quantity: parseInt(e.target.value) || 1 })
+              setEditedData((prev: any) => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))
             }
           />
         ) : (

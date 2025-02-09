@@ -1,3 +1,4 @@
+
 import { ItemPriceAndDateForm } from "./ItemPriceAndDateForm";
 import { ItemDescriptionField } from "./ItemDescriptionField";
 
@@ -7,6 +8,9 @@ interface ItemDetailsFormProps {
     price: string;
     releaseDate: string;
     description: string;
+    purchaseDate?: string;
+    purchasePrice?: string;
+    quantity?: number;
   };
   setEditedData: (data: any) => void;
   isUserItem?: boolean;
@@ -25,11 +29,23 @@ export function ItemDetailsForm({
     });
   };
 
+  const priceAndDateData = isUserItem ? {
+    price: editedData.price,
+    purchaseDate: editedData.purchaseDate || "",
+    purchasePrice: editedData.purchasePrice || "",
+    quantity: editedData.quantity || 1
+  } : {
+    price: editedData.price,
+    releaseDate: editedData.releaseDate,
+    description: editedData.description,
+    quantity: editedData.quantity || 1
+  };
+
   return (
     <div className="space-y-4">
       <ItemPriceAndDateForm
         isEditing={isEditing}
-        editedData={editedData}
+        editedData={priceAndDateData}
         setEditedData={setEditedData}
         isUserItem={isUserItem}
       />
