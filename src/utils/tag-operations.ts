@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { TableName } from "@/types/tag";
 
@@ -37,7 +36,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .select(`
       id,
       tag_id,
-      tags (
+      tags!inner (
         id,
         name
       )
@@ -45,7 +44,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return (data || []) as ItemTag[];
+  return data || [];
 }
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
@@ -76,6 +75,7 @@ export async function removeTagFromItem(tagId: string, itemId: string, isUserIte
 
 export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResult> {
   try {
+    // First, get the official_item_id before deleting
     const { data: userItem, error: fetchError } = await supabase
       .from("user_items")
       .select("official_item_id")
@@ -84,12 +84,14 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     if (fetchError) throw fetchError;
 
+    // Delete related records first
     const tables: TableName[] = ["user_item_likes", "item_memories", "user_item_tags"];
     for (const table of tables) {
       const { error } = await deleteRelatedRecords(table, itemId);
       if (error) throw error;
     }
 
+    // Delete the user item
     const { error: deleteError } = await supabase
       .from("user_items")
       .delete()
@@ -97,6 +99,7 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     if (deleteError) throw deleteError;
 
+    // Return the official_item_id for query invalidation
     return { error: null, officialItemId: userItem?.official_item_id };
   } catch (error) {
     return { error: error as Error };
