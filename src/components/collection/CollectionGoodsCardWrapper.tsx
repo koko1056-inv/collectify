@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
@@ -22,8 +21,6 @@ interface CollectionGoodsCardWrapperProps {
   releaseDate?: string;
   prize?: string;
   quantity?: number;
-  purchaseDate?: string;
-  purchasePrice?: string;
   isCompact?: boolean;
 }
 
@@ -35,8 +32,6 @@ export function CollectionGoodsCardWrapper({
   releaseDate,
   prize,
   quantity = 1,
-  purchaseDate,
-  purchasePrice,
   isCompact = false,
 }: CollectionGoodsCardWrapperProps) {
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
@@ -83,8 +78,6 @@ export function CollectionGoodsCardWrapper({
           releaseDate={releaseDate}
           prize={prize}
           quantity={quantity}
-          purchaseDate={purchaseDate}
-          purchasePrice={purchasePrice}
           isMemoriesModalOpen={isMemoriesModalOpen}
           isTagManageModalOpen={isTagManageModalOpen}
           isDeleteDialogOpen={isDeleteDialogOpen}
@@ -144,8 +137,6 @@ export function CollectionGoodsCardWrapper({
         releaseDate={releaseDate}
         prize={prize}
         quantity={quantity}
-        purchaseDate={purchaseDate}
-        purchasePrice={purchasePrice}
         isMemoriesModalOpen={isMemoriesModalOpen}
         isTagManageModalOpen={isTagManageModalOpen}
         isDeleteDialogOpen={isDeleteDialogOpen}

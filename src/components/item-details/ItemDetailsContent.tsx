@@ -1,4 +1,3 @@
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { TagInput } from "@/components/TagInput";
@@ -11,8 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
-import { ItemPriceAndDateForm } from "./ItemPriceAndDateForm";
-import { ItemDetailsForm } from "./ItemDetailsForm";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -65,6 +62,61 @@ export function ItemDetailsContent({
     setEditedData({ ...editedData, image: newImageUrl });
   };
 
+  const { data: contentNames = [] } = useQuery({
+    queryKey: ["content-names"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("content_names")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const addContentMutation = async (name: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("content_names")
+        .insert([{ 
+          name, 
+          type: "anime"
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ["content-names"] });
+      setEditedData({ ...editedData, content_name: data.name });
+      setIsAddingNewContent(false);
+      setNewContentName("");
+      
+      toast({
+        title: "コンテンツを追加しました",
+        description: `${data.name}を追加しました`,
+      });
+    } catch (error) {
+      console.error("Error adding content:", error);
+      toast({
+        title: "エラー",
+        description: "コンテンツの追加に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleContentChange = (value: string) => {
+    if (value === "other") {
+      setIsAddingNewContent(true);
+      setEditedData({ ...editedData, content_name: null });
+    } else if (value === "none") {
+      setEditedData({ ...editedData, content_name: null });
+    } else {
+      setEditedData({ ...editedData, content_name: value });
+    }
+  };
+
   const selectedTags = tags
     .filter((tag): tag is { tags: { id: string; name: string; } } => 
       tag.tags !== null
@@ -85,45 +137,83 @@ export function ItemDetailsContent({
           onImageUpdate={handleImageUpdate}
         />
 
-        {isUserItem && (
-          <ItemDetailsForm
-            isEditing={isEditing}
-            editedData={editedData}
-            setEditedData={setEditedData}
-            isUserItem={true}
-          />
+        {!isUserItem && (
+          <div className="space-y-2">
+            {!isEditing && contentName && (
+              <div className="text-sm">
+                <span className="font-medium">コンテンツ: </span>
+                <span>{contentName}</span>
+              </div>
+            )}
+            {!isEditing && creatorProfile && (
+              <div className="text-sm">
+                <span className="font-medium">グッズ登録者: </span>
+                <span>{creatorProfile.display_name || creatorProfile.username}</span>
+              </div>
+            )}
+            {!isEditing && releaseDate && (
+              <div className="text-sm">
+                <span className="font-medium">登録日: </span>
+                <span>{format(new Date(releaseDate), 'yyyy/MM/dd')}</span>
+              </div>
+            )}
+          </div>
         )}
 
-        {!isUserItem && (
-          <>
+        {!isUserItem && isEditing && (
+          <div className="space-y-4">
             <div className="space-y-2">
-              {contentName && (
-                <div className="text-sm">
-                  <span className="font-medium">コンテンツ: </span>
-                  <span>{contentName}</span>
+              <label className="text-sm font-medium">
+                コンテンツ
+              </label>
+              {isAddingNewContent ? (
+                <div className="flex gap-2">
+                  <Input
+                    value={newContentName}
+                    onChange={(e) => setNewContentName(e.target.value)}
+                    placeholder="新しいコンテンツ名"
+                  />
+                  <Button 
+                    onClick={() => addContentMutation(newContentName)}
+                  >
+                    追加
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsAddingNewContent(false);
+                      setNewContentName("");
+                    }}
+                  >
+                    キャンセル
+                  </Button>
                 </div>
-              )}
-              {creatorProfile && (
-                <div className="text-sm">
-                  <span className="font-medium">グッズ登録者: </span>
-                  <span>{creatorProfile.display_name || creatorProfile.username}</span>
-                </div>
-              )}
-              {releaseDate && (
-                <div className="text-sm">
-                  <span className="font-medium">登録日: </span>
-                  <span>{format(new Date(releaseDate), 'yyyy/MM/dd')}</span>
-                </div>
+              ) : (
+                <Select
+                  value={editedData.content_name || "none"}
+                  onValueChange={handleContentChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="コンテンツを選択" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">選択なし</SelectItem>
+                    {contentNames.map((content) => (
+                      <SelectItem key={content.id} value={content.name}>
+                        {content.name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="other">その他（新規追加）</SelectItem>
+                  </SelectContent>
+                </Select>
               )}
             </div>
 
-            <ItemDetailsForm
-              isEditing={isEditing}
-              editedData={editedData}
-              setEditedData={setEditedData}
-              isUserItem={false}
+            <TagInput
+              selectedTags={editedData.tags || selectedTags}
+              onTagsChange={handleTagsChange}
             />
-          </>
+          </div>
         )}
 
         {!isEditing && tags.length > 0 && (
@@ -140,16 +230,6 @@ export function ItemDetailsContent({
                   </Badge>
                 ))}
             </div>
-          </div>
-        )}
-
-        {isEditing && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">タグ</label>
-            <TagInput
-              selectedTags={editedData.tags || selectedTags}
-              onTagsChange={handleTagsChange}
-            />
           </div>
         )}
 
