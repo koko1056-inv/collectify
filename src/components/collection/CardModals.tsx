@@ -1,3 +1,4 @@
+
 import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
 import { TagManageModal } from "@/components/tag/TagManageModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -11,6 +12,8 @@ interface CardModalsProps {
   releaseDate?: string;
   prize?: string;
   quantity?: number;
+  purchaseDate?: string;
+  purchasePrice?: string;
   isMemoriesModalOpen: boolean;
   isTagManageModalOpen: boolean;
   isDeleteDialogOpen: boolean;
@@ -30,6 +33,8 @@ export function CardModals({
   releaseDate,
   prize,
   quantity,
+  purchaseDate,
+  purchasePrice,
   isMemoriesModalOpen,
   isTagManageModalOpen,
   isDeleteDialogOpen,
@@ -82,6 +87,8 @@ export function CardModals({
         price={prize}
         releaseDate={releaseDate}
         quantity={quantity}
+        purchaseDate={purchaseDate}
+        purchasePrice={purchasePrice}
         itemId={itemId}
         isUserItem={true}
       />

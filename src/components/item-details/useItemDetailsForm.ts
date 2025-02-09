@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,8 @@ interface UseItemDetailsFormProps {
   releaseDate?: string;
   description?: string;
   quantity?: number;
+  purchaseDate?: string;
+  purchasePrice?: string;
   itemId: string;
   isUserItem?: boolean;
   onEditComplete: () => void;
@@ -20,6 +23,8 @@ export function useItemDetailsForm({
   releaseDate = "",
   description = "",
   quantity = 1,
+  purchaseDate = "",
+  purchasePrice = "",
   itemId,
   isUserItem = false,
   onEditComplete,
@@ -32,6 +37,8 @@ export function useItemDetailsForm({
   const [editedData, setEditedData] = useState({
     title,
     price,
+    purchaseDate,
+    purchasePrice,
     release_date: releaseDate,
     description,
     quantity,
@@ -43,6 +50,8 @@ export function useItemDetailsForm({
     setEditedData({
       title,
       price,
+      purchaseDate,
+      purchasePrice,
       release_date: releaseDate,
       description,
       quantity,
@@ -63,8 +72,12 @@ export function useItemDetailsForm({
         quantity: editedData.quantity,
       };
 
-      // Only include description and content_name for official items
-      if (!isUserItem) {
+      if (isUserItem) {
+        Object.assign(updateData, {
+          purchase_date: editedData.purchaseDate || null,
+          purchase_price: editedData.purchasePrice || null,
+        });
+      } else {
         Object.assign(updateData, { 
           description: editedData.description,
           content_name: editedData.content_name 

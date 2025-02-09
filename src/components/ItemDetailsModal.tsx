@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,8 @@ interface ItemDetailsModalProps {
   userId?: string;
   createdBy?: string | null;
   contentName?: string | null;
+  purchaseDate?: string;
+  purchasePrice?: string;
 }
 
 export function ItemDetailsModal({
@@ -37,6 +40,8 @@ export function ItemDetailsModal({
   userId,
   createdBy,
   contentName,
+  purchaseDate,
+  purchasePrice,
 }: ItemDetailsModalProps) {
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
@@ -56,6 +61,8 @@ export function ItemDetailsModal({
     releaseDate,
     description,
     quantity,
+    purchaseDate,
+    purchasePrice,
     itemId,
     isUserItem,
     onEditComplete: () => setIsEditing(false),

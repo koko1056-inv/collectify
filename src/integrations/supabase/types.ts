@@ -756,6 +756,8 @@ export type Database = {
           official_item_id: string | null
           official_link: string | null
           prize: string
+          purchase_date: string | null
+          purchase_price: string | null
           quantity: number
           release_date: string
           title: string
@@ -771,6 +773,8 @@ export type Database = {
           official_item_id?: string | null
           official_link?: string | null
           prize: string
+          purchase_date?: string | null
+          purchase_price?: string | null
           quantity?: number
           release_date: string
           title: string
@@ -786,6 +790,8 @@ export type Database = {
           official_item_id?: string | null
           official_link?: string | null
           prize?: string
+          purchase_date?: string | null
+          purchase_price?: string | null
           quantity?: number
           release_date?: string
           title?: string
