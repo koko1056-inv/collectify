@@ -29,14 +29,8 @@ export function ProfileFavorites({
       
       const { data, error } = await supabase
         .from("user_items")
-        .select(`
-          *,
-          user_item_likes!inner (
-            user_id
-          )
-        `)
+        .select("*")
         .eq("user_id", userId)
-        .eq("user_item_likes.user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
