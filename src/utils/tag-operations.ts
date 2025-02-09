@@ -2,16 +2,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { TableName } from "@/types/tag";
 
-interface UserItemTag {
-  tag_id: string;
-  user_item_id: string;
-}
-
-interface OfficialItemTag {
-  tag_id: string;
-  official_item_id: string;
-}
-
 interface DeleteUserItemResult {
   error: Error | null;
   officialItemId?: string;

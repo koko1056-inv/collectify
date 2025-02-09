@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +9,6 @@ import { arrayMove } from "@dnd-kit/sortable";
 import { TagManageModal } from "./tag/TagManageModal";
 import { ItemMemoriesModal } from "./ItemMemoriesModal";
 import { SelectionModeControls } from "./collection/SelectionModeControls";
-import { CollectionActions } from "./collection/CollectionActions";
 import { CollectionGrid } from "./collection/CollectionGrid";
 
 interface UserCollectionProps {
@@ -170,7 +170,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
 
   return (
     <div className="space-y-4">
-      {isSelectionMode ? (
+      {isSelectionMode && (
         <SelectionModeControls
           selectedItems={selectedItems}
           totalItems={filteredItems.length}
@@ -181,13 +181,6 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
             setSelectionAction(null);
             setSelectedItems([]);
           }}
-        />
-      ) : (
-        <CollectionActions
-          isCompact={isCompact}
-          onTagManage={() => startSelection('tags')}
-          onMemoryAdd={() => startSelection('memories')}
-          onViewToggle={() => setIsCompact(!isCompact)}
         />
       )}
 
