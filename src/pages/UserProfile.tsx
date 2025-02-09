@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -145,7 +146,6 @@ export default function UserProfile() {
                 isEditing={false}
                 saving={false}
                 onBioChange={() => {}}
-                onEdit={() => {}}
                 onCancel={() => {}}
                 onSubmit={() => {}}
                 isOwnProfile={false}
