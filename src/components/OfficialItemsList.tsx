@@ -1,3 +1,4 @@
+
 import { OfficialItem } from "@/types";
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -6,6 +7,8 @@ import {
   PaginationContent,
   PaginationItem,
   PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from "@/components/ui/pagination";
 import { OfficialItemsHeader } from "./official-goods/OfficialItemsHeader";
 import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
@@ -31,7 +34,25 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentItems = sortedItems.slice(startIndex, endIndex);
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+  const getVisiblePageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    const halfVisible = Math.floor(maxVisiblePages / 2);
+    
+    let start = Math.max(currentPage - halfVisible, 1);
+    let end = Math.min(start + maxVisiblePages - 1, totalPages);
+    
+    if (end - start + 1 < maxVisiblePages) {
+      start = Math.max(end - maxVisiblePages + 1, 1);
+    }
+    
+    for (let i = start; i <= end; i++) {
+      pageNumbers.push(i);
+    }
+    
+    return pageNumbers;
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -41,7 +62,14 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
       {totalPages > 1 && (
         <Pagination className="mt-4">
           <PaginationContent>
-            {pageNumbers.map((pageNum) => (
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                className={`cursor-pointer ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              />
+            </PaginationItem>
+            
+            {getVisiblePageNumbers().map((pageNum) => (
               <PaginationItem key={pageNum}>
                 <PaginationLink
                   onClick={() => setCurrentPage(pageNum)}
@@ -52,6 +80,13 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
                 </PaginationLink>
               </PaginationItem>
             ))}
+
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+                className={`cursor-pointer ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+              />
+            </PaginationItem>
           </PaginationContent>
         </Pagination>
       )}
