@@ -39,6 +39,21 @@ export function ItemPriceAndDateForm({
             </p>
           )}
         </div>
+        <div>
+          <label className="text-sm font-medium">保有数</label>
+          {isEditing ? (
+            <Input
+              type="number"
+              min="1"
+              value={editedData.quantity}
+              onChange={(e) =>
+                setEditedData((prev: any) => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))
+              }
+            />
+          ) : (
+            <p className="text-sm text-gray-600">{editedData.quantity}</p>
+          )}
+        </div>
       </div>
     );
   }

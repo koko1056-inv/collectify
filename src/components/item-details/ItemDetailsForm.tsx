@@ -10,7 +10,7 @@ interface ItemDetailsFormProps {
     description: string;
     purchaseDate?: string;
     purchasePrice?: string;
-    quantity?: number;
+    quantity: number;
   };
   setEditedData: (data: any) => void;
   isUserItem?: boolean;
@@ -30,14 +30,14 @@ export function ItemDetailsForm({
   };
 
   const priceAndDateData = isUserItem ? {
-    price: editedData.price,
+    price: editedData.price || "",
     purchaseDate: editedData.purchaseDate || "",
     purchasePrice: editedData.purchasePrice || "",
     quantity: editedData.quantity || 1
   } : {
-    price: editedData.price,
-    releaseDate: editedData.releaseDate,
-    description: editedData.description,
+    price: editedData.price || "",
+    releaseDate: editedData.releaseDate || "",
+    description: editedData.description || "",
     quantity: editedData.quantity || 1
   };
 

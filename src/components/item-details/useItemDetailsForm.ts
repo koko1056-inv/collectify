@@ -39,7 +39,7 @@ export function useItemDetailsForm({
     price,
     purchaseDate,
     purchasePrice,
-    release_date: releaseDate,
+    releaseDate,
     description,
     quantity,
     content_name: null,
@@ -52,7 +52,7 @@ export function useItemDetailsForm({
       price,
       purchaseDate,
       purchasePrice,
-      release_date: releaseDate,
+      releaseDate,
       description,
       quantity,
       content_name: null,
@@ -68,7 +68,7 @@ export function useItemDetailsForm({
       const updateData = {
         title: editedData.title,
         [isUserItem ? "prize" : "price"]: editedData.price,
-        release_date: editedData.release_date,
+        releaseDate: editedData.releaseDate,
         quantity: editedData.quantity,
       };
 
