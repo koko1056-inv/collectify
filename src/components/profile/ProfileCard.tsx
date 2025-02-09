@@ -14,9 +14,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 interface ProfileCardProps {
   onShare: () => void;
   setUsername: (username: string) => void;
+  userId?: string;
 }
 
-export function ProfileCard({ onShare, setUsername }: ProfileCardProps) {
+export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -28,15 +29,17 @@ export function ProfileCard({ onShare, setUsername }: ProfileCardProps) {
   const [isFavoritesEditing, setIsFavoritesEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const isMobile = useIsMobile();
+  const isOwnProfile = !userId || user?.id === userId;
+  const effectiveUserId = userId || user?.id;
 
   useEffect(() => {
-    if (!user) return;
+    if (!effectiveUserId) return;
 
     const fetchProfile = async () => {
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("id", user.id)
+        .eq("id", effectiveUserId)
         .single();
 
       if (error) {
@@ -56,11 +59,11 @@ export function ProfileCard({ onShare, setUsername }: ProfileCardProps) {
     };
 
     fetchProfile();
-  }, [user, toast, setUsername]);
+  }, [effectiveUserId, toast, setUsername]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !isOwnProfile) return;
 
     setSaving(true);
     const { error } = await supabase
@@ -87,7 +90,7 @@ export function ProfileCard({ onShare, setUsername }: ProfileCardProps) {
   };
 
   const handleImageChange = async (file: File | null) => {
-    if (!file || !user) return;
+    if (!file || !user || !isOwnProfile) return;
 
     try {
       const fileExt = file.name.split('.').pop();
@@ -144,11 +147,19 @@ export function ProfileCard({ onShare, setUsername }: ProfileCardProps) {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16">
-            <ProfileImageUpload
-              onImageChange={handleImageChange}
-              previewUrl={previewUrl}
-              setPreviewUrl={setPreviewUrl}
-            />
+            {isOwnProfile ? (
+              <ProfileImageUpload
+                onImageChange={handleImageChange}
+                previewUrl={previewUrl}
+                setPreviewUrl={setPreviewUrl}
+              />
+            ) : (
+              <img
+                src={avatarUrl || "/placeholder.svg"}
+                alt={username_}
+                className="w-16 h-16 rounded-full object-cover"
+              />
+            )}
           </div>
           <ProfileHeader 
             username={username_}
@@ -157,7 +168,7 @@ export function ProfileCard({ onShare, setUsername }: ProfileCardProps) {
         </div>
       </div>
 
-      <ProfileStats userId={user?.id || ''} />
+      <ProfileStats userId={effectiveUserId} />
 
       <div className="mt-6">
         <ProfileBio
@@ -168,13 +179,13 @@ export function ProfileCard({ onShare, setUsername }: ProfileCardProps) {
           onCancel={() => setIsEditing(false)}
           onSubmit={handleSubmit}
           saving={saving}
-          isOwnProfile={true}
+          isOwnProfile={isOwnProfile}
         />
       </div>
 
       <div className="mt-6">
         <ProfileFavorites
-          userId={user?.id}
+          userId={effectiveUserId}
           isEditing={isFavoritesEditing}
           onEditComplete={() => setIsFavoritesEditing(false)}
         />
