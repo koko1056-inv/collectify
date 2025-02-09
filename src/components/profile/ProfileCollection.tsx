@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+
+import { useState } from "react";
 import { FilterBar } from "../FilterBar";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { OfficialItem, Tag } from "@/types";
 import { CollectionTabs } from "../CollectionTabs";
 
-export function ProfileCollection({ userId }: { userId: string }) {
+interface ProfileCollectionProps {
+  userId: string;
+}
+
+export function ProfileCollection({ userId }: ProfileCollectionProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedContent, setSelectedContent] = useState("");
@@ -28,7 +33,7 @@ export function ProfileCollection({ userId }: { userId: string }) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as OfficialItem[];
+      return data;
     },
   });
 
