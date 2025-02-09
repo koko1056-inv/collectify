@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WishlistViewModal } from "@/components/WishlistViewModal";
 import { useQuery } from "@tanstack/react-query";
 import { CollectionGrid } from "@/components/collection/CollectionGrid";
+import { Avatar } from "@/components/ui/avatar";
 
 export default function UserProfile() {
   const { userId } = useParams();
@@ -24,6 +25,7 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true);
   const [bio, setBio] = useState("");
   const [username, setUsername] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [selectedWishlistItem, setSelectedWishlistItem] = useState<any>(null);
@@ -100,6 +102,7 @@ export default function UserProfile() {
 
       setBio(profile.bio || "");
       setUsername(profile.username || "");
+      setAvatarUrl(profile.avatar_url);
       setLoading(false);
     };
 
@@ -129,13 +132,24 @@ export default function UserProfile() {
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex items-center justify-between mb-6">
-              <ProfileHeader 
-                username={username}
-                onShare={() => setIsShareModalOpen(true)}
-              />
-              {user && user.id !== userId && (
-                <FollowButton userId={userId} />
-              )}
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <img
+                    src={avatarUrl || "/placeholder.svg"}
+                    alt={username}
+                    className="object-cover w-full h-full"
+                  />
+                </Avatar>
+                <div>
+                  <ProfileHeader 
+                    username={username}
+                    onShare={() => setIsShareModalOpen(true)}
+                  />
+                  {user && user.id !== userId && (
+                    <FollowButton userId={userId} />
+                  )}
+                </div>
+              </div>
             </div>
 
             <ProfileStats userId={userId} />
@@ -149,7 +163,7 @@ export default function UserProfile() {
                 onEdit={() => {}}
                 onCancel={() => {}}
                 onSubmit={() => {}}
-                isOwnProfile={false}
+                isOwnProfile={user?.id === userId}
               />
             </div>
           </div>
