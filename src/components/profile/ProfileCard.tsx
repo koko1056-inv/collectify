@@ -166,6 +166,7 @@ export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) 
           <ProfileHeader 
             username={username_}
             onShare={onShare}
+            isOwnProfile={isOwnProfile}
           />
         </div>
       </div>
