@@ -2,18 +2,24 @@
 import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Camera } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileImageUploadProps {
   onImageChange: (file: File | null) => void;
   previewUrl: string | null;
   setPreviewUrl: (url: string | null) => void;
+  userId: string;
 }
 
 export function ProfileImageUpload({ 
   onImageChange, 
   previewUrl, 
-  setPreviewUrl 
+  setPreviewUrl,
+  userId
 }: ProfileImageUploadProps) {
+  const { toast } = useToast();
+
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length > 0) {
@@ -44,7 +50,7 @@ export function ProfileImageUpload({
         {previewUrl ? (
           <img
             src={previewUrl}
-            alt="Preview"
+            alt="Profile"
             className="w-full h-full object-cover"
           />
         ) : (

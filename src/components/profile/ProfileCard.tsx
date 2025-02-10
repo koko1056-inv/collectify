@@ -55,6 +55,7 @@ export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) 
       setUsername_(profile.username || "");
       setUsername(profile.username || "");
       setAvatarUrl(profile.avatar_url);
+      setPreviewUrl(profile.avatar_url);
       setLoading(false);
     };
 
@@ -97,7 +98,7 @@ export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) 
       const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('kuji_images')
+        .from('profile_images')
         .upload(filePath, file);
 
       if (uploadError) {
@@ -105,7 +106,7 @@ export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) 
       }
 
       const { data: { publicUrl } } = supabase.storage
-        .from('kuji_images')
+        .from('profile_images')
         .getPublicUrl(filePath);
 
       const { error: updateError } = await supabase
@@ -152,6 +153,7 @@ export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) 
                 onImageChange={handleImageChange}
                 previewUrl={previewUrl}
                 setPreviewUrl={setPreviewUrl}
+                userId={effectiveUserId}
               />
             ) : (
               <img
