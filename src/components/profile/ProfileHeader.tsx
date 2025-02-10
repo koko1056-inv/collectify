@@ -17,12 +17,11 @@ export function ProfileHeader({ username, onShare, isOwnProfile }: ProfileHeader
       <div className="flex items-center gap-1 shrink-0">
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
           onClick={onShare}
-          className="gap-1"
+          className="h-8 w-8"
         >
-          <Share2 className="h-3 w-3" />
-          共有
+          <Share2 className="h-4 w-4" />
         </Button>
         {isOwnProfile && <LogoutButton />}
       </div>
