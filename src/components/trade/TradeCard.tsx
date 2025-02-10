@@ -70,10 +70,9 @@ export function TradeCard({
     };
   };
 
-  // Get the trade partner's name based on the current user
-  const tradePartnerName = user?.id === trade.sender.id
-    ? (trade.receiver?.display_name || trade.receiver?.username)
-    : (trade.sender.display_name || trade.sender.username);
+  // Get the trade partner based on the current user
+  const tradePartner = user?.id === trade.sender.id ? trade.receiver : trade.sender;
+  const tradePartnerName = tradePartner?.display_name || tradePartner?.username || "";
 
   return (
     <div className="border rounded-lg p-4 space-y-3">
