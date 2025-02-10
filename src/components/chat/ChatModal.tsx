@@ -206,7 +206,7 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
     }
   };
 
-  const HEADQUARTERS_ADDRESS = "〒150-0001\n東京都渋谷区神宮前1-1-1\nトレードシステム運営本部";
+  const HEADQUARTERS_ADDRESS = "〒602-8061\n京都府京都市上京区甲斐守町97 109\ncollectify 運営本部";
 
   return (
     <>
