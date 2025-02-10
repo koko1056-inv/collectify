@@ -14,7 +14,7 @@ export function ProfileHeader({ username, onShare, isOwnProfile }: ProfileHeader
   return (
     <div className="flex items-center justify-between w-full">
       <h1 className="text-2xl font-bold truncate mr-2">{username}</h1>
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center space-x-2 shrink-0">
         <Button
           variant="outline"
           size="icon"
