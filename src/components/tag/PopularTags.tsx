@@ -15,7 +15,7 @@ export function PopularTags({ tags, selectedTags, onTagSelect, onClearTags }: Po
   return (
     <div className="relative w-full">
       <ScrollArea className="w-full whitespace-nowrap">
-        <div className="flex gap-1.5 pb-2">
+        <div className="flex w-max gap-1.5 pb-2">
           <Button
             key="all"
             variant={selectedTags.length === 0 ? "default" : "outline"}

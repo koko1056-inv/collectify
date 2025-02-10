@@ -35,7 +35,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return data || [];
+  return data as ItemTag[] || [];
 }
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
@@ -70,7 +70,7 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
       .from("user_items")
       .select("official_item_id")
       .eq("id", itemId)
-      .single();
+      .maybeSingle();
 
     if (fetchError) throw fetchError;
 
