@@ -5,7 +5,6 @@ import { ShareModal } from "@/components/ShareModal";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProfileCard } from "@/components/profile/ProfileCard";
-import { UserCollection } from "@/components/UserCollection";
 
 export default function UserProfile() {
   const { userId } = useParams();
@@ -22,7 +21,6 @@ export default function UserProfile() {
             setUsername={setUsername}
             userId={userId}
           />
-          <UserCollection selectedTags={[]} userId={userId} />
         </div>
       </main>
 
