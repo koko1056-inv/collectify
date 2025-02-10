@@ -214,7 +214,9 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
         <DialogContent className="sm:max-w-[500px] h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>
-              {partnerProfile ? partnerProfile.display_name || partnerProfile.username : "チャット"}とのチャット
+              {partnerProfile ? 
+                `${partnerProfile.display_name || partnerProfile.username}とのチャット` : 
+                "チャット"}
             </DialogTitle>
           </DialogHeader>
           {step === 'chat' && (
