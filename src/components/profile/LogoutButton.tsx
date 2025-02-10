@@ -29,12 +29,13 @@ export function LogoutButton() {
 
   return (
     <Button 
-      variant="outline" 
-      className="flex items-center justify-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+      variant="outline"
+      size="sm"
+      className="flex items-center justify-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 px-2"
       onClick={handleLogout}
     >
-      <LogOut className="h-4 w-4" />
-      ログアウト
+      <LogOut className="h-3 w-3" />
+      <span className="text-sm">ログアウト</span>
     </Button>
   );
 }
