@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +52,11 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
           username,
           display_name
         ),
+        receiver:profiles!trade_requests_receiver_id_fkey(
+          id,
+          username,
+          display_name
+        ),
         offered_item:user_items!trade_requests_offered_item_id_fkey(
           id,
           title,
@@ -88,6 +94,11 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
           username,
           display_name
         ),
+        receiver:profiles!trade_requests_receiver_id_fkey(
+          id,
+          username,
+          display_name
+        ),
         offered_item:user_items!trade_requests_offered_item_id_fkey(
           id,
           title,
@@ -121,6 +132,11 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
         message,
         status,
         sender:profiles!trade_requests_sender_id_fkey(
+          id,
+          username,
+          display_name
+        ),
+        receiver:profiles!trade_requests_receiver_id_fkey(
           id,
           username,
           display_name
