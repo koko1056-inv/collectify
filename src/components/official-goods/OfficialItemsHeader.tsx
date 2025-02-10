@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,7 +22,7 @@ export function OfficialItemsHeader({ sortBy, onSortChange }: OfficialItemsHeade
   return (
     <div className="flex justify-between items-center mb-4 px-2">
       <div className="flex items-center gap-4">
-        <h1 className="text-xl sm:text-2xl font-bold animate-fade-in text-gray-900">
+        <h1 className="text-sm sm:text-2xl font-bold animate-fade-in text-gray-900">
           公式グッズ
         </h1>
         <Select value={sortBy} onValueChange={(value) => onSortChange(value as SortOption)}>
