@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ProfileHeader } from "./ProfileHeader";
 import { ProfileStats } from "./ProfileStats";
 import { ProfileBio } from "./ProfileBio";
-import { ProfileFavorites } from "./ProfileFavorites";
 import { ProfileImageUpload } from "./ProfileImageUpload";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -26,7 +25,6 @@ export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) 
   const [username_, setUsername_] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [isFavoritesEditing, setIsFavoritesEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const isOwnProfile = !userId || user?.id === userId;
@@ -180,14 +178,6 @@ export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) 
           onSubmit={handleSubmit}
           saving={saving}
           isOwnProfile={isOwnProfile}
-        />
-      </div>
-
-      <div className="mt-6">
-        <ProfileFavorites
-          userId={effectiveUserId}
-          isEditing={isFavoritesEditing}
-          onEditComplete={() => setIsFavoritesEditing(false)}
         />
       </div>
     </div>
