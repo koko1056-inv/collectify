@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,14 +18,30 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: tags = [] } = useQuery({
-    queryKey: ["tags"],
+    queryKey: ["tags-with-count"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get the count of tag usage
+      const { data: tagCounts, error: countError } = await supabase
+        .from('item_tags')
+        .select('tag_id, count(*)', { count: 'exact' })
+        .groupBy('tag_id');
+      
+      if (countError) throw countError;
+
+      // Then get all tags
+      const { data: allTags, error: tagsError } = await supabase
         .from("tags")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data as Tag[];
+        .select("*");
+
+      if (tagsError) throw tagsError;
+
+      // Combine tags with their counts and sort
+      const tagsWithCount = allTags.map(tag => ({
+        ...tag,
+        count: tagCounts?.find(tc => tc.tag_id === tag.id)?.count || 0
+      }));
+
+      return tagsWithCount.sort((a, b) => (b.count || 0) - (a.count || 0));
     },
     staleTime: 0,
     refetchOnWindowFocus: true,
