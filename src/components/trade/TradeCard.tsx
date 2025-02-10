@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { TradeRequest } from "./types";
@@ -69,11 +70,16 @@ export function TradeCard({
     };
   };
 
+  // Get the trade partner's name based on the current user
+  const tradePartnerName = user?.id === trade.sender.id
+    ? (trade.receiver?.display_name || trade.receiver?.username)
+    : (trade.sender.display_name || trade.sender.username);
+
   return (
     <div className="border rounded-lg p-4 space-y-3">
       <div className="flex items-center gap-2">
         <span className="font-medium">
-          {trade.sender.display_name || trade.sender.username}
+          {tradePartnerName}
         </span>
         <span className="text-sm text-gray-500">
           {isPending ? "からのリクエスト" : isCompleted ? "とのトレード（完了）" : "とのトレード"}

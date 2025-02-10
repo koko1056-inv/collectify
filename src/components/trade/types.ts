@@ -1,6 +1,12 @@
+
 export interface TradeRequest {
   id: string;
   sender: {
+    id: string;
+    username: string;
+    display_name: string | null;
+  };
+  receiver: {
     id: string;
     username: string;
     display_name: string | null;
