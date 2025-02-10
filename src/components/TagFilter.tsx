@@ -20,28 +20,32 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
   const { data: tags = [] } = useQuery({
     queryKey: ["tags-with-count"],
     queryFn: async () => {
-      // First get the count of tag usage
-      const { data: tagCounts, error: countError } = await supabase
-        .from('item_tags')
-        .select('tag_id, count(*)', { count: 'exact' })
-        .groupBy('tag_id');
-      
-      if (countError) throw countError;
+      // Get all tags with their usage counts using a single query
+      const { data, error } = await supabase
+        .from('tags')
+        .select(`
+          *,
+          item_tags!inner (
+            tag_id
+          )
+        `);
 
-      // Then get all tags
-      const { data: allTags, error: tagsError } = await supabase
-        .from("tags")
-        .select("*");
+      if (error) throw error;
 
-      if (tagsError) throw tagsError;
+      // Count occurrences and combine with tag data
+      const tagCounts = data.reduce((acc: { [key: string]: Tag & { count: number } }, tag) => {
+        if (!acc[tag.id]) {
+          acc[tag.id] = {
+            ...tag,
+            count: 0
+          };
+        }
+        acc[tag.id].count++;
+        return acc;
+      }, {});
 
-      // Combine tags with their counts and sort
-      const tagsWithCount = allTags.map(tag => ({
-        ...tag,
-        count: tagCounts?.find(tc => tc.tag_id === tag.id)?.count || 0
-      }));
-
-      return tagsWithCount.sort((a, b) => (b.count || 0) - (a.count || 0));
+      // Convert to array and sort by count
+      return Object.values(tagCounts).sort((a, b) => b.count - a.count);
     },
     staleTime: 0,
     refetchOnWindowFocus: true,

@@ -12,7 +12,7 @@ interface Tag {
   name: string;
 }
 
-interface ItemTag {
+type ItemTag = {
   id: string;
   tag_id: string;
   tags: Tag;
