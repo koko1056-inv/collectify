@@ -15,7 +15,7 @@ interface Tag {
 interface ItemTag {
   id: string;
   tag_id: string;
-  tags: Tag;
+  tags: Tag | null;
 }
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
