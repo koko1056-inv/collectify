@@ -44,8 +44,8 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
         name
       )
     `)
-    .eq(idColumn, itemId) as unknown as { 
-      data: (UserItemTag | ItemTag)[];
+    .eq(idColumn, itemId) as { 
+      data: (UserItemTag | ItemTag)[] | null;
       error: Error | null;
     };
 
