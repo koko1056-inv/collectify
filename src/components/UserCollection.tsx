@@ -7,6 +7,10 @@ import { useState, useMemo } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { CollectionGrid } from "./collection/CollectionGrid";
+import { CollectionActions } from "./collection/CollectionActions";
+import { TagManageModal } from "./tag/TagManageModal";
+import { Button } from "./ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -16,8 +20,12 @@ interface UserCollectionProps {
 export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: items = [], isLoading: isItemsLoading } = useQuery({
     queryKey: ["user-items", effectiveUserId, selectedTags],
@@ -72,6 +80,31 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     }
   };
 
+  const handleSelectItem = (itemId: string) => {
+    setSelectedItems(prev => {
+      if (prev.includes(itemId)) {
+        return prev.filter(id => id !== itemId);
+      } else {
+        return [...prev, itemId];
+      }
+    });
+  };
+
+  const handleSelectionModeToggle = () => {
+    setIsSelectionMode(!isSelectionMode);
+    if (isSelectionMode) {
+      setSelectedItems([]);
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.length === filteredItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(filteredItems.map(item => item.id));
+    }
+  };
+
   if (!effectiveUserId) {
     return (
       <div className="text-center py-8">
@@ -112,13 +145,63 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSelectionModeToggle}
+          >
+            {isSelectionMode ? "選択を終了" : "アイテムを選択"}
+          </Button>
+          {isSelectionMode && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSelectAll}
+              >
+                {selectedItems.length === filteredItems.length ? "全て解除" : "全て選択"}
+              </Button>
+              {selectedItems.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsTagManageModalOpen(true)}
+                >
+                  タグを管理 ({selectedItems.length}個)
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsCompact(!isCompact)}
+        >
+          {isCompact ? "通常表示" : "コンパクト表示"}
+        </Button>
+      </div>
+
       <CollectionGrid
         items={filteredItems}
         isCompact={isCompact}
-        isSelectionMode={false}
-        selectedItems={[]}
-        onSelectItem={() => {}}
+        isSelectionMode={isSelectionMode}
+        selectedItems={selectedItems}
+        onSelectItem={handleSelectItem}
         onDragEnd={handleDragEnd}
+      />
+
+      <TagManageModal
+        isOpen={isTagManageModalOpen}
+        onClose={() => {
+          setIsTagManageModalOpen(false);
+          setIsSelectionMode(false);
+          setSelectedItems([]);
+        }}
+        itemIds={selectedItems}
+        isUserItem={true}
       />
     </div>
   );
