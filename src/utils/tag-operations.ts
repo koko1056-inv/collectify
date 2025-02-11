@@ -12,13 +12,23 @@ interface Tag {
   name: string;
 }
 
-interface TagRelation {
+interface UserItemTag {
   id: string;
+  user_item_id: string;
   tag_id: string;
-  tags: Tag | null;
+  created_at: string;
+  tags: Tag;
 }
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<TagRelation[]> {
+interface ItemTag {
+  id: string;
+  official_item_id: string;
+  tag_id: string;
+  created_at: string;
+  tags: Tag;
+}
+
+export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<(UserItemTag | ItemTag)[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
@@ -26,13 +36,18 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .from(tableName)
     .select(`
       id,
+      ${idColumn},
       tag_id,
+      created_at,
       tags:tags (
         id,
         name
       )
     `)
-    .eq(idColumn, itemId);
+    .eq(idColumn, itemId) as unknown as { 
+      data: (UserItemTag | ItemTag)[];
+      error: Error | null;
+    };
 
   if (error) throw error;
   return data || [];
