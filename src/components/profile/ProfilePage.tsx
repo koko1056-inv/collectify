@@ -2,7 +2,6 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProfileCard } from "./ProfileCard";
-import { LogoutButton } from "./LogoutButton";
 import { ShareModal } from "@/components/ShareModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
@@ -21,7 +20,6 @@ export function ProfilePage() {
             onShare={() => setIsShareModalOpen(true)}
             setUsername={setUsername}
           />
-          <LogoutButton />
         </div>
       </main>
 
