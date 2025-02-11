@@ -7,6 +7,7 @@ import { useState, useMemo } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { CollectionGrid } from "./collection/CollectionGrid";
+import { CollectionActions } from "./collection/CollectionActions";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -112,6 +113,12 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
 
   return (
     <div className="space-y-4">
+      <CollectionActions
+        isCompact={isCompact}
+        onTagManage={() => {}}
+        onMemoryAdd={() => {}}
+        onViewToggle={() => setIsCompact(!isCompact)}
+      />
       <CollectionGrid
         items={filteredItems}
         isCompact={isCompact}
