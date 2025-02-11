@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { TableName } from "@/types/tag";
 
@@ -15,10 +14,7 @@ interface Tag {
 interface TagRelation {
   id: string;
   tag_id: string;
-  tags?: {
-    id: string;
-    name: string;
-  };
+  tags: Tag | null;
 }
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<TagRelation[]> {
@@ -30,7 +26,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .select(`
       id,
       tag_id,
-      tags (
+      tags:tags (
         id,
         name
       )
