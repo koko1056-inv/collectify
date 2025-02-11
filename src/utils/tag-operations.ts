@@ -12,13 +12,13 @@ interface Tag {
   name: string;
 }
 
-type ItemTag = {
+interface TagWithRelation {
   id: string;
   tag_id: string;
   tags: Tag;
 }
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
+export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<TagWithRelation[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
@@ -35,7 +35,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return data as ItemTag[] || [];
+  return data as TagWithRelation[] || [];
 }
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
