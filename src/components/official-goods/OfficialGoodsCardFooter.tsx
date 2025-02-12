@@ -35,17 +35,27 @@ export function OfficialGoodsCardFooter({
   const { data: ownersCount = 0 } = useQuery({
     queryKey: ["item-owners-count", itemId],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from("user_items")
-        .select("*", { count: 'exact', head: true })
+        .select("user_id, quantity")
         .eq("official_item_id", itemId);
       
       if (error) {
         console.error("Error getting owners count:", error);
         return 0;
       }
-      
-      return count || 0;
+
+      // ユーザーごとの合計数量を計算
+      const userQuantities: Record<string, number> = {};
+      data.forEach(item => {
+        const userId = item.user_id;
+        const quantity = item.quantity || 1;
+        userQuantities[userId] = (userQuantities[userId] || 0) + quantity;
+      });
+
+      // すべてのユーザーの数量を合計
+      const totalQuantity = Object.values(userQuantities).reduce((sum, qty) => sum + qty, 0);
+      return totalQuantity;
     },
   });
 
