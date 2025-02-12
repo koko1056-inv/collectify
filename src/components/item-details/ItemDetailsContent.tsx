@@ -1,4 +1,3 @@
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { TagInput } from "@/components/TagInput";
@@ -184,6 +183,14 @@ export function ItemDetailsContent({
                 <span>{format(new Date(releaseDate), 'yyyy/MM/dd')}</span>
               </div>
             )}
+            <div className="text-sm space-y-2">
+              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <div className="font-medium">アイテム情報</div>
+                  <div className="text-gray-600">このアイテムはコミュニティメンバーによって登録されました。</div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
