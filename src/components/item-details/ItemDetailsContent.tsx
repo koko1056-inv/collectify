@@ -1,4 +1,3 @@
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -75,9 +74,10 @@ export function ItemDetailsContent({
                   <div className="font-medium">アイテム情報</div>
                   <div className="text-gray-600">
                     このアイテムは
-                    {createdBy ? (
+                    {createdBy && (
                       <span className="font-medium"> コミュニティメンバー </span>
-                    ) : (
+                    )}
+                    {!createdBy && (
                       <span className="font-medium"> 不明なユーザー </span>
                     )}
                     によって登録されました。
