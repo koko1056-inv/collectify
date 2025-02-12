@@ -12,12 +12,15 @@ interface Tag {
   name: string;
 }
 
-// 型定義をシンプル化
+// シンプルな型定義
 interface ItemTag {
   id: string;
   tag_id: string;
   created_at: string;
-  tags: Tag;
+  tags: {
+    id: string;
+    name: string;
+  };
 }
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
@@ -26,19 +29,11 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean) {
 
   const { data, error } = await supabase
     .from(tableName)
-    .select(`
-      id,
-      tag_id,
-      created_at,
-      tags (
-        id,
-        name
-      )
-    `)
+    .select('id, tag_id, created_at, tags:tags(id, name)')
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return data as ItemTag[] || [];
+  return (data as ItemTag[]) || [];
 }
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
@@ -69,14 +64,28 @@ export async function removeTagFromItem(tagId: string, itemId: string, isUserIte
 
 async function deleteAllTradeRequests(itemId: string): Promise<void> {
   try {
-    // すべてのトレードリクエストを削除 - 順序を変更
-    await supabase
+    const { error } = await supabase
       .from("trade_requests")
       .delete()
       .or(`requested_item_id.eq.${itemId},offered_item_id.eq.${itemId}`);
 
+    if (error) throw error;
   } catch (error) {
     console.error("Error deleting trade requests:", error);
+    throw error;
+  }
+}
+
+async function deleteUserItemLikes(itemId: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("user_item_likes")
+      .delete()
+      .eq("user_item_id", itemId);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error("Error deleting user item likes:", error);
     throw error;
   }
 }
@@ -92,15 +101,13 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     if (fetchError) throw fetchError;
 
-    // すべての関連するトレードリクエストを削除
-    await deleteAllTradeRequests(itemId);
-
-    // 関連するその他のレコードを削除
-    const tables: TableName[] = ["user_item_likes", "item_memories", "user_item_tags"];
-    for (const table of tables) {
-      const { error } = await deleteRelatedRecords(table, itemId);
-      if (error) throw error;
-    }
+    // 関連レコードを順番に削除
+    await Promise.all([
+      deleteUserItemLikes(itemId),
+      deleteAllTradeRequests(itemId),
+      deleteRelatedRecords("item_memories", itemId),
+      deleteRelatedRecords("user_item_tags", itemId)
+    ]);
 
     // 最後にユーザーアイテムを削除
     const { error: deleteError } = await supabase
@@ -130,6 +137,7 @@ export async function deleteRelatedRecords(
     if (error) throw error;
     return { error: null };
   } catch (error) {
+    console.error(`Error deleting records from ${table}:`, error);
     return { error: error as Error };
   }
 }
