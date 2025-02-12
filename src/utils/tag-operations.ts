@@ -13,15 +13,15 @@ interface Tag {
   name: string;
 }
 
-type ItemTag = {
+// ItemTag型をよりシンプルに定義
+interface ItemTag {
   id: string;
   tag_id: string;
   created_at: string;
   tags: Tag;
-} & (
-  | { official_item_id: string; user_item_id?: never }
-  | { user_item_id: string; official_item_id?: never }
-);
+  official_item_id?: string;
+  user_item_id?: string;
+}
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
@@ -85,10 +85,7 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
     const { error: tradeRequestError } = await supabase
       .from("trade_requests")
       .delete()
-      .or([
-        { offered_item_id: { eq: itemId } },
-        { requested_item_id: { eq: itemId } }
-      ]);
+      .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
 
     if (tradeRequestError) throw tradeRequestError;
 
