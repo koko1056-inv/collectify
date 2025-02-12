@@ -12,13 +12,14 @@ interface Tag {
   name: string;
 }
 
-// 循環参照を避けるためにシンプルな型定義に変更
+// ItemTag型をシンプルに定義
 type ItemTag = {
   id: string;
   tag_id: string;
   created_at: string;
   tags: Tag;
-} & ({ official_item_id: string } | { user_item_id: string });
+  [key: string]: any; // インデックスシグネチャを追加
+};
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
@@ -83,16 +84,14 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
     const { error: offeredTradeError } = await supabase
       .from("trade_requests")
       .delete()
-      .eq("offered_item_id", itemId)
-      .eq("status", "pending");
+      .eq("offered_item_id", itemId);
 
     if (offeredTradeError) throw offeredTradeError;
 
     const { error: requestedTradeError } = await supabase
       .from("trade_requests")
       .delete()
-      .eq("requested_item_id", itemId)
-      .eq("status", "pending");
+      .eq("requested_item_id", itemId);
 
     if (requestedTradeError) throw requestedTradeError;
 
