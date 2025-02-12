@@ -55,11 +55,11 @@ export function ItemDetailsContent({
         .from("profiles")
         .select("username, display_name, avatar_url")
         .eq("id", createdBy)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
-    enabled: !!createdBy && !isUserItem,
+    enabled: !!createdBy,
   });
 
   const handleImageUpdate = (newImageUrl: string) => {
@@ -131,6 +131,9 @@ export function ItemDetailsContent({
     setEditedData({ ...editedData, tags: newTags });
   };
 
+  console.log("creatorProfile:", creatorProfile);
+  console.log("createdBy:", createdBy);
+
   return (
     <ScrollArea className="flex-1 px-6">
       <div className="space-y-4 bg-white">
@@ -149,7 +152,7 @@ export function ItemDetailsContent({
                 <span>{contentName}</span>
               </div>
             )}
-            {!isEditing && creatorProfile && (
+            {!isEditing && createdBy && creatorProfile && (
               <div className="text-sm space-y-2">
                 <div className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">
