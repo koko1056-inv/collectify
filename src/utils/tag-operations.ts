@@ -17,6 +17,8 @@ interface ItemTag {
   tag_id: string;
   created_at: string;
   tags: Tag;
+  user_item_id?: string;
+  official_item_id?: string;
 }
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
@@ -38,7 +40,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean) {
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return (data || []) as ItemTag[];
+  return (data as ItemTag[]) || [];
 }
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
@@ -78,13 +80,21 @@ async function deleteAllTradeRequests(itemId: string): Promise<void> {
 
   if (!tradeRequests?.length) return;
 
-  // トレードリクエストを一括削除
-  const { error: deleteError } = await supabase
+  // offered_item_idに関連するトレードリクエストを削除
+  const { error: offeredError } = await supabase
     .from("trade_requests")
     .delete()
-    .in("id", tradeRequests.map(tr => tr.id));
+    .eq("offered_item_id", itemId);
 
-  if (deleteError) throw deleteError;
+  if (offeredError) throw offeredError;
+
+  // requested_item_idに関連するトレードリクエストを削除
+  const { error: requestedError } = await supabase
+    .from("trade_requests")
+    .delete()
+    .eq("requested_item_id", itemId);
+
+  if (requestedError) throw requestedError;
 }
 
 export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResult> {
