@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
 import { Link } from "react-router-dom";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { User } from "lucide-react";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -51,7 +53,7 @@ export function ItemDetailsContent({
       if (!createdBy) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("username, display_name")
+        .select("username, display_name, avatar_url")
         .eq("id", createdBy)
         .single();
       if (error) throw error;
@@ -149,16 +151,25 @@ export function ItemDetailsContent({
             )}
             {!isEditing && creatorProfile && (
               <div className="text-sm space-y-2">
-                <div>
-                  <span className="font-medium">グッズ登録者: </span>
-                  <span>{creatorProfile.display_name || creatorProfile.username}</span>
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={creatorProfile.avatar_url || ""} />
+                    <AvatarFallback>
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-medium">登録者</div>
+                    <div>{creatorProfile.display_name || creatorProfile.username}</div>
+                  </div>
                 </div>
                 <Button 
                   variant="outline" 
                   size="sm"
                   asChild
+                  className="w-full"
                 >
-                  <Link to={`/profile/${createdBy}`}>
+                  <Link to={`/user/${createdBy}`}>
                     プロフィールを見る
                   </Link>
                 </Button>
