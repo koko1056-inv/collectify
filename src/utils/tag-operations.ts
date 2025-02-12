@@ -12,13 +12,12 @@ interface Tag {
   name: string;
 }
 
+// 型定義をシンプル化
 interface ItemTag {
   id: string;
   tag_id: string;
   created_at: string;
   tags: Tag;
-  user_item_id?: string;
-  official_item_id?: string;
 }
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
@@ -29,7 +28,6 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean) {
     .from(tableName)
     .select(`
       id,
-      ${idColumn},
       tag_id,
       created_at,
       tags (
@@ -40,7 +38,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean) {
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return (data as ItemTag[]) || [];
+  return data as ItemTag[] || [];
 }
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
@@ -70,31 +68,17 @@ export async function removeTagFromItem(tagId: string, itemId: string, isUserIte
 }
 
 async function deleteAllTradeRequests(itemId: string): Promise<void> {
-  // すべての関連するトレードリクエストを取得
-  const { data: tradeRequests, error: fetchError } = await supabase
-    .from("trade_requests")
-    .select("id")
-    .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
+  try {
+    // すべてのトレードリクエストを削除 - 順序を変更
+    await supabase
+      .from("trade_requests")
+      .delete()
+      .or(`requested_item_id.eq.${itemId},offered_item_id.eq.${itemId}`);
 
-  if (fetchError) throw fetchError;
-
-  if (!tradeRequests?.length) return;
-
-  // offered_item_idに関連するトレードリクエストを削除
-  const { error: offeredError } = await supabase
-    .from("trade_requests")
-    .delete()
-    .eq("offered_item_id", itemId);
-
-  if (offeredError) throw offeredError;
-
-  // requested_item_idに関連するトレードリクエストを削除
-  const { error: requestedError } = await supabase
-    .from("trade_requests")
-    .delete()
-    .eq("requested_item_id", itemId);
-
-  if (requestedError) throw requestedError;
+  } catch (error) {
+    console.error("Error deleting trade requests:", error);
+    throw error;
+  }
 }
 
 export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResult> {
