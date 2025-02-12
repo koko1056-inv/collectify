@@ -7,7 +7,7 @@ interface DeleteUserItemResult {
   officialItemId?: string;
 }
 
-// 型定義を単純化して無限再帰を防ぐ
+// シンプルな型定義
 interface Tag {
   id: string;
   name: string;
@@ -81,11 +81,14 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     if (fetchError) throw fetchError;
 
-    // トレードリクエストの削除（SQLインジェクションを防ぐため.orを使用）
+    // 関連するトレードリクエストを削除（より安全な方法で）
     const { error: tradeRequestError } = await supabase
       .from("trade_requests")
       .delete()
-      .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
+      .or([
+        { offered_item_id: { eq: itemId } },
+        { requested_item_id: { eq: itemId } }
+      ]);
 
     if (tradeRequestError) throw tradeRequestError;
 
