@@ -13,7 +13,7 @@ interface Tag {
   name: string;
 }
 
-// ItemTag型をよりシンプルに定義
+// シンプルなItemTag型定義
 interface ItemTag {
   id: string;
   tag_id: string;
@@ -73,6 +73,22 @@ export async function removeTagFromItem(tagId: string, itemId: string, isUserIte
 
 export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResult> {
   try {
+    // 最初に関連するトレードリクエストを削除
+    const { error: offeredTradeError } = await supabase
+      .from("trade_requests")
+      .delete()
+      .eq("offered_item_id", itemId);
+
+    if (offeredTradeError) throw offeredTradeError;
+
+    const { error: requestedTradeError } = await supabase
+      .from("trade_requests")
+      .delete()
+      .eq("requested_item_id", itemId);
+
+    if (requestedTradeError) throw requestedTradeError;
+
+    // ユーザーアイテムの情報を取得
     const { data: userItem, error: fetchError } = await supabase
       .from("user_items")
       .select("official_item_id")
@@ -80,14 +96,6 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
       .maybeSingle();
 
     if (fetchError) throw fetchError;
-
-    // 関連するトレードリクエストを削除（より安全な方法で）
-    const { error: tradeRequestError } = await supabase
-      .from("trade_requests")
-      .delete()
-      .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
-
-    if (tradeRequestError) throw tradeRequestError;
 
     // 関連するテーブルのレコードを削除
     const tables: TableName[] = ["user_item_likes", "item_memories", "user_item_tags"];
@@ -106,6 +114,7 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     return { error: null, officialItemId: userItem?.official_item_id };
   } catch (error) {
+    console.error("Error deleting user item:", error);
     return { error: error as Error };
   }
 }
