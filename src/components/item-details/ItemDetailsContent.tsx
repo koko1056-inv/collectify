@@ -1,3 +1,4 @@
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -5,6 +6,8 @@ import { ContentNameSection } from "./ContentNameSection";
 import { CreatorSection } from "./CreatorSection";
 import { TagsSection } from "./TagsSection";
 import { MemoriesSection } from "./MemoriesSection";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -36,6 +39,21 @@ export function ItemDetailsContent({
   const handleImageUpdate = (newImageUrl: string) => {
     setEditedData({ ...editedData, image: newImageUrl });
   };
+
+  const { data: creatorProfile } = useQuery({
+    queryKey: ["creator-profile", createdBy],
+    queryFn: async () => {
+      if (!createdBy) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username, display_name, avatar_url")
+        .eq("id", createdBy)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!createdBy,
+  });
 
   return (
     <ScrollArea className="flex-1 px-6">
@@ -74,10 +92,10 @@ export function ItemDetailsContent({
                   <div className="font-medium">アイテム情報</div>
                   <div className="text-gray-600">
                     このアイテムは
-                    {createdBy && (
-                      <span className="font-medium"> コミュニティメンバー </span>
+                    {createdBy && creatorProfile && (
+                      <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
                     )}
-                    {!createdBy && (
+                    {(!createdBy || !creatorProfile) && (
                       <span className="font-medium"> 不明なユーザー </span>
                     )}
                     によって登録されました。
