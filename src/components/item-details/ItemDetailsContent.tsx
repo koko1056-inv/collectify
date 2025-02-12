@@ -133,7 +133,7 @@ export function ItemDetailsContent({
 
   return (
     <ScrollArea className="flex-1 px-6">
-      <div className="space-y-4">
+      <div className="space-y-4 bg-white">
         <ItemImageEditor
           image={isEditing ? editedData.image : image}
           title={title}
