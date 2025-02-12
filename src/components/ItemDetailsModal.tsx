@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -113,6 +114,25 @@ export function ItemDetailsModal({
     enabled: !isUserItem,
   });
 
+  // アイテムのクリエイター情報を取得
+  const { data: itemDetails } = useQuery({
+    queryKey: ["item-details", itemId],
+    queryFn: async () => {
+      if (isUserItem) return null;
+      const { data, error } = await supabase
+        .from("official_items")
+        .select("created_by")
+        .eq("id", itemId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !isUserItem,
+  });
+
+  // 実際のcreatedBy値を使用
+  const effectiveCreatedBy = itemDetails?.created_by || createdBy;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col">
@@ -134,7 +154,7 @@ export function ItemDetailsModal({
           setEditedData={setEditedData}
           contentName={isUserItem ? undefined : contentName}
           releaseDate={releaseDate}
-          createdBy={createdBy}
+          createdBy={effectiveCreatedBy}
         />
 
         <ItemDetailsFooter
