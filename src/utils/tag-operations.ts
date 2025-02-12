@@ -78,12 +78,22 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     if (fetchError) throw fetchError;
 
+    // トレードリクエストの削除
+    const { error: tradeRequestError } = await supabase
+      .from("trade_requests")
+      .delete()
+      .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
+
+    if (tradeRequestError) throw tradeRequestError;
+
+    // 関連するテーブルのレコードを削除
     const tables: TableName[] = ["user_item_likes", "item_memories", "user_item_tags"];
     for (const table of tables) {
       const { error } = await deleteRelatedRecords(table, itemId);
       if (error) throw error;
     }
 
+    // 最後にユーザーアイテムを削除
     const { error: deleteError } = await supabase
       .from("user_items")
       .delete()
