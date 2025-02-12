@@ -10,6 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { FollowList } from "./FollowList";
+import { Users, BookMarked, Heart } from "lucide-react";
 
 interface ProfileStatsProps {
   userId: string;
@@ -65,7 +66,10 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
               <SheetTrigger asChild>
                 <Button variant="ghost" className="h-auto px-1 py-0 font-normal hover:bg-white/5">
                   <div className="flex flex-col items-center sm:items-start">
-                    <span className="font-bold text-base sm:text-lg">{profile?.followers_count || 0}</span>
+                    <div className="relative w-16 h-16 flex items-center justify-center bg-black/90 rounded-full mb-1">
+                      <Users className="w-6 h-6 text-white absolute opacity-10" />
+                      <span className="font-bold text-xl text-white">{profile?.followers_count || 0}</span>
+                    </div>
                     フォロワー
                   </div>
                 </Button>
@@ -84,7 +88,10 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
               <SheetTrigger asChild>
                 <Button variant="ghost" className="h-auto px-1 py-0 font-normal hover:bg-white/5">
                   <div className="flex flex-col items-center sm:items-start">
-                    <span className="font-bold text-base sm:text-lg">{profile?.following_count || 0}</span>
+                    <div className="relative w-16 h-16 flex items-center justify-center bg-black/90 rounded-full mb-1">
+                      <Users className="w-6 h-6 text-white absolute opacity-10" />
+                      <span className="font-bold text-xl text-white">{profile?.following_count || 0}</span>
+                    </div>
                     フォロー中
                   </div>
                 </Button>
@@ -105,14 +112,20 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
           <div className="flex flex-wrap gap-4 justify-center sm:justify-start text-xs sm:text-sm">
             <Button variant="ghost" className="h-auto px-1 py-0 font-normal hover:bg-white/5">
               <div className="flex flex-col items-center sm:items-start">
-                <span className="font-bold text-base sm:text-lg">{collectionCount}</span>
+                <div className="relative w-16 h-16 flex items-center justify-center bg-black/90 rounded-full mb-1">
+                  <BookMarked className="w-6 h-6 text-white absolute opacity-10" />
+                  <span className="font-bold text-xl text-white">{collectionCount}</span>
+                </div>
                 コレクション
               </div>
             </Button>
 
             <Button variant="ghost" className="h-auto px-1 py-0 font-normal hover:bg-white/5">
               <div className="flex flex-col items-center sm:items-start">
-                <span className="font-bold text-base sm:text-lg">{wishlistCount}</span>
+                <div className="relative w-16 h-16 flex items-center justify-center bg-black/90 rounded-full mb-1">
+                  <Heart className="w-6 h-6 text-white absolute opacity-10" />
+                  <span className="font-bold text-xl text-white">{wishlistCount}</span>
+                </div>
                 ウィッシュリスト
               </div>
             </Button>
@@ -122,4 +135,3 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
     </div>
   );
 }
-
