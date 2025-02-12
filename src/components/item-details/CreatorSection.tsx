@@ -30,32 +30,58 @@ export function CreatorSection({
     enabled: !!createdBy,
   });
 
-  if (isEditing || !createdBy || !creatorProfile) return null;
+  if (isEditing) return null;
 
   return (
-    <div className="text-sm space-y-2">
-      <div className="flex items-center gap-2">
-        <Avatar className="h-8 w-8">
-          <AvatarImage src={creatorProfile.avatar_url || ""} />
-          <AvatarFallback>
-            <User className="h-4 w-4" />
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <div className="font-medium">登録者</div>
-          <div>{creatorProfile.display_name || creatorProfile.username}</div>
+    <div className="space-y-4">
+      <div className="text-sm space-y-2">
+        <div className="flex items-center gap-2">
+          {createdBy && creatorProfile && (
+            <>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={creatorProfile.avatar_url || ""} />
+                <AvatarFallback>
+                  <User className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="font-medium">登録者</div>
+                <div>{creatorProfile.display_name || creatorProfile.username}</div>
+              </div>
+            </>
+          )}
+        </div>
+        {createdBy && creatorProfile && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            asChild
+            className="w-full"
+          >
+            <Link to={`/user/${createdBy}`}>
+              プロフィールを見る
+            </Link>
+          </Button>
+        )}
+      </div>
+
+      <div className="text-sm space-y-2">
+        <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+          <div>
+            <div className="font-medium">アイテム情報</div>
+            <div className="text-gray-600">
+              このアイテムは
+              {createdBy && creatorProfile && (
+                <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
+              )}
+              {(!createdBy || !creatorProfile) && (
+                <span className="font-medium"> 不明なユーザー </span>
+              )}
+              によって登録されました。
+            </div>
+          </div>
         </div>
       </div>
-      <Button 
-        variant="outline" 
-        size="sm"
-        asChild
-        className="w-full"
-      >
-        <Link to={`/user/${createdBy}`}>
-          プロフィールを見る
-        </Link>
-      </Button>
     </div>
   );
 }
