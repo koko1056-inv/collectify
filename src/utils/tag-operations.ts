@@ -7,18 +7,21 @@ interface DeleteUserItemResult {
   officialItemId?: string;
 }
 
+// 型定義を単純化して無限再帰を防ぐ
 interface Tag {
   id: string;
   name: string;
 }
 
-interface ItemTag {
+type ItemTag = {
   id: string;
-  official_item_id: string;
   tag_id: string;
   created_at: string;
   tags: Tag;
-}
+} & (
+  | { official_item_id: string; user_item_id?: never }
+  | { user_item_id: string; official_item_id?: never }
+);
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
@@ -78,7 +81,7 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     if (fetchError) throw fetchError;
 
-    // トレードリクエストの削除
+    // トレードリクエストの削除（SQLインジェクションを防ぐため.orを使用）
     const { error: tradeRequestError } = await supabase
       .from("trade_requests")
       .delete()
