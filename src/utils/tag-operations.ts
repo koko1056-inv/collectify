@@ -12,14 +12,12 @@ interface Tag {
   name: string;
 }
 
-// ItemTag型をシンプルに定義
-type ItemTag = {
+interface ItemTag {
   id: string;
   tag_id: string;
   created_at: string;
   tags: Tag;
-  [key: string]: any; // インデックスシグネチャを追加
-};
+}
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
@@ -40,7 +38,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean) {
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as ItemTag[];
 }
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
@@ -69,6 +67,26 @@ export async function removeTagFromItem(tagId: string, itemId: string, isUserIte
   if (error) throw error;
 }
 
+async function deleteAllTradeRequests(itemId: string): Promise<void> {
+  // すべての関連するトレードリクエストを取得
+  const { data: tradeRequests, error: fetchError } = await supabase
+    .from("trade_requests")
+    .select("id")
+    .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
+
+  if (fetchError) throw fetchError;
+
+  if (!tradeRequests?.length) return;
+
+  // トレードリクエストを一括削除
+  const { error: deleteError } = await supabase
+    .from("trade_requests")
+    .delete()
+    .in("id", tradeRequests.map(tr => tr.id));
+
+  if (deleteError) throw deleteError;
+}
+
 export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResult> {
   try {
     // まず最初にユーザーアイテムの情報を取得
@@ -80,22 +98,10 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     if (fetchError) throw fetchError;
 
-    // トレードリクエストを削除（分割して実行）
-    const { error: offeredTradeError } = await supabase
-      .from("trade_requests")
-      .delete()
-      .eq("offered_item_id", itemId);
+    // すべての関連するトレードリクエストを削除
+    await deleteAllTradeRequests(itemId);
 
-    if (offeredTradeError) throw offeredTradeError;
-
-    const { error: requestedTradeError } = await supabase
-      .from("trade_requests")
-      .delete()
-      .eq("requested_item_id", itemId);
-
-    if (requestedTradeError) throw requestedTradeError;
-
-    // 次に関連するその他のレコードを削除
+    // 関連するその他のレコードを削除
     const tables: TableName[] = ["user_item_likes", "item_memories", "user_item_tags"];
     for (const table of tables) {
       const { error } = await deleteRelatedRecords(table, itemId);
