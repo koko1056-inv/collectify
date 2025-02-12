@@ -1,3 +1,4 @@
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { TagInput } from "@/components/TagInput";
@@ -10,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
+import { Link } from "react-router-dom";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -146,9 +148,20 @@ export function ItemDetailsContent({
               </div>
             )}
             {!isEditing && creatorProfile && (
-              <div className="text-sm">
-                <span className="font-medium">グッズ登録者: </span>
-                <span>{creatorProfile.display_name || creatorProfile.username}</span>
+              <div className="text-sm space-y-2">
+                <div>
+                  <span className="font-medium">グッズ登録者: </span>
+                  <span>{creatorProfile.display_name || creatorProfile.username}</span>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  asChild
+                >
+                  <Link to={`/profile/${createdBy}`}>
+                    プロフィールを見る
+                  </Link>
+                </Button>
               </div>
             )}
             {!isEditing && releaseDate && (
