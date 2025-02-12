@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import { ShoppingBasket, Users } from "lucide-react";
@@ -37,7 +36,7 @@ export function OfficialGoodsCardFooter({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("user_id, quantity")
+        .select("user_id")
         .eq("official_item_id", itemId);
       
       if (error) {
@@ -45,17 +44,9 @@ export function OfficialGoodsCardFooter({
         return 0;
       }
 
-      // ユーザーごとの合計数量を計算
-      const userQuantities: Record<string, number> = {};
-      data.forEach(item => {
-        const userId = item.user_id;
-        const quantity = item.quantity || 1;
-        userQuantities[userId] = (userQuantities[userId] || 0) + quantity;
-      });
-
-      // すべてのユーザーの数量を合計
-      const totalQuantity = Object.values(userQuantities).reduce((sum, qty) => sum + qty, 0);
-      return totalQuantity;
+      // ユニークなユーザーIDの数を計算
+      const uniqueUserIds = new Set(data.map(item => item.user_id));
+      return uniqueUserIds.size;
     },
   });
 
