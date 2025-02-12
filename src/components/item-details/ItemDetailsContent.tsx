@@ -1,3 +1,4 @@
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { TagInput } from "@/components/TagInput";
@@ -187,7 +188,13 @@ export function ItemDetailsContent({
               <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
                 <div>
                   <div className="font-medium">アイテム情報</div>
-                  <div className="text-gray-600">このアイテムはコミュニティメンバーによって登録されました。</div>
+                  <div className="text-gray-600">
+                    このアイテムは
+                    {creatorProfile ? (
+                      <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
+                    ) : "コミュニティメンバー"}
+                    によって登録されました。
+                  </div>
                 </div>
               </div>
             </div>
