@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,9 @@ export function ItemOwnersModal({
       const { data, error } = await supabase
         .from("user_items")
         .select(`
+          id,
           user_id,
+          quantity,
           profiles (
             username,
             avatar_url,
@@ -39,7 +42,22 @@ export function ItemOwnersModal({
         return [];
       }
 
-      return data;
+      // ユーザーごとのアイテム数を集計
+      const userOwnership = new Map();
+      data.forEach((item) => {
+        const userId = item.user_id;
+        const currentQuantity = userOwnership.get(userId)?.quantity || 0;
+        const newQuantity = (item.quantity || 1) + currentQuantity;
+        
+        userOwnership.set(userId, {
+          quantity: newQuantity,
+          profile: item.profiles,
+          user_id: userId
+        });
+      });
+
+      // Mapの値を配列に変換
+      return Array.from(userOwnership.values());
     },
     enabled: isOpen,
   });
@@ -69,16 +87,21 @@ export function ItemOwnersModal({
               <Link
                 key={owner.user_id}
                 to={`/user/${owner.user_id}`}
-                className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                className="flex items-center justify-between gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors"
               >
-                <Avatar>
-                  <AvatarImage src={owner.profiles?.avatar_url || ""} />
-                  <AvatarFallback>
-                    {owner.profiles?.username?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="font-medium">
-                  {owner.profiles?.display_name || owner.profiles?.username}
+                <div className="flex items-center gap-3">
+                  <Avatar>
+                    <AvatarImage src={owner.profile?.avatar_url || ""} />
+                    <AvatarFallback>
+                      {owner.profile?.username?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium">
+                    {owner.profile?.display_name || owner.profile?.username}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-500">
+                  {owner.quantity}個
                 </span>
               </Link>
             ))
