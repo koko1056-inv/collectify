@@ -1,4 +1,3 @@
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { TagInput } from "@/components/TagInput";
@@ -190,9 +189,11 @@ export function ItemDetailsContent({
                   <div className="font-medium">アイテム情報</div>
                   <div className="text-gray-600">
                     このアイテムは
-                    {creatorProfile ? (
-                      <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
-                    ) : "コミュニティメンバー"}
+                    {createdBy ? (
+                      creatorProfile ? (
+                        <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
+                      ) : <span className="font-medium"> 不明なユーザー </span>
+                    ) : <span className="font-medium"> コミュニティメンバー </span>}
                     によって登録されました。
                   </div>
                 </div>
