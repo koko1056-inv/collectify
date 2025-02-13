@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,7 @@ import { ProfileFavorites } from "./ProfileFavorites";
 import { ProfileImageUpload } from "./ProfileImageUpload";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Link } from "react-router-dom";
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -169,6 +171,17 @@ export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) 
       </div>
 
       <ProfileStats userId={effectiveUserId} />
+
+      {isOwnProfile && (
+        <div className="flex justify-center mb-4">
+          <Link 
+            to="/edit-profile"
+            className="text-center py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-sm"
+          >
+            プロフィールを編集
+          </Link>
+        </div>
+      )}
 
       <div className="mt-4">
         <ProfileBio
