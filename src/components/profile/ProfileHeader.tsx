@@ -15,8 +15,8 @@ export function ProfileHeader({ username, onShare, isOwnProfile }: ProfileHeader
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex items-center justify-between w-full">
-      <h1 className="text-2xl font-bold truncate mr-2">{username}</h1>
+    <div className="flex items-center justify-center w-full">
+      <h1 className="text-2xl font-bold truncate text-center">{username}</h1>
       <div className={`flex items-center space-x-2 shrink-0 ${isMobile ? 'mr-2' : ''}`}>
         <Button
           variant="outline"
@@ -31,4 +31,3 @@ export function ProfileHeader({ username, onShare, isOwnProfile }: ProfileHeader
     </div>
   );
 }
-

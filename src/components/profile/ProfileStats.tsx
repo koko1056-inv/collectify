@@ -52,12 +52,14 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
           <span className="text-sm text-gray-600">コレクション</span>
         </div>
       </div>
-      <Link 
-        to="/edit-profile"
-        className="block w-full text-center py-2.5 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-      >
-        プロフィールを編集
-      </Link>
+      <div className="flex justify-center">
+        <Link 
+          to="/edit-profile"
+          className="text-center py-2.5 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+        >
+          プロフィールを編集
+        </Link>
+      </div>
     </div>
   );
 }
