@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Check, Edit, X } from "lucide-react";
@@ -23,23 +24,12 @@ export function ProfileBio({
   onSubmit,
   isOwnProfile = false,
 }: ProfileBioProps) {
-  return (
-    <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">自己紹介</h2>
-        {!isEditing && isOwnProfile && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onEdit}
-            className="gap-2"
-          >
-            <Edit className="h-4 w-4" />
-            編集
-          </Button>
-        )}
-      </div>
+  if (!isOwnProfile && !bio) {
+    return null;
+  }
 
+  return (
+    <div className="bg-white rounded-lg shadow-sm space-y-4">
       {isEditing ? (
         <form onSubmit={onSubmit} className="space-y-4">
           <Textarea
@@ -67,7 +57,7 @@ export function ProfileBio({
         </form>
       ) : (
         <div className="prose prose-sm max-w-none">
-          <p className="whitespace-pre-wrap">{bio || "自己紹介文が未設定です"}</p>
+          <p className="whitespace-pre-wrap">{bio}</p>
         </div>
       )}
     </div>
