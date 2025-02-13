@@ -51,9 +51,7 @@ export function CollectionGoodsCardContent({
             <div className={`h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${itemMemories.length > 0 ? 'text-purple-500' : 'text-gray-400'}`}>
               <BookMarked className="h-full w-full" />
             </div>
-            {itemMemories.length > 0 && (
-              <span className="text-[10px] sm:text-xs text-purple-500 -mt-1">{itemMemories.length}</span>
-            )}
+            <span className="text-[10px] sm:text-xs text-purple-500 -mt-1">{itemMemories.length}</span>
           </button>
         </div>
       </div>
