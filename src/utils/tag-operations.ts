@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { TableName } from "@/types/tag";
 
@@ -7,18 +6,19 @@ interface DeleteUserItemResult {
   officialItemId?: string;
 }
 
-interface Tag {
+// 単純化したTag型定義
+type Tag = {
   id: string;
   name: string;
-}
+};
 
-// 型を単純化して循環参照を防ぐ
-interface ItemTag {
+// ItemTagの型定義を修正
+type ItemTag = {
   id: string;
   tag_id: string;
   created_at: string;
-  tags: Tag | null;
-}
+  tags: Tag;
+};
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
