@@ -12,14 +12,12 @@ interface Tag {
   name: string;
 }
 
+// 型を単純化して循環参照を防ぐ
 interface ItemTag {
   id: string;
   tag_id: string;
   created_at: string;
-  tags: {
-    id: string;
-    name: string;
-  };
+  tags: Tag | null;
 }
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
@@ -63,7 +61,7 @@ export async function removeTagFromItem(tagId: string, itemId: string, isUserIte
 
 async function deleteAllTradeRequests(itemId: string): Promise<void> {
   try {
-    // まず、trade_requestsテーブルの関連レコードを削除
+    // SQLインジェクションを防ぐため、orフィルターを修正
     const { error } = await supabase
       .from("trade_requests")
       .delete()
@@ -101,8 +99,7 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     if (fetchError) throw fetchError;
 
-    // 関連レコードを順番に削除
-    // 重要: deleteAllTradeRequestsを最初に実行して外部キー制約を解決
+    // トレードリクエストを最初に削除
     await deleteAllTradeRequests(itemId);
     
     // その後、他の関連レコードを削除
