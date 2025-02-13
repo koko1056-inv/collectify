@@ -44,7 +44,7 @@ export function CollectionGoodsCardContent({
             e.stopPropagation();
             onMemoriesClick();
           }} className="flex flex-col items-center gap-0.5">
-            <div className={`h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${itemMemories.length > 0 ? 'text-purple-500' : 'text-gray-400'}`}>
+            <div className={`h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${itemMemories.length > 0 ? 'text-green-500' : 'text-gray-400'}`}>
               <BookMarked className="h-full w-full" />
             </div>
             <span className="text-[10px] sm:text-xs -mt-1 text-gray-500">{itemMemories.length}</span>

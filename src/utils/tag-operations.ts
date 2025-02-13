@@ -7,17 +7,20 @@ interface DeleteUserItemResult {
 }
 
 // 単純化したTag型定義
-type Tag = {
+export type Tag = {
   id: string;
   name: string;
 };
 
-// ItemTagの型定義を修正
-type ItemTag = {
+// ItemTagの型定義を修正し、循環参照を防ぐ
+export type ItemTag = {
   id: string;
   tag_id: string;
   created_at: string;
-  tags: Tag;
+  tags: {
+    id: string;
+    name: string;
+  };
 };
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
