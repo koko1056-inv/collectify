@@ -18,6 +18,7 @@ export function ProfileHeader({ username, onShare, isOwnProfile }: ProfileHeader
     <div className="flex items-center justify-center w-full">
       <h1 className="text-2xl font-bold truncate text-center">{username}</h1>
       <div className={`flex items-center space-x-2 shrink-0 ${isMobile ? 'mr-2' : ''}`}>
+        {isOwnProfile && <LogoutButton />}
         <Button
           variant="outline"
           size="icon"
@@ -26,7 +27,6 @@ export function ProfileHeader({ username, onShare, isOwnProfile }: ProfileHeader
         >
           <Share2 className="h-4 w-4" />
         </Button>
-        {isOwnProfile && <LogoutButton />}
       </div>
     </div>
   );
