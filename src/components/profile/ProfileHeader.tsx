@@ -16,9 +16,9 @@ export function ProfileHeader({ username, onShare, isOwnProfile }: ProfileHeader
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex items-center justify-center w-full">
+    <div className="flex items-center justify-center gap-4 w-full">
       <h1 className="text-2xl font-bold truncate text-center">{username}</h1>
-      <div className={`flex items-center space-x-2 shrink-0 ${isMobile ? 'mr-2' : ''}`}>
+      <div className="flex items-center gap-2">
         {isOwnProfile && (
           <Link 
             to="/edit-profile"
@@ -31,7 +31,7 @@ export function ProfileHeader({ username, onShare, isOwnProfile }: ProfileHeader
           variant="outline"
           size="icon"
           onClick={onShare}
-          className="h-8 w-8"
+          className="h-8 w-8 shrink-0"
         >
           <Share2 className="h-4 w-4" />
         </Button>

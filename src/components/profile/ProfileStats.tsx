@@ -2,7 +2,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Users, BookMarked } from "lucide-react";
-import { Link } from "react-router-dom";
 
 interface ProfileStatsProps {
   userId: string;
@@ -51,14 +50,6 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
           <span className="text-xl font-bold">{collectionCount}</span>
           <span className="text-sm text-gray-600">コレクション</span>
         </div>
-      </div>
-      <div className="flex justify-center">
-        <Link 
-          to="/edit-profile"
-          className="text-center py-2.5 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-        >
-          プロフィールを編集
-        </Link>
       </div>
     </div>
   );
