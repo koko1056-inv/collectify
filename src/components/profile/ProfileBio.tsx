@@ -56,7 +56,7 @@ export function ProfileBio({
           </div>
         </form>
       ) : (
-        <div className="prose prose-sm max-w-none">
+        <div className="prose prose-sm max-w-none text-center">
           <p className="whitespace-pre-wrap">{bio}</p>
         </div>
       )}
