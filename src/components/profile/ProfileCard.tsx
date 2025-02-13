@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -145,35 +144,33 @@ export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) 
 
   return (
     <div className={`${isMobile ? 'bg-white' : 'bg-white p-6 rounded-lg shadow'}`}>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16">
-            {isOwnProfile ? (
-              <ProfileImageUpload
-                onImageChange={handleImageChange}
-                previewUrl={previewUrl}
-                setPreviewUrl={setPreviewUrl}
-                userId={effectiveUserId}
-              />
-            ) : (
-              <img
-                src={avatarUrl || "/placeholder.svg"}
-                alt={username_}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-            )}
-          </div>
-          <ProfileHeader 
-            username={username_}
-            onShare={onShare}
-            isOwnProfile={isOwnProfile}
-          />
+      <div className="flex flex-col items-center mb-4">
+        <div className="w-24 h-24 mb-4">
+          {isOwnProfile ? (
+            <ProfileImageUpload
+              onImageChange={handleImageChange}
+              previewUrl={previewUrl}
+              setPreviewUrl={setPreviewUrl}
+              userId={effectiveUserId}
+            />
+          ) : (
+            <img
+              src={avatarUrl || "/placeholder.svg"}
+              alt={username_}
+              className="w-24 h-24 rounded-full object-cover"
+            />
+          )}
         </div>
+        <ProfileHeader 
+          username={username_}
+          onShare={onShare}
+          isOwnProfile={isOwnProfile}
+        />
       </div>
 
       <ProfileStats userId={effectiveUserId} />
 
-      <div className="mt-6">
+      <div className="mt-4">
         <ProfileBio
           bio={bio}
           isEditing={isEditing}
