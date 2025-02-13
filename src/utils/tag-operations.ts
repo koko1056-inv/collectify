@@ -12,7 +12,6 @@ interface Tag {
   name: string;
 }
 
-// シンプルな型定義
 interface ItemTag {
   id: string;
   tag_id: string;
@@ -64,6 +63,7 @@ export async function removeTagFromItem(tagId: string, itemId: string, isUserIte
 
 async function deleteAllTradeRequests(itemId: string): Promise<void> {
   try {
+    // まず、trade_requestsテーブルの関連レコードを削除
     const { error } = await supabase
       .from("trade_requests")
       .delete()
@@ -102,9 +102,12 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
     if (fetchError) throw fetchError;
 
     // 関連レコードを順番に削除
+    // 重要: deleteAllTradeRequestsを最初に実行して外部キー制約を解決
+    await deleteAllTradeRequests(itemId);
+    
+    // その後、他の関連レコードを削除
     await Promise.all([
       deleteUserItemLikes(itemId),
-      deleteAllTradeRequests(itemId),
       deleteRelatedRecords("item_memories", itemId),
       deleteRelatedRecords("user_item_tags", itemId)
     ]);
