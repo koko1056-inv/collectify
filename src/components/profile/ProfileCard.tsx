@@ -172,7 +172,7 @@ export function ProfileCard({ onShare, setUsername, userId }: ProfileCardProps) 
       <ProfileStats userId={effectiveUserId} />
 
       {isOwnProfile && (
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-end mb-4">
           <button 
             onClick={() => setIsEditing(true)}
             className="text-center py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-sm font-bold"
