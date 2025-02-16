@@ -5,18 +5,22 @@ import { LoginFormData } from "@/types/auth";
 export const handleAdminLogin = async (username: string, password: string) => {
   const email = `kokomu.matsuo@starup01.jp`;
 
+  console.log("Attempting admin login with:", { email, password });
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
-    console.error("Admin login error:", error);
+    console.error("Admin login error details:", error);
     if (error.message.includes("Invalid login credentials")) {
       throw new Error("管理者アカウントのパスワードが正しくありません");
     }
     throw new Error("管理者ログインに失敗しました");
   }
+
+  console.log("Admin login successful:", data);
 
   // Check if the logged in user has admin privileges
   const { data: profile, error: profileError } = await supabase
@@ -24,6 +28,8 @@ export const handleAdminLogin = async (username: string, password: string) => {
     .select('is_admin')
     .eq('id', data.user.id)
     .single();
+
+  console.log("Admin profile check:", { profile, profileError });
 
   if (profileError || !profile?.is_admin) {
     await supabase.auth.signOut();
