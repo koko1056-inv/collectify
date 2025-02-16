@@ -14,16 +14,21 @@ type SortOption = "newest" | "oldest" | "wishlist" | "owners";
 interface OfficialItemsHeaderProps {
   sortBy: SortOption;
   onSortChange: (value: SortOption) => void;
+  title?: string;
 }
 
-export function OfficialItemsHeader({ sortBy, onSortChange }: OfficialItemsHeaderProps) {
+export function OfficialItemsHeader({ 
+  sortBy, 
+  onSortChange,
+  title = "公式グッズ"
+}: OfficialItemsHeaderProps) {
   const navigate = useNavigate();
 
   return (
     <div className="flex justify-between items-center mb-4 px-2">
       <div className="flex items-center gap-4">
         <h1 className="text-sm sm:text-2xl font-bold animate-fade-in text-gray-900">
-          公式グッズ
+          {title}
         </h1>
         <Select value={sortBy} onValueChange={(value) => onSortChange(value as SortOption)}>
           <SelectTrigger className="w-[180px] bg-white/90 backdrop-blur-sm border-gray-200">

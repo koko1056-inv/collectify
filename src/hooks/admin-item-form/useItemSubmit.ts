@@ -47,7 +47,7 @@ export function useItemSubmit({
       const imageUrl = await uploadImage();
 
       const { data: itemData, error: itemError } = await supabase
-        .from("official_items")
+        .from("original_items")
         .insert([
           {
             ...formData,
@@ -87,9 +87,9 @@ export function useItemSubmit({
           }
 
           const { error: relationError } = await supabase
-            .from("item_tags")
+            .from("original_item_tags")
             .insert([{
-              official_item_id: itemData.id,
+              original_item_id: itemData.id,
               tag_id: tagId,
             }]);
 
@@ -99,11 +99,11 @@ export function useItemSubmit({
 
       toast({
         title: "アイテムを追加しました",
-        description: "公式グッズリストに新しいアイテムが追加されました。",
+        description: "オリジナルグッズリストに新しいアイテムが追加されました。",
       });
 
       resetForm();
-      queryClient.invalidateQueries({ queryKey: ["official-items"] });
+      queryClient.invalidateQueries({ queryKey: ["original-items"] });
       queryClient.invalidateQueries({ queryKey: ["tags"] });
     } catch (error) {
       console.error("Error:", error);

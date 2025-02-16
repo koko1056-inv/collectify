@@ -34,7 +34,11 @@ export function OriginalItemsList() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <OfficialItemsHeader sortBy={sortBy} onSortChange={setSortBy} />
+      <OfficialItemsHeader 
+        sortBy={sortBy} 
+        onSortChange={setSortBy} 
+        title="オリジナルグッズ"
+      />
       <OfficialItemsGrid items={items} />
     </div>
   );
