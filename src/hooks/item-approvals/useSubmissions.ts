@@ -28,16 +28,13 @@ export function useSubmissions(isAdmin: boolean) {
         .from("item_submissions")
         .select(`
           *,
-          submitter:profiles!item_submissions_submitted_by_fkey (
-            username
-          )
+          submitter:profiles(username)
         `)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      // データの型を正しく変換
       const submissions: Submission[] = data.map(item => ({
         ...item,
         submitter: item.submitter || null
