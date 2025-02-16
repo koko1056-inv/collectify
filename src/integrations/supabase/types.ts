@@ -473,6 +473,102 @@ export type Database = {
           },
         ]
       }
+      original_item_tags: {
+        Row: {
+          created_at: string
+          id: string
+          original_item_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          original_item_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          original_item_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "original_item_tags_original_item_id_fkey"
+            columns: ["original_item_id"]
+            isOneToOne: false
+            referencedRelation: "original_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "original_item_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      original_items: {
+        Row: {
+          anime: string | null
+          artist: string | null
+          content_name: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          image: string
+          price: string
+          quantity: number
+          release_date: string
+          title: string
+        }
+        Insert: {
+          anime?: string | null
+          artist?: string | null
+          content_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image: string
+          price: string
+          quantity?: number
+          release_date: string
+          title: string
+        }
+        Update: {
+          anime?: string | null
+          artist?: string | null
+          content_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image?: string
+          price?: string
+          quantity?: number
+          release_date?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "original_items_content_name_fkey"
+            columns: ["content_name"]
+            isOneToOne: false
+            referencedRelation: "content_names"
+            referencedColumns: ["name"]
+          },
+          {
+            foreignKeyName: "original_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -755,6 +851,7 @@ export type Database = {
           images: string[] | null
           official_item_id: string | null
           official_link: string | null
+          original_item_id: string | null
           prize: string
           purchase_date: string | null
           purchase_price: string | null
@@ -772,6 +869,7 @@ export type Database = {
           images?: string[] | null
           official_item_id?: string | null
           official_link?: string | null
+          original_item_id?: string | null
           prize: string
           purchase_date?: string | null
           purchase_price?: string | null
@@ -789,6 +887,7 @@ export type Database = {
           images?: string[] | null
           official_item_id?: string | null
           official_link?: string | null
+          original_item_id?: string | null
           prize?: string
           purchase_date?: string | null
           purchase_price?: string | null
@@ -803,6 +902,13 @@ export type Database = {
             columns: ["official_item_id"]
             isOneToOne: false
             referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_items_original_item_id_fkey"
+            columns: ["original_item_id"]
+            isOneToOne: false
+            referencedRelation: "original_items"
             referencedColumns: ["id"]
           },
           {

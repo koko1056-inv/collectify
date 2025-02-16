@@ -1,10 +1,9 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
 import { UserCollection } from "@/components/UserCollection";
 import { OfficialItem } from "@/types";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { trackTabChange } from "@/utils/analytics";
+import { OriginalItemsList } from "./OriginalItemsList";
 
 interface CollectionTabsProps {
   filteredItems: OfficialItem[];
@@ -13,38 +12,24 @@ interface CollectionTabsProps {
 }
 
 export function CollectionTabs({ filteredItems, selectedTags, userId }: CollectionTabsProps) {
-  const { t } = useLanguage();
-  const { user } = useAuth();
-
-  const handleTabChange = (value: string) => {
-    trackTabChange(value, user?.id);
-  };
-
   return (
-    <Tabs defaultValue="official" className="space-y-4 sm:space-y-6" onValueChange={handleTabChange}>
-      <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-white border border-gray-200 rounded-full">
-        <TabsTrigger 
-          value="official" 
-          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
-        >
-          {t("tabs.official")}
-        </TabsTrigger>
-        <TabsTrigger 
-          value="collection" 
-          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
-        >
-          {t("tabs.collection")}
-        </TabsTrigger>
+    <Tabs defaultValue="official" className="space-y-4">
+      <TabsList className="bg-white/90 backdrop-blur-sm border-gray-200">
+        <TabsTrigger value="official">公式グッズ</TabsTrigger>
+        <TabsTrigger value="original">オリジナルグッズ</TabsTrigger>
+        <TabsTrigger value="collection">マイコレクション</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="official" className="mt-2 sm:mt-4">
+      <TabsContent value="official" className="space-y-4">
         <OfficialItemsList items={filteredItems} />
       </TabsContent>
 
-      <TabsContent value="collection" className="mt-2 sm:mt-4">
-        <div className="space-y-6">
-          <UserCollection selectedTags={selectedTags} userId={userId} />
-        </div>
+      <TabsContent value="original" className="space-y-4">
+        <OriginalItemsList />
+      </TabsContent>
+
+      <TabsContent value="collection" className="space-y-4">
+        <UserCollection selectedTags={selectedTags} userId={userId} />
       </TabsContent>
     </Tabs>
   );
