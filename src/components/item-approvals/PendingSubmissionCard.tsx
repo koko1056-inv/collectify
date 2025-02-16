@@ -3,16 +3,18 @@ import { format } from "date-fns";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+type Submission = {
+  id: string;
+  title: string;
+  image: string;
+  created_at: string;
+  submitter: {
+    username: string | null;
+  } | null;
+} & Record<string, any>;
+
 interface PendingSubmissionCardProps {
-  submission: {
-    id: string;
-    title: string;
-    image: string;
-    created_at: string;
-    submitter: {
-      username: string | null;
-    } | null;
-  };
+  submission: Submission;
   onApprove: (id: string) => void;
   onReject: (submission: any) => void;
   isApproving: boolean;

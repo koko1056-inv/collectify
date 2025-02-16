@@ -10,7 +10,10 @@ export interface ItemTag {
   id: string;
   tag_id: string;
   created_at: string;
-  tags: Tag | null;
+  tags?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
@@ -19,7 +22,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean) {
 
   const { data, error } = await supabase
     .from(tableName)
-    .select('id, tag_id, created_at, tags(id, name)')
+    .select('id, tag_id, created_at, tags:tags(id, name)')
     .eq(idColumn, itemId);
 
   if (error) throw error;
