@@ -3,23 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
 export const handleAdminLogin = async (password: string) => {
-  // Check if the admin user exists in profiles
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, is_admin')
-    .eq('username', 'admin')
-    .single();
-
-  if (profileError) {
-    console.error("Admin profile lookup error:", profileError);
-    throw new Error("管理者プロフィールの取得に失敗しました");
-  }
-
-  if (!profile?.is_admin) {
-    throw new Error("管理者権限がありません");
-  }
-
-  // Generate email format for the admin user
   const email = `admin@example.com`;
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -30,6 +13,18 @@ export const handleAdminLogin = async (password: string) => {
   if (error) {
     console.error("Admin login error:", error);
     throw new Error("管理者ログインに失敗しました");
+  }
+
+  // Check if the logged in user has admin privileges
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', data.user.id)
+    .single();
+
+  if (profileError || !profile?.is_admin) {
+    await supabase.auth.signOut();
+    throw new Error("管理者権限がありません");
   }
 
   return data;
@@ -119,3 +114,4 @@ export const handleLogout = async () => {
     throw new Error("ログアウトに失敗しました");
   }
 };
+
