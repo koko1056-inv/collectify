@@ -11,7 +11,7 @@ export const handleAdminLogin = async (username: string, password: string) => {
 
     // 認証情報を確認
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: username,  // メールアドレス形式を使用しない
+      email: `${username}@example.com`,  // 一貫した形式でメールアドレスを生成
       password,
     });
 
@@ -63,8 +63,11 @@ export const handleUserLogin = async (formData: LoginFormData) => {
     throw new Error("ユーザー名が見つかりません");
   }
 
+  // Generate a consistent email format for the user
+  const email = `${formData.username}@example.com`;
+
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: formData.username,
+    email,
     password: formData.password,
   });
 
@@ -96,8 +99,11 @@ export const handleUserSignup = async (formData: LoginFormData) => {
     throw new Error("このユーザー名は既に使用されています");
   }
 
+  // Generate a consistent email format for the user
+  const email = `${formData.username}@example.com`;
+
   const { data, error } = await supabase.auth.signUp({
-    email: formData.username,
+    email,
     password: formData.password,
     options: {
       data: {
