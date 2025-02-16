@@ -17,10 +17,7 @@ export type ItemTag = {
   id: string;
   tag_id: string;
   created_at: string;
-  tags: {
-    id: string;
-    name: string;
-  };
+  tags: Tag;
 };
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
