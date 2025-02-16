@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
 export const handleAdminLogin = async (password: string) => {
-  const email = `admin1122@example.com`;
+  const email = `kokomu.matsuo@starup01.jp`;
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
