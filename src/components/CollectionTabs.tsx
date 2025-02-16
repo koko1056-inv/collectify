@@ -17,7 +17,7 @@ export function CollectionTabs({
   userId
 }: CollectionTabsProps) {
   return <Tabs defaultValue="official" className="space-y-4">
-      <TabsList className="backdrop-blur-sm border border-gray-200 rounded-full w-full flex justify-center text-sm sm:text-base bg-white/80 p-1">
+      <TabsList className="border border-gray-200 rounded-full w-full flex justify-center text-sm sm:text-base p-1">
         <TabsTrigger 
           value="official" 
           className="px-2 sm:px-4 rounded-full data-[state=active]:bg-gray-900 data-[state=active]:text-white transition-colors"

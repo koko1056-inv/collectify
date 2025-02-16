@@ -12,15 +12,12 @@ export type Tag = {
   name: string;
 };
 
-// ItemTagの型定義を修正し、循環参照を防ぐ
+// ItemTag型定義を修正
 export type ItemTag = {
   id: string;
   tag_id: string;
   created_at: string;
-  tags: {
-    id: string;
-    name: string;
-  };
+  tags: Tag;
 };
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
