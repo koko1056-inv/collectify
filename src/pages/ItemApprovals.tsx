@@ -51,7 +51,7 @@ export default function ItemApprovals() {
         .from("item_submissions")
         .select(`
           *,
-          profiles (
+          submitter:profiles!item_submissions_submitted_by_fkey (
             username
           )
         `)
@@ -185,7 +185,7 @@ export default function ItemApprovals() {
                       <div>
                         <h3 className="font-medium">{submission.title}</h3>
                         <p className="text-sm text-gray-500">
-                          提案者: {submission.profiles?.username}
+                          提案者: {submission.submitter?.username}
                         </p>
                         <p className="text-sm text-gray-500">
                           提案日: {format(new Date(submission.created_at), 'yyyy/MM/dd HH:mm')}
