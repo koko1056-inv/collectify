@@ -1,17 +1,10 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
 export const handleAdminLogin = async (username: string, password: string) => {
-  // 管理者ユーザーのメールアドレスを更新
-  const email = username === 'koko1056' 
-    ? 'koko1056@example.com'  // 管理者のメールアドレスを修正
-    : `${username}@example.com`;
-
-  console.log("Attempting admin login with:", { email, password });
-
+  // 認証情報を確認
   const { data, error } = await supabase.auth.signInWithPassword({
-    email,
+    email: username,  // ユーザーIDをそのままemailとして使用
     password,
   });
 
