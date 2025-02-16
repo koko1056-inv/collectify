@@ -28,7 +28,7 @@ export function useSubmissions(isAdmin: boolean) {
         .from("item_submissions")
         .select(`
           *,
-          submitter:submitted_by(username)
+          submitter:profiles!item_submissions_submitted_by_fkey(username)
         `)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
@@ -37,7 +37,7 @@ export function useSubmissions(isAdmin: boolean) {
 
       const submissions: Submission[] = data.map(item => ({
         ...item,
-        submitter: item.submitter || null
+        submitter: item.submitter?.[0] || null
       }));
 
       return submissions;
