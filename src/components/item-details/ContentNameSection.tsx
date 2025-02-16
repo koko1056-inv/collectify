@@ -43,7 +43,7 @@ export function ContentNameSection({
         .from("content_names")
         .insert([{ 
           name, 
-          type: "anime"
+          type: "other"
         }])
         .select()
         .single();
