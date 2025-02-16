@@ -97,15 +97,15 @@ export function InitialInterestSelection({
           />
         </div>
         <ScrollArea className="h-[50vh] pr-4">
-          <div className="grid grid-cols-2 gap-2 p-4">
+          <div className="flex flex-col gap-2 p-4">
             {filteredContents.map((content) => (
               <Button
                 key={content.id}
                 variant={selectedContents.includes(content.name) ? "default" : "outline"}
-                className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                className="w-full py-3 px-4 text-left justify-start"
                 onClick={() => handleContentToggle(content.name)}
               >
-                <span className="text-base break-words text-center w-full">
+                <span className="text-base">
                   {content.name}
                 </span>
               </Button>
