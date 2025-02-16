@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Tag } from "@/types";
 
@@ -19,7 +20,7 @@ export function PreviousTags({ tags, selectedTags, onTagSelect, title }: Previou
           <Badge
             key={tag.id}
             variant="outline"
-            className="cursor-pointer hover:bg-secondary bg-white"
+            className="cursor-pointer hover:bg-secondary bg-white truncate max-w-[150px] sm:max-w-fit"
             onClick={() => {
               if (!selectedTags.includes(tag.name)) {
                 onTagSelect(tag.name);
