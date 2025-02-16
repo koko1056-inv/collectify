@@ -55,9 +55,11 @@ export function TagManageModal({
   const handleRemoveTag = async (tagToRemove: string) => {
     try {
       const tagToRemoveObj = currentTags.find(tag => tag.tags?.name === tagToRemove);
-      if (!tagToRemoveObj?.id) return;
+      if (!tagToRemoveObj?.tags?.id) return;
 
-      await removeTagFromItem(tagToRemoveObj.id, isUserItem);
+      for (const itemId of itemIds) {
+        await removeTagFromItem(tagToRemoveObj.tags.id, itemId, isUserItem);
+      }
 
       await queryClient.invalidateQueries({ 
         queryKey: ["current-tags", itemIds]

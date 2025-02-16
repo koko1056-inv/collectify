@@ -1,49 +1,29 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
-export const handleAdminLogin = async (username: string, password: string) => {
-  try {
-    // ユーザー名が管理者のものかチェック
-    if (username !== 'koko11221056') {
-      throw new Error("管理者アカウントではありません");
-    }
+export const handleAdminLogin = async (password: string) => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: 'admin@example.com',
+    password,
+  });
 
-    // 認証情報を確認
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: username,
-      password,
-    });
-
-    if (error) {
-      console.error("Admin login error details:", error);
-      if (error.message.includes("Invalid login credentials")) {
-        throw new Error("管理者アカウントのパスワードが正しくありません");
-      }
-      throw new Error("管理者ログインに失敗しました");
-    }
-
-    console.log("Admin login successful:", data);
-
-    // 管理者権限の確認
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', data.user.id)
-      .single();
-
-    console.log("Admin profile check:", { profile, profileError });
-
-    if (profileError || !profile?.is_admin) {
-      await supabase.auth.signOut();
-      throw new Error("管理者権限がありません");
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Admin login failed:", error);
-    throw error;
+  if (error) {
+    console.error("Admin login error:", error);
+    throw new Error("管理者ログインに失敗しました");
   }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', data.user.id)
+    .single();
+
+  if (profileError || !profile?.is_admin) {
+    await supabase.auth.signOut();
+    throw new Error("管理者権限がありません");
+  }
+
+  return data;
 };
 
 export const handleUserLogin = async (formData: LoginFormData) => {
@@ -63,8 +43,11 @@ export const handleUserLogin = async (formData: LoginFormData) => {
     throw new Error("ユーザー名が見つかりません");
   }
 
+  // Generate a consistent email format for the user
+  const email = `${formData.username}@example.com`;
+
   const { data, error } = await supabase.auth.signInWithPassword({
-    email: formData.username,
+    email,
     password: formData.password,
   });
 
@@ -96,8 +79,11 @@ export const handleUserSignup = async (formData: LoginFormData) => {
     throw new Error("このユーザー名は既に使用されています");
   }
 
+  // Generate a consistent email format for the user
+  const email = `${formData.username}@example.com`;
+
   const { data, error } = await supabase.auth.signUp({
-    email: formData.username,
+    email,
     password: formData.password,
     options: {
       data: {

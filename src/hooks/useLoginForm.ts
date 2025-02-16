@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -23,9 +22,8 @@ export function useLoginForm() {
 
     try {
       if (isLogin) {
-        // 管理者ログインの場合はusernameのチェックをスキップ
-        if (formData.username === 'koko1056') {
-          await handleAdminLogin(formData.username, formData.password);
+        if (formData.username === 'admin') {
+          await handleAdminLogin(formData.password);
           navigate("/admin");
         } else {
           await handleUserLogin(formData);

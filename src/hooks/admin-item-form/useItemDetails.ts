@@ -4,18 +4,11 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "@/hooks/useDebounce";
 
-interface FormData {
-  title: string;
-  description: string;
-  content_name: string | null;
-}
-
 export function useItemDetails() {
   const { toast } = useToast();
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
-    content_name: null,
   });
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const debouncedTitle = useDebounce(formData.title, 500);
