@@ -5,7 +5,7 @@ import { ImageSection } from "./admin-item-form/ImageSection";
 import { ItemDetailsSection } from "./admin-item-form/ItemDetailsSection";
 import { useImageUpload } from "@/hooks/admin-item-form/useImageUpload";
 import { useItemDetails } from "@/hooks/admin-item-form/useItemDetails";
-import { useItemSubmit } from "@/hooks/admin-item-form/useItemSubmit";
+import { useSubmitItem } from "@/hooks/admin-item-form/useSubmitItem";
 
 export function AdminItemForm() {
   const {
@@ -27,6 +27,7 @@ export function AdminItemForm() {
     setFormData({
       title: "",
       description: "",
+      content_name: null,
     });
     setImageFile(null);
     if (previewUrl) {
@@ -36,7 +37,7 @@ export function AdminItemForm() {
     setSelectedTags([]);
   };
 
-  const { loading, handleSubmit } = useItemSubmit({
+  const { loading, handleSubmit } = useSubmitItem({
     formData,
     uploadImage,
     selectedTags,
@@ -46,7 +47,7 @@ export function AdminItemForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>新規アイテムの追加</CardTitle>
+        <CardTitle>新規アイテムの提案</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -65,7 +66,7 @@ export function AdminItemForm() {
           />
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "追加中..." : "アイテムを追加"}
+            {loading ? "送信中..." : "アイテムを提案"}
           </Button>
         </form>
       </CardContent>

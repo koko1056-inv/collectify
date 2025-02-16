@@ -319,6 +319,51 @@ export type Database = {
           },
         ]
       }
+      item_submissions: {
+        Row: {
+          content_name: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image: string
+          price: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["approval_status"]
+          submitted_by: string
+          title: string
+        }
+        Insert: {
+          content_name?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image: string
+          price: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["approval_status"]
+          submitted_by: string
+          title: string
+        }
+        Update: {
+          content_name?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string
+          price?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["approval_status"]
+          submitted_by?: string
+          title?: string
+        }
+        Relationships: []
+      }
       item_tags: {
         Row: {
           created_at: string
@@ -973,7 +1018,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      approval_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
