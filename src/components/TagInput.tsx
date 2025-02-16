@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -70,9 +71,27 @@ export function TagInput({
     try {
       const tagToDelete = existingTags.find(tag => tag.name === tagToRemove);
       
-      if (tagToDelete) {
+      if (tagToDelete && itemIds.length > 0) {
+        // First, remove the tag from the UI
         onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
 
+        // Then, remove the tag from the database
+        for (const itemId of itemIds) {
+          const { error } = await supabase
+            .from("user_item_tags")
+            .delete()
+            .eq("tag_id", tagToDelete.id)
+            .eq("user_item_id", itemId);
+
+          if (error) throw error;
+        }
+
+        // Invalidate relevant queries
+        await queryClient.invalidateQueries({ 
+          queryKey: ["user-previous-tags"]
+        });
+
+        // Show success message
         toast({
           title: "タグを削除しました",
           description: `${tagToRemove}を削除しました。`,

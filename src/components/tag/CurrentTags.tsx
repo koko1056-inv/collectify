@@ -1,3 +1,4 @@
+
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 
@@ -18,7 +19,11 @@ export function CurrentTags({ tags, onRemove }: CurrentTagsProps) {
           {tag}
           <button
             type="button"
-            onClick={() => onRemove(tag)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemove(tag);
+            }}
             className="hover:text-destructive"
           >
             <X className="h-3 w-3" />
