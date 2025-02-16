@@ -27,17 +27,18 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean) {
 }
 
 export async function addTagToItem(
-  itemId: string,
   tagId: string,
+  itemId: string,
   isUserItem: boolean
 ) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
-  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
+  const payload = isUserItem 
+    ? { user_item_id: itemId, tag_id: tagId }
+    : { official_item_id: itemId, tag_id: tagId };
 
-  const { error } = await supabase.from(tableName).insert({
-    [idColumn]: itemId,
-    tag_id: tagId,
-  });
+  const { error } = await supabase
+    .from(tableName)
+    .insert(payload);
 
   if (error) throw error;
 }
@@ -64,4 +65,20 @@ export async function getAllTags() {
 
   if (error) throw error;
   return data as Tag[];
+}
+
+export async function deleteUserItem(itemId: string): Promise<{ error: Error | null; officialItemId?: string }> {
+  const { data: userItem } = await supabase
+    .from('user_items')
+    .select('official_item_id')
+    .eq('id', itemId)
+    .single();
+
+  const { error } = await supabase
+    .from('user_items')
+    .delete()
+    .eq('id', itemId);
+
+  if (error) return { error: new Error(error.message) };
+  return { error: null, officialItemId: userItem?.official_item_id };
 }
