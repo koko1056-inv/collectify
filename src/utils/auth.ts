@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
@@ -8,9 +9,9 @@ export const handleAdminLogin = async (username: string, password: string) => {
       throw new Error("管理者アカウントではありません");
     }
 
-    // 認証情報を確認（メールアドレス形式に変換）
+    // 認証情報を確認
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: `${username}@example.com`,  // メールアドレス形式に変換
+      email: username,
       password,
     });
 
