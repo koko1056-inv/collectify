@@ -1,11 +1,10 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
 export const handleAdminLogin = async (username: string, password: string) => {
   try {
     // ユーザー名が管理者のものかチェック
-    if (username !== 'koko1056') {
+    if (username !== 'koko11221056') {
       throw new Error("管理者アカウントではありません");
     }
 
