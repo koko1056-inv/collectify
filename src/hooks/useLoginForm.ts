@@ -25,7 +25,7 @@ export function useLoginForm() {
       if (isLogin) {
         // 管理者ログインの場合はusernameのチェックをスキップ
         if (formData.username === 'koko1056') {
-          await handleAdminLogin(formData.password);
+          await handleAdminLogin(formData.username, formData.password);
           navigate("/admin");
         } else {
           await handleUserLogin(formData);

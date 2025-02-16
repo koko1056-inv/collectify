@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
-export const handleAdminLogin = async (password: string) => {
+export const handleAdminLogin = async (username: string, password: string) => {
   const email = `kokomu.matsuo@starup01.jp`;
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -12,6 +12,9 @@ export const handleAdminLogin = async (password: string) => {
 
   if (error) {
     console.error("Admin login error:", error);
+    if (error.message.includes("Invalid login credentials")) {
+      throw new Error("管理者アカウントのパスワードが正しくありません");
+    }
     throw new Error("管理者ログインに失敗しました");
   }
 
