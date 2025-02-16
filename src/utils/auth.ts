@@ -3,7 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
 export const handleAdminLogin = async (username: string, password: string) => {
-  const email = `kokomu.matsuo@starup01.jp`;
+  // 管理者ユーザーのメールアドレスを更新
+  const email = username === 'koko1056' 
+    ? 'koko1056@example.com'  // 管理者のメールアドレスを修正
+    : `${username}@example.com`;
 
   console.log("Attempting admin login with:", { email, password });
 
