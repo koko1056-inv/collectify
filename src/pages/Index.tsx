@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -89,7 +90,7 @@ const Index = () => {
   });
 
   useEffect(() => {
-    if (user && profile && (!profile.interests || profile.interests.length === 0)) {
+    if (user && profile && (!profile.favorite_contents || profile.favorite_contents.length === 0)) {
       setShowInterestDialog(true);
     }
   }, [user, profile]);
@@ -112,17 +113,13 @@ const Index = () => {
   });
 
   const sortedItems = [...filteredItems].sort((a, b) => {
-    if (!profile?.interests || profile.interests.length === 0) return 0;
+    if (!profile?.favorite_contents || profile.favorite_contents.length === 0) return 0;
 
-    const aMatchCount = a.item_tags?.filter(
-      itemTag => profile.interests.includes(itemTag.tags?.name || "")
-    ).length || 0;
-    const bMatchCount = b.item_tags?.filter(
-      itemTag => profile.interests.includes(itemTag.tags?.name || "")
-    ).length || 0;
+    const aIsInFavorites = profile.favorite_contents.includes(a.content_name || "");
+    const bIsInFavorites = profile.favorite_contents.includes(b.content_name || "");
 
-    if (aMatchCount !== bMatchCount) {
-      return bMatchCount - aMatchCount;
+    if (aIsInFavorites !== bIsInFavorites) {
+      return aIsInFavorites ? -1 : 1;
     }
 
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
@@ -170,7 +167,6 @@ const Index = () => {
             <InitialInterestSelection
               isOpen={showInterestDialog}
               onClose={handleInterestDialogClose}
-              tags={allTags}
             />
           )}
         </div>
@@ -178,6 +174,6 @@ const Index = () => {
       <Footer />
     </div>
   );
-};
+}
 
 export default Index;

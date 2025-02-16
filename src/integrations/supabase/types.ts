@@ -575,11 +575,12 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          favorite_contents: string[] | null
           favorite_item_ids: string[] | null
+          favorite_tags: string[] | null
           followers_count: number | null
           following_count: number | null
           id: string
-          interests: string[] | null
           is_admin: boolean | null
           username: string
         }
@@ -588,11 +589,12 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          favorite_contents?: string[] | null
           favorite_item_ids?: string[] | null
+          favorite_tags?: string[] | null
           followers_count?: number | null
           following_count?: number | null
           id: string
-          interests?: string[] | null
           is_admin?: boolean | null
           username: string
         }
@@ -601,11 +603,12 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          favorite_contents?: string[] | null
           favorite_item_ids?: string[] | null
+          favorite_tags?: string[] | null
           followers_count?: number | null
           following_count?: number | null
           id?: string
-          interests?: string[] | null
           is_admin?: boolean | null
           username?: string
         }
