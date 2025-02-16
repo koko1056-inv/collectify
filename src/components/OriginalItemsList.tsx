@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { OriginalItem } from "@/types";
 import { OfficialItemsHeader } from "./official-goods/OfficialItemsHeader";
-import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
+import { OriginalItemsGrid } from "./original-goods/OriginalItemsGrid";
 
 type SortOption = "newest" | "oldest" | "wishlist" | "owners";
 
@@ -39,7 +39,7 @@ export function OriginalItemsList() {
         onSortChange={setSortBy} 
         title="オリジナル"
       />
-      <OfficialItemsGrid items={items} />
+      <OriginalItemsGrid items={items} />
     </div>
   );
 }

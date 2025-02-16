@@ -925,21 +925,24 @@ export type Database = {
           created_at: string
           id: string
           note: string | null
-          official_item_id: string
+          official_item_id: string | null
+          original_item_id: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           note?: string | null
-          official_item_id: string
+          official_item_id?: string | null
+          original_item_id?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
           note?: string | null
-          official_item_id?: string
+          official_item_id?: string | null
+          original_item_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -948,6 +951,13 @@ export type Database = {
             columns: ["official_item_id"]
             isOneToOne: false
             referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlists_original_item_id_fkey"
+            columns: ["original_item_id"]
+            isOneToOne: false
+            referencedRelation: "original_items"
             referencedColumns: ["id"]
           },
         ]
