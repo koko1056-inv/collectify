@@ -8,9 +8,9 @@ export const handleAdminLogin = async (username: string, password: string) => {
       throw new Error("管理者アカウントではありません");
     }
 
-    // 認証情報を確認
+    // 認証情報を確認（メールアドレス形式に変換）
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: username,  // メールアドレス形式を使用しない
+      email: `${username}@example.com`,  // メールアドレス形式に変換
       password,
     });
 
