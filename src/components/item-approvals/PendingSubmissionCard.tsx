@@ -10,8 +10,8 @@ interface PendingSubmissionCardProps {
     image: string;
     created_at: string;
     submitter: {
-      username: string;
-    };
+      username: string | null;
+    } | null;
   };
   onApprove: (id: string) => void;
   onReject: (submission: any) => void;

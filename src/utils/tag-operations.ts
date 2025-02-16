@@ -1,24 +1,17 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { TableName } from "@/types/tag";
 
-interface DeleteUserItemResult {
-  error: Error | null;
-  officialItemId?: string;
-}
-
-// 単純化したTag型定義
-export type Tag = {
+export interface Tag {
   id: string;
   name: string;
-};
+}
 
-// ItemTagの型定義を修正
-export type ItemTag = {
+export interface ItemTag {
   id: string;
   tag_id: string;
   created_at: string;
-  tags: Tag;
-};
+  tags: Tag | null;
+}
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
@@ -26,118 +19,49 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean) {
 
   const { data, error } = await supabase
     .from(tableName)
-    .select('id, tag_id, created_at, tags:tags(id, name)')
+    .select('id, tag_id, created_at, tags(id, name)')
     .eq(idColumn, itemId);
 
   if (error) throw error;
   return (data as ItemTag[]) || [];
 }
 
-export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
+export async function addTagToItem(
+  itemId: string,
+  tagId: string,
+  isUserItem: boolean
+) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
-  const payload = isUserItem 
-    ? { tag_id: tagId, user_item_id: itemId }
-    : { tag_id: tagId, official_item_id: itemId };
+  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
-  const { error } = await supabase
-    .from(tableName)
-    .insert(payload);
+  const { error } = await supabase.from(tableName).insert({
+    [idColumn]: itemId,
+    tag_id: tagId,
+  });
 
   if (error) throw error;
 }
 
-export async function removeTagFromItem(tagId: string, itemId: string, isUserItem: boolean) {
+export async function removeTagFromItem(
+  itemTagId: string,
+  isUserItem: boolean
+) {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
-  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
   const { error } = await supabase
     .from(tableName)
     .delete()
-    .eq("tag_id", tagId)
-    .eq(idColumn, itemId);
+    .eq('id', itemTagId);
 
   if (error) throw error;
 }
 
-async function deleteAllTradeRequests(itemId: string): Promise<void> {
-  try {
-    // SQLインジェクションを防ぐため、orフィルターを修正
-    const { error } = await supabase
-      .from("trade_requests")
-      .delete()
-      .or(`requested_item_id.eq.${itemId},offered_item_id.eq.${itemId}`);
+export async function getAllTags() {
+  const { data, error } = await supabase
+    .from('tags')
+    .select('*')
+    .order('name');
 
-    if (error) throw error;
-  } catch (error) {
-    console.error("Error deleting trade requests:", error);
-    throw error;
-  }
-}
-
-async function deleteUserItemLikes(itemId: string): Promise<void> {
-  try {
-    const { error } = await supabase
-      .from("user_item_likes")
-      .delete()
-      .eq("user_item_id", itemId);
-
-    if (error) throw error;
-  } catch (error) {
-    console.error("Error deleting user item likes:", error);
-    throw error;
-  }
-}
-
-export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResult> {
-  try {
-    // まず最初にユーザーアイテムの情報を取得
-    const { data: userItem, error: fetchError } = await supabase
-      .from("user_items")
-      .select("official_item_id")
-      .eq("id", itemId)
-      .maybeSingle();
-
-    if (fetchError) throw fetchError;
-
-    // トレードリクエストを最初に削除
-    await deleteAllTradeRequests(itemId);
-    
-    // その後、他の関連レコードを削除
-    await Promise.all([
-      deleteUserItemLikes(itemId),
-      deleteRelatedRecords("item_memories", itemId),
-      deleteRelatedRecords("user_item_tags", itemId)
-    ]);
-
-    // 最後にユーザーアイテムを削除
-    const { error: deleteError } = await supabase
-      .from("user_items")
-      .delete()
-      .eq("id", itemId);
-
-    if (deleteError) throw deleteError;
-
-    return { error: null, officialItemId: userItem?.official_item_id };
-  } catch (error) {
-    console.error("Error deleting user item:", error);
-    return { error: error as Error };
-  }
-}
-
-export async function deleteRelatedRecords(
-  table: TableName,
-  itemId: string
-): Promise<{ error: Error | null }> {
-  try {
-    const { error } = await supabase
-      .from(table)
-      .delete()
-      .eq("user_item_id", itemId);
-    
-    if (error) throw error;
-    return { error: null };
-  } catch (error) {
-    console.error(`Error deleting records from ${table}:`, error);
-    return { error: error as Error };
-  }
+  if (error) throw error;
+  return data as Tag[];
 }
