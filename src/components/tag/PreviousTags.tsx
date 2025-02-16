@@ -15,12 +15,12 @@ export function PreviousTags({ tags, selectedTags, onTagSelect, title }: Previou
   return (
     <div className="mt-4">
       <p className="text-sm text-muted-foreground mb-1">{title}:</p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 max-w-xl mx-auto">
         {tags.map((tag) => (
           <Badge
             key={tag.id}
             variant="outline"
-            className="cursor-pointer hover:bg-secondary bg-white truncate max-w-[150px] sm:max-w-fit"
+            className="cursor-pointer hover:bg-secondary bg-white truncate max-w-[150px] sm:max-w-xs"
             onClick={() => {
               if (!selectedTags.includes(tag.name)) {
                 onTagSelect(tag.name);
