@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
 export const handleAdminLogin = async (password: string) => {
-  const email = `admin@example.com`;
+  const email = `admin1122@example.com`;
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -114,4 +114,3 @@ export const handleLogout = async () => {
     throw new Error("ログアウトに失敗しました");
   }
 };
-
