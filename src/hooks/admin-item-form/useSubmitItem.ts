@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UseSubmitItemProps {
   formData: {
@@ -24,6 +25,7 @@ export function useSubmitItem({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const validateForm = () => {
     if (!formData.title.trim()) {
@@ -40,7 +42,7 @@ export function useSubmitItem({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!validateForm() || !user) return;
 
     setLoading(true);
 
@@ -50,15 +52,14 @@ export function useSubmitItem({
       // Create item submission
       const { error: submissionError } = await supabase
         .from("item_submissions")
-        .insert([
-          {
-            title: formData.title,
-            description: formData.description,
-            image: imageUrl,
-            price: "0",
-            content_name: formData.content_name,
-          },
-        ]);
+        .insert({
+          title: formData.title,
+          description: formData.description,
+          image: imageUrl,
+          price: "0",
+          content_name: formData.content_name,
+          submitted_by: user.id,
+        });
 
       if (submissionError) throw submissionError;
 
