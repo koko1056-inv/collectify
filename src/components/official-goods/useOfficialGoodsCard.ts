@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { trackAddToCollection } from "@/utils/analytics";
+import { Tag } from "@/types/tag";
 
 interface UseOfficialGoodsCardProps {
   id: string;
@@ -94,16 +95,49 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     }
 
     try {
-      const { error } = await supabase.from("user_items").insert({
-        title,
-        image,
-        release_date: new Date().toISOString().split('T')[0],
-        user_id: user.id,
-        prize: "0",
-        official_item_id: id,
-      });
+      // まずユーザーアイテムを作成
+      const { data: userItem, error: insertError } = await supabase
+        .from("user_items")
+        .insert({
+          title,
+          image,
+          release_date: new Date().toISOString().split('T')[0],
+          user_id: user.id,
+          prize: "0",
+          official_item_id: id,
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (insertError) throw insertError;
+
+      // 公式アイテムのタグを取得
+      const { data: officialTags, error: tagsError } = await supabase
+        .from("item_tags")
+        .select(`
+          tag_id,
+          tags (
+            id,
+            name
+          )
+        `)
+        .eq("official_item_id", id);
+
+      if (tagsError) throw tagsError;
+
+      // ユーザーアイテムにタグを追加
+      if (officialTags && officialTags.length > 0) {
+        const userItemTags = officialTags.map(tag => ({
+          user_item_id: userItem.id,
+          tag_id: tag.tag_id
+        }));
+
+        const { error: tagInsertError } = await supabase
+          .from("user_item_tags")
+          .insert(userItemTags);
+
+        if (tagInsertError) throw tagInsertError;
+      }
 
       // Track the event in Mixpanel
       trackAddToCollection(id, title, user.id);
