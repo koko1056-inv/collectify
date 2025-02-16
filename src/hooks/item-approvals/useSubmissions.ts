@@ -28,7 +28,7 @@ export function useSubmissions(isAdmin: boolean) {
         .from("item_submissions")
         .select(`
           *,
-          submitter:profiles(username)
+          submitter:profiles!item_submissions_submitted_by_fkey(username)
         `)
         .eq("status", "pending")
         .order("created_at", { ascending: false });
