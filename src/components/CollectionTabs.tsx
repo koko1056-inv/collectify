@@ -14,10 +14,10 @@ interface CollectionTabsProps {
 export function CollectionTabs({ filteredItems, selectedTags, userId }: CollectionTabsProps) {
   return (
     <Tabs defaultValue="official" className="space-y-4">
-      <TabsList className="bg-white/90 backdrop-blur-sm border-gray-200">
-        <TabsTrigger value="official">公式グッズ</TabsTrigger>
-        <TabsTrigger value="original">オリジナルグッズ</TabsTrigger>
-        <TabsTrigger value="collection">マイコレクション</TabsTrigger>
+      <TabsList className="bg-white/90 backdrop-blur-sm border-gray-200 w-full flex justify-center text-sm sm:text-base">
+        <TabsTrigger value="official" className="px-2 sm:px-4">公式グッズ</TabsTrigger>
+        <TabsTrigger value="original" className="px-2 sm:px-4">オリジナルグッズ</TabsTrigger>
+        <TabsTrigger value="collection" className="px-2 sm:px-4">マイコレクション</TabsTrigger>
       </TabsList>
 
       <TabsContent value="official" className="space-y-4">
