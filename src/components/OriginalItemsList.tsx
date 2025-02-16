@@ -37,7 +37,7 @@ export function OriginalItemsList() {
       <OfficialItemsHeader 
         sortBy={sortBy} 
         onSortChange={setSortBy} 
-        title="オリジナルグッズ"
+        title="オリジナル"
       />
       <OfficialItemsGrid items={items} />
     </div>
