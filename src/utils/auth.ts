@@ -2,37 +2,47 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoginFormData } from "@/types/auth";
 
 export const handleAdminLogin = async (username: string, password: string) => {
-  // 認証情報を確認
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: username,  // ユーザーIDをそのままemailとして使用
-    password,
-  });
-
-  if (error) {
-    console.error("Admin login error details:", error);
-    if (error.message.includes("Invalid login credentials")) {
-      throw new Error("管理者アカウントのパスワードが正しくありません");
+  try {
+    // ユーザー名が管理者のものかチェック
+    if (username !== 'koko1056') {
+      throw new Error("管理者アカウントではありません");
     }
-    throw new Error("管理者ログインに失敗しました");
+
+    // 認証情報を確認
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: `${username}@example.com`,  // 一貫した形式でメールアドレスを生成
+      password,
+    });
+
+    if (error) {
+      console.error("Admin login error details:", error);
+      if (error.message.includes("Invalid login credentials")) {
+        throw new Error("管理者アカウントのパスワードが正しくありません");
+      }
+      throw new Error("管理者ログインに失敗しました");
+    }
+
+    console.log("Admin login successful:", data);
+
+    // 管理者権限の確認
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', data.user.id)
+      .single();
+
+    console.log("Admin profile check:", { profile, profileError });
+
+    if (profileError || !profile?.is_admin) {
+      await supabase.auth.signOut();
+      throw new Error("管理者権限がありません");
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Admin login failed:", error);
+    throw error;
   }
-
-  console.log("Admin login successful:", data);
-
-  // Check if the logged in user has admin privileges
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', data.user.id)
-    .single();
-
-  console.log("Admin profile check:", { profile, profileError });
-
-  if (profileError || !profile?.is_admin) {
-    await supabase.auth.signOut();
-    throw new Error("管理者権限がありません");
-  }
-
-  return data;
 };
 
 export const handleUserLogin = async (formData: LoginFormData) => {
