@@ -39,10 +39,9 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
     },
   });
 
-  const selectedTag = tags.find(tag => tag.id === value);
-
   const addTagMutation = useMutation({
     mutationFn: async (name: string) => {
+      // まず、同じ名前のタグが存在するか確認
       const { data: existingTag, error: searchError } = await supabase
         .from("tags")
         .select("*")
@@ -52,9 +51,11 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
       if (searchError) throw searchError;
 
       if (existingTag) {
+        // 既存のタグが見つかった場合、それを返す
         return existingTag as TagData;
       }
 
+      // 新しいタグを作成
       const { data: newTag, error: insertError } = await supabase
         .from("tags")
         .insert([{ name, category }])
@@ -65,8 +66,15 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
       return newTag as TagData;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["tags", category] });
-      onChange(data.id);
+      const queryKey = ["tags", category];
+      const previousTags = queryClient.getQueryData<TagData[]>(queryKey) || [];
+      
+      // 既存のタグリストに新しいタグが含まれていない場合のみ追加
+      if (!previousTags.some(tag => tag.id === data.id)) {
+        queryClient.setQueryData<TagData[]>(queryKey, [...previousTags, data]);
+      }
+      
+      onChange(data.name);
       setIsAddingNew(false);
       setNewTagName("");
       toast({
@@ -102,10 +110,7 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
     } else if (newValue === "none") {
       onChange(null);
     } else {
-      const selectedTag = tags.find(tag => tag.id === newValue);
-      if (selectedTag) {
-        onChange(selectedTag.id);
-      }
+      onChange(newValue);
     }
   };
 
@@ -151,7 +156,7 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
             {tags.map((tag) => (
               <SelectItem 
                 key={tag.id} 
-                value={tag.id}
+                value={tag.name}
                 className="hover:bg-gray-100"
               >
                 {tag.name}
