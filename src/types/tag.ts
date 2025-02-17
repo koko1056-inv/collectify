@@ -8,7 +8,7 @@ export interface Tag {
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tags: Tag | null;
+  tags?: Tag;
 }
 
 export type TableName = "user_item_likes" | "item_memories" | "user_item_tags";
