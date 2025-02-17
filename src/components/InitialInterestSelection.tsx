@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -17,7 +18,7 @@ interface InitialInterestSelectionProps {
 export function InitialInterestSelection({
   isOpen,
   onClose,
-  tags,
+  tags = [], // デフォルト値を空配列に設定
 }: InitialInterestSelectionProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -62,7 +63,8 @@ export function InitialInterestSelection({
     }
   };
 
-  const filteredTags = tags.filter(tag =>
+  // tagsが配列であることを保証
+  const filteredTags = (tags || []).filter(tag =>
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
