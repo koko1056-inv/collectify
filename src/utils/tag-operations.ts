@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface TagData {
@@ -37,6 +36,37 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
 
   if (error) throw error;
   return data || [];
+}
+
+export async function updateTagsForItem(
+  itemId: string,
+  tagIds: string[],
+  isUserItem: boolean
+): Promise<void> {
+  const tableName = isUserItem ? "user_item_tags" : "item_tags";
+  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
+
+  // まず既存のタグを削除
+  const { error: deleteError } = await supabase
+    .from(tableName)
+    .delete()
+    .eq(idColumn, itemId);
+
+  if (deleteError) throw deleteError;
+
+  // 新しいタグを追加
+  if (tagIds.length > 0) {
+    const newTags = tagIds.map(tagId => ({
+      [idColumn]: itemId,
+      tag_id: tagId
+    }));
+
+    const { error: insertError } = await supabase
+      .from(tableName)
+      .insert(newTags);
+
+    if (insertError) throw insertError;
+  }
 }
 
 export async function addTagToItem(
