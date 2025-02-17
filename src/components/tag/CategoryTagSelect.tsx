@@ -46,6 +46,7 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
         .from("tags")
         .select("*")
         .eq("name", name)
+        .eq("category", category)
         .maybeSingle();
 
       if (searchError) throw searchError;
@@ -66,15 +67,8 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
       return newTag as TagData;
     },
     onSuccess: (data) => {
-      const queryKey = ["tags", category];
-      const previousTags = queryClient.getQueryData<TagData[]>(queryKey) || [];
-      
-      // 既存のタグリストに新しいタグが含まれていない場合のみ追加
-      if (!previousTags.some(tag => tag.id === data.id)) {
-        queryClient.setQueryData<TagData[]>(queryKey, [...previousTags, data]);
-      }
-      
-      onChange(data.name);
+      queryClient.invalidateQueries({ queryKey: ["tags", category] });
+      onChange(data.id);
       setIsAddingNew(false);
       setNewTagName("");
       toast({
@@ -104,13 +98,22 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
     addTagMutation.mutate(newTagName.trim());
   };
 
+  const getCurrentTagName = (tagId: string | null) => {
+    if (!tagId) return "";
+    const tag = tags.find(t => t.id === tagId);
+    return tag ? tag.name : "";
+  };
+
   const handleValueChange = (newValue: string) => {
     if (newValue === "add_new") {
       setIsAddingNew(true);
     } else if (newValue === "none") {
       onChange(null);
     } else {
-      onChange(newValue);
+      const tag = tags.find(t => t.id === newValue);
+      if (tag) {
+        onChange(tag.id);
+      }
     }
   };
 
@@ -151,12 +154,12 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
           <SelectTrigger className="w-full bg-white">
             <SelectValue placeholder={`${label}を選択`} />
           </SelectTrigger>
-          <SelectContent className="bg-white">
+          <SelectContent>
             <SelectItem value="none" className="hover:bg-gray-100">選択なし</SelectItem>
             {tags.map((tag) => (
               <SelectItem 
                 key={tag.id} 
-                value={tag.name}
+                value={tag.id}
                 className="hover:bg-gray-100"
               >
                 {tag.name}

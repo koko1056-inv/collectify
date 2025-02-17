@@ -1,14 +1,16 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+export interface TagDetails {
+  id: string;
+  name: string;
+  category?: string;
+}
+
 export interface Tag {
   id: string;
   tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-  } | null;
+  tags: TagDetails | null;
 }
 
 export interface DeleteUserItemResult {
@@ -38,8 +40,8 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
 }
 
 export async function addTagToItem(
-  tagId: string,
   itemId: string,
+  tagId: string,
   isUserItem: boolean = false
 ): Promise<void> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
