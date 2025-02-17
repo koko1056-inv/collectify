@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -20,38 +19,34 @@ const Index = () => {
   const [searchParams] = useSearchParams();
   const userId = searchParams.get("userId");
 
-  const { data: profile, refetch: refetchProfile } = useQuery<Profile | null>({
+  const { data: profile, refetch: refetchProfile } = useQuery<Profile>({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
-      if (!user) return null;
+      if (!user) throw new Error("User not found");
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
-      if (error) {
-        console.error("Error fetching profile:", error);
-        return null;
-      }
-      return data;
+      if (error) throw error;
+      if (!data) throw new Error("Profile not found");
+      return data as Profile;
     },
     enabled: !!user,
   });
 
-  const { data: viewedProfile } = useQuery<Profile | null>({
+  const { data: viewedProfile } = useQuery<Profile>({
     queryKey: ["viewed-profile", userId],
     queryFn: async () => {
-      if (!userId) return null;
+      if (!userId) throw new Error("User ID not provided");
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .maybeSingle();
-      if (error) {
-        console.error("Error fetching viewed profile:", error);
-        return null;
-      }
-      return data;
+        .single();
+      if (error) throw error;
+      if (!data) throw new Error("Profile not found");
+      return data as Profile;
     },
     enabled: !!userId,
   });

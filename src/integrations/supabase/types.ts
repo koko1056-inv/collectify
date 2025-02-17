@@ -644,6 +644,7 @@ export type Database = {
           followers_count: number | null
           following_count: number | null
           id: string
+          interests: string[] | null
           is_admin: boolean | null
           username: string
         }
@@ -658,6 +659,7 @@ export type Database = {
           followers_count?: number | null
           following_count?: number | null
           id: string
+          interests?: string[] | null
           is_admin?: boolean | null
           username: string
         }
@@ -672,6 +674,7 @@ export type Database = {
           followers_count?: number | null
           following_count?: number | null
           id?: string
+          interests?: string[] | null
           is_admin?: boolean | null
           username?: string
         }
