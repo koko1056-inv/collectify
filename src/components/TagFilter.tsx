@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Tag } from "@/types";
+import { Tag } from "@/types/tag";
 import { FilterButton } from "./tag/FilterButton";
 import { PopularTags } from "./tag/PopularTags";
 import { TagDialog } from "./tag/TagDialog";
@@ -15,12 +15,10 @@ interface TagFilterProps {
 
 export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: tags = [] } = useQuery({
     queryKey: ["tags-with-count"],
     queryFn: async () => {
-      // Get all tags with their usage counts using a single query
       const { data, error } = await supabase
         .from('tags')
         .select(`
@@ -32,7 +30,6 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
 
       if (error) throw error;
 
-      // Count occurrences and combine with tag data
       const tagCounts = data.reduce((acc: { [key: string]: Tag & { count: number } }, tag) => {
         if (!acc[tag.id]) {
           acc[tag.id] = {
@@ -44,7 +41,6 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
         return acc;
       }, {});
 
-      // Convert to array and sort by count
       return Object.values(tagCounts).sort((a, b) => b.count - a.count);
     },
     staleTime: 0,
@@ -56,10 +52,6 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
     if (selectedTags.length === 1) return selectedTags[0];
     return `${selectedTags.length}個のタグを選択中`;
   };
-
-  const filteredTags = tags.filter(tag =>
-    tag.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const popularTags = tags.slice(0, 5);
 
@@ -94,13 +86,7 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
 
       <TagDialog
         isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        filteredTags={filteredTags}
-        selectedTags={selectedTags}
-        onTagSelect={handleTagToggle}
-        onClearTags={() => onTagsChange([])}
+        onClose={() => setIsDialogOpen(false)}
       />
     </div>
   );

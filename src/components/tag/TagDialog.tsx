@@ -10,7 +10,7 @@ import { TagCategory } from "@/types/tag";
 interface TagDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  itemId: string;
+  itemId?: string;
   isUserItem?: boolean;
 }
 
@@ -27,6 +27,8 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false }: TagDi
   const { data: currentTags = [] } = useQuery({
     queryKey: ["item-tags", itemId, isUserItem],
     queryFn: async () => {
+      if (!itemId) return [];
+      
       const { data, error } = await supabase
         .from(isUserItem ? "user_item_tags" : "item_tags")
         .select(`
@@ -38,9 +40,11 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false }: TagDi
           )
         `)
         .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
+      
       if (error) throw error;
       return data;
     },
+    enabled: !!itemId, // itemIdが存在する場合のみクエリを実行
   });
 
   return (
@@ -62,7 +66,7 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false }: TagDi
               <TagInput
                 selectedTags={selectedTags}
                 onTagsChange={setSelectedTags}
-                itemIds={[itemId]}
+                itemIds={itemId ? [itemId] : []}
                 onClose={onClose}
                 category={category as TagCategory}
               />
