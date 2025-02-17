@@ -47,7 +47,7 @@ export function InitialInterestSelection({
       if (error) throw error;
 
       toast({
-        title: "興味のあるタグを保存しました",
+        title: "興味のあるコンテンツを保存しました",
         description: "おすすめのアイテムが表示されます",
       });
       onClose();
@@ -55,7 +55,7 @@ export function InitialInterestSelection({
       console.error('Error saving interests:', error);
       toast({
         title: "エラーが発生しました",
-        description: "興味のあるタグの保存に失敗しました",
+        description: "興味のあるコンテンツの保存に失敗しました",
         variant: "destructive",
       });
     } finally {
@@ -72,15 +72,15 @@ export function InitialInterestSelection({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">
-            興味のあるタグを選択してください
+            興味のあるコンテンツを選択してください
           </DialogTitle>
         </DialogHeader>
         <div className="text-center text-gray-600 mb-4">
-          好みに合わせたグッズを表示するために、興味のあるタグを選んでください
+          好みに合わせたグッズを表示するために、興味のあるコンテンツを選んでください
         </div>
         <div className="px-4">
           <Input
-            placeholder="タグを検索..."
+            placeholder="コンテンツを検索..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="mb-4"
