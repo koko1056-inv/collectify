@@ -1,15 +1,13 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CategoryTagSelect } from "@/components/tag/CategoryTagSelect";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getTagsForItem, updateTagsForItem } from "@/utils/tag-operations";
+import { useQuery } from "@tanstack/react-query";
+import { getTagsForItem } from "@/utils/tag-operations";
 import { ItemTag } from "@/types/tag";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PreviousTags } from "./PreviousTags";
 import { TagInput } from "@/components/TagInput";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -28,13 +26,6 @@ export function TagManageModal({
   isUserItem = false,
   isCategory = false 
 }: TagManageModalProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [selectedTypeTag, setSelectedTypeTag] = useState<string | null>(null);
-  const [selectedCharacterTag, setSelectedCharacterTag] = useState<string | null>(null);
-  const [selectedSeriesTag, setSelectedSeriesTag] = useState<string | null>(null);
-  const [otherTags, setOtherTags] = useState<string[]>([]);
-  
   const title = itemIds.length === 1 
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
     : `${itemIds.length}個のアイテムのタグを管理`;
@@ -51,37 +42,8 @@ export function TagManageModal({
     .map(tag => tag.tags?.name)
     .filter((name): name is string => name !== undefined);
 
-  const handleUpdate = async () => {
-    try {
-      const allSelectedTagIds = [
-        selectedTypeTag,
-        selectedCharacterTag,
-        selectedSeriesTag,
-        ...otherTags
-      ].filter((tagId): tagId is string => tagId !== null);
-
-      for (const itemId of itemIds) {
-        await updateTagsForItem(itemId, allSelectedTagIds, isUserItem);
-      }
-
-      await queryClient.invalidateQueries({
-        queryKey: ["current-tags", itemIds]
-      });
-
-      toast({
-        title: "タグを更新しました",
-        description: "タグの更新が完了しました。",
-      });
-
-      onClose();
-    } catch (error) {
-      console.error("Error updating tags:", error);
-      toast({
-        title: "エラー",
-        description: "タグの更新に失敗しました。",
-        variant: "destructive",
-      });
-    }
+  const handleTagsChange = (tags: string[]) => {
+    // 既存のタグを更新
   };
 
   return (
@@ -98,38 +60,30 @@ export function TagManageModal({
               <CategoryTagSelect
                 category="type"
                 label="グッズタイプ"
-                value={selectedTypeTag}
-                onChange={setSelectedTypeTag}
+                value={null}
+                onChange={() => {}}
               />
               <CategoryTagSelect
                 category="character"
                 label="キャラクター・人物名"
-                value={selectedCharacterTag}
-                onChange={setSelectedCharacterTag}
+                value={null}
+                onChange={() => {}}
               />
               <CategoryTagSelect
                 category="series"
                 label="グッズシリーズ"
-                value={selectedSeriesTag}
-                onChange={setSelectedSeriesTag}
+                value={null}
+                onChange={() => {}}
               />
               <div className="space-y-4">
                 <TagInput 
-                  selectedTags={otherTags}
-                  onTagsChange={setOtherTags}
+                  selectedTags={tagNames}
+                  onTagsChange={handleTagsChange}
                   itemIds={itemIds}
                   onClose={onClose}
                   category="other"
                 />
               </div>
-            </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={onClose}>
-                キャンセル
-              </Button>
-              <Button onClick={handleUpdate}>
-                更新
-              </Button>
             </div>
           </div>
         </ScrollArea>
