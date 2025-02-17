@@ -7,6 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
+interface TagData {
+  id: string;
+  name: string;
+  category: string;
+}
+
 interface CategoryTagSelectProps {
   category: string;
   label: string;
@@ -29,7 +35,7 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
         .eq("category", category)
         .order("name");
       if (error) throw error;
-      return data;
+      return data as TagData[];
     },
   });
 
@@ -42,13 +48,12 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
         .single();
       
       if (error) throw error;
-      return data;
+      return data as TagData;
     },
     onSuccess: (data) => {
-      // 新しいタグをキャッシュに追加
       const queryKey = ["tags", category];
-      const previousTags = queryClient.getQueryData(queryKey) || [];
-      queryClient.setQueryData(queryKey, [...previousTags, data]);
+      const previousTags = queryClient.getQueryData<TagData[]>(queryKey) || [];
+      queryClient.setQueryData<TagData[]>(queryKey, [...previousTags, data]);
       
       onChange(data.name);
       setIsAddingNew(false);
