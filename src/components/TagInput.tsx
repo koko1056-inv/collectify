@@ -12,23 +12,26 @@ interface TagInputProps {
   onTagsChange: (tags: string[]) => void;
   itemIds?: string[];
   onClose?: () => void;
+  category?: string;
 }
 
 export function TagInput({ 
   selectedTags, 
   onTagsChange,
   itemIds = [],
-  onClose = () => {} 
+  onClose = () => {},
+  category = "other"
 }: TagInputProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: existingTags = [] } = useQuery({
-    queryKey: ["tags"],
+    queryKey: ["tags", category],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
         .select("*")
+        .eq("category", category)
         .order("name");
       if (error) throw error;
       return data as Tag[];
@@ -36,7 +39,7 @@ export function TagInput({
   });
 
   const { data: userPreviousTags = [] } = useQuery({
-    queryKey: ["user-previous-tags"],
+    queryKey: ["user-previous-tags", category],
     queryFn: async () => {
       const { data: userItems, error: userItemsError } = await supabase
         .from("user_items")
@@ -60,6 +63,7 @@ export function TagInput({
         .from("tags")
         .select("*")
         .in("id", uniqueTagIds)
+        .eq("category", category)
         .order("name");
 
       if (tagNamesError) throw tagNamesError;
@@ -72,10 +76,8 @@ export function TagInput({
       const tagToDelete = existingTags.find(tag => tag.name === tagToRemove);
       
       if (tagToDelete && itemIds.length > 0) {
-        // First, remove the tag from the UI
         onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
 
-        // Then, remove the tag from the database
         for (const itemId of itemIds) {
           const { error } = await supabase
             .from("user_item_tags")
@@ -86,12 +88,10 @@ export function TagInput({
           if (error) throw error;
         }
 
-        // Invalidate relevant queries
         await queryClient.invalidateQueries({ 
-          queryKey: ["user-previous-tags"]
+          queryKey: ["user-previous-tags", category]
         });
 
-        // Show success message
         toast({
           title: "タグを削除しました",
           description: `${tagToRemove}を削除しました。`,
@@ -117,6 +117,7 @@ export function TagInput({
         onTagsChange={onTagsChange}
         itemIds={itemIds}
         onClose={onClose}
+        category={category}
       />
       <CurrentTags
         tags={selectedTags}

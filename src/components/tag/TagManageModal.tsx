@@ -1,11 +1,12 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TagInput } from "@/components/TagInput";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getTagsForItem } from "@/utils/tag-operations";
 import { ItemTag } from "@/types/tag";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -16,6 +17,13 @@ interface TagManageModalProps {
   isCategory?: boolean;
 }
 
+const TAG_CATEGORIES = {
+  type: "グッズタイプ",
+  character: "キャラクター・人物名",
+  series: "グッズシリーズ",
+  other: "その他"
+} as const;
+
 export function TagManageModal({ 
   isOpen, 
   onClose, 
@@ -25,7 +33,7 @@ export function TagManageModal({
   isCategory = false 
 }: TagManageModalProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const queryClient = useQueryClient();
+  const [activeCategory, setActiveCategory] = useState<keyof typeof TAG_CATEGORIES>("type");
   
   const title = itemIds.length === 1 
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
@@ -57,12 +65,26 @@ export function TagManageModal({
         </DialogHeader>
         <ScrollArea className="max-h-[80vh]">
           <div className="space-y-6 p-4">
-            <TagInput 
-              selectedTags={tagNames}
-              onTagsChange={handleTagsChange}
-              itemIds={itemIds}
-              onClose={onClose}
-            />
+            <Tabs defaultValue="type" value={activeCategory} onValueChange={(value) => setActiveCategory(value as keyof typeof TAG_CATEGORIES)}>
+              <TabsList className="grid w-full grid-cols-4">
+                {Object.entries(TAG_CATEGORIES).map(([key, label]) => (
+                  <TabsTrigger key={key} value={key}>
+                    {label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {Object.keys(TAG_CATEGORIES).map((category) => (
+                <TabsContent key={category} value={category}>
+                  <TagInput 
+                    selectedTags={tagNames}
+                    onTagsChange={handleTagsChange}
+                    itemIds={itemIds}
+                    onClose={onClose}
+                    category={category}
+                  />
+                </TabsContent>
+              ))}
+            </Tabs>
           </div>
         </ScrollArea>
       </DialogContent>
