@@ -9,6 +9,24 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_accounts: {
+        Row: {
+          created_at: string
+          id: string
+          is_admin: boolean
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          is_admin?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_admin?: boolean
+        }
+        Relationships: []
+      }
       collection_likes: {
         Row: {
           collection_owner_id: string
@@ -319,6 +337,51 @@ export type Database = {
           },
         ]
       }
+      item_submissions: {
+        Row: {
+          content_name: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image: string
+          price: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["approval_status"]
+          submitted_by: string
+          title: string
+        }
+        Insert: {
+          content_name?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image: string
+          price: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["approval_status"]
+          submitted_by: string
+          title: string
+        }
+        Update: {
+          content_name?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string
+          price?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["approval_status"]
+          submitted_by?: string
+          title?: string
+        }
+        Relationships: []
+      }
       item_tags: {
         Row: {
           created_at: string
@@ -473,17 +536,114 @@ export type Database = {
           },
         ]
       }
+      original_item_tags: {
+        Row: {
+          created_at: string
+          id: string
+          original_item_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          original_item_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          original_item_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "original_item_tags_original_item_id_fkey"
+            columns: ["original_item_id"]
+            isOneToOne: false
+            referencedRelation: "original_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "original_item_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      original_items: {
+        Row: {
+          anime: string | null
+          artist: string | null
+          content_name: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          image: string
+          price: string
+          quantity: number
+          release_date: string
+          title: string
+        }
+        Insert: {
+          anime?: string | null
+          artist?: string | null
+          content_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image: string
+          price: string
+          quantity?: number
+          release_date: string
+          title: string
+        }
+        Update: {
+          anime?: string | null
+          artist?: string | null
+          content_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image?: string
+          price?: string
+          quantity?: number
+          release_date?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "original_items_content_name_fkey"
+            columns: ["content_name"]
+            isOneToOne: false
+            referencedRelation: "content_names"
+            referencedColumns: ["name"]
+          },
+          {
+            foreignKeyName: "original_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
           created_at: string
           display_name: string | null
+          favorite_contents: string[] | null
           favorite_item_ids: string[] | null
+          favorite_tags: string[] | null
           followers_count: number | null
           following_count: number | null
           id: string
-          interests: string[] | null
           is_admin: boolean | null
           username: string
         }
@@ -492,11 +652,12 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          favorite_contents?: string[] | null
           favorite_item_ids?: string[] | null
+          favorite_tags?: string[] | null
           followers_count?: number | null
           following_count?: number | null
           id: string
-          interests?: string[] | null
           is_admin?: boolean | null
           username: string
         }
@@ -505,11 +666,12 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          favorite_contents?: string[] | null
           favorite_item_ids?: string[] | null
+          favorite_tags?: string[] | null
           followers_count?: number | null
           following_count?: number | null
           id?: string
-          interests?: string[] | null
           is_admin?: boolean | null
           username?: string
         }
@@ -755,6 +917,7 @@ export type Database = {
           images: string[] | null
           official_item_id: string | null
           official_link: string | null
+          original_item_id: string | null
           prize: string
           purchase_date: string | null
           purchase_price: string | null
@@ -772,6 +935,7 @@ export type Database = {
           images?: string[] | null
           official_item_id?: string | null
           official_link?: string | null
+          original_item_id?: string | null
           prize: string
           purchase_date?: string | null
           purchase_price?: string | null
@@ -789,6 +953,7 @@ export type Database = {
           images?: string[] | null
           official_item_id?: string | null
           official_link?: string | null
+          original_item_id?: string | null
           prize?: string
           purchase_date?: string | null
           purchase_price?: string | null
@@ -806,6 +971,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "user_items_original_item_id_fkey"
+            columns: ["original_item_id"]
+            isOneToOne: false
+            referencedRelation: "original_items"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_items_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -819,21 +991,24 @@ export type Database = {
           created_at: string
           id: string
           note: string | null
-          official_item_id: string
+          official_item_id: string | null
+          original_item_id: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           note?: string | null
-          official_item_id: string
+          official_item_id?: string | null
+          original_item_id?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
           note?: string | null
-          official_item_id?: string
+          official_item_id?: string | null
+          original_item_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -842,6 +1017,13 @@ export type Database = {
             columns: ["official_item_id"]
             isOneToOne: false
             referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlists_original_item_id_fkey"
+            columns: ["original_item_id"]
+            isOneToOne: false
+            referencedRelation: "original_items"
             referencedColumns: ["id"]
           },
         ]
@@ -854,7 +1036,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      approval_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
