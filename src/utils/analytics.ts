@@ -1,5 +1,5 @@
-
 import mixpanel from 'mixpanel-browser';
+import { supabase } from "@/integrations/supabase/client";
 
 // Initialize Mixpanel
 mixpanel.init('4bc4d60b2405ad26a1c8851be3bbfdcd');
