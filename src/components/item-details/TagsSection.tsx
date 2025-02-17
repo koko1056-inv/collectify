@@ -27,10 +27,13 @@ export function TagsSection({
 
   if (isEditing) {
     return (
-      <TagInput
-        selectedTags={editedData.tags || selectedTags}
-        onTagsChange={handleTagsChange}
-      />
+      <div className="space-y-2">
+        <div className="text-sm font-medium">タグ</div>
+        <TagInput
+          selectedTags={editedData.tags || selectedTags}
+          onTagsChange={handleTagsChange}
+        />
+      </div>
     );
   }
 
