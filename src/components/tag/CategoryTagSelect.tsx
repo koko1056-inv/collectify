@@ -42,19 +42,17 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
   const addTagMutation = useMutation({
     mutationFn: async (name: string) => {
       // まず、同じ名前のタグが存在するか確認
-      const { data: existingTags, error: searchError } = await supabase
+      const { data: existingTag, error: searchError } = await supabase
         .from("tags")
         .select("*")
         .eq("name", name)
-        .single();
+        .maybeSingle();
 
-      if (searchError && searchError.code !== "PGRST116") { // PGRST116 は "結果が見つからない" エラー
-        throw searchError;
-      }
+      if (searchError) throw searchError;
 
-      if (existingTags) {
+      if (existingTag) {
         // 既存のタグが見つかった場合、それを返す
-        return existingTags as TagData;
+        return existingTag as TagData;
       }
 
       // 新しいタグを作成
