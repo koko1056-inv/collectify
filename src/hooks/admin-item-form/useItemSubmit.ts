@@ -12,6 +12,7 @@ interface UseItemSubmitProps {
   uploadImage: () => Promise<string>;
   selectedTags: string[];
   resetForm: () => void;
+  isOfficialItem: boolean;
 }
 
 export function useItemSubmit({
@@ -19,6 +20,7 @@ export function useItemSubmit({
   uploadImage,
   selectedTags,
   resetForm,
+  isOfficialItem,
 }: UseItemSubmitProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -45,9 +47,12 @@ export function useItemSubmit({
 
     try {
       const imageUrl = await uploadImage();
+      const tableName = isOfficialItem ? "official_items" : "original_items";
+      const tagsTableName = isOfficialItem ? "item_tags" : "original_item_tags";
+      const itemIdColumn = isOfficialItem ? "official_item_id" : "original_item_id";
 
       const { data: itemData, error: itemError } = await supabase
-        .from("original_items")
+        .from(tableName)
         .insert([
           {
             ...formData,
@@ -87,9 +92,9 @@ export function useItemSubmit({
           }
 
           const { error: relationError } = await supabase
-            .from("original_item_tags")
+            .from(tagsTableName)
             .insert([{
-              original_item_id: itemData.id,
+              [itemIdColumn]: itemData.id,
               tag_id: tagId,
             }]);
 
@@ -98,12 +103,12 @@ export function useItemSubmit({
       }
 
       toast({
-        title: "アイテムを追加しました",
-        description: "オリジナルグッズリストに新しいアイテムが追加されました。",
+        title: `${isOfficialItem ? "公式" : "オリジナル"}グッズを追加しました`,
+        description: "グッズリストに新しいアイテムが追加されました。",
       });
 
       resetForm();
-      queryClient.invalidateQueries({ queryKey: ["original-items"] });
+      queryClient.invalidateQueries({ queryKey: [isOfficialItem ? "official-items" : "original-items"] });
       queryClient.invalidateQueries({ queryKey: ["tags"] });
     } catch (error) {
       console.error("Error:", error);
