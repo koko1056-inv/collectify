@@ -1,46 +1,35 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import { Tag } from "@/types";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
 
 interface InitialInterestSelectionProps {
   isOpen: boolean;
   onClose: () => void;
+  tags: Tag[];
 }
 
 export function InitialInterestSelection({
   isOpen,
   onClose,
+  tags,
 }: InitialInterestSelectionProps) {
-  const [selectedContents, setSelectedContents] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const { data: contentNames = [] } = useQuery({
-    queryKey: ["content-names"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_names")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const handleContentToggle = (contentName: string) => {
-    setSelectedContents(prev =>
-      prev.includes(contentName)
-        ? prev.filter(t => t !== contentName)
-        : [...prev, contentName]
+  const handleTagToggle = (tagName: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tagName)
+        ? prev.filter(t => t !== tagName)
+        : [...prev, tagName]
     );
   };
 
@@ -51,13 +40,13 @@ export function InitialInterestSelection({
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ favorite_contents: selectedContents })
+        .update({ interests: selectedTags })
         .eq('id', user.id);
 
       if (error) throw error;
 
       toast({
-        title: "興味のあるコンテンツを保存しました",
+        title: "興味のあるタグを保存しました",
         description: "おすすめのアイテムが表示されます",
       });
       onClose();
@@ -65,7 +54,7 @@ export function InitialInterestSelection({
       console.error('Error saving interests:', error);
       toast({
         title: "エラーが発生しました",
-        description: "興味のあるコンテンツの保存に失敗しました",
+        description: "興味のあるタグの保存に失敗しました",
         variant: "destructive",
       });
     } finally {
@@ -73,8 +62,8 @@ export function InitialInterestSelection({
     }
   };
 
-  const filteredContents = contentNames.filter(content =>
-    content.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTags = tags.filter(tag =>
+    tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -82,31 +71,31 @@ export function InitialInterestSelection({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">
-            興味のあるコンテンツを選択してください
+            興味のあるタグを選択してください
           </DialogTitle>
         </DialogHeader>
         <div className="text-center text-gray-600 mb-4">
-          好みに合わせたグッズを表示するために、興味のあるコンテンツを選んでください
+          好みに合わせたグッズを表示するために、興味のあるタグを選んでください
         </div>
         <div className="px-4">
           <Input
-            placeholder="コンテンツを検索..."
+            placeholder="タグを検索..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="mb-4"
           />
         </div>
         <ScrollArea className="h-[50vh] pr-4">
-          <div className="flex flex-col gap-2 p-4">
-            {filteredContents.map((content) => (
+          <div className="grid grid-cols-2 gap-2 p-4">
+            {filteredTags.map((tag) => (
               <Button
-                key={content.id}
-                variant={selectedContents.includes(content.name) ? "default" : "outline"}
-                className="w-full py-3 px-4 text-left justify-start"
-                onClick={() => handleContentToggle(content.name)}
+                key={tag.id}
+                variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+                className="h-auto py-6 flex flex-col items-center justify-center gap-2"
+                onClick={() => handleTagToggle(tag.name)}
               >
-                <span className="text-base">
-                  {content.name}
+                <span className="text-base break-words text-center w-full">
+                  {tag.name}
                 </span>
               </Button>
             ))}

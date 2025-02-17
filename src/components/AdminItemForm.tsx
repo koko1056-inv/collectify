@@ -7,11 +7,7 @@ import { useImageUpload } from "@/hooks/admin-item-form/useImageUpload";
 import { useItemDetails } from "@/hooks/admin-item-form/useItemDetails";
 import { useItemSubmit } from "@/hooks/admin-item-form/useItemSubmit";
 
-interface AdminItemFormProps {
-  isOfficialItem: boolean;
-}
-
-export function AdminItemForm({ isOfficialItem }: AdminItemFormProps) {
+export function AdminItemForm() {
   const {
     imageFile,
     setImageFile,
@@ -45,7 +41,6 @@ export function AdminItemForm({ isOfficialItem }: AdminItemFormProps) {
     uploadImage,
     selectedTags,
     resetForm,
-    isOfficialItem,
   });
 
   return (

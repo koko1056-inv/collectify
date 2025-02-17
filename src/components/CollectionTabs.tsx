@@ -1,9 +1,10 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
 import { UserCollection } from "@/components/UserCollection";
 import { OfficialItem } from "@/types";
-import { OriginalItemsList } from "./OriginalItemsList";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { trackTabChange } from "@/utils/analytics";
 
 interface CollectionTabsProps {
   filteredItems: OfficialItem[];
@@ -11,43 +12,40 @@ interface CollectionTabsProps {
   userId?: string | null;
 }
 
-export function CollectionTabs({
-  filteredItems,
-  selectedTags,
-  userId
-}: CollectionTabsProps) {
-  return <Tabs defaultValue="official" className="space-y-4">
-      <TabsList className="border border-gray-200 rounded-full w-full flex justify-center text-sm sm:text-base p-1">
+export function CollectionTabs({ filteredItems, selectedTags, userId }: CollectionTabsProps) {
+  const { t } = useLanguage();
+  const { user } = useAuth();
+
+  const handleTabChange = (value: string) => {
+    trackTabChange(value, user?.id);
+  };
+
+  return (
+    <Tabs defaultValue="official" className="space-y-4 sm:space-y-6" onValueChange={handleTabChange}>
+      <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-white border border-gray-200 rounded-full">
         <TabsTrigger 
           value="official" 
-          className="px-2 sm:px-4 rounded-full data-[state=active]:bg-gray-900 data-[state=active]:text-white transition-colors"
+          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
         >
-          公式グッズ
-        </TabsTrigger>
-        <TabsTrigger 
-          value="original" 
-          className="px-2 sm:px-4 rounded-full data-[state=active]:bg-gray-900 data-[state=active]:text-white transition-colors"
-        >
-          オリジナルグッズ
+          {t("tabs.official")}
         </TabsTrigger>
         <TabsTrigger 
           value="collection" 
-          className="px-2 sm:px-4 rounded-full data-[state=active]:bg-gray-900 data-[state=active]:text-white transition-colors"
+          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
         >
-          マイコレクション
+          {t("tabs.collection")}
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="official" className="space-y-4">
+      <TabsContent value="official" className="mt-2 sm:mt-4">
         <OfficialItemsList items={filteredItems} />
       </TabsContent>
 
-      <TabsContent value="original" className="space-y-4">
-        <OriginalItemsList />
+      <TabsContent value="collection" className="mt-2 sm:mt-4">
+        <div className="space-y-6">
+          <UserCollection selectedTags={selectedTags} userId={userId} />
+        </div>
       </TabsContent>
-
-      <TabsContent value="collection" className="space-y-4">
-        <UserCollection selectedTags={selectedTags} userId={userId} />
-      </TabsContent>
-    </Tabs>;
+    </Tabs>
+  );
 }

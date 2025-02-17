@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +15,6 @@ interface WishlistModalProps {
   existingNote?: string;
   wishlistId?: string;
   isEditing?: boolean;
-  isOriginalItem?: boolean;
 }
 
 export function WishlistModal({ 
@@ -26,8 +24,7 @@ export function WishlistModal({
   itemTitle,
   existingNote,
   wishlistId,
-  isEditing = false,
-  isOriginalItem = false
+  isEditing = false
 }: WishlistModalProps) {
   const [note, setNote] = useState("");
   const { toast } = useToast();
@@ -66,14 +63,13 @@ export function WishlistModal({
       } else {
         const { error } = await supabase
           .from("wishlists")
-          .insert([{
-            user_id: user.id,
-            note: note,
-            ...(isOriginalItem 
-              ? { original_item_id: itemId }
-              : { official_item_id: itemId }
-            )
-          }]);
+          .insert([
+            {
+              user_id: user.id,
+              official_item_id: itemId,
+              note: note,
+            },
+          ]);
 
         if (error) throw error;
 

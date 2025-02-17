@@ -12,7 +12,6 @@ interface UseItemSubmitProps {
   uploadImage: () => Promise<string>;
   selectedTags: string[];
   resetForm: () => void;
-  isOfficialItem: boolean;
 }
 
 export function useItemSubmit({
@@ -20,7 +19,6 @@ export function useItemSubmit({
   uploadImage,
   selectedTags,
   resetForm,
-  isOfficialItem,
 }: UseItemSubmitProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -47,11 +45,9 @@ export function useItemSubmit({
 
     try {
       const imageUrl = await uploadImage();
-      const tableName = isOfficialItem ? "official_items" : "original_items";
-      const tagsTableName = isOfficialItem ? "item_tags" : "original_item_tags";
 
       const { data: itemData, error: itemError } = await supabase
-        .from(tableName)
+        .from("official_items")
         .insert([
           {
             ...formData,
@@ -90,26 +86,24 @@ export function useItemSubmit({
             tagId = existingTag.id;
           }
 
-          // タグの関連付けを型安全に行う
-          const tagData = isOfficialItem 
-            ? { official_item_id: itemData.id, tag_id: tagId }
-            : { original_item_id: itemData.id, tag_id: tagId };
-
           const { error: relationError } = await supabase
-            .from(tagsTableName)
-            .insert([tagData]);
+            .from("item_tags")
+            .insert([{
+              official_item_id: itemData.id,
+              tag_id: tagId,
+            }]);
 
           if (relationError) throw relationError;
         }
       }
 
       toast({
-        title: `${isOfficialItem ? "公式" : "オリジナル"}グッズを追加しました`,
-        description: "グッズリストに新しいアイテムが追加されました。",
+        title: "アイテムを追加しました",
+        description: "公式グッズリストに新しいアイテムが追加されました。",
       });
 
       resetForm();
-      queryClient.invalidateQueries({ queryKey: [isOfficialItem ? "official-items" : "original-items"] });
+      queryClient.invalidateQueries({ queryKey: ["official-items"] });
       queryClient.invalidateQueries({ queryKey: ["tags"] });
     } catch (error) {
       console.error("Error:", error);

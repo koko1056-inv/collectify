@@ -6,13 +6,13 @@ interface DeleteUserItemResult {
   officialItemId?: string;
 }
 
-// 基本的なTag型定義
+// 単純化したTag型定義
 export type Tag = {
   id: string;
   name: string;
 };
 
-// ItemTagを簡略化
+// ItemTagの型定義を修正し、循環参照を防ぐ
 export type ItemTag = {
   id: string;
   tag_id: string;
@@ -20,7 +20,7 @@ export type ItemTag = {
   tags: {
     id: string;
     name: string;
-  } | null;
+  };
 };
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
@@ -29,19 +29,11 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean) {
 
   const { data, error } = await supabase
     .from(tableName)
-    .select(`
-      id,
-      tag_id,
-      created_at,
-      tags (
-        id,
-        name
-      )
-    `)
+    .select('id, tag_id, created_at, tags:tags(id, name)')
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return (data || []) as ItemTag[];
+  return (data as ItemTag[]) || [];
 }
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
@@ -72,6 +64,7 @@ export async function removeTagFromItem(tagId: string, itemId: string, isUserIte
 
 async function deleteAllTradeRequests(itemId: string): Promise<void> {
   try {
+    // SQLインジェクションを防ぐため、orフィルターを修正
     const { error } = await supabase
       .from("trade_requests")
       .delete()

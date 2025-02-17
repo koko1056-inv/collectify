@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ItemImageUpload } from "@/components/item/ItemImageUpload";
-import { Pencil, ZoomIn } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,6 @@ interface ItemImageEditorProps {
 
 export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: ItemImageEditorProps) {
   const [isImageEditModalOpen, setIsImageEditModalOpen] = useState(false);
-  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -59,27 +58,18 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
       <img
         src={image}
         alt={title}
-        className="w-full h-full object-contain bg-gray-100 cursor-pointer"
-        onClick={() => setIsPreviewModalOpen(true)}
+        className="w-full h-full object-contain bg-gray-100"
       />
-      <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      {isEditing && (
         <Button
           variant="secondary"
           size="icon"
-          onClick={() => setIsPreviewModalOpen(true)}
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => setIsImageEditModalOpen(true)}
         >
-          <ZoomIn className="h-4 w-4" />
+          <Pencil className="h-4 w-4" />
         </Button>
-        {isEditing && (
-          <Button
-            variant="secondary"
-            size="icon"
-            onClick={() => setIsImageEditModalOpen(true)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+      )}
 
       <Dialog open={isImageEditModalOpen} onOpenChange={setIsImageEditModalOpen}>
         <DialogContent>
@@ -89,18 +79,6 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
             previewUrl={previewUrl}
             setPreviewUrl={setPreviewUrl}
           />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
-        <DialogContent className="max-w-4xl">
-          <div className="relative w-full max-h-[80vh] overflow-hidden rounded-lg">
-            <img
-              src={image}
-              alt={title}
-              className="w-full h-full object-contain"
-            />
-          </div>
         </DialogContent>
       </Dialog>
     </div>

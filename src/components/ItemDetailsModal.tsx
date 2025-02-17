@@ -18,7 +18,6 @@ interface ItemDetailsModalProps {
   description?: string;
   itemId: string;
   isUserItem?: boolean;
-  isOriginalItem?: boolean;
   quantity?: number;
   userId?: string;
   createdBy?: string | null;
@@ -35,7 +34,6 @@ export function ItemDetailsModal({
   description,
   itemId,
   isUserItem = false,
-  isOriginalItem = false,
   quantity = 1,
   userId,
   createdBy,

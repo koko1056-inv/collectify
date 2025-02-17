@@ -18,26 +18,6 @@ export interface OfficialItem {
   }>;
 }
 
-export interface OriginalItem {
-  id: string;
-  title: string;
-  description: string | null;
-  image: string;
-  price: string;
-  release_date: string;
-  created_at: string;
-  created_by: string | null;
-  artist: string | null;
-  anime: string | null;
-  content_name?: string | null;
-  item_tags?: Array<{
-    tags: {
-      id: string;
-      name: string;
-    } | null;
-  }>;
-}
-
 export interface UserItem {
   id: string;
   title: string;
