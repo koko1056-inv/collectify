@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { TableName } from "@/types/tag";
 
@@ -18,7 +17,7 @@ export type ItemTag = {
   id: string;
   tag_id: string;
   created_at: string;
-  tags: Tag;
+  tags: Tag | null;
 };
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {

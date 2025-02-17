@@ -49,7 +49,6 @@ export function useItemSubmit({
       const imageUrl = await uploadImage();
       const tableName = isOfficialItem ? "official_items" : "original_items";
       const tagsTableName = isOfficialItem ? "item_tags" : "original_item_tags";
-      const itemIdColumn = isOfficialItem ? "official_item_id" : "original_item_id";
 
       const { data: itemData, error: itemError } = await supabase
         .from(tableName)
@@ -91,12 +90,14 @@ export function useItemSubmit({
             tagId = existingTag.id;
           }
 
+          // タグの関連付けを型安全に行う
+          const tagData = isOfficialItem 
+            ? { official_item_id: itemData.id, tag_id: tagId }
+            : { original_item_id: itemData.id, tag_id: tagId };
+
           const { error: relationError } = await supabase
             .from(tagsTableName)
-            .insert([{
-              [itemIdColumn]: itemData.id,
-              tag_id: tagId,
-            }]);
+            .insert([tagData]);
 
           if (relationError) throw relationError;
         }
