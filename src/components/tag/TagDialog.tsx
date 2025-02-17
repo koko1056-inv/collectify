@@ -83,41 +83,43 @@ export function TagDialog({
             onChange={(e) => onSearchChange(e.target.value)}
             className="mb-4"
           />
-          <Tabs defaultValue="all" value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as TagCategory)}>
-            <TabsList className="w-full mb-4 h-auto flex-wrap gap-2 bg-transparent">
-              {(Object.entries(categoryLabels) as [TagCategory, string][]).map(([key, label]) => (
-                <TabsTrigger
-                  key={key}
-                  value={key}
-                  className="px-3 py-1.5 rounded-full text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
-                >
-                  {label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <TabsContent value={selectedCategory}>
-              <ScrollArea className="h-[50vh]">
-                <div className="grid grid-cols-2 gap-2 p-4">
-                  {getFilteredTags().map((tag) => (
-                    <Button
-                      key={tag.id}
-                      variant={selectedTags.includes(tag.name) ? "default" : "outline"}
-                      className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
-                      onClick={() => onTagSelect(tag.name)}
-                    >
-                      <span className="text-xs break-words text-center w-full line-clamp-2">
-                        {tag.name}
-                      </span>
-                      {tag.category && (
-                        <span className="text-[10px] text-gray-500">
-                          {categoryLabels[tag.category as TagCategory] || tag.category}
+          <Tabs defaultValue="all" value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as TagCategory)} orientation="vertical">
+            <div className="flex gap-4">
+              <TabsList className="flex-shrink-0 h-auto flex-col gap-2 bg-transparent p-0">
+                {(Object.entries(categoryLabels) as [TagCategory, string][]).map(([key, label]) => (
+                  <TabsTrigger
+                    key={key}
+                    value={key}
+                    className="w-full justify-start px-3 py-1.5 rounded-full text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                  >
+                    {label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              <TabsContent value={selectedCategory} className="flex-grow m-0">
+                <ScrollArea className="h-[50vh]">
+                  <div className="grid grid-cols-2 gap-2">
+                    {getFilteredTags().map((tag) => (
+                      <Button
+                        key={tag.id}
+                        variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+                        className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
+                        onClick={() => onTagSelect(tag.name)}
+                      >
+                        <span className="text-xs break-words text-center w-full line-clamp-2">
+                          {tag.name}
                         </span>
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
+                        {tag.category && (
+                          <span className="text-[10px] text-gray-500">
+                            {categoryLabels[tag.category as TagCategory] || tag.category}
+                          </span>
+                        )}
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </TabsContent>
+            </div>
           </Tabs>
         </div>
         {selectedTags.length > 0 && (
