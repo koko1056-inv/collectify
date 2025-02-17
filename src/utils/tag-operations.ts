@@ -27,16 +27,17 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .select(`
       id,
       tag_id,
-      tags (
+      tags:tags (
         id,
         name,
-        category
+        category,
+        created_at
       )
     `)
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as ItemTag[];
 }
 
 export async function addTagToItem(

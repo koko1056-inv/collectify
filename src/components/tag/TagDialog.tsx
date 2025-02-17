@@ -5,7 +5,7 @@ import { TagInput } from "../TagInput";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TagCategory } from "@/types/tag";
+import { TagCategory, ItemTag } from "@/types/tag";
 
 interface TagDialogProps {
   isOpen: boolean;
@@ -24,7 +24,7 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false }: TagDi
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<TagCategory>("character");
 
-  const { data: currentTags = [] } = useQuery({
+  const { data: currentTags = [] } = useQuery<ItemTag[]>({
     queryKey: ["item-tags", itemId, isUserItem],
     queryFn: async () => {
       if (!itemId) return [];
@@ -32,19 +32,21 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false }: TagDi
       const { data, error } = await supabase
         .from(isUserItem ? "user_item_tags" : "item_tags")
         .select(`
+          id,
           tag_id,
-          tags (
+          tags:tags (
             id,
             name,
-            category
+            category,
+            created_at
           )
         `)
         .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
       
       if (error) throw error;
-      return data;
+      return (data || []) as ItemTag[];
     },
-    enabled: !!itemId, // itemIdが存在する場合のみクエリを実行
+    enabled: !!itemId,
   });
 
   return (
