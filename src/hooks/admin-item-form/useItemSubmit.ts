@@ -4,11 +4,18 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+interface FormDataType {
+  title: string;
+  description: string;
+  content_name?: string | null;
+  item_type?: string;
+  characterTag?: string | null;
+  typeTag?: string | null;
+  seriesTag?: string | null;
+}
+
 interface UseItemSubmitProps {
-  formData: {
-    title: string;
-    description: string;
-  };
+  formData: FormDataType;
   uploadImage: () => Promise<string>;
   selectedTags: string[];
   resetForm: () => void;
@@ -46,11 +53,14 @@ export function useItemSubmit({
     try {
       const imageUrl = await uploadImage();
 
+      // データベースに保存するデータから、タグ関連のフィールドを除外
+      const { characterTag, typeTag, seriesTag, ...dbFormData } = formData;
+
       const { data: itemData, error: itemError } = await supabase
         .from("official_items")
         .insert([
           {
-            ...formData,
+            ...dbFormData,
             image: imageUrl,
             price: "0",
             release_date: new Date().toISOString(),
@@ -64,36 +74,20 @@ export function useItemSubmit({
       // Process tags
       if (selectedTags.length > 0) {
         for (const tagName of selectedTags) {
-          const { data: existingTag, error: tagError } = await supabase
+          const { data: existingTag } = await supabase
             .from("tags")
             .select("id")
             .eq("name", tagName)
             .maybeSingle();
 
-          if (tagError) throw tagError;
-
-          let tagId;
-          if (!existingTag) {
-            const { data: newTag, error: createTagError } = await supabase
-              .from("tags")
-              .insert([{ name: tagName }])
-              .select()
-              .single();
-
-            if (createTagError) throw createTagError;
-            tagId = newTag.id;
-          } else {
-            tagId = existingTag.id;
+          if (existingTag) {
+            await supabase
+              .from("item_tags")
+              .insert([{
+                official_item_id: itemData.id,
+                tag_id: existingTag.id,
+              }]);
           }
-
-          const { error: relationError } = await supabase
-            .from("item_tags")
-            .insert([{
-              official_item_id: itemData.id,
-              tag_id: tagId,
-            }]);
-
-          if (relationError) throw relationError;
         }
       }
 
