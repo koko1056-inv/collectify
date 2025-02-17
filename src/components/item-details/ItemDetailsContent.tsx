@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
 import { ContentNameSection } from "./ContentNameSection";
 import { CreatorSection } from "./CreatorSection";
-import { TagsSection } from "./TagsSection";
 import { MemoriesSection } from "./MemoriesSection";
 import { CategoryTagSelect } from "../tag/CategoryTagSelect";
 import { useEffect } from "react";
@@ -110,24 +109,6 @@ export function ItemDetailsContent({
               </div>
             )}
           </div>
-        )}
-
-        {!isEditing && (
-          <TagsSection
-            isEditing={isEditing}
-            tags={tags}
-            editedData={editedData}
-            setEditedData={setEditedData}
-          />
-        )}
-
-        {!isUserItem && isEditing && (
-          <TagsSection
-            isEditing={isEditing}
-            tags={tags}
-            editedData={editedData}
-            setEditedData={setEditedData}
-          />
         )}
 
         {isUserItem && (
