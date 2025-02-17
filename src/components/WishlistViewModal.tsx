@@ -1,21 +1,24 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Pencil, CheckCircle } from "lucide-react";
+import { Pencil, CheckCircle, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
 import { ItemDetailsModal } from "./ItemDetailsModal";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
 interface EditingWishlist {
   id: string;
   title: string;
   officialItemId: string;
   note: string | null;
 }
+
 export function WishlistViewModal({
   isOpen,
   onClose
@@ -23,12 +26,8 @@ export function WishlistViewModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingWishlist, setEditingWishlist] = useState<EditingWishlist | null>(null);
   const [selectedItem, setSelectedItem] = useState<{
@@ -39,17 +38,12 @@ export function WishlistViewModal({
     releaseDate?: string;
     description?: string;
   } | null>(null);
-  const {
-    data: wishlistItems,
-    isLoading
-  } = useQuery({
+
+  const { data: wishlistItems, isLoading } = useQuery({
     queryKey: ["wishlist", user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const {
-        data: wishlist,
-        error
-      } = await supabase.from("wishlists").select(`
+      const { data: wishlist, error } = await supabase.from("wishlists").select(`
           *,
           official_items (
             title,
@@ -64,6 +58,7 @@ export function WishlistViewModal({
     },
     enabled: !!user && isOpen
   });
+
   const handleAddToCollection = async (item: any) => {
     if (!user) {
       toast({
@@ -75,9 +70,7 @@ export function WishlistViewModal({
     }
     try {
       // Add to user's collection
-      const {
-        error: insertError
-      } = await supabase.from("user_items").insert({
+      const { error: insertError } = await supabase.from("user_items").insert({
         title: item.official_items.title,
         image: item.official_items.image,
         release_date: item.official_items.release_date || new Date().toISOString().split('T')[0],
@@ -88,18 +81,13 @@ export function WishlistViewModal({
       if (insertError) throw insertError;
 
       // Remove from wishlist
-      const {
-        error: deleteError
-      } = await supabase.from("wishlists").delete().eq("id", item.id);
+      const { error: deleteError } = await supabase.from("wishlists").delete().eq("id", item.id);
       if (deleteError) throw deleteError;
 
       // Invalidate relevant queries
-      await queryClient.invalidateQueries({
-        queryKey: ["wishlist"]
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["user-items"]
-      });
+      await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      
       toast({
         title: "成功",
         description: "コレクションに追加しました。"
@@ -113,6 +101,27 @@ export function WishlistViewModal({
       });
     }
   };
+
+  const handleRemoveFromWishlist = async (itemId: string) => {
+    try {
+      const { error } = await supabase.from("wishlists").delete().eq("id", itemId);
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      toast({
+        title: "成功",
+        description: "ウィッシュリストから削除しました。"
+      });
+    } catch (error) {
+      console.error("Error removing from wishlist:", error);
+      toast({
+        title: "エラー",
+        description: "ウィッシュリストからの削除に失敗しました。",
+        variant: "destructive"
+      });
+    }
+  };
+
   return <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl max-h-[80vh]">
@@ -161,6 +170,12 @@ export function WishlistViewModal({
                       handleAddToCollection(item);
                     }}>
                             <CheckCircle className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600" onClick={e => {
+                      e.stopPropagation();
+                      handleRemoveFromWishlist(item.id);
+                    }}>
+                            <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
