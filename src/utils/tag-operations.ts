@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { TableName } from "@/types/tag";
 
 export interface DeleteUserItemResult {
   error: Error | null;
@@ -61,7 +62,7 @@ async function deleteAllTradeRequests(itemId: string): Promise<void> {
   if (error) throw error;
 }
 
-async function deleteRelatedRecords(tableName: string, itemId: string): Promise<void> {
+async function deleteRelatedRecords(tableName: TableName, itemId: string): Promise<void> {
   const { error } = await supabase
     .from(tableName)
     .delete()
