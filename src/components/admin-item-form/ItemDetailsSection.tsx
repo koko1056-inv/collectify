@@ -1,3 +1,4 @@
+
 import { Input } from "@/components/ui/input";
 import { TagInput } from "../TagInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +13,7 @@ interface ItemDetailsSectionProps {
     title: string;
     description: string;
     content_name?: string | null;
+    item_type?: string;
   };
   setFormData: (data: any) => void;
   selectedTags: string[];
@@ -176,6 +178,24 @@ export function ItemDetailsSection({
             </Select>
           )}
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">
+          商品タイプ
+        </label>
+        <Select
+          value={formData.item_type || "official"}
+          onValueChange={(value) => setFormData({ ...formData, item_type: value })}
+        >
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue placeholder="商品タイプを選択" />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            <SelectItem value="official" className="hover:bg-gray-100">公式グッズ</SelectItem>
+            <SelectItem value="original" className="hover:bg-gray-100">オリジナルグッズ</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <TagInput
