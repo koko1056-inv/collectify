@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export interface ItemTag {
+export interface Tag {
   id: string;
   tag_id: string;
   tags: {
@@ -16,7 +16,7 @@ export interface DeleteUserItemResult {
   officialItemId?: string;
 }
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
+export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<Tag[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 

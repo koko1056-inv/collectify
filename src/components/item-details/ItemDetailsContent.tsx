@@ -6,11 +6,13 @@ import { ContentNameSection } from "./ContentNameSection";
 import { CreatorSection } from "./CreatorSection";
 import { TagsSection } from "./TagsSection";
 import { MemoriesSection } from "./MemoriesSection";
+import { CategoryTagSelect } from "../tag/CategoryTagSelect";
+import { useEffect } from "react";
 
 interface ItemDetailsContentProps {
   image: string;
   title: string;
-  tags?: Array<{ tags: { id: string; name: string; } | null; }>;
+  tags?: Array<{ tags: { id: string; name: string; category?: string; } | null; }>;
   memories?: any[];
   isUserItem?: boolean;
   isEditing: boolean;
@@ -38,6 +40,22 @@ export function ItemDetailsContent({
     setEditedData({ ...editedData, image: newImageUrl });
   };
 
+  // タグの初期値をセット
+  useEffect(() => {
+    if (tags.length > 0) {
+      const typeTag = tags.find(tag => tag.tags?.category === 'type')?.tags?.name;
+      const characterTag = tags.find(tag => tag.tags?.category === 'character')?.tags?.name;
+      const seriesTag = tags.find(tag => tag.tags?.category === 'series')?.tags?.name;
+
+      setEditedData(prev => ({
+        ...prev,
+        typeTag,
+        characterTag,
+        seriesTag,
+      }));
+    }
+  }, [tags, setEditedData]);
+
   return (
     <ScrollArea className="flex-1 px-6">
       <div className="space-y-4 bg-white">
@@ -56,6 +74,29 @@ export function ItemDetailsContent({
               setEditedData={setEditedData}
               contentName={contentName}
             />
+            
+            {isEditing && (
+              <div className="space-y-4 mt-4">
+                <CategoryTagSelect
+                  category="character"
+                  label="キャラクター・人物名"
+                  value={editedData.characterTag}
+                  onChange={(value) => setEditedData({ ...editedData, characterTag: value })}
+                />
+                <CategoryTagSelect
+                  category="type"
+                  label="グッズタイプ"
+                  value={editedData.typeTag}
+                  onChange={(value) => setEditedData({ ...editedData, typeTag: value })}
+                />
+                <CategoryTagSelect
+                  category="series"
+                  label="グッズシリーズ"
+                  value={editedData.seriesTag}
+                  onChange={(value) => setEditedData({ ...editedData, seriesTag: value })}
+                />
+              </div>
+            )}
             
             <CreatorSection
               isEditing={isEditing}
