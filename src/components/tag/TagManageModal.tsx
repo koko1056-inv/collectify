@@ -7,6 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { CategoryTagSelect } from "./CategoryTagSelect";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -15,6 +17,11 @@ interface TagManageModalProps {
   itemTitle?: string;
   isUserItem?: boolean;
   isCategory?: boolean;
+}
+
+interface TagUpdate {
+  category: string;
+  value: string | null;
 }
 
 export function TagManageModal({ 
@@ -27,6 +34,9 @@ export function TagManageModal({
 }: TagManageModalProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [pendingUpdates, setPendingUpdates] = useState<TagUpdate[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  
   const title = itemIds.length === 1 
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
     : `${itemIds.length}個のアイテムのタグを管理`;
@@ -39,44 +49,60 @@ export function TagManageModal({
     },
   });
 
-  const handleTagChange = (category: string) => async (value: string | null) => {
-    if (!value || !itemIds.length) return;
+  const handleTagChange = (category: string) => (value: string | null) => {
+    setPendingUpdates(prev => [
+      ...prev.filter(update => update.category !== category),
+      { category, value }
+    ]);
+  };
+
+  const handleSave = async () => {
+    if (!itemIds.length || !pendingUpdates.length) return;
+    setIsSaving(true);
 
     try {
-      // 同じカテゴリの古いタグを削除
-      const oldTag = currentTags.find(tag => tag.tags?.category === category);
-      if (oldTag) {
-        await supabase
-          .from(isUserItem ? "user_item_tags" : "item_tags")
-          .delete()
-          .eq("tag_id", oldTag.tag_id)
-          .eq(isUserItem ? "user_item_id" : "official_item_id", itemIds[0]);
+      for (const update of pendingUpdates) {
+        // 同じカテゴリの古いタグを削除
+        const oldTag = currentTags.find(tag => tag.tags?.category === update.category);
+        if (oldTag) {
+          await supabase
+            .from(isUserItem ? "user_item_tags" : "item_tags")
+            .delete()
+            .eq("tag_id", oldTag.tag_id)
+            .eq(isUserItem ? "user_item_id" : "official_item_id", itemIds[0]);
+        }
+
+        // 新しいタグを追加
+        if (update.value) {
+          const insertData = isUserItem 
+            ? { user_item_id: itemIds[0], tag_id: update.value }
+            : { official_item_id: itemIds[0], tag_id: update.value };
+
+          await supabase
+            .from(isUserItem ? "user_item_tags" : "item_tags")
+            .insert(insertData);
+        }
       }
-
-      // 新しいタグを追加
-      const insertData = isUserItem 
-        ? { user_item_id: itemIds[0], tag_id: value }
-        : { official_item_id: itemIds[0], tag_id: value };
-
-      await supabase
-        .from(isUserItem ? "user_item_tags" : "item_tags")
-        .insert(insertData);
 
       await queryClient.invalidateQueries({ 
         queryKey: ["current-tags", itemIds]
       });
 
+      setPendingUpdates([]);
       toast({
         title: "タグを更新しました",
         description: "アイテムのタグが正常に更新されました。",
       });
+      onClose();
     } catch (error) {
-      console.error("Failed to update tag:", error);
+      console.error("Failed to update tags:", error);
       toast({
         title: "エラー",
         description: "タグの更新中にエラーが発生しました。",
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -109,6 +135,17 @@ export function TagManageModal({
                 value={currentTags.find(tag => tag.tags?.category === 'series')?.tags?.id || null}
                 onChange={handleTagChange("series")}
               />
+            </div>
+            <div className="flex justify-end space-x-2 pt-4 border-t">
+              <Button variant="outline" onClick={onClose}>
+                キャンセル
+              </Button>
+              <Button 
+                onClick={handleSave}
+                disabled={isSaving || !pendingUpdates.length}
+              >
+                {isSaving ? "保存中..." : "保存"}
+              </Button>
             </div>
           </div>
         </ScrollArea>
