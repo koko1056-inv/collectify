@@ -43,7 +43,7 @@ export function OfficialItemsHeader({
         </Select>
       </div>
       <Button 
-        onClick={() => navigate("/admin")}
+        onClick={() => navigate("/add-item")}
         className="bg-gray-900 hover:bg-gray-800 text-sm"
         size="sm"
       >
