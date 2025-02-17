@@ -45,18 +45,22 @@ export async function addTagToItem(
   isUserItem: boolean = false
 ): Promise<void> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
-  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
-
-  const insertData = {
-    tag_id: tagId,
-    [idColumn]: itemId,
-  };
-
-  const { error } = await supabase
-    .from(tableName)
-    .insert(insertData);
-
-  if (error) throw error;
+  
+  if (isUserItem) {
+    await supabase
+      .from(tableName)
+      .insert({
+        user_item_id: itemId,
+        tag_id: tagId,
+      });
+  } else {
+    await supabase
+      .from(tableName)
+      .insert({
+        official_item_id: itemId,
+        tag_id: tagId,
+      });
+  }
 }
 
 export async function removeTagFromItem(

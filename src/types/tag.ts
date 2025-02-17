@@ -3,6 +3,7 @@ export interface Tag {
   id: string;
   name: string;
   category?: string;
+  created_at?: string;
 }
 
 export interface ItemTag {
