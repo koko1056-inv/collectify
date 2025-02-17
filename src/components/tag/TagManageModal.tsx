@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { TagInput } from "@/components/TagInput";
 import { useQuery } from "@tanstack/react-query";
 import { getTagsForItem } from "@/utils/tag-operations";
-import { ItemTag } from "@/types/tag";
+import { ItemTag, TagCategory } from "@/types/tag";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,10 +18,9 @@ interface TagManageModalProps {
 }
 
 const TAG_CATEGORIES = {
-  type: "グッズタイプ",
   character: "キャラクター・人物名",
-  series: "グッズシリーズ",
-  other: "その他"
+  type: "グッズタイプ",
+  series: "グッズシリーズ"
 } as const;
 
 export function TagManageModal({ 
@@ -33,7 +32,7 @@ export function TagManageModal({
   isCategory = false 
 }: TagManageModalProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [activeCategory, setActiveCategory] = useState<keyof typeof TAG_CATEGORIES>("type");
+  const [activeCategory, setActiveCategory] = useState<keyof typeof TAG_CATEGORIES>("character");
   
   const title = itemIds.length === 1 
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
@@ -65,8 +64,8 @@ export function TagManageModal({
         </DialogHeader>
         <ScrollArea className="max-h-[80vh]">
           <div className="space-y-6 p-4">
-            <Tabs defaultValue="type" value={activeCategory} onValueChange={(value) => setActiveCategory(value as keyof typeof TAG_CATEGORIES)}>
-              <TabsList className="grid w-full grid-cols-4">
+            <Tabs defaultValue="character" value={activeCategory} onValueChange={(value) => setActiveCategory(value as keyof typeof TAG_CATEGORIES)}>
+              <TabsList className="grid w-full grid-cols-3">
                 {Object.entries(TAG_CATEGORIES).map(([key, label]) => (
                   <TabsTrigger key={key} value={key}>
                     {label}
@@ -74,7 +73,7 @@ export function TagManageModal({
                 ))}
               </TabsList>
               {Object.keys(TAG_CATEGORIES).map((category) => (
-                <TabsContent key={category} value={category}>
+                <TabsContent key={category} value={category} className="mt-4">
                   <TagInput 
                     selectedTags={tagNames}
                     onTagsChange={handleTagsChange}

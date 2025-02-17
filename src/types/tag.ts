@@ -13,4 +13,4 @@ export interface ItemTag {
 
 export type TableName = "user_item_likes" | "item_memories" | "user_item_tags";
 
-export type TagCategory = "all" | "type" | "character" | "series" | "other";
+export type TagCategory = "character" | "type" | "series";
