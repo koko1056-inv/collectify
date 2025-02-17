@@ -41,19 +41,40 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
 
   const addTagMutation = useMutation({
     mutationFn: async (name: string) => {
-      const { data, error } = await supabase
+      // まず、同じ名前のタグが存在するか確認
+      const { data: existingTags, error: searchError } = await supabase
+        .from("tags")
+        .select("*")
+        .eq("name", name)
+        .single();
+
+      if (searchError && searchError.code !== "PGRST116") { // PGRST116 は "結果が見つからない" エラー
+        throw searchError;
+      }
+
+      if (existingTags) {
+        // 既存のタグが見つかった場合、それを返す
+        return existingTags as TagData;
+      }
+
+      // 新しいタグを作成
+      const { data: newTag, error: insertError } = await supabase
         .from("tags")
         .insert([{ name, category }])
         .select()
         .single();
       
-      if (error) throw error;
-      return data as TagData;
+      if (insertError) throw insertError;
+      return newTag as TagData;
     },
     onSuccess: (data) => {
       const queryKey = ["tags", category];
       const previousTags = queryClient.getQueryData<TagData[]>(queryKey) || [];
-      queryClient.setQueryData<TagData[]>(queryKey, [...previousTags, data]);
+      
+      // 既存のタグリストに新しいタグが含まれていない場合のみ追加
+      if (!previousTags.some(tag => tag.id === data.id)) {
+        queryClient.setQueryData<TagData[]>(queryKey, [...previousTags, data]);
+      }
       
       onChange(data.name);
       setIsAddingNew(false);
