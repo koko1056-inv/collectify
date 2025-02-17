@@ -39,7 +39,7 @@ export function TagManageModal({
     },
   });
 
-  const handleTagChange = async (category: string) => async (value: string | null) => {
+  const handleTagChange = (category: string) => async (value: string | null) => {
     if (!value || !itemIds.length) return;
 
     try {
@@ -54,12 +54,13 @@ export function TagManageModal({
       }
 
       // 新しいタグを追加
+      const insertData = isUserItem 
+        ? { user_item_id: itemIds[0], tag_id: value }
+        : { official_item_id: itemIds[0], tag_id: value };
+
       await supabase
         .from(isUserItem ? "user_item_tags" : "item_tags")
-        .insert({
-          [isUserItem ? "user_item_id" : "official_item_id"]: itemIds[0],
-          tag_id: value
-        });
+        .insert(insertData);
 
       await queryClient.invalidateQueries({ 
         queryKey: ["current-tags", itemIds]
