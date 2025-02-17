@@ -7,7 +7,13 @@ export interface DeleteUserItemResult {
   officialItemId?: string;
 }
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean) {
+interface TagData {
+  id: string;
+  tag_id: string;
+  tags: Tag;
+}
+
+export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<TagData[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
