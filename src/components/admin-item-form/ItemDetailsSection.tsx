@@ -1,12 +1,11 @@
-
 import { Input } from "@/components/ui/input";
-import { TagInput } from "../TagInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { CategoryTagSelect } from "../tag/CategoryTagSelect";
 
 interface ItemDetailsSectionProps {
   formData: {
@@ -14,6 +13,9 @@ interface ItemDetailsSectionProps {
     description: string;
     content_name?: string | null;
     item_type?: string;
+    characterTag?: string | null;
+    typeTag?: string | null;
+    seriesTag?: string | null;
   };
   setFormData: (data: any) => void;
   selectedTags: string[];
@@ -95,6 +97,31 @@ export function ItemDetailsSection({
       return;
     }
     addContentMutation.mutate(newContentName);
+  };
+
+  const updateTags = (newTags: string[]) => {
+    setSelectedTags(newTags);
+  };
+
+  const handleTagChange = (category: string, value: string | null) => {
+    const categoryMap = {
+      character: 'characterTag',
+      type: 'typeTag',
+      series: 'seriesTag',
+    } as const;
+
+    const fieldName = categoryMap[category as keyof typeof categoryMap];
+    
+    const oldTag = formData[fieldName];
+    const filteredTags = oldTag ? selectedTags.filter(tag => tag !== oldTag) : [...selectedTags];
+    
+    const newTags = value ? [...filteredTags, value] : filteredTags;
+    
+    setFormData({ 
+      ...formData, 
+      [fieldName]: value 
+    });
+    updateTags(newTags);
   };
 
   return (
@@ -198,10 +225,28 @@ export function ItemDetailsSection({
         </Select>
       </div>
 
-      <TagInput
-        selectedTags={selectedTags}
-        onTagsChange={setSelectedTags}
-      />
+      <div className="space-y-4">
+        <CategoryTagSelect
+          category="character"
+          label="キャラクター・人物名"
+          value={formData.characterTag}
+          onChange={(value) => handleTagChange('character', value)}
+        />
+
+        <CategoryTagSelect
+          category="type"
+          label="グッズタイプ"
+          value={formData.typeTag}
+          onChange={(value) => handleTagChange('type', value)}
+        />
+
+        <CategoryTagSelect
+          category="series"
+          label="グッズシリーズ"
+          value={formData.seriesTag}
+          onChange={(value) => handleTagChange('series', value)}
+        />
+      </div>
     </>
   );
 }

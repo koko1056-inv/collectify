@@ -760,18 +760,21 @@ export type Database = {
       }
       tags: {
         Row: {
+          category: string | null
           created_at: string
           id: string
           is_category: boolean | null
           name: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           id?: string
           is_category?: boolean | null
           name: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           id?: string
           is_category?: boolean | null
