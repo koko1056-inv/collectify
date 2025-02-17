@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TagCategory } from "@/types/tag";
 
 interface TagDialogProps {
   isOpen: boolean;
@@ -29,7 +30,7 @@ export function TagDialog({
   onTagSelect,
   onClearTags,
 }: TagDialogProps) {
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState<TagCategory>("all");
 
   const { data: categorizedTags = {} } = useQuery({
     queryKey: ["categorized-tags"],
@@ -52,7 +53,7 @@ export function TagDialog({
     },
   });
 
-  const categoryLabels: { [key: string]: string } = {
+  const categoryLabels: { [key in TagCategory]: string } = {
     all: "すべて",
     type: "グッズタイプ",
     character: "キャラクター・人物名",
@@ -82,17 +83,13 @@ export function TagDialog({
             onChange={(e) => onSearchChange(e.target.value)}
             className="mb-4"
           />
-          <Tabs defaultValue="all" value={selectedCategory} onValueChange={setSelectedCategory}>
+          <Tabs defaultValue="all" value={selectedCategory} onValueChange={(value) => setSelectedCategory(value as TagCategory)}>
             <TabsList className="w-full mb-4 h-auto flex-wrap gap-2 bg-transparent">
-              {Object.entries(categoryLabels).map(([key, label]) => (
+              {(Object.entries(categoryLabels) as [TagCategory, string][]).map(([key, label]) => (
                 <TabsTrigger
                   key={key}
                   value={key}
-                  className={`px-3 py-1.5 rounded-full text-sm ${
-                    selectedCategory === key
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                  className="px-3 py-1.5 rounded-full text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
                 >
                   {label}
                 </TabsTrigger>
@@ -113,7 +110,7 @@ export function TagDialog({
                       </span>
                       {tag.category && (
                         <span className="text-[10px] text-gray-500">
-                          {categoryLabels[tag.category] || tag.category}
+                          {categoryLabels[tag.category as TagCategory] || tag.category}
                         </span>
                       )}
                     </Button>

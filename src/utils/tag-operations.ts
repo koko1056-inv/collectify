@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { TableName } from "@/types/tag";
+import { TableName, Tag } from "@/types/tag";
 
 export interface DeleteUserItemResult {
   error: Error | null;
@@ -18,13 +18,18 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean) {
       tag_id,
       tags (
         id,
-        name
+        name,
+        category
       )
     `)
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return data || [];
+  return (data || []).map(item => ({
+    id: item.id,
+    tag_id: item.tag_id,
+    tags: item.tags as Tag
+  }));
 }
 
 export async function addTagToItem(tagId: string, itemId: string, isUserItem: boolean) {
@@ -73,7 +78,6 @@ async function deleteRelatedRecords(tableName: TableName, itemId: string): Promi
 
 export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResult> {
   try {
-    // ユーザーアイテムの情報を取得
     const { data: userItem, error: fetchError } = await supabase
       .from("user_items")
       .select("official_item_id")
@@ -82,7 +86,6 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     if (fetchError) throw fetchError;
 
-    // 関連するレコードを削除
     await deleteAllTradeRequests(itemId);
     await Promise.all([
       deleteRelatedRecords("user_item_likes", itemId),
@@ -90,7 +93,6 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
       deleteRelatedRecords("user_item_tags", itemId)
     ]);
 
-    // ユーザーアイテムを削除
     const { error: deleteError } = await supabase
       .from("user_items")
       .delete()
