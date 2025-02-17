@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +12,7 @@ interface TagInputFieldProps {
   itemIds: string[];
   isUserItem?: boolean;
   onClose: () => void;
+  category?: string;
 }
 
 export function TagInputField({ 
@@ -18,7 +20,8 @@ export function TagInputField({
   onTagsChange,
   itemIds,
   isUserItem = false,
-  onClose
+  onClose,
+  category = "other"
 }: TagInputFieldProps) {
   const [tagInput, setTagInput] = useState("");
   const { toast } = useToast();
@@ -50,7 +53,10 @@ export function TagInputField({
           if (!existingTag) {
             const { data: newTagData, error: insertError } = await supabase
               .from("tags")
-              .insert([{ name: newTag }])
+              .insert([{ 
+                name: newTag,
+                category: category
+              }])
               .select()
               .single();
 
