@@ -80,6 +80,10 @@ export function ContentNameSection({
     }
   };
 
+  const handleItemTypeChange = (value: string) => {
+    setEditedData({ ...editedData, item_type: value });
+  };
+
   if (!isEditing && contentName) {
     return (
       <div className="text-sm">
@@ -92,51 +96,71 @@ export function ContentNameSection({
   if (!isEditing) return null;
 
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium">
-        コンテンツ
-      </label>
-      {isAddingNewContent ? (
-        <div className="flex gap-2">
-          <Input
-            value={newContentName}
-            onChange={(e) => setNewContentName(e.target.value)}
-            placeholder="新しいコンテンツ名"
-          />
-          <Button 
-            onClick={() => addContentMutation(newContentName)}
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">
+          コンテンツ
+        </label>
+        {isAddingNewContent ? (
+          <div className="flex gap-2">
+            <Input
+              value={newContentName}
+              onChange={(e) => setNewContentName(e.target.value)}
+              placeholder="新しいコンテンツ名"
+            />
+            <Button 
+              onClick={() => addContentMutation(newContentName)}
+            >
+              追加
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsAddingNewContent(false);
+                setNewContentName("");
+              }}
+            >
+              キャンセル
+            </Button>
+          </div>
+        ) : (
+          <Select
+            value={editedData.content_name || "none"}
+            onValueChange={handleContentChange}
           >
-            追加
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              setIsAddingNewContent(false);
-              setNewContentName("");
-            }}
-          >
-            キャンセル
-          </Button>
-        </div>
-      ) : (
+            <SelectTrigger>
+              <SelectValue placeholder="コンテンツを選択" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">選択なし</SelectItem>
+              {contentNames.map((content) => (
+                <SelectItem key={content.id} value={content.name}>
+                  {content.name}
+                </SelectItem>
+              ))}
+              <SelectItem value="other">その他（新規追加）</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">
+          商品タイプ
+        </label>
         <Select
-          value={editedData.content_name || "none"}
-          onValueChange={handleContentChange}
+          value={editedData.item_type || "official"}
+          onValueChange={handleItemTypeChange}
         >
           <SelectTrigger>
-            <SelectValue placeholder="コンテンツを選択" />
+            <SelectValue placeholder="商品タイプを選択" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">選択なし</SelectItem>
-            {contentNames.map((content) => (
-              <SelectItem key={content.id} value={content.name}>
-                {content.name}
-              </SelectItem>
-            ))}
-            <SelectItem value="other">その他（新規追加）</SelectItem>
+            <SelectItem value="official">公式グッズ</SelectItem>
+            <SelectItem value="original">オリジナルグッズ</SelectItem>
           </SelectContent>
         </Select>
-      )}
+      </div>
     </div>
   );
 }
