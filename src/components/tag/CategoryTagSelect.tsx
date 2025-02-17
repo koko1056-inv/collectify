@@ -45,7 +45,11 @@ export function CategoryTagSelect({ category, label, value, onChange }: Category
       return data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["tags", category] });
+      // 新しいタグをキャッシュに追加
+      const queryKey = ["tags", category];
+      const previousTags = queryClient.getQueryData(queryKey) || [];
+      queryClient.setQueryData(queryKey, [...previousTags, data]);
+      
       onChange(data.name);
       setIsAddingNew(false);
       setNewTagName("");
