@@ -56,10 +56,19 @@ export async function updateTagsForItem(
 
   // 新しいタグを追加
   if (tagIds.length > 0) {
-    const newTags = tagIds.map(tagId => ({
-      [idColumn]: itemId,
-      tag_id: tagId
-    }));
+    const newTags = tagIds.map(tagId => {
+      if (isUserItem) {
+        return {
+          user_item_id: itemId,
+          tag_id: tagId
+        };
+      } else {
+        return {
+          official_item_id: itemId,
+          tag_id: tagId
+        };
+      }
+    });
 
     const { error: insertError } = await supabase
       .from(tableName)
@@ -75,13 +84,14 @@ export async function addTagToItem(
   isUserItem: boolean = false
 ): Promise<void> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
+  
   const data = isUserItem 
     ? { user_item_id: itemId, tag_id: tagId }
     : { official_item_id: itemId, tag_id: tagId };
 
   const { error } = await supabase
     .from(tableName)
-    .insert(data);
+    .insert([data]); // 配列として渡す
 
   if (error) throw error;
 }
