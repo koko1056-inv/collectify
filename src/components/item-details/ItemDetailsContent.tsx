@@ -71,25 +71,16 @@ export function ItemDetailsContent({
           </div>
         )}
 
-        {!isUserItem && isEditing && (
-          <div className="space-y-4">
-            <ContentNameSection
-              isEditing={isEditing}
-              editedData={editedData}
-              setEditedData={setEditedData}
-              contentName={contentName}
-            />
-
-            <TagsSection
-              isEditing={isEditing}
-              tags={tags}
-              editedData={editedData}
-              setEditedData={setEditedData}
-            />
-          </div>
+        {!isEditing && (
+          <TagsSection
+            isEditing={isEditing}
+            tags={tags}
+            editedData={editedData}
+            setEditedData={setEditedData}
+          />
         )}
 
-        {!isEditing && (
+        {!isUserItem && isEditing && (
           <TagsSection
             isEditing={isEditing}
             tags={tags}
