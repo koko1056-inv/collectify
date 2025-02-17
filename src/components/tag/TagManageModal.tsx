@@ -4,7 +4,7 @@ import { CategoryTagSelect } from "@/components/tag/CategoryTagSelect";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTagsForItem, updateTagsForItem } from "@/utils/tag-operations";
 import { ItemTag } from "@/types/tag";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PreviousTags } from "./PreviousTags";
 import { TagInput } from "@/components/TagInput";
@@ -41,15 +41,35 @@ export function TagManageModal({
 
   const { data: currentTags = [] } = useQuery<ItemTag[]>({
     queryKey: ["current-tags", itemIds, isUserItem],
-    queryFn: () => {
+    queryFn: async () => {
       if (!itemIds.length) return Promise.resolve([]);
       return getTagsForItem(itemIds[0], isUserItem);
     },
   });
 
-  const tagNames = currentTags
-    .map(tag => tag.tags?.name)
-    .filter((name): name is string => name !== undefined);
+  // 初期値をセット
+  useEffect(() => {
+    if (currentTags.length > 0) {
+      currentTags.forEach(tag => {
+        if (tag.tags) {
+          switch (tag.tags.category) {
+            case 'type':
+              setSelectedTypeTag(tag.tag_id);
+              break;
+            case 'character':
+              setSelectedCharacterTag(tag.tag_id);
+              break;
+            case 'series':
+              setSelectedSeriesTag(tag.tag_id);
+              break;
+            case 'other':
+              setOtherTags(prev => [...prev, tag.tag_id]);
+              break;
+          }
+        }
+      });
+    }
+  }, [currentTags]);
 
   const handleUpdate = async () => {
     try {
