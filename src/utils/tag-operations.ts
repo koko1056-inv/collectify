@@ -13,12 +13,12 @@ export type Tag = {
   name: string;
 };
 
-// ItemTagの型定義を修正
+// ItemTagを簡略化
 export type ItemTag = {
   id: string;
   tag_id: string;
   created_at: string;
-  tag?: Tag;
+  tags: Tag | null;
 };
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean) {
