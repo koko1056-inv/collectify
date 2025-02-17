@@ -1,5 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import { ItemTag } from "@/types/tag";
 
 export interface TagDetails {
   id: string;
@@ -18,7 +18,7 @@ export interface DeleteUserItemResult {
   officialItemId?: string;
 }
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<Tag[]> {
+export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
@@ -47,12 +47,14 @@ export async function addTagToItem(
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
+  const insertData = {
+    tag_id: tagId,
+    [idColumn]: itemId,
+  };
+
   const { error } = await supabase
     .from(tableName)
-    .insert({
-      tag_id: tagId,
-      [idColumn]: itemId,
-    });
+    .insert(insertData);
 
   if (error) throw error;
 }

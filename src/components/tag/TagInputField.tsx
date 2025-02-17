@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { addTagToItem } from '@/utils/tag-operations';
+import { TagCategory } from '@/types/tag';
 
 interface TagInputFieldProps {
   selectedTags: string[];
@@ -11,6 +13,7 @@ interface TagInputFieldProps {
   itemIds: string[];
   isUserItem?: boolean;
   onClose: () => void;
+  category: TagCategory;
 }
 
 export function TagInputField({ 
@@ -18,7 +21,8 @@ export function TagInputField({
   onTagsChange,
   itemIds,
   isUserItem = false,
-  onClose
+  onClose,
+  category
 }: TagInputFieldProps) {
   const [tagInput, setTagInput] = useState("");
   const { toast } = useToast();
@@ -44,13 +48,14 @@ export function TagInputField({
             .from("tags")
             .select("*")
             .eq("name", newTag)
+            .eq("category", category)
             .maybeSingle();
 
           let tagId;
           if (!existingTag) {
             const { data: newTagData, error: insertError } = await supabase
               .from("tags")
-              .insert([{ name: newTag }])
+              .insert([{ name: newTag, category }])
               .select()
               .single();
 
@@ -62,7 +67,7 @@ export function TagInputField({
 
           // Add tag to all selected items
           for (const itemId of itemIds) {
-            await addTagToItem(tagId, itemId, isUserItem);
+            await addTagToItem(itemId, tagId, isUserItem);
           }
 
           // Update the local state with the new tag

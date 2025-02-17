@@ -5,14 +5,14 @@ import { useToast } from "@/hooks/use-toast";
 import { TagInputField } from "./tag/TagInputField";
 import { CurrentTags } from "./tag/CurrentTags";
 import { PreviousTags } from "./tag/PreviousTags";
-import { Tag } from "@/types";
+import { Tag, TagCategory } from "@/types/tag";
 
 interface TagInputProps {
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
   itemIds?: string[];
   onClose?: () => void;
-  category?: string;
+  category?: TagCategory;
 }
 
 export function TagInput({ 
@@ -20,7 +20,7 @@ export function TagInput({
   onTagsChange,
   itemIds = [],
   onClose = () => {},
-  category = "other"
+  category = "character"
 }: TagInputProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();

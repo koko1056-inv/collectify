@@ -42,9 +42,9 @@ export function ItemDetailsContent({
   // タグの初期値をセット
   useEffect(() => {
     if (tags.length > 0) {
-      const typeTag = tags.find(tag => tag.tags?.category === 'type')?.tag_id;
-      const characterTag = tags.find(tag => tag.tags?.category === 'character')?.tag_id;
-      const seriesTag = tags.find(tag => tag.tags?.category === 'series')?.tag_id;
+      const typeTag = tags.find(tag => tag.tags?.category === 'type')?.tags?.id;
+      const characterTag = tags.find(tag => tag.tags?.category === 'character')?.tags?.id;
+      const seriesTag = tags.find(tag => tag.tags?.category === 'series')?.tags?.id;
 
       setEditedData(prev => ({
         ...prev,
