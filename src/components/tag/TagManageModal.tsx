@@ -1,12 +1,13 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { TagInput } from "@/components/TagInput";
+import { CategoryTagSelect } from "@/components/tag/CategoryTagSelect";
 import { useQuery } from "@tanstack/react-query";
 import { getTagsForItem } from "@/utils/tag-operations";
 import { ItemTag } from "@/types/tag";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PreviousTags } from "./PreviousTags";
+import { TagInput } from "@/components/TagInput";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -17,13 +18,6 @@ interface TagManageModalProps {
   isCategory?: boolean;
 }
 
-const TAG_CATEGORIES = {
-  type: "グッズタイプ",
-  character: "キャラクター・人物名",
-  series: "グッズシリーズ",
-  other: "その他"
-} as const;
-
 export function TagManageModal({ 
   isOpen, 
   onClose, 
@@ -32,9 +26,6 @@ export function TagManageModal({
   isUserItem = false,
   isCategory = false 
 }: TagManageModalProps) {
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [activeCategory, setActiveCategory] = useState<keyof typeof TAG_CATEGORIES>("type");
-  
   const title = itemIds.length === 1 
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
     : `${itemIds.length}個のアイテムのタグを管理`;
@@ -52,7 +43,7 @@ export function TagManageModal({
     .filter((name): name is string => name !== undefined);
 
   const handleTagsChange = (tags: string[]) => {
-    setSelectedTags(tags);
+    // 既存のタグを更新
   };
 
   return (
@@ -65,26 +56,35 @@ export function TagManageModal({
         </DialogHeader>
         <ScrollArea className="max-h-[80vh]">
           <div className="space-y-6 p-4">
-            <Tabs defaultValue="type" value={activeCategory} onValueChange={(value) => setActiveCategory(value as keyof typeof TAG_CATEGORIES)}>
-              <TabsList className="grid w-full grid-cols-4">
-                {Object.entries(TAG_CATEGORIES).map(([key, label]) => (
-                  <TabsTrigger key={key} value={key}>
-                    {label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              {Object.keys(TAG_CATEGORIES).map((category) => (
-                <TabsContent key={category} value={category}>
-                  <TagInput 
-                    selectedTags={tagNames}
-                    onTagsChange={handleTagsChange}
-                    itemIds={itemIds}
-                    onClose={onClose}
-                    category={category}
-                  />
-                </TabsContent>
-              ))}
-            </Tabs>
+            <div className="space-y-6">
+              <CategoryTagSelect
+                category="type"
+                label="グッズタイプ"
+                value={null}
+                onChange={() => {}}
+              />
+              <CategoryTagSelect
+                category="character"
+                label="キャラクター・人物名"
+                value={null}
+                onChange={() => {}}
+              />
+              <CategoryTagSelect
+                category="series"
+                label="グッズシリーズ"
+                value={null}
+                onChange={() => {}}
+              />
+              <div className="space-y-4">
+                <TagInput 
+                  selectedTags={tagNames}
+                  onTagsChange={handleTagsChange}
+                  itemIds={itemIds}
+                  onClose={onClose}
+                  category="other"
+                />
+              </div>
+            </div>
           </div>
         </ScrollArea>
       </DialogContent>
