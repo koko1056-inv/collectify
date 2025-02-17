@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -6,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CollectionTabs } from "@/components/CollectionTabs";
 import { FilterBar } from "@/components/FilterBar";
 import { InitialInterestSelection } from "@/components/InitialInterestSelection";
-import { OfficialItem, Tag } from "@/types";
+import { OfficialItem, Tag, Profile } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
 
@@ -19,7 +20,7 @@ const Index = () => {
   const [searchParams] = useSearchParams();
   const userId = searchParams.get("userId");
 
-  const { data: profile, refetch: refetchProfile } = useQuery({
+  const { data: profile, refetch: refetchProfile } = useQuery<Profile | null>({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -27,7 +28,7 @@ const Index = () => {
         .from("profiles")
         .select("*")
         .eq("id", user.id)
-        .maybeSingle();
+        .single();
       if (error) {
         console.error("Error fetching profile:", error);
         return null;
@@ -37,7 +38,7 @@ const Index = () => {
     enabled: !!user,
   });
 
-  const { data: viewedProfile } = useQuery({
+  const { data: viewedProfile } = useQuery<Profile | null>({
     queryKey: ["viewed-profile", userId],
     queryFn: async () => {
       if (!userId) return null;

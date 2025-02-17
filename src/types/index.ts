@@ -1,3 +1,4 @@
+
 export interface OfficialItem {
   id: string;
   title: string;
@@ -43,4 +44,20 @@ export interface ItemMemory {
   comment: string | null;
   image_url: string | null;
   created_at: string;
+}
+
+export interface Profile {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  bio: string | null;
+  created_at: string;
+  display_name: string | null;
+  favorite_contents: string[] | null;
+  favorite_item_ids: string[] | null;
+  favorite_tags: string[] | null;
+  followers_count: number | null;
+  following_count: number | null;
+  is_admin: boolean | null;
+  interests: string[] | null;
 }

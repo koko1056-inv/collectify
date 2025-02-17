@@ -18,7 +18,7 @@ interface InitialInterestSelectionProps {
 export function InitialInterestSelection({
   isOpen,
   onClose,
-  tags = [], // デフォルト値を空配列に設定
+  tags = [],
 }: InitialInterestSelectionProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -63,7 +63,6 @@ export function InitialInterestSelection({
     }
   };
 
-  // tagsが配列であることを保証
   const filteredTags = (tags || []).filter(tag =>
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
