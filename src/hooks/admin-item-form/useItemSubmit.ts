@@ -66,7 +66,7 @@ export function useItemSubmit({
             image: imageUrl,
             price: "0",
             release_date: new Date().toISOString(),
-            created_by: user?.id, // ユーザーIDを保存
+            created_by: user?.id,
           },
         ])
         .select()
@@ -74,23 +74,58 @@ export function useItemSubmit({
 
       if (itemError) throw itemError;
 
+      // カテゴリータグの処理
+      const categoryTags = [
+        { name: characterTag, category: 'character' },
+        { name: typeTag, category: 'type' },
+        { name: seriesTag, category: 'series' }
+      ].filter(tag => tag.name) as { name: string; category: string }[];
+
+      // すべてのタグをマージ（カテゴリータグと選択されたタグ）
+      const allTags = [
+        ...categoryTags,
+        ...selectedTags.map(tag => ({ name: tag, category: null }))
+      ];
+
       // タグの処理
-      if (selectedTags.length > 0) {
-        for (const tagName of selectedTags) {
-          const { data: existingTag } = await supabase
+      if (allTags.length > 0) {
+        for (const tag of allTags) {
+          // 既存のタグを検索、または新規作成
+          const { data: existingTag, error: tagError } = await supabase
             .from("tags")
             .select("id")
-            .eq("name", tagName)
+            .eq("name", tag.name)
             .maybeSingle();
 
+          if (tagError) throw tagError;
+
+          let tagId;
           if (existingTag) {
-            await supabase
-              .from("item_tags")
+            tagId = existingTag.id;
+          } else {
+            // 新しいタグを作成
+            const { data: newTag, error: createError } = await supabase
+              .from("tags")
               .insert([{
-                official_item_id: itemData.id,
-                tag_id: existingTag.id,
-              }]);
+                name: tag.name,
+                category: tag.category
+              }])
+              .select()
+              .single();
+
+            if (createError) throw createError;
+            tagId = newTag.id;
           }
+
+          // アイテムとタグを関連付け
+          const { error: linkError } = await supabase
+            .from("item_tags")
+            .insert([{
+              official_item_id: itemData.id,
+              tag_id: tagId,
+            }]);
+
+          if (linkError) throw linkError;
         }
       }
 
