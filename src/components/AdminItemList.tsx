@@ -1,13 +1,26 @@
+
 import { Trash } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 export function AdminItemList() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
   const { data: items, isLoading } = useQuery({
     queryKey: ["official-items"],
@@ -24,6 +37,13 @@ export function AdminItemList() {
 
   const handleDelete = async (id: string) => {
     try {
+      // まず関連するタグを削除
+      await supabase
+        .from("item_tags")
+        .delete()
+        .eq("official_item_id", id);
+
+      // 次にアイテムを削除
       const { error } = await supabase
         .from("official_items")
         .delete()
@@ -38,11 +58,14 @@ export function AdminItemList() {
 
       queryClient.invalidateQueries({ queryKey: ["official-items"] });
     } catch (error) {
+      console.error("Error deleting item:", error);
       toast({
         title: "エラー",
         description: "アイテムの削除に失敗しました。",
         variant: "destructive",
       });
+    } finally {
+      setDeletingItemId(null);
     }
   };
 
@@ -68,7 +91,7 @@ export function AdminItemList() {
                 <Button
                   variant="destructive"
                   size="icon"
-                  onClick={() => handleDelete(item.id)}
+                  onClick={() => setDeletingItemId(item.id)}
                 >
                   <Trash className="h-4 w-4" />
                 </Button>
@@ -77,6 +100,26 @@ export function AdminItemList() {
           </div>
         )}
       </CardContent>
+
+      <AlertDialog open={!!deletingItemId} onOpenChange={() => setDeletingItemId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>アイテムを削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              この操作は取り消せません。このアイテムに関連するすべてのデータ（タグなど）も削除されます。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingItemId && handleDelete(deletingItemId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
