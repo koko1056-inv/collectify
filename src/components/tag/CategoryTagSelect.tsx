@@ -97,12 +97,12 @@ export function CategoryTagSelect({
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Select 
-          value={value || undefined} 
+          value={value || ""} 
           onValueChange={onChange}
         >
           <SelectTrigger className="w-full bg-white">
             <SelectValue placeholder="選択してください">
-              {selectedTag ? selectedTag.name : "選択してください"}
+              {selectedTag?.name || "選択してください"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-white">
