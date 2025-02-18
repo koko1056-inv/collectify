@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTagsForItem } from "@/utils/tag-operations";
-import { ItemTag } from "@/types/tag";
+import type { ItemTag } from "@/types/tag";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CategoryTagSelect } from "./CategoryTagSelect";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +41,7 @@ export function TagManageModal({
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
     : `${itemIds.length}個のアイテムのタグを管理`;
 
-  const { data: currentTags = [] } = useQuery<ItemTag[]>({
+  const { data: currentTags = [] } = useQuery({
     queryKey: ["current-tags", itemIds, isUserItem],
     queryFn: () => {
       if (!itemIds.length) return Promise.resolve([]);
@@ -86,6 +86,11 @@ export function TagManageModal({
 
       await queryClient.invalidateQueries({ 
         queryKey: ["current-tags", itemIds]
+      });
+      
+      // フィルタリングのためのクエリも更新
+      await queryClient.invalidateQueries({ 
+        queryKey: ["user-items"]
       });
 
       setPendingUpdates([]);
