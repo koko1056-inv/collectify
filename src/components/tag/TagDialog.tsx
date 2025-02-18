@@ -6,12 +6,15 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TagCategory, ItemTag } from "@/types/tag";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface TagDialogProps {
   isOpen: boolean;
   onClose: () => void;
   itemId?: string;
   isUserItem?: boolean;
+  onTagsSelect?: (tags: string[]) => void;
 }
 
 const TAG_CATEGORIES = {
@@ -20,9 +23,10 @@ const TAG_CATEGORIES = {
   series: "グッズシリーズ"
 } as const;
 
-export function TagDialog({ isOpen, onClose, itemId, isUserItem = false }: TagDialogProps) {
+export function TagDialog({ isOpen, onClose, itemId, isUserItem = false, onTagsSelect }: TagDialogProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<TagCategory>("character");
+  const { toast } = useToast();
 
   const { data: currentTags = [] } = useQuery<ItemTag[]>({
     queryKey: ["item-tags", itemId, isUserItem],
@@ -48,6 +52,28 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false }: TagDi
     },
     enabled: !!itemId,
   });
+
+  const handleAddTags = () => {
+    if (selectedTags.length === 0) {
+      toast({
+        title: "タグを選択してください",
+        description: "フィルタリングするタグを1つ以上選択してください。",
+        variant: "default",
+      });
+      return;
+    }
+
+    if (onTagsSelect) {
+      onTagsSelect(selectedTags);
+    }
+    
+    toast({
+      title: "タグを追加しました",
+      description: "選択したタグをフィルターに追加しました。",
+    });
+    
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -75,6 +101,14 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false }: TagDi
             </TabsContent>
           ))}
         </Tabs>
+        <div className="mt-4 flex justify-end space-x-2">
+          <Button variant="outline" onClick={onClose}>
+            キャンセル
+          </Button>
+          <Button onClick={handleAddTags}>
+            追加する
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

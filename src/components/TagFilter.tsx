@@ -70,6 +70,11 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
     }
   };
 
+  const handleTagsSelect = (newTags: string[]) => {
+    const uniqueTags = [...new Set([...selectedTags, ...newTags])];
+    onTagsChange(uniqueTags);
+  };
+
   return (
     <div className="space-y-2">
       <FilterButton
@@ -87,6 +92,7 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
       <TagDialog
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
+        onTagsSelect={handleTagsSelect}
       />
     </div>
   );
