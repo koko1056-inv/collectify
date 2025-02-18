@@ -120,19 +120,19 @@ export function TagManageModal({
               <CategoryTagSelect
                 category="character"
                 label="キャラクター・人物名"
-                value={currentTags.find(tag => tag.tags?.category === 'character')?.tags?.id || null}
+                value={currentTags.find(tag => tag.tags?.category === 'character')?.tag_id || null}
                 onChange={handleTagChange("character")}
               />
               <CategoryTagSelect
                 category="type"
                 label="グッズタイプ"
-                value={currentTags.find(tag => tag.tags?.category === 'type')?.tags?.id || null}
+                value={currentTags.find(tag => tag.tags?.category === 'type')?.tag_id || null}
                 onChange={handleTagChange("type")}
               />
               <CategoryTagSelect
                 category="series"
                 label="グッズシリーズ"
-                value={currentTags.find(tag => tag.tags?.category === 'series')?.tags?.id || null}
+                value={currentTags.find(tag => tag.tags?.category === 'series')?.tag_id || null}
                 onChange={handleTagChange("series")}
               />
             </div>
