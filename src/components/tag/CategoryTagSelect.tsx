@@ -40,7 +40,7 @@ export function CategoryTagSelect({
         .order("name");
       
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
@@ -75,11 +75,11 @@ export function CategoryTagSelect({
         description: `${newTagName}を追加しました。`,
       });
 
-      // クエリキャッシュを更新
       await queryClient.invalidateQueries({ queryKey: ["tags", category] });
 
-      // 新しいタグを選択
-      onChange(newTag.id);
+      if (newTag) {
+        onChange(newTag.id);
+      }
       setNewTagName("");
       setIsDialogOpen(false);
     } catch (error) {
@@ -97,12 +97,12 @@ export function CategoryTagSelect({
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Select 
-          value={value || ""} 
-          onValueChange={onChange}
+          value={value || undefined}
+          onValueChange={(val) => onChange(val)}
         >
           <SelectTrigger className="w-full bg-white">
             <SelectValue placeholder="選択してください">
-              {selectedTag?.name || "選択してください"}
+              {selectedTag ? selectedTag.name : "選択してください"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-white">

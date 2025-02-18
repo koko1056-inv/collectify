@@ -2,11 +2,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types/tag";
 
-// データベースから返される実際の構造に合わせて定義
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tags: Tag;
+  tags?: Tag;
 }
 
 export interface DeleteUserItemResult {
@@ -32,7 +31,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .eq(idColumn, itemId);
 
   if (error) throw error;
-  return data as ItemTag[];
+  return data || [];
 }
 
 export async function addTagToItem(
@@ -80,7 +79,6 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
 
     if (fetchError) throw fetchError;
 
-    // Delete related records
     await Promise.all([
       supabase
         .from("trade_requests")
