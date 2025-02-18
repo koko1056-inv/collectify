@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ItemTag } from "@/types/tag";
+import { ItemTag, Tag } from "@/types/tag";
 
 export interface TagDetails {
   id: string;
@@ -27,7 +27,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .select(`
       id,
       tag_id,
-      tags:tags (
+      tags (
         id,
         name,
         category,
