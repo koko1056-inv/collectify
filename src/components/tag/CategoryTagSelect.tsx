@@ -35,7 +35,7 @@ export function CategoryTagSelect({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
-        .select("*")
+        .select("id, name, category, created_at")
         .eq("category", category)
         .order("name");
       
@@ -92,16 +92,21 @@ export function CategoryTagSelect({
     }
   };
 
+  const handleValueChange = (newValue: string) => {
+    console.log("Selected value:", newValue);
+    onChange(newValue);
+  };
+
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Select 
           value={value || undefined}
-          onValueChange={(val) => onChange(val)}
+          onValueChange={handleValueChange}
         >
           <SelectTrigger className="w-full bg-white">
-            <SelectValue placeholder="選択してください">
+            <SelectValue>
               {selectedTag ? selectedTag.name : "選択してください"}
             </SelectValue>
           </SelectTrigger>
