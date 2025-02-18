@@ -42,75 +42,65 @@ export function TagInputField({
         return;
       }
 
-      if (!selectedTags.includes(newTag)) {
-        try {
-          const { data: existingTag } = await supabase
+      try {
+        // タグが存在するか確認
+        const { data: existingTag, error: searchError } = await supabase
+          .from("tags")
+          .select("*")
+          .eq("name", newTag)
+          .eq("category", category)
+          .maybeSingle();
+
+        if (searchError) throw searchError;
+
+        let tagId;
+        if (!existingTag) {
+          // 新しいタグを作成
+          const { data: newTagData, error: createError } = await supabase
             .from("tags")
-            .select("*")
-            .eq("name", newTag)
-            .eq("category", category)
-            .maybeSingle();
+            .insert([{ 
+              name: newTag,
+              category: category 
+            }])
+            .select()
+            .single();
 
-          let tagId;
-          if (!existingTag) {
-            const { data: newTagData, error: insertError } = await supabase
-              .from("tags")
-              .insert([{ name: newTag, category }])
-              .select()
-              .single();
-
-            if (insertError) throw insertError;
-            tagId = newTagData.id;
-          } else {
-            tagId = existingTag.id;
-          }
-
-          // Add tag to all selected items
-          for (const itemId of itemIds) {
-            await addTagToItem(itemId, tagId, isUserItem);
-          }
-
-          // Update the local state with the new tag
-          const updatedTags = [...selectedTags, newTag];
-          onTagsChange(updatedTags);
-
-          // Invalidate queries to refresh the data
-          await queryClient.invalidateQueries({ 
-            queryKey: ["current-tags", itemIds]
-          });
-
-          if (isUserItem) {
-            await queryClient.invalidateQueries({ 
-              queryKey: ["user-items"]
-            });
-          } else {
-            await queryClient.invalidateQueries({ 
-              queryKey: ["official-items"]
-            });
-          }
-
-          setTagInput("");
-          
-          toast({
-            title: "タグを追加しました",
-            description: `${newTag}を追加しました。`,
-          });
-        } catch (error) {
-          console.error("Error adding tag:", error);
-          toast({
-            title: "エラー",
-            description: "タグの追加に失敗しました。",
-            variant: "destructive",
-          });
+          if (createError) throw createError;
+          tagId = newTagData.id;
+        } else {
+          tagId = existingTag.id;
         }
-      } else {
+
+        // アイテムにタグを追加
+        for (const itemId of itemIds) {
+          await addTagToItem(itemId, tagId, isUserItem);
+        }
+
+        // ローカルステートを更新
+        onTagsChange([...selectedTags, newTag]);
+
+        // キャッシュを更新
+        await queryClient.invalidateQueries({ 
+          queryKey: ["current-tags", itemIds]
+        });
+        await queryClient.invalidateQueries({ 
+          queryKey: ["tags", category]
+        });
+
+        setTagInput("");
+        
         toast({
-          title: "注意",
-          description: "このタグは既に追加されています。",
-          variant: "default",
+          title: "タグを追加しました",
+          description: `${newTag}を追加しました。`,
+        });
+      } catch (error) {
+        console.error("Error adding tag:", error);
+        toast({
+          title: "エラー",
+          description: "タグの追加に失敗しました。",
+          variant: "destructive",
         });
       }
-      setTagInput("");
     }
   };
 
