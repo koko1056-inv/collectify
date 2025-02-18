@@ -1,10 +1,12 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types/tag";
 
+// データベースから返される実際の構造に合わせて定義
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tag: Tag;
+  tags: Tag;
 }
 
 export interface DeleteUserItemResult {
