@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tag } from "@/types/tag";
 
 interface CategoryTagSelectProps {
   category: string;
@@ -29,7 +30,7 @@ export function CategoryTagSelect({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: tags = [] } = useQuery({
+  const { data: tags = [] } = useQuery<Tag[]>({
     queryKey: ["tags", category],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -95,10 +96,13 @@ export function CategoryTagSelect({
     <div className="space-y-2">
       <Label>{label}</Label>
       <div className="flex gap-2">
-        <Select value={value || ''} onValueChange={onChange}>
+        <Select 
+          value={value || undefined} 
+          onValueChange={onChange}
+        >
           <SelectTrigger className="w-full bg-white">
             <SelectValue placeholder="選択してください">
-              {selectedTag?.name}
+              {selectedTag ? selectedTag.name : "選択してください"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-white">

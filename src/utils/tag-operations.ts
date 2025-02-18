@@ -1,17 +1,10 @@
-
 import { supabase } from "@/integrations/supabase/client";
-
-export interface Tag {
-  id: string;
-  name: string;
-  category?: string;
-  created_at?: string;
-}
+import { Tag } from "@/types/tag";
 
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tags: Tag | null;
+  tag: Tag;
 }
 
 export interface DeleteUserItemResult {
