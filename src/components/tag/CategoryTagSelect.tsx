@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +42,8 @@ export function CategoryTagSelect({
       return data;
     },
   });
+
+  const selectedTag = tags.find(tag => tag.id === value);
 
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) {
@@ -95,7 +97,9 @@ export function CategoryTagSelect({
       <div className="flex gap-2">
         <Select value={value || ''} onValueChange={onChange}>
           <SelectTrigger className="w-full bg-white">
-            <SelectValue placeholder="選択してください" />
+            <SelectValue placeholder="選択してください">
+              {selectedTag?.name}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent className="bg-white">
             <ScrollArea className="max-h-[200px]">
