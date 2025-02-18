@@ -90,7 +90,7 @@ export function useItemSubmit({
       // タグの処理
       if (allTags.length > 0) {
         for (const tag of allTags) {
-          // 既存のタグを検索、または新規作成
+          // 既存のタグを検索
           const { data: existingTag, error: tagError } = await supabase
             .from("tags")
             .select("id")
