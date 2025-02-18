@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface FormDataType {
   title: string;
@@ -30,6 +31,7 @@ export function useItemSubmit({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const validateForm = () => {
     if (!formData.title.trim()) {
@@ -64,6 +66,7 @@ export function useItemSubmit({
             image: imageUrl,
             price: "0",
             release_date: new Date().toISOString(),
+            created_by: user?.id, // ユーザーIDを保存
           },
         ])
         .select()
@@ -71,7 +74,7 @@ export function useItemSubmit({
 
       if (itemError) throw itemError;
 
-      // Process tags
+      // タグの処理
       if (selectedTags.length > 0) {
         for (const tagName of selectedTags) {
           const { data: existingTag } = await supabase
