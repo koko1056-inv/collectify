@@ -108,15 +108,15 @@ export function TagManageModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl h-[90vh] sm:h-auto p-0">
+        <DialogHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
+          <DialogTitle className="text-lg sm:text-xl font-bold">
             {title}
           </DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[80vh]">
-          <div className="space-y-6 p-4">
-            <div className="space-y-4">
+        <ScrollArea className="flex-1 px-4 sm:px-6">
+          <div className="space-y-4 sm:space-y-6 py-4">
+            <div className="space-y-3 sm:space-y-4">
               <CategoryTagSelect
                 category="character"
                 label="キャラクター・人物名"
@@ -136,19 +136,21 @@ export function TagManageModal({
                 onChange={handleTagChange("series")}
               />
             </div>
-            <div className="flex justify-end space-x-2 pt-4 border-t">
-              <Button variant="outline" onClick={onClose}>
-                キャンセル
-              </Button>
-              <Button 
-                onClick={handleSave}
-                disabled={isSaving || !pendingUpdates.length}
-              >
-                {isSaving ? "保存中..." : "保存"}
-              </Button>
-            </div>
           </div>
         </ScrollArea>
+        <div className="flex justify-end space-x-2 p-4 sm:p-6 border-t">
+          <Button variant="outline" onClick={onClose} size="sm" className="h-8 sm:h-10">
+            キャンセル
+          </Button>
+          <Button 
+            onClick={handleSave}
+            disabled={isSaving || !pendingUpdates.length}
+            size="sm"
+            className="h-8 sm:h-10"
+          >
+            {isSaving ? "保存中..." : "保存"}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
