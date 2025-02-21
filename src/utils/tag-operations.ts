@@ -8,16 +8,13 @@ interface Tag {
   created_at: string;
 }
 
-interface BaseItemTag {
+interface ItemTag {
   id: string;
   tag_id: string;
-}
-
-interface ItemTagWithTag extends BaseItemTag {
   tags: Tag;
 }
 
-export type ItemTag = ItemTagWithTag;
+export type { ItemTag, Tag };
 
 export interface DeleteUserItemResult {
   error: Error | null;
