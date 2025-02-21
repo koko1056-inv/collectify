@@ -61,21 +61,6 @@ export function CategoryTagSelect({
       return;
     }
 
-    // 既存のタグをチェック
-    const existingTag = tags.find(tag => 
-      tag.name.toLowerCase() === trimmedTagName.toLowerCase() && 
-      tag.category === category
-    );
-
-    if (existingTag) {
-      toast({
-        title: "エラー",
-        description: "このタグは既に存在します。",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       const { data: newTag, error } = await supabase
         .from("tags")
@@ -88,17 +73,7 @@ export function CategoryTagSelect({
         .select()
         .single();
 
-      if (error) {
-        if (error.code === '23505') { // unique_violation
-          toast({
-            title: "エラー",
-            description: "このタグは既に存在します。",
-            variant: "destructive",
-          });
-          return;
-        }
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "タグを追加しました",
