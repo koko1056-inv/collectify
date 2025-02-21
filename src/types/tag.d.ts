@@ -9,7 +9,7 @@ export interface Tag {
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tags: Tag;
+  tag: Tag;  // 'tags' ではなく 'tag' に変更
 }
 
 export type TagCategory = "character" | "type" | "series";

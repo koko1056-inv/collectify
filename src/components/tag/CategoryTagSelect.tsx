@@ -35,7 +35,7 @@ export function CategoryTagSelect({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
-        .select("*")
+        .select("id, name, category, created_at")  // 必要なカラムを明示的に指定
         .eq("category", category)
         .order("name");
       
@@ -44,7 +44,6 @@ export function CategoryTagSelect({
     },
   });
 
-  // selectedTag を tags の id ではなく name を使って探す
   const selectedTag = tags.find(tag => tag.id === value);
 
   const handleValueChange = (newValue: string) => {
@@ -70,7 +69,7 @@ export function CategoryTagSelect({
             category: category,
           },
         ])
-        .select()
+        .select("id, name, category, created_at")  // 必要なカラムを明示的に指定
         .single();
 
       if (error) throw error;

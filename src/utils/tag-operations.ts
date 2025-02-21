@@ -1,18 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import type { Tag, ItemTag } from "@/types/tag";
 
-export interface Tag {
-  id: string;
-  name: string;
-  category: string | null;
-  created_at: string;
-}
-
-export interface ItemTag {
-  id: string;
-  tag_id: string;
-  tags: Tag;
-}
+export type { Tag, ItemTag };
 
 export interface DeleteUserItemResult {
   error: Error | null;
@@ -28,7 +17,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .select(`
       id,
       tag_id,
-      tags (
+      tag:tags (
         id,
         name,
         category,
