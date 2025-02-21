@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Tag } from "@/types/tag";
+import type { Tag } from "@/types/tag";
 
 interface CategoryTagSelectProps {
   category: string;
@@ -35,12 +35,12 @@ export function CategoryTagSelect({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
-        .select("id, name, category")
+        .select("id, name, category, created_at")
         .eq("category", category)
         .order("name");
       
       if (error) throw error;
-      return data || [];
+      return data as Tag[];
     },
   });
 
