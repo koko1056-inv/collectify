@@ -7,13 +7,7 @@ export type { Tag };
 export interface ItemTag {
   id: string;
   tag_id: string;
-  // tags ではなく tag として参照
-  tag: {
-    id: string;
-    name: string;
-    category: string | null;
-    created_at: string;
-  };
+  tag: Tag;
 }
 
 export interface DeleteUserItemResult {
@@ -48,6 +42,21 @@ export async function addTagToItem(
   tagId: string,
   isUserItem: boolean = false
 ): Promise<void> {
+  if (!tagId) {
+    throw new Error("タグIDが指定されていません");
+  }
+
+  // タグの存在確認
+  const { data: tagExists, error: checkError } = await supabase
+    .from("tags")
+    .select("id")
+    .eq("id", tagId)
+    .single();
+
+  if (checkError || !tagExists) {
+    throw new Error("指定されたタグが存在しません");
+  }
+
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   
   const insertData = isUserItem 
