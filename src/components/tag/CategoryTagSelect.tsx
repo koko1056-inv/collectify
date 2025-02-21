@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import type { Tag } from "@/types/tag";
+import type { Tag, TagCategory } from "@/types/tag";
 
 interface CategoryTagSelectProps {
   category: string;
@@ -37,6 +37,7 @@ export function CategoryTagSelect({
         .from("tags")
         .select("id, name, category, created_at")
         .eq("category", category)
+        .in("category", ["character", "type", "series"] as TagCategory[]) // 通常のタグのみをフィルタリング
         .order("name");
       
       if (error) throw error;
