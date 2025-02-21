@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,8 +21,7 @@ interface CategoryTagSelectProps {
 // 除外したいタグのID
 const EXCLUDED_TAG_IDS = [
   "35f34f31-8508-48cb-be6b-cdef3378e594",
-  "e52a5b5e-d567-4f81-ab5c-839ca1d5946e",
-  "af2b2c01-2492-46c9-ad49-d09ad7053c61"
+  "e52a5b5e-d567-4f81-ab5c-839ca1d5946e"
 ];
 
 export function CategoryTagSelect({
