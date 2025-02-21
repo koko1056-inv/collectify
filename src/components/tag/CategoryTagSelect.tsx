@@ -35,7 +35,7 @@ export function CategoryTagSelect({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
-        .select("id, name, category, created_at")
+        .select("*")
         .eq("category", category)
         .order("name");
       
@@ -44,7 +44,12 @@ export function CategoryTagSelect({
     },
   });
 
+  // selectedTag を tags の id ではなく name を使って探す
   const selectedTag = tags.find(tag => tag.id === value);
+
+  const handleValueChange = (newValue: string) => {
+    onChange(newValue);
+  };
 
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) {
@@ -90,11 +95,6 @@ export function CategoryTagSelect({
         variant: "destructive",
       });
     }
-  };
-
-  const handleValueChange = (newValue: string) => {
-    console.log("Selected value:", newValue);
-    onChange(newValue);
   };
 
   return (
