@@ -35,7 +35,7 @@ export function CategoryTagSelect({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
-        .select("id, name, category, created_at")  // 必要なカラムを明示的に指定
+        .select("id, name, category")
         .eq("category", category)
         .order("name");
       
@@ -69,7 +69,7 @@ export function CategoryTagSelect({
             category: category,
           },
         ])
-        .select("id, name, category, created_at")  // 必要なカラムを明示的に指定
+        .select()
         .single();
 
       if (error) throw error;
@@ -112,7 +112,7 @@ export function CategoryTagSelect({
           <SelectContent className="bg-white">
             <ScrollArea className="max-h-[200px]">
               {tags.map((tag) => (
-                <SelectItem key={tag.id} value={tag.id}>
+                <SelectItem key={tag.id} value={tag.id} className="hover:bg-gray-100">
                   {tag.name}
                 </SelectItem>
               ))}

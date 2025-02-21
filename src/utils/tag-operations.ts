@@ -1,8 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Tag } from "@/types/tag";
-
-export type { Tag };
+import { Tag } from "@/types/tag";
 
 export interface ItemTag {
   id: string;
