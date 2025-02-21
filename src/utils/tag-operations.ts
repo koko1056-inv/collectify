@@ -1,7 +1,14 @@
-import { supabase } from "@/integrations/supabase/client";
-import type { Tag, ItemTag } from "@/types/tag";
 
-export type { Tag, ItemTag };
+import { supabase } from "@/integrations/supabase/client";
+import type { Tag } from "@/types/tag";
+
+export type { Tag };
+
+export interface ItemTag {
+  id: string;
+  tag_id: string;
+  tag: Tag;
+}
 
 export interface DeleteUserItemResult {
   error: Error | null;
@@ -43,9 +50,14 @@ export async function addTagToItem(
 
   const { error } = await supabase
     .from(tableName)
-    .insert(insertData);
+    .insert(insertData)
+    .select()
+    .single();
 
-  if (error) throw error;
+  // 重複キー制約エラーの場合は無視する（既に存在するため成功とみなす）
+  if (error && error.code !== '23505') {
+    throw error;
+  }
 }
 
 export async function removeTagFromItem(
