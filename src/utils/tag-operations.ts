@@ -7,7 +7,13 @@ export type { Tag };
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tag: Tag;
+  // tags ではなく tag として参照
+  tag: {
+    id: string;
+    name: string;
+    category: string | null;
+    created_at: string;
+  };
 }
 
 export interface DeleteUserItemResult {
