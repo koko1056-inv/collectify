@@ -51,10 +51,26 @@ export function CategoryTagSelect({
   };
 
   const handleAddNewTag = async () => {
-    if (!newTagName.trim()) {
+    const trimmedTagName = newTagName.trim();
+    if (!trimmedTagName) {
       toast({
         title: "エラー",
         description: "タグ名を入力してください。",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // 既存のタグをチェック
+    const existingTag = tags.find(tag => 
+      tag.name.toLowerCase() === trimmedTagName.toLowerCase() && 
+      tag.category === category
+    );
+
+    if (existingTag) {
+      toast({
+        title: "エラー",
+        description: "このタグは既に存在します。",
         variant: "destructive",
       });
       return;
@@ -65,18 +81,28 @@ export function CategoryTagSelect({
         .from("tags")
         .insert([
           {
-            name: newTagName.trim(),
+            name: trimmedTagName,
             category: category,
           },
         ])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') { // unique_violation
+          toast({
+            title: "エラー",
+            description: "このタグは既に存在します。",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw error;
+      }
 
       toast({
         title: "タグを追加しました",
-        description: `${newTagName}を追加しました。`,
+        description: `${trimmedTagName}を追加しました。`,
       });
 
       await queryClient.invalidateQueries({ queryKey: ["tags", category] });
