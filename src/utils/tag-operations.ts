@@ -8,7 +8,7 @@ export interface BaseItemTag {
 }
 
 export interface ItemTag extends BaseItemTag {
-  tag: Tag;
+  tags?: Tag; // タグの参照を任意に変更
 }
 
 export interface DeleteUserItemResult {

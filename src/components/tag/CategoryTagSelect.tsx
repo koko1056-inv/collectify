@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import type { Tag, TagCategory } from "@/types/tag";
+import type { Tag } from "@/types/tag";
 
 interface CategoryTagSelectProps {
   category: string;
@@ -18,6 +18,13 @@ interface CategoryTagSelectProps {
   value: string | null;
   onChange: (value: string | null) => void;
 }
+
+// 除外したいタグのID
+const EXCLUDED_TAG_IDS = [
+  "35f34f31-8508-48cb-be6b-cdef3378e594",
+  "e52a5b5e-d567-4f81-ab5c-839ca1d5946e",
+  "af2b2c01-2492-46c9-ad49-d09ad7053c61"
+];
 
 export function CategoryTagSelect({
   category,
@@ -37,7 +44,7 @@ export function CategoryTagSelect({
         .from("tags")
         .select("id, name, category, created_at")
         .eq("category", category)
-        .in("category", ["character", "type", "series"] as TagCategory[]) // 通常のタグのみをフィルタリング
+        .not("id", "in", `(${EXCLUDED_TAG_IDS.join(',')})`) // 指定したIDのタグを除外
         .order("name");
       
       if (error) throw error;
