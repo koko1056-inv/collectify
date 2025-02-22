@@ -7,8 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tag } from "@/types/tag";
 
@@ -44,7 +44,7 @@ export function CategoryTagSelect({
     },
   });
 
-  const selectedTag = tags.find(tag => tag.id === value);
+  const selectedTag = tags.find(tag => tag.name === value);
 
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) {
@@ -78,7 +78,7 @@ export function CategoryTagSelect({
       await queryClient.invalidateQueries({ queryKey: ["tags", category] });
 
       if (newTag) {
-        onChange(newTag.id);
+        onChange(newTag.name);
       }
       setNewTagName("");
       setIsDialogOpen(false);
@@ -92,9 +92,11 @@ export function CategoryTagSelect({
     }
   };
 
-  const handleValueChange = (newValue: string) => {
-    console.log("Selected value:", newValue);
-    onChange(newValue);
+  const handleValueChange = (tagId: string) => {
+    const selectedTag = tags.find(tag => tag.id === tagId);
+    if (selectedTag) {
+      onChange(selectedTag.name);
+    }
   };
 
   return (
@@ -102,7 +104,7 @@ export function CategoryTagSelect({
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Select 
-          value={value || undefined}
+          value={selectedTag?.id}
           onValueChange={handleValueChange}
         >
           <SelectTrigger className="w-full bg-white">
