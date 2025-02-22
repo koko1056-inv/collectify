@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
@@ -28,22 +28,23 @@ export function CategoryTagSelect({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
+  // カテゴリーに基づいてタグを取得
   const { data: tags = [] } = useQuery<Tag[]>({
     queryKey: ["tags", category],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
-        .select("id, name, category, created_at")
+        .select("*")
         .eq("category", category)
         .order("name");
-      
+
       if (error) throw error;
       return data || [];
     },
   });
 
+  // 選択されているタグを探す
   const selectedTag = tags.find(tag => tag.name === value);
 
   const handleAddNewTag = async () => {
@@ -60,7 +61,7 @@ export function CategoryTagSelect({
       // 既存のタグをチェック
       const { data: existingTag } = await supabase
         .from("tags")
-        .select("id, name")
+        .select("*")
         .eq("name", newTagName.trim())
         .eq("category", category)
         .maybeSingle();
@@ -86,13 +87,10 @@ export function CategoryTagSelect({
         .select()
         .single();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       if (newTag) {
         onChange(newTag.name);
-        await queryClient.invalidateQueries({ queryKey: ["tags", category] });
         toast({
           title: "タグを追加しました",
           description: `${newTagName}を追加しました。`,
@@ -118,6 +116,20 @@ export function CategoryTagSelect({
     }
   };
 
+  // カテゴリー別のプレースホルダーテキスト
+  const getPlaceholderText = () => {
+    switch (category) {
+      case 'character':
+        return 'キャラクターを選択';
+      case 'type':
+        return 'グッズタイプを選択';
+      case 'series':
+        return 'シリーズを選択';
+      default:
+        return '選択してください';
+    }
+  };
+
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
@@ -127,14 +139,16 @@ export function CategoryTagSelect({
           onValueChange={handleValueChange}
         >
           <SelectTrigger className="w-full bg-white">
-            <SelectValue>
-              {selectedTag ? selectedTag.name : "選択してください"}
-            </SelectValue>
+            <SelectValue placeholder={getPlaceholderText()} />
           </SelectTrigger>
           <SelectContent className="bg-white">
             <ScrollArea className="max-h-[200px]">
               {tags.map((tag) => (
-                <SelectItem key={tag.id} value={tag.id}>
+                <SelectItem 
+                  key={tag.id} 
+                  value={tag.id}
+                  className="cursor-pointer hover:bg-gray-100"
+                >
                   {tag.name}
                 </SelectItem>
               ))}

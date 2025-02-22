@@ -23,22 +23,27 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
-  const { data, error } = await supabase
-    .from(tableName)
-    .select(`
-      id,
-      tag_id,
-      tags (
+  try {
+    const { data, error } = await supabase
+      .from(tableName)
+      .select(`
         id,
-        name,
-        category,
-        created_at
-      )
-    `)
-    .eq(idColumn, itemId);
+        tag_id,
+        tags (
+          id,
+          name,
+          category,
+          created_at
+        )
+      `)
+      .eq(idColumn, itemId);
 
-  if (error) throw error;
-  return data || [];
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching tags:", error);
+    return [];
+  }
 }
 
 export async function addTagToItem(
