@@ -1,12 +1,15 @@
 
 import { Badge } from "@/components/ui/badge";
 import { ItemTag } from "@/utils/tag-operations";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CurrentTagsListProps {
   currentTags: ItemTag[];
+  onRemoveTag?: (tagId: string) => void;
 }
 
-export function CurrentTagsList({ currentTags }: CurrentTagsListProps) {
+export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListProps) {
   if (currentTags.length === 0) return null;
 
   return (
@@ -15,8 +18,26 @@ export function CurrentTagsList({ currentTags }: CurrentTagsListProps) {
       <div className="flex flex-wrap gap-2">
         {currentTags.map((tag) => (
           tag.tags && (
-            <Badge key={tag.tag_id} variant="secondary" className="text-sm">
+            <Badge 
+              key={tag.tag_id} 
+              variant="secondary" 
+              className="text-sm pr-2 flex items-center gap-1"
+            >
               {tag.tags.name}
+              {onRemoveTag && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-0.5 hover:bg-transparent"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onRemoveTag(tag.tag_id);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
             </Badge>
           )
         ))}
