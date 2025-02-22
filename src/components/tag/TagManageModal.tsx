@@ -2,14 +2,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTagsForItem } from "@/utils/tag-operations";
-import { CategoryTagSelect } from "./CategoryTagSelect";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tag } from "@/types/tag";
+import { TagManageModalContent } from "./TagManageModalContent";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -103,12 +101,13 @@ export function TagManageModal({
             tagId = newTag.id;
           }
 
+          const insertData = isUserItem 
+            ? { user_item_id: itemIds[0], tag_id: tagId }
+            : { official_item_id: itemIds[0], tag_id: tagId };
+
           const { error: insertError } = await supabase
             .from(isUserItem ? "user_item_tags" : "item_tags")
-            .insert({
-              [isUserItem ? "user_item_id" : "official_item_id"]: itemIds[0],
-              tag_id: tagId
-            });
+            .insert(insertData);
 
           if (insertError) throw insertError;
         }
@@ -118,7 +117,6 @@ export function TagManageModal({
         queryKey: ["current-tags", itemIds]
       });
       
-      // フィルタリングのためのクエリも更新
       await queryClient.invalidateQueries({ 
         queryKey: ["user-items"]
       });
@@ -151,78 +149,11 @@ export function TagManageModal({
         </DialogHeader>
         
         <ScrollArea className="flex-1 px-4 sm:px-6">
-          {/* 現在のタグのプレビュー */}
-          {currentTags.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-medium mb-2">現在のタグ:</h3>
-              <div className="flex flex-wrap gap-2">
-                {currentTags.map((tag) => (
-                  tag.tags && (
-                    <Badge key={tag.tag_id} variant="secondary" className="text-sm">
-                      {tag.tags.name}
-                      {tag.tags.category && (
-                        <span className="ml-1 text-xs text-muted-foreground">
-                          ({tag.tags.category})
-                        </span>
-                      )}
-                    </Badge>
-                  )
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-4 sm:space-y-6 py-4">
-            <div className="space-y-3 sm:space-y-4">
-              <CategoryTagSelect
-                category="character"
-                label="キャラクター・人物名"
-                value={
-                  pendingUpdates.find(u => u.category === 'character')?.value ||
-                  currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name ||
-                  null
-                }
-                onChange={handleTagChange("character")}
-              />
-              <CategoryTagSelect
-                category="type"
-                label="グッズタイプ"
-                value={
-                  pendingUpdates.find(u => u.category === 'type')?.value ||
-                  currentTags.find(tag => tag.tags?.category === 'type')?.tags?.name ||
-                  null
-                }
-                onChange={handleTagChange("type")}
-              />
-              <CategoryTagSelect
-                category="series"
-                label="グッズシリーズ"
-                value={
-                  pendingUpdates.find(u => u.category === 'series')?.value ||
-                  currentTags.find(tag => tag.tags?.category === 'series')?.tags?.name ||
-                  null
-                }
-                onChange={handleTagChange("series")}
-              />
-
-              {/* 選択したタグのプレビュー */}
-              {pendingUpdates.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="text-sm font-medium mb-2">追加するタグ:</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {pendingUpdates.filter(update => update.value).map((update) => (
-                      <Badge key={update.category} variant="outline">
-                        {update.value}
-                        <span className="ml-1 text-xs text-muted-foreground">
-                          ({update.category})
-                        </span>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <TagManageModalContent
+            currentTags={currentTags}
+            pendingUpdates={pendingUpdates}
+            onTagChange={handleTagChange}
+          />
         </ScrollArea>
 
         <div className="flex justify-end space-x-2 p-4 sm:p-6 border-t">
