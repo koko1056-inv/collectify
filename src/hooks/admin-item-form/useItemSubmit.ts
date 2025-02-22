@@ -91,15 +91,16 @@ export function useItemSubmit({
       // タグの処理
       if (allTags.length > 0) {
         for (const tag of allTags) {
+          if (!tag.name) continue;
+
           try {
             // 既存のタグを検索
-            const { data: existingTag, error: tagError } = await supabase
+            const { data: existingTag } = await supabase
               .from("tags")
               .select("id")
               .eq("name", tag.name)
+              .eq("category", tag.category)
               .maybeSingle();
-
-            if (tagError) throw tagError;
 
             let tagId;
             if (existingTag) {
@@ -119,8 +120,8 @@ export function useItemSubmit({
               tagId = newTag.id;
             }
 
-            // アイテムとタグを関連付け（重複を防ぐため、upsertを使用）
-            const { error: linkError } = await supabase
+            // アイテムとタグを関連付け
+            await supabase
               .from("item_tags")
               .upsert([{
                 official_item_id: itemData.id,
@@ -128,11 +129,9 @@ export function useItemSubmit({
               }], {
                 onConflict: 'official_item_id,tag_id'
               });
-
-            if (linkError) throw linkError;
           } catch (error: any) {
-            // unique constraintエラー以外のエラーの場合のみスロー
-            if (error.code !== '23505') {
+            console.error("Error processing tag:", error);
+            if (error.code !== '23505') { // 重複エラー以外はスロー
               throw error;
             }
           }
@@ -145,8 +144,9 @@ export function useItemSubmit({
       });
 
       resetForm();
-      queryClient.invalidateQueries({ queryKey: ["official-items"] });
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      await queryClient.invalidateQueries({ queryKey: ["official-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["tags"] });
+      await queryClient.invalidateQueries({ queryKey: ["item-tags-count"] });
     } catch (error) {
       console.error("Error:", error);
       toast({

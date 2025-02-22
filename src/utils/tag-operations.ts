@@ -1,10 +1,11 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types/tag";
 
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tags: Tag;
+  tags: Tag | null;
 }
 
 export interface DeleteUserItemResult {
@@ -47,7 +48,9 @@ export async function addTagToItem(
 
   const { error } = await supabase
     .from(tableName)
-    .insert(insertData);
+    .upsert([insertData], {
+      onConflict: isUserItem ? 'user_item_id,tag_id' : 'official_item_id,tag_id'
+    });
 
   if (error) throw error;
 }
