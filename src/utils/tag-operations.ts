@@ -11,7 +11,12 @@ export interface Tag {
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tags: Tag | null;
+  tags?: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at: string;
+  } | null;
 }
 
 export interface DeleteUserItemResult {

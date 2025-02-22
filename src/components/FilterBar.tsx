@@ -57,7 +57,7 @@ export function FilterBar({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 w-full">
       <SearchBar
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
@@ -66,7 +66,7 @@ export function FilterBar({
         tags={tags}
       />
 
-      <div className="w-full max-w-3xl mx-auto">
+      <div className="w-full">
         <Button
           variant="outline"
           onClick={() => setIsDialogOpen(true)}
