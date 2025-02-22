@@ -18,3 +18,8 @@ export interface ItemTagWithTag extends BaseItemTag {
 export type ItemTag = ItemTagWithTag;
 
 export type TagCategory = "character" | "type" | "series";
+
+export interface TagUpdate {
+  category: string;
+  value: string | null;
+}

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TagManageModalContent } from "./TagManageModalContent";
+import { TagUpdate } from "@/types/tag";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -16,11 +17,6 @@ interface TagManageModalProps {
   itemTitle?: string;
   isUserItem?: boolean;
   isCategory?: boolean;
-}
-
-interface TagUpdate {
-  category: string;
-  value: string | null;
 }
 
 export function TagManageModal({ 
@@ -153,6 +149,8 @@ export function TagManageModal({
             currentTags={currentTags}
             pendingUpdates={pendingUpdates}
             onTagChange={handleTagChange}
+            itemIds={itemIds}
+            isUserItem={isUserItem}
           />
         </ScrollArea>
 
