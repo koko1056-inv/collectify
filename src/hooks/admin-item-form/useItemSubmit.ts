@@ -82,50 +82,60 @@ export function useItemSubmit({
       ].filter(tag => tag.name) as { name: string; category: string }[];
 
       // すべてのタグをマージ（カテゴリータグと選択されたタグ）
-      const allTags = [
-        ...categoryTags,
-        ...selectedTags.map(tag => ({ name: tag, category: null }))
-      ];
+      // 重複を除去
+      const allTags = Array.from(new Set([
+        ...categoryTags.map(tag => JSON.stringify({ name: tag.name, category: tag.category })),
+        ...selectedTags.map(tag => JSON.stringify({ name: tag, category: null }))
+      ])).map(tagStr => JSON.parse(tagStr));
 
       // タグの処理
       if (allTags.length > 0) {
         for (const tag of allTags) {
-          // 既存のタグを検索
-          const { data: existingTag, error: tagError } = await supabase
-            .from("tags")
-            .select("id")
-            .eq("name", tag.name)
-            .maybeSingle();
-
-          if (tagError) throw tagError;
-
-          let tagId;
-          if (existingTag) {
-            tagId = existingTag.id;
-          } else {
-            // 新しいタグを作成
-            const { data: newTag, error: createError } = await supabase
+          try {
+            // 既存のタグを検索
+            const { data: existingTag, error: tagError } = await supabase
               .from("tags")
-              .insert([{
-                name: tag.name,
-                category: tag.category
-              }])
-              .select()
-              .single();
+              .select("id")
+              .eq("name", tag.name)
+              .maybeSingle();
 
-            if (createError) throw createError;
-            tagId = newTag.id;
+            if (tagError) throw tagError;
+
+            let tagId;
+            if (existingTag) {
+              tagId = existingTag.id;
+            } else {
+              // 新しいタグを作成
+              const { data: newTag, error: createError } = await supabase
+                .from("tags")
+                .insert([{
+                  name: tag.name,
+                  category: tag.category
+                }])
+                .select()
+                .single();
+
+              if (createError) throw createError;
+              tagId = newTag.id;
+            }
+
+            // アイテムとタグを関連付け（重複を防ぐため、upsertを使用）
+            const { error: linkError } = await supabase
+              .from("item_tags")
+              .upsert([{
+                official_item_id: itemData.id,
+                tag_id: tagId,
+              }], {
+                onConflict: 'official_item_id,tag_id'
+              });
+
+            if (linkError) throw linkError;
+          } catch (error: any) {
+            // unique constraintエラー以外のエラーの場合のみスロー
+            if (error.code !== '23505') {
+              throw error;
+            }
           }
-
-          // アイテムとタグを関連付け
-          const { error: linkError } = await supabase
-            .from("item_tags")
-            .insert([{
-              official_item_id: itemData.id,
-              tag_id: tagId,
-            }]);
-
-          if (linkError) throw linkError;
         }
       }
 
