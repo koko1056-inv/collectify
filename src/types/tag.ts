@@ -6,12 +6,15 @@ export interface Tag {
   created_at: string;
 }
 
-export interface ItemTag {
+export interface BaseItemTag {
   id: string;
   tag_id: string;
-  tags?: Tag;
 }
 
-export type TableName = "user_item_likes" | "item_memories" | "user_item_tags";
+export interface ItemTagWithTag extends BaseItemTag {
+  tags: Tag;
+}
+
+export type ItemTag = ItemTagWithTag;
 
 export type TagCategory = "character" | "type" | "series";
