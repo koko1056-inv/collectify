@@ -1,15 +1,23 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Tag } from "@/types/tag";
 
-export interface BaseItemTag {
+interface Tag {
+  id: string;
+  name: string;
+  category: string;
+  created_at: string;
+}
+
+interface BaseItemTag {
   id: string;
   tag_id: string;
 }
 
-export interface ItemTag extends BaseItemTag {
-  tags?: Tag; // タグの参照を任意に変更
+interface ItemTagWithTag extends BaseItemTag {
+  tags: Tag;
 }
+
+export type ItemTag = ItemTagWithTag;
 
 export interface DeleteUserItemResult {
   error: Error | null;
@@ -25,7 +33,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .select(`
       id,
       tag_id,
-      tag:tags (
+      tags (
         id,
         name,
         category,
@@ -43,21 +51,6 @@ export async function addTagToItem(
   tagId: string,
   isUserItem: boolean = false
 ): Promise<void> {
-  if (!tagId) {
-    throw new Error("タグIDが指定されていません");
-  }
-
-  // タグの存在確認
-  const { data: tagExists, error: checkError } = await supabase
-    .from("tags")
-    .select("id")
-    .eq("id", tagId)
-    .single();
-
-  if (checkError || !tagExists) {
-    throw new Error("指定されたタグが存在しません");
-  }
-
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   
   const insertData = isUserItem 
@@ -66,14 +59,9 @@ export async function addTagToItem(
 
   const { error } = await supabase
     .from(tableName)
-    .insert(insertData)
-    .select()
-    .single();
+    .insert(insertData);
 
-  // 重複キー制約エラーの場合は無視する（既に存在するため成功とみなす）
-  if (error && error.code !== '23505') {
-    throw error;
-  }
+  if (error) throw error;
 }
 
 export async function removeTagFromItem(

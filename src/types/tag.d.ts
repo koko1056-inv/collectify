@@ -2,14 +2,13 @@
 export interface Tag {
   id: string;
   name: string;
-  category: string | null;
-  created_at: string;
+  category?: boolean;
 }
 
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tag: Tag;  // 'tags' ではなく 'tag' に変更
+  tags: Tag | null;
 }
 
-export type TagCategory = "character" | "type" | "series";
+export type TableName = "user_item_likes" | "item_memories" | "user_item_tags";

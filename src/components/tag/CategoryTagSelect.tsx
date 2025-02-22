@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import type { Tag } from "@/types/tag";
+import { Tag } from "@/types/tag";
 
 interface CategoryTagSelectProps {
   category: string;
@@ -17,12 +18,6 @@ interface CategoryTagSelectProps {
   value: string | null;
   onChange: (value: string | null) => void;
 }
-
-// 除外したいタグのID
-const EXCLUDED_TAG_IDS = [
-  "35f34f31-8508-48cb-be6b-cdef3378e594",
-  "e52a5b5e-d567-4f81-ab5c-839ca1d5946e"
-];
 
 export function CategoryTagSelect({
   category,
@@ -42,23 +37,17 @@ export function CategoryTagSelect({
         .from("tags")
         .select("id, name, category, created_at")
         .eq("category", category)
-        .not("id", "in", `(${EXCLUDED_TAG_IDS.join(',')})`) // 指定したIDのタグを除外
         .order("name");
       
       if (error) throw error;
-      return data as Tag[];
+      return data || [];
     },
   });
 
   const selectedTag = tags.find(tag => tag.id === value);
 
-  const handleValueChange = (newValue: string) => {
-    onChange(newValue);
-  };
-
   const handleAddNewTag = async () => {
-    const trimmedTagName = newTagName.trim();
-    if (!trimmedTagName) {
+    if (!newTagName.trim()) {
       toast({
         title: "エラー",
         description: "タグ名を入力してください。",
@@ -72,7 +61,7 @@ export function CategoryTagSelect({
         .from("tags")
         .insert([
           {
-            name: trimmedTagName,
+            name: newTagName.trim(),
             category: category,
           },
         ])
@@ -83,7 +72,7 @@ export function CategoryTagSelect({
 
       toast({
         title: "タグを追加しました",
-        description: `${trimmedTagName}を追加しました。`,
+        description: `${newTagName}を追加しました。`,
       });
 
       await queryClient.invalidateQueries({ queryKey: ["tags", category] });
@@ -103,6 +92,11 @@ export function CategoryTagSelect({
     }
   };
 
+  const handleValueChange = (newValue: string) => {
+    console.log("Selected value:", newValue);
+    onChange(newValue);
+  };
+
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
@@ -119,7 +113,7 @@ export function CategoryTagSelect({
           <SelectContent className="bg-white">
             <ScrollArea className="max-h-[200px]">
               {tags.map((tag) => (
-                <SelectItem key={tag.id} value={tag.id} className="hover:bg-gray-100">
+                <SelectItem key={tag.id} value={tag.id}>
                   {tag.name}
                 </SelectItem>
               ))}

@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -100,6 +99,10 @@ export function ItemDetailsSection({
     addContentMutation.mutate(newContentName);
   };
 
+  const updateTags = (newTags: string[]) => {
+    setSelectedTags(newTags);
+  };
+
   const handleTagChange = (category: string, value: string | null) => {
     const categoryMap = {
       character: 'characterTag',
@@ -109,18 +112,16 @@ export function ItemDetailsSection({
 
     const fieldName = categoryMap[category as keyof typeof categoryMap];
     
-    // 前の値を選択済みタグから除去
     const oldTag = formData[fieldName];
     const filteredTags = oldTag ? selectedTags.filter(tag => tag !== oldTag) : [...selectedTags];
     
-    // 新しい値があれば追加
     const newTags = value ? [...filteredTags, value] : filteredTags;
     
     setFormData({ 
       ...formData, 
       [fieldName]: value 
     });
-    setSelectedTags(newTags);
+    updateTags(newTags);
   };
 
   return (
