@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tag } from "@/types/tag";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -102,13 +103,14 @@ export function TagManageModal({
             tagId = newTag.id;
           }
 
-          const insertData = isUserItem 
-            ? { user_item_id: itemIds[0], tag_id: tagId }
-            : { official_item_id: itemIds[0], tag_id: tagId };
-
-          await supabase
+          const { error: insertError } = await supabase
             .from(isUserItem ? "user_item_tags" : "item_tags")
-            .insert(insertData);
+            .insert({
+              [isUserItem ? "user_item_id" : "official_item_id"]: itemIds[0],
+              tag_id: tagId
+            });
+
+          if (insertError) throw insertError;
         }
       }
 
@@ -147,7 +149,29 @@ export function TagManageModal({
             {title}
           </DialogTitle>
         </DialogHeader>
+        
         <ScrollArea className="flex-1 px-4 sm:px-6">
+          {/* 現在のタグのプレビュー */}
+          {currentTags.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm font-medium mb-2">現在のタグ:</h3>
+              <div className="flex flex-wrap gap-2">
+                {currentTags.map((tag) => (
+                  tag.tags && (
+                    <Badge key={tag.tag_id} variant="secondary" className="text-sm">
+                      {tag.tags.name}
+                      {tag.tags.category && (
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          ({tag.tags.category})
+                        </span>
+                      )}
+                    </Badge>
+                  )
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4 sm:space-y-6 py-4">
             <div className="space-y-3 sm:space-y-4">
               <CategoryTagSelect
@@ -181,14 +205,17 @@ export function TagManageModal({
                 onChange={handleTagChange("series")}
               />
 
-              {/* タグのプレビュー */}
+              {/* 選択したタグのプレビュー */}
               {pendingUpdates.length > 0 && (
                 <div className="mt-4">
-                  <h3 className="text-sm font-medium mb-2">選択したタグ:</h3>
+                  <h3 className="text-sm font-medium mb-2">追加するタグ:</h3>
                   <div className="flex flex-wrap gap-2">
                     {pendingUpdates.filter(update => update.value).map((update) => (
-                      <Badge key={update.category} variant="secondary">
+                      <Badge key={update.category} variant="outline">
                         {update.value}
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          ({update.category})
+                        </span>
                       </Badge>
                     ))}
                   </div>
@@ -197,6 +224,7 @@ export function TagManageModal({
             </div>
           </div>
         </ScrollArea>
+
         <div className="flex justify-end space-x-2 p-4 sm:p-6 border-t">
           <Button variant="outline" onClick={onClose} size="sm" className="h-8 sm:h-10">
             キャンセル
