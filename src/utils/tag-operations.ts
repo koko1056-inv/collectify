@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Tag {
@@ -7,10 +8,16 @@ export interface Tag {
   created_at: string;
 }
 
-export interface ItemTag {
+// タグの基本的な型定義
+export interface BaseTag {
   id: string;
   tag_id: string;
-  tags?: Tag | null;
+}
+
+// タグの詳細情報を含む型定義
+export interface ItemTag extends BaseTag {
+  tag_id: string;
+  tags: Tag | null;
 }
 
 export interface DeleteUserItemResult {
@@ -51,6 +58,7 @@ export async function addTagToItem(
     ? { user_item_id: itemId, tag_id: tagId }
     : { official_item_id: itemId, tag_id: tagId };
 
+  // UPSERTを使用して重複を防ぐ
   const { error } = await supabase
     .from(tableName)
     .upsert([insertData], {

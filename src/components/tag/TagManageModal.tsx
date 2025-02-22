@@ -1,7 +1,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getTagsForItem } from "@/utils/tag-operations";
+import { getTagsForItem, ItemTag } from "@/utils/tag-operations";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ export function TagManageModal({
     ? `${isCategory ? "カテゴリの管理" : "タグの管理"}${itemTitle ? `: ${itemTitle}` : ''}`
     : `${itemIds.length}個のアイテムのタグを管理`;
 
-  const { data: currentTags = [] } = useQuery({
+  const { data: currentTags = [] } = useQuery<ItemTag[]>({
     queryKey: ["current-tags", itemIds, isUserItem],
     queryFn: () => {
       if (!itemIds.length) return Promise.resolve([]);
@@ -97,13 +97,16 @@ export function TagManageModal({
             tagId = newTag.id;
           }
 
+          // UPSERTを使用して重複を防ぐ
           const insertData = isUserItem 
             ? { user_item_id: itemIds[0], tag_id: tagId }
             : { official_item_id: itemIds[0], tag_id: tagId };
 
           const { error: insertError } = await supabase
             .from(isUserItem ? "user_item_tags" : "item_tags")
-            .insert(insertData);
+            .upsert([insertData], {
+              onConflict: isUserItem ? 'user_item_id,tag_id' : 'official_item_id,tag_id'
+            });
 
           if (insertError) throw insertError;
         }
