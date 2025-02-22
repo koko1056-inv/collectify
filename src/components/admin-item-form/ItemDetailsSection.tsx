@@ -1,10 +1,11 @@
+
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { CategoryTagSelect } from "../tag/CategoryTagSelect";
 
 interface ItemDetailsSectionProps {
@@ -111,17 +112,16 @@ export function ItemDetailsSection({
     } as const;
 
     const fieldName = categoryMap[category as keyof typeof categoryMap];
-    
-    const oldTag = formData[fieldName];
-    const filteredTags = oldTag ? selectedTags.filter(tag => tag !== oldTag) : [...selectedTags];
-    
-    const newTags = value ? [...filteredTags, value] : filteredTags;
-    
     setFormData({ 
       ...formData, 
       [fieldName]: value 
     });
-    updateTags(newTags);
+    
+    // タグが選択された場合、既存のタグリストに追加
+    if (value) {
+      // 重複を気にせず追加
+      setSelectedTags([...selectedTags, value]);
+    }
   };
 
   return (
