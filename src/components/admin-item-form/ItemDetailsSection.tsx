@@ -1,12 +1,8 @@
 
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { CategoryTagSelect } from "../tag/CategoryTagSelect";
+import { TitleSection } from "./sections/TitleSection";
+import { ContentSection } from "./sections/ContentSection";
+import { ItemTypeSection } from "./sections/ItemTypeSection";
+import { TagsSection } from "./sections/TagsSection";
 
 interface ItemDetailsSectionProps {
   formData: {
@@ -29,81 +25,6 @@ export function ItemDetailsSection({
   selectedTags,
   setSelectedTags,
 }: ItemDetailsSectionProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isAddingNewContent, setIsAddingNewContent] = useState(false);
-  const [newContentName, setNewContentName] = useState("");
-
-  const { data: contentNames = [] } = useQuery({
-    queryKey: ["content-names"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_names")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const addContentMutation = useMutation({
-    mutationFn: async (name: string) => {
-      const { data, error } = await supabase
-        .from("content_names")
-        .insert([{ name, type: "other" }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["content-names"] });
-      setFormData({ ...formData, content_name: data.name });
-      setIsAddingNewContent(false);
-      setNewContentName("");
-      toast({
-        title: "コンテンツを追加しました",
-        description: `${data.name}を追加しました`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "エラー",
-        description: "コンテンツの追加に失敗しました",
-        variant: "destructive",
-      });
-      console.error("Error adding content:", error);
-    },
-  });
-
-  const handleContentChange = (value: string) => {
-    if (value === "other") {
-      setIsAddingNewContent(true);
-      setFormData({ ...formData, content_name: null });
-    } else if (value === "none") {
-      setFormData({ ...formData, content_name: null });
-    } else {
-      setFormData({ ...formData, content_name: value });
-    }
-  };
-
-  const handleAddNewContent = () => {
-    if (!newContentName.trim()) {
-      toast({
-        title: "エラー",
-        description: "コンテンツ名を入力してください",
-        variant: "destructive",
-      });
-      return;
-    }
-    addContentMutation.mutate(newContentName);
-  };
-
-  const updateTags = (newTags: string[]) => {
-    setSelectedTags(newTags);
-  };
-
   const handleTagChange = (category: string, value: string | null) => {
     const categoryMap = {
       character: 'characterTag',
@@ -117,136 +38,36 @@ export function ItemDetailsSection({
       [fieldName]: value 
     });
     
-    // タグが選択された場合、既存のタグリストに追加
     if (value) {
-      // 重複を気にせず追加
       setSelectedTags([...selectedTags, value]);
     }
   };
 
   return (
     <>
-      <div className="space-y-2">
-        <label htmlFor="title" className="text-sm font-medium">
-          タイトル
-        </label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) =>
-            setFormData({ ...formData, title: e.target.value })
-          }
-          required
-        />
-      </div>
+      <TitleSection
+        title={formData.title}
+        description={formData.description}
+        onTitleChange={(title) => setFormData({ ...formData, title })}
+        onDescriptionChange={(description) => setFormData({ ...formData, description })}
+      />
 
-      <div className="space-y-2">
-        <label htmlFor="description" className="text-sm font-medium">
-          説明
-        </label>
-        <Input
-          id="description"
-          value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
-        />
-      </div>
+      <ContentSection
+        contentName={formData.content_name}
+        onContentChange={(content_name) => setFormData({ ...formData, content_name })}
+      />
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">
-          コンテンツ
-        </label>
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-          {isAddingNewContent ? (
-            <div className="flex gap-2">
-              <Input
-                value={newContentName}
-                onChange={(e) => setNewContentName(e.target.value)}
-                placeholder="新しいコンテンツ名"
-              />
-              <Button 
-                onClick={handleAddNewContent}
-                disabled={addContentMutation.isPending}
-              >
-                {addContentMutation.isPending ? "追加中..." : "追加"}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setIsAddingNewContent(false);
-                  setNewContentName("");
-                }}
-              >
-                キャンセル
-              </Button>
-            </div>
-          ) : (
-            <Select
-              value={formData.content_name || "none"}
-              onValueChange={handleContentChange}
-            >
-              <SelectTrigger className="w-full bg-white">
-                <SelectValue placeholder="コンテンツを選択" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="none" className="hover:bg-gray-100">選択なし</SelectItem>
-                {contentNames.map((content) => (
-                  <SelectItem 
-                    key={content.id} 
-                    value={content.name}
-                    className="hover:bg-gray-100"
-                  >
-                    {content.name}
-                  </SelectItem>
-                ))}
-                <SelectItem value="other" className="hover:bg-gray-100">その他（新規追加）</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </div>
-      </div>
+      <ItemTypeSection
+        itemType={formData.item_type}
+        onItemTypeChange={(item_type) => setFormData({ ...formData, item_type })}
+      />
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">
-          商品タイプ
-        </label>
-        <Select
-          value={formData.item_type || "official"}
-          onValueChange={(value) => setFormData({ ...formData, item_type: value })}
-        >
-          <SelectTrigger className="w-full bg-white">
-            <SelectValue placeholder="商品タイプを選択" />
-          </SelectTrigger>
-          <SelectContent className="bg-white">
-            <SelectItem value="official" className="hover:bg-gray-100">公式グッズ</SelectItem>
-            <SelectItem value="original" className="hover:bg-gray-100">オリジナルグッズ</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-4">
-        <CategoryTagSelect
-          category="character"
-          label="キャラクター・人物名"
-          value={formData.characterTag}
-          onChange={(value) => handleTagChange('character', value)}
-        />
-
-        <CategoryTagSelect
-          category="type"
-          label="グッズタイプ"
-          value={formData.typeTag}
-          onChange={(value) => handleTagChange('type', value)}
-        />
-
-        <CategoryTagSelect
-          category="series"
-          label="グッズシリーズ"
-          value={formData.seriesTag}
-          onChange={(value) => handleTagChange('series', value)}
-        />
-      </div>
+      <TagsSection
+        characterTag={formData.characterTag}
+        typeTag={formData.typeTag}
+        seriesTag={formData.seriesTag}
+        onTagChange={handleTagChange}
+      />
     </>
   );
 }
