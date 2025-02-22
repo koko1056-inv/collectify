@@ -59,12 +59,10 @@ export function CategoryTagSelect({
     try {
       const { data: newTag, error } = await supabase
         .from("tags")
-        .insert([
-          {
-            name: newTagName.trim(),
-            category: category,
-          },
-        ])
+        .insert([{
+          name: newTagName.trim(),
+          category: category,  // カテゴリを明示的に設定
+        }])
         .select()
         .single();
 
