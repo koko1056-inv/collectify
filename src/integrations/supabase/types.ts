@@ -482,6 +482,9 @@ export type Database = {
       }
       official_items: {
         Row: {
+          anime: string | null
+          artist: string | null
+          content: string | null
           content_name: string | null
           created_at: string
           created_by: string | null
@@ -495,6 +498,9 @@ export type Database = {
           title: string
         }
         Insert: {
+          anime?: string | null
+          artist?: string | null
+          content?: string | null
           content_name?: string | null
           created_at?: string
           created_by?: string | null
@@ -508,6 +514,9 @@ export type Database = {
           title: string
         }
         Update: {
+          anime?: string | null
+          artist?: string | null
+          content?: string | null
           content_name?: string | null
           created_at?: string
           created_by?: string | null
