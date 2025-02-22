@@ -45,6 +45,29 @@ export function useItemSubmit({
     return true;
   };
 
+  const createOrGetTag = async (name: string, category: string | null = null) => {
+    // 既存のタグを検索
+    const { data: existingTag } = await supabase
+      .from("tags")
+      .select("id")
+      .eq("name", name)
+      .maybeSingle();
+
+    if (existingTag) {
+      return existingTag.id;
+    }
+
+    // タグが存在しない場合は新規作成
+    const { data: newTag, error: createError } = await supabase
+      .from("tags")
+      .insert([{ name, category }])
+      .select()
+      .single();
+
+    if (createError) throw createError;
+    return newTag.id;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -81,59 +104,32 @@ export function useItemSubmit({
         { name: seriesTag, category: 'series' }
       ].filter(tag => tag.name) as { name: string; category: string }[];
 
-      // すべてのタグをマージ（カテゴリータグと選択されたタグ）
-      // 重複を除去
-      const allTags = Array.from(new Set([
-        ...categoryTags.map(tag => JSON.stringify({ name: tag.name, category: tag.category })),
-        ...selectedTags.map(tag => JSON.stringify({ name: tag, category: null }))
-      ])).map(tagStr => JSON.parse(tagStr));
+      // カテゴリータグとselectedTagsを一意な配列にまとめる
+      const uniqueTags = new Set([
+        ...categoryTags.map(tag => tag.name),
+        ...selectedTags
+      ]);
 
-      // タグの処理
-      if (allTags.length > 0) {
-        for (const tag of allTags) {
-          if (!tag.name) continue;
+      // 各タグを処理
+      for (const tagName of uniqueTags) {
+        try {
+          // カテゴリータグかどうかを確認
+          const categoryTag = categoryTags.find(ct => ct.name === tagName);
+          const tagId = await createOrGetTag(tagName, categoryTag?.category || null);
 
-          try {
-            // 既存のタグを検索
-            const { data: existingTag } = await supabase
-              .from("tags")
-              .select("id")
-              .eq("name", tag.name)
-              .eq("category", tag.category)
-              .maybeSingle();
-
-            let tagId;
-            if (existingTag) {
-              tagId = existingTag.id;
-            } else {
-              // 新しいタグを作成
-              const { data: newTag, error: createError } = await supabase
-                .from("tags")
-                .insert([{
-                  name: tag.name,
-                  category: tag.category
-                }])
-                .select()
-                .single();
-
-              if (createError) throw createError;
-              tagId = newTag.id;
-            }
-
-            // アイテムとタグを関連付け
-            await supabase
-              .from("item_tags")
-              .upsert([{
-                official_item_id: itemData.id,
-                tag_id: tagId,
-              }], {
-                onConflict: 'official_item_id,tag_id'
-              });
-          } catch (error: any) {
-            console.error("Error processing tag:", error);
-            if (error.code !== '23505') { // 重複エラー以外はスロー
-              throw error;
-            }
+          // アイテムとタグを関連付け
+          await supabase
+            .from("item_tags")
+            .upsert([{
+              official_item_id: itemData.id,
+              tag_id: tagId,
+            }], {
+              onConflict: 'official_item_id,tag_id'
+            });
+        } catch (error: any) {
+          console.error("Error processing tag:", error);
+          if (error.code !== '23505') { // 重複エラー以外はスロー
+            throw error;
           }
         }
       }
