@@ -46,11 +46,14 @@ export function useItemSubmit({
   };
 
   const createOrGetTag = async (name: string, category: string | null = null) => {
+    if (!name) return null;
+
     // 既存のタグを検索
     const { data: existingTag } = await supabase
       .from("tags")
       .select("id")
       .eq("name", name)
+      .eq("category", category)
       .maybeSingle();
 
     if (existingTag) {
@@ -105,32 +108,26 @@ export function useItemSubmit({
       ].filter(tag => tag.name) as { name: string; category: string }[];
 
       // カテゴリータグとselectedTagsを一意な配列にまとめる
-      const uniqueTags = new Set([
-        ...categoryTags.map(tag => tag.name),
-        ...selectedTags
-      ]);
+      const uniqueTags = [...new Set([
+        ...categoryTags.map(tag => ({ name: tag.name, category: tag.category })),
+        ...selectedTags.map(tag => ({ name: tag, category: null }))
+      ])];
 
       // 各タグを処理
-      for (const tagName of uniqueTags) {
+      for (const tag of uniqueTags) {
         try {
-          // カテゴリータグかどうかを確認
-          const categoryTag = categoryTags.find(ct => ct.name === tagName);
-          const tagId = await createOrGetTag(tagName, categoryTag?.category || null);
-
-          // アイテムとタグを関連付け
-          await supabase
-            .from("item_tags")
-            .upsert([{
-              official_item_id: itemData.id,
-              tag_id: tagId,
-            }], {
-              onConflict: 'official_item_id,tag_id'
-            });
-        } catch (error: any) {
-          console.error("Error processing tag:", error);
-          if (error.code !== '23505') { // 重複エラー以外はスロー
-            throw error;
+          const tagId = await createOrGetTag(tag.name, tag.category);
+          if (tagId) {
+            // アイテムとタグを関連付け
+            await supabase
+              .from("item_tags")
+              .insert([{
+                official_item_id: itemData.id,
+                tag_id: tagId,
+              }]);
           }
+        } catch (error) {
+          console.error("Error processing tag:", error);
         }
       }
 

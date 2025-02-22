@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Tag {
@@ -7,15 +8,10 @@ export interface Tag {
   created_at: string;
 }
 
-export interface ItemTag {
+export interface ItemTagData {
   id: string;
   tag_id: string;
-  tags?: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at: string;
-  } | null;
+  tags: Tag | null;
 }
 
 export interface DeleteUserItemResult {
@@ -23,7 +19,7 @@ export interface DeleteUserItemResult {
   officialItemId?: string;
 }
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
+export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTagData[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
@@ -51,19 +47,27 @@ export async function addTagToItem(
   isUserItem: boolean = false
 ): Promise<void> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
+  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
   
   const insertData = isUserItem 
     ? { user_item_id: itemId, tag_id: tagId }
     : { official_item_id: itemId, tag_id: tagId };
 
-  // UPSERTを使用して重複を防ぐ
-  const { error } = await supabase
+  // まず既存のタグをチェック
+  const { data: existingTag } = await supabase
     .from(tableName)
-    .upsert([insertData], {
-      onConflict: isUserItem ? 'user_item_id,tag_id' : 'official_item_id,tag_id'
-    });
+    .select()
+    .eq(idColumn, itemId)
+    .eq("tag_id", tagId)
+    .maybeSingle();
 
-  if (error) throw error;
+  if (!existingTag) {
+    const { error } = await supabase
+      .from(tableName)
+      .insert([insertData]);
+
+    if (error) throw error;
+  }
 }
 
 export async function removeTagFromItem(
@@ -88,7 +92,6 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
     const { data: userItem, error: fetchError } = await supabase
       .from("user_items")
       .select("official_item_id")
-      .eq("id", itemId)
       .single();
 
     if (fetchError) throw fetchError;
