@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-interface Tag {
+export interface Tag {
   id: string;
   name: string;
   category: string | null;
@@ -11,15 +11,10 @@ interface Tag {
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tags: Tag | null;
+  tags?: Tag;
 }
 
-export interface DeleteUserItemResult {
-  error: Error | null;
-  officialItemId?: string;
-}
-
-export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
+export const getTagsForItem = async (itemId: string, isUserItem: boolean): Promise<ItemTag[]> => {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
@@ -28,95 +23,55 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean): Promi
     .select(`
       id,
       tag_id,
-      tags (
-        id,
-        name,
-        category,
-        created_at
-      )
+      tags:tags(*)
     `)
     .eq(idColumn, itemId);
 
   if (error) throw error;
   return data || [];
-}
+};
 
-export async function addTagToItem(
+export const addTagToItem = async (
   itemId: string,
   tagId: string,
-  isUserItem: boolean = false
-): Promise<void> {
+  isUserItem: boolean
+): Promise<void> => {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
-  
-  const insertData = isUserItem 
-    ? { user_item_id: itemId, tag_id: tagId }
-    : { official_item_id: itemId, tag_id: tagId };
+  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
   const { error } = await supabase
     .from(tableName)
-    .upsert([insertData], {
-      onConflict: isUserItem ? 'user_item_id,tag_id' : 'official_item_id,tag_id'
-    });
+    .insert([{ [idColumn]: itemId, tag_id: tagId }]);
 
   if (error) throw error;
-}
+};
 
-export async function removeTagFromItem(
-  tagId: string,
+export const removeTagFromItem = async (
   itemId: string,
-  isUserItem: boolean = false
-): Promise<void> {
+  tagId: string,
+  isUserItem: boolean
+): Promise<void> => {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
   const { error } = await supabase
     .from(tableName)
     .delete()
-    .eq("tag_id", tagId)
-    .eq(idColumn, itemId);
+    .eq(idColumn, itemId)
+    .eq("tag_id", tagId);
 
   if (error) throw error;
-}
+};
 
-export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResult> {
+export const deleteUserItem = async (userItemId: string): Promise<{ error: Error | null }> => {
   try {
-    const { data: userItem, error: fetchError } = await supabase
-      .from("user_items")
-      .select("official_item_id")
-      .eq("id", itemId)
-      .single();
-
-    if (fetchError) throw fetchError;
-
-    await Promise.all([
-      supabase
-        .from("trade_requests")
-        .delete()
-        .or(`requested_item_id.eq.${itemId},offered_item_id.eq.${itemId}`),
-      supabase
-        .from("user_item_likes")
-        .delete()
-        .eq("user_item_id", itemId),
-      supabase
-        .from("item_memories")
-        .delete()
-        .eq("user_item_id", itemId),
-      supabase
-        .from("user_item_tags")
-        .delete()
-        .eq("user_item_id", itemId)
-    ]);
-
-    const { error: deleteError } = await supabase
+    const { error } = await supabase
       .from("user_items")
       .delete()
-      .eq("id", itemId);
+      .eq("id", userItemId);
 
-    if (deleteError) throw deleteError;
-
-    return { error: null, officialItemId: userItem?.official_item_id };
+    return { error: error as Error | null };
   } catch (error) {
-    console.error("Error deleting user item:", error);
     return { error: error as Error };
   }
-}
+};
