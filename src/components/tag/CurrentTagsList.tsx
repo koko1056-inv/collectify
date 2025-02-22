@@ -17,11 +17,6 @@ export function CurrentTagsList({ currentTags }: CurrentTagsListProps) {
           tag.tags && (
             <Badge key={tag.tag_id} variant="secondary" className="text-sm">
               {tag.tags.name}
-              {tag.tags.category && (
-                <span className="ml-1 text-xs text-muted-foreground">
-                  ({tag.tags.category})
-                </span>
-              )}
             </Badge>
           )
         ))}
