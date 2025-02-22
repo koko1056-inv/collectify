@@ -97,16 +97,14 @@ export function TagManageModal({
             tagId = newTag.id;
           }
 
-          // UPSERTを使用して重複を防ぐ
+          // タグの関連付け
           const insertData = isUserItem 
             ? { user_item_id: itemIds[0], tag_id: tagId }
             : { official_item_id: itemIds[0], tag_id: tagId };
 
           const { error: insertError } = await supabase
             .from(isUserItem ? "user_item_tags" : "item_tags")
-            .upsert([insertData], {
-              onConflict: isUserItem ? 'user_item_id,tag_id' : 'official_item_id,tag_id'
-            });
+            .insert([insertData]);
 
           if (insertError) throw insertError;
         }

@@ -8,7 +8,7 @@ export interface Tag {
   created_at: string;
 }
 
-export interface ItemTagData {
+export interface ItemTag {
   id: string;
   tag_id: string;
   tags: Tag | null;
@@ -19,7 +19,7 @@ export interface DeleteUserItemResult {
   officialItemId?: string;
 }
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTagData[]> {
+export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 
@@ -92,6 +92,7 @@ export async function deleteUserItem(itemId: string): Promise<DeleteUserItemResu
     const { data: userItem, error: fetchError } = await supabase
       .from("user_items")
       .select("official_item_id")
+      .eq("id", itemId)
       .single();
 
     if (fetchError) throw fetchError;
