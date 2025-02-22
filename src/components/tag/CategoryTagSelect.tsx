@@ -57,27 +57,48 @@ export function CategoryTagSelect({
     }
 
     try {
+      // 既存のタグをチェック
+      const { data: existingTag } = await supabase
+        .from("tags")
+        .select("id, name")
+        .eq("name", newTagName.trim())
+        .eq("category", category)
+        .maybeSingle();
+
+      if (existingTag) {
+        onChange(existingTag.name);
+        setNewTagName("");
+        setIsDialogOpen(false);
+        toast({
+          title: "既存のタグを選択しました",
+          description: `${newTagName}は既に存在します。`,
+        });
+        return;
+      }
+
+      // 新しいタグを追加
       const { data: newTag, error } = await supabase
         .from("tags")
         .insert([{
           name: newTagName.trim(),
-          category: category,  // カテゴリを明示的に設定
+          category: category,
         }])
         .select()
         .single();
 
-      if (error) throw error;
-
-      toast({
-        title: "タグを追加しました",
-        description: `${newTagName}を追加しました。`,
-      });
-
-      await queryClient.invalidateQueries({ queryKey: ["tags", category] });
+      if (error) {
+        throw error;
+      }
 
       if (newTag) {
         onChange(newTag.name);
+        await queryClient.invalidateQueries({ queryKey: ["tags", category] });
+        toast({
+          title: "タグを追加しました",
+          description: `${newTagName}を追加しました。`,
+        });
       }
+
       setNewTagName("");
       setIsDialogOpen(false);
     } catch (error) {

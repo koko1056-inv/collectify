@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Tag {
@@ -8,16 +7,15 @@ export interface Tag {
   created_at: string;
 }
 
-// タグの基本的な型定義
-export interface BaseTag {
+export interface ItemTag {
   id: string;
   tag_id: string;
-}
-
-// タグの詳細情報を含む型定義
-export interface ItemTag extends BaseTag {
-  tag_id: string;
-  tags: Tag | null;
+  tags?: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at: string;
+  } | null;
 }
 
 export interface DeleteUserItemResult {
