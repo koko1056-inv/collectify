@@ -6,15 +6,19 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { trackLogin, trackLogout } from '@/utils/analytics';
 
-type AuthContextType = {
+interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-};
+}
 
 const AuthContext = createContext<AuthContextType>({ user: null, session: null, loading: true });
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
