@@ -68,7 +68,11 @@ const Index = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as OfficialItem[];
+      return data.map(item => ({
+        ...item,
+        artist: null,
+        anime: null
+      })) as OfficialItem[];
     },
   });
 

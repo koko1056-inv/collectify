@@ -11,6 +11,8 @@ export interface OfficialItem {
   artist: string | null;
   anime: string | null;
   content_name?: string | null;
+  quantity?: number;
+  item_type?: string;
   item_tags?: Array<{
     tags: {
       id: string;
