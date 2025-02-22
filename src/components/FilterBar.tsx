@@ -66,7 +66,7 @@ export function FilterBar({
         tags={tags}
       />
 
-      <div className="max-w-xl mx-auto space-y-2">
+      <div className="w-full max-w-3xl mx-auto">
         <Button
           variant="outline"
           onClick={() => setIsDialogOpen(true)}
@@ -76,7 +76,7 @@ export function FilterBar({
           <ChevronDown className="h-3 w-3 opacity-50" />
         </Button>
 
-        <ScrollArea className="w-full whitespace-nowrap">
+        <ScrollArea className="w-full whitespace-nowrap mt-2">
           <div className="flex gap-1.5 pb-2">
             <Button
               key="all"
