@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import { ShoppingBasket, Users } from "lucide-react";
@@ -50,16 +51,16 @@ export function OfficialGoodsCardFooter({
     },
   });
 
-  const { data: wishlistsCount = 0 } = useQuery({
-    queryKey: ["item-wishlists-count", itemId],
+  const { data: tagCount = 0 } = useQuery({
+    queryKey: ["item-tags-count", itemId],
     queryFn: async () => {
       const { count, error } = await supabase
-        .from("wishlists")
+        .from("item_tags")
         .select("*", { count: 'exact', head: true })
         .eq("official_item_id", itemId);
       
       if (error) {
-        console.error("Error getting wishlists count:", error);
+        console.error("Error getting tag count:", error);
         return 0;
       }
       
@@ -68,8 +69,8 @@ export function OfficialGoodsCardFooter({
   });
 
   useEffect(() => {
-    setRealtimeWishlistCount(wishlistsCount);
-  }, [wishlistsCount]);
+    setRealtimeWishlistCount(wishlistCount);
+  }, [wishlistCount]);
 
   useEffect(() => {
     const channel = supabase
@@ -103,28 +104,11 @@ export function OfficialGoodsCardFooter({
     };
   }, [itemId]);
 
-  const { data: tagCount = 0 } = useQuery({
-    queryKey: ["item-tags-count", itemId],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("item_tags")
-        .select("*", { count: 'exact', head: true })
-        .eq("official_item_id", itemId);
-      
-      if (error) {
-        console.error("Error getting tag count:", error);
-        return 0;
-      }
-      
-      return count || 0;
-    },
-  });
-
   return (
     <>
       <CardFooter className="p-1 sm:p-4 pt-0 flex flex-col gap-1 sm:gap-2">
         <div className="flex justify-end gap-1 sm:gap-2">
-          <TagButton onClick={onTagManageClick} tagCount={tagCount} />
+          <TagButton onClick={onTagManageClick} tagCount={tagCount} itemId={itemId} />
           <div className="flex flex-col items-center">
             <Button 
               variant="outline" 
