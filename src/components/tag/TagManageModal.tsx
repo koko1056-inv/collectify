@@ -2,13 +2,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTagsForItem } from "@/utils/tag-operations";
-import type { ItemTag } from "@/types/tag";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { CategoryTagSelect } from "./CategoryTagSelect";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -74,9 +74,37 @@ export function TagManageModal({
 
         // 新しいタグを追加
         if (update.value) {
+          // まず、タグが存在するか確認
+          const { data: existingTag, error: tagError } = await supabase
+            .from("tags")
+            .select("id")
+            .eq("name", update.value)
+            .eq("category", update.category)
+            .maybeSingle();
+
+          if (tagError) throw tagError;
+
+          let tagId;
+          if (existingTag) {
+            tagId = existingTag.id;
+          } else {
+            // 新しいタグを作成
+            const { data: newTag, error: createError } = await supabase
+              .from("tags")
+              .insert([{
+                name: update.value,
+                category: update.category
+              }])
+              .select()
+              .single();
+
+            if (createError) throw createError;
+            tagId = newTag.id;
+          }
+
           const insertData = isUserItem 
-            ? { user_item_id: itemIds[0], tag_id: update.value }
-            : { official_item_id: itemIds[0], tag_id: update.value };
+            ? { user_item_id: itemIds[0], tag_id: tagId }
+            : { official_item_id: itemIds[0], tag_id: tagId };
 
           await supabase
             .from(isUserItem ? "user_item_tags" : "item_tags")
@@ -125,21 +153,47 @@ export function TagManageModal({
               <CategoryTagSelect
                 category="character"
                 label="キャラクター・人物名"
-                value={currentTags.find(tag => tag.tags?.category === 'character')?.tag_id || null}
+                value={
+                  pendingUpdates.find(u => u.category === 'character')?.value ||
+                  currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name ||
+                  null
+                }
                 onChange={handleTagChange("character")}
               />
               <CategoryTagSelect
                 category="type"
                 label="グッズタイプ"
-                value={currentTags.find(tag => tag.tags?.category === 'type')?.tag_id || null}
+                value={
+                  pendingUpdates.find(u => u.category === 'type')?.value ||
+                  currentTags.find(tag => tag.tags?.category === 'type')?.tags?.name ||
+                  null
+                }
                 onChange={handleTagChange("type")}
               />
               <CategoryTagSelect
                 category="series"
                 label="グッズシリーズ"
-                value={currentTags.find(tag => tag.tags?.category === 'series')?.tag_id || null}
+                value={
+                  pendingUpdates.find(u => u.category === 'series')?.value ||
+                  currentTags.find(tag => tag.tags?.category === 'series')?.tags?.name ||
+                  null
+                }
                 onChange={handleTagChange("series")}
               />
+
+              {/* タグのプレビュー */}
+              {pendingUpdates.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-sm font-medium mb-2">選択したタグ:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {pendingUpdates.filter(update => update.value).map((update) => (
+                      <Badge key={update.category} variant="secondary">
+                        {update.value}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </ScrollArea>
