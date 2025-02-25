@@ -170,7 +170,6 @@ const Index = () => {
             <InitialInterestSelection
               isOpen={showInterestDialog}
               onClose={handleInterestDialogClose}
-              tags={allTags}
             />
           )}
         </div>

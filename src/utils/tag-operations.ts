@@ -1,12 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-
-export interface Tag {
-  id: string;
-  name: string;
-  category?: string;
-  created_at: string;
-}
+import { Tag } from "@/types/tag";
 
 export interface ItemTag {
   id: string;
@@ -58,7 +52,6 @@ export async function addTagToItem(
     ? { user_item_id: itemId, tag_id: tagId }
     : { official_item_id: itemId, tag_id: tagId };
 
-  // まず既存のタグをチェック
   const { data: existingTag } = await supabase
     .from(tableName)
     .select()
