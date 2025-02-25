@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -6,31 +7,43 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "lucide-react";
+import { CategoryTagSelect } from "@/components/tag/CategoryTagSelect";
 
 interface Profile {
   id: string;
   username: string;
   avatar_url?: string | null;
+  favorite_tags?: string[];
 }
 
 export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [username, setUsername] = useState("");
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Profile[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (username.trim().length < 1) {
+      if (!username.trim() && !selectedTag) {
         setSuggestions([]);
         return;
       }
 
-      const { data: profiles, error } = await supabase
+      let query = supabase
         .from("profiles")
-        .select("id, username, avatar_url")
-        .ilike("username", `%${username}%`)
+        .select("id, username, avatar_url, favorite_tags")
         .limit(5);
+
+      if (username.trim()) {
+        query = query.ilike("username", `%${username}%`);
+      }
+
+      if (selectedTag) {
+        query = query.contains('favorite_tags', [selectedTag]);
+      }
+
+      const { data: profiles, error } = await query;
 
       if (error) {
         console.error("Error fetching suggestions:", error);
@@ -42,43 +55,13 @@ export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose:
 
     const timer = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(timer);
-  }, [username]);
+  }, [username, selectedTag]);
 
   const handleSelectUser = (profile: Profile) => {
     navigate(`/user/${profile.id}`);
     onClose();
     setUsername("");
-    setSuggestions([]);
-  };
-
-  const handleSearch = async () => {
-    if (!username.trim()) {
-      toast({
-        title: "エラー",
-        description: "ユーザー名を入力してください",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("id, username")
-      .eq("username", username)
-      .maybeSingle();
-
-    if (error || !profile) {
-      toast({
-        title: "エラー",
-        description: "ユーザーが見つかりませんでした",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    navigate(`/user/${profile.id}`);
-    onClose();
-    setUsername("");
+    setSelectedTag(null);
     setSuggestions([]);
   };
 
@@ -96,6 +79,12 @@ export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose:
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
+          <CategoryTagSelect
+            category="character"
+            label="推しキャラで検索"
+            value={selectedTag}
+            onChange={setSelectedTag}
+          />
           {suggestions.length > 0 && (
             <div className="space-y-2">
               {suggestions.map((profile) => (
@@ -115,15 +104,17 @@ export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                       <User className="h-5 w-5 text-muted-foreground" />
                     )}
                   </div>
-                  <span className="flex-1 text-left">{profile.username}</span>
+                  <div className="flex-1 text-left">
+                    <div>{profile.username}</div>
+                    {profile.favorite_tags && profile.favorite_tags.length > 0 && (
+                      <div className="text-sm text-muted-foreground">
+                        推し: {profile.favorite_tags.join(", ")}
+                      </div>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
-          )}
-          {username && suggestions.length === 0 && (
-            <Button onClick={handleSearch} className="w-full">
-              「{username}」を検索
-            </Button>
           )}
         </div>
       </DialogContent>
