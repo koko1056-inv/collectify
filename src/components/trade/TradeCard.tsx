@@ -5,11 +5,13 @@ import { TradeRequest } from "./types";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Truck, Clock, CheckCircle } from "lucide-react";
 
 interface TradeCardProps {
   trade: TradeRequest;
   isPending?: boolean;
   isCompleted?: boolean;
+  showShippingStatus?: boolean;
   onAccept?: (tradeId: string) => void;
   onReject?: (tradeId: string) => void;
   onOpenChat?: (trade: TradeRequest) => void;
@@ -19,6 +21,7 @@ export function TradeCard({
   trade, 
   isPending, 
   isCompleted,
+  showShippingStatus,
   onAccept, 
   onReject, 
   onOpenChat 
@@ -70,19 +73,44 @@ export function TradeCard({
     };
   };
 
-  // Get the trade partner based on the current user
   const tradePartner = user?.id === trade.sender.id ? trade.receiver : trade.sender;
   const tradePartnerName = tradePartner?.display_name || tradePartner?.username || "";
 
+  const renderShippingStatus = () => {
+    if (!showShippingStatus) return null;
+
+    switch (trade.shipping_status) {
+      case 'not_shipped':
+        return (
+          <div className="flex items-center gap-1 text-yellow-600">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm">郵送手続き待ち</span>
+          </div>
+        );
+      case 'shipped':
+        return (
+          <div className="flex items-center gap-1 text-blue-600">
+            <Truck className="h-4 w-4" />
+            <span className="text-sm">発送済み - 到着待ち</span>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="border rounded-lg p-4 space-y-3">
-      <div className="flex items-center gap-2">
-        <span className="font-medium">
-          {tradePartnerName}
-        </span>
-        <span className="text-sm text-gray-500">
-          {isPending ? "からのリクエスト" : isCompleted ? "とのトレード（完了）" : "とのトレード"}
-        </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">
+            {tradePartnerName}
+          </span>
+          <span className="text-sm text-gray-500">
+            {isPending ? "からのリクエスト" : isCompleted ? "とのトレード（完了）" : "とのトレード"}
+          </span>
+        </div>
+        {renderShippingStatus()}
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">

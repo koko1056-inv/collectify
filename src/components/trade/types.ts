@@ -23,4 +23,5 @@ export interface TradeRequest {
   };
   message: string | null;
   status: string;
+  shipping_status: 'not_shipped' | 'shipped' | 'completed';
 }
