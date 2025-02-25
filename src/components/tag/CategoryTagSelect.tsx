@@ -30,7 +30,7 @@ export function CategoryTagSelect({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: tags = [] } = useQuery<Tag[]>({
+  const { data: tags = [], refetch } = useQuery<Tag[]>({
     queryKey: ["tags", category],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -40,7 +40,7 @@ export function CategoryTagSelect({
         .order("name");
 
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
@@ -84,7 +84,10 @@ export function CategoryTagSelect({
 
       if (newTag) {
         onChange(newTag.name);
+        // キャッシュを即座に更新
         await queryClient.invalidateQueries({ queryKey: ["tags", category] });
+        await refetch(); // 即座にデータを再取得
+        
         toast({
           title: "タグを追加しました",
           description: `${newTagName}を追加しました。`,
