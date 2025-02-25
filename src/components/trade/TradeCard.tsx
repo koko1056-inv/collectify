@@ -15,6 +15,7 @@ interface TradeCardProps {
   onAccept?: (tradeId: string) => void;
   onReject?: (tradeId: string) => void;
   onOpenChat?: (trade: TradeRequest) => void;
+  onComplete?: (trade: TradeRequest) => void;
 }
 
 export function TradeCard({ 
@@ -24,7 +25,8 @@ export function TradeCard({
   showShippingStatus,
   onAccept, 
   onReject, 
-  onOpenChat 
+  onOpenChat,
+  onComplete 
 }: TradeCardProps) {
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
@@ -152,17 +154,29 @@ export function TradeCard({
           </Button>
         </div>
       ) : !isCompleted && (
-        <Button
-          className="w-full relative"
-          onClick={() => onOpenChat?.(trade)}
-        >
-          チャットを開く
-          {unreadCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {unreadCount}
-            </span>
+        <div className="flex flex-col gap-2">
+          <Button
+            className="w-full relative"
+            onClick={() => onOpenChat?.(trade)}
+          >
+            チャットを開く
+            {unreadCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </Button>
+          {trade.shipping_status === 'shipped' && (
+            <Button
+              variant="secondary"
+              className="w-full"
+              onClick={() => onComplete?.(trade)}
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              トレードを完了する
+            </Button>
           )}
-        </Button>
+        </div>
       )}
     </div>
   );

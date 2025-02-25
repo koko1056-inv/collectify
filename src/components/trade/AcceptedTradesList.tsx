@@ -4,6 +4,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { TradeRequest } from "./types";
 import { TradeCard } from "./TradeCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AcceptedTradesListProps {
   trades: TradeRequest[];
@@ -12,10 +14,36 @@ interface AcceptedTradesListProps {
 
 export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   
-  // 郵送ステータスで取引を分類
   const notShippedTrades = trades.filter(trade => trade.shipping_status === 'not_shipped');
   const shippedTrades = trades.filter(trade => trade.shipping_status === 'shipped');
+
+  const handleComplete = async (trade: TradeRequest) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("trade_requests")
+      .update({ 
+        status: 'completed',
+        shipping_status: 'completed'
+      })
+      .eq("id", trade.id);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "エラー",
+        description: "トレードの完了に失敗しました。",
+      });
+      return;
+    }
+
+    toast({
+      title: "トレード完了",
+      description: "トレードが完了しました。お疲れ様でした！",
+    });
+  };
 
   return (
     <ScrollArea className="h-[calc(90vh-180px)]">
@@ -46,6 +74,7 @@ export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListPro
                     key={trade.id}
                     trade={trade}
                     onOpenChat={onOpenChat}
+                    onComplete={handleComplete}
                     showShippingStatus
                   />
                 ))}
