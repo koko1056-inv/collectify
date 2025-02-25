@@ -1,116 +1,146 @@
 
-import { Button } from "@/components/ui/button";
-import { PublicCollectionGoodsCard } from "@/components/public-collection/PublicCollectionGoodsCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X } from "lucide-react";
+import { CategoryTagSelect } from "@/components/tag/CategoryTagSelect";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface ProfileFavoritesProps {
-  userId?: string;
-  isEditing: boolean;
-  onEditComplete: () => void;
+  userId: string;
+  isOwnProfile: boolean;
 }
 
-export function ProfileFavorites({
-  userId,
-  isEditing,
-  onEditComplete,
-}: ProfileFavoritesProps) {
+export function ProfileFavorites({ userId, isOwnProfile }: ProfileFavoritesProps) {
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-  const { data: userItems = [], isError } = useQuery({
-    queryKey: ["user-items", userId],
+  const { data: profile } = useQuery({
+    queryKey: ["profile", userId],
     queryFn: async () => {
-      if (!userId) return [];
-      
       const { data, error } = await supabase
-        .from("user_items")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+        .from("profiles")
+        .select("favorite_tags")
+        .eq("id", userId)
+        .single();
 
       if (error) throw error;
       return data;
     },
   });
 
-  const handleSaveSelection = async () => {
+  useEffect(() => {
+    if (profile?.favorite_tags) {
+      setSelectedTags(profile.favorite_tags);
+    }
+  }, [profile]);
+
+  const handleTagChange = (value: string | null) => {
+    if (!value) return;
+    if (!selectedTags.includes(value)) {
+      setSelectedTags([...selectedTags, value]);
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setSelectedTags(selectedTags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleSave = async () => {
     try {
-      const { error: updateError } = await supabase
+      const { error } = await supabase
         .from("profiles")
-        .update({ favorite_item_ids: selectedItems })
+        .update({ favorite_tags: selectedTags })
         .eq("id", userId);
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+
       toast({
-        title: "更新完了",
-        description: "お気に入りコレクションを更新しました",
+        title: "保存しました",
+        description: "お気に入りコンテンツを更新しました。",
       });
-      onEditComplete();
     } catch (error) {
-      console.error("Error updating favorites:", error);
+      console.error("Error saving favorite tags:", error);
       toast({
         title: "エラー",
-        description: "お気に入りコレクションの更新に失敗しました",
+        description: "保存に失敗しました。",
         variant: "destructive",
       });
     }
   };
 
-  if (isError) {
-    return <div className="text-center py-4">データの取得に失敗しました</div>;
-  }
+  const { data: selectedTagDetails = [] } = useQuery({
+    queryKey: ["selected-tags", selectedTags],
+    queryFn: async () => {
+      if (!selectedTags.length) return [];
+      const { data, error } = await supabase
+        .from("tags")
+        .select("*")
+        .in("name", selectedTags);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: selectedTags.length > 0,
+  });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between px-1">
-        <h2 className="text-lg font-semibold">コレクション一覧</h2>
-        {isEditing && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSaveSelection}
-              className="gap-1"
-            >
-              <Check className="h-4 w-4" />
-              保存
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onEditComplete}
-              className="gap-1"
-            >
-              <X className="h-4 w-4" />
-              キャンセル
+    <Card>
+      <CardHeader>
+        <CardTitle>推しコンテンツ</CardTitle>
+        <CardDescription>お気に入りのコンテンツを追加しましょう</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isOwnProfile && (
+          <div className="space-y-4">
+            <CategoryTagSelect
+              category="character"
+              label="キャラクター"
+              value={null}
+              onChange={handleTagChange}
+            />
+            <div className="flex flex-wrap gap-2 mt-2">
+              {selectedTagDetails
+                .filter(tag => tag.category === "character")
+                .map((tag) => (
+                  <div
+                    key={tag.id}
+                    className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full"
+                  >
+                    <span>{tag.name}</span>
+                    {isOwnProfile && (
+                      <button
+                        onClick={() => handleRemoveTag(tag.name)}
+                        className="hover:text-destructive"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+            </div>
+            <Button onClick={handleSave} className="w-full">
+              保存する
             </Button>
           </div>
         )}
-      </div>
-      {userItems.length === 0 ? (
-        <div className="text-center py-4 text-gray-500">
-          まだコレクションがありません
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
-          {userItems.map((item) => (
-            <PublicCollectionGoodsCard
-              key={item.id}
-              id={item.id}
-              title={item.title}
-              image={item.image}
-              userId={userId}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+        {!isOwnProfile && selectedTagDetails.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {selectedTagDetails.map((tag) => (
+              <div
+                key={tag.id}
+                className="bg-primary/10 text-primary px-3 py-1 rounded-full"
+              >
+                {tag.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
