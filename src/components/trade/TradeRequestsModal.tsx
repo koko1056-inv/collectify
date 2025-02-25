@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +46,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
         id,
         message,
         status,
+        shipping_status,
         sender:profiles!trade_requests_sender_id_fkey(
           id,
           username,
@@ -77,7 +77,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
       return;
     }
 
-    setCompletedTrades(data);
+    setCompletedTrades(data as TradeRequest[]);
   };
 
   const fetchAcceptedTrades = async () => {
@@ -89,6 +89,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
         id,
         message,
         status,
+        shipping_status,
         sender:profiles!trade_requests_sender_id_fkey(
           id,
           username,
@@ -119,7 +120,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
       return;
     }
 
-    setAcceptedTrades(data);
+    setAcceptedTrades(data as TradeRequest[]);
   };
 
   const fetchTradeRequests = async () => {
@@ -131,6 +132,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
         id,
         message,
         status,
+        shipping_status,
         sender:profiles!trade_requests_sender_id_fkey(
           id,
           username,
@@ -161,7 +163,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
       return;
     }
 
-    setTradeRequests(tradeRequestsData);
+    setTradeRequests(tradeRequestsData as TradeRequest[]);
   };
 
   const handleTradeResponse = async (tradeId: string, accept: boolean) => {

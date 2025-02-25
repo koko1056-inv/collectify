@@ -782,6 +782,7 @@ export type Database = {
           receiver_id: string
           requested_item_id: string
           sender_id: string
+          shipping_status: string | null
           status: string
         }
         Insert: {
@@ -792,6 +793,7 @@ export type Database = {
           receiver_id: string
           requested_item_id: string
           sender_id: string
+          shipping_status?: string | null
           status?: string
         }
         Update: {
@@ -802,6 +804,7 @@ export type Database = {
           receiver_id?: string
           requested_item_id?: string
           sender_id?: string
+          shipping_status?: string | null
           status?: string
         }
         Relationships: [

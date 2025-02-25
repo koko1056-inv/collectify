@@ -169,29 +169,30 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
   const handleShippingComplete = async () => {
     if (!tradeRequestId) return;
 
-    try {
-      const { error } = await supabase
-        .from("trade_requests")
-        .update({ shipping_status: 'shipped' })
-        .eq("id", tradeRequestId);
+    const { error } = await supabase
+      .from("trade_requests")
+      .update({ 
+        shipping_status: 'shipped',
+        status: 'accepted' // statusも更新して整合性を保つ
+      })
+      .eq("id", tradeRequestId);
 
-      if (error) throw error;
-
-      toast({
-        title: "発送完了",
-        description: "発送状態を更新しました。",
-      });
-
-      setIsShippingConfirmOpen(false);
-      setStep('complete');
-    } catch (error) {
-      console.error("Error updating shipping status:", error);
+    if (error) {
       toast({
         variant: "destructive",
         title: "エラー",
         description: "発送状態の更新に失敗しました。",
       });
+      return;
     }
+
+    toast({
+      title: "発送完了",
+      description: "発送状態を更新しました。",
+    });
+
+    setIsShippingConfirmOpen(false);
+    setStep('complete');
   };
 
   const handleComplete = async () => {
@@ -348,7 +349,7 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmShipping}>
+            <AlertDialogAction onClick={handleShippingComplete}>
               発送完了
             </AlertDialogAction>
           </AlertDialogFooter>
