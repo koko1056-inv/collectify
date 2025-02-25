@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Tag } from "@/types/tag";
+import type { Tag } from "@/types/tag";
 
 interface CategoryTagSelectProps {
   category: string;
@@ -28,8 +28,8 @@ export function CategoryTagSelect({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // カテゴリーに基づいてタグを取得
   const { data: tags = [] } = useQuery<Tag[]>({
     queryKey: ["tags", category],
     queryFn: async () => {
@@ -40,12 +40,9 @@ export function CategoryTagSelect({
         .order("name");
 
       if (error) throw error;
-      return data || [];
+      return data;
     },
   });
-
-  // 選択されているタグを探す
-  const selectedTag = tags.find(tag => tag.name === value);
 
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) {
@@ -64,16 +61,12 @@ export function CategoryTagSelect({
         .select("*")
         .eq("name", newTagName.trim())
         .eq("category", category)
-        .maybeSingle();
+        .single();
 
       if (existingTag) {
         onChange(existingTag.name);
         setNewTagName("");
         setIsDialogOpen(false);
-        toast({
-          title: "既存のタグを選択しました",
-          description: `${newTagName}は既に存在します。`,
-        });
         return;
       }
 
@@ -91,6 +84,7 @@ export function CategoryTagSelect({
 
       if (newTag) {
         onChange(newTag.name);
+        await queryClient.invalidateQueries({ queryKey: ["tags", category] });
         toast({
           title: "タグを追加しました",
           description: `${newTagName}を追加しました。`,
@@ -124,11 +118,14 @@ export function CategoryTagSelect({
       case 'type':
         return 'グッズタイプを選択';
       case 'series':
-        return 'シリーズを選択';
+        return 'グッズシリーズを選択';
       default:
         return '選択してください';
     }
   };
+
+  // 現在選択されているタグを見つける
+  const selectedTag = tags.find(tag => tag.name === value);
 
   return (
     <div className="space-y-2">
@@ -176,6 +173,12 @@ export function CategoryTagSelect({
               onChange={(e) => setNewTagName(e.target.value)}
               placeholder="タグ名を入力"
               className="w-full"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddNewTag();
+                }
+              }}
             />
           </div>
           <DialogFooter>

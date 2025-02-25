@@ -1,12 +1,17 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Tag } from "@/types/tag";
+import type { Tag } from "@/types/tag";
 
-export interface ItemTag {
+export type ItemTagBase = {
   id: string;
   tag_id: string;
+};
+
+export type ItemTagWithTag = ItemTagBase & {
   tags: Tag | null;
-}
+};
+
+export type ItemTag = ItemTagWithTag;
 
 export interface DeleteUserItemResult {
   error: Error | null;
