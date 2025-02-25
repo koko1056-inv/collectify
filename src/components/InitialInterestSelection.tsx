@@ -3,34 +3,44 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Tag } from "@/types";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 
 interface InitialInterestSelectionProps {
   isOpen: boolean;
   onClose: () => void;
-  tags: Tag[];
 }
 
 export function InitialInterestSelection({
   isOpen,
   onClose,
-  tags = [],
 }: InitialInterestSelectionProps) {
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedContents, setSelectedContents] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const handleTagToggle = (tagName: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tagName)
-        ? prev.filter(t => t !== tagName)
-        : [...prev, tagName]
+  const { data: contentNames = [] } = useQuery({
+    queryKey: ["content-names"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("content_names")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const handleContentToggle = (contentName: string) => {
+    setSelectedContents(prev =>
+      prev.includes(contentName)
+        ? prev.filter(t => t !== contentName)
+        : [...prev, contentName]
     );
   };
 
@@ -41,7 +51,7 @@ export function InitialInterestSelection({
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ interests: selectedTags })
+        .update({ interests: selectedContents })
         .eq('id', user.id);
 
       if (error) throw error;
@@ -63,8 +73,8 @@ export function InitialInterestSelection({
     }
   };
 
-  const filteredTags = (tags || []).filter(tag =>
-    tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredContents = contentNames.filter(content =>
+    content.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -88,15 +98,15 @@ export function InitialInterestSelection({
         </div>
         <ScrollArea className="h-[50vh] pr-4">
           <div className="grid grid-cols-2 gap-2 p-4">
-            {filteredTags.map((tag) => (
+            {filteredContents.map((content) => (
               <Button
-                key={tag.id}
-                variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+                key={content.id}
+                variant={selectedContents.includes(content.name) ? "default" : "outline"}
                 className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                onClick={() => handleTagToggle(tag.name)}
+                onClick={() => handleContentToggle(content.name)}
               >
                 <span className="text-base break-words text-center w-full">
-                  {tag.name}
+                  {content.name}
                 </span>
               </Button>
             ))}
