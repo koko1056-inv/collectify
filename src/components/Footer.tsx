@@ -7,6 +7,7 @@ import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { TradeRequestsModal } from "./trade/TradeRequestsModal";
 import { UserSearchSheet } from "./UserSearchSheet";
+import { FriendsListSheet } from "./FriendsListSheet";
 
 export function Footer() {
   const location = useLocation();
@@ -14,6 +15,7 @@ export function Footer() {
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [isSearchSheetOpen, setIsSearchSheetOpen] = useState(false);
+  const [isFriendsListOpen, setIsFriendsListOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -22,10 +24,9 @@ export function Footer() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t sm:hidden">
         <div className="flex justify-around items-center h-16">
           <button
-            onClick={() => setIsSearchSheetOpen(true)}
+            onClick={() => setIsFriendsListOpen(true)}
             className={cn(
-              "flex items-center justify-center w-12 h-12",
-              isActive("/search") && "text-primary"
+              "flex items-center justify-center w-12 h-12"
             )}
           >
             <Users className="h-6 w-6" />
@@ -82,6 +83,11 @@ export function Footer() {
       <UserSearchSheet
         isOpen={isSearchSheetOpen}
         onClose={() => setIsSearchSheetOpen(false)}
+      />
+
+      <FriendsListSheet
+        isOpen={isFriendsListOpen}
+        onClose={() => setIsFriendsListOpen(false)}
       />
     </>
   );
