@@ -1,3 +1,4 @@
+
 import { CardContent, CardTitle } from "@/components/ui/card";
 
 interface OfficialGoodsCardContentProps {
@@ -13,7 +14,7 @@ export function OfficialGoodsCardContent({
 }: OfficialGoodsCardContentProps) {
   return (
     <CardContent className="p-1 sm:p-3 overflow-hidden">
-      <CardTitle className="text-xs sm:text-base mb-1 line-clamp-2 text-gray-900">{title}</CardTitle>
+      <CardTitle className="text-[10px] sm:text-xs mb-1 line-clamp-2 text-gray-900">{title}</CardTitle>
     </CardContent>
   );
 }
