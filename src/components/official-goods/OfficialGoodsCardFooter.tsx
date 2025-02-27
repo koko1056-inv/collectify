@@ -106,8 +106,8 @@ export function OfficialGoodsCardFooter({
 
   return (
     <>
-      <CardFooter className="p-0.5 sm:p-1.5 pt-0 flex flex-col gap-0.5 sm:gap-1 bg-white border-b border-l border-r border-gray-200 rounded-b-md">
-        <div className="flex justify-end gap-0.5 sm:gap-1">
+      <CardFooter className="p-1 sm:p-2 pt-0 flex flex-col gap-1 sm:gap-1.5 bg-white border-b border-l border-r border-gray-200 rounded-b-md">
+        <div className="flex justify-end gap-0.5 sm:gap-1.5">
           <TagButton onClick={onTagManageClick} tagCount={tagCount} itemId={itemId} />
           <div className="flex flex-col items-center">
             <Button 
@@ -117,27 +117,27 @@ export function OfficialGoodsCardFooter({
                 e.stopPropagation();
                 setIsOwnersModalOpen(true);
               }}
-              className="border-gray-200 hover:bg-gray-50 h-5 w-5 sm:h-6 sm:w-6"
+              className="border-gray-200 hover:bg-gray-50 h-6 w-6 sm:h-7 sm:w-7"
             >
-              <Users className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
+              <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             </Button>
-            <span className="text-[7px] sm:text-[8px] text-gray-500 mt-0.5">{ownersCount}</span>
+            <span className="text-[8px] sm:text-[9px] text-gray-500 mt-0.5">{ownersCount}</span>
           </div>
           <div className="flex flex-col items-center">
             <Button 
               variant="outline" 
               size="icon"
               onClick={onWishlistClick}
-              className="border-gray-200 hover:bg-gray-50 h-5 w-5 sm:h-6 sm:w-6"
+              className="border-gray-200 hover:bg-gray-50 h-6 w-6 sm:h-7 sm:w-7"
             >
-              <ShoppingBasket className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-foreground" />
+              <ShoppingBasket className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-foreground" />
             </Button>
-            <span className="text-[7px] sm:text-[8px] text-gray-500 mt-0.5">{realtimeWishlistCount}</span>
+            <span className="text-[8px] sm:text-[9px] text-gray-500 mt-0.5">{realtimeWishlistCount}</span>
           </div>
         </div>
         <Button 
           variant={isInCollection ? "secondary" : "default"}
-          className={`w-full text-[7px] sm:text-[8px] h-5 sm:h-6 ${isInCollection ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-gray-900 hover:bg-gray-800'}`}
+          className={`w-full text-[8px] sm:text-[10px] h-6 sm:h-7 ${isInCollection ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-gray-900 hover:bg-gray-800'}`}
           onClick={onAddToCollection}
           disabled={isInCollection}
         >
