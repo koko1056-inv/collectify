@@ -133,7 +133,7 @@ export function useItemSubmit({
 
       toast({
         title: "アイテムを追加しました",
-        description: "公式グッズリストに新しいアイテムが追加されました。",
+        description: "あなたのおかげでグッズリストが充実しました！ありがとうございます。",
       });
 
       resetForm();
