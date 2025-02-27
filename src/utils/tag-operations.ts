@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// カスタム Tag 型定義
+// 明確な型定義
 export interface Tag {
   id: string;
   name: string;
@@ -9,20 +9,47 @@ export interface Tag {
   created_at: string;
 }
 
-// ベースとなるタグ関連付け型
 export interface BaseItemTag {
   id: string;
   tag_id: string;
 }
 
-// タグ情報も含むタグ関連付け型
-export interface ItemTagWithTag extends BaseItemTag {
+export interface ItemTagWithTag {
+  id: string;
+  tag_id: string;
   tags: Tag;
 }
 
 export interface DeleteUserItemResult {
   error: Error | null;
   officialItemId?: string;
+}
+
+export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTagWithTag[]> {
+  const tableName = isUserItem ? "user_item_tags" : "item_tags";
+  const idColumn = isUserItem ? "user_item_id" : "official_item_id";
+
+  try {
+    const { data, error } = await supabase
+      .from(tableName)
+      .select(`
+        id,
+        tag_id,
+        tags (
+          id,
+          name,
+          category,
+          created_at
+        )
+      `)
+      .eq(idColumn, itemId);
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching tags:", error);
+    return [];
+  }
 }
 
 export async function checkTagExists(
