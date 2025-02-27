@@ -13,10 +13,10 @@ export function OfficialGoodsCardContent({
   itemId
 }: OfficialGoodsCardContentProps) {
   return (
-    <CardContent className="p-1 sm:p-2 overflow-hidden bg-white">
-      <CardTitle className="text-[10px] sm:text-xs mb-0.5 line-clamp-2 text-gray-900 font-normal">{title}</CardTitle>
+    <CardContent className="p-1 sm:p-1.5 overflow-hidden bg-white">
+      <CardTitle className="text-[8px] sm:text-[9px] mb-0.5 line-clamp-2 text-gray-900 font-normal">{title}</CardTitle>
       {artist && (
-        <p className="text-[8px] sm:text-[10px] text-gray-500 truncate">{artist}</p>
+        <p className="text-[7px] sm:text-[8px] text-gray-500 truncate">{artist}</p>
       )}
     </CardContent>
   );
