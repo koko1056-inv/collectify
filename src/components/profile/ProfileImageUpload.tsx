@@ -7,7 +7,7 @@ interface ProfileImageUploadProps {
   previewUrl: string | null;
   setPreviewUrl: React.Dispatch<React.SetStateAction<string | null>>;
   userId: string;
-  className?: string; // className プロパティを追加
+  className?: string;
 }
 
 export function ProfileImageUpload({
