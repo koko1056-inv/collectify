@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Tag, ItemTag } from "@/types/tag";
+import type { ItemTag } from "@/types/tag";
 
 export interface DeleteUserItemResult {
   error: Error | null;
