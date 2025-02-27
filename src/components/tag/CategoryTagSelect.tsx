@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +43,14 @@ export function CategoryTagSelect({
       return data || [];
     },
   });
+
+  // 値が変更されたら、親コンポーネントに通知
+  useEffect(() => {
+    const selectedTag = tags.find(tag => tag.name === value);
+    if (selectedTag) {
+      console.log(`CategoryTagSelect: Selected tag "${selectedTag.name}" for category "${category}"`);
+    }
+  }, [value, tags, category]);
 
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) {
@@ -109,6 +117,7 @@ export function CategoryTagSelect({
   const handleValueChange = (tagId: string) => {
     const selectedTag = tags.find(tag => tag.id === tagId);
     if (selectedTag) {
+      console.log(`CategoryTagSelect: Changed to "${selectedTag.name}" for category "${category}"`);
       onChange(selectedTag.name);
     }
   };

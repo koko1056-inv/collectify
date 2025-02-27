@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { addTagToItem } from "@/utils/tag-operations";
 
 interface FormDataType {
   title: string;
@@ -47,27 +48,41 @@ export function useItemSubmit({
 
   const createOrGetTag = async (name: string, category: string | null = null) => {
     if (!name) return null;
+    
+    console.log(`Creating/getting tag: "${name}" with category: "${category}"`);
 
     // 既存のタグを検索
-    const { data: existingTag } = await supabase
+    const { data: existingTag, error: searchError } = await supabase
       .from("tags")
-      .select("id")
+      .select("id, name, category")
       .eq("name", name)
       .eq("category", category)
       .maybeSingle();
 
+    if (searchError) {
+      console.error("Error searching for tag:", searchError);
+      throw searchError;
+    }
+
     if (existingTag) {
+      console.log(`Found existing tag: ${JSON.stringify(existingTag)}`);
       return existingTag.id;
     }
 
     // タグが存在しない場合は新規作成
+    console.log(`Creating new tag: "${name}" with category: "${category}"`);
     const { data: newTag, error: createError } = await supabase
       .from("tags")
       .insert([{ name, category }])
       .select()
       .single();
 
-    if (createError) throw createError;
+    if (createError) {
+      console.error("Error creating tag:", createError);
+      throw createError;
+    }
+    
+    console.log(`Created new tag: ${JSON.stringify(newTag)}`);
     return newTag.id;
   };
 
@@ -83,6 +98,9 @@ export function useItemSubmit({
 
       // データベースに保存するデータから、タグ関連のフィールドを除外
       const { characterTag, typeTag, seriesTag, ...dbFormData } = formData;
+
+      console.log("Form data:", formData);
+      console.log("Selected tags:", selectedTags);
 
       const { data: itemData, error: itemError } = await supabase
         .from("official_items")
@@ -100,34 +118,38 @@ export function useItemSubmit({
 
       if (itemError) throw itemError;
 
-      // カテゴリータグの処理
-      const categoryTags = [
-        { name: characterTag, category: 'character' },
-        { name: typeTag, category: 'type' },
-        { name: seriesTag, category: 'series' }
-      ].filter(tag => tag.name) as { name: string; category: string }[];
+      console.log("Created item:", itemData);
 
-      // カテゴリータグとselectedTagsを一意な配列にまとめる
-      const uniqueTags = [...new Set([
-        ...categoryTags.map(tag => ({ name: tag.name, category: tag.category })),
-        ...selectedTags.map(tag => ({ name: tag, category: null }))
-      ])];
+      // カテゴリータグの処理 - nullやundefinedを持つ可能性があるので厳密に処理
+      const categoryTags = [];
+      if (characterTag) categoryTags.push({ name: characterTag, category: 'character' });
+      if (typeTag) categoryTags.push({ name: typeTag, category: 'type' });
+      if (seriesTag) categoryTags.push({ name: seriesTag, category: 'series' });
 
-      // 各タグを処理
-      for (const tag of uniqueTags) {
+      console.log("Category tags:", categoryTags);
+
+      // カテゴリータグを先に処理
+      for (const tag of categoryTags) {
         try {
           const tagId = await createOrGetTag(tag.name, tag.category);
           if (tagId) {
-            // アイテムとタグを関連付け
-            await supabase
-              .from("item_tags")
-              .insert([{
-                official_item_id: itemData.id,
-                tag_id: tagId,
-              }]);
+            await addTagToItem(itemData.id, tagId, false);
           }
         } catch (error) {
-          console.error("Error processing tag:", error);
+          console.error(`Error processing category tag ${tag.name}:`, error);
+        }
+      }
+
+      // 通常のタグを処理
+      for (const tagName of selectedTags) {
+        try {
+          if (!tagName) continue; // 空のタグをスキップ
+          const tagId = await createOrGetTag(tagName, null);
+          if (tagId) {
+            await addTagToItem(itemData.id, tagId, false);
+          }
+        } catch (error) {
+          console.error(`Error processing tag ${tagName}:`, error);
         }
       }
 

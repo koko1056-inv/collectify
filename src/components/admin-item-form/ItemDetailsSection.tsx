@@ -1,20 +1,26 @@
 
-import { TitleSection } from "./sections/TitleSection";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { ContentSection } from "./sections/ContentSection";
 import { ItemTypeSection } from "./sections/ItemTypeSection";
+import { TitleSection } from "./sections/TitleSection";
 import { TagsSection } from "./sections/TagsSection";
+import { useState } from "react";
+
+interface FormData {
+  title: string;
+  description: string;
+  content_name?: string | null;
+  item_type?: string;
+  characterTag?: string | null;
+  typeTag?: string | null;
+  seriesTag?: string | null;
+}
 
 interface ItemDetailsSectionProps {
-  formData: {
-    title: string;
-    description: string;
-    content_name?: string | null;
-    item_type?: string;
-    characterTag?: string | null;
-    typeTag?: string | null;
-    seriesTag?: string | null;
-  };
-  setFormData: (data: any) => void;
+  formData: FormData;
+  setFormData: (data: FormData) => void;
   selectedTags: string[];
   setSelectedTags: (tags: string[]) => void;
 }
@@ -25,41 +31,46 @@ export function ItemDetailsSection({
   selectedTags,
   setSelectedTags,
 }: ItemDetailsSectionProps) {
-  const handleTagChange = (category: string, value: string | null) => {
-    const categoryMap = {
-      character: 'characterTag',
-      type: 'typeTag',
-      series: 'seriesTag',
-    } as const;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
-    const fieldName = categoryMap[category as keyof typeof categoryMap];
+  const handleTagChange = (category: string, value: string | null) => {
     setFormData({ 
       ...formData, 
-      [fieldName]: value 
+      [`${category}Tag`]: value
     });
-    
-    if (value) {
-      setSelectedTags([...selectedTags, value]);
-    }
+    console.log(`Updated ${category}Tag to:`, value);
   };
 
   return (
-    <>
+    <div className="space-y-4">
       <TitleSection
         title={formData.title}
-        description={formData.description}
-        onTitleChange={(title) => setFormData({ ...formData, title })}
-        onDescriptionChange={(description) => setFormData({ ...formData, description })}
+        onChange={handleChange}
       />
 
+      <div className="space-y-2">
+        <Label htmlFor="description">説明</Label>
+        <Textarea
+          id="description"
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          rows={4}
+          placeholder="アイテムの詳細な説明を入力してください"
+        />
+      </div>
+
       <ContentSection
-        contentName={formData.content_name}
-        onContentChange={(content_name) => setFormData({ ...formData, content_name })}
+        contentName={formData.content_name || ""}
+        onChange={handleChange}
       />
 
       <ItemTypeSection
-        itemType={formData.item_type}
-        onItemTypeChange={(item_type) => setFormData({ ...formData, item_type })}
+        itemType={formData.item_type || ""}
+        onChange={handleChange}
       />
 
       <TagsSection
@@ -68,6 +79,6 @@ export function ItemDetailsSection({
         seriesTag={formData.seriesTag}
         onTagChange={handleTagChange}
       />
-    </>
+    </div>
   );
 }

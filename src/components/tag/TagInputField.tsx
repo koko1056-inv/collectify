@@ -33,6 +33,17 @@ export function TagInputField({
       e.preventDefault();
       const newTag = tagInput.trim().toLowerCase();
 
+      // タグが既に選択済みかチェック
+      if (selectedTags.includes(newTag)) {
+        toast({
+          title: "注意",
+          description: "このタグは既に追加されています。",
+          variant: "default",
+        });
+        setTagInput("");
+        return;
+      }
+
       if (newTag.length > 50) {
         toast({
           title: "エラー",
@@ -67,8 +78,10 @@ export function TagInputField({
 
           if (createError) throw createError;
           tagId = newTagData.id;
+          console.log(`Created new tag: ${newTag} (${tagId})`);
         } else {
           tagId = existingTag.id;
+          console.log(`Using existing tag: ${newTag} (${tagId})`);
         }
 
         // アイテムにタグを追加
