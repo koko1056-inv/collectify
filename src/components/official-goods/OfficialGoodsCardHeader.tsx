@@ -1,4 +1,3 @@
-
 import { CardHeader } from "@/components/ui/card";
 
 interface OfficialGoodsCardHeaderProps {
@@ -9,7 +8,7 @@ interface OfficialGoodsCardHeaderProps {
 export function OfficialGoodsCardHeader({ image, title }: OfficialGoodsCardHeaderProps) {
   return (
     <CardHeader className="p-0">
-      <div className="aspect-square relative overflow-hidden rounded-t-md border-t border-l border-r border-gray-200">
+      <div className="aspect-square relative overflow-hidden rounded-t-lg">
         <img
           src={image}
           alt={title}
