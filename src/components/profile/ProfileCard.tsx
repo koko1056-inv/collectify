@@ -131,7 +131,7 @@ export function ProfileCard({
   }
   return <div className={`${isMobile ? 'bg-white' : 'bg-white p-6 rounded-lg shadow'}`}>
       <div className="flex flex-col items-center mb-4">
-        <div className="w-24 h-24 mb-4 py-[26px]">
+        <div className="w-24 h-24 mb-4 py-0">
           {isOwnProfile ? <ProfileImageUpload onImageChange={handleImageChange} previewUrl={previewUrl} setPreviewUrl={setPreviewUrl} userId={effectiveUserId} /> : <img src={avatarUrl || "/placeholder.svg"} alt={username_} className="w-24 h-24 rounded-full object-cover" />}
         </div>
         <ProfileHeader username={username_} onShare={onShare} isOwnProfile={isOwnProfile} />
