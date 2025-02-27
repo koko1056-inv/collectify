@@ -154,8 +154,8 @@ export function ProfileCard({
   }
 
   return (
-    <div className={`${isMobile ? 'bg-white' : 'bg-white p-6 rounded-lg shadow'} pt-6`}>
-      <div className="flex flex-col items-center mb-2">
+    <div className={`${isMobile ? 'bg-white pt-8' : 'bg-white p-8 rounded-lg shadow'}`}>
+      <div className="flex flex-col items-center mb-4">
         <div className="w-24 h-24 mb-2">
           {isOwnProfile ? (
             <ProfileImageUpload 
@@ -172,7 +172,7 @@ export function ProfileCard({
             />
           )}
         </div>
-        <ProfileHeader username={username_} onShare={onShare} isOwnProfile={isOwnProfile} />
+        <ProfileHeader username={username_} onShare={onShare} isOwnProfile={isOwnProfile} userId={userId} />
       </div>
 
       <ProfileStats userId={effectiveUserId} />
