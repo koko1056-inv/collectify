@@ -17,6 +17,7 @@ interface TagManageModalProps {
   onClose: () => void;
   itemIds: string[];
   title?: string;
+  itemTitle?: string; // 追加：オプショナルなitemTitleプロパティ
   isUserItem?: boolean;
   onSubmit?: (updates: TagUpdate[]) => Promise<void>;
 }
@@ -26,6 +27,7 @@ export function TagManageModal({
   onClose,
   itemIds,
   title = "タグ管理",
+  itemTitle, // 追加：パラメータを受け取る
   isUserItem = false,
   onSubmit,
 }: TagManageModalProps) {
@@ -66,11 +68,14 @@ export function TagManageModal({
     onClose();
   };
 
+  // itemTitleがある場合はタイトルに含める
+  const modalTitle = itemTitle ? `${title}: ${itemTitle}` : title;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{modalTitle}</DialogTitle>
         </DialogHeader>
         
         {isLoading ? (

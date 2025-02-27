@@ -9,6 +9,8 @@ import { FollowList } from "./profile/FollowList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar } from "@/components/ui/avatar";
 
 interface FriendsListSheetProps {
   isOpen: boolean;
@@ -20,6 +22,8 @@ interface Profile {
   username: string;
   avatar_url?: string | null;
   bio?: string | null;
+  followers_count?: number;
+  following_count?: number;
 }
 
 export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
@@ -28,6 +32,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
   const [searchResults, setSearchResults] = useState<Profile[]>([]);
   const [searching, setSearching] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("following");
+  const [collectionCounts, setCollectionCounts] = useState<Record<string, number>>({});
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -63,12 +68,17 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, username, avatar_url, bio")
+          .select("id, username, avatar_url, bio, followers_count, following_count")
           .ilike("username", `%${searchQuery}%`)
           .limit(10);
 
         if (error) throw error;
         setSearchResults(data || []);
+        
+        // ユーザーのコレクション数を取得
+        if (data && data.length > 0) {
+          fetchCollectionCounts(data.map(p => p.id));
+        }
       } catch (error) {
         console.error("Error searching users:", error);
         toast({
@@ -84,6 +94,28 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
     const timer = setTimeout(searchUsers, 300);
     return () => clearTimeout(timer);
   }, [searchQuery, toast]);
+
+  const fetchCollectionCounts = async (profileIds: string[]) => {
+    try {
+      const counts: Record<string, number> = {};
+      
+      // 各ユーザーのコレクション数を取得
+      const promises = profileIds.map(async (profileId) => {
+        const { count, error } = await supabase
+          .from("user_items")
+          .select("*", { count: 'exact', head: true })
+          .eq("user_id", profileId);
+          
+        if (error) throw error;
+        counts[profileId] = count || 0;
+      });
+      
+      await Promise.all(promises);
+      setCollectionCounts(counts);
+    } catch (error) {
+      console.error("Error fetching collection counts:", error);
+    }
+  };
 
   const handleFollow = async (profileId: string) => {
     if (!userId) return;
@@ -172,46 +204,66 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
                     <p>検索中...</p>
                   </div>
                 ) : searchResults.length > 0 ? (
-                  <div className="space-y-2">
-                    {searchResults.map((profile) => (
-                      <div 
-                        key={profile.id} 
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-100"
-                      >
+                  <ScrollArea className="h-[calc(100vh-15rem)]">
+                    <div className="space-y-4 pr-4">
+                      {searchResults.map((profile) => (
                         <div 
-                          className="flex items-center gap-3 flex-1 cursor-pointer"
-                          onClick={() => handleUserClick(profile.id)}
+                          key={profile.id} 
+                          className="flex flex-col gap-2 p-3 rounded-lg hover:bg-gray-100"
                         >
-                          <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
-                            {profile.avatar_url ? (
-                              <img
-                                src={profile.avatar_url}
-                                alt={profile.username}
-                                className="w-full h-full rounded-full object-cover"
-                              />
-                            ) : (
-                              <User className="h-5 w-5 text-muted-foreground" />
+                          <div 
+                            className="flex items-center gap-3 cursor-pointer"
+                            onClick={() => handleUserClick(profile.id)}
+                          >
+                            <Avatar className="h-10 w-10">
+                              {profile.avatar_url ? (
+                                <img
+                                  src={profile.avatar_url}
+                                  alt={profile.username}
+                                  className="w-full h-full rounded-full object-cover"
+                                />
+                              ) : (
+                                <User className="h-5 w-5 text-muted-foreground" />
+                              )}
+                            </Avatar>
+                            <div className="flex-1">
+                              <span className="font-medium">{profile.username}</span>
+                              {profile.bio && (
+                                <p className="text-sm text-gray-600 line-clamp-1">{profile.bio}</p>
+                              )}
+                            </div>
+                            {profile.id !== userId && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleFollow(profile.id);
+                                }}
+                              >
+                                フォロー
+                              </Button>
                             )}
                           </div>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{profile.username}</span>
-                            {profile.bio && (
-                              <p className="text-sm text-gray-600 line-clamp-1">{profile.bio}</p>
-                            )}
+                          
+                          <div className="flex gap-4 text-xs text-gray-500 mt-1">
+                            <div className="flex flex-col items-center">
+                              <span className="font-semibold">{profile.following_count || 0}</span>
+                              <span>フォロー中</span>
+                            </div>
+                            <div className="flex flex-col items-center">
+                              <span className="font-semibold">{profile.followers_count || 0}</span>
+                              <span>フォロワー</span>
+                            </div>
+                            <div className="flex flex-col items-center">
+                              <span className="font-semibold">{collectionCounts[profile.id] || 0}</span>
+                              <span>コレクション</span>
+                            </div>
                           </div>
                         </div>
-                        {profile.id !== userId && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleFollow(profile.id)}
-                          >
-                            フォロー
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
                 ) : (
                   <p className="text-center text-gray-500 p-4">
                     ユーザーが見つかりませんでした
@@ -225,11 +277,11 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
                   <TabsTrigger value="followers" className="flex-1">フォロワー</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="following">
+                <TabsContent value="following" className="h-[calc(100vh-14rem)]">
                   <FollowList userId={userId} type="following" />
                 </TabsContent>
                 
-                <TabsContent value="followers">
+                <TabsContent value="followers" className="h-[calc(100vh-14rem)]">
                   <FollowList userId={userId} type="followers" />
                 </TabsContent>
               </Tabs>
