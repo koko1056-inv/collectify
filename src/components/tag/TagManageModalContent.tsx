@@ -2,7 +2,8 @@
 import { CategoryTagSelect } from "./CategoryTagSelect";
 import { CurrentTagsList } from "./CurrentTagsList";
 import { PendingTagsList } from "./PendingTagsList";
-import { ItemTag, removeTagFromItem } from "@/utils/tag-operations";
+import { ItemTag } from "@/types/tag";
+import { removeTagFromItem } from "@/utils/tag-operations";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 

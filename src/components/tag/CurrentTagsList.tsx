@@ -1,6 +1,6 @@
 
 import { Badge } from "@/components/ui/badge";
-import { ItemTag } from "@/utils/tag-operations";
+import { ItemTag } from "@/types/tag";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
