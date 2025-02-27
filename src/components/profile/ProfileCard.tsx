@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,9 +132,9 @@ export function ProfileCard({
   return <div className={`${isMobile ? 'bg-white' : 'bg-white p-6 rounded-lg shadow'}`}>
       <div className="flex flex-col items-center mb-4">
         <div className="w-24 h-24 mb-4 py-0">
-          {isOwnProfile ? <ProfileImageUpload onImageChange={handleImageChange} previewUrl={previewUrl} setPreviewUrl={setPreviewUrl} userId={effectiveUserId} /> : <img src={avatarUrl || "/placeholder.svg"} alt={username_} className="w-24 h-24 rounded-full object-cover" />}
+          {isOwnProfile ? <ProfileImageUpload onImageChange={handleImageChange} previewUrl={previewUrl} setPreviewUrl={setPreviewUrl} userId={effectiveUserId} className="py-[25px]" /> : <img src={avatarUrl || "/placeholder.svg"} alt={username_} className="w-24 h-24 rounded-full object-cover" />}
         </div>
-        <ProfileHeader username={username_} onShare={onShare} isOwnProfile={isOwnProfile} userId={userId} />
+        <ProfileHeader username={username_} onShare={onShare} isOwnProfile={isOwnProfile} />
       </div>
 
       <ProfileStats userId={effectiveUserId} />
