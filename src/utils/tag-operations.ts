@@ -1,8 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Tag } from "@/types/tag";
 
-// 適切な型定義に修正
 export interface ItemTag {
   id: string;
   tag_id: string;
