@@ -2,8 +2,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tag } from "@/types/tag";
 
-// 型定義を修正して循環参照を解消
-export interface ItemTagBase {
+// 適切な型定義に修正
+export interface ItemTag {
   id: string;
   tag_id: string;
   tags: {
@@ -13,8 +13,6 @@ export interface ItemTagBase {
     created_at?: string;
   } | null;
 }
-
-export type ItemTag = ItemTagBase;
 
 export interface DeleteUserItemResult {
   error: Error | null;

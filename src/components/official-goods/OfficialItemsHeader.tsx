@@ -14,17 +14,27 @@ type SortOption = "newest" | "oldest" | "wishlist" | "owners";
 interface OfficialItemsHeaderProps {
   sortBy: SortOption;
   onSortChange: (value: SortOption) => void;
+  totalItems?: number;
 }
 
-export function OfficialItemsHeader({ sortBy, onSortChange }: OfficialItemsHeaderProps) {
+export function OfficialItemsHeader({ 
+  sortBy, 
+  onSortChange,
+  totalItems = 0
+}: OfficialItemsHeaderProps) {
   const navigate = useNavigate();
 
   return (
     <div className="flex justify-between items-center mb-4 px-2">
       <div className="flex items-center gap-4">
-        <h1 className="text-sm sm:text-2xl font-bold animate-fade-in text-gray-900">
-          公式グッズ
-        </h1>
+        <div className="flex flex-col">
+          <h1 className="text-sm sm:text-2xl font-bold animate-fade-in text-gray-900">
+            公式グッズ
+          </h1>
+          <p className="text-[10px] sm:text-xs text-gray-500">
+            全{totalItems}件
+          </p>
+        </div>
         <Select value={sortBy} onValueChange={(value) => onSortChange(value as SortOption)}>
           <SelectTrigger className="w-[180px] bg-white/90 backdrop-blur-sm border-gray-200">
             <SelectValue placeholder="並び順を選択" />
