@@ -35,6 +35,7 @@ export function useItemSubmit({
   const { user } = useAuth();
 
   const validateForm = () => {
+    // タイトルのバリデーション
     if (!formData.title.trim()) {
       toast({
         title: "エラー",
@@ -43,6 +44,17 @@ export function useItemSubmit({
       });
       return false;
     }
+
+    // カテゴリータグのバリデーション
+    if (!formData.characterTag || !formData.typeTag || !formData.seriesTag) {
+      toast({
+        title: "エラー",
+        description: "キャラクター、グッズタイプ、グッズシリーズをすべて選択してください。",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     return true;
   };
 
@@ -100,7 +112,6 @@ export function useItemSubmit({
       const { characterTag, typeTag, seriesTag, ...dbFormData } = formData;
 
       console.log("Form data:", formData);
-      console.log("Selected tags:", selectedTags);
 
       const { data: itemData, error: itemError } = await supabase
         .from("official_items")
@@ -120,33 +131,42 @@ export function useItemSubmit({
 
       console.log("Created item:", itemData);
 
-      // カテゴリータグの処理 - nullやundefinedを持つ可能性があるので厳密に処理
-      const categoryTags = [];
-      if (characterTag) categoryTags.push({ name: characterTag, category: 'character' });
-      if (typeTag) categoryTags.push({ name: typeTag, category: 'type' });
-      if (seriesTag) categoryTags.push({ name: seriesTag, category: 'series' });
+      // カテゴリータグの処理（必須3種類）
+      const categoryTags = [
+        { name: characterTag, category: 'character' },
+        { name: typeTag, category: 'type' },
+        { name: seriesTag, category: 'series' }
+      ];
 
-      console.log("Category tags:", categoryTags);
+      console.log("Processing category tags:", categoryTags);
 
-      // カテゴリータグを先に処理
+      // カテゴリータグを先に処理（これらは必須）
       for (const tag of categoryTags) {
         try {
+          if (!tag.name) {
+            console.error(`Missing required category tag: ${tag.category}`);
+            continue;
+          }
+          
           const tagId = await createOrGetTag(tag.name, tag.category);
           if (tagId) {
             await addTagToItem(itemData.id, tagId, false);
+            console.log(`Added ${tag.category} tag: ${tag.name}`);
           }
         } catch (error) {
           console.error(`Error processing category tag ${tag.name}:`, error);
         }
       }
 
-      // 通常のタグを処理
+      // 追加のタグを処理（任意）
+      console.log("Processing additional tags:", selectedTags);
       for (const tagName of selectedTags) {
         try {
-          if (!tagName) continue; // 空のタグをスキップ
+          if (!tagName) continue;
           const tagId = await createOrGetTag(tagName, null);
           if (tagId) {
             await addTagToItem(itemData.id, tagId, false);
+            console.log(`Added additional tag: ${tagName}`);
           }
         } catch (error) {
           console.error(`Error processing tag ${tagName}:`, error);
