@@ -1,23 +1,29 @@
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface ItemTypeSectionProps {
-  itemType: string | undefined;
-  onItemTypeChange: (type: string) => void;
+  itemType: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
 export function ItemTypeSection({
   itemType,
-  onItemTypeChange,
+  onChange,
 }: ItemTypeSectionProps) {
+  const handleItemTypeChange = (value: string) => {
+    const changeEvent = {
+      target: { name: 'item_type', value }
+    } as React.ChangeEvent<HTMLInputElement>;
+    onChange(changeEvent);
+  };
+
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium">
-        商品タイプ
-      </label>
+      <Label>商品タイプ</Label>
       <Select
         value={itemType || "official"}
-        onValueChange={onItemTypeChange}
+        onValueChange={handleItemTypeChange}
       >
         <SelectTrigger className="w-full bg-white">
           <SelectValue placeholder="商品タイプを選択" />

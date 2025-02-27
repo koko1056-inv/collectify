@@ -1,6 +1,24 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { Tag, ItemTagWithTag } from "@/types/tag";
+
+// カスタム Tag 型定義
+export interface Tag {
+  id: string;
+  name: string;
+  category?: string;
+  created_at: string;
+}
+
+// ベースとなるタグ関連付け型
+export interface BaseItemTag {
+  id: string;
+  tag_id: string;
+}
+
+// タグ情報も含むタグ関連付け型
+export interface ItemTagWithTag extends BaseItemTag {
+  tags: Tag;
+}
 
 export interface DeleteUserItemResult {
   error: Error | null;

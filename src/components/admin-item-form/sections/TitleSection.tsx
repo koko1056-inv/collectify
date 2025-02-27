@@ -1,43 +1,27 @@
 
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface TitleSectionProps {
   title: string;
-  description: string;
-  onTitleChange: (title: string) => void;
-  onDescriptionChange: (description: string) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
 export function TitleSection({
   title,
-  description,
-  onTitleChange,
-  onDescriptionChange,
+  onChange,
 }: TitleSectionProps) {
   return (
-    <>
-      <div className="space-y-2">
-        <label htmlFor="title" className="text-sm font-medium">
-          タイトル
-        </label>
-        <Input
-          id="title"
-          value={title}
-          onChange={(e) => onTitleChange(e.target.value)}
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label htmlFor="description" className="text-sm font-medium">
-          説明
-        </label>
-        <Input
-          id="description"
-          value={description}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-        />
-      </div>
-    </>
+    <div className="space-y-2">
+      <Label htmlFor="title">タイトル</Label>
+      <Input
+        id="title"
+        name="title"
+        value={title}
+        onChange={onChange}
+        placeholder="アイテム名を入力"
+        required
+      />
+    </div>
   );
 }

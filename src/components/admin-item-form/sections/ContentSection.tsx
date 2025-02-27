@@ -6,15 +6,16 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
 
 interface ContentSectionProps {
-  contentName: string | null | undefined;
-  onContentChange: (contentName: string | null) => void;
+  contentName: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }
 
 export function ContentSection({
   contentName,
-  onContentChange,
+  onChange,
 }: ContentSectionProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -46,7 +47,10 @@ export function ContentSection({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["content-names"] });
-      onContentChange(data.name);
+      const changeEvent = {
+        target: { name: 'content_name', value: data.name }
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange(changeEvent);
       setIsAddingNewContent(false);
       setNewContentName("");
       toast({
@@ -67,11 +71,20 @@ export function ContentSection({
   const handleContentChange = (value: string) => {
     if (value === "other") {
       setIsAddingNewContent(true);
-      onContentChange(null);
+      const changeEvent = {
+        target: { name: 'content_name', value: '' }
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange(changeEvent);
     } else if (value === "none") {
-      onContentChange(null);
+      const changeEvent = {
+        target: { name: 'content_name', value: '' }
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange(changeEvent);
     } else {
-      onContentChange(value);
+      const changeEvent = {
+        target: { name: 'content_name', value }
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange(changeEvent);
     }
   };
 
@@ -89,7 +102,7 @@ export function ContentSection({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium">コンテンツ</label>
+      <Label>コンテンツ</Label>
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
         {isAddingNewContent ? (
           <div className="flex gap-2">
