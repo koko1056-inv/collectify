@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,8 +35,10 @@ export function WishlistModal({
   useEffect(() => {
     if (existingNote) {
       setNote(existingNote);
+    } else {
+      setNote("");
     }
-  }, [existingNote]);
+  }, [existingNote, isOpen]);
 
   const handleSave = async () => {
     if (!user) {
@@ -61,29 +64,58 @@ export function WishlistModal({
           description: `${itemTitle}のメモを更新しました。`,
         });
       } else {
-        const { error } = await supabase
+        // 既に追加されているか確認
+        const { data: existingItem, error: checkError } = await supabase
           .from("wishlists")
-          .insert([
-            {
-              user_id: user.id,
-              official_item_id: itemId,
-              note: note,
-            },
-          ]);
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("official_item_id", itemId)
+          .maybeSingle();
+          
+        if (checkError) throw checkError;
+        
+        if (existingItem) {
+          // 既に存在する場合は更新
+          const { error: updateError } = await supabase
+            .from("wishlists")
+            .update({ note })
+            .eq("id", existingItem.id);
+            
+          if (updateError) throw updateError;
+          
+          toast({
+            title: "ウィッシュリストを更新しました",
+            description: `${itemTitle}のメモを更新しました。`,
+          });
+        } else {
+          // 新規追加
+          const { error: insertError } = await supabase
+            .from("wishlists")
+            .insert([
+              {
+                user_id: user.id,
+                official_item_id: itemId,
+                note: note,
+              },
+            ]);
 
-        if (error) throw error;
+          if (insertError) throw insertError;
 
-        toast({
-          title: "ウィッシュリストに追加しました",
-          description: `${itemTitle}をウィッシュリストに追加しました。`,
-        });
+          toast({
+            title: "ウィッシュリストに追加しました",
+            description: `${itemTitle}をウィッシュリストに追加しました。`,
+          });
+        }
       }
 
+      // すべての関連クエリを無効化して再フェッチを促す
       queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       queryClient.invalidateQueries({ queryKey: ["wishlist-count"] });
+      queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] });
+      queryClient.invalidateQueries({ queryKey: ["is-in-wishlist"] });
       onClose();
-      setNote("");
     } catch (error) {
+      console.error("Error saving to wishlist:", error);
       toast({
         title: "エラーが発生しました",
         description: "もう一度お試しください。",
