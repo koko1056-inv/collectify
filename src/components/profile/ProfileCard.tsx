@@ -154,9 +154,9 @@ export function ProfileCard({
   }
 
   return (
-    <div className={`${isMobile ? 'bg-white' : 'bg-white p-6 rounded-lg shadow'}`}>
-      <div className="flex flex-col items-center mb-0">
-        <div className="w-24 h-24 -mt-4">
+    <div className={`${isMobile ? 'bg-white' : 'bg-white p-6 rounded-lg shadow'} pt-6`}>
+      <div className="flex flex-col items-center mb-2">
+        <div className="w-24 h-24 mb-2">
           {isOwnProfile ? (
             <ProfileImageUpload 
               onImageChange={handleImageChange} 
