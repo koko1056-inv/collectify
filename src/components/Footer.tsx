@@ -7,6 +7,7 @@ import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { TradeRequestsModal } from "./trade/TradeRequestsModal";
 import { UserSearchSheet } from "./UserSearchSheet";
+import { FriendsListSheet } from "./FriendsListSheet";
 
 export function Footer() {
   const location = useLocation();
@@ -14,6 +15,7 @@ export function Footer() {
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [isSearchSheetOpen, setIsSearchSheetOpen] = useState(false);
+  const [isFriendsListOpen, setIsFriendsListOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -57,15 +59,12 @@ export function Footer() {
             <Repeat2 className="h-6 w-6" />
           </button>
 
-          <Link
-            to="/edit-profile"
-            className={cn(
-              "flex items-center justify-center w-12 h-12",
-              isActive("/edit-profile") && "text-primary"
-            )}
+          <button
+            onClick={() => setIsFriendsListOpen(true)}
+            className="flex items-center justify-center w-12 h-12"
           >
             <User className="h-6 w-6" />
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -82,6 +81,11 @@ export function Footer() {
       <UserSearchSheet
         isOpen={isSearchSheetOpen}
         onClose={() => setIsSearchSheetOpen(false)}
+      />
+
+      <FriendsListSheet
+        isOpen={isFriendsListOpen}
+        onClose={() => setIsFriendsListOpen(false)}
       />
     </>
   );

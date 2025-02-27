@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 export interface Tag {
   id: string;
   name: string;
-  category?: string;
+  category?: string | null;
   created_at?: string;
+  is_category?: boolean | null;
 }
 
 export interface ItemTag {
