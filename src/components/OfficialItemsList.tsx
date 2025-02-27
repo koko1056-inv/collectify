@@ -1,19 +1,13 @@
 
 import { OfficialItem } from "@/types";
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { OfficialItemsHeader } from "./official-goods/OfficialItemsHeader";
 import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
 import { useItemCounts } from "./official-goods/hooks/useItemCounts";
 import { useSortedItems } from "./official-goods/hooks/useSortedItems";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 interface OfficialItemsListProps {
   items: OfficialItem[];
@@ -23,72 +17,86 @@ type SortOption = "newest" | "oldest" | "wishlist" | "owners";
 
 export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const isMobile = useIsMobile();
-  const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<SortOption>("newest");
-  
-  const itemsPerPage = isMobile ? 21 : 24;
+  const [visibleCount, setVisibleCount] = useState(isMobile ? 21 : 24);
   const { wishlistCounts, ownerCounts } = useItemCounts();
   const sortedItems = useSortedItems(items, sortBy, ownerCounts);
+  const loaderRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = sortedItems.slice(startIndex, endIndex);
+  const loadMoreItems = useCallback(() => {
+    if (visibleCount >= sortedItems.length || isLoading) return;
+    
+    setIsLoading(true);
+    // 少し遅延を追加して、ロード感を演出
+    setTimeout(() => {
+      setVisibleCount(prev => {
+        const increment = isMobile ? 21 : 24;
+        const newCount = prev + increment;
+        
+        // 全アイテムを表示した場合は通知を表示
+        if (newCount >= sortedItems.length) {
+          toast({
+            title: "全てのアイテムを表示しました",
+            description: `${sortedItems.length}件のアイテムを表示しています。`,
+          });
+        }
+        
+        return Math.min(newCount, sortedItems.length);
+      });
+      setIsLoading(false);
+    }, 500);
+  }, [visibleCount, sortedItems.length, isMobile, isLoading, toast]);
 
-  const getVisiblePageNumbers = () => {
-    const pageNumbers = [];
-    const maxVisiblePages = 5;
-    const halfVisible = Math.floor(maxVisiblePages / 2);
-    
-    let start = Math.max(currentPage - halfVisible, 1);
-    let end = Math.min(start + maxVisiblePages - 1, totalPages);
-    
-    if (end - start + 1 < maxVisiblePages) {
-      start = Math.max(end - maxVisiblePages + 1, 1);
+  useEffect(() => {
+    // IntersectionObserverを使って無限スクロールを実装
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreItems();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
     }
-    
-    for (let i = start; i <= end; i++) {
-      pageNumbers.push(i);
-    }
-    
-    return pageNumbers;
-  };
+
+    return () => {
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
+      }
+    };
+  }, [loadMoreItems]);
+
+  // ソート方法が変わった場合は表示数をリセット
+  useEffect(() => {
+    setVisibleCount(isMobile ? 21 : 24);
+  }, [sortBy, isMobile]);
+
+  const currentItems = sortedItems.slice(0, visibleCount);
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <OfficialItemsHeader sortBy={sortBy} onSortChange={setSortBy} />
       <OfficialItemsGrid items={currentItems} />
       
-      {totalPages > 1 && (
-        <Pagination className="mt-4">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
-                className={`cursor-pointer ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-              />
-            </PaginationItem>
-            
-            {getVisiblePageNumbers().map((pageNum) => (
-              <PaginationItem key={pageNum}>
-                <PaginationLink
-                  onClick={() => setCurrentPage(pageNum)}
-                  isActive={currentPage === pageNum}
-                  className={`cursor-pointer ${currentPage === pageNum ? 'bg-gray-900 text-white hover:bg-gray-800' : ''}`}
-                >
-                  {pageNum}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
-                className={`cursor-pointer ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+      {visibleCount < sortedItems.length && (
+        <div 
+          ref={loaderRef} 
+          className="flex justify-center items-center py-6"
+        >
+          {isLoading ? (
+            <div className="flex flex-col items-center">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+              <p className="text-sm text-gray-500 mt-2">読み込み中...</p>
+            </div>
+          ) : (
+            <div className="h-8" />
+          )}
+        </div>
       )}
     </div>
   );

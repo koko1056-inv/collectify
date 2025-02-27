@@ -1,10 +1,17 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import type { Tag } from "@/types/tag";
 
+// 型定義を修正して循環参照を解消
 export interface ItemTagBase {
   id: string;
   tag_id: string;
-  tags: Tag | null;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
 }
 
 export type ItemTag = ItemTagBase;
