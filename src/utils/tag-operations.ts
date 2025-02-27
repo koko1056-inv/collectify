@@ -1,13 +1,20 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { ItemTag } from "@/types/tag";
+import type { Tag } from "@/types/tag";
+
+// ItemTagの型をインポートせず、直接定義
+interface ItemTagWithTag {
+  id: string;
+  tag_id: string;
+  tags: Tag;
+}
 
 export interface DeleteUserItemResult {
   error: Error | null;
   officialItemId?: string;
 }
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTag[]> {
+export async function getTagsForItem(itemId: string, isUserItem: boolean): Promise<ItemTagWithTag[]> {
   const tableName = isUserItem ? "user_item_tags" : "item_tags";
   const idColumn = isUserItem ? "user_item_id" : "official_item_id";
 

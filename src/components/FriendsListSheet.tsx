@@ -195,17 +195,17 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
         </SheetHeader>
         
         {userId ? (
-          <div className="p-4">
+          <div className="p-4 h-[calc(100%-120px)] overflow-hidden">
             {searchQuery.trim().length >= 2 ? (
-              <div className="space-y-4">
+              <div className="space-y-4 h-full">
                 <h3 className="font-medium">検索結果</h3>
                 {searching ? (
                   <div className="flex justify-center p-4">
                     <p>検索中...</p>
                   </div>
                 ) : searchResults.length > 0 ? (
-                  <ScrollArea className="h-[calc(100vh-15rem)]">
-                    <div className="space-y-4 pr-4">
+                  <ScrollArea className="h-[calc(100vh-16rem)]">
+                    <div className="space-y-4 pr-4 pb-4">
                       {searchResults.map((profile) => (
                         <div 
                           key={profile.id} 
@@ -271,17 +271,17 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
                 )}
               </div>
             ) : (
-              <Tabs defaultValue="following" value={activeTab} onValueChange={setActiveTab}>
+              <Tabs defaultValue="following" value={activeTab} onValueChange={setActiveTab} className="h-full">
                 <TabsList className="w-full mb-4">
                   <TabsTrigger value="following" className="flex-1">フォロー中</TabsTrigger>
                   <TabsTrigger value="followers" className="flex-1">フォロワー</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="following" className="h-[calc(100vh-14rem)]">
+                <TabsContent value="following" className="h-[calc(100%-56px)]">
                   <FollowList userId={userId} type="following" />
                 </TabsContent>
                 
-                <TabsContent value="followers" className="h-[calc(100vh-14rem)]">
+                <TabsContent value="followers" className="h-[calc(100%-56px)]">
                   <FollowList userId={userId} type="followers" />
                 </TabsContent>
               </Tabs>

@@ -96,8 +96,8 @@ export function FollowList({ userId, type }: FollowListProps) {
   }
 
   return (
-    <ScrollArea className="h-[calc(100vh-13rem)]">
-      <div className="space-y-4 pr-4">
+    <ScrollArea className="h-full">
+      <div className="space-y-4 pr-4 pb-4">
         {profiles.length === 0 ? (
           <p className="text-gray-500">
             {type === "followers" ? "フォロワーはいません" : "フォロー中のユーザーはいません"}
