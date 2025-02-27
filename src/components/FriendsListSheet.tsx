@@ -183,13 +183,13 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
             <SheetTitle>フレンド</SheetTitle>
           </div>
           
-          <div className="flex items-center gap-2 mt-4 bg-accent rounded-full px-4 py-2">
-            <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <div className="flex items-center gap-2 mt-3 bg-accent rounded-full px-3 py-1">
+            <Search className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
             <Input
               placeholder="ユーザー名で検索"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
+              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 h-8 text-sm"
             />
           </div>
         </SheetHeader>
