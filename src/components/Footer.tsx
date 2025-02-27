@@ -1,5 +1,6 @@
+
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, ShoppingBasket, Repeat2, User } from "lucide-react";
+import { Home, Users, ShoppingBasket, Repeat2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
@@ -27,7 +28,7 @@ export function Footer() {
               isActive("/search") && "text-primary"
             )}
           >
-            <Search className="h-6 w-6" />
+            <Users className="h-6 w-6" />
           </button>
 
           <button

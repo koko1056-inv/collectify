@@ -1,15 +1,18 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+// タグの型定義を単純化して無限ループを防止
+export interface Tag {
+  id: string;
+  name: string;
+  category?: string;
+  created_at?: string;
+}
+
 export interface ItemTag {
   id: string;
   tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  } | null;
+  tags: Tag | null;
 }
 
 export interface DeleteUserItemResult {
