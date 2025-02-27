@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Tag } from "@/types/tag";
 
-// ItemTagの型をインポートせず、直接定義
+// ItemTagの型を直接定義
 interface ItemTagWithTag {
   id: string;
   tag_id: string;

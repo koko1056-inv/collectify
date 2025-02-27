@@ -5,6 +5,9 @@ import { ChatStep } from "./ChatStep";
 import { ShippingStep } from "./ShippingStep";
 import { CompleteStep } from "./CompleteStep";
 import { ShippingConfirmDialog } from "./ShippingConfirmDialog";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -14,6 +17,7 @@ interface ChatModalProps {
 }
 
 export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatModalProps) {
+  const { user } = useAuth();
   const {
     messages,
     partnerProfile,
@@ -27,14 +31,46 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
     completeTrade
   } = useChat({ partnerId, tradeRequestId, isOpen });
 
+  // モーダルが開いたときに既読にする
+  useEffect(() => {
+    if (isOpen && user) {
+      markMessagesAsRead();
+    }
+  }, [isOpen, user, partnerId, tradeRequestId]);
+
+  // メッセージを既読にする関数
+  const markMessagesAsRead = async () => {
+    if (!user) return;
+
+    let query = supabase
+      .from("messages")
+      .update({ is_read: true })
+      .eq("receiver_id", user.id)
+      .eq("is_read", false);
+
+    if (tradeRequestId) {
+      query = query.eq("trade_request_id", tradeRequestId);
+    } else {
+      query = query.eq("sender_id", partnerId);
+    }
+
+    await query;
+  };
+
   const handleComplete = async () => {
     await completeTrade();
     onClose();
   };
 
+  const handleClose = () => {
+    // 閉じるときに既読にする
+    markMessagesAsRead();
+    onClose();
+  };
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[500px] h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>

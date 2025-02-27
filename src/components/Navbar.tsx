@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +11,7 @@ import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
 import { TradeRequestsModal } from "./trade/TradeRequestsModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ChatButton } from "./ChatButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -139,6 +141,7 @@ export function Navbar() {
                   </span>
                 )}
               </Button>
+              <ChatButton />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
