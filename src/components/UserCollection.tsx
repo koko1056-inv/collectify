@@ -11,10 +11,9 @@ import { CollectionGrid } from "./collection/CollectionGrid";
 interface UserCollectionProps {
   selectedTags: string[];
   userId?: string | null;
-  searchQuery?: string;
 }
 
-export function UserCollection({ selectedTags, userId, searchQuery = "" }: UserCollectionProps) {
+export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
   const effectiveUserId = userId || user?.id;
@@ -50,26 +49,14 @@ export function UserCollection({ selectedTags, userId, searchQuery = "" }: UserC
   });
 
   const filteredItems = useMemo(() => {
-    // まずタグでフィルタリング
-    let filtered = items;
-    if (selectedTags.length > 0) {
-      filtered = items.filter(item => 
-        selectedTags.some(tag => 
-          item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
-        )
-      );
-    }
+    if (selectedTags.length === 0) return items;
     
-    // 次に検索クエリでフィルタリング（両方のタブで共通）
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(item => 
-        item.title.toLowerCase().includes(query)
-      );
-    }
-    
-    return filtered;
-  }, [items, selectedTags, searchQuery]);
+    return items.filter(item => 
+      selectedTags.some(tag => 
+        item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
+      )
+    );
+  }, [items, selectedTags]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -118,7 +105,7 @@ export function UserCollection({ selectedTags, userId, searchQuery = "" }: UserC
   if (filteredItems.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">検索条件に一致するアイテムがありません。</p>
+        <p className="text-gray-500">選択されたタグに一致するアイテムがありません。</p>
       </div>
     );
   }
