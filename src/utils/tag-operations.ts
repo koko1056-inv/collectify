@@ -150,17 +150,16 @@ export const getTagsForItem = async (
 
     if (error) throw error;
     
-    // 明示的な戻り値の型を設定して循環参照を避ける
-    return (data || []).map(item => ({
+    // 型の問題を回避するために、単純な構造に変換
+    return data ? data.map(item => ({
       id: item.id,
       tag_id: item.tag_id,
-      tags: item.tags ? {
+      tag: item.tags ? {
         id: item.tags.id,
         name: item.tags.name,
-        category: item.tags.category,
-        created_at: item.tags.created_at
+        category: item.tags.category
       } : null
-    }));
+    })) : [];
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
     return [];
