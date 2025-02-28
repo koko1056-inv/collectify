@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
 import { UserCollection } from "@/components/UserCollection";
@@ -5,6 +6,8 @@ import { OfficialItem } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackTabChange } from "@/utils/analytics";
+import { useState } from "react";
+import { SearchBar } from "@/components/SearchBar";
 
 interface CollectionTabsProps {
   filteredItems: OfficialItem[];
@@ -15,9 +18,21 @@ interface CollectionTabsProps {
 export function CollectionTabs({ filteredItems, selectedTags, userId }: CollectionTabsProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // 検索に基づいて公式アイテムをフィルタリング
+  const searchFilteredItems = searchQuery 
+    ? filteredItems.filter(item => 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : filteredItems;
 
   const handleTabChange = (value: string) => {
     trackTabChange(value, user?.id);
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
   };
 
   return (
@@ -36,14 +51,28 @@ export function CollectionTabs({ filteredItems, selectedTags, userId }: Collecti
           {t("tabs.collection")}
         </TabsTrigger>
       </TabsList>
+      
+      <div className="mt-2 sm:mt-4">
+        <SearchBar 
+          searchQuery={searchQuery} 
+          onSearchChange={handleSearchChange}
+          selectedTags={[]} 
+          onTagsChange={() => {}} 
+          tags={[]}
+        />
+      </div>
 
       <TabsContent value="official" className="mt-2 sm:mt-4">
-        <OfficialItemsList items={filteredItems} />
+        <OfficialItemsList items={searchFilteredItems} />
       </TabsContent>
 
       <TabsContent value="collection" className="mt-2 sm:mt-4">
         <div className="space-y-6">
-          <UserCollection selectedTags={selectedTags} userId={userId} />
+          <UserCollection 
+            selectedTags={selectedTags} 
+            userId={userId} 
+            searchQuery={searchQuery} 
+          />
         </div>
       </TabsContent>
     </Tabs>

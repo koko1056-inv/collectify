@@ -42,7 +42,7 @@ export function SearchBar({
       <div className="relative">
         <Input
           type="text"
-          placeholder="グッズを検索..."
+          placeholder="公式グッズとマイコレクションを検索..."
           value={searchQuery}
           onChange={handleSearchChange}
           onKeyDown={handleKeyDown}
