@@ -14,7 +14,7 @@ export interface BaseItemTag {
   tag_id: string;
 }
 
-// ItemTagWithTagインターフェースを直接定義（継承せず）
+// ItemTagWithTagインターフェースを直接定義（循環参照を防ぐ）
 export interface ItemTagWithTag {
   id: string;
   tag_id: string;

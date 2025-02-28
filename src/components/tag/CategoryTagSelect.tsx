@@ -49,7 +49,8 @@ export function CategoryTagSelect({
       return data || [];
     },
     staleTime: 0, // 常に最新データを取得
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: true, // ウィンドウフォーカス時に再取得
+    refetchOnMount: true, // コンポーネントマウント時に再取得
   });
 
   // 値が変更されたら、親コンポーネントに通知
@@ -79,7 +80,7 @@ export function CategoryTagSelect({
         .select("*")
         .eq("name", newTagName.trim())
         .eq("category", category)
-        .single();
+        .maybeSingle();
 
       if (checkError && checkError.code !== 'PGRST116') {
         console.error("Error checking existing tag:", checkError);
@@ -91,6 +92,10 @@ export function CategoryTagSelect({
         onChange(existingTag.name);
         setNewTagName("");
         setIsDialogOpen(false);
+        toast({
+          title: "既存のタグを選択しました",
+          description: `${existingTag.name}を選択しました。`,
+        });
         return;
       }
 
@@ -113,12 +118,13 @@ export function CategoryTagSelect({
         console.log(`Successfully added new tag: ${JSON.stringify(newTag)}`);
         onChange(newTag.name);
         
-        // キャッシュを即座に無効化
+        // キャッシュを完全に無効化して強制的に再取得
         await queryClient.invalidateQueries({ queryKey: ["tags", category] });
+        await queryClient.resetQueries({ queryKey: ["tags", category] });
         
         // 強制的にデータを再取得
         const result = await refetch();
-        console.log(`Refetched tags for category ${category}:`, result.data);
+        console.log(`Refetched tags for category ${category} after adding new tag:`, result.data);
         
         toast({
           title: "タグを追加しました",
@@ -143,6 +149,8 @@ export function CategoryTagSelect({
     if (selectedTag) {
       console.log(`CategoryTagSelect: Changed to "${selectedTag.name}" for category "${category}"`);
       onChange(selectedTag.name);
+    } else {
+      console.warn(`Tag with ID ${tagId} not found in tags list for category ${category}`);
     }
   };
 
@@ -162,6 +170,17 @@ export function CategoryTagSelect({
 
   // 現在選択されているタグを見つける
   const selectedTag = tags.find(tag => tag.name === value);
+  
+  // デバッグ情報
+  useEffect(() => {
+    if (tags.length > 0) {
+      console.log(`[${category}] Available tags (${tags.length}):`, tags.map(t => t.name).join(', '));
+    }
+    if (value) {
+      console.log(`[${category}] Current value:`, value);
+      console.log(`[${category}] Selected tag:`, selectedTag);
+    }
+  }, [tags, value, selectedTag, category]);
 
   return (
     <div className="space-y-2">
@@ -170,21 +189,33 @@ export function CategoryTagSelect({
         <Select 
           value={selectedTag?.id}
           onValueChange={handleValueChange}
+          onOpenChange={(open) => {
+            if (open) {
+              // セレクトが開かれたときに最新データを取得
+              refetch();
+            }
+          }}
         >
           <SelectTrigger className="w-full bg-white">
             <SelectValue placeholder={getPlaceholderText()} />
           </SelectTrigger>
           <SelectContent className="bg-white">
             <ScrollArea className="max-h-[200px]">
-              {tags.map((tag) => (
-                <SelectItem 
-                  key={tag.id} 
-                  value={tag.id}
-                  className="cursor-pointer hover:bg-gray-100"
-                >
-                  {tag.name}
-                </SelectItem>
-              ))}
+              {tags.length > 0 ? (
+                tags.map((tag) => (
+                  <SelectItem 
+                    key={tag.id} 
+                    value={tag.id}
+                    className="cursor-pointer hover:bg-gray-100"
+                  >
+                    {tag.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="p-2 text-sm text-gray-500 text-center">
+                  タグがありません
+                </div>
+              )}
             </ScrollArea>
           </SelectContent>
         </Select>
