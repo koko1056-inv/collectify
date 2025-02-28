@@ -12,7 +12,7 @@ export interface BaseItemTag {
 }
 
 export interface ItemTagWithTag extends BaseItemTag {
-  tags: Tag;
+  tags: Tag | null;
 }
 
 export type ItemTag = ItemTagWithTag;

@@ -5,9 +5,9 @@ import { TagInput } from "../TagInput";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TagCategory, ItemTag } from "@/types/tag";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import type { TagCategory, ItemTag } from "@/types/tag";
 
 interface TagDialogProps {
   isOpen: boolean;
