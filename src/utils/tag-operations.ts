@@ -150,6 +150,7 @@ export const getTagsForItem = async (
 
     if (error) throw error;
     
+    // 型を明示的に指定して循環参照を避ける
     return data || [];
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
