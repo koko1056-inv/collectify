@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import type { Tag } from "@/types/tag";
@@ -27,10 +27,11 @@ export function CategoryTagSelect({
 }: CategoryTagSelectProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newTagName, setNewTagName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: tags = [], refetch } = useQuery<Tag[]>({
+  const { data: allTags = [], refetch } = useQuery<Tag[]>({
     queryKey: ["tags", category],
     queryFn: async () => {
       console.log(`Fetching tags for category: ${category}`);
@@ -53,13 +54,20 @@ export function CategoryTagSelect({
     refetchOnMount: true, // コンポーネントマウント時に再取得
   });
 
+  // 検索クエリでフィルタリングされたタグリスト
+  const filteredTags = searchQuery.trim() === '' 
+    ? allTags 
+    : allTags.filter(tag => 
+        tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+  
   // 値が変更されたら、親コンポーネントに通知
   useEffect(() => {
-    const selectedTag = tags.find(tag => tag.name === value);
+    const selectedTag = allTags.find(tag => tag.name === value);
     if (selectedTag) {
       console.log(`CategoryTagSelect: Selected tag "${selectedTag.name}" for category "${category}"`);
     }
-  }, [value, tags, category]);
+  }, [value, allTags, category]);
 
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) {
@@ -145,7 +153,7 @@ export function CategoryTagSelect({
   };
 
   const handleValueChange = (tagId: string) => {
-    const selectedTag = tags.find(tag => tag.id === tagId);
+    const selectedTag = allTags.find(tag => tag.id === tagId);
     if (selectedTag) {
       console.log(`CategoryTagSelect: Changed to "${selectedTag.name}" for category "${category}"`);
       onChange(selectedTag.name);
@@ -169,18 +177,18 @@ export function CategoryTagSelect({
   };
 
   // 現在選択されているタグを見つける
-  const selectedTag = tags.find(tag => tag.name === value);
+  const selectedTag = allTags.find(tag => tag.name === value);
   
   // デバッグ情報
   useEffect(() => {
-    if (tags.length > 0) {
-      console.log(`[${category}] Available tags (${tags.length}):`, tags.map(t => t.name).join(', '));
+    if (allTags.length > 0) {
+      console.log(`[${category}] Available tags (${allTags.length}):`, allTags.map(t => t.name).join(', '));
     }
     if (value) {
       console.log(`[${category}] Current value:`, value);
       console.log(`[${category}] Selected tag:`, selectedTag);
     }
-  }, [tags, value, selectedTag, category]);
+  }, [allTags, value, selectedTag, category]);
 
   return (
     <div className="space-y-2">
@@ -193,16 +201,29 @@ export function CategoryTagSelect({
             if (open) {
               // セレクトが開かれたときに最新データを取得
               refetch();
+              // 検索クエリをリセット
+              setSearchQuery("");
             }
           }}
         >
           <SelectTrigger className="w-full bg-white">
             <SelectValue placeholder={getPlaceholderText()} />
           </SelectTrigger>
-          <SelectContent className="bg-white">
+          <SelectContent className="bg-white w-full" side="bottom">
+            <div className="px-2 py-2">
+              <div className="flex items-center border rounded-md px-2">
+                <Search className="h-4 w-4 text-gray-400" />
+                <input
+                  className="w-full p-2 bg-transparent focus:outline-none text-sm"
+                  placeholder="タグを検索..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
             <ScrollArea className="max-h-[200px]">
-              {tags.length > 0 ? (
-                tags.map((tag) => (
+              {filteredTags.length > 0 ? (
+                filteredTags.map((tag) => (
                   <SelectItem 
                     key={tag.id} 
                     value={tag.id}
@@ -213,7 +234,7 @@ export function CategoryTagSelect({
                 ))
               ) : (
                 <div className="p-2 text-sm text-gray-500 text-center">
-                  タグがありません
+                  {searchQuery.trim() !== '' ? '該当するタグはありません' : 'タグがありません'}
                 </div>
               )}
             </ScrollArea>
