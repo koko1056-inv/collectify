@@ -14,10 +14,16 @@ export interface BaseItemTag {
   tag_id: string;
 }
 
+// ItemTagWithTagインターフェースを直接定義（継承せず）
 export interface ItemTagWithTag {
   id: string;
   tag_id: string;
-  tags: Tag;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at: string;
+  };
 }
 
 export interface DeleteUserItemResult {

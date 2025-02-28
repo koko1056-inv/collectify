@@ -33,15 +33,23 @@ export function CategoryTagSelect({
   const { data: tags = [], refetch } = useQuery<Tag[]>({
     queryKey: ["tags", category],
     queryFn: async () => {
+      console.log(`Fetching tags for category: ${category}`);
       const { data, error } = await supabase
         .from("tags")
         .select("*")
         .eq("category", category)
         .order("name");
 
-      if (error) throw error;
+      if (error) {
+        console.error(`Error fetching tags for category ${category}:`, error);
+        throw error;
+      }
+      
+      console.log(`Found ${data?.length || 0} tags for category ${category}:`, data);
       return data || [];
     },
+    staleTime: 0, // 常に最新データを取得
+    refetchOnWindowFocus: true,
   });
 
   // 値が変更されたら、親コンポーネントに通知
@@ -63,15 +71,23 @@ export function CategoryTagSelect({
     }
 
     try {
+      console.log(`Attempting to add new tag: "${newTagName}" with category: "${category}"`);
+      
       // 既存のタグをチェック
-      const { data: existingTag } = await supabase
+      const { data: existingTag, error: checkError } = await supabase
         .from("tags")
         .select("*")
         .eq("name", newTagName.trim())
         .eq("category", category)
         .single();
 
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error("Error checking existing tag:", checkError);
+        throw checkError;
+      }
+
       if (existingTag) {
+        console.log(`Tag already exists: ${JSON.stringify(existingTag)}`);
         onChange(existingTag.name);
         setNewTagName("");
         setIsDialogOpen(false);
@@ -88,13 +104,21 @@ export function CategoryTagSelect({
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error adding new tag:", error);
+        throw error;
+      }
 
       if (newTag) {
+        console.log(`Successfully added new tag: ${JSON.stringify(newTag)}`);
         onChange(newTag.name);
-        // キャッシュを即座に更新
+        
+        // キャッシュを即座に無効化
         await queryClient.invalidateQueries({ queryKey: ["tags", category] });
-        await refetch(); // 即座にデータを再取得
+        
+        // 強制的にデータを再取得
+        const result = await refetch();
+        console.log(`Refetched tags for category ${category}:`, result.data);
         
         toast({
           title: "タグを追加しました",
