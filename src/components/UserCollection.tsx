@@ -63,7 +63,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       );
     }
     
-    // 検索クエリを適用
+    // 検索クエリを適用（リアルタイム検索）
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item => 
@@ -89,6 +89,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   };
 
   const handleSearchChange = (query: string) => {
+    // リアルタイム検索のために、入力の度に検索クエリを更新
     setSearchQuery(query);
   };
 

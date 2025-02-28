@@ -19,12 +19,12 @@ export function SearchBar({
   const isMobile = useIsMobile();
   
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // リアルタイム検索のため、入力の度に親コンポーネントに通知
     onSearchChange(e.target.value);
   };
 
+  // モバイルの場合はルーペアイコンクリックでも検索を実行
   const handleSearchIconClick = () => {
-    // 検索アイコンをクリックしたときに検索を実行する
-    // モバイルの場合、現在の検索クエリで検索を再実行する
     if (isMobile) {
       onSearchChange(searchQuery);
     }
