@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ItemTag } from "@/types/tag";
+import type { ItemTag } from "@/types/tag";
 
 /**
  * アイテムからタグを削除する
@@ -51,14 +51,25 @@ export const addTagToItem = async (
   }
 
   // タグを追加
-  const { error } = await supabase
-    .from(table)
-    .insert([{
-      tag_id: tagId,
-      [idField]: itemId,
-    }]);
-
-  if (error) throw error;
+  if (isUserItem) {
+    const { error } = await supabase
+      .from("user_item_tags")
+      .insert({
+        tag_id: tagId,
+        user_item_id: itemId,
+      });
+    
+    if (error) throw error;
+  } else {
+    const { error } = await supabase
+      .from("item_tags")
+      .insert({
+        tag_id: tagId,
+        official_item_id: itemId,
+      });
+    
+    if (error) throw error;
+  }
   
   return { success: true, exists: false };
 };
@@ -88,7 +99,7 @@ export const deleteUserItem = async (itemId: string) => {
     
     // Delete related memories
     const { error: memoriesError } = await supabase
-      .from("memories")
+      .from("item_memories")  // "memories" テーブルではなく "item_memories" テーブルを使用
       .delete()
       .eq("user_item_id", itemId);
     
