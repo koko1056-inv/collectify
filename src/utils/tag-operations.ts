@@ -12,15 +12,19 @@ export const removeTagFromItem = async (
   const table = isUserItem ? "user_item_tags" : "item_tags";
   const idField = isUserItem ? "user_item_id" : "official_item_id";
 
-  const { error } = await supabase
-    .from(table)
-    .delete()
-    .eq("tag_id", tagId)
-    .eq(idField, itemId);
+  try {
+    const { error } = await supabase
+      .from(table)
+      .delete()
+      .eq("tag_id", tagId)
+      .eq(idField, itemId);
 
-  if (error) throw error;
-  
-  return { success: true };
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error("Error removing tag:", error);
+    throw error;
+  }
 };
 
 /**
@@ -98,7 +102,7 @@ export const deleteUserItem = async (itemId: string) => {
     
     // Delete related memories
     const { error: memoriesError } = await supabase
-      .from("item_memories")  // "memories" テーブルではなく "item_memories" テーブルを使用
+      .from("item_memories")
       .delete()
       .eq("user_item_id", itemId);
     

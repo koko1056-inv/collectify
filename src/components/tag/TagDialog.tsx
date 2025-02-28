@@ -84,7 +84,11 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false, onTagsS
         <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as TagCategory)}>
           <TabsList className="grid w-full grid-cols-3">
             {Object.entries(TAG_CATEGORIES).map(([key, label]) => (
-              <TabsTrigger key={key} value={key}>
+              <TabsTrigger 
+                key={key} 
+                value={key}
+                className="data-[state=active]:bg-black data-[state=active]:text-white font-medium text-sm"
+              >
                 {label}
               </TabsTrigger>
             ))}
