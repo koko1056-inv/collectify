@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Tag } from "@/types";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useEffect } from "react";
 
 interface SearchBarProps {
   searchQuery: string;
@@ -19,22 +18,14 @@ export function SearchBar({
 }: SearchBarProps) {
   const isMobile = useIsMobile();
   
-  // コンポーネントのマウント時と検索クエリの変更時にログを出力
-  useEffect(() => {
-    console.log("SearchBar rendered with query:", searchQuery);
-  }, [searchQuery]);
-  
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("Search input changed to:", e.target.value);
-    // リアルタイム検索のため、入力の度に親コンポーネントに通知
     onSearchChange(e.target.value);
   };
 
-  // モバイルの場合はルーペアイコンクリックでも検索を実行
   const handleSearchIconClick = () => {
-    console.log("Search icon clicked");
+    // 検索アイコンをクリックしたときに検索を実行する
+    // モバイルの場合、現在の検索クエリで検索を再実行する
     if (isMobile) {
-      console.log("Executing search on mobile with query:", searchQuery);
       onSearchChange(searchQuery);
     }
   };
@@ -42,7 +33,6 @@ export function SearchBar({
   // Enterキーを押したときにも検索を実行
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      console.log("Enter key pressed, executing search with query:", searchQuery);
       onSearchChange(searchQuery);
     }
   };

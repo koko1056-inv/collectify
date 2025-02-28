@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "./ui/skeleton";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { CollectionGrid } from "./collection/CollectionGrid";
@@ -28,8 +28,6 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
     queryFn: async () => {
       if (!effectiveUserId) return [];
       
-      console.log("Fetching user items for userId:", effectiveUserId);
-      
       const query = supabase
         .from("user_items")
         .select(`
@@ -46,12 +44,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
 
       const { data, error } = await query;
 
-      if (error) {
-        console.error("Error fetching user items:", error);
-        throw error;
-      }
-      
-      console.log("Fetched user items:", data?.length || 0);
+      if (error) throw error;
       return data || [];
     },
     enabled: !!effectiveUserId,
@@ -60,10 +53,6 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   });
 
   const filteredItems = useMemo(() => {
-    console.log("Filtering items. Total items:", items.length);
-    console.log("Selected tags:", selectedTags);
-    console.log("Search query:", searchQuery);
-    
     // タグフィルターを適用
     let filtered = items;
     if (selectedTags.length > 0) {
@@ -72,26 +61,18 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
           item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
         )
       );
-      console.log("After tag filtering:", filtered.length);
     }
     
-    // 検索クエリを適用（リアルタイム検索）
+    // 検索クエリを適用
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(item => 
         item.title.toLowerCase().includes(query)
       );
-      console.log("After search filtering:", filtered.length);
     }
     
-    console.log("Final filtered items:", filtered.length);
     return filtered;
   }, [items, selectedTags, searchQuery]);
-
-  // 検索クエリの変更をログに出力
-  useEffect(() => {
-    console.log("Search query changed to:", searchQuery);
-  }, [searchQuery]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -108,8 +89,6 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   };
 
   const handleSearchChange = (query: string) => {
-    console.log("Search change triggered with query:", query);
-    // リアルタイム検索のために、入力の度に検索クエリを更新
     setSearchQuery(query);
   };
 
