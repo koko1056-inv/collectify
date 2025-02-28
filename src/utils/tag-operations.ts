@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { ItemTag } from "@/types/tag";
+import type { ItemTag, Tag } from "@/types/tag";
 
 /**
  * アイテムからタグを削除する
@@ -147,7 +147,7 @@ export const getTagsForItem = async (
 
     if (error) throw error;
     
-    return data as ItemTag[];
+    return data as unknown as ItemTag[];
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
     return [];
