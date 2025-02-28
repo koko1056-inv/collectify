@@ -62,7 +62,7 @@ export function TagManageModalContent({
       <div className="space-y-3 sm:space-y-4">
         <CategoryTagSelect
           category="character"
-          label="キャラクター・人物名"
+          label="キャラ・人物名"
           value={
             pendingUpdates.find(u => u.category === 'character')?.value ||
             currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name ||

@@ -18,7 +18,7 @@ interface TagDialogProps {
 }
 
 const TAG_CATEGORIES = {
-  character: "キャラクター・人物名",
+  character: "キャラ・人物名",
   type: "グッズタイプ",
   series: "グッズシリーズ"
 } as const;
