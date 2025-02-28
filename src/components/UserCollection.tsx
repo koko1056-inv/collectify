@@ -7,7 +7,6 @@ import { useState, useMemo } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { CollectionGrid } from "./collection/CollectionGrid";
-import { SearchBar } from "./SearchBar";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -17,9 +16,6 @@ interface UserCollectionProps {
 export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
-  const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
 
@@ -53,26 +49,14 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   });
 
   const filteredItems = useMemo(() => {
-    // タグフィルターを適用
-    let filtered = items;
-    if (selectedTags.length > 0) {
-      filtered = items.filter(item => 
-        selectedTags.some(tag => 
-          item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
-        )
-      );
-    }
+    if (selectedTags.length === 0) return items;
     
-    // 検索クエリを適用
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(item => 
-        item.title.toLowerCase().includes(query)
-      );
-    }
-    
-    return filtered;
-  }, [items, selectedTags, searchQuery]);
+    return items.filter(item => 
+      selectedTags.some(tag => 
+        item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
+      )
+    );
+  }, [items, selectedTags]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -85,29 +69,6 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       
       const newItems = arrayMove([...items], oldIndex, newIndex);
       queryClient.setQueryData(["user-items", effectiveUserId, selectedTags], newItems);
-    }
-  };
-
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query);
-  };
-
-  const handleSelectItem = (itemId: string) => {
-    setSelectedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId) 
-        : [...prev, itemId]
-    );
-  };
-
-  const toggleCompactView = () => {
-    setIsCompact(!isCompact);
-  };
-
-  const toggleSelectionMode = () => {
-    setIsSelectionMode(!isSelectionMode);
-    if (!isSelectionMode) {
-      setSelectedItems([]);
     }
   };
 
@@ -144,29 +105,19 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   if (filteredItems.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">条件に一致するアイテムがありません。</p>
+        <p className="text-gray-500">選択されたタグに一致するアイテムがありません。</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <SearchBar 
-          searchQuery={searchQuery} 
-          onSearchChange={handleSearchChange}
-          selectedTags={[]} 
-          onTagsChange={() => {}} 
-          tags={[]}
-        />
-      </div>
-      
       <CollectionGrid
         items={filteredItems}
         isCompact={isCompact}
-        isSelectionMode={isSelectionMode}
-        selectedItems={selectedItems}
-        onSelectItem={handleSelectItem}
+        isSelectionMode={false}
+        selectedItems={[]}
+        onSelectItem={() => {}}
         onDragEnd={handleDragEnd}
       />
     </div>

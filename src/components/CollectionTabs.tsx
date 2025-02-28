@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
 import { UserCollection } from "@/components/UserCollection";
