@@ -155,7 +155,7 @@ export const getTagsForItem = async (
     return (data || []).map(item => ({
       id: item.id,
       tag_id: item.tag_id,
-      tags: item.tags as Tag | null
+      tags: item.tags as Tag
     }));
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
