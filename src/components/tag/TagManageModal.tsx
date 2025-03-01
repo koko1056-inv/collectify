@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ItemTag } from "@/types/tag";
-import { getTagsForItem } from "@/utils/tag-operations";
+import { getTagsForItem, setItemContent } from "@/utils/tag-operations";
 import { TagManageModalContent } from "./TagManageModalContent";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TagUpdate {
   category: string;
@@ -17,7 +18,7 @@ interface TagManageModalProps {
   onClose: () => void;
   itemIds: string[];
   title?: string;
-  itemTitle?: string; // 追加：オプショナルなitemTitleプロパティ
+  itemTitle?: string;
   isUserItem?: boolean;
   onSubmit?: (updates: TagUpdate[]) => Promise<void>;
 }
@@ -27,11 +28,13 @@ export function TagManageModal({
   onClose,
   itemIds,
   title = "タグ管理",
-  itemTitle, // 追加：パラメータを受け取る
+  itemTitle,
   isUserItem = false,
   onSubmit,
 }: TagManageModalProps) {
   const [pendingUpdates, setPendingUpdates] = useState<TagUpdate[]>([]);
+  const [contentName, setContentName] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   
   const { data: currentTags = [], isLoading } = useQuery({
     queryKey: ["current-tags", itemIds],
@@ -43,9 +46,40 @@ export function TagManageModal({
     enabled: isOpen && itemIds.length > 0,
   });
 
+  // 現在のコンテンツ名を取得
+  const { data: itemData } = useQuery({
+    queryKey: ["item-content", itemIds[0], isUserItem],
+    queryFn: async () => {
+      if (!itemIds[0]) return null;
+      
+      const table = isUserItem ? "user_items" : "official_items";
+      const { data, error } = await supabase
+        .from(table)
+        .select("content_name")
+        .eq("id", itemIds[0])
+        .single();
+      
+      if (error) {
+        console.error("Error fetching item content:", error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: isOpen && itemIds.length > 0,
+  });
+
+  // コンテンツ名の初期設定
+  useEffect(() => {
+    if (itemData) {
+      setContentName(itemData.content_name);
+    }
+  }, [itemData]);
+
   useEffect(() => {
     if (!isOpen) {
       setPendingUpdates([]);
+      setContentName(null);
     }
   }, [isOpen]);
 
@@ -61,11 +95,29 @@ export function TagManageModal({
     });
   }, []);
 
+  const handleContentChange = useCallback((newContentName: string | null) => {
+    setContentName(newContentName);
+  }, []);
+
   const handleSubmit = async () => {
-    if (onSubmit) {
-      await onSubmit(pendingUpdates.filter((u) => u.value !== null));
+    try {
+      // コンテンツ名を更新
+      for (const itemId of itemIds) {
+        await setItemContent(itemId, contentName, isUserItem);
+      }
+      
+      // Invalidate relevant queries
+      await queryClient.invalidateQueries({ queryKey: ["item-content"] });
+      
+      // タグ更新がある場合はそちらも処理
+      if (onSubmit && pendingUpdates.length > 0) {
+        await onSubmit(pendingUpdates.filter((u) => u.value !== null));
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error("Error updating item:", error);
     }
-    onClose();
   };
 
   // itemTitleがある場合はタイトルに含める
@@ -88,6 +140,8 @@ export function TagManageModal({
               onTagChange={handleTagChange}
               itemIds={itemIds}
               isUserItem={isUserItem}
+              contentName={contentName}
+              onContentChange={handleContentChange}
             />
             
             <div className="flex justify-end gap-2 pt-4">

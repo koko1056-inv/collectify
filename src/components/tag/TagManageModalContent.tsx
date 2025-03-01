@@ -3,9 +3,14 @@ import { CategoryTagSelect } from "./CategoryTagSelect";
 import { CurrentTagsList } from "./CurrentTagsList";
 import { PendingTagsList } from "./PendingTagsList";
 import { ItemTag } from "@/types/tag";
-import { removeTagFromItem } from "@/utils/tag-operations";
+import { removeTagFromItem, setItemContent, getAllContentNames } from "@/utils/tag-operations";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 
 interface TagUpdate {
   category: string;
@@ -18,6 +23,8 @@ interface TagManageModalContentProps {
   onTagChange: (category: string) => (value: string | null) => void;
   itemIds: string[];
   isUserItem?: boolean;
+  contentName?: string | null;
+  onContentChange?: (contentName: string | null) => void;
 }
 
 export function TagManageModalContent({
@@ -25,10 +32,21 @@ export function TagManageModalContent({
   pendingUpdates,
   onTagChange,
   itemIds,
-  isUserItem = false
+  isUserItem = false,
+  contentName,
+  onContentChange
 }: TagManageModalContentProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isAddingNewContent, setIsAddingNewContent] = useState(false);
+  const [newContentName, setNewContentName] = useState("");
+
+  const { data: contentNames = [], isLoading: isContentLoading } = useQuery({
+    queryKey: ["content-names"],
+    queryFn: async () => {
+      return await getAllContentNames();
+    },
+  });
 
   const handleRemoveTag = async (tagId: string) => {
     try {
@@ -52,12 +70,119 @@ export function TagManageModalContent({
     }
   };
 
+  const handleContentChange = (value: string) => {
+    if (value === "other") {
+      setIsAddingNewContent(true);
+      if (onContentChange) onContentChange(null);
+    } else if (value === "none") {
+      if (onContentChange) onContentChange(null);
+    } else {
+      if (onContentChange) onContentChange(value);
+    }
+  };
+
+  const handleAddNewContent = async () => {
+    if (!newContentName.trim()) {
+      toast({
+        title: "エラー",
+        description: "コンテンツ名を入力してください",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Add new content to content_names table
+      const { data, error } = await supabase
+        .from("content_names")
+        .insert([{ name: newContentName, type: "other" }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Invalidate content names query
+      await queryClient.invalidateQueries({ queryKey: ["content-names"] });
+      
+      // Set the new content as selected
+      if (onContentChange) onContentChange(data.name);
+      
+      setIsAddingNewContent(false);
+      setNewContentName("");
+      
+      toast({
+        title: "コンテンツを追加しました",
+        description: `${data.name}を追加しました`,
+      });
+    } catch (error) {
+      console.error("Error adding content:", error);
+      toast({
+        title: "エラー",
+        description: "コンテンツの追加に失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 py-4">
       <CurrentTagsList 
         currentTags={currentTags} 
         onRemoveTag={handleRemoveTag}
       />
+      
+      {/* コンテンツ選択セクション */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium">コンテンツ</h3>
+        
+        {isAddingNewContent ? (
+          <div className="flex gap-2">
+            <Input
+              value={newContentName}
+              onChange={(e) => setNewContentName(e.target.value)}
+              placeholder="新しいコンテンツ名"
+              className="flex-1"
+            />
+            <Button onClick={handleAddNewContent}>
+              追加
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsAddingNewContent(false);
+                setNewContentName("");
+              }}
+            >
+              キャンセル
+            </Button>
+          </div>
+        ) : (
+          isContentLoading ? (
+            <div className="flex items-center space-x-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>読み込み中...</span>
+            </div>
+          ) : (
+            <Select
+              value={contentName || "none"}
+              onValueChange={handleContentChange}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="コンテンツを選択" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">選択なし</SelectItem>
+                {contentNames.map((content) => (
+                  <SelectItem key={content.id} value={content.name}>
+                    {content.name}
+                  </SelectItem>
+                ))}
+                <SelectItem value="other">その他（新規追加）</SelectItem>
+              </SelectContent>
+            </Select>
+          )
+        )}
+      </div>
       
       <div className="space-y-3 sm:space-y-4">
         <CategoryTagSelect

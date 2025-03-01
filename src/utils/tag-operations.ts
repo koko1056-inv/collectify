@@ -150,8 +150,12 @@ export const getTagsForItem = async (
 
     if (error) throw error;
     
-    // 型を明示的に指定して循環参照を避ける
-    return data || [];
+    // Fixed: Transform the response to match the ItemTagWithTag interface
+    return (data || []).map(item => ({
+      id: item.id,
+      tag_id: item.tag_id,
+      tags: item.tags // This matches the expected property name in ItemTagWithTag
+    }));
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
     return [];
@@ -171,4 +175,46 @@ export const getTagsByIds = async (tagIds: string[]) => {
   
   if (error) throw error;
   return data;
+};
+
+/**
+ * アイテムのコンテンツを設定する
+ */
+export const setItemContent = async (
+  itemId: string, 
+  contentName: string | null,
+  isUserItem: boolean = false
+) => {
+  try {
+    const table = isUserItem ? "user_items" : "official_items";
+    
+    const { error } = await supabase
+      .from(table)
+      .update({ content_name: contentName })
+      .eq("id", itemId);
+    
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error(`Error setting content for item ${itemId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * 利用可能なコンテンツ名の一覧を取得する
+ */
+export const getAllContentNames = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("content_names")
+      .select("*")
+      .order("name");
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching content names:", error);
+    return [];
+  }
 };
