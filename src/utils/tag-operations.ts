@@ -151,7 +151,7 @@ export const getTagsForItem = async (
 
     if (error) throw error;
     
-    // Transform the response to match the ItemTagWithTag interface
+    // Transform the response to match the ItemTag interface
     return (data || []).map(item => ({
       id: item.id,
       tag_id: item.tag_id,

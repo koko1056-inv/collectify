@@ -71,8 +71,8 @@ export function TagManageModal({
 
   // コンテンツ名の初期設定
   useEffect(() => {
-    if (itemData && itemData.content_name !== undefined) {
-      setContentName(itemData.content_name);
+    if (itemData && typeof itemData === 'object' && 'content_name' in itemData) {
+      setContentName(itemData.content_name as string | null);
     }
   }, [itemData]);
 
