@@ -73,7 +73,7 @@ export function TagManageModal({
   useEffect(() => {
     // Add a null check for itemData before trying to access it
     if (itemData && typeof itemData === 'object' && 'content_name' in itemData) {
-      setContentName((itemData as { content_name: string | null }).content_name);
+      setContentName(itemData.content_name);
     }
   }, [itemData]);
 

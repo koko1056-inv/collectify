@@ -164,6 +164,46 @@ export const getTagsForItem = async (
 };
 
 /**
+ * ランダムなユーザーアイテムを取得する
+ */
+export const getRandomUserItem = async (userId: string) => {
+  try {
+    // ユーザーのアイテム総数を取得
+    const { count, error: countError } = await supabase
+      .from("user_items")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
+    
+    if (countError) throw countError;
+    if (!count || count === 0) return null;
+    
+    // ランダムなインデックスを生成
+    const randomIndex = Math.floor(Math.random() * count);
+    
+    // ランダムなアイテムを取得
+    const { data, error } = await supabase
+      .from("user_items")
+      .select(`
+        *,
+        user_item_tags (
+          tags (
+            id,
+            name
+          )
+        )
+      `)
+      .eq("user_id", userId)
+      .range(randomIndex, randomIndex);
+    
+    if (error) throw error;
+    return data && data.length > 0 ? data[0] : null;
+  } catch (error) {
+    console.error("Error fetching random user item:", error);
+    return null;
+  }
+};
+
+/**
  * ID配列からタグを取得する
  */
 export const getTagsByIds = async (tagIds: string[]) => {

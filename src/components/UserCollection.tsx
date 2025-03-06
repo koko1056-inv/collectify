@@ -7,6 +7,9 @@ import { useState, useMemo } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { CollectionGrid } from "./collection/CollectionGrid";
+import { Button } from "./ui/button";
+import { Dices } from "lucide-react";
+import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -16,6 +19,7 @@ interface UserCollectionProps {
 export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
+  const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
 
@@ -112,6 +116,17 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-center mb-4">
+        <Button 
+          onClick={() => setIsRandomModalOpen(true)}
+          className="gap-2"
+          variant="outline"
+        >
+          <Dices className="h-4 w-4" />
+          今日のコレクション
+        </Button>
+      </div>
+      
       <CollectionGrid
         items={filteredItems}
         isCompact={isCompact}
@@ -119,6 +134,12 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
         selectedItems={[]}
         onSelectItem={() => {}}
         onDragEnd={handleDragEnd}
+      />
+
+      <RandomCollectionItemModal
+        isOpen={isRandomModalOpen}
+        onClose={() => setIsRandomModalOpen(false)}
+        userId={effectiveUserId}
       />
     </div>
   );
