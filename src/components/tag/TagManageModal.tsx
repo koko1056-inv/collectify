@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -39,14 +38,12 @@ export function TagManageModal({
   const { data: currentTags = [], isLoading } = useQuery({
     queryKey: ["current-tags", itemIds],
     queryFn: async () => {
-      // 複数アイテムの場合は最初のIDのタグを取得
       const firstItemId = itemIds[0];
       return await getTagsForItem(firstItemId, isUserItem);
     },
     enabled: isOpen && itemIds.length > 0,
   });
 
-  // 現在のコンテンツ名を取得
   const { data: itemData } = useQuery({
     queryKey: ["item-content", itemIds[0], isUserItem],
     queryFn: async () => {
@@ -69,10 +66,8 @@ export function TagManageModal({
     enabled: isOpen && itemIds.length > 0,
   });
 
-  // コンテンツ名の初期設定
   useEffect(() => {
-    // Check if itemData exists and has the expected structure before trying to access properties
-    if (itemData && typeof itemData === 'object' && 'content_name' in itemData) {
+    if (itemData && 'content_name' in itemData && itemData.content_name !== undefined) {
       setContentName(itemData.content_name);
     }
   }, [itemData]);
@@ -102,15 +97,12 @@ export function TagManageModal({
 
   const handleSubmit = async () => {
     try {
-      // コンテンツ名を更新
       for (const itemId of itemIds) {
         await setItemContent(itemId, contentName, isUserItem);
       }
       
-      // Invalidate relevant queries
       await queryClient.invalidateQueries({ queryKey: ["item-content"] });
       
-      // タグ更新がある場合はそちらも処理
       if (onSubmit && pendingUpdates.length > 0) {
         await onSubmit(pendingUpdates.filter((u) => u.value !== null));
       }
@@ -121,7 +113,6 @@ export function TagManageModal({
     }
   };
 
-  // itemTitleがある場合はタイトルに含める
   const modalTitle = itemTitle ? `${title}: ${itemTitle}` : title;
 
   return (

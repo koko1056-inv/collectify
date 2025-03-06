@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { ItemTag, Tag } from "@/types/tag";
+import { Tag } from "@/types/tag";
 
 /**
  * アイテムからタグを削除する
@@ -130,33 +129,25 @@ export const deleteUserItem = async (itemId: string) => {
 export const getTagsForItem = async (
   itemId: string,
   isUserItem: boolean = false
-): Promise<ItemTag[]> => {
+): Promise<Tag[]> => {
   try {
     const table = isUserItem ? "user_item_tags" : "item_tags";
-    const idField = isUserItem ? "user_item_id" : "official_item_id";
-
     const { data, error } = await supabase
       .from(table)
       .select(`
-        id,
-        tag_id,
         tags (
           id,
           name,
-          category,
-          created_at
+          category
         )
       `)
-      .eq(idField, itemId);
+      .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
 
     if (error) throw error;
-    
-    // Transform the response to match the ItemTag interface
-    return (data || []).map(item => ({
-      id: item.id,
-      tag_id: item.tag_id,
-      tags: item.tags as Tag
-    }));
+
+    return data
+      ?.map(item => item.tags)
+      .filter((tag): tag is Tag => tag !== null) || [];
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
     return [];

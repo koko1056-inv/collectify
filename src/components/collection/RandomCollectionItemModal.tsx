@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Share2 } from "lucide-react";
 import { ShareModal } from "@/components/ShareModal";
+import { useNavigate } from "react-router-dom";
 
 interface RandomCollectionItemModalProps {
   isOpen: boolean;
@@ -20,6 +20,7 @@ export function RandomCollectionItemModal({
   onClose,
   userId,
 }: RandomCollectionItemModalProps) {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [randomItem, setRandomItem] = useState<any | null>(null);
@@ -54,7 +55,6 @@ export function RandomCollectionItemModal({
     }
   };
 
-  // モーダルが開いたらランダムアイテムを取得
   useEffect(() => {
     if (isOpen && effectiveUserId) {
       fetchRandomItem();
@@ -63,6 +63,13 @@ export function RandomCollectionItemModal({
 
   const handleShare = () => {
     setIsShareModalOpen(true);
+  };
+
+  const handleImageClick = () => {
+    if (randomItem && effectiveUserId) {
+      onClose();
+      navigate(`/user/${effectiveUserId}?itemId=${randomItem.id}`);
+    }
   };
 
   return (
@@ -82,7 +89,10 @@ export function RandomCollectionItemModal({
               </div>
             ) : randomItem ? (
               <div className="flex flex-col items-center space-y-4">
-                <div className="w-full max-w-[240px] mx-auto">
+                <div 
+                  className="w-full max-w-[240px] mx-auto cursor-pointer transition-transform hover:scale-105"
+                  onClick={handleImageClick}
+                >
                   <img 
                     src={randomItem.image} 
                     alt={randomItem.title} 
