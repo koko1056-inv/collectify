@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { getRandomUserItem } from "@/utils/tag-operations";
@@ -52,11 +52,11 @@ export function RandomCollectionItemModal({
   };
 
   // モーダルが開いたらランダムアイテムを取得
-  useState(() => {
+  useEffect(() => {
     if (isOpen && effectiveUserId) {
       fetchRandomItem();
     }
-  });
+  }, [isOpen, effectiveUserId]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -109,7 +109,7 @@ export function RandomCollectionItemModal({
             onClick={fetchRandomItem}
             disabled={isLoading}
           >
-            別のアイテムを表示
+            抽選する
           </Button>
           <Button onClick={onClose}>閉じる</Button>
         </div>
