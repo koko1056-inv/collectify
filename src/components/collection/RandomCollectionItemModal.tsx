@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,9 +6,10 @@ import { getRandomUserItem } from "@/utils/tag-operations";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Share2 } from "lucide-react";
+import { Share2, BookOpen } from "lucide-react";
 import { ShareModal } from "@/components/ShareModal";
 import { useNavigate } from "react-router-dom";
+import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
 
 interface RandomCollectionItemModalProps {
   isOpen: boolean;
@@ -26,6 +28,7 @@ export function RandomCollectionItemModal({
   const [randomItem, setRandomItem] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
 
   const fetchRandomItem = async () => {
@@ -63,6 +66,10 @@ export function RandomCollectionItemModal({
 
   const handleShare = () => {
     setIsShareModalOpen(true);
+  };
+
+  const handleOpenMemories = () => {
+    setIsMemoriesModalOpen(true);
   };
 
   const handleImageClick = () => {
@@ -131,14 +138,24 @@ export function RandomCollectionItemModal({
                 抽選する
               </Button>
               {randomItem && (
-                <Button
-                  variant="outline"
-                  onClick={handleShare}
-                  disabled={isLoading}
-                >
-                  <Share2 className="h-4 w-4 mr-2" />
-                  共有する
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleShare}
+                    disabled={isLoading}
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    共有する
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleOpenMemories}
+                    disabled={isLoading}
+                  >
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    思い出
+                  </Button>
+                </>
               )}
             </div>
             <Button onClick={onClose}>閉じる</Button>
@@ -147,13 +164,22 @@ export function RandomCollectionItemModal({
       </Dialog>
       
       {randomItem && (
-        <ShareModal
-          isOpen={isShareModalOpen}
-          onClose={() => setIsShareModalOpen(false)}
-          title={`コレクション: ${randomItem.title}`}
-          url={window.location.href}
-          image={randomItem.image}
-        />
+        <>
+          <ShareModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            title={`コレクション: ${randomItem.title}`}
+            url={window.location.href}
+            image={randomItem.image}
+          />
+          <ItemMemoriesModal
+            isOpen={isMemoriesModalOpen}
+            onClose={() => setIsMemoriesModalOpen(false)}
+            itemIds={[randomItem.id]}
+            itemTitles={[randomItem.title]}
+            userId={effectiveUserId}
+          />
+        </>
       )}
     </>
   );
