@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Tag } from "@/types/tag";
+import { Tag, ItemTag } from "@/types/tag";
 
 /**
  * アイテムからタグを削除する
@@ -129,25 +129,31 @@ export const deleteUserItem = async (itemId: string) => {
 export const getTagsForItem = async (
   itemId: string,
   isUserItem: boolean = false
-): Promise<Tag[]> => {
+): Promise<ItemTag[]> => {
   try {
     const table = isUserItem ? "user_item_tags" : "item_tags";
     const { data, error } = await supabase
       .from(table)
       .select(`
+        id,
+        tag_id,
         tags (
           id,
           name,
-          category
+          category,
+          created_at
         )
       `)
       .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
 
     if (error) throw error;
 
-    return data
-      ?.map(item => item.tags)
-      .filter((tag): tag is Tag => tag !== null) || [];
+    // Transform the data to match the ItemTag interface
+    return (data || []).map(item => ({
+      id: item.id,
+      tag_id: item.tag_id,
+      tags: item.tags
+    })) as ItemTag[];
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
     return [];
@@ -197,7 +203,7 @@ export const getRandomUserItem = async (userId: string) => {
 /**
  * ID配列からタグを取得する
  */
-export const getTagsByIds = async (tagIds: string[]) => {
+export const getTagsByIds = async (tagIds: string[]): Promise<Tag[]> => {
   if (!tagIds.length) return [];
   
   const { data, error } = await supabase
@@ -206,7 +212,7 @@ export const getTagsByIds = async (tagIds: string[]) => {
     .in("id", tagIds);
   
   if (error) throw error;
-  return data;
+  return data || [];
 };
 
 /**

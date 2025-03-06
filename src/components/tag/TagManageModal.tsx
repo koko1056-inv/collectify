@@ -1,16 +1,12 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { ItemTag } from "@/types/tag";
+import { Tag, TagUpdate, ItemTag } from "@/types/tag";
 import { getTagsForItem, setItemContent } from "@/utils/tag-operations";
 import { TagManageModalContent } from "./TagManageModalContent";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-interface TagUpdate {
-  category: string;
-  value: string | null;
-}
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -67,8 +63,9 @@ export function TagManageModal({
   });
 
   useEffect(() => {
-    if (itemData && 'content_name' in itemData && itemData.content_name !== undefined) {
-      setContentName(itemData.content_name);
+    if (itemData && 'content_name' in itemData) {
+      // Fix: Ensure the content_name value is a string or null
+      setContentName(itemData.content_name as string | null);
     }
   }, [itemData]);
 
@@ -127,7 +124,7 @@ export function TagManageModal({
         ) : (
           <>
             <TagManageModalContent
-              currentTags={currentTags}
+              currentTags={currentTags as ItemTag[]}
               pendingUpdates={pendingUpdates}
               onTagChange={handleTagChange}
               itemIds={itemIds}
