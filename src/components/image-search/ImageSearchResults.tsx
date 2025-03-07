@@ -1,25 +1,29 @@
 
-import { OfficialItem } from "@/types";
-import { OfficialGoodsCard } from "@/components/OfficialGoodsCard";
+import React from 'react';
+import { OfficialGoodsCard } from '@/components/OfficialGoodsCard';
+
+type OfficialItem = {
+  id: string;
+  title: string;
+  image: string;
+  artist?: string;
+  anime?: string;
+  price?: number;
+  release_date?: string;
+  description?: string;
+  content_name?: string;
+};
 
 interface ImageSearchResultsProps {
   results: OfficialItem[];
-  isLoading: boolean;
 }
 
-export function ImageSearchResults({ results, isLoading }: ImageSearchResultsProps) {
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center py-10">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
+export function ImageSearchResults({ results }: ImageSearchResultsProps) {
   if (results.length === 0) {
     return (
-      <div className="text-center py-10">
+      <div className="text-center py-12">
         <p className="text-gray-500">検索結果がありません</p>
+        <p className="text-sm text-gray-400 mt-2">別の画像で試してみてください</p>
       </div>
     );
   }

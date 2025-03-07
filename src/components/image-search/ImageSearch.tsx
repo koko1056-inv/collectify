@@ -1,41 +1,91 @@
 
-import { useState } from "react";
-import { ImageSearchUpload } from "./ImageSearchUpload";
-import { Button } from "@/components/ui/button";
-import { SearchIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import React, { useState } from 'react';
+import { ImageSearchUpload } from './ImageSearchUpload';
+import { ImageSearchResults } from './ImageSearchResults';
+import { analyzeImageFile } from '@/utils/image-search';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function ImageSearch() {
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [detectedObjects, setDetectedObjects] = useState<string[]>([]);
+  const [imageCaption, setImageCaption] = useState<string>('');
 
-  const handleImageSelect = (file: File) => {
-    setSelectedImage(file);
+  const handleImageUpload = async (file: File) => {
+    try {
+      setLoading(true);
+      setResults([]);
+      setDetectedObjects([]);
+      setImageCaption('');
+
+      const analysisResult = await analyzeImageFile(file);
+      
+      // 検出オブジェクトを設定
+      const objects = analysisResult.detection.objects
+        .sort((a, b) => b.score - a.score)
+        .map(obj => `${obj.label} (${Math.round(obj.score * 100)}%)`);
+      
+      setDetectedObjects(objects);
+      setImageCaption(analysisResult.detection.caption);
+      setResults(analysisResult.items);
+      
+      if (analysisResult.items.length === 0) {
+        toast.info('類似アイテムが見つかりませんでした');
+      } else {
+        toast.success(`${analysisResult.items.length}件の関連アイテムが見つかりました`);
+      }
+    } catch (error) {
+      console.error('画像アップロードエラー:', error);
+      toast.error('画像の解析中にエラーが発生しました');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" title="画像で検索">
-          <SearchIcon className="h-5 w-5" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogTitle>画像で検索</DialogTitle>
-        <div className="space-y-4">
-          <ImageSearchUpload onImageSelect={handleImageSelect} />
-          <Button 
-            className="w-full" 
-            disabled={!selectedImage}
-            onClick={() => {
-              console.log("Image search requested with:", selectedImage);
-              // この後、画像検索機能を実装します
-            }}
-          >
-            検索
-          </Button>
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold mb-2">画像検索</h1>
+        <p className="text-gray-600">
+          画像をアップロードして、類似したグッズを探しましょう
+        </p>
+      </div>
+
+      <ImageSearchUpload onImageSelected={handleImageUpload} />
+
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2 text-lg">画像を解析中...</span>
         </div>
-      </DialogContent>
-    </Dialog>
+      )}
+
+      {detectedObjects.length > 0 && (
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h3 className="font-medium mb-2">検出されたオブジェクト:</h3>
+          <div className="flex flex-wrap gap-2">
+            {detectedObjects.slice(0, 5).map((obj, index) => (
+              <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                {obj}
+              </span>
+            ))}
+          </div>
+          {imageCaption && (
+            <div className="mt-3">
+              <h3 className="font-medium mb-1">画像の説明:</h3>
+              <p className="text-gray-700 italic">"{imageCaption}"</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {results.length > 0 && (
+        <div>
+          <h2 className="text-xl font-semibold mb-4">検索結果 ({results.length}件)</h2>
+          <ImageSearchResults results={results} />
+        </div>
+      )}
+    </div>
   );
 }
