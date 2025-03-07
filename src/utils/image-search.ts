@@ -1,61 +1,44 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export interface ImageAnalysisResult {
-  detection: {
-    objects: {
-      label: string;
-      score: number;
-      box: {
-        xmin: number;
-        ymin: number;
-        xmax: number;
-        ymax: number;
-      };
-    }[];
-    caption: string;
-  };
-  items: any[];
-}
-
 /**
- * 画像URLを解析し、関連アイテムを取得する
+ * 画像をBase64エンコードする
  */
-export const analyzeImageUrl = async (imageUrl: string): Promise<ImageAnalysisResult> => {
-  try {
-    const { data, error } = await supabase.functions.invoke('analyze-image', {
-      body: { imageUrl },
-    });
-
-    if (error) throw error;
-    return data as ImageAnalysisResult;
-  } catch (error) {
-    console.error('画像解析エラー:', error);
-    throw error;
-  }
-};
-
-/**
- * 画像ファイルをBase64に変換する
- */
-export const convertFileToBase64 = (file: File): Promise<string> => {
+const convertImageToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
+    reader.onload = () => {
+      const base64String = reader.result as string;
+      resolve(base64String);
+    };
+    reader.onerror = (error) => {
+      reject(error);
+    };
   });
 };
 
 /**
- * 画像ファイルを解析し、関連アイテムを取得する
+ * 画像ファイルを解析してSupabase Edge Functionを呼び出す
  */
-export const analyzeImageFile = async (file: File): Promise<ImageAnalysisResult> => {
+export const analyzeImageFile = async (file: File) => {
   try {
-    const base64Image = await convertFileToBase64(file);
-    return await analyzeImageUrl(base64Image);
+    // 1. 画像をBase64に変換
+    const base64Image = await convertImageToBase64(file);
+    
+    // 2. Supabase Edge Functionに送信
+    const { data, error } = await supabase.functions.invoke("analyze-image", {
+      body: { imageUrl: base64Image },
+    });
+
+    if (error) {
+      console.error("Edge function error:", error);
+      throw new Error(`画像解析エラー: ${error.message}`);
+    }
+
+    return data;
   } catch (error) {
-    console.error('画像ファイル解析エラー:', error);
+    console.error("Image analysis error:", error);
     throw error;
   }
 };
