@@ -1,5 +1,18 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { Tag, ItemTag } from "@/types/tag";
+import { Tag } from "@/types/tag";
+
+// Define ItemTag interface here rather than importing it to avoid circular dependencies
+interface ItemTag {
+  id: string;
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
+}
 
 /**
  * アイテムからタグを削除する

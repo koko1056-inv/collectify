@@ -27,7 +27,18 @@ export function ImageSearchResults({ results, isLoading }: ImageSearchResultsPro
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {results.map((item) => (
-        <OfficialGoodsCard key={item.id} item={item} />
+        <OfficialGoodsCard 
+          key={item.id}
+          id={item.id}
+          title={item.title}
+          image={item.image}
+          artist={item.artist}
+          anime={item.anime}
+          price={item.price}
+          releaseDate={item.release_date}
+          description={item.description}
+          contentName={item.content_name}
+        />
       ))}
     </div>
   );
