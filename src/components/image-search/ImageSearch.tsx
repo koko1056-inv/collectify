@@ -5,9 +5,10 @@ import { ImageSearchResults } from './ImageSearchResults';
 import { analyzeImageFile } from '@/utils/image-search';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { OfficialItem } from '@/types';
 
 export function ImageSearch() {
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<OfficialItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [detectedObjects, setDetectedObjects] = useState<string[]>([]);
   const [imageCaption, setImageCaption] = useState<string>('');
@@ -23,8 +24,8 @@ export function ImageSearch() {
       
       // 検出オブジェクトを設定
       const objects = analysisResult.detection.objects
-        .sort((a, b) => b.score - a.score)
-        .map(obj => `${obj.label} (${Math.round(obj.score * 100)}%)`);
+        .sort((a: any, b: any) => b.score - a.score)
+        .map((obj: any) => `${obj.label} (${Math.round(obj.score * 100)}%)`);
       
       setDetectedObjects(objects);
       setImageCaption(analysisResult.detection.caption);

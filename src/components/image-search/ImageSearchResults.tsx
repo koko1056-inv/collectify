@@ -1,18 +1,7 @@
 
 import React from 'react';
 import { OfficialGoodsCard } from '@/components/OfficialGoodsCard';
-
-type OfficialItem = {
-  id: string;
-  title: string;
-  image: string;
-  artist?: string | null;
-  anime?: string | null;
-  price?: string;
-  release_date?: string;
-  description?: string | null;
-  content_name?: string | null;
-};
+import { OfficialItem } from '@/types';
 
 interface ImageSearchResultsProps {
   results: OfficialItem[];
