@@ -50,7 +50,17 @@ export function ImageSearchResults({
           <h2 className="text-xl font-bold mb-4">類似アイテム</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {items.map((item) => (
-              <OfficialGoodsCard key={item.id} officialItem={item} />
+              <OfficialGoodsCard 
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                image={item.image}
+                price={item.price}
+                releaseDate={item.release_date}
+                artist={item.artist}
+                anime={item.anime}
+                description={item.description}
+              />
             ))}
           </div>
         </div>
