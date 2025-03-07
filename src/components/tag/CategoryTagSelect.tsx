@@ -209,8 +209,8 @@ export function CategoryTagSelect({
           <SelectTrigger className="w-full bg-white">
             <SelectValue placeholder={getPlaceholderText()} />
           </SelectTrigger>
-          <SelectContent className="bg-white w-full" side="bottom">
-            <div className="px-2 py-2">
+          <SelectContent className="bg-white w-full max-h-60 overflow-hidden" side="bottom">
+            <div className="px-2 py-2 bg-white">
               <div className="flex items-center border rounded-md px-2">
                 <Search className="h-4 w-4 text-gray-400" />
                 <input
@@ -221,7 +221,7 @@ export function CategoryTagSelect({
                 />
               </div>
             </div>
-            <ScrollArea className="max-h-[200px]">
+            <ScrollArea className="max-h-[200px] overflow-y-auto">
               {filteredTags.length > 0 ? (
                 filteredTags.map((tag) => (
                   <SelectItem 
@@ -282,3 +282,4 @@ export function CategoryTagSelect({
     </div>
   );
 }
+
