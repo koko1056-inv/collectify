@@ -9,7 +9,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // CORSプリフライトリクエストの処理
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -17,32 +17,33 @@ serve(async (req) => {
   try {
     const hf = new HfInference(Deno.env.get('HUGGING_FACE_ACCESS_TOKEN'))
     
-    // リクエストからデータを取得
+    // Get data from request
     const { imageUrl } = await req.json()
     
     if (!imageUrl) {
-      throw new Error('画像URLが提供されていません')
+      throw new Error('Image URL is required')
     }
 
-    console.log('画像認識処理を開始:', imageUrl.substring(0, 50) + '...');
+    console.log('Starting image recognition:', imageUrl.substring(0, 50) + '...');
 
-    // 画像認識：オブジェクト検出を実行
+    // Run object detection using DetrResnet50
     const objectDetection = await hf.objectDetection({
       model: 'facebook/detr-resnet-50',
       inputs: imageUrl,
     })
     
-    // 画像キャプション生成
+    // Generate image caption
     const imageToText = await hf.imageToText({
       model: 'Salesforce/blip-image-captioning-base',
       inputs: imageUrl,
     })
 
-    console.log('認識結果:', { 
+    console.log('Recognition results:', { 
       objects: objectDetection.slice(0, 3), 
       caption: imageToText 
     });
 
+    // Extract keywords from detected objects and caption
     const keywords = [
       ...objectDetection.map(obj => obj.label),
       ...imageToText.generated_text.split(' ')
@@ -50,12 +51,12 @@ serve(async (req) => {
     .filter(k => k.length > 3)
     .map(k => k.toLowerCase())
     
-    // キーワードと関連するアイテムをSupabaseから検索
+    // Search for related items in Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL') as string
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') as string
     const supabase = createClient(supabaseUrl, supabaseKey)
     
-    // 関連アイテムを検索するクエリ
+    // Query for related items
     const { data: items, error } = await supabase
       .from('official_items')
       .select('*')
@@ -81,10 +82,10 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('エラー:', error)
+    console.error('Error:', error)
     return new Response(
       JSON.stringify({ 
-        error: '予期しないエラーが発生しました', 
+        error: 'An unexpected error occurred', 
         details: error.message 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

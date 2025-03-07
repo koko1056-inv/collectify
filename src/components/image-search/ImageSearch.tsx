@@ -4,7 +4,7 @@ import { ImageSearchUpload } from './ImageSearchUpload';
 import { ImageSearchResults } from './ImageSearchResults';
 import { analyzeImageFile } from '@/utils/image-search';
 import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export function ImageSearch() {
   const [results, setResults] = useState<any[]>([]);
@@ -31,13 +31,24 @@ export function ImageSearch() {
       setResults(analysisResult.items);
       
       if (analysisResult.items.length === 0) {
-        toast.info('類似アイテムが見つかりませんでした');
+        toast({
+          title: "検索結果",
+          description: "類似アイテムが見つかりませんでした",
+        });
       } else {
-        toast.success(`${analysisResult.items.length}件の関連アイテムが見つかりました`);
+        toast({
+          title: "検索結果",
+          description: `${analysisResult.items.length}件の関連アイテムが見つかりました`,
+          variant: "default",
+        });
       }
     } catch (error) {
       console.error('画像アップロードエラー:', error);
-      toast.error('画像の解析中にエラーが発生しました');
+      toast({
+        title: "エラー",
+        description: "画像の解析中にエラーが発生しました",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -52,7 +63,7 @@ export function ImageSearch() {
         </p>
       </div>
 
-      <ImageSearchUpload onImageSelected={handleImageUpload} />
+      <ImageSearchUpload onImageSelect={handleImageUpload} />
 
       {loading && (
         <div className="flex justify-center items-center py-12">

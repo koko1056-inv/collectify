@@ -1,5 +1,10 @@
+
 project_id = "dmgrgzysrzzgsajwqyrh"
 
 [[functions]]
 name = "scrape-images"
 verify_jwt = true
+
+[[functions]]
+name = "analyze-image"
+verify_jwt = false
