@@ -40,6 +40,33 @@ export function TagManageModal({
     enabled: isOpen && itemIds.length > 0,
   });
 
+  // If it's a user item, also fetch the original official item tags for reference
+  const { data: officialItemId } = useQuery({
+    queryKey: ["user-item-official-id", itemIds[0]],
+    queryFn: async () => {
+      if (!itemIds[0] || !isUserItem) return null;
+      
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("official_item_id")
+        .eq("id", itemIds[0])
+        .maybeSingle();
+      
+      if (error || !data) return null;
+      return data.official_item_id;
+    },
+    enabled: isOpen && itemIds.length > 0 && isUserItem,
+  });
+
+  const { data: officialTags = [] } = useQuery({
+    queryKey: ["official-item-tags", officialItemId],
+    queryFn: async () => {
+      if (!officialItemId) return [];
+      return await getTagsForItem(officialItemId, false);
+    },
+    enabled: !!officialItemId,
+  });
+
   const { data: itemData } = useQuery({
     queryKey: ["item-content", itemIds[0], isUserItem],
     queryFn: async () => {
@@ -50,7 +77,7 @@ export function TagManageModal({
         .from(table)
         .select("content_name")
         .eq("id", itemIds[0])
-        .single();
+        .maybeSingle();
       
       if (error) {
         console.error("Error fetching item content:", error);
@@ -64,7 +91,6 @@ export function TagManageModal({
 
   useEffect(() => {
     if (itemData && 'content_name' in itemData) {
-      // Fix: Ensure the content_name value is a string or null
       setContentName(itemData.content_name as string | null);
     }
   }, [itemData]);
@@ -131,6 +157,7 @@ export function TagManageModal({
               isUserItem={isUserItem}
               contentName={contentName}
               onContentChange={handleContentChange}
+              officialTags={isUserItem ? (officialTags as ItemTag[]) : []}
             />
             
             <div className="flex justify-end gap-2 pt-4">

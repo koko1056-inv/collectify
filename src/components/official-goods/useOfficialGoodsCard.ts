@@ -1,10 +1,10 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { trackAddToCollection } from "@/utils/analytics";
+import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 
 interface UseOfficialGoodsCardProps {
   id: string;
@@ -94,21 +94,23 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     }
 
     try {
-      const { error } = await supabase.from("user_items").insert({
+      const { data, error } = await supabase.from("user_items").insert({
         title,
         image,
         release_date: new Date().toISOString().split('T')[0],
         user_id: user.id,
         prize: "0",
         official_item_id: id,
-      });
+      }).select().single();
 
       if (error) throw error;
 
-      // Track the event in Mixpanel
+      if (data) {
+        await copyTagsFromOfficialItem(id, data.id);
+      }
+
       trackAddToCollection(id, title, user.id);
 
-      // Immediately refetch the queries
       await refetchIsInCollection();
       await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });

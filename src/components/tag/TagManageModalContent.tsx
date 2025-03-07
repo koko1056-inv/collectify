@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 
 interface TagUpdate {
   category: string;
@@ -26,6 +27,7 @@ interface TagManageModalContentProps {
   isUserItem?: boolean;
   contentName?: string | null;
   onContentChange?: (contentName: string | null) => void;
+  officialTags?: ItemTag[];
 }
 
 export function TagManageModalContent({
@@ -35,7 +37,8 @@ export function TagManageModalContent({
   itemIds,
   isUserItem = false,
   contentName,
-  onContentChange
+  onContentChange,
+  officialTags = []
 }: TagManageModalContentProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -125,12 +128,48 @@ export function TagManageModalContent({
     }
   };
 
+  // 公式アイテムのタグをカテゴリごとに整理
+  const originalTagsByCategory = {
+    character: officialTags.filter(tag => tag.tags?.category === 'character'),
+    type: officialTags.filter(tag => tag.tags?.category === 'type'),
+    series: officialTags.filter(tag => tag.tags?.category === 'series'),
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 py-4">
       <CurrentTagsList 
         currentTags={currentTags} 
         onRemoveTag={handleRemoveTag}
       />
+      
+      {/* 公式アイテムのタグ表示（ユーザーアイテムの場合のみ） */}
+      {isUserItem && officialTags.length > 0 && (
+        <div className="mb-4">
+          <h3 className="text-sm font-medium mb-2">公式アイテムのタグ:</h3>
+          <div className="space-y-1">
+            {Object.entries(originalTagsByCategory).map(([category, tags]) => 
+              tags.length > 0 && (
+                <div key={category} className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">
+                    {category === 'character' ? 'キャラ:' : 
+                     category === 'type' ? 'タイプ:' : 
+                     category === 'series' ? 'シリーズ:' : ''}
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {tags.map((tag, idx) => (
+                      tag.tags && (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          {tag.tags.name}
+                        </Badge>
+                      )
+                    ))}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      )}
       
       {/* コンテンツ選択セクション */}
       <div className="space-y-2">

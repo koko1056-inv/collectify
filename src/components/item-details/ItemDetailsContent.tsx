@@ -7,6 +7,7 @@ import { CreatorSection } from "./CreatorSection";
 import { MemoriesSection } from "./MemoriesSection";
 import { CategoryTagSelect } from "../tag/CategoryTagSelect";
 import { useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -55,6 +56,14 @@ export function ItemDetailsContent({
     }
   }, [tags, setEditedData]);
 
+  // カテゴリごとにタグをグループ化
+  const groupedTags = {
+    character: tags.filter(tag => tag.tags?.category === 'character'),
+    type: tags.filter(tag => tag.tags?.category === 'type'),
+    series: tags.filter(tag => tag.tags?.category === 'series'),
+    other: tags.filter(tag => !tag.tags?.category || !['character', 'type', 'series'].includes(tag.tags?.category)),
+  };
+
   return (
     <ScrollArea className="flex-1 px-6">
       <div className="space-y-4 bg-white">
@@ -64,6 +73,28 @@ export function ItemDetailsContent({
           isEditing={isEditing}
           onImageUpdate={handleImageUpdate}
         />
+
+        {/* タグ表示セクション（ユーザーアイテムかつ編集モードでない場合） */}
+        {isUserItem && !isEditing && tags.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">タグ</h3>
+            <div className="space-y-1">
+              {Object.entries(groupedTags).map(([category, categoryTags]) => 
+                categoryTags.length > 0 && (
+                  <div key={category} className="flex flex-wrap gap-1">
+                    {categoryTags.map((tag, idx) => (
+                      tag.tags && (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {tag.tags.name}
+                        </Badge>
+                      )
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        )}
 
         {!isUserItem && (
           <div className="space-y-2">
