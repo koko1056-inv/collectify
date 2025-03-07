@@ -95,7 +95,11 @@ export function ImageSearch() {
       {results.length > 0 && (
         <div>
           <h2 className="text-xl font-semibold mb-4">検索結果 ({results.length}件)</h2>
-          <ImageSearchResults results={results} />
+          <ImageSearchResults 
+            items={results}
+            detectedObjects={detectedObjects}
+            caption={imageCaption}
+          />
         </div>
       )}
     </div>

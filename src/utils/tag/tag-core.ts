@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types/tag";
 
-// Define ItemTag interface here to avoid circular dependencies
+// Define a simpler ItemTag interface that doesn't cause circular references
 export interface ItemTag {
   id: string;
   tag_id: string;
