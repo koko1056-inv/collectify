@@ -54,8 +54,8 @@ export const getTagsForItem = async (
 
     if (error) throw error;
 
-    // Explicitly type the result to avoid circular references
-    return data as ItemTag[] || [];
+    // Explicitly cast the response to avoid type issues
+    return (data || []) as ItemTag[];
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
     return [];

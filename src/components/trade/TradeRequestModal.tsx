@@ -19,6 +19,7 @@ interface TradeRequestModalProps {
   requestedItemId: string;
   requestedItemTitle: string;
   receiverId: string;
+  initialTab?: "directTrade" | "openTrade";
 }
 
 export function TradeRequestModal({
@@ -27,12 +28,13 @@ export function TradeRequestModal({
   requestedItemId,
   requestedItemTitle,
   receiverId,
+  initialTab = "directTrade"
 }: TradeRequestModalProps) {
   const [message, setMessage] = useState("");
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpenTrade, setIsOpenTrade] = useState(false);
-  const [activeTab, setActiveTab] = useState<"directTrade" | "openTrade">("directTrade");
+  const [activeTab, setActiveTab] = useState<"directTrade" | "openTrade">(initialTab);
   const [desiredItemId, setDesiredItemId] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
