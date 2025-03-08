@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import type { TagCategory, ItemTag } from "@/types/tag";
+import type { TagCategory } from "@/types/tag";
 
 interface TagDialogProps {
   isOpen: boolean;
@@ -15,6 +15,18 @@ interface TagDialogProps {
   itemId?: string;
   isUserItem?: boolean;
   onTagsSelect?: (tags: string[]) => void;
+}
+
+// Define tag item type directly to avoid deep nesting
+interface ItemTagSimple {
+  id: string;
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
 }
 
 const TAG_CATEGORIES = {
@@ -28,7 +40,7 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false, onTagsS
   const [activeCategory, setActiveCategory] = useState<TagCategory>("character");
   const { toast } = useToast();
 
-  const { data: currentTags = [] } = useQuery<ItemTag[]>({
+  const { data: currentTags = [] } = useQuery<ItemTagSimple[]>({
     queryKey: ["item-tags", itemId, isUserItem],
     queryFn: async () => {
       if (!itemId) return [];
@@ -48,7 +60,7 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false, onTagsS
         .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
       
       if (error) throw error;
-      return (data || []) as ItemTag[];
+      return (data || []);
     },
     enabled: !!itemId,
   });

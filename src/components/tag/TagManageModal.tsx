@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tag, TagUpdate, ItemTag } from "@/types/tag";
-import { getTagsForItem, setItemContent } from "@/utils/tag-operations";
+import { getTagsForItem } from "@/utils/tag/item-tag-operations";
+import { setItemContent } from "@/utils/tag/content-operations";
 import { TagManageModalContent } from "./TagManageModalContent";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

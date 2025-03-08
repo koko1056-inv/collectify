@@ -3,7 +3,8 @@ export interface Tag {
   id: string;
   name: string;
   category?: string;
-  created_at: string;
+  count?: number;  // Make count optional since we use it in some places
+  created_at?: string;
 }
 
 // 基本的なタグ関連情報

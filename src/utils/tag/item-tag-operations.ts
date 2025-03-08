@@ -1,5 +1,39 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { ItemTag } from "@/types/tag";
+
+/**
+ * Get tags for a specific item
+ */
+export const getTagsForItem = async (
+  itemId: string,
+  isUserItem: boolean = false
+): Promise<ItemTag[]> => {
+  try {
+    const table = isUserItem ? "user_item_tags" : "item_tags";
+    const idField = isUserItem ? "user_item_id" : "official_item_id";
+
+    const { data, error } = await supabase
+      .from(table)
+      .select(`
+        id,
+        tag_id,
+        tags:tags (
+          id,
+          name,
+          category,
+          created_at
+        )
+      `)
+      .eq(idField, itemId);
+    
+    if (error) throw error;
+    return (data || []) as ItemTag[];
+  } catch (error) {
+    console.error("Error fetching tags for item:", error);
+    return [];
+  }
+};
 
 /**
  * アイテムからタグを削除する
