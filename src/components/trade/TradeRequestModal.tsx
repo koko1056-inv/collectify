@@ -241,7 +241,7 @@ export function TradeRequestModal({
                               alt={item.title}
                               className="w-full aspect-square object-cover rounded-md"
                             />
-                            <p className="mt-1 text-xs truncate">{item.title}</p>
+                            <p className="mt-1 text-xs line-clamp-2 min-h-[2rem]">{item.title}</p>
                           </button>
                         ))
                       )}
@@ -303,7 +303,7 @@ export function TradeRequestModal({
                             alt={item.title}
                             className="w-full aspect-square object-cover rounded-md"
                           />
-                          <p className="mt-1 text-xs truncate">{item.title}</p>
+                          <p className="mt-1 text-xs line-clamp-2 min-h-[2rem]">{item.title}</p>
                         </button>
                       ))
                     )}
@@ -337,7 +337,7 @@ export function TradeRequestModal({
                             alt={item.title}
                             className="w-full aspect-square object-cover rounded-md"
                           />
-                          <p className="mt-1 text-xs truncate">{item.title}</p>
+                          <p className="mt-1 text-xs line-clamp-2 min-h-[2rem]">{item.title}</p>
                         </button>
                       ))
                     )}
@@ -360,7 +360,7 @@ export function TradeRequestModal({
                                 alt={item.title} 
                                 className="w-full aspect-square object-cover rounded-md"
                               />
-                              <p className="mt-1 text-xs truncate">{item.title}</p>
+                              <p className="mt-1 text-xs line-clamp-2 min-h-[2rem]">{item.title}</p>
                             </div>
                           ))}
                         </div>
@@ -377,7 +377,7 @@ export function TradeRequestModal({
                                 alt={item.title} 
                                 className="w-full aspect-square object-cover rounded-md"
                               />
-                              <p className="mt-1 text-xs truncate">{item.title}</p>
+                              <p className="mt-1 text-xs line-clamp-2 min-h-[2rem]">{item.title}</p>
                             </div>
                           ))}
                         </div>

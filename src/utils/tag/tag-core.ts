@@ -7,7 +7,6 @@ export function createTag(input: string | Tag): Tag {
     return {
       id: '', // Will be assigned by the database
       name: input.trim(),
-      type: 'custom',
       count: 0
     };
   }
