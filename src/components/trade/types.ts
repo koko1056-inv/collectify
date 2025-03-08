@@ -14,7 +14,7 @@ export interface TradeRequest {
     id: string;
     username: string;
     display_name?: string | null;
-  };
+  } | null;  // Receiver can be null for open trades
   offered_item: {
     id: string;
     title: string;

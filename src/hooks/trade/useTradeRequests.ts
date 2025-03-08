@@ -208,7 +208,7 @@ export function useTradeRequests() {
       }
 
       // Type assertion to avoid infinite type instantiation
-      const typedTradesData = tradesData as any[] || [];
+      const typedTradesData = tradesData as unknown[] || [];
       setOpenTrades(typedTradesData as TradeRequest[]);
     } catch (error) {
       console.error("Error in fetchOpenTrades:", error);
