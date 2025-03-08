@@ -5,12 +5,13 @@ import { TradeRequest } from "./types";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Truck, Clock, CheckCircle } from "lucide-react";
+import { Truck, Clock, CheckCircle, Globe } from "lucide-react";
 
 interface TradeCardProps {
   trade: TradeRequest;
   isPending?: boolean;
   isCompleted?: boolean;
+  isOpenTrade?: boolean;
   showShippingStatus?: boolean;
   onAccept?: (tradeId: string) => void;
   onReject?: (tradeId: string) => void;
@@ -22,6 +23,7 @@ export function TradeCard({
   trade, 
   isPending, 
   isCompleted,
+  isOpenTrade,
   showShippingStatus,
   onAccept, 
   onReject, 
@@ -111,6 +113,12 @@ export function TradeCard({
           <span className="text-sm text-gray-500">
             {isPending ? "からのリクエスト" : isCompleted ? "とのトレード（完了）" : "とのトレード"}
           </span>
+          {isOpenTrade && (
+            <div className="flex items-center gap-1 text-green-600">
+              <Globe className="h-4 w-4" />
+              <span className="text-sm">オープントレード</span>
+            </div>
+          )}
         </div>
         {renderShippingStatus()}
       </div>

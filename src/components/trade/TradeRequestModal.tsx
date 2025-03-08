@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,8 +7,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Globe } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface TradeRequestModalProps {
   isOpen: boolean;
@@ -27,6 +30,7 @@ export function TradeRequestModal({
   const [message, setMessage] = useState("");
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isOpenTrade, setIsOpenTrade] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -62,6 +66,7 @@ export function TradeRequestModal({
         offered_item_id: selectedItem,
         requested_item_id: requestedItemId,
         message,
+        is_open: isOpenTrade
       });
 
       if (error) throw error;
@@ -126,6 +131,22 @@ export function TradeRequestModal({
                 className="resize-none"
               />
             </div>
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="open-trade"
+                checked={isOpenTrade}
+                onCheckedChange={setIsOpenTrade}
+              />
+              <Label htmlFor="open-trade" className="flex items-center gap-1">
+                <Globe className="h-4 w-4 text-green-600" />
+                オープントレードとして公開する
+              </Label>
+            </div>
+            {isOpenTrade && (
+              <div className="text-sm text-gray-500 bg-gray-50 p-2 rounded">
+                オープントレードにすると、特定のユーザーだけでなく、全てのユーザーがこのトレードリクエストを見ることができます。
+              </div>
+            )}
           </div>
         </ScrollArea>
         <DialogFooter className="mt-4">
