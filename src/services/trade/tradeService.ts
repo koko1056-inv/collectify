@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { TradeRequest } from "@/components/trade/types";
 import { Profile } from "@/types";
@@ -102,6 +101,7 @@ export const fetchOpenTradeRequests = async (userId: string): Promise<TradeReque
   if (!userId) return [];
   
   try {
+    console.log("Fetching open trade requests for user:", userId);
     const { data, error } = await supabase
       .from("trade_requests")
       .select(tradeRequestSelectQuery)
@@ -117,6 +117,7 @@ export const fetchOpenTradeRequests = async (userId: string): Promise<TradeReque
       return [];
     }
 
+    console.log("Fetched open trade requests:", data);
     return data as TradeRequest[];
   } catch (error) {
     console.error("Error in fetchOpenTradeRequests:", error);

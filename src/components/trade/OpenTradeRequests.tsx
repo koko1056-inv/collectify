@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,9 +50,11 @@ export function OpenTradeRequests() {
           )
         `)
         .eq("sender_id", user.id)
-        .eq("is_open", true);
+        .eq("is_open", true)
+        .eq("status", "pending");
 
       if (error) throw error;
+      console.log("My open trade requests:", data);
       setTradeRequests(data as unknown as TradeRequest[]);
     } catch (error) {
       console.error("Error fetching trade requests:", error);
@@ -88,6 +91,28 @@ export function OpenTradeRequests() {
 
   useEffect(() => {
     fetchMyOpenTradeRequests();
+  }, [user]);
+
+  // Set up real-time subscription for trade requests
+  useEffect(() => {
+    if (!user) return;
+    
+    const channel = supabase
+      .channel('trade_requests_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'trade_requests',
+        filter: `sender_id=eq.${user.id}`,
+      }, () => {
+        console.log('Trade requests changed, refreshing...');
+        fetchMyOpenTradeRequests();
+      })
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   if (isLoading) {

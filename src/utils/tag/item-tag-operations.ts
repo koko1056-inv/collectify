@@ -29,7 +29,7 @@ export const getTagsForItem = async (
       .select(`
         id,
         tag_id,
-        tags:tags (
+        tags (
           id,
           name,
           category,
