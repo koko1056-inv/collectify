@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { BaseItemTag, Tag } from "@/types/tag";
+import { Tag } from "@/types/tag";
 
 // Define a simpler interface to prevent the circular reference
 interface SimpleItemTag {

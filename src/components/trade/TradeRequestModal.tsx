@@ -147,9 +147,11 @@ export function TradeRequestModal({
       } 
       // For open trade where anyone can accept
       else if (activeTab === "openTrade") {
+        // 重要な変更: オープントレードの場合もreceiver_idを設定します (仮のIDまたはユーザー自身のID)
+        // データベース制約に対応するために、自分自身のIDを設定
         const { error } = await supabase.from("trade_requests").insert({
           sender_id: user?.id,
-          receiver_id: null, // No specific receiver for open trades
+          receiver_id: user?.id, // 自分自身をreceiverとして設定
           offered_item_id: selectedItem,
           requested_item_id: desiredItemId,
           message,

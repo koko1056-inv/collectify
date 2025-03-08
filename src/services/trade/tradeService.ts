@@ -108,6 +108,8 @@ export const fetchOpenTradeRequests = async (userId: string): Promise<TradeReque
       .eq("is_open", true)
       .eq("status", "pending")
       .neq("sender_id", userId)
+      // オープントレードの場合、自分がreceiverとなっているケースを除外する
+      .not("receiver_id", "eq", userId)
       .order("created_at", { ascending: false });
 
     if (error) {
