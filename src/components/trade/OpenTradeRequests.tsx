@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -71,7 +70,6 @@ export function OpenTradeRequests() {
       
       if (error) throw error;
       
-      // Update the local state
       setTradeRequests(tradeRequests.filter(trade => trade.id !== tradeId));
       
       toast({
@@ -132,7 +130,7 @@ export function OpenTradeRequests() {
                 <CardContent className="p-4 pt-2">
                   <div className="grid grid-cols-2 gap-4 mt-2">
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">あなたの提供アイテム</p>
+                      <p className="text-sm font-medium">提供アイテム</p>
                       <div className="border rounded-md p-2 flex items-center space-x-2">
                         <img 
                           src={trade.offered_item.image} 
