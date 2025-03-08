@@ -34,11 +34,9 @@ export interface UserItem {
   anime: string | null;
 }
 
-export interface Tag {
-  id: string;
-  name: string;
-  created_at: string;
-}
+// Import Tag from the tag module to maintain consistency
+import { Tag as TagType } from "@/types/tag";
+export type Tag = TagType;
 
 export interface ItemMemory {
   id: string;

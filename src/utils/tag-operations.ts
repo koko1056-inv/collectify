@@ -3,8 +3,7 @@
 // It re-exports all functions from the new modular structure.
 export * from './tag/index';
 
-// Export the ItemTag interface directly to prevent circular references
-// This is needed to fix the type instantiation error
+// Define a simplified ItemTag interface to avoid circular references
 export interface ItemTag {
   id: string;
   tag_id: string;

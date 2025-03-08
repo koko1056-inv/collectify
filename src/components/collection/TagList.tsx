@@ -1,9 +1,20 @@
 
 import { Badge } from "@/components/ui/badge";
-import { ItemTag } from "@/types/tag";
+
+// Define the simplified ItemTag interface
+interface SimpleItemTag {
+  id: string;
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
+}
 
 interface TagListProps {
-  tags: ItemTag[];
+  tags: SimpleItemTag[];
 }
 
 export function TagList({ tags }: TagListProps) {

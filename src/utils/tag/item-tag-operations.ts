@@ -1,6 +1,18 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ItemTag } from "@/types/tag";
+import { BaseItemTag, Tag } from "@/types/tag";
+
+// Define a simpler interface to prevent the circular reference
+interface SimpleItemTag {
+  id: string;
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
+}
 
 /**
  * Get tags for a specific item
@@ -8,7 +20,7 @@ import { ItemTag } from "@/types/tag";
 export const getTagsForItem = async (
   itemId: string,
   isUserItem: boolean = false
-): Promise<ItemTag[]> => {
+): Promise<SimpleItemTag[]> => {
   try {
     const table = isUserItem ? "user_item_tags" : "item_tags";
     const idField = isUserItem ? "user_item_id" : "official_item_id";
@@ -28,7 +40,7 @@ export const getTagsForItem = async (
       .eq(idField, itemId);
     
     if (error) throw error;
-    return (data || []) as ItemTag[];
+    return (data || []) as SimpleItemTag[];
   } catch (error) {
     console.error("Error fetching tags for item:", error);
     return [];

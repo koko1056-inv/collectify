@@ -30,16 +30,18 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
 
       if (error) throw error;
 
-      const tagCounts = data.reduce((acc: { [key: string]: Tag & { count: number } }, tag) => {
-        if (!acc[tag.id]) {
-          acc[tag.id] = {
+      // Create a map to count tag occurrences
+      const tagCounts: Record<string, Tag & { count: number }> = {};
+      
+      for (const tag of data) {
+        if (!tagCounts[tag.id]) {
+          tagCounts[tag.id] = {
             ...tag,
             count: 0
           };
         }
-        acc[tag.id].count++;
-        return acc;
-      }, {});
+        tagCounts[tag.id].count++;
+      }
 
       return Object.values(tagCounts).sort((a, b) => b.count - a.count);
     },

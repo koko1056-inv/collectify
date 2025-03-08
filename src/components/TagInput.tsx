@@ -25,7 +25,7 @@ export function TagInput({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: existingTags = [] } = useQuery({
+  const { data: existingTags = [] } = useQuery<Tag[]>({
     queryKey: ["tags", category],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -38,7 +38,7 @@ export function TagInput({
     },
   });
 
-  const { data: userPreviousTags = [] } = useQuery({
+  const { data: userPreviousTags = [] } = useQuery<Tag[]>({
     queryKey: ["user-previous-tags", category],
     queryFn: async () => {
       const { data: userItems, error: userItemsError } = await supabase

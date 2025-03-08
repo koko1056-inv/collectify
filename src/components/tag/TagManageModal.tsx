@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Tag, TagUpdate, ItemTag } from "@/types/tag";
+import { Tag, TagUpdate } from "@/types/tag";
 import { getTagsForItem } from "@/utils/tag/item-tag-operations";
 import { setItemContent } from "@/utils/tag/content-operations";
 import { TagManageModalContent } from "./TagManageModalContent";
@@ -17,6 +17,18 @@ interface TagManageModalProps {
   itemTitle?: string;
   isUserItem?: boolean;
   onSubmit?: (updates: TagUpdate[]) => Promise<void>;
+}
+
+// Define a simplified ItemTag interface to use in this component
+interface SimpleItemTag {
+  id: string;
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
 }
 
 export function TagManageModal({
@@ -151,14 +163,14 @@ export function TagManageModal({
         ) : (
           <>
             <TagManageModalContent
-              currentTags={currentTags as ItemTag[]}
+              currentTags={currentTags as SimpleItemTag[]}
               pendingUpdates={pendingUpdates}
               onTagChange={handleTagChange}
               itemIds={itemIds}
               isUserItem={isUserItem}
               contentName={contentName}
               onContentChange={handleContentChange}
-              officialTags={isUserItem ? (officialTags as ItemTag[]) : []}
+              officialTags={isUserItem ? (officialTags as SimpleItemTag[]) : []}
             />
             
             <div className="flex justify-end gap-2 pt-4">

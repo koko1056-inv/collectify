@@ -1,9 +1,9 @@
-
 import { CategoryTagSelect } from "./CategoryTagSelect";
 import { CurrentTagsList } from "./CurrentTagsList";
 import { PendingTagsList } from "./PendingTagsList";
-import { ItemTag } from "@/types/tag";
-import { removeTagFromItem, setItemContent, getAllContentNames } from "@/utils/tag-operations";
+import { TagUpdate } from "@/types/tag";
+import { removeTagFromItem } from "@/utils/tag/item-tag-operations";
+import { setItemContent, getAllContentNames } from "@/utils/tag/content-operations";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,20 +14,26 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 
-interface TagUpdate {
-  category: string;
-  value: string | null;
+interface SimpleItemTag {
+  id: string;
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
 }
 
 interface TagManageModalContentProps {
-  currentTags: ItemTag[];
+  currentTags: SimpleItemTag[];
   pendingUpdates: TagUpdate[];
   onTagChange: (category: string) => (value: string | null) => void;
   itemIds: string[];
   isUserItem?: boolean;
   contentName?: string | null;
   onContentChange?: (contentName: string | null) => void;
-  officialTags?: ItemTag[];
+  officialTags?: SimpleItemTag[];
 }
 
 export function TagManageModalContent({
@@ -96,7 +102,6 @@ export function TagManageModalContent({
     }
 
     try {
-      // Add new content to content_names table
       const { data, error } = await supabase
         .from("content_names")
         .insert([{ name: newContentName, type: "other" }])
@@ -105,10 +110,8 @@ export function TagManageModalContent({
       
       if (error) throw error;
       
-      // Invalidate content names query
       await queryClient.invalidateQueries({ queryKey: ["content-names"] });
       
-      // Set the new content as selected
       if (onContentChange) onContentChange(data.name);
       
       setIsAddingNewContent(false);
@@ -128,7 +131,6 @@ export function TagManageModalContent({
     }
   };
 
-  // 公式アイテムのタグをカテゴリごとに整理
   const originalTagsByCategory = {
     character: officialTags.filter(tag => tag.tags?.category === 'character'),
     type: officialTags.filter(tag => tag.tags?.category === 'type'),
@@ -142,7 +144,6 @@ export function TagManageModalContent({
         onRemoveTag={handleRemoveTag}
       />
       
-      {/* 公式アイテムのタグ表示（ユーザーアイテムの場合のみ） */}
       {isUserItem && officialTags.length > 0 && (
         <div className="mb-4">
           <h3 className="text-sm font-medium mb-2">公式アイテムのタグ:</h3>
@@ -171,7 +172,6 @@ export function TagManageModalContent({
         </div>
       )}
       
-      {/* コンテンツ選択セクション */}
       <div className="space-y-2">
         <h3 className="text-sm font-medium">コンテンツ</h3>
         

@@ -1,11 +1,22 @@
 
 import { Badge } from "@/components/ui/badge";
-import { ItemTag } from "@/types/tag";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+// Define a simplified ItemTag interface to use in this component
+interface SimpleItemTag {
+  id: string;
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
+}
+
 interface CurrentTagsListProps {
-  currentTags: ItemTag[];
+  currentTags: SimpleItemTag[];
   onRemoveTag?: (tagId: string) => void;
 }
 
