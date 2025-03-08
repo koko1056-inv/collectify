@@ -161,7 +161,7 @@ export function useTradeRequests() {
     if (!user) return;
     
     try {
-      const { data: tradesData, error: queryError } = await supabase
+      const { data, error } = await supabase
         .from("trade_requests")
         .select(`
           id,
@@ -195,18 +195,13 @@ export function useTradeRequests() {
         .neq("sender_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (queryError && queryError.message && queryError.message.includes("column 'is_open' does not exist")) {
-        console.log("is_open column does not exist in trade_requests table");
-        setOpenTrades([]);
-        return;
-      } else if (queryError) {
-        console.error("Error fetching open trades:", queryError);
+      if (error) {
+        console.error("Error fetching open trades:", error);
         setOpenTrades([]);
         return;
       }
 
-      const typedTradesData = tradesData || [];
-      setOpenTrades(typedTradesData as TradeRequest[]);
+      setOpenTrades(data as TradeRequest[]);
     } catch (error) {
       console.error("Error in fetchOpenTrades:", error);
       setOpenTrades([]);
