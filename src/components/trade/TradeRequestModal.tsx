@@ -126,7 +126,7 @@ export function TradeRequestModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] h-[90vh]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>トレードリクエスト</DialogTitle>
           <DialogDescription>
@@ -136,14 +136,14 @@ export function TradeRequestModal({
           </DialogDescription>
         </DialogHeader>
         
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "directTrade" | "openTrade")} className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "directTrade" | "openTrade")} className="w-full flex-1 flex flex-col overflow-hidden">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="directTrade">直接トレード</TabsTrigger>
             <TabsTrigger value="openTrade">オープントレード</TabsTrigger>
           </TabsList>
           
-          <ScrollArea className="flex-1 px-1 h-[calc(100%-80px)]">
-            <div className="space-y-4 pr-4">
+          <ScrollArea className="flex-1 pr-2 overflow-y-auto">
+            <div className="space-y-4 pb-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">交換に出すアイテムを選択してください</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -227,7 +227,7 @@ export function TradeRequestModal({
             </div>
           </ScrollArea>
           
-          <DialogFooter className="mt-4">
+          <DialogFooter className="mt-4 pt-2 border-t">
             <Button variant="outline" onClick={onClose}>
               キャンセル
             </Button>

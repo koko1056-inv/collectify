@@ -81,8 +81,8 @@ export function OpenTradeRequests() {
           </CardContent>
         </Card>
       ) : (
-        <ScrollArea className="h-[400px]">
-          <div className="space-y-4">
+        <ScrollArea className="h-[350px] pr-2">
+          <div className="space-y-4 pb-2">
             {tradeRequests.map((trade) => (
               <Card key={trade.id} className="overflow-hidden">
                 <CardHeader className="p-4 pb-0">
