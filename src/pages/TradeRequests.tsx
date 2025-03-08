@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,11 @@ import { CompletedTradesList } from "@/components/trade/CompletedTradesList";
 import { OpenTradesList } from "@/components/trade/OpenTradesList";
 import { TradeRequest } from "@/components/trade/types";
 import { Loader2 } from "lucide-react";
+
+// Create an interface for the check_column_exists RPC function return
+interface ColumnCheckResult {
+  check_column_exists: boolean;
+}
 
 export default function TradeRequests() {
   const { user } = useAuth();
@@ -171,17 +177,20 @@ export default function TradeRequests() {
     if (!user) return;
     
     try {
-      const { data: isColumnExist, error: columnCheckError } = await supabase
-        .rpc('check_column_exists', { 
+      // Check if is_open column exists in the trade_requests table
+      const { data, error: rpcError } = await supabase
+        .rpc<boolean>('check_column_exists', { 
           table_name: 'trade_requests',
           column_name: 'is_open'
         });
       
-      if (columnCheckError) {
-        console.error("Error checking column existence:", columnCheckError);
+      if (rpcError) {
+        console.error("Error checking column existence:", rpcError);
         setOpenTrades([]);
         return;
       }
+      
+      const isColumnExist = data;
       
       if (!isColumnExist) {
         console.log("is_open column does not exist in trade_requests table");
@@ -189,7 +198,7 @@ export default function TradeRequests() {
         return;
       }
       
-      const { data, error } = await supabase
+      const { data: tradesData, error: queryError } = await supabase
         .from("trade_requests")
         .select(`
           id,
@@ -223,13 +232,13 @@ export default function TradeRequests() {
         .neq("sender_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching open trades:", error);
+      if (queryError) {
+        console.error("Error fetching open trades:", queryError);
         setOpenTrades([]);
         return;
       }
 
-      setOpenTrades(data as TradeRequest[]);
+      setOpenTrades(tradesData as TradeRequest[]);
     } catch (error) {
       console.error("Error in fetchOpenTrades:", error);
       setOpenTrades([]);

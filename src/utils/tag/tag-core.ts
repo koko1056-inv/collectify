@@ -54,12 +54,8 @@ export const getTagsForItem = async (
 
     if (error) throw error;
 
-    // Transform the data to match the ItemTag interface
-    return (data || []).map(item => ({
-      id: item.id,
-      tag_id: item.tag_id,
-      tags: item.tags
-    })) as ItemTag[];
+    // Return the data as ItemTag[]
+    return (data || []) as ItemTag[];
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
     return [];
