@@ -58,6 +58,18 @@ export function useTradeRequests() {
     }
   };
 
+  // Fetch only open trades
+  const refreshOpenTrades = async () => {
+    if (!user) return;
+    
+    try {
+      const openTradesData = await fetchOpenTradeRequests(user.id);
+      setOpenTrades(openTradesData);
+    } catch (error) {
+      console.error("Error refreshing open trades:", error);
+    }
+  };
+
   // Initial data fetch
   useEffect(() => {
     if (user) {
@@ -101,6 +113,7 @@ export function useTradeRequests() {
     setSelectedRequest,
     setShowChatModal,
     handleTradeResponse: handleTradeResponseWrapper,
-    openChat
+    openChat,
+    refreshOpenTrades
   };
 }

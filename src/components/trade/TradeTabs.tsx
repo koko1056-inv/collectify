@@ -15,6 +15,7 @@ interface TradeTabsProps {
   openTrades: TradeRequest[];
   handleTradeResponse: (tradeId: string, accept: boolean) => Promise<void>;
   openChat: (trade: TradeRequest) => void;
+  refreshOpenTrades?: () => void;
 }
 
 export function TradeTabs({
@@ -23,7 +24,8 @@ export function TradeTabs({
   completedTrades,
   openTrades,
   handleTradeResponse,
-  openChat
+  openChat,
+  refreshOpenTrades
 }: TradeTabsProps) {
   const [showTradeTabs, setShowTradeTabs] = useState(true);
   const [showOpenTrades, setShowOpenTrades] = useState(false);
@@ -110,6 +112,7 @@ export function TradeTabs({
             trades={openTrades}
             onAccept={(id) => handleTradeResponse(id, true)}
             onReject={(id) => handleTradeResponse(id, false)}
+            onRefresh={refreshOpenTrades}
           />
         </div>
       )}

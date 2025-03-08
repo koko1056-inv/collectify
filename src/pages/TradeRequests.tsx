@@ -22,7 +22,8 @@ export default function TradeRequests() {
     setSelectedRequest,
     setShowChatModal,
     handleTradeResponse,
-    openChat
+    openChat,
+    refreshOpenTrades
   } = useTradeRequests();
 
   if (isLoading) {
@@ -41,6 +42,7 @@ export default function TradeRequests() {
           openTrades={openTrades}
           handleTradeResponse={handleTradeResponse}
           openChat={openChat}
+          refreshOpenTrades={refreshOpenTrades}
         />
 
         <TradeModals
