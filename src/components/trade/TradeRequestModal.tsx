@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,7 +39,14 @@ export function TradeRequestModal({
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const { data: userItems } = useQuery({
+  // Reset state when modal opens/closes or tab changes
+  useEffect(() => {
+    if (isOpen && activeTab === "directTrade" && requestedItemId) {
+      setDesiredItemId(requestedItemId);
+    }
+  }, [isOpen, activeTab, requestedItemId]);
+
+  const { data: userItems, isLoading: itemsLoading } = useQuery({
     queryKey: ["user-items", user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -53,11 +60,34 @@ export function TradeRequestModal({
     enabled: !!user,
   });
 
+  // Query for all available items for the desired item selection in open trade tab
+  const { data: allItems, isLoading: allItemsLoading } = useQuery({
+    queryKey: ["all-items"],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && activeTab === "openTrade",
+  });
+
   const handleSubmit = async () => {
     if (!selectedItem) {
       toast({
         title: "エラー",
         description: "交換するアイテムを選択してください",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (activeTab === "openTrade" && !desiredItemId) {
+      toast({
+        title: "エラー",
+        description: "希望するアイテムを選択してください",
         variant: "destructive",
       });
       return;
@@ -85,15 +115,6 @@ export function TradeRequestModal({
       } 
       // For open trade where anyone can accept
       else if (activeTab === "openTrade") {
-        if (!desiredItemId) {
-          toast({
-            title: "エラー",
-            description: "希望するアイテムを選択してください",
-            variant: "destructive",
-          });
-          return;
-        }
-
         const { error } = await supabase.from("trade_requests").insert({
           sender_id: user?.id,
           receiver_id: null, // No specific receiver for open trades
@@ -112,6 +133,9 @@ export function TradeRequestModal({
       }
       
       onClose();
+      setSelectedItem(null);
+      setDesiredItemId(null);
+      setMessage("");
     } catch (error) {
       console.error("Error sending trade request:", error);
       toast({
@@ -144,44 +168,24 @@ export function TradeRequestModal({
           
           <ScrollArea className="flex-1 pr-2 overflow-y-auto">
             <div className="space-y-4 pb-4">
+              {/* Offered item selection - same for both tabs */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">交換に出すアイテムを選択してください</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {userItems?.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => setSelectedItem(item.id)}
-                      className={`p-2 rounded-lg border transition-colors ${
-                        selectedItem === item.id
-                          ? "border-purple-500 bg-purple-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full aspect-square object-cover rounded-md"
-                      />
-                      <p className="mt-1 text-xs truncate">{item.title}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {activeTab === "openTrade" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">希望するアイテムを選択してください</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {userItems?.map((item) => (
+                  {itemsLoading ? (
+                    <div className="col-span-2 py-4 text-center text-gray-500">読み込み中...</div>
+                  ) : userItems?.length === 0 ? (
+                    <div className="col-span-2 py-4 text-center text-gray-500">アイテムがありません</div>
+                  ) : (
+                    userItems?.map((item) => (
                       <button
                         key={item.id}
-                        onClick={() => setDesiredItemId(item.id)}
+                        onClick={() => setSelectedItem(item.id)}
                         className={`p-2 rounded-lg border transition-colors ${
-                          desiredItemId === item.id
+                          selectedItem === item.id
                             ? "border-purple-500 bg-purple-50"
                             : "border-gray-200 hover:border-gray-300"
                         }`}
-                        disabled={selectedItem === item.id} // Can't select same item for both
                       >
                         <img
                           src={item.image}
@@ -190,7 +194,41 @@ export function TradeRequestModal({
                         />
                         <p className="mt-1 text-xs truncate">{item.title}</p>
                       </button>
-                    ))}
+                    ))
+                  )}
+                </div>
+              </div>
+              
+              {/* Desired item selection - only for open trade tab */}
+              {activeTab === "openTrade" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">希望するアイテムを選択してください</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {allItemsLoading ? (
+                      <div className="col-span-2 py-4 text-center text-gray-500">読み込み中...</div>
+                    ) : allItems?.length === 0 ? (
+                      <div className="col-span-2 py-4 text-center text-gray-500">アイテムがありません</div>
+                    ) : (
+                      allItems?.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => setDesiredItemId(item.id)}
+                          className={`p-2 rounded-lg border transition-colors ${
+                            desiredItemId === item.id
+                              ? "border-purple-500 bg-purple-50"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                          disabled={selectedItem === item.id} // Can't select same item for both
+                        >
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full aspect-square object-cover rounded-md"
+                          />
+                          <p className="mt-1 text-xs truncate">{item.title}</p>
+                        </button>
+                      ))
+                    )}
                   </div>
                 </div>
               )}

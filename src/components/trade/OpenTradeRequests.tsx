@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { TradeRequest } from "./types";
+import { useToast } from "@/hooks/use-toast";
 
 export function OpenTradeRequests() {
   const [isLoading, setIsLoading] = useState(true);
   const [tradeRequests, setTradeRequests] = useState<TradeRequest[]>([]);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const fetchMyOpenTradeRequests = async () => {
     if (!user) return;
@@ -59,6 +61,33 @@ export function OpenTradeRequests() {
     }
   };
 
+  const handleCancelTrade = async (tradeId: string) => {
+    try {
+      const { error } = await supabase
+        .from("trade_requests")
+        .delete()
+        .eq("id", tradeId)
+        .eq("sender_id", user?.id);
+      
+      if (error) throw error;
+      
+      // Update the local state
+      setTradeRequests(tradeRequests.filter(trade => trade.id !== tradeId));
+      
+      toast({
+        title: "トレードをキャンセルしました",
+        description: "オープントレードが削除されました",
+      });
+    } catch (error) {
+      console.error("Error cancelling trade:", error);
+      toast({
+        title: "エラー",
+        description: "トレードのキャンセルに失敗しました",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchMyOpenTradeRequests();
   }, [user]);
@@ -73,7 +102,19 @@ export function OpenTradeRequests() {
 
   return (
     <div className="mt-8">
-      <h2 className="text-xl font-semibold mb-4">トレードリクエスト一覧</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">トレードリクエスト一覧</h2>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={fetchMyOpenTradeRequests}
+          className="flex items-center gap-1"
+        >
+          <RefreshCw className="h-4 w-4" />
+          更新
+        </Button>
+      </div>
+      
       {tradeRequests.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
@@ -124,9 +165,7 @@ export function OpenTradeRequests() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => {
-                      // Handle trade cancellation
-                    }}
+                    onClick={() => handleCancelTrade(trade.id)}
                   >
                     キャンセル
                   </Button>
