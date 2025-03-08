@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -170,47 +169,71 @@ export default function TradeRequests() {
 
   const fetchOpenTrades = async () => {
     if (!user) return;
+    
+    try {
+      const { data: isColumnExist, error: columnCheckError } = await supabase
+        .rpc('check_column_exists', { 
+          table_name: 'trade_requests',
+          column_name: 'is_open'
+        });
+      
+      if (columnCheckError) {
+        console.error("Error checking column existence:", columnCheckError);
+        setOpenTrades([]);
+        return;
+      }
+      
+      if (!isColumnExist) {
+        console.log("is_open column does not exist in trade_requests table");
+        setOpenTrades([]);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from("trade_requests")
+        .select(`
+          id,
+          message,
+          status,
+          shipping_status,
+          is_open,
+          sender:profiles!trade_requests_sender_id_fkey(
+            id,
+            username,
+            display_name
+          ),
+          receiver:profiles!trade_requests_receiver_id_fkey(
+            id,
+            username,
+            display_name
+          ),
+          offered_item:user_items!trade_requests_offered_item_id_fkey(
+            id,
+            title,
+            image
+          ),
+          requested_item:user_items!trade_requests_requested_item_id_fkey(
+            id,
+            title,
+            image
+          )
+        `)
+        .eq("is_open", true)
+        .eq("status", "pending")
+        .neq("sender_id", user.id)
+        .order("created_at", { ascending: false });
 
-    const { data, error } = await supabase
-      .from("trade_requests")
-      .select(`
-        id,
-        message,
-        status,
-        shipping_status,
-        is_open,
-        sender:profiles!trade_requests_sender_id_fkey(
-          id,
-          username,
-          display_name
-        ),
-        receiver:profiles!trade_requests_receiver_id_fkey(
-          id,
-          username,
-          display_name
-        ),
-        offered_item:user_items!trade_requests_offered_item_id_fkey(
-          id,
-          title,
-          image
-        ),
-        requested_item:user_items!trade_requests_requested_item_id_fkey(
-          id,
-          title,
-          image
-        )
-      `)
-      .eq("is_open", true)
-      .eq("status", "pending")
-      .neq("sender_id", user.id)
-      .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching open trades:", error);
+        setOpenTrades([]);
+        return;
+      }
 
-    if (error) {
-      console.error("Error fetching open trades:", error);
-      return;
+      setOpenTrades(data as TradeRequest[]);
+    } catch (error) {
+      console.error("Error in fetchOpenTrades:", error);
+      setOpenTrades([]);
     }
-
-    setOpenTrades(data as TradeRequest[]);
   };
 
   const handleTradeResponse = async (tradeId: string, accept: boolean) => {
