@@ -1,63 +1,42 @@
 
-import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types/tag";
 
-// Define a simpler ItemTag interface that doesn't cause circular references
-export interface ItemTag {
-  id: string;
-  tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  } | null;
+// Helper function to create a tag object from a string or existing tag
+export function createTag(input: string | Tag): Tag {
+  if (typeof input === 'string') {
+    return {
+      id: '', // Will be assigned by the database
+      name: input.trim(),
+      type: 'custom',
+      count: 0
+    };
+  }
+  return input;
 }
 
-/**
- * ID配列からタグを取得する
- */
-export const getTagsByIds = async (tagIds: string[]): Promise<Tag[]> => {
-  if (!tagIds.length) return [];
-  
-  const { data, error } = await supabase
-    .from("tags")
-    .select("*")
-    .in("id", tagIds);
-  
-  if (error) throw error;
-  return data || [];
-};
-
-/**
- * アイテムに関連するタグを取得する
- */
-export const getTagsForItem = async (
-  itemId: string,
-  isUserItem: boolean = false
-): Promise<ItemTag[]> => {
-  try {
-    const table = isUserItem ? "user_item_tags" : "item_tags";
-    const { data, error } = await supabase
-      .from(table)
-      .select(`
-        id,
-        tag_id,
-        tags (
-          id,
-          name,
-          category,
-          created_at
-        )
-      `)
-      .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
-
-    if (error) throw error;
-
-    // Return the data with explicit type to avoid deep type instantiation
-    return (data || []) as any as ItemTag[];
-  } catch (error) {
-    console.error(`Error fetching tags for item ${itemId}:`, error);
-    return [];
+// Check if two tags are the same (by id if available, otherwise by name)
+export function tagsAreEqual(a: Tag, b: Tag): boolean {
+  if (a.id && b.id) {
+    return a.id === b.id;
   }
-};
+  return a.name.toLowerCase() === b.name.toLowerCase();
+}
+
+// Filter out duplicate tags from an array
+export function filterDuplicateTags(tags: Tag[]): Tag[] {
+  return tags.reduce((acc: Tag[], current: Tag) => {
+    const isDuplicate = acc.some(tag => tagsAreEqual(tag, current));
+    if (!isDuplicate) {
+      acc.push(current);
+    }
+    return acc;
+  }, []);
+}
+
+// Generate a clean array of tags from various input types
+export function processTagInput(input: (string | Tag)[]): Tag[] {
+  // Convert all inputs to Tag objects
+  const tags = input.map(item => createTag(item));
+  // Filter out duplicates
+  return filterDuplicateTags(tags);
+}

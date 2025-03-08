@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Send, Globe } from "lucide-react";
+import { Loader2, Send, Globe, ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -36,15 +36,31 @@ export function TradeRequestModal({
   const [isOpenTrade, setIsOpenTrade] = useState(false);
   const [activeTab, setActiveTab] = useState<"directTrade" | "openTrade">(initialTab);
   const [desiredItemId, setDesiredItemId] = useState<string | null>(null);
+  const [step, setStep] = useState<"selectOffer" | "selectDesired" | "addMessage">("selectOffer");
   const { toast } = useToast();
   const { user } = useAuth();
 
   // Reset state when modal opens/closes or tab changes
   useEffect(() => {
-    if (isOpen && activeTab === "directTrade" && requestedItemId) {
-      setDesiredItemId(requestedItemId);
+    if (isOpen) {
+      if (activeTab === "directTrade" && requestedItemId) {
+        setDesiredItemId(requestedItemId);
+      }
+      
+      // Reset step to first step when modal opens
+      setStep("selectOffer");
+      setSelectedItem(null);
+      setDesiredItemId(null);
+      setMessage("");
     }
   }, [isOpen, activeTab, requestedItemId]);
+
+  // When tab changes, reset the step
+  useEffect(() => {
+    setStep("selectOffer");
+    setSelectedItem(null);
+    setDesiredItemId(null);
+  }, [activeTab]);
 
   const { data: userItems, isLoading: itemsLoading } = useQuery({
     queryKey: ["user-items", user?.id],
@@ -71,8 +87,24 @@ export function TradeRequestModal({
       if (error) throw error;
       return data;
     },
-    enabled: !!user && activeTab === "openTrade",
+    enabled: !!user && (activeTab === "openTrade" && step === "selectDesired"),
   });
+
+  const handleNextStep = () => {
+    if (step === "selectOffer") {
+      setStep("selectDesired");
+    } else if (step === "selectDesired") {
+      setStep("addMessage");
+    }
+  };
+
+  const handlePreviousStep = () => {
+    if (step === "selectDesired") {
+      setStep("selectOffer");
+    } else if (step === "addMessage") {
+      setStep("selectDesired");
+    }
+  };
 
   const handleSubmit = async () => {
     if (!selectedItem) {
@@ -136,6 +168,7 @@ export function TradeRequestModal({
       setSelectedItem(null);
       setDesiredItemId(null);
       setMessage("");
+      setStep("selectOffer");
     } catch (error) {
       console.error("Error sending trade request:", error);
       toast({
@@ -148,15 +181,28 @@ export function TradeRequestModal({
     }
   };
 
+  // Get the current step title
+  const getStepTitle = () => {
+    if (activeTab === "directTrade") {
+      return `「${requestedItemTitle}」との交換をリクエストします`;
+    }
+    
+    if (step === "selectOffer") {
+      return "交換に出すアイテムを選択";
+    } else if (step === "selectDesired") {
+      return "希望するアイテムを選択";
+    } else {
+      return "メッセージを追加";
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>トレードリクエスト</DialogTitle>
           <DialogDescription>
-            {activeTab === "directTrade" 
-              ? `「${requestedItemTitle}」との交換をリクエストします`
-              : "オープントレードの作成"}
+            {getStepTitle()}
           </DialogDescription>
         </DialogHeader>
         
@@ -168,39 +214,105 @@ export function TradeRequestModal({
           
           <ScrollArea className="flex-1 pr-2 overflow-y-auto">
             <div className="space-y-4 pb-4">
-              {/* Offered item selection - same for both tabs */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">交換に出すアイテムを選択してください</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {itemsLoading ? (
-                    <div className="col-span-2 py-4 text-center text-gray-500">読み込み中...</div>
-                  ) : userItems?.length === 0 ? (
-                    <div className="col-span-2 py-4 text-center text-gray-500">アイテムがありません</div>
-                  ) : (
-                    userItems?.map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setSelectedItem(item.id)}
-                        className={`p-2 rounded-lg border transition-colors ${
-                          selectedItem === item.id
-                            ? "border-purple-500 bg-purple-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-full aspect-square object-cover rounded-md"
-                        />
-                        <p className="mt-1 text-xs truncate">{item.title}</p>
-                      </button>
-                    ))
+              {/* Direct Trade Tab Content */}
+              {activeTab === "directTrade" && (
+                <>
+                  {/* Offered item selection */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">交換に出すアイテムを選択してください</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {itemsLoading ? (
+                        <div className="col-span-2 py-4 text-center text-gray-500">読み込み中...</div>
+                      ) : userItems?.length === 0 ? (
+                        <div className="col-span-2 py-4 text-center text-gray-500">アイテムがありません</div>
+                      ) : (
+                        userItems?.map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => setSelectedItem(item.id)}
+                            className={`p-2 rounded-lg border transition-colors ${
+                              selectedItem === item.id
+                                ? "border-purple-500 bg-purple-50"
+                                : "border-gray-200 hover:border-gray-300"
+                            }`}
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-full aspect-square object-cover rounded-md"
+                            />
+                            <p className="mt-1 text-xs truncate">{item.title}</p>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">メッセージ</label>
+                    <Textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="交換の理由や希望などを記入してください"
+                      className="resize-none"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="open-trade"
+                      checked={isOpenTrade}
+                      onCheckedChange={setIsOpenTrade}
+                    />
+                    <Label htmlFor="open-trade" className="flex items-center gap-1">
+                      <Globe className="h-4 w-4 text-green-600" />
+                      オープントレードとして公開する
+                    </Label>
+                  </div>
+                  
+                  {isOpenTrade && (
+                    <div className="text-sm text-gray-500 bg-gray-50 p-2 rounded">
+                      オープントレードにすると、特定のユーザーだけでなく、全てのユーザーがこのトレードリクエストを見ることができます。
+                    </div>
                   )}
+                </>
+              )}
+
+              {/* Open Trade Tab Content - Step 1: Select Offer Item */}
+              {activeTab === "openTrade" && step === "selectOffer" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">交換に出すアイテムを選択してください</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {itemsLoading ? (
+                      <div className="col-span-2 py-4 text-center text-gray-500">読み込み中...</div>
+                    ) : userItems?.length === 0 ? (
+                      <div className="col-span-2 py-4 text-center text-gray-500">アイテムがありません</div>
+                    ) : (
+                      userItems?.map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => setSelectedItem(item.id)}
+                          className={`p-2 rounded-lg border transition-colors ${
+                            selectedItem === item.id
+                              ? "border-purple-500 bg-purple-50"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full aspect-square object-cover rounded-md"
+                          />
+                          <p className="mt-1 text-xs truncate">{item.title}</p>
+                        </button>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
-              
-              {/* Desired item selection - only for open trade tab */}
-              {activeTab === "openTrade" && (
+              )}
+
+              {/* Open Trade Tab Content - Step 2: Select Desired Item */}
+              {activeTab === "openTrade" && step === "selectDesired" && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">希望するアイテムを選択してください</label>
                   <div className="grid grid-cols-2 gap-2">
@@ -233,50 +345,124 @@ export function TradeRequestModal({
                 </div>
               )}
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">メッセージ</label>
-                <Textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="交換の理由や希望などを記入してください"
-                  className="resize-none"
-                />
-              </div>
-              
-              {activeTab === "directTrade" && (
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="open-trade"
-                    checked={isOpenTrade}
-                    onCheckedChange={setIsOpenTrade}
-                  />
-                  <Label htmlFor="open-trade" className="flex items-center gap-1">
-                    <Globe className="h-4 w-4 text-green-600" />
-                    オープントレードとして公開する
-                  </Label>
-                </div>
-              )}
-              
-              {(activeTab === "directTrade" && isOpenTrade) && (
-                <div className="text-sm text-gray-500 bg-gray-50 p-2 rounded">
-                  オープントレードにすると、特定のユーザーだけでなく、全てのユーザーがこのトレードリクエストを見ることができます。
+              {/* Open Trade Tab Content - Step 3: Add Message */}
+              {activeTab === "openTrade" && step === "addMessage" && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium mb-2">交換に出すアイテム</p>
+                      {selectedItem && userItems && (
+                        <div className="border rounded p-2">
+                          {userItems.filter(item => item.id === selectedItem).map(item => (
+                            <div key={item.id} className="flex flex-col items-center">
+                              <img 
+                                src={item.image} 
+                                alt={item.title} 
+                                className="w-full aspect-square object-cover rounded-md"
+                              />
+                              <p className="mt-1 text-xs truncate">{item.title}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium mb-2">希望するアイテム</p>
+                      {desiredItemId && allItems && (
+                        <div className="border rounded p-2">
+                          {allItems.filter(item => item.id === desiredItemId).map(item => (
+                            <div key={item.id} className="flex flex-col items-center">
+                              <img 
+                                src={item.image} 
+                                alt={item.title} 
+                                className="w-full aspect-square object-cover rounded-md"
+                              />
+                              <p className="mt-1 text-xs truncate">{item.title}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">メッセージ</label>
+                    <Textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="交換の理由や希望などを記入してください"
+                      className="resize-none"
+                    />
+                  </div>
                 </div>
               )}
             </div>
           </ScrollArea>
           
           <DialogFooter className="mt-4 pt-2 border-t">
-            <Button variant="outline" onClick={onClose}>
-              キャンセル
-            </Button>
-            <Button onClick={handleSubmit} disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
-              送信
-            </Button>
+            {activeTab === "directTrade" && (
+              <>
+                <Button variant="outline" onClick={onClose}>
+                  キャンセル
+                </Button>
+                <Button onClick={handleSubmit} disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  送信
+                </Button>
+              </>
+            )}
+            
+            {activeTab === "openTrade" && step === "selectOffer" && (
+              <>
+                <Button variant="outline" onClick={onClose}>
+                  キャンセル
+                </Button>
+                <Button 
+                  onClick={handleNextStep} 
+                  disabled={!selectedItem}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  希望アイテムを選択する
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </>
+            )}
+            
+            {activeTab === "openTrade" && step === "selectDesired" && (
+              <>
+                <Button variant="outline" onClick={handlePreviousStep}>
+                  戻る
+                </Button>
+                <Button 
+                  onClick={handleNextStep} 
+                  disabled={!desiredItemId}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  次へ
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </>
+            )}
+            
+            {activeTab === "openTrade" && step === "addMessage" && (
+              <>
+                <Button variant="outline" onClick={handlePreviousStep}>
+                  戻る
+                </Button>
+                <Button onClick={handleSubmit} disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4 mr-2" />
+                  )}
+                  送信
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </Tabs>
       </DialogContent>
