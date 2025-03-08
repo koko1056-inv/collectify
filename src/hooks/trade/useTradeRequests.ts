@@ -5,11 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { TradeRequest } from "@/components/trade/types";
 
-// Create an interface for the check_column_exists RPC function return
-interface ColumnCheckResult {
-  check_column_exists: boolean;
-}
-
 export function useTradeRequests() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -167,7 +162,7 @@ export function useTradeRequests() {
     if (!user) return;
     
     try {
-      // First try a direct query to see if the column exists
+      // First check if the column exists (avoids type errors)
       const { data: tradesData, error: queryError } = await supabase
         .from("trade_requests")
         .select(`
@@ -202,8 +197,7 @@ export function useTradeRequests() {
         .neq("sender_id", user.id)
         .order("created_at", { ascending: false });
 
-      // If there's a column error, set empty trades
-      if (queryError && queryError.message.includes("column 'is_open' does not exist")) {
+      if (queryError && queryError.message && queryError.message.includes("column 'is_open' does not exist")) {
         console.log("is_open column does not exist in trade_requests table");
         setOpenTrades([]);
         return;
@@ -213,9 +207,9 @@ export function useTradeRequests() {
         return;
       }
 
-      // Use type assertion to ensure type safety
-      const typedTradesData = (tradesData || []) as unknown as TradeRequest[];
-      setOpenTrades(typedTradesData);
+      // Type assertion to avoid infinite type instantiation
+      const typedTradesData = tradesData as any[] || [];
+      setOpenTrades(typedTradesData as TradeRequest[]);
     } catch (error) {
       console.error("Error in fetchOpenTrades:", error);
       setOpenTrades([]);

@@ -54,8 +54,8 @@ export const getTagsForItem = async (
 
     if (error) throw error;
 
-    // Return the data with explicit type assertion to avoid circular references
-    return (data || []) as unknown as ItemTag[];
+    // Explicit type assertion to avoid infinite type instantiation
+    return (data || []) as ItemTag[];
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
     return [];
