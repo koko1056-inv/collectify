@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -162,7 +161,6 @@ export function useTradeRequests() {
     if (!user) return;
     
     try {
-      // First check if the column exists (avoids type errors)
       const { data: tradesData, error: queryError } = await supabase
         .from("trade_requests")
         .select(`
@@ -207,8 +205,7 @@ export function useTradeRequests() {
         return;
       }
 
-      // Type assertion to avoid infinite type instantiation
-      const typedTradesData = tradesData as unknown[] || [];
+      const typedTradesData = tradesData || [];
       setOpenTrades(typedTradesData as TradeRequest[]);
     } catch (error) {
       console.error("Error in fetchOpenTrades:", error);
