@@ -55,7 +55,7 @@ export const getTagsForItem = async (
     if (error) throw error;
 
     // Return the data as ItemTag[]
-    return (data || []) as ItemTag[];
+    return (data || []) as unknown as ItemTag[];
   } catch (error) {
     console.error(`Error fetching tags for item ${itemId}:`, error);
     return [];

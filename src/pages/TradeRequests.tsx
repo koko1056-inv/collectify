@@ -179,7 +179,7 @@ export default function TradeRequests() {
     try {
       // Check if is_open column exists in the trade_requests table
       const { data, error: rpcError } = await supabase
-        .rpc<boolean>('check_column_exists', { 
+        .rpc<ColumnCheckResult>('check_column_exists', { 
           table_name: 'trade_requests',
           column_name: 'is_open'
         });
@@ -190,7 +190,7 @@ export default function TradeRequests() {
         return;
       }
       
-      const isColumnExist = data;
+      const isColumnExist = data?.check_column_exists || false;
       
       if (!isColumnExist) {
         console.log("is_open column does not exist in trade_requests table");
@@ -238,7 +238,9 @@ export default function TradeRequests() {
         return;
       }
 
-      setOpenTrades(tradesData as TradeRequest[]);
+      // Use type assertion to ensure type safety
+      const typedTradesData = (tradesData || []) as unknown as TradeRequest[];
+      setOpenTrades(typedTradesData);
     } catch (error) {
       console.error("Error in fetchOpenTrades:", error);
       setOpenTrades([]);

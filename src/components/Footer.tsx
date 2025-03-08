@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
-import { TradeRequestsModal } from "./trade/TradeRequestsModal";
 import { UserSearchSheet } from "./UserSearchSheet";
 import { FriendsListSheet } from "./FriendsListSheet";
 
@@ -13,7 +12,6 @@ export function Footer() {
   const location = useLocation();
   const { t } = useLanguage();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
-  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [isSearchSheetOpen, setIsSearchSheetOpen] = useState(false);
   const [isFriendsListOpen, setIsFriendsListOpen] = useState(false);
 
@@ -51,12 +49,15 @@ export function Footer() {
             </div>
           </Link>
 
-          <button
-            onClick={() => setIsTradeModalOpen(true)}
-            className="flex items-center justify-center w-12 h-12"
+          <Link
+            to="/trades"
+            className={cn(
+              "flex items-center justify-center w-12 h-12",
+              isActive("/trades") && "text-primary"
+            )}
           >
             <Repeat2 className="h-6 w-6" />
-          </button>
+          </Link>
 
           <Link
             to="/edit-profile"
@@ -73,11 +74,6 @@ export function Footer() {
       <WishlistViewModal
         isOpen={isWishlistModalOpen}
         onClose={() => setIsWishlistModalOpen(false)}
-      />
-
-      <TradeRequestsModal
-        isOpen={isTradeModalOpen}
-        onClose={() => setIsTradeModalOpen(false)}
       />
 
       <UserSearchSheet
