@@ -7,6 +7,7 @@ import { OpenTradesList } from "./OpenTradesList";
 import { TradeRequest } from "./types";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Heart, Gift, Send, Inbox } from "lucide-react";
 
 interface TradeTabsProps {
   tradeRequests: TradeRequest[];
@@ -44,8 +45,9 @@ export function TradeTabs({
             setShowTradeTabs(true);
             setShowOpenTrades(false);
           }}
-          className="flex-1 rounded-r-none"
+          className={`flex-1 rounded-r-none ${showTradeTabs ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md" : ""}`}
         >
+          <Inbox className="mr-2 h-4 w-4" />
           マイトレード
         </Button>
         <Button 
@@ -54,32 +56,42 @@ export function TradeTabs({
             setShowTradeTabs(false);
             setShowOpenTrades(true);
           }}
-          className="flex-1 rounded-l-none"
+          className={`flex-1 rounded-l-none ${showOpenTrades ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md" : ""}`}
         >
+          <Send className="mr-2 h-4 w-4" />
           オープントレード
         </Button>
       </div>
 
       {showTradeTabs && (
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsList className="grid w-full grid-cols-3 mb-4 bg-gray-100 p-1 rounded-xl">
             <TabsTrigger 
               value="pending"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-400 data-[state=active]:to-purple-400 data-[state=active]:text-white rounded-lg"
             >
-              保留中
+              <div className="flex items-center space-x-1">
+                <Inbox className="h-4 w-4" />
+                <span>保留中</span>
+              </div>
             </TabsTrigger>
             <TabsTrigger 
               value="accepted"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-400 data-[state=active]:to-teal-400 data-[state=active]:text-white rounded-lg"
             >
-              進行中
+              <div className="flex items-center space-x-1">
+                <Gift className="h-4 w-4" />
+                <span>進行中</span>
+              </div>
             </TabsTrigger>
             <TabsTrigger 
               value="completed"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-400 data-[state=active]:to-teal-400 data-[state=active]:text-white rounded-lg"
             >
-              完了
+              <div className="flex items-center space-x-1">
+                <Heart className="h-4 w-4" />
+                <span>完了</span>
+              </div>
             </TabsTrigger>
           </TabsList>
           
@@ -107,7 +119,7 @@ export function TradeTabs({
       )}
       
       {showOpenTrades && (
-        <div className="mt-4">
+        <div className="mt-4 animate-fade-in">
           <OpenTradesList
             trades={openTrades}
             onAccept={(id) => handleTradeResponse(id, true)}
