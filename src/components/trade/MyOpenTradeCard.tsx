@@ -49,7 +49,7 @@ export function MyOpenTradeCard({ trade, onCancelSuccess }: MyOpenTradeCardProps
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 pt-2">
-        <div className="grid grid-cols-2 gap-4 mt-2">
+        <div className="space-y-4 mt-2">
           <div className="space-y-2">
             <p className="text-sm font-medium text-gray-700">提供アイテム</p>
             <div className="border rounded-lg p-2 flex items-center space-x-2 hover:bg-gray-50 transition-colors group border-gray-200">
