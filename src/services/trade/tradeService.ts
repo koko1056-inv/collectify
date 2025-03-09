@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { TradeRequest } from "@/components/trade/types";
 import { Profile } from "@/types";
@@ -42,6 +43,7 @@ export const fetchPendingTradeRequests = async (userId: string): Promise<TradeRe
     .select(tradeRequestSelectQuery)
     .eq("receiver_id", userId)
     .eq("status", "pending")
+    .or(`is_open.is.null, is_open.is.false`) // Only include non-open trades or where is_open is null
     .order("created_at", { ascending: false });
 
   if (error) {
