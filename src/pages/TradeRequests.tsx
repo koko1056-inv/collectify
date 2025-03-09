@@ -31,9 +31,9 @@ export default function TradeRequests() {
   }
 
   return (
-    <div className="pb-16 sm:pb-0 bg-gradient-to-b from-white to-purple-50">
+    <div className="pb-16 sm:pb-0 bg-white">
       <div className="container py-8 max-w-2xl">
-        <h1 className="text-3xl font-bold mb-6 text-center text-purple-900 pb-2 border-b-2 border-purple-200">トレード管理</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-gray-900 pb-2 border-b border-gray-200">トレード管理</h1>
         
         <TradeTabs
           tradeRequests={tradeRequests}

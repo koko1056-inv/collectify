@@ -45,7 +45,7 @@ export function TradeTabs({
             setShowTradeTabs(true);
             setShowOpenTrades(false);
           }}
-          className={`flex-1 rounded-r-none ${showTradeTabs ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md" : ""}`}
+          className={`flex-1 rounded-r-none ${showTradeTabs ? "bg-black text-white" : "text-gray-600"}`}
         >
           <Inbox className="mr-2 h-4 w-4" />
           マイトレード
@@ -56,7 +56,7 @@ export function TradeTabs({
             setShowTradeTabs(false);
             setShowOpenTrades(true);
           }}
-          className={`flex-1 rounded-l-none ${showOpenTrades ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md" : ""}`}
+          className={`flex-1 rounded-l-none ${showOpenTrades ? "bg-black text-white" : "text-gray-600"}`}
         >
           <Send className="mr-2 h-4 w-4" />
           オープントレード
@@ -68,7 +68,7 @@ export function TradeTabs({
           <TabsList className="grid w-full grid-cols-3 mb-4 bg-gray-100 p-1 rounded-xl">
             <TabsTrigger 
               value="pending"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-400 data-[state=active]:to-purple-400 data-[state=active]:text-white rounded-lg"
+              className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
             >
               <div className="flex items-center space-x-1">
                 <Inbox className="h-4 w-4" />
@@ -77,7 +77,7 @@ export function TradeTabs({
             </TabsTrigger>
             <TabsTrigger 
               value="accepted"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-400 data-[state=active]:to-teal-400 data-[state=active]:text-white rounded-lg"
+              className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
             >
               <div className="flex items-center space-x-1">
                 <Gift className="h-4 w-4" />
@@ -86,7 +86,7 @@ export function TradeTabs({
             </TabsTrigger>
             <TabsTrigger 
               value="completed"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-400 data-[state=active]:to-teal-400 data-[state=active]:text-white rounded-lg"
+              className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
             >
               <div className="flex items-center space-x-1">
                 <Heart className="h-4 w-4" />

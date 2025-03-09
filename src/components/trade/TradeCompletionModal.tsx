@@ -66,7 +66,7 @@ export function TradeCompletionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
           <DialogTitle>トレード手続き</DialogTitle>
           <DialogDescription>
@@ -110,12 +110,12 @@ export function TradeCompletionModal({
         </ScrollArea>
         <DialogFooter>
           {step === 'confirmation' && (
-            <Button onClick={() => setStep('shipping')}>
+            <Button onClick={() => setStep('shipping')} className="bg-black text-white hover:bg-gray-800">
               発送手続きへ進む
             </Button>
           )}
           {step === 'shipping' && (
-            <Button onClick={() => setStep('complete')}>
+            <Button onClick={() => setStep('complete')} className="bg-black text-white hover:bg-gray-800">
               発送完了
             </Button>
           )}
@@ -123,6 +123,7 @@ export function TradeCompletionModal({
             <Button 
               onClick={handleComplete}
               disabled={isLoading}
+              className="bg-black text-white hover:bg-gray-800"
             >
               トレードを完了する
             </Button>

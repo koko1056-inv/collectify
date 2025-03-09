@@ -86,14 +86,14 @@ export function TradeCard({
     switch (trade.shipping_status) {
       case 'not_shipped':
         return (
-          <div className="flex items-center gap-1 text-amber-500 bg-amber-50 px-2 py-1 rounded-full text-xs">
+          <div className="flex items-center gap-1 text-gray-700 bg-gray-100 px-2 py-1 rounded-full text-xs">
             <Clock className="h-3 w-3" />
             <span>郵送手続き待ち</span>
           </div>
         );
       case 'shipped':
         return (
-          <div className="flex items-center gap-1 text-blue-500 bg-blue-50 px-2 py-1 rounded-full text-xs">
+          <div className="flex items-center gap-1 text-gray-700 bg-gray-100 px-2 py-1 rounded-full text-xs">
             <Truck className="h-3 w-3" />
             <span>発送済み - 到着待ち</span>
           </div>
@@ -104,17 +104,17 @@ export function TradeCard({
   };
 
   return (
-    <div className="border rounded-xl p-4 space-y-3 bg-white shadow-sm hover:shadow-md transition-shadow duration-300 animate-fade-in">
+    <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-white shadow-sm hover:shadow-md transition-shadow duration-300 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-purple-700">
+          <span className="font-medium text-gray-900">
             {tradePartnerName}
           </span>
           <span className="text-sm text-gray-500">
             {isPending ? "からのリクエスト" : isCompleted ? "とのトレード（完了）" : "とのトレード"}
           </span>
           {isOpenTrade && (
-            <div className="flex items-center gap-1 text-green-600 bg-green-50 px-2 py-1 rounded-full text-xs">
+            <div className="flex items-center gap-1 text-gray-700 bg-gray-100 px-2 py-1 rounded-full text-xs">
               <Globe className="h-3 w-3" />
               <span>オープントレード</span>
             </div>
@@ -151,7 +151,7 @@ export function TradeCard({
         </div>
       </div>
       {trade.message && (
-        <div className="text-sm bg-gray-50 rounded-lg p-3 border-l-4 border-purple-300 italic">
+        <div className="text-sm bg-gray-50 rounded-lg p-3 border-l-4 border-gray-300 italic">
           {trade.message}
         </div>
       )}
@@ -163,12 +163,12 @@ export function TradeCard({
             className="rounded-full"
             size="sm"
           >
-            <X className="mr-1 h-4 w-4 text-red-500" />
+            <X className="mr-1 h-4 w-4 text-gray-500" />
             拒否
           </Button>
           <Button
             onClick={() => onAccept?.(trade.id)}
-            className="rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:shadow-md transition-shadow"
+            className="rounded-full bg-black hover:bg-gray-800 transition-shadow"
             size="sm"
           >
             <Check className="mr-1 h-4 w-4" />
@@ -178,13 +178,13 @@ export function TradeCard({
       ) : !isCompleted && (
         <div className="flex flex-col gap-2">
           <Button
-            className="w-full relative rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:shadow-md transition-shadow"
+            className="w-full relative rounded-full bg-black hover:bg-gray-800 transition-shadow"
             onClick={() => onOpenChat?.(trade)}
           >
             <MessageCircle className="mr-1 h-4 w-4" />
             チャットを開く
             {unreadCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+              <span className="absolute -top-2 -right-2 bg-gray-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
                 {unreadCount}
               </span>
             )}
@@ -192,7 +192,7 @@ export function TradeCard({
           {trade.shipping_status === 'shipped' && (
             <Button
               variant="outline"
-              className="w-full rounded-full border-green-300 text-green-700 hover:bg-green-50"
+              className="w-full rounded-full border-gray-300 text-gray-700 hover:bg-gray-50"
               onClick={() => onComplete?.(trade)}
             >
               <CheckCircle className="mr-2 h-4 w-4" />
