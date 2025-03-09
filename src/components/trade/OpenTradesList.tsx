@@ -49,7 +49,7 @@ export function OpenTradesList({
 
   return (
     <div className="space-y-6">
-      <CreateOpenTradeButton onTradeCreated={onTradeCreated || (() => {})} />
+      <CreateOpenTradeButton onTradeCreated={onTradeCreated || onRefresh} />
       
       <div className="mt-4">
         <h2 className="text-xl font-semibold mb-4">オープントレード一覧</h2>
