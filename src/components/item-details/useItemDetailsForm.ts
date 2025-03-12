@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,15 @@ export function useItemDetailsForm({
   };
 
   const handleSave = async () => {
+    if (editedData.quantity < 1) {
+      toast({
+        title: "エラー",
+        description: "数量は1以上を指定してください。",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
       const table = isUserItem ? "user_items" : "official_items";

@@ -41,7 +41,7 @@ export function ItemDetailsModal({
 }: ItemDetailsModalProps) {
   const { user } = useAuth();
   const isOwner = !userId || (user && user.id === userId);
-  const canEdit = !isUserItem && user !== null;
+  const canEdit = isOwner || (!isUserItem && user !== null);
 
   const {
     isEditing,
@@ -163,7 +163,7 @@ export function ItemDetailsModal({
           onCancel={handleCancel}
           onSave={handleSave}
           onEdit={() => setIsEditing(true)}
-          showEditButton={isOwner || canEdit}
+          showEditButton={canEdit}
         />
       </DialogContent>
     </Dialog>

@@ -13,6 +13,8 @@ import { TradeRequestModal } from "../trade/TradeRequestModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Pencil } from "lucide-react";
+import { QuantityEditModal } from "./QuantityEditModal";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -40,6 +42,7 @@ export function CollectionGoodsCardWrapper({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
+  const [isQuantityEditModalOpen, setIsQuantityEditModalOpen] = useState(false);
 
   const { handleDelete } = useCardEventHandlers(id);
   const { user } = useAuth();
@@ -95,13 +98,25 @@ export function CollectionGoodsCardWrapper({
 
   return (
     <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
-      {quantity > 1 && (
-        <Badge 
-          className="absolute top-2 right-2 z-10 bg-purple-500 hover:bg-purple-500"
-        >
-          ×{quantity}
-        </Badge>
-      )}
+      <div className="absolute top-2 right-2 z-10 flex gap-1">
+        {isOwner && (
+          <Badge 
+            className="bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsQuantityEditModalOpen(true);
+            }}
+          >
+            <Pencil size={12} />
+            ×{quantity}
+          </Badge>
+        )}
+        {!isOwner && quantity > 1 && (
+          <Badge className="bg-purple-500 hover:bg-purple-500">
+            ×{quantity}
+          </Badge>
+        )}
+      </div>
       <CardHeader
         title={title}
         image={image}
@@ -158,6 +173,15 @@ export function CollectionGoodsCardWrapper({
           requestedItemId={id}
           requestedItemTitle={title}
           receiverId={userId!}
+        />
+      )}
+      {isOwner && (
+        <QuantityEditModal
+          isOpen={isQuantityEditModalOpen}
+          onClose={() => setIsQuantityEditModalOpen(false)}
+          itemId={id}
+          initialQuantity={quantity}
+          itemTitle={title}
         />
       )}
     </Card>
