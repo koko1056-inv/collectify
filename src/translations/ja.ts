@@ -1,3 +1,4 @@
+
 export const jaTranslations = {
   nav: {
     login: "ログイン",
@@ -27,7 +28,8 @@ export const jaTranslations = {
     remove: "コレクションから削除"
   },
   search: {
-    placeholder: "グッズを検索..."
+    placeholder: "グッズを検索...",
+    button: "探す"
   },
   tags: {
     select: "タグを選択",

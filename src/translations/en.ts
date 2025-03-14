@@ -1,3 +1,4 @@
+
 export const enTranslations = {
   nav: {
     login: "Login",
@@ -20,7 +21,8 @@ export const enTranslations = {
     remove: "Remove from Collection"
   },
   search: {
-    placeholder: "Search goods..."
+    placeholder: "Search goods...",
+    button: "Search"
   },
   tags: {
     select: "Select Tags",
