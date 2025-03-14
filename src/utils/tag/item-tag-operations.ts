@@ -1,16 +1,19 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// 単純化されたタグ情報のインターフェース
+// 循環参照を防ぐために単純化されたタグインターフェース
+interface SimpleTag {
+  id: string;
+  name: string;
+  category?: string;
+  created_at?: string;
+}
+
+// 単純化されたタグ関連のインターフェース
 interface SimpleItemTag {
   id: string;
   tag_id: string;
-  tags?: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  } | null;
+  tags?: SimpleTag | null;
 }
 
 /**

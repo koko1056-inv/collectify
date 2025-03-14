@@ -16,6 +16,7 @@ interface CollectionTabsProps {
   selectedContent: string;
   onContentChange: (content: string) => void;
   tags: Tag[];
+  onTagsChange: (tags: string[]) => void;
 }
 
 export function CollectionTabs({ 
@@ -26,7 +27,8 @@ export function CollectionTabs({
   onSearchChange,
   selectedContent,
   onContentChange,
-  tags
+  tags,
+  onTagsChange
 }: CollectionTabsProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
