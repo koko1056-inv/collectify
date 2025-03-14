@@ -11,8 +11,7 @@ import { Loader2 } from "lucide-react";
 import { 
   Drawer,
   DrawerClose,
-  DrawerContent,
-  DrawerTrigger
+  DrawerContent
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterBar } from "./FilterBar";
