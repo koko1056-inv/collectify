@@ -174,6 +174,7 @@ const Index = () => {
             selectedContent={selectedContent} 
             onContentChange={setSelectedContent}
             tags={allTags}
+            onTagsChange={setSelectedTags}
           />
 
           {user && (

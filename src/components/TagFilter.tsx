@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types/tag";
@@ -59,7 +59,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) 
   const popularTags = tagsWithCount.slice(0, 5);
 
   // 有効なタグのみをフィルタリング
-  React.useEffect(() => {
+  useEffect(() => {
     if (!tags || tags.length === 0) return;
     
     const validTags = selectedTags.filter(tag => 
@@ -74,16 +74,20 @@ export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) 
   const handleTagToggle = (tagName: string) => {
     console.log(`タグ切り替え: ${tagName}`);
     if (selectedTags.includes(tagName)) {
+      // タグが既に選択されている場合は削除
       onTagsChange(selectedTags.filter(tag => tag !== tagName));
     } else {
+      // タグが選択されていない場合は追加
       onTagsChange([...selectedTags, tagName]);
     }
   };
 
   const handleTagsSelect = (newTags: string[]) => {
     console.log('新しいタグが選択されました:', newTags);
+    // 新しいタグと既存のタグをマージして重複を削除
     const uniqueTags = [...new Set([...selectedTags, ...newTags])];
     onTagsChange(uniqueTags);
+    console.log('フィルタリング後のタグ:', uniqueTags);
   };
 
   return (

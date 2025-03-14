@@ -82,6 +82,7 @@ export function ProfileCollection({ userId }: { userId: string }) {
         selectedContent={selectedContent}
         onContentChange={setSelectedContent}
         tags={allTags}
+        onTagsChange={setSelectedTags}
       />
     </div>
   );
