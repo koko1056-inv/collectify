@@ -47,10 +47,27 @@ export const deleteUserItem = async (itemId: string) => {
   }
 };
 
+interface Tag {
+  id: string;
+  name: string;
+}
+
+interface UserItemTag {
+  tags: Tag | null;
+}
+
+interface UserItem {
+  id: string;
+  title: string;
+  image: string;
+  user_item_tags?: UserItemTag[];
+  [key: string]: any; // For other properties
+}
+
 /**
  * ランダムなユーザーアイテムを取得する
  */
-export const getRandomUserItem = async (userId: string) => {
+export const getRandomUserItem = async (userId: string): Promise<UserItem | null> => {
   try {
     // ユーザーのアイテム総数を取得
     const { count, error: countError } = await supabase

@@ -1,17 +1,15 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { getRandomUserItem } from "@/utils/tag-operations";
 import { useAuth } from "@/contexts/AuthContext";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Share2, BookOpen } from "lucide-react";
 import { ShareModal } from "@/components/ShareModal";
 import { useNavigate } from "react-router-dom";
 import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { RandomItemContent } from "./random-item/RandomItemContent";
+import { RandomItemActionButtons } from "./random-item/RandomItemActionButtons";
+import { useRandomItem } from "./random-item/useRandomItem";
 
 interface RandomCollectionItemModalProps {
   isOpen: boolean;
@@ -26,54 +24,15 @@ export function RandomCollectionItemModal({
 }: RandomCollectionItemModalProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
   const isMobile = useIsMobile();
-  const [randomItem, setRandomItem] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
-  const [isSpinning, setIsSpinning] = useState(false);
   const effectiveUserId = userId || user?.id;
-
-  const fetchRandomItem = async () => {
-    if (!effectiveUserId) return;
-    
-    setIsLoading(true);
-    setIsSpinning(true);
-    setRandomItem(null);
-    
-    try {
-      // Create a delay to show the spinning animation
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const item = await getRandomUserItem(effectiveUserId);
-      setRandomItem(item);
-      
-      if (!item) {
-        toast({
-          title: "アイテムがありません",
-          description: "コレクションにアイテムがありません。",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching random item:", error);
-      toast({
-        title: "エラーが発生しました",
-        description: "ランダムアイテムの取得に失敗しました。",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-      setTimeout(() => setIsSpinning(false), 300);
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen && effectiveUserId) {
-      fetchRandomItem();
-    }
-  }, [isOpen, effectiveUserId]);
+  
+  const { randomItem, isLoading, isSpinning, fetchRandomItem } = useRandomItem(
+    effectiveUserId,
+    isOpen
+  );
 
   const handleShare = () => {
     setIsShareModalOpen(true);
@@ -99,87 +58,24 @@ export function RandomCollectionItemModal({
           </DialogHeader>
           
           <div className="py-4">
-            {isLoading ? (
-              <div className="space-y-4">
-                <div className="flex justify-center">
-                  <div className={`h-48 w-48 rounded-md flex items-center justify-center ${isSpinning ? "animate-spin" : ""}`}>
-                    <Skeleton className="h-full w-full rounded-md" />
-                  </div>
-                </div>
-                <Skeleton className="h-4 w-3/4 mx-auto" />
-                <Skeleton className="h-4 w-1/2 mx-auto" />
-              </div>
-            ) : randomItem ? (
-              <div className="flex flex-col items-center space-y-4">
-                <div 
-                  className={`w-full max-w-[240px] mx-auto cursor-pointer transition-all duration-500 ${isSpinning ? "animate-spin" : "hover:scale-105"}`}
-                  onClick={handleImageClick}
-                >
-                  <AspectRatio ratio={1} className="bg-gray-50 rounded-md overflow-hidden">
-                    <img 
-                      src={randomItem.image} 
-                      alt={randomItem.title} 
-                      className="w-full h-full object-contain rounded-md animate-scale-in"
-                    />
-                  </AspectRatio>
-                </div>
-                <h3 className="font-bold text-lg text-center animate-fade-in">{randomItem.title}</h3>
-                
-                {randomItem.user_item_tags && randomItem.user_item_tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 justify-center animate-fade-in">
-                    {randomItem.user_item_tags.map((tag: any) => (
-                      <span 
-                        key={tag.tags.id} 
-                        className="bg-gray-100 text-xs px-2 py-1 rounded-full"
-                      >
-                        {tag.tags.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">
-                コレクションにアイテムがありません。
-              </p>
-            )}
+            <RandomItemContent 
+              randomItem={randomItem}
+              isLoading={isLoading}
+              isSpinning={isSpinning}
+              onImageClick={handleImageClick}
+            />
           </div>
           
-          <div className="flex flex-wrap justify-between gap-4">
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                variant="outline" 
-                onClick={fetchRandomItem}
-                disabled={isLoading}
-                className={isSpinning ? "animate-pulse" : ""}
-              >
-                抽選する
-              </Button>
-              {randomItem && (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={handleShare}
-                    disabled={isLoading}
-                    size={isMobile ? "sm" : "default"}
-                  >
-                    <Share2 className="h-4 w-4 mr-1" />
-                    共有
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handleOpenMemories}
-                    disabled={isLoading}
-                    size={isMobile ? "sm" : "default"}
-                  >
-                    <BookOpen className="h-4 w-4 mr-1" />
-                    思い出
-                  </Button>
-                </>
-              )}
-            </div>
-            <Button onClick={onClose}>閉じる</Button>
-          </div>
+          <RandomItemActionButtons 
+            onRandom={fetchRandomItem}
+            onShare={handleShare}
+            onMemories={handleOpenMemories}
+            onClose={onClose}
+            isLoading={isLoading}
+            isSpinning={isSpinning}
+            hasItem={!!randomItem}
+            isMobile={isMobile}
+          />
         </DialogContent>
       </Dialog>
       
