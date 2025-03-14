@@ -8,6 +8,7 @@ import { MemoriesSection } from "./MemoriesSection";
 import { CategoryTagSelect } from "../tag/CategoryTagSelect";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { ItemDescriptionField } from "./ItemDescriptionField";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -21,6 +22,7 @@ interface ItemDetailsContentProps {
   contentName?: string | null;
   releaseDate?: string;
   createdBy?: string | null;
+  description?: string;
 }
 
 export function ItemDetailsContent({
@@ -35,6 +37,7 @@ export function ItemDetailsContent({
   contentName,
   releaseDate,
   createdBy,
+  description,
 }: ItemDetailsContentProps) {
   const handleImageUpdate = (newImageUrl: string) => {
     setEditedData({ ...editedData, image: newImageUrl });
@@ -65,8 +68,8 @@ export function ItemDetailsContent({
   };
 
   return (
-    <ScrollArea className="flex-1 px-6">
-      <div className="space-y-4 bg-white">
+    <ScrollArea className="flex-1 h-[70vh] px-6">
+      <div className="space-y-4 bg-white pb-6">
         <ItemImageEditor
           image={isEditing ? editedData.image : image}
           title={title}
@@ -97,7 +100,7 @@ export function ItemDetailsContent({
         )}
 
         {!isUserItem && (
-          <div className="space-y-2">
+          <div className="space-y-4">
             <ContentNameSection
               isEditing={isEditing}
               editedData={editedData}
@@ -106,26 +109,34 @@ export function ItemDetailsContent({
             />
             
             {isEditing && (
-              <div className="space-y-4 mt-4">
-                <CategoryTagSelect
-                  category="character"
-                  label="キャラクター・人物名"
-                  value={editedData.characterTag}
-                  onChange={(value) => setEditedData({ ...editedData, characterTag: value })}
+              <>
+                <ItemDescriptionField
+                  isEditing={isEditing}
+                  description={editedData.description || ""}
+                  onChange={(value) => setEditedData({ ...editedData, description: value })}
                 />
-                <CategoryTagSelect
-                  category="type"
-                  label="グッズタイプ"
-                  value={editedData.typeTag}
-                  onChange={(value) => setEditedData({ ...editedData, typeTag: value })}
-                />
-                <CategoryTagSelect
-                  category="series"
-                  label="グッズシリーズ"
-                  value={editedData.seriesTag}
-                  onChange={(value) => setEditedData({ ...editedData, seriesTag: value })}
-                />
-              </div>
+                
+                <div className="space-y-4 mt-4">
+                  <CategoryTagSelect
+                    category="character"
+                    label="キャラクター・人物名"
+                    value={editedData.characterTag}
+                    onChange={(value) => setEditedData({ ...editedData, characterTag: value })}
+                  />
+                  <CategoryTagSelect
+                    category="type"
+                    label="グッズタイプ"
+                    value={editedData.typeTag}
+                    onChange={(value) => setEditedData({ ...editedData, typeTag: value })}
+                  />
+                  <CategoryTagSelect
+                    category="series"
+                    label="グッズシリーズ"
+                    value={editedData.seriesTag}
+                    onChange={(value) => setEditedData({ ...editedData, seriesTag: value })}
+                  />
+                </div>
+              </>
             )}
             
             <CreatorSection
@@ -133,11 +144,23 @@ export function ItemDetailsContent({
               createdBy={createdBy}
             />
 
-            {!isEditing && releaseDate && (
-              <div className="text-sm">
-                <span className="font-medium">登録日: </span>
-                <span>{format(new Date(releaseDate), 'yyyy/MM/dd')}</span>
-              </div>
+            {!isEditing && (
+              <>
+                {description && (
+                  <ItemDescriptionField
+                    isEditing={false}
+                    description={description}
+                    onChange={() => {}}
+                  />
+                )}
+                
+                {releaseDate && (
+                  <div className="text-sm">
+                    <span className="font-medium">登録日: </span>
+                    <span>{format(new Date(releaseDate), 'yyyy/MM/dd')}</span>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

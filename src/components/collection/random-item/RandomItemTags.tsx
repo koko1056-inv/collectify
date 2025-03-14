@@ -15,10 +15,10 @@ export function RandomItemTags({ tags }: RandomItemTagsProps) {
 
   return (
     <div className="flex flex-wrap gap-1 justify-center animate-fade-in">
-      {tags.map((tag) => (
+      {tags.map((tag, index) => (
         tag.tags && (
           <span 
-            key={tag.tags.id} 
+            key={`${tag.tags.id}-${index}`} 
             className="bg-gray-100 text-xs px-2 py-1 rounded-full"
           >
             {tag.tags.name}
