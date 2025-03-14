@@ -1,9 +1,7 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Filter } from "lucide-react";
-
 type SortOption = "newest" | "oldest" | "wishlist" | "owners";
 interface OfficialItemsHeaderProps {
   sortBy: SortOption;
@@ -27,12 +25,7 @@ export function OfficialItemsHeader({
           </p>
         </div>
         
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="flex items-center gap-1 mr-1"
-          onClick={onFilterClick}
-        >
+        <Button variant="outline" size="sm" onClick={onFilterClick} className="flex items-center gap-1 mr-1 px-[31px]">
           <Filter className="h-4 w-4" />
           <span className="hidden sm:inline">フィルター</span>
         </Button>
