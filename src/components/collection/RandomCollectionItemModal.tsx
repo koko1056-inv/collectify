@@ -29,13 +29,20 @@ export function RandomCollectionItemModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
   const effectiveUserId = userId || user?.id;
 
   const fetchRandomItem = async () => {
     if (!effectiveUserId) return;
     
     setIsLoading(true);
+    setIsSpinning(true);
+    setRandomItem(null);
+    
     try {
+      // Create a delay to show the spinning animation
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       const item = await getRandomUserItem(effectiveUserId);
       setRandomItem(item);
       
@@ -55,6 +62,7 @@ export function RandomCollectionItemModal({
       });
     } finally {
       setIsLoading(false);
+      setTimeout(() => setIsSpinning(false), 300);
     }
   };
 
@@ -90,26 +98,30 @@ export function RandomCollectionItemModal({
           <div className="py-4">
             {isLoading ? (
               <div className="space-y-4">
-                <Skeleton className="h-48 w-full rounded-md" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
+                <div className="flex justify-center">
+                  <div className={`h-48 w-48 rounded-md flex items-center justify-center ${isSpinning ? "animate-spin" : ""}`}>
+                    <Skeleton className="h-full w-full rounded-md" />
+                  </div>
+                </div>
+                <Skeleton className="h-4 w-3/4 mx-auto" />
+                <Skeleton className="h-4 w-1/2 mx-auto" />
               </div>
             ) : randomItem ? (
               <div className="flex flex-col items-center space-y-4">
                 <div 
-                  className="w-full max-w-[240px] mx-auto cursor-pointer transition-transform hover:scale-105"
+                  className={`w-full max-w-[240px] mx-auto cursor-pointer transition-all duration-500 ${isSpinning ? "animate-spin" : "hover:scale-105"}`}
                   onClick={handleImageClick}
                 >
                   <img 
                     src={randomItem.image} 
                     alt={randomItem.title} 
-                    className="w-full h-auto object-contain rounded-md"
+                    className={`w-full h-auto object-contain rounded-md ${isSpinning ? "" : "animate-scale-in"}`}
                   />
                 </div>
-                <h3 className="font-bold text-lg text-center">{randomItem.title}</h3>
+                <h3 className="font-bold text-lg text-center animate-fade-in">{randomItem.title}</h3>
                 
                 {randomItem.user_item_tags && randomItem.user_item_tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 justify-center">
+                  <div className="flex flex-wrap gap-1 justify-center animate-fade-in">
                     {randomItem.user_item_tags.map((tag: any) => (
                       <span 
                         key={tag.tags.id} 
@@ -134,6 +146,7 @@ export function RandomCollectionItemModal({
                 variant="outline" 
                 onClick={fetchRandomItem}
                 disabled={isLoading}
+                className={isSpinning ? "animate-pulse" : ""}
               >
                 抽選する
               </Button>
