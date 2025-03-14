@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Share2, BookOpen } from "lucide-react";
 import { ShareModal } from "@/components/ShareModal";
 import { useNavigate } from "react-router-dom";
 import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface RandomCollectionItemModalProps {
   isOpen: boolean;
@@ -25,6 +25,7 @@ export function RandomCollectionItemModal({
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [randomItem, setRandomItem] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -140,8 +141,8 @@ export function RandomCollectionItemModal({
             )}
           </div>
           
-          <div className="flex justify-between">
-            <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row justify-between gap-4">
+            <div className="flex flex-wrap gap-2">
               <Button 
                 variant="outline" 
                 onClick={fetchRandomItem}
@@ -156,16 +157,18 @@ export function RandomCollectionItemModal({
                     variant="outline"
                     onClick={handleShare}
                     disabled={isLoading}
+                    size={isMobile ? "sm" : "default"}
                   >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    共有する
+                    <Share2 className="h-4 w-4 mr-1" />
+                    共有
                   </Button>
                   <Button
                     variant="outline"
                     onClick={handleOpenMemories}
                     disabled={isLoading}
+                    size={isMobile ? "sm" : "default"}
                   >
-                    <BookOpen className="h-4 w-4 mr-2" />
+                    <BookOpen className="h-4 w-4 mr-1" />
                     思い出
                   </Button>
                 </>
