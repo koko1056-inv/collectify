@@ -83,7 +83,7 @@ export const jaTranslations = {
     noOwners: "まだ誰も持っていません"
   },
   official: {
-    add: "新規アイテムの追加",
+    add: "グッズを追加",
     title: "公式グッズ"
   },
   share: {

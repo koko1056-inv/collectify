@@ -76,7 +76,7 @@ export const enTranslations = {
     noOwners: "No users own this item yet"
   },
   official: {
-    add: "Add New Item",
+    add: "Add Goods",
     title: "Official Goods"
   },
   share: {
