@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,7 +25,7 @@ export function OfficialItemsHeader({
           </p>
         </div>
         
-        <Button variant="outline" size="sm" onClick={onFilterClick} className="flex items-center gap-1 mr-1 px-[31px]">
+        <Button variant="outline" size="sm" onClick={onFilterClick} className="flex items-center gap-1 mr-1 px-[9px]">
           <Filter className="h-4 w-4" />
           <span className="hidden sm:inline">探す</span>
         </Button>
