@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -150,29 +151,22 @@ const Index = () => {
             </h1>
           )}
 
-          {!isMobile && (
-            <div className="z-10 bg-gray-50 pb-2">
-              <FilterBar
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-                selectedContent={selectedContent}
-                onContentChange={setSelectedContent}
-                tags={allTags}
-              />
-            </div>
-          )}
+          <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
+            <FilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+              selectedContent={selectedContent}
+              onContentChange={setSelectedContent}
+              tags={allTags}
+            />
+          </div>
 
           <CollectionTabs
             filteredItems={sortedItems}
             selectedTags={selectedTags}
             userId={userId}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedContent={selectedContent}
-            onContentChange={setSelectedContent}
-            tags={allTags}
           />
 
           {user && (
