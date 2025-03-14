@@ -13,17 +13,17 @@ interface TagFilterProps {
   tags: Tag[];
 }
 
-export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
+export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { data: tags = [] } = useQuery({
+  const { data: tagsWithCount = [] } = useQuery({
     queryKey: ["tags-with-count"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('tags')
         .select(`
           *,
-          item_tags!inner (
+          item_tags (
             tag_id
           )
         `);
@@ -55,16 +55,19 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
     return `${selectedTags.length}個のタグを選択中`;
   };
 
-  const popularTags = tags.slice(0, 5);
+  const popularTags = tagsWithCount.slice(0, 5);
 
   React.useEffect(() => {
-    const validTags = selectedTags.filter(tag => tags.some(t => t.name === tag));
+    const validTags = selectedTags.filter(tag => 
+      tags.some(t => t.name === tag)
+    );
     if (validTags.length !== selectedTags.length) {
       onTagsChange(validTags);
     }
   }, [tags, selectedTags, onTagsChange]);
 
   const handleTagToggle = (tagName: string) => {
+    console.log(`タグ切り替え: ${tagName}`);
     if (selectedTags.includes(tagName)) {
       onTagsChange(selectedTags.filter(tag => tag !== tagName));
     } else {
@@ -73,6 +76,7 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
   };
 
   const handleTagsSelect = (newTags: string[]) => {
+    console.log('新しいタグが選択されました:', newTags);
     const uniqueTags = [...new Set([...selectedTags, ...newTags])];
     onTagsChange(uniqueTags);
   };
@@ -88,7 +92,10 @@ export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
         tags={popularTags}
         selectedTags={selectedTags}
         onTagSelect={handleTagToggle}
-        onClearTags={() => onTagsChange([])}
+        onClearTags={() => {
+          console.log('タグをクリア');
+          onTagsChange([]);
+        }}
       />
 
       <TagDialog

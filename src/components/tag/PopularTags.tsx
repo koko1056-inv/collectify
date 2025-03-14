@@ -12,6 +12,12 @@ interface PopularTagsProps {
 }
 
 export function PopularTags({ tags, selectedTags, onTagSelect, onClearTags }: PopularTagsProps) {
+  // タグの選択状態に応じてボタンをクリックしたときのハンドラー
+  const handleTagClick = (tagName: string) => {
+    console.log(`タグがクリックされました: ${tagName}`);
+    onTagSelect(tagName);
+  };
+
   return (
     <div className="relative w-full">
       <ScrollArea className="w-full whitespace-nowrap">
@@ -21,7 +27,10 @@ export function PopularTags({ tags, selectedTags, onTagSelect, onClearTags }: Po
             variant={selectedTags.length === 0 ? "default" : "outline"}
             size="sm"
             className="text-xs h-6 px-2 shrink-0"
-            onClick={onClearTags}
+            onClick={() => {
+              console.log("すべてボタンがクリックされました");
+              onClearTags();
+            }}
           >
             すべて
           </Button>
@@ -31,7 +40,7 @@ export function PopularTags({ tags, selectedTags, onTagSelect, onClearTags }: Po
               variant={selectedTags.includes(tag.name) ? "default" : "outline"}
               size="sm"
               className="text-xs h-6 px-2 shrink-0"
-              onClick={() => onTagSelect(tag.name)}
+              onClick={() => handleTagClick(tag.name)}
             >
               {tag.name}
             </Button>

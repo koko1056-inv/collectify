@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Define a simpler interface to prevent the circular reference
+// 単純化されたタグ情報のインターフェース
 interface SimpleItemTag {
   id: string;
   tag_id: string;
