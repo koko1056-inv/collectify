@@ -11,8 +11,7 @@ import { Loader2 } from "lucide-react";
 import { 
   Drawer,
   DrawerClose,
-  DrawerContent,
-  DrawerTrigger
+  DrawerContent
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterBar } from "./FilterBar";
@@ -104,13 +103,17 @@ export function OfficialItemsList({
 
   const currentItems = sortedItems.slice(0, visibleCount);
 
+  const handleFilterClick = () => {
+    setIsFilterOpen(true);
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <OfficialItemsHeader 
         sortBy={sortBy} 
         onSortChange={setSortBy} 
         totalItems={sortedItems.length}
-        onFilterClick={() => setIsFilterOpen(true)}
+        onFilterClick={handleFilterClick}
       />
       
       <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
