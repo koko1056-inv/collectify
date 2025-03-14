@@ -6,10 +6,25 @@ import { SearchBar } from "./SearchBar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Filter } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "./ui/input";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle,
+  SheetTrigger,
+  SheetClose
+} from "@/components/ui/sheet";
+import { 
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerTrigger
+} from "@/components/ui/drawer";
 
 interface FilterBarProps {
   searchQuery: string;
@@ -32,6 +47,8 @@ export function FilterBar({
 }: FilterBarProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [contentSearchQuery, setContentSearchQuery] = useState("");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
@@ -56,7 +73,7 @@ export function FilterBar({
     return selectedContent;
   };
 
-  return (
+  const FilterContent = () => (
     <div className="space-y-3 w-full">
       <SearchBar
         searchQuery={searchQuery}
@@ -160,4 +177,50 @@ export function FilterBar({
       />
     </div>
   );
+
+  // モバイル版用のDrawerを表示
+  if (isMobile) {
+    return (
+      <>
+        <div className="flex justify-between items-center mb-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center gap-1"
+            onClick={() => setIsFilterOpen(true)}
+          >
+            <Filter className="h-4 w-4" />
+            フィルター
+          </Button>
+          
+          <div className="text-xs">
+            {selectedTags.length > 0 && (
+              <span className="text-sm font-medium">
+                {selectedTags.length}個のタグ
+              </span>
+            )}
+          </div>
+        </div>
+        
+        <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+          <DrawerContent className="max-h-[90vh] px-4 pt-4 pb-8">
+            <div className="mx-auto w-full max-w-sm">
+              <DrawerClose className="flex items-center justify-between mb-4 w-full">
+                <div className="font-medium">フィルター</div>
+                <Button variant="ghost" size="sm">
+                  完了
+                </Button>
+              </DrawerClose>
+              <ScrollArea className="h-[70vh] pr-4">
+                <FilterContent />
+              </ScrollArea>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      </>
+    );
+  }
+
+  // デスクトップ版はオリジナルのレイアウト
+  return <FilterContent />;
 }

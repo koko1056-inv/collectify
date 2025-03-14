@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -9,6 +10,7 @@ import { InitialInterestSelection } from "@/components/InitialInterestSelection"
 import { OfficialItem, Tag, Profile } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -18,6 +20,7 @@ const Index = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const userId = searchParams.get("userId");
+  const isMobile = useIsMobile();
 
   const { data: profile, refetch: refetchProfile } = useQuery<Profile>({
     queryKey: ["profile", user?.id],
@@ -141,14 +144,14 @@ const Index = () => {
           <span className="logo-text">Collectify</span>
         </div>
 
-        <div className="space-y-4 sm:space-y-6">
+        <div className={`space-y-4 sm:space-y-6 ${isMobile ? "pt-2" : ""}`}>
           {userId && viewedProfile && (
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 px-2">
               {viewedProfile.username}さんのコレクション
             </h1>
           )}
 
-          <div className="z-10 bg-gray-50 pb-2">
+          <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
             <FilterBar
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}

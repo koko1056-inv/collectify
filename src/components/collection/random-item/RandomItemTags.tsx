@@ -1,4 +1,6 @@
 
+import { Badge } from "@/components/ui/badge";
+
 interface Tag {
   tags: {
     id: string;
@@ -17,12 +19,13 @@ export function RandomItemTags({ tags }: RandomItemTagsProps) {
     <div className="flex flex-wrap gap-1 justify-center animate-fade-in">
       {tags.map((tag, index) => (
         tag.tags && (
-          <span 
+          <Badge 
             key={`${tag.tags.id}-${index}`} 
-            className="bg-gray-100 text-xs px-2 py-1 rounded-full"
+            variant="secondary"
+            className="text-xs px-2 py-1"
           >
             {tag.tags.name}
-          </span>
+          </Badge>
         )
       ))}
     </div>
