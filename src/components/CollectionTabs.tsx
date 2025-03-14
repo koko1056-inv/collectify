@@ -58,7 +58,7 @@ export function CollectionTabs({
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
           selectedTags={selectedTags}
-          onTagsChange={() => {}}
+          onTagsChange={onTagsChange}
           selectedContent={selectedContent}
           onContentChange={onContentChange}
           tags={tags}

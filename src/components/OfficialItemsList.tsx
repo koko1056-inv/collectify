@@ -11,7 +11,8 @@ import { Loader2 } from "lucide-react";
 import { 
   Drawer,
   DrawerClose,
-  DrawerContent
+  DrawerContent,
+  DrawerTitle
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterBar } from "./FilterBar";
@@ -44,7 +45,26 @@ export function OfficialItemsList({
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [visibleCount, setVisibleCount] = useState(isMobile ? 21 : 24);
   const { wishlistCounts, ownerCounts } = useItemCounts();
-  const sortedItems = useSortedItems(items, sortBy, ownerCounts);
+  
+  // 選択したタグでフィルタリングされたアイテムを取得
+  const filteredByTagsItems = items.filter(item => {
+    if (selectedTags.length === 0) return true;
+    
+    // タグの配列が実際に存在することを確認
+    const itemTags = item.item_tags || [];
+    
+    // 選択したすべてのタグが、そのアイテムのタグに含まれているかをチェック
+    return selectedTags.every(selectedTag => {
+      return itemTags.some(itemTag => 
+        itemTag.tags && itemTag.tags.name === selectedTag
+      );
+    });
+  });
+  
+  console.log(`フィルタリング後のアイテム数: ${filteredByTagsItems.length} / ${items.length}`);
+  console.log('選択されたタグ:', selectedTags);
+  
+  const sortedItems = useSortedItems(filteredByTagsItems, sortBy, ownerCounts);
   const loaderRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -119,8 +139,8 @@ export function OfficialItemsList({
       <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <DrawerContent className="max-h-[90vh] px-4 pt-4 pb-8">
           <div className="mx-auto w-full max-w-sm">
-            <DrawerClose className="flex items-center justify-between mb-4 w-full">
-              <div className="font-medium">フィルター</div>
+            <DrawerTitle className="text-center font-medium mb-4">フィルター</DrawerTitle>
+            <DrawerClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none">
               <button className="text-sm text-gray-600">
                 完了
               </button>

@@ -30,7 +30,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) 
 
       if (error) throw error;
 
-      // Create a map to count tag occurrences
+      // タグの出現回数をカウントするマップを作成
       const tagCounts: Record<string, Tag & { count: number }> = {};
       
       for (const tag of data) {
@@ -43,6 +43,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) 
         tagCounts[tag.id].count++;
       }
 
+      // 出現回数に基づいてソート
       return Object.values(tagCounts).sort((a, b) => b.count - a.count);
     },
     staleTime: 0,
@@ -57,10 +58,14 @@ export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) 
 
   const popularTags = tagsWithCount.slice(0, 5);
 
+  // 有効なタグのみをフィルタリング
   React.useEffect(() => {
+    if (!tags || tags.length === 0) return;
+    
     const validTags = selectedTags.filter(tag => 
       tags.some(t => t.name === tag)
     );
+    
     if (validTags.length !== selectedTags.length) {
       onTagsChange(validTags);
     }
