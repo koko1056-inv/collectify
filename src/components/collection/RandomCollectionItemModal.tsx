@@ -11,6 +11,7 @@ import { ShareModal } from "@/components/ShareModal";
 import { useNavigate } from "react-router-dom";
 import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 interface RandomCollectionItemModalProps {
   isOpen: boolean;
@@ -114,11 +115,13 @@ export function RandomCollectionItemModal({
                   className={`w-full max-w-[240px] mx-auto cursor-pointer transition-all duration-500 ${isSpinning ? "animate-spin" : "hover:scale-105"}`}
                   onClick={handleImageClick}
                 >
-                  <img 
-                    src={randomItem.image} 
-                    alt={randomItem.title} 
-                    className={`w-full h-auto object-contain rounded-md ${isSpinning ? "" : "animate-scale-in"}`}
-                  />
+                  <AspectRatio ratio={1} className="bg-gray-50 rounded-md overflow-hidden">
+                    <img 
+                      src={randomItem.image} 
+                      alt={randomItem.title} 
+                      className="w-full h-full object-contain rounded-md animate-scale-in"
+                    />
+                  </AspectRatio>
                 </div>
                 <h3 className="font-bold text-lg text-center animate-fade-in">{randomItem.title}</h3>
                 
@@ -142,7 +145,7 @@ export function RandomCollectionItemModal({
             )}
           </div>
           
-          <div className="flex flex-col sm:flex-row justify-between gap-4">
+          <div className="flex flex-wrap justify-between gap-4">
             <div className="flex flex-wrap gap-2">
               <Button 
                 variant="outline" 
