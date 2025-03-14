@@ -8,14 +8,39 @@ import { useItemCounts } from "./official-goods/hooks/useItemCounts";
 import { useSortedItems } from "./official-goods/hooks/useSortedItems";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { 
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerTrigger
+} from "@/components/ui/drawer";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { FilterBar } from "./FilterBar";
+import { Tag } from "@/types";
 
 interface OfficialItemsListProps {
   items: OfficialItem[];
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  selectedTags?: string[];
+  onTagsChange?: (tags: string[]) => void;
+  selectedContent?: string;
+  onContentChange?: (content: string) => void;
+  tags?: Tag[];
 }
 
 type SortOption = "newest" | "oldest" | "wishlist" | "owners";
 
-export function OfficialItemsList({ items }: OfficialItemsListProps) {
+export function OfficialItemsList({ 
+  items,
+  searchQuery = "",
+  onSearchChange = () => {},
+  selectedTags = [],
+  onTagsChange = () => {},
+  selectedContent = "",
+  onContentChange = () => {},
+  tags = []
+}: OfficialItemsListProps) {
   const isMobile = useIsMobile();
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [visibleCount, setVisibleCount] = useState(isMobile ? 21 : 24);
@@ -24,6 +49,7 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
   const loaderRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const loadMoreItems = useCallback(() => {
     if (visibleCount >= sortedItems.length || isLoading) return;
@@ -84,7 +110,33 @@ export function OfficialItemsList({ items }: OfficialItemsListProps) {
         sortBy={sortBy} 
         onSortChange={setSortBy} 
         totalItems={sortedItems.length}
+        onFilterClick={() => setIsFilterOpen(true)}
       />
+      
+      <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <DrawerContent className="max-h-[90vh] px-4 pt-4 pb-8">
+          <div className="mx-auto w-full max-w-sm">
+            <DrawerClose className="flex items-center justify-between mb-4 w-full">
+              <div className="font-medium">フィルター</div>
+              <button className="text-sm text-gray-600">
+                完了
+              </button>
+            </DrawerClose>
+            <ScrollArea className="h-[70vh] pr-4">
+              <FilterBar
+                searchQuery={searchQuery}
+                onSearchChange={onSearchChange}
+                selectedTags={selectedTags}
+                onTagsChange={onTagsChange}
+                selectedContent={selectedContent}
+                onContentChange={onContentChange}
+                tags={tags}
+              />
+            </ScrollArea>
+          </div>
+        </DrawerContent>
+      </Drawer>
+      
       <OfficialItemsGrid items={currentItems} />
       
       {visibleCount < sortedItems.length && (

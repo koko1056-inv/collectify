@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { FilterBar } from "../FilterBar";
 import { useQuery } from "@tanstack/react-query";
@@ -76,6 +77,11 @@ export function ProfileCollection({ userId }: { userId: string }) {
         filteredItems={filteredItems}
         selectedTags={selectedTags}
         userId={userId}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        selectedContent={selectedContent}
+        onContentChange={setSelectedContent}
+        tags={allTags}
       />
     </div>
   );

@@ -1,7 +1,8 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
 import { UserCollection } from "@/components/UserCollection";
-import { OfficialItem } from "@/types";
+import { OfficialItem, Tag } from "@/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackTabChange } from "@/utils/analytics";
@@ -10,9 +11,23 @@ interface CollectionTabsProps {
   filteredItems: OfficialItem[];
   selectedTags: string[];
   userId?: string | null;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  selectedContent: string;
+  onContentChange: (content: string) => void;
+  tags: Tag[];
 }
 
-export function CollectionTabs({ filteredItems, selectedTags, userId }: CollectionTabsProps) {
+export function CollectionTabs({ 
+  filteredItems, 
+  selectedTags, 
+  userId,
+  searchQuery,
+  onSearchChange,
+  selectedContent,
+  onContentChange,
+  tags
+}: CollectionTabsProps) {
   const { t } = useLanguage();
   const { user } = useAuth();
 
@@ -38,12 +53,24 @@ export function CollectionTabs({ filteredItems, selectedTags, userId }: Collecti
       </TabsList>
 
       <TabsContent value="official" className="mt-2 sm:mt-4">
-        <OfficialItemsList items={filteredItems} />
+        <OfficialItemsList 
+          items={filteredItems}
+          searchQuery={searchQuery}
+          onSearchChange={onSearchChange}
+          selectedTags={selectedTags}
+          onTagsChange={() => {}}
+          selectedContent={selectedContent}
+          onContentChange={onContentChange}
+          tags={tags}
+        />
       </TabsContent>
 
       <TabsContent value="collection" className="mt-2 sm:mt-4">
         <div className="space-y-6">
-          <UserCollection selectedTags={selectedTags} userId={userId} />
+          <UserCollection
+            selectedTags={selectedTags}
+            userId={userId}
+          />
         </div>
       </TabsContent>
     </Tabs>
