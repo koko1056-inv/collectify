@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -43,7 +42,7 @@ export function OfficialItemsHeader({
           </SelectContent>
         </Select>
       </div>
-      <Button onClick={() => navigate("/add-item")} className="bg-gray-900 hover:bg-gray-800 text-sm" size="sm">
+      <Button onClick={() => navigate("/add-item")} size="sm" className="bg-gray-900 hover:bg-gray-800 text-sm px-[31px]">
         新規追加
       </Button>
     </div>;
