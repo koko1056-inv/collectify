@@ -17,16 +17,18 @@ interface TagDialogProps {
   onTagsSelect?: (tags: string[]) => void;
 }
 
-// Define tag item type directly to avoid deep nesting
-interface ItemTagSimple {
+// より明確な型定義を使用して循環依存を避ける
+interface TagDetails {
+  id: string;
+  name: string;
+  category?: string;
+  created_at?: string;
+}
+
+interface ItemTagWithTag {
   id: string;
   tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  } | null;
+  tags: TagDetails | null;
 }
 
 const TAG_CATEGORIES = {
@@ -40,13 +42,16 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false, onTagsS
   const [activeCategory, setActiveCategory] = useState<TagCategory>("character");
   const { toast } = useToast();
 
-  const { data: currentTags = [] } = useQuery<ItemTagSimple[]>({
+  const { data: currentTags = [] } = useQuery<ItemTagWithTag[]>({
     queryKey: ["item-tags", itemId, isUserItem],
     queryFn: async () => {
       if (!itemId) return [];
       
+      const table = isUserItem ? "user_item_tags" : "item_tags";
+      const itemField = isUserItem ? "user_item_id" : "official_item_id";
+      
       const { data, error } = await supabase
-        .from(isUserItem ? "user_item_tags" : "item_tags")
+        .from(table)
         .select(`
           id,
           tag_id,
@@ -57,7 +62,7 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false, onTagsS
             created_at
           )
         `)
-        .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
+        .eq(itemField, itemId);
       
       if (error) throw error;
       return (data || []);
