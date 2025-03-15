@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Tag, Repeat } from "lucide-react";
+import { PlusCircle, Trash2, Tag, Repeat, Hash } from "lucide-react";
 
 interface CardActionsProps {
   onMemoriesClick: () => void;
@@ -13,6 +13,8 @@ interface CardActionsProps {
   showTradeButton?: boolean;
   isOtherUserCollection?: boolean;
   isLiked?: boolean;
+  quantity?: number;
+  onQuantityClick?: () => void;
 }
 
 export function CardActions({
@@ -26,6 +28,8 @@ export function CardActions({
   showTradeButton = false,
   isOtherUserCollection = false,
   isLiked = false,
+  quantity = 1,
+  onQuantityClick,
 }: CardActionsProps) {
   // If it's another user's collection, only show trade button if applicable
   if (isOtherUserCollection) {
@@ -76,6 +80,19 @@ export function CardActions({
         <PlusCircle className="h-3 w-3 mr-1" />
         記録を追加
       </Button>
+      {quantity > 1 && onQuantityClick && (
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onQuantityClick();
+          }}
+          className="border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 transition-colors h-6 w-6 p-0"
+        >
+          <Hash className="h-3 w-3 text-blue-500" />
+        </Button>
+      )}
       <Button 
         variant="outline" 
         size="sm"

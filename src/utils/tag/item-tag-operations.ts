@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { ItemTag } from "@/types/tag";
 
 // SimpleItemTagの型定義（無限ループを防ぐため）
 export interface SimpleItemTag {
@@ -11,14 +12,6 @@ export interface SimpleItemTag {
     category?: string;
     created_at?: string;
   } | null;
-}
-
-// ItemTagの新しい定義：item_idを使用しない
-export interface ItemTag {
-  id: string;
-  tag_id: string;
-  // item_idはテーブルによって異なるフィールド名を持つため、ここで定義しない
-  created_at?: string;
 }
 
 export type TagUpdate = {

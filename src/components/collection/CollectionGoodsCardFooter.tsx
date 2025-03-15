@@ -1,3 +1,4 @@
+
 import { CardFooter } from "@/components/ui/card";
 import { CardActions } from "./CardActions";
 import { useQuery } from "@tanstack/react-query";
@@ -8,6 +9,8 @@ interface CollectionGoodsCardFooterProps {
   onMemoriesClick: () => void;
   onTagManageClick: () => void;
   onDeleteClick: () => void;
+  quantity?: number;
+  onQuantityClick?: () => void;
 }
 
 export function CollectionGoodsCardFooter({
@@ -15,6 +18,8 @@ export function CollectionGoodsCardFooter({
   onMemoriesClick,
   onTagManageClick,
   onDeleteClick,
+  quantity = 1,
+  onQuantityClick,
 }: CollectionGoodsCardFooterProps) {
   const { data: itemTags = [] } = useQuery({
     queryKey: ["user-item-tags", id],
@@ -48,6 +53,8 @@ export function CollectionGoodsCardFooter({
         onDeleteClick={onDeleteClick}
         hasMemories={itemMemories.length > 0}
         hasTags={itemTags.length > 0}
+        quantity={quantity}
+        onQuantityClick={onQuantityClick}
       />
     </CardFooter>
   );
