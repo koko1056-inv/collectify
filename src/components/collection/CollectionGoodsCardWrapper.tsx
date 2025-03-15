@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
@@ -95,27 +96,9 @@ export function CollectionGoodsCardWrapper({
     );
   }
 
+  // 個数表示バッジをメインのカードに表示せず、カードフッター内で表示する
   return (
     <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
-      <div className="absolute top-2 right-2 z-10 flex gap-1">
-        {isOwner && (
-          <Badge 
-            className="bg-purple-500 hover:bg-purple-600 cursor-pointer flex items-center gap-1"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsQuantityEditModalOpen(true);
-            }}
-          >
-            <Pencil size={12} />
-            ×{quantity}
-          </Badge>
-        )}
-        {!isOwner && quantity > 1 && (
-          <Badge className="bg-purple-500 hover:bg-purple-500">
-            ×{quantity}
-          </Badge>
-        )}
-      </div>
       <CardHeader
         title={title}
         image={image}
@@ -145,6 +128,18 @@ export function CollectionGoodsCardWrapper({
             isOtherUserCollection={isOtherUserCollection}
             isLiked={false}
           />
+          {isOwner && quantity > 1 && (
+            <Badge 
+              className="bg-purple-500 hover:bg-purple-600 cursor-pointer flex items-center gap-1 ml-auto mr-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsQuantityEditModalOpen(true);
+              }}
+            >
+              <Pencil size={12} />
+              ×{quantity}
+            </Badge>
+          )}
         </UICardFooter>
       )}
       <CardModals
