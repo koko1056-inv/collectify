@@ -1,6 +1,19 @@
 
-import { copyTagsFromOfficialItem } from "./tag/item-tag-operations";
+import { 
+  copyTagsFromOfficialItem,
+  addTagToItem,
+  removeTagFromItem
+} from "./tag/item-tag-operations";
+
+import {
+  deleteUserItem,
+  getRandomUserItem
+} from "./tag/user-item-operations";
 
 export {
-  copyTagsFromOfficialItem
+  copyTagsFromOfficialItem,
+  addTagToItem,
+  removeTagFromItem,
+  deleteUserItem,
+  getRandomUserItem
 };

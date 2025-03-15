@@ -13,10 +13,11 @@ export interface SimpleItemTag {
   } | null;
 }
 
+// ItemTagの新しい定義：item_idを使用しない
 export interface ItemTag {
   id: string;
-  item_id: string;
   tag_id: string;
+  // item_idはテーブルによって異なるフィールド名を持つため、ここで定義しない
   created_at?: string;
 }
 
@@ -64,7 +65,7 @@ export const getTagsForItem = async (itemId: string, isUserItem: boolean = false
 };
 
 // アイテムにタグを追加する関数
-export const addTagToItem = async (tagId: string, itemId: string, isUserItem: boolean = false): Promise<ItemTag | null> => {
+export const addTagToItem = async (itemId: string, tagId: string, isUserItem: boolean = false): Promise<ItemTag | null> => {
   try {
     // ユーザーアイテムの場合はuser_item_tags、公式アイテムの場合はitem_tagsを使用
     const table = isUserItem ? "user_item_tags" : "item_tags";
@@ -85,7 +86,7 @@ export const addTagToItem = async (tagId: string, itemId: string, isUserItem: bo
 
     if (existingTag) {
       console.log("Tag already exists on item");
-      return existingTag as ItemTag;
+      return existingTag as unknown as ItemTag; // 型キャストを安全に行う
     }
 
     // タグを追加
@@ -104,7 +105,7 @@ export const addTagToItem = async (tagId: string, itemId: string, isUserItem: bo
       return null;
     }
 
-    return data as ItemTag;
+    return data as unknown as ItemTag; // 型キャストを安全に行う
   } catch (error) {
     console.error("Error in addTagToItem:", error);
     return null;
@@ -150,7 +151,7 @@ export const copyTagsFromOfficialItem = async (officialItemId: string, userItemI
     // 各タグをユーザーアイテムに追加
     for (const tag of officialTags) {
       if (tag.tag_id) {
-        await addTagToItem(tag.tag_id, userItemId, true);
+        await addTagToItem(userItemId, tag.tag_id, true);
       }
     }
     

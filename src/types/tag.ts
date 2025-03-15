@@ -18,8 +18,12 @@ export interface ItemTagWithTag extends BaseItemTag {
   tags: Tag;
 }
 
-// ItemTagを純粋な型エイリアスとして定義（循環参照を避ける）
-export type ItemTag = ItemTagWithTag;
+// 修正済みのItemTag型（item_idを持たない）
+export interface ItemTag {
+  id: string;
+  tag_id: string;
+  created_at?: string;
+}
 
 // タグカテゴリー型
 export type TagCategory = "character" | "type" | "series";
