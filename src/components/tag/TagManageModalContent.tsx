@@ -1,3 +1,4 @@
+
 import { CategoryTagSelect } from "./CategoryTagSelect";
 import { CurrentTagsList } from "./CurrentTagsList";
 import { PendingTagsList } from "./PendingTagsList";
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SimpleItemTag {
   id: string;
@@ -138,126 +140,128 @@ export function TagManageModalContent({
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 py-4">
-      <CurrentTagsList 
-        currentTags={currentTags} 
-        onRemoveTag={handleRemoveTag}
-      />
-      
-      {isUserItem && officialTags.length > 0 && (
-        <div className="mb-4">
-          <h3 className="text-sm font-medium mb-2">公式アイテムのタグ:</h3>
-          <div className="space-y-1">
-            {Object.entries(originalTagsByCategory).map(([category, tags]) => 
-              tags.length > 0 && (
-                <div key={category} className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">
-                    {category === 'character' ? 'キャラ:' : 
-                     category === 'type' ? 'タイプ:' : 
-                     category === 'series' ? 'シリーズ:' : ''}
-                  </span>
-                  <div className="flex flex-wrap gap-1">
-                    {tags.map((tag, idx) => (
-                      tag.tags && (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {tag.tags.name}
-                        </Badge>
-                      )
-                    ))}
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-        </div>
-      )}
-      
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">コンテンツ</h3>
+    <ScrollArea className="h-[60vh] pr-4">
+      <div className="space-y-4 sm:space-y-6 py-4">
+        <CurrentTagsList 
+          currentTags={currentTags} 
+          onRemoveTag={handleRemoveTag}
+        />
         
-        {isAddingNewContent ? (
-          <div className="flex gap-2">
-            <Input
-              value={newContentName}
-              onChange={(e) => setNewContentName(e.target.value)}
-              placeholder="新しいコンテンツ名"
-              className="flex-1"
-            />
-            <Button onClick={handleAddNewContent}>
-              追加
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsAddingNewContent(false);
-                setNewContentName("");
-              }}
-            >
-              キャンセル
-            </Button>
+        {isUserItem && officialTags.length > 0 && (
+          <div className="mb-4">
+            <h3 className="text-sm font-medium mb-2">公式アイテムのタグ:</h3>
+            <div className="space-y-1">
+              {Object.entries(originalTagsByCategory).map(([category, tags]) => 
+                tags.length > 0 && (
+                  <div key={category} className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">
+                      {category === 'character' ? 'キャラ:' : 
+                       category === 'type' ? 'タイプ:' : 
+                       category === 'series' ? 'シリーズ:' : ''}
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {tags.map((tag, idx) => (
+                        tag.tags && (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {tag.tags.name}
+                          </Badge>
+                        )
+                      ))}
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
           </div>
-        ) : (
-          isContentLoading ? (
-            <div className="flex items-center space-x-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>読み込み中...</span>
+        )}
+        
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium">コンテンツ</h3>
+          
+          {isAddingNewContent ? (
+            <div className="flex gap-2">
+              <Input
+                value={newContentName}
+                onChange={(e) => setNewContentName(e.target.value)}
+                placeholder="新しいコンテンツ名"
+                className="flex-1"
+              />
+              <Button onClick={handleAddNewContent}>
+                追加
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsAddingNewContent(false);
+                  setNewContentName("");
+                }}
+              >
+                キャンセル
+              </Button>
             </div>
           ) : (
-            <Select
-              value={contentName || "none"}
-              onValueChange={handleContentChange}
-            >
-              <SelectTrigger className="w-full bg-white text-black">
-                <SelectValue placeholder="コンテンツを選択" className="text-black" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                <SelectItem value="none" className="text-black">選択なし</SelectItem>
-                {contentNames.map((content) => (
-                  <SelectItem key={content.id} value={content.name} className="text-black">
-                    {content.name}
-                  </SelectItem>
-                ))}
-                <SelectItem value="other" className="text-black">その他（新規追加）</SelectItem>
-              </SelectContent>
-            </Select>
-          )
-        )}
-      </div>
-      
-      <div className="space-y-3 sm:space-y-4">
-        <CategoryTagSelect
-          category="character"
-          label="キャラ・人物名"
-          value={
-            pendingUpdates.find(u => u.category === 'character')?.value ||
-            currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name ||
-            null
-          }
-          onChange={onTagChange("character")}
-        />
-        <CategoryTagSelect
-          category="type"
-          label="グッズタイプ"
-          value={
-            pendingUpdates.find(u => u.category === 'type')?.value ||
-            currentTags.find(tag => tag.tags?.category === 'type')?.tags?.name ||
-            null
-          }
-          onChange={onTagChange("type")}
-        />
-        <CategoryTagSelect
-          category="series"
-          label="グッズシリーズ"
-          value={
-            pendingUpdates.find(u => u.category === 'series')?.value ||
-            currentTags.find(tag => tag.tags?.category === 'series')?.tags?.name ||
-            null
-          }
-          onChange={onTagChange("series")}
-        />
+            isContentLoading ? (
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>読み込み中...</span>
+              </div>
+            ) : (
+              <Select
+                value={contentName || "none"}
+                onValueChange={handleContentChange}
+              >
+                <SelectTrigger className="w-full bg-white text-black">
+                  <SelectValue placeholder="コンテンツを選択" className="text-black" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="none" className="text-black">選択なし</SelectItem>
+                  {contentNames.map((content) => (
+                    <SelectItem key={content.id} value={content.name} className="text-black">
+                      {content.name}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="other" className="text-black">その他（新規追加）</SelectItem>
+                </SelectContent>
+              </Select>
+            )
+          )}
+        </div>
+        
+        <div className="space-y-3 sm:space-y-4">
+          <CategoryTagSelect
+            category="character"
+            label="キャラ・人物名"
+            value={
+              pendingUpdates.find(u => u.category === 'character')?.value ||
+              currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name ||
+              null
+            }
+            onChange={onTagChange("character")}
+          />
+          <CategoryTagSelect
+            category="type"
+            label="グッズタイプ"
+            value={
+              pendingUpdates.find(u => u.category === 'type')?.value ||
+              currentTags.find(tag => tag.tags?.category === 'type')?.tags?.name ||
+              null
+            }
+            onChange={onTagChange("type")}
+          />
+          <CategoryTagSelect
+            category="series"
+            label="グッズシリーズ"
+            value={
+              pendingUpdates.find(u => u.category === 'series')?.value ||
+              currentTags.find(tag => tag.tags?.category === 'series')?.tags?.name ||
+              null
+            }
+            onChange={onTagChange("series")}
+          />
 
-        <PendingTagsList pendingUpdates={pendingUpdates} />
+          <PendingTagsList pendingUpdates={pendingUpdates} />
+        </div>
       </div>
-    </div>
+    </ScrollArea>
   );
 }
