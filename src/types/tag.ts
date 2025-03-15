@@ -35,3 +35,18 @@ export interface TagUpdate {
   category: string;
   value: string | null;
 }
+
+// シンプルなタグ型（無限ループを防ぐため）
+export interface SimpleTagItem {
+  id: string;
+  name: string;
+  category?: string;
+  created_at?: string;
+}
+
+// シンプルなItemTag型（無限ループを防ぐため）
+export interface SimpleItemTagItem {
+  id: string;
+  tag_id: string;
+  tags: SimpleTagItem | null;
+}

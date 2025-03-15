@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ItemTag } from "@/types/tag";
 
-// SimpleItemTagの型定義（無限ループを防ぐため）
+// SimpleItemTagの型定義（型の循環参照を避けるため、Tag型を展開）
 export interface SimpleItemTag {
   id: string;
   tag_id: string;
@@ -79,7 +79,7 @@ export const addTagToItem = async (itemId: string, tagId: string, isUserItem: bo
 
     if (existingTag) {
       console.log("Tag already exists on item");
-      return existingTag as unknown as ItemTag; // 型キャストを安全に行う
+      return existingTag as unknown as ItemTag;
     }
 
     // タグを追加
@@ -98,7 +98,7 @@ export const addTagToItem = async (itemId: string, tagId: string, isUserItem: bo
       return null;
     }
 
-    return data as unknown as ItemTag; // 型キャストを安全に行う
+    return data as unknown as ItemTag;
   } catch (error) {
     console.error("Error in addTagToItem:", error);
     return null;
