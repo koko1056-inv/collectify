@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
@@ -101,7 +100,7 @@ export function CollectionGoodsCardWrapper({
       <div className="absolute top-2 right-2 z-10 flex gap-1">
         {isOwner && (
           <Badge 
-            className="bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1"
+            className="bg-purple-500 hover:bg-purple-600 cursor-pointer flex items-center gap-1"
             onClick={(e) => {
               e.stopPropagation();
               setIsQuantityEditModalOpen(true);
