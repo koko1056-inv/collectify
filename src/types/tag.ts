@@ -18,11 +18,13 @@ export interface ItemTagWithTag extends BaseItemTag {
   tags: Tag;
 }
 
-// 修正済みのItemTag型（item_idを持たない）
+// 修正したItemTag型（item_idを持たずにテーブルごとに異なるフィールドに対応）
 export interface ItemTag {
   id: string;
   tag_id: string;
   created_at?: string;
+  // official_item_id または user_item_id はテーブルによって異なるため、
+  // 明示的に定義しない
 }
 
 // タグカテゴリー型

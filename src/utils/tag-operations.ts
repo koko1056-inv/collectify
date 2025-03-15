@@ -2,7 +2,8 @@
 import { 
   copyTagsFromOfficialItem,
   addTagToItem,
-  removeTagFromItem
+  removeTagFromItem,
+  getTagsForItem
 } from "./tag/item-tag-operations";
 
 import {
@@ -14,6 +15,7 @@ export {
   copyTagsFromOfficialItem,
   addTagToItem,
   removeTagFromItem,
+  getTagsForItem,
   deleteUserItem,
   getRandomUserItem
 };

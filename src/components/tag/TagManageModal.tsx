@@ -3,11 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tag, TagUpdate } from "@/types/tag";
-import { getTagsForItem } from "@/utils/tag/item-tag-operations";
+import { getTagsForItem, addTagToItem, removeTagFromItem } from "@/utils/tag/item-tag-operations";
 import { setItemContent } from "@/utils/tag/content-operations";
 import { TagManageModalContent } from "./TagManageModalContent";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -37,12 +38,13 @@ export function TagManageModal({
   itemIds,
   title = "タグ管理",
   itemTitle,
-  isUserItem = false,
+  isUserItem = true,
   onSubmit,
 }: TagManageModalProps) {
   const [pendingUpdates, setPendingUpdates] = useState<TagUpdate[]>([]);
   const [contentName, setContentName] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   
   const { data: currentTags = [], isLoading } = useQuery({
     queryKey: ["current-tags", itemIds],
@@ -131,21 +133,78 @@ export function TagManageModal({
     setContentName(newContentName);
   }, []);
 
+  // タグを更新する関数
+  const updateTagsByCategory = async (itemId: string, category: string, tagName: string | null) => {
+    if (!tagName) return;
+    
+    try {
+      // カテゴリに対応するタグを探す
+      const existingCategoryTag = currentTags.find(tag => 
+        tag.tags?.category === category
+      );
+
+      // 既存のタグを削除
+      if (existingCategoryTag) {
+        await removeTagFromItem(existingCategoryTag.tag_id, itemId, isUserItem);
+      }
+
+      // 新しいタグの追加
+      // タグIDを取得
+      const { data: tagData } = await supabase
+        .from("tags")
+        .select("id")
+        .eq("name", tagName)
+        .eq("category", category)
+        .maybeSingle();
+
+      if (tagData && tagData.id) {
+        await addTagToItem(itemId, tagData.id, isUserItem);
+      }
+    } catch (error) {
+      console.error(`Error updating tag for category ${category}:`, error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async () => {
     try {
+      // コンテンツ名を各アイテムに設定
       for (const itemId of itemIds) {
         await setItemContent(itemId, contentName, isUserItem);
       }
       
-      await queryClient.invalidateQueries({ queryKey: ["item-content"] });
+      // タグの更新を各アイテムに対して実行
+      for (const itemId of itemIds) {
+        for (const update of pendingUpdates) {
+          if (update.value) {
+            await updateTagsByCategory(itemId, update.category, update.value);
+          }
+        }
+      }
       
+      // キャッシュを更新
+      await queryClient.invalidateQueries({ queryKey: ["item-content"] });
+      await queryClient.invalidateQueries({ queryKey: ["current-tags"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-item-tags"] });
+      
+      // onSubmitコールバックがあれば呼び出し
       if (onSubmit && pendingUpdates.length > 0) {
         await onSubmit(pendingUpdates.filter((u) => u.value !== null));
       }
       
+      toast({
+        title: "保存完了",
+        description: "タグの設定を保存しました",
+      });
+      
       onClose();
     } catch (error) {
       console.error("Error updating item:", error);
+      toast({
+        title: "エラー",
+        description: "タグの保存中にエラーが発生しました",
+        variant: "destructive",
+      });
     }
   };
 
