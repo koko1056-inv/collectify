@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
 import { TagInput } from "../TagInput";
@@ -12,6 +13,7 @@ interface TagDialogProps {
   initialTags: string[];
   itemIds: string[];
   title?: string;
+  onTagsSelect?: (newTags: string[]) => void;
 }
 
 interface SimpleTag {
@@ -26,6 +28,7 @@ export function TagDialog({
   initialTags,
   itemIds,
   title = "タグの編集",
+  onTagsSelect
 }: TagDialogProps) {
   const [tags, setTags] = useState<string[]>(initialTags);
   const queryClient = useQueryClient();
@@ -42,7 +45,10 @@ export function TagDialog({
 
   const handleSave = async () => {
     try {
-      // Save logic here...
+      // 新しいタグを選択した場合、onTagsSelectを呼び出す
+      if (onTagsSelect) {
+        onTagsSelect(tags);
+      }
       
       // Invalidate queries
       await queryClient.invalidateQueries({ queryKey: ["item-tags"] });
