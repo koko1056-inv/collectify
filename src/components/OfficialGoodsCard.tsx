@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { WishlistModal } from "./WishlistModal";
 import { TagManageModal } from "./tag/TagManageModal";
@@ -93,7 +92,6 @@ export function OfficialGoodsCard({
             itemId={id}
             itemTitle={title}
             itemImage={image}
-            quantity={quantity}
           />
         </div>
       </Card>

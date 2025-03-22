@@ -96,7 +96,7 @@ export function CollectionGoodsCardWrapper({
     );
   }
 
-  // 右上の個数バッジを削除し、カードフッター内でのみ表示するように変更
+  // 個数表示バッジをメインのカードに表示せず、カードフッター内で表示する
   return (
     <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
       <CardHeader
@@ -113,7 +113,6 @@ export function CollectionGoodsCardWrapper({
         id={id}
         isOwner={isOwner}
         onMemoriesClick={() => setIsMemoriesModalOpen(true)}
-        quantity={quantity}
       />
       {(isOwner || canTrade) && (
         <UICardFooter className="px-2 py-1">
@@ -128,9 +127,19 @@ export function CollectionGoodsCardWrapper({
             showTradeButton={canTrade}
             isOtherUserCollection={isOtherUserCollection}
             isLiked={false}
-            quantity={quantity}
-            onQuantityClick={() => setIsQuantityEditModalOpen(true)}
           />
+          {isOwner && quantity > 1 && (
+            <Badge 
+              className="bg-purple-500 hover:bg-purple-600 cursor-pointer flex items-center gap-1 ml-auto mr-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsQuantityEditModalOpen(true);
+              }}
+            >
+              <Pencil size={12} />
+              ×{quantity}
+            </Badge>
+          )}
         </UICardFooter>
       )}
       <CardModals
