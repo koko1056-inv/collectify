@@ -68,7 +68,7 @@ export function CollectionGoodsCardWrapper({
   return <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
       <CardHeader title={title} image={image} onClick={() => setIsDetailsModalOpen(true)} itemId={id} isEditable={isOwner} />
       <div className="px-3 py-2">
-        <h3 className="font-medium text-gray-900 truncate text-xs py-0 mx-0 px-0">{title}</h3>
+        <h3 className="font-medium text-gray-900 truncate text-[10px] py-0 mx-0 px-0">{title}</h3>
       </div>
       <CollectionGoodsCardContent id={id} isOwner={isOwner} onMemoriesClick={() => setIsMemoriesModalOpen(true)} />
       {(isOwner || canTrade) && <UICardFooter className="px-2 py-1">
