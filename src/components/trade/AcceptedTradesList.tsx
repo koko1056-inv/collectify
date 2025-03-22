@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TradeRequest } from "./types";
@@ -6,6 +5,7 @@ import { TradeCard } from "./TradeCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { playSound } from "@/utils/sound";
 
 interface AcceptedTradesListProps {
   trades: TradeRequest[];
@@ -31,6 +31,7 @@ export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListPro
       .eq("id", trade.id);
 
     if (error) {
+      playSound('error', 0.5);
       toast({
         variant: "destructive",
         title: "エラー",
@@ -39,6 +40,7 @@ export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListPro
       return;
     }
 
+    playSound('success', 0.5);
     toast({
       title: "トレード完了",
       description: "トレードが完了しました。お疲れ様でした！",

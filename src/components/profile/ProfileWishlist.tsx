@@ -47,6 +47,9 @@ export function ProfileWishlist({ userId }: ProfileWishlistProps) {
     }
 
     try {
+      // 音を先に再生 - ユーザーインタラクション直後のため成功しやすい
+      playSound('success', 0.5);
+      
       // Add to user's collection
       const { error: insertError } = await supabase.from("user_items").insert({
         title: officialItem.title,
@@ -68,9 +71,6 @@ export function ProfileWishlist({ userId }: ProfileWishlistProps) {
 
       if (deleteError) throw deleteError;
 
-      // コレクションに追加成功時に音を再生
-      playSound('success');
-
       // Invalidate relevant queries
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
@@ -81,6 +81,8 @@ export function ProfileWishlist({ userId }: ProfileWishlistProps) {
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
+      // エラー時は別の音を再生
+      playSound('error', 0.5);
       toast({
         title: "エラー",
         description: "コレクションへの追加に失敗しました。",

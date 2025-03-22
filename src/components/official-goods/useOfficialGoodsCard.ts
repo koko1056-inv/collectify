@@ -95,6 +95,9 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     }
 
     try {
+      // 音を先に再生 - ユーザーインタラクション直後のため成功しやすい
+      playSound('success', 0.5);
+      
       const { data, error } = await supabase.from("user_items").insert({
         title,
         image,
@@ -110,9 +113,6 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
         await copyTagsFromOfficialItem(id, data.id);
       }
 
-      // コレクションに追加成功時に音を再生
-      playSound('success');
-
       trackAddToCollection(id, title, user.id);
 
       await refetchIsInCollection();
@@ -125,6 +125,8 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
+      // エラー時は別の音を再生
+      playSound('error', 0.5);
       toast({
         title: "エラー",
         description: "コレクションへの追加に失敗しました。",
