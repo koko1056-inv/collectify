@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { trackAddToCollection } from "@/utils/analytics";
 import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
+import { playSound } from "@/utils/sound";
 
 interface UseOfficialGoodsCardProps {
   id: string;
@@ -108,6 +109,9 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       if (data) {
         await copyTagsFromOfficialItem(id, data.id);
       }
+
+      // コレクションに追加成功時に音を再生
+      playSound('success');
 
       trackAddToCollection(id, title, user.id);
 

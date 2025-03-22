@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { playSound } from "@/utils/sound";
 
 interface ProfileWishlistProps {
   userId: string;
@@ -66,6 +67,9 @@ export function ProfileWishlist({ userId }: ProfileWishlistProps) {
         .eq("official_item_id", officialItem.id);
 
       if (deleteError) throw deleteError;
+
+      // コレクションに追加成功時に音を再生
+      playSound('success');
 
       // Invalidate relevant queries
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
