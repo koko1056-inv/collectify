@@ -1,10 +1,10 @@
-
-import { useState } from "react";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { playSound } from "@/utils/sound";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { trackAddToCollection } from "@/utils/analytics";
+import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 
 interface UseOfficialGoodsCardProps {
   id: string;
@@ -12,128 +12,118 @@ interface UseOfficialGoodsCardProps {
   image: string;
 }
 
-export const useOfficialGoodsCard = ({ id, title, image }: UseOfficialGoodsCardProps) => {
+export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardProps) {
+  const { toast } = useToast();
   const { user } = useAuth();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
-  // コレクション内に存在するかチェック
-  const { data: isInCollection = false } = useQuery({
+  const { data: isInCollection = false, refetch: refetchIsInCollection } = useQuery({
     queryKey: ["user-item-exists", id, user?.id],
     queryFn: async () => {
       if (!user) return false;
-
+      
       const { data, error } = await supabase
         .from("user_items")
         .select("id")
-        .eq("official_item_id", id)
         .eq("user_id", user.id)
+        .eq("official_item_id", id)
         .maybeSingle();
-
+      
       if (error) {
         console.error("Error checking if item exists in collection:", error);
         return false;
       }
-
+      
       return !!data;
     },
     enabled: !!user,
   });
 
-  // ウィッシュリストの数を取得
-  const { data: wishlistCount = 0 } = useQuery({
-    queryKey: ["wishlist-count", id],
+  const { data: ownersCount = 0 } = useQuery({
+    queryKey: ["item-owners-count", id],
     queryFn: async () => {
       const { count, error } = await supabase
-        .from("wishlist_items")
-        .select("id", { count: "exact" })
+        .from("user_items")
+        .select("*", { count: 'exact', head: true })
         .eq("official_item_id", id);
-
+      
       if (error) {
-        console.error("Error fetching wishlist count:", error);
+        console.error("Error getting owners count:", error);
         return 0;
       }
-
+      
       return count || 0;
     },
   });
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('user-items-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_items',
+          filter: `user_id=eq.${user?.id} and official_item_id=eq.${id}`
+        },
+        async () => {
+          await refetchIsInCollection();
+          await queryClient.invalidateQueries({ queryKey: ["user-items", user?.id] });
+          await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, user?.id, queryClient, refetchIsInCollection]);
+
   const handleAddToCollection = async () => {
     if (!user) {
       toast({
-        title: "ログインが必要です",
-        description: "コレクションに追加するにはログインしてください。",
+        title: "エラー",
+        description: "コレクションに追加するにはログインが必要です。",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      // コレクションに追加
-      const { data, error } = await supabase
-        .from("user_items")
-        .insert([
-          {
-            title,
-            image,
-            user_id: user.id,
-            official_item_id: id,
-          },
-        ])
-        .select()
-        .single();
+      const { data, error } = await supabase.from("user_items").insert({
+        title,
+        image,
+        release_date: new Date().toISOString().split('T')[0],
+        user_id: user.id,
+        prize: "0",
+        official_item_id: id,
+      }).select().single();
 
       if (error) throw error;
 
-      // タグのコピー
-      if (data?.id) {
-        const { error: tagError } = await supabase.rpc("copy_tags_from_official_item", {
-          p_official_item_id: id,
-          p_user_item_id: data.id,
-        });
-
-        if (tagError) {
-          console.error("Error copying tags:", tagError);
-        }
+      if (data) {
+        await copyTagsFromOfficialItem(id, data.id);
       }
 
-      // 追加時に「ピコン」という音を鳴らす
-      playSound("success", 0.5);
+      trackAddToCollection(id, title, user.id);
 
-      // クエリを更新
-      await queryClient.invalidateQueries({ queryKey: ["user-item-exists", id, user.id] });
-      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      await refetchIsInCollection();
+      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
 
-      // ウィッシュリストから削除（既に追加済みの場合）
-      const { error: wishlistError } = await supabase
-        .from("wishlist_items")
-        .delete()
-        .eq("official_item_id", id)
-        .eq("user_id", user.id);
-
-      if (wishlistError) {
-        console.error("Error removing from wishlist:", wishlistError);
-      } else {
-        await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
-        await queryClient.invalidateQueries({ queryKey: ["wishlist-count", id] });
-      }
-
       toast({
-        title: "コレクションに追加しました",
-        description: `${title}をコレクションに追加しました`,
+        title: "成功",
+        description: "コレクションに追加しました。",
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
-      
-      // エラー時には別の音を鳴らす
-      playSound("error", 0.5);
-      
       toast({
         title: "エラー",
-        description: "コレクションへの追加に失敗しました",
+        description: "コレクションへの追加に失敗しました。",
         variant: "destructive",
       });
     }
@@ -141,11 +131,14 @@ export const useOfficialGoodsCard = ({ id, title, image }: UseOfficialGoodsCardP
 
   return {
     isInCollection,
-    wishlistCount,
+    wishlistCount: 0,
     isWishlistModalOpen,
     isTagModalOpen,
+    isCategoryModalOpen,
     setIsWishlistModalOpen,
     setIsTagModalOpen,
+    setIsCategoryModalOpen,
     handleAddToCollection,
+    ownersCount,
   };
-};
+}

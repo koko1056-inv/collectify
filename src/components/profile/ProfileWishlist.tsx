@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { playSound } from "@/utils/sound";
 
 interface ProfileWishlistProps {
   userId: string;
@@ -47,9 +46,6 @@ export function ProfileWishlist({ userId }: ProfileWishlistProps) {
     }
 
     try {
-      // 音を先に再生 - ユーザーインタラクション直後のため成功しやすい
-      playSound('success', 0.5);
-      
       // Add to user's collection
       const { error: insertError } = await supabase.from("user_items").insert({
         title: officialItem.title,
@@ -81,8 +77,6 @@ export function ProfileWishlist({ userId }: ProfileWishlistProps) {
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
-      // エラー時は別の音を再生
-      playSound('error', 0.5);
       toast({
         title: "エラー",
         description: "コレクションへの追加に失敗しました。",

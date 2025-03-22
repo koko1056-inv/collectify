@@ -8,7 +8,6 @@ import { useOfficialGoodsCard } from "./official-goods/useOfficialGoodsCard";
 import { ItemDetailsModal } from "./ItemDetailsModal";
 import { useState } from "react";
 import { Badge } from "./ui/badge";
-import { playSound } from "@/utils/sound";
 
 interface OfficialGoodsCardProps {
   title: string;
@@ -58,7 +57,6 @@ export function OfficialGoodsCard({
             e.stopPropagation();
             return;
           }
-          playSound('click', 0.3);  // クリック時に軽い音を再生
           setIsDetailsModalOpen(true);
         }}
       >
@@ -85,12 +83,10 @@ export function OfficialGoodsCard({
             }}
             onTagManageClick={(e) => {
               e.stopPropagation();
-              playSound('click', 0.3);  // クリック時に軽い音を再生
               setIsTagModalOpen(true);
             }}
             onWishlistClick={(e) => {
               e.stopPropagation();
-              playSound('click', 0.3);  // クリック時に軽い音を再生
               setIsWishlistModalOpen(true);
             }}
             itemId={id}
