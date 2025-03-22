@@ -1,7 +1,8 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ItemTag } from "@/types/tag";
 
-// SimpleItemTagの型定義（型の循環参照を避けるため、Tag型を完全に展開）
+// SimpleItemTagの型定義（型の循環参照を避けるため、Tag型を直接展開）
 export interface SimpleItemTag {
   id: string;
   tag_id: string;

@@ -1,13 +1,16 @@
+
 import { useState } from "react";
-import { TagDialog } from "./TagDialog";
+import { TagDialog } from "./tag/TagDialog";  // 正しいパスからインポート
 import { Button } from "./ui/button";
+import { Tag } from "@/types/tag"; // Tag型をインポート
 
 interface TagFilterProps {
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
+  tags?: Tag[]; // tagsプロパティを追加（オプショナル）
 }
 
-export function TagFilter({ selectedTags, onTagsChange }: TagFilterProps) {
+export function TagFilter({ selectedTags, onTagsChange, tags = [] }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleDialogOpen = () => {
