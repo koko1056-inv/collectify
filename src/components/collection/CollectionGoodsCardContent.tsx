@@ -9,12 +9,14 @@ interface CollectionGoodsCardContentProps {
   id: string;
   isOwner: boolean;
   onMemoriesClick: () => void;
+  quantity?: number;
 }
 
 export function CollectionGoodsCardContent({
   id,
   isOwner,
-  onMemoriesClick
+  onMemoriesClick,
+  quantity = 1
 }: CollectionGoodsCardContentProps) {
   const { data: itemMemories = [] } = useQuery({
     queryKey: ["item-memories", id],
