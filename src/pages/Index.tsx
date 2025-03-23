@@ -7,7 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { CollectionTabs } from "@/components/CollectionTabs";
 import { FilterBar } from "@/components/FilterBar";
 import { InitialInterestSelection } from "@/components/InitialInterestSelection";
-import { OfficialItem, Tag, Profile } from "@/types";
+import { OfficialItem, Tag } from "@/types";
+import { Tag as TagType } from "@/types/tag";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,7 +23,7 @@ const Index = () => {
   const userId = searchParams.get("userId");
   const isMobile = useIsMobile();
 
-  const { data: profile, refetch: refetchProfile } = useQuery<Profile>({
+  const { data: profile, refetch: refetchProfile } = useQuery({
     queryKey: ["profile", user?.id],
     queryFn: async () => {
       if (!user) throw new Error("User not found");
@@ -33,12 +34,12 @@ const Index = () => {
         .single();
       if (error) throw error;
       if (!data) throw new Error("Profile not found");
-      return data as Profile;
+      return data;
     },
     enabled: !!user,
   });
 
-  const { data: viewedProfile } = useQuery<Profile>({
+  const { data: viewedProfile } = useQuery({
     queryKey: ["viewed-profile", userId],
     queryFn: async () => {
       if (!userId) throw new Error("User ID not provided");
@@ -49,7 +50,7 @@ const Index = () => {
         .single();
       if (error) throw error;
       if (!data) throw new Error("Profile not found");
-      return data as Profile;
+      return data;
     },
     enabled: !!userId,
   });
@@ -79,15 +80,22 @@ const Index = () => {
     },
   });
 
-  const { data: allTags = [] } = useQuery<Tag[]>({
+  // タグを取得する際に count プロパティを追加するようにクエリを修正
+  const { data: allTags = [] } = useQuery<TagType[]>({
     queryKey: ["tags"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
         .select("*")
         .order("name");
+      
       if (error) throw error;
-      return data;
+      
+      // count プロパティを追加（デフォルトは0）
+      return data.map(tag => ({
+        ...tag,
+        count: 0
+      })) as TagType[];
     },
   });
 
@@ -118,10 +126,10 @@ const Index = () => {
     if (!profile?.interests || profile.interests.length === 0) return 0;
 
     const aMatchCount = a.item_tags?.filter(
-      itemTag => profile.interests.includes(itemTag.tags?.name || "")
+      itemTag => profile.interests?.includes(itemTag.tags?.name || "")
     ).length || 0;
     const bMatchCount = b.item_tags?.filter(
-      itemTag => profile.interests.includes(itemTag.tags?.name || "")
+      itemTag => profile.interests?.includes(itemTag.tags?.name || "")
     ).length || 0;
 
     if (aMatchCount !== bMatchCount) {

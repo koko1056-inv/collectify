@@ -32,7 +32,7 @@ export function OfficialItemsHeader({
         </Button>
         
         <Select value={sortBy} onValueChange={value => onSortChange(value as SortOption)}>
-          <SelectTrigger className="w-[100px] sm:w-[150px] bg-white/90 backdrop-blur-sm border-gray-200">
+          <SelectTrigger className="w-[100px] sm:w-[150px] h-8 text-sm bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-400 focus:border-gray-400">
             <SelectValue placeholder="並び順" />
           </SelectTrigger>
           <SelectContent className="bg-white/95 backdrop-blur-sm">
