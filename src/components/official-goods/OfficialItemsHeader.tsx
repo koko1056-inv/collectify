@@ -35,7 +35,7 @@ export function OfficialItemsHeader({
           <SelectTrigger className="w-[100px] sm:w-[150px] h-8 text-sm bg-white border border-gray-300 rounded-md">
             <SelectValue placeholder="並び順" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper" className="bg-white shadow-lg border border-gray-200 z-50">
             <SelectItem value="newest">新しい順</SelectItem>
             <SelectItem value="oldest">古い順</SelectItem>
             <SelectItem value="wishlist">ウィッシュリスト登録数順</SelectItem>
