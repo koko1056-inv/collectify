@@ -3,13 +3,16 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
+
 type SortOption = "newest" | "oldest" | "wishlist" | "owners";
+
 interface OfficialItemsHeaderProps {
   sortBy: SortOption;
   onSortChange: (value: SortOption) => void;
   totalItems?: number;
   onFilterClick?: () => void;
 }
+
 export function OfficialItemsHeader({
   sortBy,
   onSortChange,
@@ -17,7 +20,9 @@ export function OfficialItemsHeader({
   onFilterClick
 }: OfficialItemsHeaderProps) {
   const navigate = useNavigate();
-  return <div className="flex justify-between items-center mb-4 px-2">
+
+  return (
+    <div className="flex justify-between items-center mb-4 px-2">
       <div className="flex items-center gap-2">
         <div className="flex flex-col">
           <h1 className="text-sm sm:text-2xl font-bold animate-fade-in text-gray-900">グッズ</h1>
@@ -35,7 +40,7 @@ export function OfficialItemsHeader({
           <SelectTrigger className="w-[100px] sm:w-[150px] h-8 text-sm bg-white border border-gray-300 rounded-md">
             <SelectValue placeholder="並び順" />
           </SelectTrigger>
-          <SelectContent position="popper" className="bg-white shadow-lg border border-gray-200 z-50">
+          <SelectContent position="item-aligned" align="start" side="bottom" className="bg-white shadow-lg border border-gray-200 z-50">
             <SelectItem value="newest">新しい順</SelectItem>
             <SelectItem value="oldest">古い順</SelectItem>
             <SelectItem value="wishlist">ウィッシュリスト登録数順</SelectItem>
@@ -46,5 +51,6 @@ export function OfficialItemsHeader({
       <Button onClick={() => navigate("/add-item")} size="sm" className="bg-gray-900 hover:bg-gray-800 text-sm px-[14px]">
         グッズを追加
       </Button>
-    </div>;
+    </div>
+  );
 }

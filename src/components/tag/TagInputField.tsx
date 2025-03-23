@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { addTagToItem } from '@/utils/tag-operations';
+import { addTagToItem } from '@/utils/tag/item-tag-operations';
 import { TagCategory } from '@/types/tag';
 
 interface TagInputFieldProps {

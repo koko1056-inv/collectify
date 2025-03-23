@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tag, TagUpdate } from "@/types/tag";
-import { getTagsForItem, addTagToItem, removeTagFromItem } from "@/utils/tag/item-tag-operations";
+import { getTagsForItem, addTagToItem, removeTagFromItem, SimpleItemTag } from "@/utils/tag/item-tag-operations";
 import { setItemContent } from "@/utils/tag/content-operations";
 import { TagManageModalContent } from "./TagManageModalContent";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,18 +18,6 @@ interface TagManageModalProps {
   itemTitle?: string;
   isUserItem?: boolean;
   onSubmit?: (updates: TagUpdate[]) => Promise<void>;
-}
-
-// Define a simplified ItemTag interface to use in this component
-interface SimpleItemTag {
-  id: string;
-  tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  } | null;
 }
 
 export function TagManageModal({
@@ -222,14 +210,14 @@ export function TagManageModal({
         ) : (
           <>
             <TagManageModalContent
-              currentTags={currentTags as SimpleItemTag[]}
+              currentTags={currentTags}
               pendingUpdates={pendingUpdates}
               onTagChange={handleTagChange}
               itemIds={itemIds}
               isUserItem={isUserItem}
               contentName={contentName}
               onContentChange={handleContentChange}
-              officialTags={isUserItem ? (officialTags as SimpleItemTag[]) : []}
+              officialTags={isUserItem ? officialTags : []}
             />
             
             <div className="flex justify-end gap-2 pt-4">

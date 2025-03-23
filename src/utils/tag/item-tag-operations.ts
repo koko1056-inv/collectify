@@ -12,7 +12,6 @@ export const getTagsWithCount = async (): Promise<Tag[]> => {
         name,
         category,
         created_at,
-        updated_at,
         item_tags (
           tag_id
         )
@@ -22,7 +21,10 @@ export const getTagsWithCount = async (): Promise<Tag[]> => {
 
     // タグごとの使用回数をカウント
     return data.map((tag) => ({
-      ...tag,
+      id: tag.id,
+      name: tag.name,
+      category: tag.category,
+      created_at: tag.created_at,
       count: tag.item_tags ? tag.item_tags.length : 0
     }));
   } catch (error) {
@@ -41,11 +43,10 @@ export const getItemTags = async (itemId: string): Promise<Tag[]> => {
           id,
           name,
           category,
-          created_at,
-          updated_at
+          created_at
         )
       `)
-      .eq('item_id', itemId);
+      .eq('official_item_id', itemId);
 
     if (error) throw error;
 
@@ -63,21 +64,34 @@ export const getItemTags = async (itemId: string): Promise<Tag[]> => {
   }
 };
 
-// 以下は欠如していた関数の実装を追加
+// SimpleItemTag の定義を修正
 export interface SimpleItemTag {
   id: string;
-  name: string;
-  category?: string;
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
 }
 
 // アイテムにタグを追加する関数
-export const addTagToItem = async (itemId: string, tagId: string): Promise<boolean> => {
+export const addTagToItem = async (itemId: string, tagId: string, isUserItem: boolean = false): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('item_tags')
-      .insert({ item_id: itemId, tag_id: tagId });
+    if (isUserItem) {
+      const { error } = await supabase
+        .from('user_item_tags')
+        .insert({ user_item_id: itemId, tag_id: tagId });
 
-    if (error) throw error;
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from('item_tags')
+        .insert({ official_item_id: itemId, tag_id: tagId });
+
+      if (error) throw error;
+    }
     return true;
   } catch (error) {
     console.error('Error adding tag to item:', error);
@@ -86,15 +100,25 @@ export const addTagToItem = async (itemId: string, tagId: string): Promise<boole
 };
 
 // アイテムからタグを削除する関数
-export const removeTagFromItem = async (itemId: string, tagId: string): Promise<boolean> => {
+export const removeTagFromItem = async (tagId: string, itemId: string, isUserItem: boolean = false): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('item_tags')
-      .delete()
-      .eq('item_id', itemId)
-      .eq('tag_id', tagId);
+    if (isUserItem) {
+      const { error } = await supabase
+        .from('user_item_tags')
+        .delete()
+        .eq('user_item_id', itemId)
+        .eq('tag_id', tagId);
 
-    if (error) throw error;
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from('item_tags')
+        .delete()
+        .eq('official_item_id', itemId)
+        .eq('tag_id', tagId);
+
+      if (error) throw error;
+    }
     return true;
   } catch (error) {
     console.error('Error removing tag from item:', error);
@@ -103,24 +127,28 @@ export const removeTagFromItem = async (itemId: string, tagId: string): Promise<
 };
 
 // 特定のアイテムのタグを取得する関数
-export const getTagsForItem = async (itemId: string): Promise<SimpleItemTag[]> => {
+export const getTagsForItem = async (itemId: string, isUserItem: boolean = false): Promise<SimpleItemTag[]> => {
   try {
+    const table = isUserItem ? 'user_item_tags' : 'item_tags';
+    const idField = isUserItem ? 'user_item_id' : 'official_item_id';
+
     const { data, error } = await supabase
-      .from('item_tags')
+      .from(table)
       .select(`
+        id,
+        tag_id,
         tags (
           id,
           name,
-          category
+          category,
+          created_at
         )
       `)
-      .eq('item_id', itemId);
+      .eq(idField, itemId);
 
     if (error) throw error;
 
-    return data
-      .map(item => item.tags as SimpleItemTag)
-      .filter(Boolean);
+    return data as SimpleItemTag[];
   } catch (error) {
     console.error('Error fetching tags for item:', error);
     return [];
@@ -138,7 +166,9 @@ export const copyTagsFromOfficialItem = async (
     
     // 各タグをユーザーアイテムに追加
     for (const tag of officialTags) {
-      await addTagToItem(userItemId, tag.id);
+      if (tag.tag_id) {
+        await addTagToItem(userItemId, tag.tag_id, true);
+      }
     }
     
     return true;
