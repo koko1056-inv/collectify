@@ -1,9 +1,9 @@
 
 import { Badge } from "@/components/ui/badge";
-import { ItemTag } from "@/types/tag";
+import { SimpleItemTag } from "@/utils/tag/item-tag-operations";
 
 interface RandomItemTagsProps {
-  tags: ItemTag[];
+  tags: SimpleItemTag[];
 }
 
 export function RandomItemTags({ tags }: RandomItemTagsProps) {

@@ -10,7 +10,7 @@ interface SimpleTag {
 }
 
 // 単純化されたタグ関連のインターフェース
-interface SimpleItemTag {
+export interface SimpleItemTag {
   id: string;
   tag_id: string;
   tags?: SimpleTag | null;
