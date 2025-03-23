@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getItemsGroupedByTag } from "@/utils/tag/item-tag-operations";
+import { getItemsGroupedByTag } from "@/utils/tag/tag-queries";
 import { CollectionGrid } from "./CollectionGrid";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DragEndEvent } from "@dnd-kit/core";

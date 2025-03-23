@@ -1,13 +1,13 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tag, TagUpdate } from "@/types/tag";
-import { getTagsForItem } from "@/utils/tag/item-tag-operations";
+import { getTagsForItem } from "@/utils/tag/tag-queries";
 import { setItemContent } from "@/utils/tag/content-operations";
 import { TagManageModalContent } from "./TagManageModalContent";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { SimpleItemTag } from "@/utils/tag/types";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -17,18 +17,6 @@ interface TagManageModalProps {
   itemTitle?: string;
   isUserItem?: boolean;
   onSubmit?: (updates: TagUpdate[]) => Promise<void>;
-}
-
-// Define a simplified ItemTag interface to use in this component
-interface SimpleItemTag {
-  id: string;
-  tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  } | null;
 }
 
 export function TagManageModal({

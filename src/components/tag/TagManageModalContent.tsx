@@ -2,7 +2,7 @@ import { CategoryTagSelect } from "./CategoryTagSelect";
 import { CurrentTagsList } from "./CurrentTagsList";
 import { PendingTagsList } from "./PendingTagsList";
 import { TagUpdate } from "@/types/tag";
-import { removeTagFromItem } from "@/utils/tag/item-tag-operations";
+import { removeTagFromItem } from "@/utils/tag/tag-mutations";
 import { setItemContent, getAllContentNames } from "@/utils/tag/content-operations";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -13,17 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-
-interface SimpleItemTag {
-  id: string;
-  tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  } | null;
-}
+import { SimpleItemTag } from "@/utils/tag/types";
 
 interface TagManageModalContentProps {
   currentTags: SimpleItemTag[];

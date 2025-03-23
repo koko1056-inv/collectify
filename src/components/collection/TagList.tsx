@@ -1,17 +1,6 @@
 
 import { Badge } from "@/components/ui/badge";
-
-// Define the simplified ItemTag interface
-interface SimpleItemTag {
-  id: string;
-  tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  } | null;
-}
+import { SimpleItemTag } from "@/utils/tag/types";
 
 interface TagListProps {
   tags: SimpleItemTag[];
