@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag } from "./types";
+import { SimpleItemTag, SimpleTag } from "./types";
 
 /**
  * アイテムのタグを取得する
@@ -33,8 +33,13 @@ export const getTagsForItem = async (
     return (data || []).map(item => ({
       id: item.id,
       tag_id: item.tag_id,
-      tags: item.tags
-    })) as SimpleItemTag[];
+      tags: item.tags ? {
+        id: item.tags.id,
+        name: item.tags.name,
+        category: item.tags.category,
+        created_at: item.tags.created_at
+      } : null
+    }));
   } catch (error) {
     console.error("Error fetching tags for item:", error);
     return [];
