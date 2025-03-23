@@ -32,14 +32,14 @@ export function OfficialItemsHeader({
         </Button>
         
         <Select value={sortBy} onValueChange={value => onSortChange(value as SortOption)}>
-          <SelectTrigger className="w-[100px] sm:w-[150px] h-8 text-sm bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-400 focus:border-gray-400">
+          <SelectTrigger className="w-[100px] sm:w-[150px] h-8 text-sm bg-white border border-gray-300 rounded-md">
             <SelectValue placeholder="並び順" />
           </SelectTrigger>
-          <SelectContent className="bg-white/95 backdrop-blur-sm">
-            <SelectItem value="newest" className="hover:bg-gray-100">新しい順</SelectItem>
-            <SelectItem value="oldest" className="hover:bg-gray-100">古い順</SelectItem>
-            <SelectItem value="wishlist" className="hover:bg-gray-100">ウィッシュリスト登録数順</SelectItem>
-            <SelectItem value="owners" className="hover:bg-gray-100">保有者数順</SelectItem>
+          <SelectContent>
+            <SelectItem value="newest">新しい順</SelectItem>
+            <SelectItem value="oldest">古い順</SelectItem>
+            <SelectItem value="wishlist">ウィッシュリスト登録数順</SelectItem>
+            <SelectItem value="owners">保有者数順</SelectItem>
           </SelectContent>
         </Select>
       </div>
