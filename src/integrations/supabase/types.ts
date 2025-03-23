@@ -640,7 +640,6 @@ export type Database = {
           id: string
           interests: string[] | null
           is_admin: boolean | null
-          themes: string[] | null
           username: string
         }
         Insert: {
@@ -656,7 +655,6 @@ export type Database = {
           id: string
           interests?: string[] | null
           is_admin?: boolean | null
-          themes?: string[] | null
           username: string
         }
         Update: {
@@ -672,7 +670,6 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_admin?: boolean | null
-          themes?: string[] | null
           username?: string
         }
         Relationships: []
@@ -930,7 +927,6 @@ export type Database = {
           purchase_price: string | null
           quantity: number
           release_date: string
-          theme: string | null
           title: string
           user_id: string
         }
@@ -947,7 +943,6 @@ export type Database = {
           purchase_price?: string | null
           quantity?: number
           release_date: string
-          theme?: string | null
           title: string
           user_id: string
         }
@@ -964,7 +959,6 @@ export type Database = {
           purchase_price?: string | null
           quantity?: number
           release_date?: string
-          theme?: string | null
           title?: string
           user_id?: string
         }

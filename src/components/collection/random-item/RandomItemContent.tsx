@@ -2,10 +2,9 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { RandomItemImage } from "./RandomItemImage";
 import { RandomItemTags } from "./RandomItemTags";
-import { UserItem, UserItemTag, RandomItemTag } from "@/types";
 
 interface RandomItemContentProps {
-  randomItem: UserItem | null;
+  randomItem: any | null;
   isLoading: boolean;
   isSpinning: boolean;
   onImageClick: () => void;
@@ -39,12 +38,6 @@ export function RandomItemContent({
     );
   }
 
-  // UserItemTagをRandomItemTagに変換
-  const randomItemTags: RandomItemTag[] = 
-    randomItem.user_item_tags?.map(tag => ({
-      tags: tag.tags
-    })) || [];
-
   return (
     <div className="flex flex-col items-center space-y-4">
       <RandomItemImage 
@@ -55,8 +48,8 @@ export function RandomItemContent({
         onClick={onImageClick}
       />
       <h3 className="font-bold text-lg text-center animate-fade-in">{randomItem.title}</h3>
-      {randomItemTags.length > 0 && (
-        <RandomItemTags tags={randomItemTags} />
+      {randomItem.user_item_tags && Array.isArray(randomItem.user_item_tags) && (
+        <RandomItemTags tags={randomItem.user_item_tags} />
       )}
     </div>
   );
