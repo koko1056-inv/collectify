@@ -28,7 +28,13 @@ export const getTagsForItem = async (
       .eq(idField, itemId);
     
     if (error) throw error;
-    return (data || []) as SimpleItemTag[];
+    
+    // SimpleItemTag形式に変換して返す
+    return (data || []).map(item => ({
+      id: item.id,
+      tag_id: item.tag_id,
+      tags: item.tags
+    })) as SimpleItemTag[];
   } catch (error) {
     console.error("Error fetching tags for item:", error);
     return [];
