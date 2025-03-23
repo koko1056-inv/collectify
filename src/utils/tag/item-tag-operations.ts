@@ -102,25 +102,15 @@ export const addTagToItem = async (
   }
 
   // タグを追加
-  if (isUserItem) {
-    const { error } = await supabase
-      .from("user_item_tags")
-      .insert({
-        tag_id: tagId,
-        user_item_id: itemId,
-      });
-    
-    if (error) throw error;
-  } else {
-    const { error } = await supabase
-      .from("item_tags")
-      .insert({
-        tag_id: tagId,
-        official_item_id: itemId,
-      });
-    
-    if (error) throw error;
-  }
+  const insertData = isUserItem 
+    ? { tag_id: tagId, user_item_id: itemId }
+    : { tag_id: tagId, official_item_id: itemId };
+
+  const { error } = await supabase
+    .from(table)
+    .insert(insertData);
+  
+  if (error) throw error;
   
   return { success: true, exists: false };
 };
