@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -8,7 +7,7 @@ import { getItemsGroupedByTag } from "@/utils/tag/item-tag-operations";
 import { CollectionGrid } from "./CollectionGrid";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DragEndEvent } from "@dnd-kit/core";
-import { Tag } from "@lucide-react";
+import { Tag } from "lucide-react";
 
 interface TagGroupedCollectionProps {
   userId: string;
