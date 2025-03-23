@@ -1,6 +1,4 @@
 
-import { Tag } from "@/types/tag";
-
 // 循環参照を防ぐために単純化されたタグインターフェース
 export interface SimpleTag {
   id: string;
@@ -9,7 +7,7 @@ export interface SimpleTag {
   created_at?: string;
 }
 
-// 単純化されたタグ関連のインターフェースを修正（無限再帰を防止）
+// 単純化されたタグ関連のインターフェース（無限再帰を防止）
 export interface SimpleItemTag {
   id: string;
   tag_id: string;

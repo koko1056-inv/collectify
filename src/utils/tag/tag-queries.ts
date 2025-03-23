@@ -39,7 +39,7 @@ export const getTagsForItem = async (
         category: item.tags.category,
         created_at: item.tags.created_at
       } : null
-    }));
+    })) as SimpleItemTag[];
   } catch (error) {
     console.error("Error fetching tags for item:", error);
     return [];
