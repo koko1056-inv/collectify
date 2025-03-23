@@ -10,6 +10,7 @@ interface CollectionGridProps {
   selectedItems: string[];
   onSelectItem: (itemId: string) => void;
   onDragEnd: (event: DragEndEvent) => void;
+  activeTheme?: string | null;
 }
 
 export function CollectionGrid({
@@ -19,6 +20,7 @@ export function CollectionGrid({
   selectedItems,
   onSelectItem,
   onDragEnd,
+  activeTheme,
 }: CollectionGridProps) {
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -64,6 +66,8 @@ export function CollectionGrid({
                 image={item.image}
                 quantity={item.quantity}
                 isCompact={isCompact}
+                theme={item.theme || null}
+                activeTheme={activeTheme}
               />
             </div>
           ))}
