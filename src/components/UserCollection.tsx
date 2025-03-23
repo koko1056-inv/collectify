@@ -10,6 +10,7 @@ import { CollectionGrid } from "./collection/CollectionGrid";
 import { Button } from "./ui/button";
 import { Dices } from "lucide-react";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
+import { CollectionViewToggle } from "./collection/CollectionViewToggle";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -127,13 +128,11 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
         </Button>
       </div>
       
-      <CollectionGrid
+      <CollectionViewToggle
+        userId={effectiveUserId}
         items={filteredItems}
         isCompact={isCompact}
-        isSelectionMode={false}
-        selectedItems={[]}
-        onSelectItem={() => {}}
-        onDragEnd={handleDragEnd}
+        handleDragEnd={handleDragEnd}
       />
 
       <RandomCollectionItemModal
