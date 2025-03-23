@@ -48,7 +48,7 @@ export function RandomItemContent({
         onClick={onImageClick}
       />
       <h3 className="font-bold text-lg text-center animate-fade-in">{randomItem.title}</h3>
-      {randomItem.user_item_tags && (
+      {randomItem.user_item_tags && Array.isArray(randomItem.user_item_tags) && (
         <RandomItemTags tags={randomItem.user_item_tags} />
       )}
     </div>

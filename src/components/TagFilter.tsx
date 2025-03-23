@@ -111,6 +111,8 @@ export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) 
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         onTagsSelect={handleTagsSelect}
+        initialTags={selectedTags}
+        itemIds={[]} // 空の配列を渡す
       />
     </div>
   );
