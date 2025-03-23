@@ -1,21 +1,16 @@
 
-import { 
-  copyTagsFromOfficialItem,
-  addTagToItem,
-  removeTagFromItem,
-  getTagsForItem
-} from "./tag/item-tag-operations";
+// This file is kept for backward compatibility.
+// It re-exports all functions from the new modular structure.
+export * from './tag/index';
 
-import {
-  deleteUserItem,
-  getRandomUserItem
-} from "./tag/user-item-operations";
-
-export {
-  copyTagsFromOfficialItem,
-  addTagToItem,
-  removeTagFromItem,
-  getTagsForItem,
-  deleteUserItem,
-  getRandomUserItem
-};
+// Define a simplified ItemTag interface to avoid circular references
+export interface ItemTag {
+  id: string;
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
+}

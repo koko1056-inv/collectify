@@ -1,18 +1,15 @@
 
 import { Badge } from "@/components/ui/badge";
 
-// シンプルなタグ構造を定義
-interface SimpleTag {
-  id: string;
-  name: string;
-}
-
-interface RandomItemTag {
-  tags: SimpleTag | null;
+interface Tag {
+  tags: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 interface RandomItemTagsProps {
-  tags: RandomItemTag[];
+  tags: Tag[];
 }
 
 export function RandomItemTags({ tags }: RandomItemTagsProps) {

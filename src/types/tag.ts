@@ -18,14 +18,8 @@ export interface ItemTagWithTag extends BaseItemTag {
   tags: Tag;
 }
 
-// 修正したItemTag型（item_idを持たずにテーブルごとに異なるフィールドに対応）
-export interface ItemTag {
-  id: string;
-  tag_id: string;
-  created_at?: string;
-  // official_item_id または user_item_id はテーブルによって異なるため、
-  // 明示的に定義しない
-}
+// ItemTagを純粋な型エイリアスとして定義（循環参照を避ける）
+export type ItemTag = ItemTagWithTag;
 
 // タグカテゴリー型
 export type TagCategory = "character" | "type" | "series";
@@ -34,19 +28,4 @@ export type TagCategory = "character" | "type" | "series";
 export interface TagUpdate {
   category: string;
   value: string | null;
-}
-
-// シンプルなタグ型（無限ループを防ぐため）
-export interface SimpleTagItem {
-  id: string;
-  name: string;
-  category?: string;
-  created_at?: string;
-}
-
-// シンプルなItemTag型（無限ループを防ぐため）
-export interface SimpleItemTagItem {
-  id: string;
-  tag_id: string;
-  tags: SimpleTagItem | null;
 }

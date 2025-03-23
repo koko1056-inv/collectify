@@ -1,4 +1,3 @@
-
 interface Memory {
   id: string;
   image_url: string | null;
@@ -11,10 +10,7 @@ interface MemoriesListProps {
 }
 
 export function MemoriesList({ memories }: MemoriesListProps) {
-  // nullやundefinedでも空配列として扱う
-  const safeMemories = memories || [];
-  
-  if (safeMemories.length === 0) {
+  if (memories.length === 0) {
     return (
       <p className="text-center text-gray-500 py-4">
         まだ思い出が登録されていません
@@ -24,7 +20,7 @@ export function MemoriesList({ memories }: MemoriesListProps) {
 
   return (
     <div className="space-y-4">
-      {safeMemories.map((memory) => (
+      {memories.map((memory) => (
         <div
           key={memory.id}
           className="border rounded-lg p-4"

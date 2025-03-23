@@ -16,7 +16,7 @@ export function CollectionGoodsCardContent({
   isOwner,
   onMemoriesClick
 }: CollectionGoodsCardContentProps) {
-  const { data: itemMemories = [], isLoading } = useQuery({
+  const { data: itemMemories = [] } = useQuery({
     queryKey: ["item-memories", id],
     queryFn: async () => {
       if (!id) return [];
@@ -37,9 +37,6 @@ export function CollectionGoodsCardContent({
     refetchInterval: 2000 // Add periodic refetching every 2 seconds
   });
 
-  // メモリーが読み込み中かnullの場合は配列として扱う
-  const memories = itemMemories || [];
-
   return <UICardContent className="px-3 py-1 space-y-0.5">
       <div className="flex items-center justify-center">
         <div className="flex items-center gap-2">
@@ -50,12 +47,12 @@ export function CollectionGoodsCardContent({
               onMemoriesClick();
             }} 
             className="flex flex-col items-center gap-0.5"
-            aria-label={`思い出: ${memories.length}件`}
+            aria-label={`思い出: ${itemMemories.length}件`}
           >
-            <div className={`h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${memories.length > 0 ? 'text-green-500' : 'text-gray-400'}`}>
+            <div className={`h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${itemMemories.length > 0 ? 'text-green-500' : 'text-gray-400'}`}>
               <BookMarked className="h-full w-full" />
             </div>
-            <span className="text-[10px] sm:text-xs -mt-1 text-gray-500">{memories.length}</span>
+            <span className="text-[10px] sm:text-xs -mt-1 text-gray-500">{itemMemories.length}</span>
           </button>
         </div>
       </div>
