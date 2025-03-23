@@ -1,3 +1,4 @@
+
 export interface OfficialItem {
   id: string;
   title: string;
@@ -10,6 +11,7 @@ export interface OfficialItem {
   created_by?: string;
   content_name?: string | null;
   item_tags?: ItemTag[];
+  price?: string;
 }
 
 export interface ItemTag {
@@ -24,6 +26,9 @@ export interface Tag {
   id: string;
   name: string;
   count: number;
+  category?: string;
+  created_at?: string;
+  is_category?: boolean;
 }
 
 // TradeRequestの型定義
@@ -51,7 +56,7 @@ export interface Message {
   is_read: boolean;
 }
 
-// テーマ関連の型を追加
+// プロフィール関連の型を追加
 export interface UserProfile {
   id: string;
   username: string;
@@ -67,6 +72,9 @@ export interface UserProfile {
   is_admin?: boolean;
   themes?: string[];
 }
+
+// ユーザープロフィール型（サービスで使用）
+export type Profile = UserProfile;
 
 // UserItem型を拡張してthemeプロパティを追加
 export interface UserItem {
@@ -89,6 +97,14 @@ export interface UserItem {
 
 export interface UserItemTag {
   tags?: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+// RandomItemTagsコンポーネント用の型
+export interface RandomItemTag {
+  tags: {
     id: string;
     name: string;
   } | null;

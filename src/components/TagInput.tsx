@@ -1,11 +1,11 @@
-
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TagInputField } from "./tag/TagInputField";
 import { CurrentTags } from "./tag/CurrentTags";
 import { PreviousTags } from "./tag/PreviousTags";
-import { Tag, TagCategory } from "@/types/tag";
+import { TagCategory } from "@/types/tag";
+import { Tag } from "@/types";
 
 interface TagInputProps {
   selectedTags: string[];
@@ -34,7 +34,12 @@ export function TagInput({
         .eq("category", category)
         .order("name");
       if (error) throw error;
-      return data as Tag[];
+      
+      // count プロパティを追加して Tag インターフェースに合わせる
+      return data.map(tag => ({
+        ...tag,
+        count: 0
+      })) as Tag[];
     },
   });
 
@@ -67,7 +72,12 @@ export function TagInput({
         .order("name");
 
       if (tagNamesError) throw tagNamesError;
-      return tags as Tag[];
+      
+      // count プロパティを追加して Tag インターフェースに合わせる
+      return tags.map(tag => ({
+        ...tag,
+        count: 0
+      })) as Tag[];
     },
   });
 
