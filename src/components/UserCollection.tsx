@@ -14,6 +14,7 @@ import { ThemeSelector } from "./collection/ThemeSelector";
 import { ThemeAssignDialog } from "./collection/ThemeAssignDialog";
 import { toast } from "sonner";
 import { CollectionActions } from "./collection/CollectionActions";
+import { UserItem, UserProfile } from "@/types";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -45,23 +46,23 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
   const isOwner = !userId && !!user;
 
   // ユーザーのテーマ設定を取得
-  const { data: userThemes = [] } = useQuery({
-    queryKey: ["user-themes", effectiveUserId],
+  const { data: userProfile } = useQuery({
+    queryKey: ["user-profile", effectiveUserId],
     queryFn: async () => {
-      if (!effectiveUserId) return [];
+      if (!effectiveUserId) return null;
       
       const { data, error } = await supabase
         .from("profiles")
-        .select("themes")
+        .select("*")
         .eq("id", effectiveUserId)
         .single();
       
       if (error) {
-        console.error("Error fetching themes:", error);
-        return [];
+        console.error("Error fetching profile:", error);
+        return null;
       }
       
-      return data?.themes || [];
+      return data as UserProfile | null;
     },
     enabled: !!effectiveUserId,
   });
@@ -80,7 +81,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       return newThemes;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-themes", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["user-profile", user?.id] });
     },
     onError: (error) => {
       console.error("テーマの更新に失敗しました:", error);
@@ -114,10 +115,10 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
 
   // テーマリストを設定
   useEffect(() => {
-    if (userThemes && Array.isArray(userThemes)) {
-      setThemes(userThemes);
+    if (userProfile && userProfile.themes) {
+      setThemes(userProfile.themes);
     }
-  }, [userThemes]);
+  }, [userProfile]);
 
   const { data: items = [], isLoading: isItemsLoading } = useQuery({
     queryKey: ["user-items", effectiveUserId, selectedTags],
@@ -141,7 +142,7 @@ export function UserCollection({ selectedTags, userId }: UserCollectionProps) {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data || [];
+      return data as UserItem[];
     },
     enabled: !!effectiveUserId,
     staleTime: 1000 * 60 * 5,

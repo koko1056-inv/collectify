@@ -2,9 +2,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { RandomItemImage } from "./RandomItemImage";
 import { RandomItemTags } from "./RandomItemTags";
+import { UserItem } from "@/types";
 
 interface RandomItemContentProps {
-  randomItem: any | null;
+  randomItem: UserItem | null;
   isLoading: boolean;
   isSpinning: boolean;
   onImageClick: () => void;

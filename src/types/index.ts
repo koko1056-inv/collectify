@@ -1,63 +1,95 @@
-
 export interface OfficialItem {
   id: string;
   title: string;
-  description: string | null;
   image: string;
-  price: string;
-  release_date: string;
-  created_at: string;
-  created_by: string | null;
-  artist: string | null;
-  anime: string | null;
+  description?: string;
+  artist?: string;
+  anime?: string;
+  release_date?: string;
+  created_at?: string;
+  created_by?: string;
   content_name?: string | null;
-  quantity?: number;
-  item_type?: string;
-  item_tags?: Array<{
-    tags: {
-      id: string;
-      name: string;
-    } | null;
-  }>;
+  item_tags?: ItemTag[];
 }
 
+export interface ItemTag {
+  tags?: {
+    id: string;
+    name: string;
+    category?: string;
+  } | null;
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  count: number;
+}
+
+// TradeRequestの型定義
+export interface TradeRequest {
+  id: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'completed';
+  shipping_status?: 'not_shipped' | 'shipped' | 'completed';
+  is_open?: boolean;
+  message?: string;
+  sender_id: string;
+  receiver_id: string | null;
+  offered_item_id: string;
+  requested_item_id: string;
+  created_at?: string;
+}
+
+// メッセージの型定義
+export interface Message {
+  id: string;
+  content: string;
+  sender_id: string;
+  receiver_id: string;
+  created_at: string;
+  trade_request_id?: string | null;
+  is_read: boolean;
+}
+
+// テーマ関連の型を追加
+export interface UserProfile {
+  id: string;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  followers_count: number;
+  following_count: number;
+  favorite_item_ids?: string[];
+  interests?: string[];
+  favorite_contents?: string[];
+  favorite_tags?: string[];
+  is_admin?: boolean;
+  themes?: string[];
+}
+
+// UserItem型を拡張してthemeプロパティを追加
 export interface UserItem {
   id: string;
   title: string;
-  release_date: string;
   image: string;
-  prize: string;
-  official_link: string | null;
-  created_at: string;
   user_id: string;
-  artist: string | null;
-  anime: string | null;
+  quantity: number;
+  release_date?: string | null;
+  prize?: string | null;
+  purchase_date?: string | null;
+  purchase_price?: string | null;
+  official_item_id?: string | null;
+  original_item_id?: string | null;
+  official_link?: string | null;
+  images?: string[];
+  theme?: string | null;
+  user_item_tags?: UserItemTag[];
 }
 
-// Import Tag from the tag module to maintain consistency
-import { Tag as TagType } from "@/types/tag";
-export type Tag = TagType;
-
-export interface ItemMemory {
-  id: string;
-  user_item_id: string;
-  comment: string | null;
-  image_url: string | null;
-  created_at: string;
-}
-
-export interface Profile {
-  id: string;
-  username: string;
-  avatar_url: string | null;
-  bio: string | null;
-  created_at: string;
-  display_name: string | null;
-  favorite_contents: string[] | null;
-  favorite_item_ids: string[] | null;
-  favorite_tags: string[] | null;
-  followers_count: number | null;
-  following_count: number | null;
-  is_admin: boolean | null;
-  interests: string[] | null;
+export interface UserItemTag {
+  tags?: {
+    id: string;
+    name: string;
+  } | null;
 }

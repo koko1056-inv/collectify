@@ -2,9 +2,10 @@
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { MemoizedMyCollectionGoodsCard } from "./MyCollectionGoodsCard";
+import { UserItem } from "@/types";
 
 interface CollectionGridProps {
-  items: any[];
+  items: UserItem[];
   isCompact: boolean;
   isSelectionMode: boolean;
   selectedItems: string[];
@@ -46,7 +47,7 @@ export function CollectionGrid({
       collisionDetection={closestCenter}
       onDragEnd={onDragEnd}
     >
-      <SortableContext items={items} strategy={rectSortingStrategy}>
+      <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy}>
         <div className={gridClass}>
           {items.map((item) => (
             <div key={item.id} className="relative">
