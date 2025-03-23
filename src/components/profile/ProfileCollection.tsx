@@ -41,7 +41,12 @@ export function ProfileCollection({ userId }: { userId: string }) {
         .select("*")
         .order("name");
       if (error) throw error;
-      return data;
+      
+      // count プロパティを追加
+      return data.map(tag => ({
+        ...tag,
+        count: 0
+      })) as Tag[];
     },
   });
 
