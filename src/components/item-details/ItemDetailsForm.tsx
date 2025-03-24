@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { addTagToItem, removeTagFromItem } from "@/utils/tag-operations";
+import { addTagToItem, removeTagFromItem } from "@/utils/tag/tag-mutations";
 
 interface ItemDetailsFormProps {
   itemId: string;
@@ -59,7 +58,7 @@ export function ItemDetailsForm({
         }
         if (newTag && newTag !== oldTag) {
           // 新しいタグを追加
-          await addTagToItem(newTag, itemId, isUserItem);
+          await addTagToItem(itemId, newTag, isUserItem);
         }
       };
 

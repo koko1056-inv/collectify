@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { addTagToItem } from "@/utils/tag-operations";
+import { addTagToItem } from "@/utils/tag/tag-mutations";
 
 interface FormDataType {
   title: string;

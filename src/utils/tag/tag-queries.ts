@@ -91,3 +91,63 @@ export async function getTagsByCategory(): Promise<Record<string, SimpleTag[]>> 
 
   return tagsByCategory;
 }
+
+// タグでグループ化されたアイテムを取得する関数
+export async function getItemsGroupedByTag(userId: string) {
+  if (!userId) return {};
+
+  // ユーザーのアイテムを取得
+  const { data: userItems, error: itemsError } = await supabase
+    .from("user_items")
+    .select(`
+      id,
+      title,
+      image,
+      quantity,
+      user_item_tags (
+        tag_id,
+        tags (
+          id,
+          name,
+          category
+        )
+      )
+    `)
+    .eq("user_id", userId);
+
+  if (itemsError) {
+    console.error(`Error fetching user items: ${itemsError.message}`);
+    throw itemsError;
+  }
+
+  if (!userItems || userItems.length === 0) {
+    return {};
+  }
+
+  // タグごとにアイテムをグループ化
+  const itemsByTag: Record<string, any[]> = {};
+
+  userItems.forEach(item => {
+    if (item.user_item_tags && item.user_item_tags.length > 0) {
+      item.user_item_tags.forEach((tagRelation: any) => {
+        if (tagRelation.tags) {
+          const tagName = tagRelation.tags.name;
+          if (!itemsByTag[tagName]) {
+            itemsByTag[tagName] = [];
+          }
+          // 同じアイテムが重複しないように確認
+          if (!itemsByTag[tagName].some(existingItem => existingItem.id === item.id)) {
+            itemsByTag[tagName].push({
+              id: item.id,
+              title: item.title,
+              image: item.image,
+              quantity: item.quantity || 1
+            });
+          }
+        }
+      });
+    }
+  });
+
+  return itemsByTag;
+}

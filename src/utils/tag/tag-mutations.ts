@@ -3,6 +3,70 @@ import { supabase } from "@/integrations/supabase/client";
 import { TagUpdate } from "@/types/tag";
 import { SimpleItemTag } from "./types";
 
+// アイテムからタグを削除する関数
+export async function removeTagFromItem(
+  tagId: string,
+  itemId: string,
+  isUserItem: boolean = false
+): Promise<void> {
+  const table = isUserItem ? "user_item_tags" : "item_tags";
+  const itemCol = isUserItem ? "user_item_id" : "official_item_id";
+
+  const { error } = await supabase
+    .from(table)
+    .delete()
+    .eq("tag_id", tagId)
+    .eq(itemCol, itemId);
+
+  if (error) {
+    console.error(`Error removing tag from item: ${error.message}`);
+    throw error;
+  }
+}
+
+// アイテムにタグを追加する関数
+export async function addTagToItem(
+  itemId: string,
+  tagId: string,
+  isUserItem: boolean = false
+): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const table = isUserItem ? "user_item_tags" : "item_tags";
+  const itemCol = isUserItem ? "user_item_id" : "official_item_id";
+  
+  // 既に同じタグが付けられているか確認
+  const { data: existingTag, error: checkError } = await supabase
+    .from(table)
+    .select("id")
+    .eq("tag_id", tagId)
+    .eq(itemCol, itemId)
+    .maybeSingle();
+
+  if (checkError) throw checkError;
+  if (existingTag) return; // 既に追加されている場合は何もしない
+
+  // 追加するデータを準備
+  const insertData: any = {
+    tag_id: tagId,
+    [itemCol]: itemId
+  };
+  
+  // ユーザーアイテムの場合はユーザーIDも追加
+  if (isUserItem && user) {
+    insertData.user_id = user.id;
+  }
+
+  const { error } = await supabase
+    .from(table)
+    .insert(insertData);
+
+  if (error) {
+    console.error(`Error adding tag to item: ${error.message}`);
+    throw error;
+  }
+}
+
 // ユーザーアイテムのタグを更新する関数
 export async function updateUserItemTags(
   itemId: string,

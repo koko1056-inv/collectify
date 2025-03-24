@@ -10,7 +10,7 @@ import { SimpleItemTag } from "@/utils/tag/types";
 export function useTagManage(
   isOpen: boolean,
   itemIds: string[],
-  isUserItem: boolean = false,
+  isUserItem: boolean,
   onClose: () => void,
   onSubmit?: (updates: TagUpdate[]) => Promise<void>
 ) {
