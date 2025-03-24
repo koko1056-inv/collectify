@@ -1,126 +1,93 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag, SimpleTag } from "./types";
+import { SimpleItemTag } from "./types";
 
-/**
- * アイテムのタグを取得する
- */
-export const getTagsForItem = async (
+// アイテムに対するタグを取得する関数
+export async function getTagsForItem(
   itemId: string,
   isUserItem: boolean = false
-): Promise<SimpleItemTag[]> => {
-  try {
-    const table = isUserItem ? "user_item_tags" : "item_tags";
-    const idField = isUserItem ? "user_item_id" : "official_item_id";
+): Promise<SimpleItemTag[]> {
+  const table = isUserItem ? "user_item_tags" : "item_tags";
+  const itemCol = isUserItem ? "user_item_id" : "official_item_id";
 
-    const { data, error } = await supabase
-      .from(table)
-      .select(`
+  const { data, error } = await supabase
+    .from(table)
+    .select(`
+      id,
+      tag_id,
+      tags (
         id,
-        tag_id,
-        tags (
-          id,
-          name,
-          category,
-          created_at
-        )
-      `)
-      .eq(idField, itemId);
-    
-    if (error) throw error;
-    
-    // nullのタグは除外する
-    const validItems = (data || []).filter(item => item.tags !== null);
-    
-    // SimpleItemTag形式に変換して返す
-    return validItems.map(item => ({
-      id: item.id,
-      tag_id: item.tag_id,
-      tags: {
-        id: item.tags.id,
-        name: item.tags.name,
-        category: item.tags.category,
-        created_at: item.tags.created_at
-      }
-    })) as SimpleItemTag[];
-  } catch (error) {
-    console.error("Error fetching tags for item:", error);
-    return [];
+        name,
+        category
+      )
+    `)
+    .eq(itemCol, itemId);
+
+  if (error) {
+    console.error(`Error fetching tags for item: ${error.message}`);
+    throw error;
   }
-};
 
-/**
- * タグごとにグループ化されたアイテムを取得する
- */
-export const getItemsGroupedByTag = async (
-  userId: string,
-  isUserItem: boolean = true
-) => {
-  try {
-    // ユーザーのアイテムとそのタグを取得
-    const table = isUserItem ? "user_items" : "official_items";
-    const tagsTable = isUserItem ? "user_item_tags" : "item_tags";
-    const idField = isUserItem ? "user_id" : "created_by";
+  return data || [];
+}
 
-    // まずユーザーのアイテムを全て取得
-    const { data: items, error: itemsError } = await supabase
-      .from(table)
-      .select("*")
-      .eq(idField, userId);
+// ユーザーの過去に使用したタグを取得する関数
+export async function getUserPreviousTags(): Promise<SimpleItemTag[]> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) return [];
 
-    if (itemsError) throw itemsError;
-    if (!items || items.length === 0) return {};
+  const { data, error } = await supabase
+    .from("user_item_tags")
+    .select(`
+      id,
+      tag_id,
+      tags (
+        id,
+        name,
+        category
+      )
+    `)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
 
-    // 各アイテムのタグを取得
-    const itemsByTagMap: Record<string, any[]> = {};
-    const noTagItems: any[] = [];
+  if (error) {
+    console.error(`Error fetching user's previous tags: ${error.message}`);
+    throw error;
+  }
 
-    // 各アイテムのタグを並行して取得
-    const itemTagPromises = items.map(async (item) => {
-      const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
-      const { data: tagData } = await supabase
-        .from(tagsTable)
-        .select(`
-          tags (
-            id,
-            name,
-            category
-          )
-        `)
-        .eq(itemIdField, item.id);
-
-      // タグがないアイテムは別に保存
-      if (!tagData || tagData.length === 0) {
-        noTagItems.push(item);
-        return;
-      }
-
-      // 各タグごとにアイテムをグループ化
-      tagData.forEach((tagItem) => {
-        if (tagItem.tags) {
-          const tagName = tagItem.tags.name;
-          if (!itemsByTagMap[tagName]) {
-            itemsByTagMap[tagName] = [];
-          }
-          // 同じアイテムが重複して追加されないようにチェック
-          if (!itemsByTagMap[tagName].some(existingItem => existingItem.id === item.id)) {
-            itemsByTagMap[tagName].push(item);
-          }
-        }
-      });
-    });
-
-    // 全てのプロミスが完了するのを待つ
-    await Promise.all(itemTagPromises);
-
-    // タグなしのアイテムがある場合は「その他」カテゴリに入れる
-    if (noTagItems.length > 0) {
-      itemsByTagMap["その他"] = noTagItems;
+  // ユニークなタグのみを返す
+  const uniqueTags = new Map();
+  data?.forEach(tag => {
+    if (!uniqueTags.has(tag.tag_id)) {
+      uniqueTags.set(tag.tag_id, tag);
     }
+  });
 
-    return itemsByTagMap;
-  } catch (error) {
-    console.error("Error grouping items by tag:", error);
-    return {};
+  return Array.from(uniqueTags.values());
+}
+
+// カテゴリ別のタグを取得する関数
+export async function getTagsByCategory(): Promise<Record<string, SimpleTag[]>> {
+  const { data, error } = await supabase
+    .from("tags")
+    .select("*")
+    .order("name");
+
+  if (error) {
+    console.error(`Error fetching tags by category: ${error.message}`);
+    throw error;
   }
-};
+
+  const tagsByCategory: Record<string, SimpleTag[]> = {};
+  
+  data?.forEach(tag => {
+    const category = tag.category || "その他";
+    if (!tagsByCategory[category]) {
+      tagsByCategory[category] = [];
+    }
+    tagsByCategory[category].push(tag);
+  });
+
+  return tagsByCategory;
+}

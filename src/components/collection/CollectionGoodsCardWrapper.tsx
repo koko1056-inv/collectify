@@ -56,13 +56,6 @@ export function CollectionGoodsCardWrapper({
         className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden"
         onClick={() => setIsDetailsModalOpen(true)}
       >
-        {quantity > 1 && (
-          <Badge 
-            className="absolute top-2 right-2 z-10 bg-purple-500 hover:bg-purple-500"
-          >
-            ×{quantity}
-          </Badge>
-        )}
         <div className="space-y-2">
           <CardImage 
             title={title} 
@@ -70,8 +63,15 @@ export function CollectionGoodsCardWrapper({
             itemId={id}
             isEditable={false}
           />
-          <div className="p-2">
+          <div className="p-2 relative">
             <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
+            {quantity > 1 && (
+              <Badge 
+                className="absolute bottom-2 right-2 bg-purple-500 hover:bg-purple-500"
+              >
+                ×{quantity}
+              </Badge>
+            )}
           </div>
         </div>
         <CardModals
@@ -98,10 +98,18 @@ export function CollectionGoodsCardWrapper({
 
   return (
     <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
-      <div className="absolute top-2 right-2 z-10 flex gap-1">
-        {isOwner && (
+      <CardHeader
+        title={title}
+        image={image}
+        onClick={() => setIsDetailsModalOpen(true)}
+        itemId={id}
+        isEditable={isOwner}
+      />
+      <div className="px-3 py-2 relative">
+        <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
+        {isOwner && quantity > 1 && (
           <Badge 
-            className="bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1"
+            className="absolute bottom-0 right-2 bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1"
             onClick={(e) => {
               e.stopPropagation();
               setIsQuantityEditModalOpen(true);
@@ -112,20 +120,10 @@ export function CollectionGoodsCardWrapper({
           </Badge>
         )}
         {!isOwner && quantity > 1 && (
-          <Badge className="bg-purple-500 hover:bg-purple-500">
+          <Badge className="absolute bottom-0 right-2 bg-purple-500 hover:bg-purple-500">
             ×{quantity}
           </Badge>
         )}
-      </div>
-      <CardHeader
-        title={title}
-        image={image}
-        onClick={() => setIsDetailsModalOpen(true)}
-        itemId={id}
-        isEditable={isOwner}
-      />
-      <div className="px-3 py-2">
-        <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
       </div>
       <CollectionGoodsCardContent
         id={id}

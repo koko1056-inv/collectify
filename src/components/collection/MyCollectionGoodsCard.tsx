@@ -1,9 +1,11 @@
+
 import { Card } from "@/components/ui/card";
 import { CardImage } from "./CardImage";
 import { CollectionGoodsCard } from "../CollectionGoodsCard";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { memo } from "react";
+import { Badge } from "@/components/ui/badge";
 
 interface MyCollectionGoodsCardProps {
   id: string;
@@ -41,11 +43,18 @@ function MyCollectionGoodsCardComponent({
         style={style}
         {...attributes}
         {...listeners}
-        className="hover-scale card-shadow bg-white border border-gray-200"
+        className="hover-scale card-shadow bg-white border border-gray-200 relative"
       >
         <CardImage image={image} title={title} />
-        <div className="p-2">
+        <div className="p-2 relative">
           <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
+          {quantity && quantity > 1 && (
+            <Badge 
+              className="absolute bottom-2 right-2 bg-purple-500 hover:bg-purple-500"
+            >
+              ×{quantity}
+            </Badge>
+          )}
         </div>
       </Card>
     );

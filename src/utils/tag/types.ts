@@ -11,7 +11,7 @@ export interface SimpleTag {
 export interface SimpleItemTag {
   id: string;
   tag_id: string;
-  tags: SimpleTag;  // 常に必須とする
+  tags: SimpleTag;  // tagsを直接SimpleTagとして定義
 }
 
 // タグごとのアイテムのマップ型
