@@ -11,8 +11,8 @@ export function useTagManage(
   isOpen: boolean,
   itemIds: string[],
   isUserItem: boolean = false,
-  onSubmit?: (updates: TagUpdate[]) => Promise<void>,
-  onClose: () => void
+  onClose: () => void,
+  onSubmit?: (updates: TagUpdate[]) => Promise<void>
 ) {
   const [pendingUpdates, setPendingUpdates] = useState<TagUpdate[]>([]);
   const [contentName, setContentName] = useState<string | null>(null);

@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TagManageModalContent } from "./TagManageModalContent";
 import { TagManageDialogHeader } from "./TagManageDialogHeader";
 import { TagManageDialogFooter } from "./TagManageDialogFooter";
-import { useTagManage } from "@/hooks/useTagManage";
+import { useTagManage } from "./useTagManage";
 import { TagUpdate } from "@/types/tag";
 
 interface TagManageModalProps {
@@ -39,7 +39,7 @@ export function TagManageModal({
   const modalTitle = itemTitle ? `${title}: ${itemTitle}` : title;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <TagManageDialogHeader title={modalTitle} />
         
