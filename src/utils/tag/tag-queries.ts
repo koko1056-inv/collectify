@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag } from "./types";
+import { SimpleItemTag, SimpleTag } from "./types";
 
 // アイテムに対するタグを取得する関数
 export async function getTagsForItem(
