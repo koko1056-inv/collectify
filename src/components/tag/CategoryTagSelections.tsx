@@ -21,7 +21,7 @@ export function CategoryTagSelections({
         label="キャラ・人物名"
         value={
           pendingUpdates.find(u => u.category === 'character')?.value ||
-          currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name ||
+          currentTags.find(tag => tag.tags.category === 'character')?.tags.name ||
           null
         }
         onChange={onTagChange("character")}
@@ -31,7 +31,7 @@ export function CategoryTagSelections({
         label="グッズタイプ"
         value={
           pendingUpdates.find(u => u.category === 'type')?.value ||
-          currentTags.find(tag => tag.tags?.category === 'type')?.tags?.name ||
+          currentTags.find(tag => tag.tags.category === 'type')?.tags.name ||
           null
         }
         onChange={onTagChange("type")}
@@ -41,7 +41,7 @@ export function CategoryTagSelections({
         label="グッズシリーズ"
         value={
           pendingUpdates.find(u => u.category === 'series')?.value ||
-          currentTags.find(tag => tag.tags?.category === 'series')?.tags?.name ||
+          currentTags.find(tag => tag.tags.category === 'series')?.tags.name ||
           null
         }
         onChange={onTagChange("series")}

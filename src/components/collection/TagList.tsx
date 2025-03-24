@@ -12,15 +12,13 @@ export function TagList({ tags }: TagListProps) {
   return (
     <div className="flex flex-wrap gap-1">
       {tags.map((tag) => (
-        tag.tags && (
-          <Badge
-            key={tag.id}
-            variant="secondary"
-            className="text-xs px-2 py-0.5"
-          >
-            {tag.tags.name}
-          </Badge>
-        )
+        <Badge
+          key={tag.id}
+          variant="secondary"
+          className="text-xs px-2 py-0.5"
+        >
+          {tag.tags.name}
+        </Badge>
       ))}
     </div>
   );

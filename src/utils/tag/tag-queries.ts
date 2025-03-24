@@ -29,16 +29,19 @@ export const getTagsForItem = async (
     
     if (error) throw error;
     
+    // nullのタグは除外する
+    const validItems = (data || []).filter(item => item.tags !== null);
+    
     // SimpleItemTag形式に変換して返す
-    return (data || []).map(item => ({
+    return validItems.map(item => ({
       id: item.id,
       tag_id: item.tag_id,
-      tags: item.tags ? {
+      tags: {
         id: item.tags.id,
         name: item.tags.name,
         category: item.tags.category,
         created_at: item.tags.created_at
-      } : null
+      }
     })) as SimpleItemTag[];
   } catch (error) {
     console.error("Error fetching tags for item:", error);

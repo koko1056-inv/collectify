@@ -9,36 +9,24 @@ interface OfficialTagsSectionProps {
 export function OfficialTagsSection({ officialTags }: OfficialTagsSectionProps) {
   if (officialTags.length === 0) return null;
 
-  const tagsByCategory = {
-    character: officialTags.filter(tag => tag.tags?.category === 'character'),
-    type: officialTags.filter(tag => tag.tags?.category === 'type'),
-    series: officialTags.filter(tag => tag.tags?.category === 'series'),
-  };
-
   return (
     <div className="mb-4">
       <h3 className="text-sm font-medium mb-2">公式アイテムのタグ:</h3>
-      <div className="space-y-1">
-        {Object.entries(tagsByCategory).map(([category, tags]) => 
-          tags.length > 0 && (
-            <div key={category} className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">
-                {category === 'character' ? 'キャラ:' : 
-                 category === 'type' ? 'タイプ:' : 
-                 category === 'series' ? 'シリーズ:' : ''}
+      <div className="flex flex-wrap gap-2">
+        {officialTags.map((tag) => (
+          <Badge 
+            key={tag.tag_id} 
+            variant="outline"
+            className="text-xs"
+          >
+            {tag.tags.name}
+            {tag.tags.category && (
+              <span className="ml-1 text-xs text-muted-foreground">
+                ({tag.tags.category})
               </span>
-              <div className="flex flex-wrap gap-1">
-                {tags.map((tag, idx) => (
-                  tag.tags && (
-                    <Badge key={idx} variant="outline" className="text-xs">
-                      {tag.tags.name}
-                    </Badge>
-                  )
-                ))}
-              </div>
-            </div>
-          )
-        )}
+            )}
+          </Badge>
+        ))}
       </div>
     </div>
   );
