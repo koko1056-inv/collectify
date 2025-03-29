@@ -29,7 +29,7 @@ export function Footer() {
             )}
           >
             <Home className={cn("h-6 w-6 mb-1", isActive("/") ? "text-primary" : "text-gray-400")} />
-            <span>{t("footer.home", "ホーム")}</span>
+            <span>{t("footer.home")}</span>
           </Link>
           
           <Link
@@ -40,7 +40,7 @@ export function Footer() {
             )}
           >
             <Search className={cn("h-6 w-6 mb-1", isActive("/search") ? "text-primary" : "text-gray-400")} />
-            <span>{t("footer.search", "探す")}</span>
+            <span>{t("footer.search")}</span>
           </Link>
 
           <Link
@@ -55,7 +55,7 @@ export function Footer() {
             }}
           >
             <Package className={cn("h-6 w-6 mb-1", isActive("/collection") ? "text-primary" : "text-gray-400")} />
-            <span>{t("footer.collection", "コレクション")}</span>
+            <span>{t("footer.collection")}</span>
           </Link>
 
           <Link
@@ -66,7 +66,7 @@ export function Footer() {
             )}
           >
             <ArrowLeftRight className={cn("h-6 w-6 mb-1", isActive("/trades") ? "text-primary" : "text-gray-400")} />
-            <span>{t("footer.trade", "トレード")}</span>
+            <span>{t("footer.trade")}</span>
           </Link>
 
           <Link
@@ -77,7 +77,7 @@ export function Footer() {
             )}
           >
             <User className={cn("h-6 w-6 mb-1", isActive("/edit-profile") ? "text-primary" : "text-gray-400")} />
-            <span>{t("footer.profile", "プロフィール")}</span>
+            <span>{t("footer.profile")}</span>
           </Link>
         </div>
       </div>

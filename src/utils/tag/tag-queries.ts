@@ -1,12 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleTag } from "./types";
+import { SimpleItemTag } from "./types";
 
 // アイテムに関連付けられたタグを取得する
 export async function getTagsForItem(
   itemId: string | null,
   isUserItem: boolean = false
-): Promise<SimpleTag[]> {
+): Promise<SimpleItemTag[]> {
   if (!itemId) return [];
 
   try {
@@ -36,8 +36,7 @@ export async function getTagsForItem(
     // 結果を変換して返す
     return data
       .filter((item) => item.tags) // nullのタグをフィルタリング
-      .map((item) => item.tags)
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => a.tags.name.localeCompare(b.tags.name));
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
     return [];

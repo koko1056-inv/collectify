@@ -18,6 +18,7 @@ const AddItem = lazy(() => import("./pages/AddItem").catch(() => ({ default: () 
 const UserProfile = lazy(() => import("./pages/UserProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 const EditProfile = lazy(() => import("./pages/EditProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 const TradeRequests = lazy(() => import("./pages/TradeRequests").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Search = lazy(() => import("./pages/Search").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -59,6 +60,7 @@ const App: React.FC = () => {
                     <Route path="/user/:userId" element={<UserProfile />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
                     <Route path="/trades" element={<TradeRequests />} />
+                    <Route path="/search" element={<Search />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Suspense>
