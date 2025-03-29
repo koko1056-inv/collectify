@@ -24,7 +24,7 @@ export interface TagQueryItem {
   title: string;
   image: string;
   quantity?: number;
-  user_id: string;
+  user_id?: string;
   official_item_id?: string;
   created_at?: string;
   updated_at?: string;
@@ -48,3 +48,10 @@ export interface UserItem {
 
 // タグ付けされたアイテムグループの型
 export type TaggedItemGroups = Record<string, UserItem[]>;
+
+// コンテンツ情報の型
+export interface ContentInfo {
+  id: string;
+  name: string;
+  icon_name?: string;
+}

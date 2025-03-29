@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleTag, SimpleItemTag, TaggedItemGroups, UserItem, TagQueryItem } from "./types";
+import { SimpleTag, SimpleItemTag, TaggedItemGroups, UserItem, TagQueryItem, ContentInfo } from "./types";
 
 // 特定のアイテムに関連するタグを取得
 export async function getTagsForItem(
@@ -189,5 +189,45 @@ export async function getItemsGroupedByTag(userId: string): Promise<TaggedItemGr
   } catch (error) {
     console.error("Error in getItemsGroupedByTag:", error);
     return {};
+  }
+}
+
+// コンテンツ情報を取得する関数
+export async function getContentInfo(): Promise<ContentInfo[]> {
+  try {
+    const { data, error } = await supabase
+      .from("content_names")
+      .select("*")
+      .order("name");
+    
+    if (error) {
+      console.error("Error fetching content info:", error);
+      return [];
+    }
+    
+    return data as ContentInfo[];
+  } catch (error) {
+    console.error("Error in getContentInfo:", error);
+    return [];
+  }
+}
+
+// コンテンツアイコンを更新する関数
+export async function updateContentIcon(contentId: string, iconName: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("content_names")
+      .update({ icon_name: iconName })
+      .eq("id", contentId);
+    
+    if (error) {
+      console.error("Error updating content icon:", error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error in updateContentIcon:", error);
+    return false;
   }
 }

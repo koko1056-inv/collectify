@@ -3,11 +3,52 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
+import { ContentInfo } from "@/utils/tag/types";
+import { 
+  BookOpen, Gamepad2, Music, Film, Tv, Heart, Star, Zap, 
+  Award, Users, Boxes, PenTool, Palette, BookMarked, Pin
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const ICON_MAP: Record<string, any> = {
+  BookOpen,
+  Gamepad2,
+  Music,
+  Film,
+  Tv,
+  Heart,
+  Star,
+  Zap,
+  Award,
+  Users,
+  Boxes,
+  PenTool,
+  Palette,
+  BookMarked,
+  Pin
+};
+
+// カテゴリーに基づいたデフォルトアイコンを取得する関数
+const getDefaultIcon = (contentName: string): any => {
+  const lowercaseName = contentName.toLowerCase();
+  
+  if (lowercaseName.includes('ゲーム') || lowercaseName.includes('game')) return Gamepad2;
+  if (lowercaseName.includes('音楽') || lowercaseName.includes('music')) return Music;
+  if (lowercaseName.includes('映画') || lowercaseName.includes('movie')) return Film;
+  if (lowercaseName.includes('テレビ') || lowercaseName.includes('tv')) return Tv;
+  if (lowercaseName.includes('アニメ') || lowercaseName.includes('anime')) return BookMarked;
+  if (lowercaseName.includes('マンガ') || lowercaseName.includes('manga')) return BookOpen;
+  if (lowercaseName.includes('アート') || lowercaseName.includes('art')) return Palette;
+  if (lowercaseName.includes('スポーツ') || lowercaseName.includes('sport')) return Award;
+  
+  // デフォルトのフォールバックアイコン
+  return Star;
+};
 
 interface InitialInterestSelectionProps {
   isOpen: boolean;
@@ -32,9 +73,28 @@ export function InitialInterestSelection({
         .select("*")
         .order("name");
       if (error) throw error;
-      return data;
+      return data as ContentInfo[];
     },
   });
+
+  // ユーザーの既存の興味を取得する
+  useEffect(() => {
+    if (user && isOpen) {
+      const fetchUserInterests = async () => {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('interests')
+          .eq('id', user.id)
+          .single();
+          
+        if (!error && data?.interests) {
+          setSelectedContents(data.interests);
+        }
+      };
+      
+      fetchUserInterests();
+    }
+  }, [user, isOpen]);
 
   const handleContentToggle = (contentName: string) => {
     setSelectedContents(prev =>
@@ -79,46 +139,71 @@ export function InitialInterestSelection({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-center">
-            興味のあるコンテンツを選択してください
+      <DialogContent className="max-w-lg bg-gradient-to-b from-white to-gray-50 border-0 shadow-lg">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+            興味のあるコンテンツ
           </DialogTitle>
         </DialogHeader>
-        <div className="text-center text-gray-600 mb-4">
+        
+        <div className="text-center text-gray-600 mb-4 px-4 text-sm">
           好みに合わせたグッズを表示するために、興味のあるコンテンツを選んでください
         </div>
-        <div className="px-4">
+        
+        <div className="relative px-4">
           <Input
             placeholder="コンテンツを検索..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="mb-4"
+            className="mb-4 pl-10 bg-white border border-gray-200 rounded-full focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
           />
+          <div className="absolute top-3 left-7 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
         </div>
+        
         <ScrollArea className="h-[50vh] pr-4">
-          <div className="grid grid-cols-2 gap-2 p-4">
-            {filteredContents.map((content) => (
-              <Button
-                key={content.id}
-                variant={selectedContents.includes(content.name) ? "default" : "outline"}
-                className="h-auto py-6 flex flex-col items-center justify-center gap-2"
-                onClick={() => handleContentToggle(content.name)}
-              >
-                <span className="text-base break-words text-center w-full">
-                  {content.name}
-                </span>
-              </Button>
-            ))}
+          <div className="grid grid-cols-2 gap-3 p-4">
+            {filteredContents.map((content) => {
+              // アイコンを取得（カスタムアイコンまたはデフォルト）
+              const IconComponent = content.icon_name && ICON_MAP[content.icon_name] 
+                ? ICON_MAP[content.icon_name] 
+                : getDefaultIcon(content.name);
+                
+              const isSelected = selectedContents.includes(content.name);
+              
+              return (
+                <Button
+                  key={content.id}
+                  variant={isSelected ? "default" : "outline"}
+                  className={cn(
+                    "h-auto min-h-[5rem] px-4 py-6 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-xl shadow-sm",
+                    isSelected 
+                      ? "bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white animate-scale-in"
+                      : "bg-white hover:bg-gray-50 border-gray-200 hover:border-purple-300 hover:shadow"
+                  )}
+                  onClick={() => handleContentToggle(content.name)}
+                >
+                  <IconComponent className={cn(
+                    "h-6 w-6",
+                    isSelected ? "text-white" : "text-purple-500"
+                  )} />
+                  <span className="text-sm font-medium break-words text-center w-full line-clamp-2">
+                    {content.name}
+                  </span>
+                </Button>
+              );
+            })}
           </div>
         </ScrollArea>
-        <div className="flex justify-center mt-4">
+        
+        <div className="flex justify-center mt-4 px-4">
           <Button 
             onClick={handleConfirm} 
-            className="w-full max-w-xs"
+            className="w-full max-w-xs bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium py-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200"
             disabled={saving}
           >
-            {saving ? "保存中..." : "確定"}
+            {saving ? "保存中..." : selectedContents.length > 0 ? "設定を保存する" : "スキップする"}
           </Button>
         </div>
       </DialogContent>
