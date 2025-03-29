@@ -6,6 +6,7 @@ import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
 
 interface ItemButtonsProps {
   isInCollection: boolean;
@@ -14,8 +15,8 @@ interface ItemButtonsProps {
   image: string;
   releaseDate: string;
   price?: string;
-  refetchIsInCollection: () => Promise<void>;
-  refetchOwnersCount: () => Promise<void>;
+  refetchIsInCollection: () => Promise<QueryObserverResult<boolean, Error>>;
+  refetchOwnersCount: () => Promise<QueryObserverResult<number, Error>>;
 }
 
 export function ItemButtons({

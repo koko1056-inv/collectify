@@ -101,7 +101,7 @@ export async function findTagIdByName(
   return data.id;
 }
 
-// 特定のカテゴリのタグがSimpleTagかどうかをチェック
+// SimpleTagかどうかをチェック（型ガード関数）
 export function isSimpleTag(tag: any): tag is SimpleTag {
   return (
     typeof tag === 'object' &&
@@ -109,4 +109,67 @@ export function isSimpleTag(tag: any): tag is SimpleTag {
     'id' in tag &&
     'name' in tag
   );
+}
+
+// タグでグループ化されたアイテムを取得する関数
+export async function getItemsGroupedByTag(userId: string): Promise<Record<string, any[]>> {
+  try {
+    // ユーザーのアイテムを取得
+    const { data: userItems, error: itemsError } = await supabase
+      .from("user_items")
+      .select(`
+        id,
+        title,
+        image,
+        quantity,
+        user_item_tags (
+          tag_id,
+          tags (
+            id,
+            name,
+            category
+          )
+        )
+      `)
+      .eq("user_id", userId);
+
+    if (itemsError) {
+      console.error("Error fetching user items:", itemsError);
+      return {};
+    }
+
+    // アイテムをタグごとにグループ化
+    const groupedItems: Record<string, any[]> = {};
+
+    userItems?.forEach(item => {
+      if (!item.user_item_tags || item.user_item_tags.length === 0) {
+        // タグがないアイテムは「未分類」に入れる
+        if (!groupedItems["未分類"]) {
+          groupedItems["未分類"] = [];
+        }
+        groupedItems["未分類"].push(item);
+        return;
+      }
+
+      item.user_item_tags.forEach((tagRelation: any) => {
+        if (tagRelation.tags) {
+          const tagName = tagRelation.tags.name;
+          if (!groupedItems[tagName]) {
+            groupedItems[tagName] = [];
+          }
+          
+          // 同じアイテムが重複して追加されないよう確認
+          const existingItem = groupedItems[tagName].find(existingItem => existingItem.id === item.id);
+          if (!existingItem) {
+            groupedItems[tagName].push(item);
+          }
+        }
+      });
+    });
+
+    return groupedItems;
+  } catch (error) {
+    console.error("Error in getItemsGroupedByTag:", error);
+    return {};
+  }
 }

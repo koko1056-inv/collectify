@@ -5,7 +5,7 @@ export * from './tag/index';
 
 // タグ追加と削除関数を直接エクスポート
 export { addTagToItem, removeTagFromItem } from './tag/tag-mutations';
-export { getItemsGroupedByTag } from './tag/tag-queries';
+export { getItemsGroupedByTag, getTagsForItem, isItemInUserCollection } from './tag/tag-queries';
 
 // Define a simplified ItemTag interface to avoid circular references
 export interface ItemTag {
