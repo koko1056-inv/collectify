@@ -13,8 +13,10 @@ import { TradeRequestModal } from "../trade/TradeRequestModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Pencil } from "lucide-react";
+import { Pencil, BookMarked } from "lucide-react";
 import { QuantityEditModal } from "./QuantityEditModal";
+import { Button } from "@/components/ui/button";
+import { LikeButton } from "./LikeButton";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -49,6 +51,27 @@ export function CollectionGoodsCardWrapper({
   const isOwner = !userId || (user && user.id === userId);
   const canTrade = !isOwner && user !== null;
   const isOtherUserCollection = !isOwner && userId !== undefined;
+
+  const { data: itemMemories = [] } = useQuery({
+    queryKey: ["item-memories", id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from("item_memories")
+        .select("*")
+        .eq("user_item_id", id)
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching memories:", error);
+        throw error;
+      }
+      return data || [];
+    },
+    enabled: !!id,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    refetchInterval: 2000
+  });
 
   if (isOtherUserCollection || isCompact) {
     return (
@@ -125,11 +148,28 @@ export function CollectionGoodsCardWrapper({
           </Badge>
         )}
       </div>
-      <CollectionGoodsCardContent
-        id={id}
-        isOwner={isOwner}
-        onMemoriesClick={() => setIsMemoriesModalOpen(true)}
-      />
+      
+      {/* カードの一番下部分 - いいねボタンと記録確認ボタン */}
+      <UICardFooter className="px-3 py-2 flex justify-center items-center">
+        <div className="flex items-center gap-4 w-full justify-center">
+          <LikeButton itemId={id} />
+          <button 
+            onClick={e => {
+              e.stopPropagation();
+              setIsMemoriesModalOpen(true);
+            }} 
+            className="flex flex-col items-center gap-0.5"
+            aria-label={`思い出: ${itemMemories.length}件`}
+          >
+            <div className={`h-7 w-7 p-1.5 ${itemMemories.length > 0 ? 'text-green-500' : 'text-gray-400'}`}>
+              <BookMarked className="h-full w-full" />
+            </div>
+            <span className="text-[10px] -mt-1 text-gray-500">{itemMemories.length}</span>
+          </button>
+        </div>
+      </UICardFooter>
+      
+      {/* アクションボタン */}
       {(isOwner || canTrade) && (
         <UICardFooter className="px-2 py-1">
           <CardActions
