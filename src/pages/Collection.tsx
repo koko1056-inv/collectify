@@ -31,8 +31,8 @@ export default function Collection() {
     <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar />
       <main className={`container mx-auto ${isMobile ? 'px-4 py-8' : 'px-4 py-8 pt-24'}`}>
-        <div className="flex items-center justify-center mb-2 sm:hidden mt-1">
-          <span className="logo-text">マイコレクション</span>
+        <div className="flex items-center justify-center mb-6 sm:mb-8 mt-4">
+          <span className="logo-text text-2xl font-bold">Collectify</span>
         </div>
         
         <div className="max-w-3xl mx-auto space-y-6">
