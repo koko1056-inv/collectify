@@ -13,10 +13,10 @@ import { TradeRequestModal } from "../trade/TradeRequestModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Pencil } from "lucide-react";
+import { Pencil, BookMarked } from "lucide-react";
 import { QuantityEditModal } from "./QuantityEditModal";
-import { TagList } from "./TagList";
-import { getTagsForItem } from "@/utils/tag/tag-queries";
+import { Button } from "@/components/ui/button";
+import { LikeButton } from "./LikeButton";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -52,12 +52,25 @@ export function CollectionGoodsCardWrapper({
   const canTrade = !isOwner && user !== null;
   const isOtherUserCollection = !isOwner && userId !== undefined;
 
-  const { data: itemTags = [] } = useQuery({
-    queryKey: ["user-item-tags", id],
+  const { data: itemMemories = [] } = useQuery({
+    queryKey: ["item-memories", id],
     queryFn: async () => {
-      return getTagsForItem(id, true);
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from("item_memories")
+        .select("*")
+        .eq("user_item_id", id)
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching memories:", error);
+        throw error;
+      }
+      return data || [];
     },
-    enabled: !!id
+    enabled: !!id,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    refetchInterval: 2000
   });
 
   if (isOtherUserCollection || isCompact) {
@@ -67,26 +80,21 @@ export function CollectionGoodsCardWrapper({
         onClick={() => setIsDetailsModalOpen(true)}
       >
         <div className="space-y-2">
-          <div className="relative">
-            <CardImage 
-              title={title} 
-              image={image} 
-              itemId={id}
-              isEditable={false}
-            />
+          <CardImage 
+            title={title} 
+            image={image} 
+            itemId={id}
+            isEditable={false}
+          />
+          <div className="p-2 relative">
+            <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
             {quantity > 1 && (
               <Badge 
-                className="absolute top-2 right-2 bg-blue-500 hover:bg-blue-500"
+                className="absolute bottom-2 right-2 bg-purple-500 hover:bg-purple-500"
               >
                 ×{quantity}
               </Badge>
             )}
-          </div>
-          <div className="p-2">
-            <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
-            <div className="mt-1">
-              <TagList tags={itemTags} />
-            </div>
           </div>
         </div>
         <CardModals
@@ -112,53 +120,61 @@ export function CollectionGoodsCardWrapper({
   }
 
   return (
-    <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden flex flex-col">
-      <div className="relative">
-        <CardHeader
-          title={title}
-          image={image}
-          onClick={() => setIsDetailsModalOpen(true)}
-          itemId={id}
-          isEditable={isOwner}
-          className="aspect-square"
-        />
-        {quantity > 1 && (
+    <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
+      <CardHeader
+        title={title}
+        image={image}
+        onClick={() => setIsDetailsModalOpen(true)}
+        itemId={id}
+        isEditable={isOwner}
+      />
+      <div className="px-3 py-2 relative">
+        <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
+        {isOwner && quantity > 1 && (
           <Badge 
-            className={`absolute top-2 right-2 ${isOwner ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1' : 'bg-blue-500'}`}
+            className="absolute bottom-0 right-2 bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1"
             onClick={(e) => {
-              if (isOwner) {
-                e.stopPropagation();
-                setIsQuantityEditModalOpen(true);
-              }
+              e.stopPropagation();
+              setIsQuantityEditModalOpen(true);
             }}
           >
-            {isOwner && <Pencil size={12} />}
+            <Pencil size={12} />
+            ×{quantity}
+          </Badge>
+        )}
+        {!isOwner && quantity > 1 && (
+          <Badge className="absolute bottom-0 right-2 bg-purple-500 hover:bg-purple-500">
             ×{quantity}
           </Badge>
         )}
       </div>
       
-      <div className="p-2">
-        <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
-        <div className="mt-1">
-          <TagList tags={itemTags} />
+      {/* カードの一番下部分 - いいねボタンと記録確認ボタン */}
+      <UICardFooter className="px-3 py-2 flex justify-center items-center">
+        <div className="flex items-center gap-4 w-full justify-center">
+          <LikeButton itemId={id} />
+          <button 
+            onClick={e => {
+              e.stopPropagation();
+              setIsMemoriesModalOpen(true);
+            }} 
+            className="flex flex-col items-center gap-0.5"
+            aria-label={`思い出: ${itemMemories.length}件`}
+          >
+            <div className={`h-7 w-7 p-1.5 ${itemMemories.length > 0 ? 'text-green-500' : 'text-gray-400'}`}>
+              <BookMarked className="h-full w-full" />
+            </div>
+            <span className="text-[10px] -mt-1 text-gray-500">{itemMemories.length}</span>
+          </button>
         </div>
-      </div>
-      
-      <div className="mt-auto">
-        <CollectionGoodsCardContent
-          id={id}
-          isOwner={isOwner}
-          onMemoriesClick={() => setIsMemoriesModalOpen(true)}
-        />
-      </div>
+      </UICardFooter>
       
       {/* アクションボタン */}
       {(isOwner || canTrade) && (
-        <UICardFooter className="px-2 py-1 pt-0">
+        <UICardFooter className="px-2 py-1">
           <CardActions
             hasMemories={false}
-            hasTags={itemTags.length > 0}
+            hasTags={false}
             onMemoriesClick={() => setIsMemoriesModalOpen(true)}
             onTagManageClick={() => setIsTagManageModalOpen(true)}
             onDeleteClick={() => setIsDeleteDialogOpen(true)}
@@ -170,7 +186,6 @@ export function CollectionGoodsCardWrapper({
           />
         </UICardFooter>
       )}
-      
       <CardModals
         itemId={id}
         itemTitle={title}
@@ -189,7 +204,6 @@ export function CollectionGoodsCardWrapper({
         onDetailsClose={() => setIsDetailsModalOpen(false)}
         onDeleteConfirm={handleDelete}
       />
-      
       {canTrade && (
         <TradeRequestModal
           isOpen={isTradeModalOpen}
@@ -199,7 +213,6 @@ export function CollectionGoodsCardWrapper({
           receiverId={userId!}
         />
       )}
-      
       {isOwner && (
         <QuantityEditModal
           isOpen={isQuantityEditModalOpen}
