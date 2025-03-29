@@ -9,10 +9,12 @@ export {
   getItemsGroupedByTag, 
   getTagsForItem, 
   isItemInUserCollection,
+} from './tag/tag-queries';
+export {
   getTagsByCategory,
   findTagIdByName,
   isSimpleTag
-} from './tag/tag-queries';
+} from './tag/tag-search';
 
 // Define a simplified ItemTag interface to avoid circular references
 export interface ItemTag {
