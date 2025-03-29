@@ -64,7 +64,11 @@ export async function addTagToItem(
     // SimpleItemTagの形式に変換して返す
     return {
       tag_id: data.tag_id,
-      tags: data.tags || null
+      tags: data.tags || {
+        id: '',
+        name: '',
+        category: ''
+      }
     };
   } catch (error) {
     console.error("Error adding tag to item:", error);

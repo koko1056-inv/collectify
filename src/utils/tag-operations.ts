@@ -5,22 +5,15 @@ export * from './tag/index';
 
 // タグ追加と削除関数を直接エクスポート
 export { addTagToItem, removeTagFromItem } from './tag/tag-mutations';
-
-// タグ関連のクエリ関数をエクスポート
 export { 
-  fetchOfficialItemTags,
-  fetchUserItemTags,
-  fetchMultipleItemsTags,
-  getTagsForItem,
-  isItemInUserCollection
+  getTagsForItem, 
+  isItemInUserCollection,
 } from './tag/tag-queries';
-
 export {
   getTagsByCategory,
   findTagIdByName,
   isSimpleTag
 } from './tag/tag-search';
-
 export {
   getItemsGroupedByTag
 } from './tag/tag-groups';

@@ -11,7 +11,6 @@ export * from './tag-groups';
 
 // types.tsから直接型をインポートして再エクスポート（重複を避けるため）
 export type { 
-  ContentInfo,
   SimpleTag,
   SimpleItemTag,
   TagGroupedItems 
