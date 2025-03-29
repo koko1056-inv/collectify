@@ -1,3 +1,4 @@
+
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Loading } from "@/components/ui/loading";
 import { useTradeRequests } from "@/hooks/trade/useTradeRequests";
@@ -29,7 +30,7 @@ export default function TradeRequests() {
     return <Loading />;
   }
   return <div className="pb-16 sm:pb-0 bg-gradient-to-b from-white to-gray-50 min-h-screen">
-      <div className="container py-8 max-w-2xl">
+      <div className="container py-8 pt-20 sm:pt-24 max-w-2xl">
         <h1 className="font-bold mb-6 text-center text-gray-900 pb-2 border-b border-gray-200 text-lg py-px">トレード管理</h1>
         
         <TradeTabs tradeRequests={tradeRequests} acceptedTrades={acceptedTrades} completedTrades={completedTrades} openTrades={openTrades} handleTradeResponse={handleTradeResponse} openChat={openChat} refreshOpenTrades={refreshOpenTrades} />

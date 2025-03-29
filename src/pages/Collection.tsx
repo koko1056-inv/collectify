@@ -18,7 +18,7 @@ export default function Collection() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar />
-      <main className={`container mx-auto ${isMobile ? 'px-4 py-8' : 'px-4 py-8 pt-24'}`}>
+      <main className={`container mx-auto ${isMobile ? 'px-4 py-8 pt-16' : 'px-4 py-8 pt-24'}`}>
         <div className="max-w-3xl mx-auto space-y-6">
           <FilterBar
             searchQuery={searchQuery}

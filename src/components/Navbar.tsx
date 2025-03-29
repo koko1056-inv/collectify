@@ -94,7 +94,7 @@ export function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-sm">
       {/* すべての画面で表示されるロゴ */}
       <div className="flex justify-center items-center h-10 pt-2 bg-white">
         <Link to="/" className="logo-text text-xl">

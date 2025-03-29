@@ -19,7 +19,7 @@ export async function getTagsForItem(
       .from(tableName)
       .select(`
         tag_id,
-        tags:tags (
+        tags (
           id,
           name,
           category,
@@ -38,7 +38,7 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
-    const result = data
+    const result: SimpleItemTag[] = data
       .filter((item) => item.tags) // nullのタグをフィルタリング
       .map((item) => ({
         tag_id: item.tag_id,

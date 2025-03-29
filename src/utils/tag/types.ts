@@ -19,7 +19,7 @@ export interface ContentInfo {
   type: string;
   created_at: string;
   created_by: string;
-  icon_name?: string;
+  icon_name?: string; // オプショナルプロパティとして追加
 }
 
 // タググループ化されたアイテムの型定義
