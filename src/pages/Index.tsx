@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useSearchParams } from "react-router-dom";
@@ -18,14 +18,14 @@ const Index = () => {
   const isMobile = useIsMobile();
   
   const { profile, refetchProfile } = useProfile(user?.id);
-  const { data: viewedProfile } = useProfile(userId);
+  const { profile: viewedProfile } = useProfile(userId);
 
   // ユーザーの興味関心が未設定の場合、ダイアログを表示
-  useState(() => {
+  useEffect(() => {
     if (user && profile && (!profile.interests || profile.interests.length === 0)) {
       setShowInterestDialog(true);
     }
-  });
+  }, [user, profile]);
 
   const handleInterestDialogClose = () => {
     setShowInterestDialog(false);
