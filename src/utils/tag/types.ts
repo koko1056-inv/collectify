@@ -1,5 +1,5 @@
 
-// 循環参照を防ぐために単純化されたタグインターフェース
+// タグの基本的な情報を表す単純なインターフェース
 export interface SimpleTag {
   id: string;
   name: string;
@@ -7,12 +7,15 @@ export interface SimpleTag {
   created_at?: string;
 }
 
-// 単純化されたタグ関連のインターフェース（無限再帰を防止）
+// アイテムタグの関連情報を表す単純なインターフェース
 export interface SimpleItemTag {
-  id: string;
+  id?: string;
   tag_id: string;
-  tags: SimpleTag;  // tagsを直接SimpleTagとして定義
+  tags: SimpleTag | null;
 }
 
-// タグごとのアイテムのマップ型
-export type ItemsByTagMap = Record<string, any[]>;
+// アイテムタグの更新情報
+export interface TagUpdate {
+  category: string;
+  value: string | null;
+}
