@@ -2,30 +2,21 @@
 import { Calendar, Tag, Star } from "lucide-react";
 
 interface ItemLabelValueProps {
+  icon: "calendar" | "tag" | "star";
   label: string;
   value: string;
-  icon: "calendar" | "tag" | "star";
 }
 
-export function ItemLabelValue({ label, value, icon }: ItemLabelValueProps) {
-  const renderIcon = () => {
-    switch (icon) {
-      case "calendar":
-        return <Calendar className="h-4 w-4 text-gray-500" />;
-      case "tag":
-        return <Tag className="h-4 w-4 text-gray-500" />;
-      case "star":
-        return <Star className="h-4 w-4 text-gray-500" />;
-      default:
-        return null;
-    }
-  };
-
+export function ItemLabelValue({ icon, label, value }: ItemLabelValueProps) {
   return (
     <div className="flex items-center gap-2">
-      {renderIcon()}
-      <span className="text-xs text-gray-500">{label}:</span>
-      <span className="text-xs font-medium">{value}</span>
+      {icon === "calendar" && <Calendar className="h-4 w-4 text-gray-500" />}
+      {icon === "tag" && <Tag className="h-4 w-4 text-gray-500" />}
+      {icon === "star" && <Star className="h-4 w-4 text-gray-500" />}
+      <div>
+        <span className="text-xs text-gray-500">{label}</span>
+        <p className="text-sm font-medium">{value}</p>
+      </div>
     </div>
   );
 }

@@ -13,7 +13,7 @@ export function TagList({ tags, className = "" }: TagListProps) {
   }
 
   const renderTag = (tag: SimpleTag | SimpleItemTag) => {
-    // SimpleItemTag型の場合
+    // SimpleItemTagの場合（tagsプロパティが存在する）
     if ('tags' in tag && tag.tags) {
       return (
         <Badge 
@@ -25,7 +25,7 @@ export function TagList({ tags, className = "" }: TagListProps) {
         </Badge>
       );
     } 
-    // SimpleTag型の場合
+    // SimpleTagの場合
     else {
       return (
         <Badge 

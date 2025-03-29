@@ -2,20 +2,13 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useItemDetailsForm } from "./item-details/useItemDetailsForm";
-import { ItemDetailsHeader } from "./item-details/ItemDetailsHeader";
-import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
-import { ItemDetailsFooter } from "./item-details/ItemDetailsFooter";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Heart, Share } from "lucide-react";
-import { Button } from "./ui/button";
-import { format } from "date-fns";
-import { Badge } from "./ui/badge";
-import { ItemLabelValue } from "./item-details/ItemLabelValue";
-import { useToast } from "@/hooks/use-toast";
-import { isItemInUserCollection } from "@/utils/tag/tag-queries";
 import { useEffect } from "react";
-import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
+import { isItemInUserCollection } from "@/utils/tag/tag-queries";
+import { ModalHeader } from "./item-details/ModalHeader";
+import { ItemStatistics } from "./item-details/ItemStatistics";
+import { ItemDetailInfo } from "./item-details/ItemDetailInfo";
+import { ItemButtons } from "./item-details/ItemButtons";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -49,64 +42,9 @@ export function ItemDetailsModal({
   contentName,
 }: ItemDetailsModalProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const isOwner = !userId || (user && user.id === userId);
-  const canEdit = isOwner || (!isUserItem && user !== null);
 
-  const {
-    isEditing,
-    isSaving,
-    editedData,
-    setIsEditing,
-    setEditedData,
-    handleSave,
-    handleCancel,
-  } = useItemDetailsForm({
-    title,
-    price,
-    releaseDate,
-    description,
-    quantity,
-    itemId,
-    isUserItem,
-    onEditComplete: () => setIsEditing(false),
-  });
-
-  const { data: memories = [] } = useQuery({
-    queryKey: ["item-memories", itemId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("item_memories")
-        .select("*")
-        .eq("user_item_id", itemId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-    enabled: isUserItem,
-  });
-
-  const { data: tags = [] } = useQuery({
-    queryKey: ["user-item-tags", itemId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_item_tags")
-        .select(`
-          tag_id,
-          tags (
-            id,
-            name,
-            category
-          )
-        `)
-        .eq("user_item_id", itemId);
-      if (error) throw error;
-      return data;
-    },
-    enabled: isUserItem,
-  });
-
+  // タグの取得
   const { data: officialTags = [] } = useQuery({
     queryKey: ["item-tags", itemId],
     queryFn: async () => {
@@ -164,7 +102,7 @@ export function ItemDetailsModal({
     enabled: !isUserItem,
   });
 
-  // トレードの数を取得 (このアイテムが関係するトレードの数)
+  // トレードの数を取得
   const { data: tradesCount = 0 } = useQuery({
     queryKey: ["item-trades-count", itemId],
     queryFn: async () => {
@@ -242,109 +180,10 @@ export function ItemDetailsModal({
     };
   }, [itemId, user?.id, isUserItem, queryClient, refetchIsInCollection, refetchOwnersCount]);
 
-  // コレクションにアイテムを追加する関数
-  const handleAddToCollection = async () => {
-    if (!user) {
-      toast({
-        title: "エラー",
-        description: "コレクションに追加するにはログインが必要です。",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Add to user's collection
-      const { data, error: insertError } = await supabase.from("user_items").insert({
-        title: title,
-        image: image,
-        release_date: releaseDate,
-        user_id: user.id,
-        prize: price || "0",
-        official_item_id: itemId,
-      }).select().single();
-
-      if (insertError) throw insertError;
-
-      if (data) {
-        await copyTagsFromOfficialItem(itemId, data.id);
-      }
-
-      // 状態を更新
-      await refetchIsInCollection();
-      await refetchOwnersCount();
-      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
-      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", itemId] });
-
-      toast({
-        title: "成功",
-        description: "コレクションに追加しました。",
-      });
-    } catch (error) {
-      console.error("Error adding to collection:", error);
-      toast({
-        title: "エラー",
-        description: "コレクションへの追加に失敗しました。",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // ウィッシュリストにアイテムを追加する関数
-  const handleAddToWishlist = async () => {
-    if (!user) {
-      toast({
-        title: "エラー",
-        description: "ウィッシュリストに追加するにはログインが必要です。",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Add to user's wishlist
-      const { error: insertError } = await supabase.from("wishlists").insert({
-        user_id: user.id,
-        official_item_id: itemId,
-      });
-
-      if (insertError) throw insertError;
-
-      await queryClient.invalidateQueries({ queryKey: ["wishlist", user.id] });
-
-      toast({
-        title: "成功",
-        description: "ウィッシュリストに追加しました。",
-      });
-    } catch (error) {
-      console.error("Error adding to wishlist:", error);
-      toast({
-        title: "エラー",
-        description: "ウィッシュリストへの追加に失敗しました。",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // アイテムタイプのタグを取得
-  const typeTag = officialTags.find(tag => tag.tags?.category === 'type')?.tags?.name || '';
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
-        {/* ヘッダー */}
-        <div className="flex items-center p-4 border-b relative">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onClose}
-            className="mr-2 h-8 w-8"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h2 className="text-sm font-medium flex-1 text-center">アイテム詳細</h2>
-          <div className="w-8"></div> {/* スペーサー */}
-        </div>
+        <ModalHeader onClose={onClose} />
         
         {/* メインコンテンツ */}
         <div className="flex-1 overflow-auto">
@@ -361,83 +200,32 @@ export function ItemDetailsModal({
           <div className="p-4">
             <h3 className="text-lg font-bold mb-2">{title}</h3>
             
-            {/* アクションボタン */}
-            <div className="flex justify-between items-center py-4 border-b border-gray-100">
-              <div className="flex flex-col items-center">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Heart className="h-5 w-5" />
-                </Button>
-                <span className="text-xs mt-1">{likesCount}いいね</span>
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <span className="text-sm font-medium">{ownersCount}</span>
-                </Button>
-                <span className="text-xs mt-1">所有者</span>
-              </div>
-              
-              <div className="flex flex-col items-center">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <span className="text-sm font-medium">{tradesCount}</span>
-                </Button>
-                <span className="text-xs mt-1">トレード</span>
-              </div>
-            </div>
+            {/* 統計情報 */}
+            <ItemStatistics 
+              likesCount={likesCount} 
+              ownersCount={ownersCount} 
+              tradesCount={tradesCount} 
+            />
             
             {/* アイテム詳細情報 */}
-            <div className="space-y-3 py-3 border-b border-gray-100">
-              <ItemLabelValue 
-                icon="calendar" 
-                label="発売日" 
-                value={format(new Date(releaseDate), 'yyyy-MM-dd')} 
-              />
-              
-              {typeTag && (
-                <ItemLabelValue 
-                  icon="tag" 
-                  label="カテゴリー" 
-                  value={typeTag} 
-                />
-              )}
-              
-              {officialTags.some(tag => tag.tags?.category === 'character') && (
-                <ItemLabelValue 
-                  icon="star" 
-                  label="レア度" 
-                  value="一般" 
-                />
-              )}
-            </div>
+            <ItemDetailInfo 
+              releaseDate={releaseDate} 
+              tags={officialTags} 
+            />
             
             {/* 下部アクションボタン */}
-            <div className="pt-4 space-y-3">
-              {/* コレクションに関するボタン */}
-              {!isUserItem && (
-                <>
-                  {isInCollection ? (
-                    <Button className="w-full bg-green-500 hover:bg-green-600" disabled>
-                      すでにコレクションに追加済みです
-                    </Button>
-                  ) : (
-                    <Button 
-                      className="w-full bg-blue-500 hover:bg-blue-600"
-                      onClick={handleAddToCollection}
-                    >
-                      コレクションに追加
-                    </Button>
-                  )}
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full text-blue-500 border-blue-500"
-                    onClick={handleAddToWishlist}
-                  >
-                    ウィッシュリストに追加
-                  </Button>
-                </>
-              )}
-            </div>
+            {!isUserItem && (
+              <ItemButtons 
+                isInCollection={isInCollection}
+                itemId={itemId}
+                title={title}
+                image={image}
+                releaseDate={releaseDate}
+                price={price}
+                refetchIsInCollection={refetchIsInCollection}
+                refetchOwnersCount={refetchOwnersCount}
+              />
+            )}
           </div>
         </div>
       </DialogContent>
