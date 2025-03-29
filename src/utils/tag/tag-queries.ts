@@ -19,7 +19,7 @@ export async function getTagsForItem(
       .from(tableName)
       .select(`
         tag_id,
-        tags (
+        tags:tag_id (
           id,
           name,
           category,

@@ -1,17 +1,8 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ContentInfo } from "./types";
 
-// 型定義を修正して icon_name プロパティを追加
-interface ContentData {
-  id: string;
-  name: string;
-  type: string;
-  created_at: string;
-  created_by: string;
-  icon_name?: string; // オプショナルプロパティとして追加
-}
-
-// 以下の関数を修正し、icon_nameプロパティの処理を適切に行います
+// コンテンツ情報を取得する関数
 export async function getAllContentNames(): Promise<ContentInfo[]> {
   try {
     const { data, error } = await supabase
@@ -24,7 +15,6 @@ export async function getAllContentNames(): Promise<ContentInfo[]> {
       return [];
     }
     
-    // アイコン名がない場合はundefinedにします
     return data.map(item => ({
       id: item.id,
       name: item.name,
@@ -39,10 +29,7 @@ export async function getAllContentNames(): Promise<ContentInfo[]> {
   }
 }
 
-// その他の関数も同様に修正します
-// ...
-
-// 以下の関数も icon_name プロパティを適切に処理するように修正
+// コンテンツ名を追加する関数
 export async function addContentName(name: string, type: string = 'other'): Promise<ContentInfo | null> {
   if (!name.trim()) return null;
   
@@ -72,10 +59,7 @@ export async function addContentName(name: string, type: string = 'other'): Prom
   }
 }
 
-// 他の関数も同様に修正します
-// ...
-
-// getContentByIdも同様に修正
+// IDからコンテンツを取得する関数
 export async function getContentById(id: string): Promise<ContentInfo | null> {
   if (!id) return null;
   
@@ -105,5 +89,26 @@ export async function getContentById(id: string): Promise<ContentInfo | null> {
   }
 }
 
-// 他の既存の関数はそのまま保持します
-// ...
+// アイテムのコンテンツを設定する関数（エラー修正のために追加）
+export async function setItemContent(itemId: string, contentId: string, isUserItem: boolean = false): Promise<boolean> {
+  if (!itemId || !contentId) return false;
+  
+  try {
+    const tableName = isUserItem ? "user_items" : "official_items";
+    
+    const { error } = await supabase
+      .from(tableName)
+      .update({ content_id: contentId })
+      .eq('id', itemId);
+    
+    if (error) {
+      console.error(`Error setting content for ${tableName}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Exception in setItemContent for ${itemId}:`, error);
+    return false;
+  }
+}
