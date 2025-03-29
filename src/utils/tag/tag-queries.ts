@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -37,12 +38,12 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
-    // ここで問題を修正: tags プロパティがnullの場合に適切に処理
+    // データの形式を適切に変換
     const result: SimpleItemTag[] = data
       .filter((item) => item.tags) // nullのタグをフィルタリング
       .map((item) => ({
         tag_id: item.tag_id,
-        tags: item.tags
+        tags: item.tags as { id: string; name: string; category: string; created_at: string }
       }));
       
     return result.sort((a, b) => {

@@ -149,7 +149,7 @@ export function CollectionGoodsCardWrapper({
         )}
       </div>
       
-      {/* カードの一番下部分 - いいねボタンと記録確認ボタン */}
+      {/* いいねボタン部分 */}
       <UICardFooter className="px-3 py-2 flex justify-center items-center">
         <div className="flex items-center gap-4 w-full justify-center">
           <LikeButton itemId={id} />
@@ -169,7 +169,7 @@ export function CollectionGoodsCardWrapper({
         </div>
       </UICardFooter>
       
-      {/* アクションボタン */}
+      {/* アクションボタン - 記録追加ボタンを下に配置 */}
       {(isOwner || canTrade) && (
         <UICardFooter className="px-2 py-1">
           <CardActions
