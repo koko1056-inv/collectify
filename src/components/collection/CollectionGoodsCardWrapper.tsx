@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
@@ -126,7 +125,7 @@ export function CollectionGoodsCardWrapper({
         <Button variant="outline" size="sm" onClick={e => {
         e.stopPropagation();
         setIsMemoriesModalOpen(true);
-      }} className="w-[98%] flex items-center justify-center gap-2 bg-slate-300 hover:bg-slate-200 px-3 py-2 mx-auto font-normal text-xs">
+      }} className="w-[98%] flex items-center justify-center gap-2 mx-auto font-normal text-xs px-[52px] my-0 py-[8px] bg-slate-950 hover:bg-slate-800 text-gray-50">
           <PlusCircle className="h-4 w-4" />
           <span>記録を追加</span>
         </Button>
