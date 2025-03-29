@@ -1,13 +1,13 @@
-
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Loading } from "@/components/ui/loading";
 import { useTradeRequests } from "@/hooks/trade/useTradeRequests";
 import { TradeModals } from "@/components/trade/TradeModals";
 import { TradeTabs } from "@/components/trade/TradeTabs";
 import { Footer } from "@/components/Footer";
-
 export default function TradeRequests() {
-  const { t } = useLanguage();
+  const {
+    t
+  } = useLanguage();
   const {
     tradeRequests,
     acceptedTrades,
@@ -25,37 +25,17 @@ export default function TradeRequests() {
     openChat,
     refreshOpenTrades
   } = useTradeRequests();
-
   if (isLoading) {
     return <Loading />;
   }
-
-  return (
-    <div className="pb-16 sm:pb-0 bg-gradient-to-b from-white to-gray-50 min-h-screen">
+  return <div className="pb-16 sm:pb-0 bg-gradient-to-b from-white to-gray-50 min-h-screen">
       <div className="container py-8 max-w-2xl">
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-900 pb-2 border-b border-gray-200">トレード管理</h1>
+        <h1 className="font-bold mb-6 text-center text-gray-900 pb-2 border-b border-gray-200 text-lg py-px">トレード管理</h1>
         
-        <TradeTabs
-          tradeRequests={tradeRequests}
-          acceptedTrades={acceptedTrades}
-          completedTrades={completedTrades}
-          openTrades={openTrades}
-          handleTradeResponse={handleTradeResponse}
-          openChat={openChat}
-          refreshOpenTrades={refreshOpenTrades}
-        />
+        <TradeTabs tradeRequests={tradeRequests} acceptedTrades={acceptedTrades} completedTrades={completedTrades} openTrades={openTrades} handleTradeResponse={handleTradeResponse} openChat={openChat} refreshOpenTrades={refreshOpenTrades} />
 
-        <TradeModals
-          selectedRequest={selectedRequest}
-          showCompletionModal={showCompletionModal}
-          showChatModal={showChatModal}
-          activeChatTradeId={activeChatTradeId}
-          setShowCompletionModal={setShowCompletionModal}
-          setSelectedRequest={setSelectedRequest}
-          setShowChatModal={setShowChatModal}
-        />
+        <TradeModals selectedRequest={selectedRequest} showCompletionModal={showCompletionModal} showChatModal={showChatModal} activeChatTradeId={activeChatTradeId} setShowCompletionModal={setShowCompletionModal} setSelectedRequest={setSelectedRequest} setShowChatModal={setShowChatModal} />
       </div>
       <Footer />
-    </div>
-  );
+    </div>;
 }
