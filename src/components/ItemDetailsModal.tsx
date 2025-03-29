@@ -55,7 +55,8 @@ export function ItemDetailsModal({
           tags (
             id,
             name,
-            category
+            category,
+            created_at
           )
         `)
         .eq("official_item_id", itemId);

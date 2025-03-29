@@ -19,3 +19,16 @@ export interface SimpleItemTag {
     created_at: string;
   } | null;
 }
+
+// SimpleTag型の定義を追加
+export interface SimpleTag {
+  id: string;
+  name: string;
+  category?: string;
+  created_at: string;
+}
+
+// TagGroupedItems型の定義を追加
+export interface TagGroupedItems {
+  [tagName: string]: any[];
+}

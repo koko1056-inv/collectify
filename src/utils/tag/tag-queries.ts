@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -43,12 +42,7 @@ export async function getTagsForItem(
       .filter((item) => item.tags) // nullのタグをフィルタリング
       .map((item) => ({
         tag_id: item.tag_id,
-        tags: item.tags ? {
-          id: item.tags.id,
-          name: item.tags.name,
-          category: item.tags.category,
-          created_at: item.tags.created_at
-        } : null
+        tags: item.tags
       }));
       
     return result.sort((a, b) => {
