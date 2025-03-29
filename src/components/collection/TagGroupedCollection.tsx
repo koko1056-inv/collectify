@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { getItemsGroupedByTag } from "@/utils/tag/tag-queries";
+import { getItemsGroupedByTag } from "@/utils/tag/tag-groups";
 import { CollectionGrid } from "./CollectionGrid";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DragEndEvent } from "@dnd-kit/core";
