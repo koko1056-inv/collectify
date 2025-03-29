@@ -1,5 +1,6 @@
 
-// タグの基本的な情報を表す単純なインターフェース
+// タグ関連の共通の型定義
+
 export interface SimpleTag {
   id: string;
   name: string;
@@ -7,19 +8,27 @@ export interface SimpleTag {
   created_at?: string;
 }
 
-// アイテムタグの関連情報を表す単純なインターフェース
 export interface SimpleItemTag {
   tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  };
+  tags: SimpleTag | null;
 }
 
-// アイテムタグの更新情報
-export interface TagUpdate {
-  category: string;
-  value: string | null;
+// ネストされた構造を持つタグ型
+export interface GroupedTags {
+  [category: string]: SimpleTag[];
 }
+
+// ユーザーアイテムの基本型
+export interface UserItem {
+  id: string;
+  title: string;
+  image: string;
+  user_id: string;
+  official_item_id?: string;
+  created_at?: string;
+  updated_at?: string;
+  quantity?: number;
+}
+
+// タグ付けされたアイテムグループの型
+export type TaggedItemGroups = Record<string, UserItem[]>;

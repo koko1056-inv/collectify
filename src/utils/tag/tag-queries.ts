@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleTag, SimpleItemTag } from "./types";
+import { SimpleTag, SimpleItemTag, TaggedItemGroups, UserItem } from "./types";
 
 // 特定のアイテムに関連するタグを取得
 export async function getTagsForItem(
@@ -112,7 +112,7 @@ export function isSimpleTag(tag: any): tag is SimpleTag {
 }
 
 // タグでグループ化されたアイテムを取得する関数
-export async function getItemsGroupedByTag(userId: string): Promise<Record<string, any[]>> {
+export async function getItemsGroupedByTag(userId: string): Promise<TaggedItemGroups> {
   try {
     // ユーザーのアイテムを取得
     const { data: userItems, error: itemsError } = await supabase
@@ -139,7 +139,7 @@ export async function getItemsGroupedByTag(userId: string): Promise<Record<strin
     }
 
     // アイテムをタグごとにグループ化
-    const groupedItems: Record<string, any[]> = {};
+    const groupedItems: TaggedItemGroups = {};
 
     userItems?.forEach(item => {
       if (!item.user_item_tags || item.user_item_tags.length === 0) {
@@ -147,7 +147,7 @@ export async function getItemsGroupedByTag(userId: string): Promise<Record<strin
         if (!groupedItems["未分類"]) {
           groupedItems["未分類"] = [];
         }
-        groupedItems["未分類"].push(item);
+        groupedItems["未分類"].push(item as UserItem);
         return;
       }
 
@@ -161,7 +161,7 @@ export async function getItemsGroupedByTag(userId: string): Promise<Record<strin
           // 同じアイテムが重複して追加されないよう確認
           const existingItem = groupedItems[tagName].find(existingItem => existingItem.id === item.id);
           if (!existingItem) {
-            groupedItems[tagName].push(item);
+            groupedItems[tagName].push(item as UserItem);
           }
         }
       });
