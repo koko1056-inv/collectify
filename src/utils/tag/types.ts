@@ -9,9 +9,13 @@ export interface SimpleTag {
 
 // アイテムタグの関連情報を表す単純なインターフェース
 export interface SimpleItemTag {
-  id?: string;
   tag_id: string;
-  tags: SimpleTag | null;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  };
 }
 
 // アイテムタグの更新情報

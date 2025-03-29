@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag, SimpleTag } from "./types";
+import { SimpleItemTag } from "./types";
 
 /**
  * アイテムにタグを追加する関数
@@ -50,7 +50,6 @@ export async function addTagToItem(
       .from(table)
       .insert(insertData)
       .select(`
-        id,
         tag_id,
         tags:tag_id (
           id,
@@ -61,7 +60,16 @@ export async function addTagToItem(
       .single();
 
     if (error) throw error;
-    return data;
+    
+    // SimpleItemTagの形式に変換して返す
+    return {
+      tag_id: data.tag_id,
+      tags: data.tags || {
+        id: '',
+        name: '',
+        category: ''
+      }
+    };
   } catch (error) {
     console.error("Error adding tag to item:", error);
     return null;

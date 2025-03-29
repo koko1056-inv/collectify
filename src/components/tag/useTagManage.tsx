@@ -124,10 +124,10 @@ export function useTagManage(
   };
 
   return {
-    currentTags: currentTags as SimpleItemTag[],
+    currentTags,
     pendingUpdates,
     contentName,
-    officialTags: officialTags as SimpleItemTag[],
+    officialTags,
     isLoading,
     handleTagChange,
     handleContentChange,

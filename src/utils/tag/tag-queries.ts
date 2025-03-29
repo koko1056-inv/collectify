@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleTag } from "./types";
+import { SimpleTag, SimpleItemTag } from "./types";
 
 // タグでグループ化されたアイテムを取得する関数
 export async function getItemsGroupedByTag(userId: string) {
@@ -96,7 +96,7 @@ export async function getTagsByCategory(category: string): Promise<SimpleTag[]> 
 }
 
 // アイテムのタグを取得する関数
-export async function getTagsForItem(itemId: string, isUserItem: boolean = false): Promise<SimpleTag[]> {
+export async function getTagsForItem(itemId: string, isUserItem: boolean = false): Promise<SimpleItemTag[]> {
   try {
     const table = isUserItem ? "user_item_tags" : "item_tags";
     const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
@@ -104,7 +104,8 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
     const { data, error } = await supabase
       .from(table)
       .select(`
-        tags (
+        tag_id,
+        tags:tag_id (
           id,
           name,
           category,
@@ -115,12 +116,16 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
 
     if (error) throw error;
     
-    // タグデータを抽出
-    const tags = data
-      .map(item => item.tags)
-      .filter((tag): tag is SimpleTag => tag !== null);
-    
-    return tags;
+    // SimpleItemTag形式に変換
+    return data.map(item => ({
+      tag_id: item.tag_id,
+      tags: item.tags || {
+        id: '',
+        name: '',
+        category: '',
+        created_at: ''
+      }
+    })).filter(tag => tag.tags !== null);
   } catch (error) {
     console.error("Error fetching tags for item:", error);
     return [];
