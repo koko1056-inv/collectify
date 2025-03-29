@@ -9,6 +9,12 @@ import { ModalHeader } from "./item-details/ModalHeader";
 import { ItemStatistics } from "./item-details/ItemStatistics";
 import { ItemDetailInfo } from "./item-details/ItemDetailInfo";
 import { ItemButtons } from "./item-details/ItemButtons";
+import { Button } from "./ui/button";
+import { Tag, Trash2 } from "lucide-react";
+import { useToast } from "./ui/use-toast";
+import { TagManageModal } from "./tag/TagManageModal";
+import { useState } from "react";
+import { deleteUserItem } from "@/utils/tag/user-item-operations";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -43,6 +49,9 @@ export function ItemDetailsModal({
 }: ItemDetailsModalProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [isTagModalOpen, setIsTagModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   // タグの取得
   const { data: officialTags = [] } = useQuery({
@@ -181,55 +190,149 @@ export function ItemDetailsModal({
     };
   }, [itemId, user?.id, isUserItem, queryClient, refetchIsInCollection, refetchOwnersCount]);
 
+  // アイテム削除ハンドラ
+  const handleDeleteItem = async () => {
+    if (!isUserItem || !itemId) return;
+    
+    try {
+      const { error, officialItemId } = await deleteUserItem(itemId);
+      if (error) throw error;
+
+      // Invalidate user items query
+      queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      
+      // Invalidate specific official item query if we have the ID
+      if (officialItemId) {
+        queryClient.invalidateQueries({ 
+          queryKey: ["user-item-exists", officialItemId, user?.id] 
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: ["item-owners-count", officialItemId] 
+        });
+      }
+      
+      toast({
+        title: "アイテムを削除しました",
+        description: "コレクションからアイテムを削除しました。",
+      });
+      
+      onClose(); // モーダルを閉じる
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      toast({
+        title: "エラー",
+        description: "アイテムの削除に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
-        <ModalHeader onClose={onClose} />
-        
-        {/* メインコンテンツ */}
-        <div className="flex-1 overflow-auto">
-          {/* アイテム画像 */}
-          <div className="aspect-square w-full">
-            <img 
-              src={image} 
-              alt={title} 
-              className="w-full h-full object-contain bg-gray-50"
-            />
-          </div>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
+          <ModalHeader onClose={onClose} />
           
-          {/* アイテム情報 */}
-          <div className="p-4">
-            <h3 className="text-lg font-bold mb-2">{title}</h3>
-            
-            {/* 統計情報 */}
-            <ItemStatistics 
-              likesCount={likesCount} 
-              ownersCount={ownersCount} 
-              tradesCount={tradesCount} 
-            />
-            
-            {/* アイテム詳細情報 */}
-            <ItemDetailInfo 
-              releaseDate={releaseDate} 
-              tags={officialTags} 
-            />
-            
-            {/* 下部アクションボタン */}
-            {!isUserItem && (
-              <ItemButtons 
-                isInCollection={isInCollection}
-                itemId={itemId}
-                title={title}
-                image={image}
-                releaseDate={releaseDate}
-                price={price}
-                refetchIsInCollection={refetchIsInCollection}
-                refetchOwnersCount={refetchOwnersCount}
+          {/* メインコンテンツ */}
+          <div className="flex-1 overflow-auto">
+            {/* アイテム画像 */}
+            <div className="aspect-square w-full">
+              <img 
+                src={image} 
+                alt={title} 
+                className="w-full h-full object-contain bg-gray-50"
               />
-            )}
+            </div>
+            
+            {/* アイテム情報 */}
+            <div className="p-4">
+              <h3 className="text-lg font-bold mb-2">{title}</h3>
+              
+              {/* 統計情報 */}
+              <ItemStatistics 
+                likesCount={likesCount} 
+                ownersCount={ownersCount} 
+                tradesCount={tradesCount} 
+              />
+              
+              {/* アイテム詳細情報 */}
+              <ItemDetailInfo 
+                releaseDate={releaseDate} 
+                tags={officialTags} 
+              />
+              
+              {/* ユーザーアイテムの場合の管理ボタン */}
+              {isUserItem && (
+                <div className="mt-4 flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+                    onClick={() => setIsTagModalOpen(true)}
+                  >
+                    <Tag className="h-4 w-4 mr-2" />
+                    タグを管理
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-500"
+                    onClick={() => setIsDeleteConfirmOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    削除
+                  </Button>
+                </div>
+              )}
+              
+              {/* 下部アクションボタン */}
+              {!isUserItem && (
+                <ItemButtons 
+                  isInCollection={isInCollection}
+                  itemId={itemId}
+                  title={title}
+                  image={image}
+                  releaseDate={releaseDate}
+                  price={price}
+                  refetchIsInCollection={refetchIsInCollection}
+                  refetchOwnersCount={refetchOwnersCount}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+      
+      {/* 削除確認ダイアログ */}
+      {isDeleteConfirmOpen && (
+        <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <h2 className="text-lg font-bold mb-2">アイテムの削除</h2>
+            <p className="mb-4">「{title}」をコレクションから削除しますか？</p>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsDeleteConfirmOpen(false)}
+              >
+                キャンセル
+              </Button>
+              <Button 
+                variant="destructive"
+                onClick={handleDeleteItem}
+              >
+                削除する
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+      
+      {/* タグ管理モーダル */}
+      <TagManageModal
+        isOpen={isTagModalOpen}
+        onClose={() => setIsTagModalOpen(false)}
+        itemIds={[itemId]}
+        itemTitle={title}
+        isUserItem={isUserItem}
+      />
+    </>
   );
 }

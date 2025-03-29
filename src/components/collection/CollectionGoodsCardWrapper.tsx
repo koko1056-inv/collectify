@@ -169,8 +169,8 @@ export function CollectionGoodsCardWrapper({
         </div>
       </UICardFooter>
       
-      {/* アクションボタン - 記録追加ボタンを下に配置 */}
-      {(isOwner || canTrade) && (
+      {/* トレードボタンのみ表示 - 記録追加ボタンは削除 */}
+      {canTrade && (
         <UICardFooter className="px-2 py-1">
           <CardActions
             hasMemories={false}
@@ -179,10 +179,8 @@ export function CollectionGoodsCardWrapper({
             onTagManageClick={() => setIsTagManageModalOpen(true)}
             onDeleteClick={() => setIsDeleteDialogOpen(true)}
             onTradeClick={() => setIsTradeModalOpen(true)}
-            onLikeClick={() => {}}
             showTradeButton={canTrade}
             isOtherUserCollection={isOtherUserCollection}
-            isLiked={false}
           />
         </UICardFooter>
       )}
