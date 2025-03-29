@@ -16,7 +16,7 @@ export interface SimpleItemTag {
     id: string;
     name: string;
     category?: string;
-    created_at?: string;
+    created_at?: string;  // オプショナルに変更
   } | null;
 }
 

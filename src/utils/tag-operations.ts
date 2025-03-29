@@ -12,7 +12,7 @@ export {
   fetchUserItemTags,
   fetchMultipleItemsTags,
   getTagsForItem,
-  isItemInUserCollection,
+  isItemInUserCollection
 } from './tag/tag-queries';
 
 export {

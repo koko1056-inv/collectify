@@ -64,6 +64,11 @@ export const fetchUserItemTags = async (itemId: string): Promise<SimpleItemTag[]
       throw error;
     }
 
+    // データがない場合は空配列を返す
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
+
     // nullのタグを適切に処理する
     return data.map((item) => ({
       tag_id: item.tag_id,
@@ -155,7 +160,7 @@ export const fetchMultipleItemsTags = async (
       result[id] = [];
     });
 
-    // データが存在する場合のみ処理
+    // データが存在し、有効な配列の場合にのみ処理
     if (data && Array.isArray(data)) {
       data.forEach(item => {
         const itemId = item[itemColumn];
@@ -163,16 +168,18 @@ export const fetchMultipleItemsTags = async (
           result[itemId] = [];
         }
 
-        // nullのタグを適切に処理する
-        result[itemId].push({
-          tag_id: item.tag_id,
-          tags: item.tags ? {
-            id: item.tags.id,
-            name: item.tags.name,
-            category: item.tags.category,
-            created_at: item.tags.created_at
-          } : null
-        });
+        // 各項目が必要なプロパティを持っていることを確認
+        if (item && 'tag_id' in item) {
+          result[itemId].push({
+            tag_id: item.tag_id,
+            tags: item.tags ? {
+              id: item.tags.id,
+              name: item.tags.name,
+              category: item.tags.category,
+              created_at: item.tags.created_at
+            } : null
+          });
+        }
       });
     }
 

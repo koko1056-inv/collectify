@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ContentInfo } from "./types";
 
@@ -6,7 +5,7 @@ import { ContentInfo } from "./types";
 export const fetchContentList = async (): Promise<ContentInfo[]> => {
   try {
     const { data, error } = await supabase
-      .from("content_names")  // content_infoからcontent_namesに変更
+      .from("content_names")
       .select("*")
       .order("name");
 
@@ -15,14 +14,14 @@ export const fetchContentList = async (): Promise<ContentInfo[]> => {
       throw error;
     }
 
-    // icon_nameプロパティがない場合に対応するための変換
+    // コンテンツデータを適切な形式に変換
     return (data || []).map(content => ({
       id: content.id,
       name: content.name,
       type: content.type || 'anime',
       created_at: content.created_at,
       created_by: content.created_by || '',
-      icon_name: content.icon_name || undefined
+      icon_name: undefined  // この列はテーブルに存在しないので、undefinedを設定
     }));
   } catch (error) {
     console.error("Error in fetchContentList:", error);
@@ -59,7 +58,7 @@ export const fetchContentByName = async (
 ): Promise<ContentInfo | null> => {
   try {
     const { data, error } = await supabase
-      .from("content_names")  // content_infoからcontent_namesに変更
+      .from("content_names")
       .select("*")
       .eq("name", contentName)
       .single();
@@ -69,14 +68,14 @@ export const fetchContentByName = async (
       return null;
     }
 
-    // icon_nameプロパティがない場合に対応
+    // コンテンツデータを適切な形式に変換
     return {
       id: data.id,
       name: data.name,
       type: data.type || 'anime',
       created_at: data.created_at,
       created_by: data.created_by || '',
-      icon_name: data.icon_name || undefined
+      icon_name: undefined  // この列はテーブルに存在しないので、undefinedを設定
     };
   } catch (error) {
     console.error("Error in fetchContentByName:", error);
@@ -91,28 +90,27 @@ export const createNewContent = async (
   iconName?: string
 ): Promise<ContentInfo | null> => {
   try {
+    // iconNameをinsertデータに含めるかどうかを決定
+    const insertData = iconName 
+      ? { name, type, icon_name: iconName }
+      : { name, type };
+
     const { data, error } = await supabase
-      .from("content_names")  // content_infoからcontent_namesに変更
-      .insert([
-        { 
-          name, 
-          type,
-          icon_name: iconName
-        }
-      ])
+      .from("content_names")
+      .insert([insertData])
       .select()
       .single();
 
     if (error) throw error;
     
-    // icon_nameプロパティがない場合に対応
+    // コンテンツデータを適切な形式に変換
     return {
       id: data.id,
       name: data.name,
       type: data.type || 'anime',
       created_at: data.created_at,
       created_by: data.created_by || '',
-      icon_name: data.icon_name || undefined
+      icon_name: undefined  // この列はテーブルに存在しないので、undefinedを設定
     };
   } catch (error) {
     console.error("Error creating new content:", error);
