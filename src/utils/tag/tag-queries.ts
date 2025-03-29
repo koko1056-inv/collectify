@@ -153,7 +153,7 @@ export async function getItemsGroupedByTag(userId: string): Promise<TaggedItemGr
         id: userItem.id,
         title: userItem.title,
         image: userItem.image,
-        user_id: userItem.user_id,
+        user_id: userItem.user_id || userId, // user_idが欠けている場合は現在のユーザーIDを使用
         official_item_id: userItem.official_item_id,
         created_at: userItem.created_at,
         updated_at: userItem.updated_at,

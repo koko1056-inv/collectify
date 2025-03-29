@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Truck, Clock, CheckCircle, Globe, MessageCircle, X, Check, ArrowLeftRight } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface TradeCardProps {
   trade: TradeRequest;
@@ -128,42 +129,40 @@ export function TradeCard({
       {/* トレードユーザー表示 */}
       <div className="flex items-center justify-center gap-3 py-2">
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
+          <Avatar className="h-12 w-12">
             {trade.sender.id === user?.id ? (
-              <img 
-                src={user?.avatar_url || '/placeholder.svg'} 
+              <AvatarImage 
+                src={user.user_metadata?.avatar_url || '/placeholder.svg'} 
                 alt="Your avatar" 
-                className="w-full h-full object-cover" 
               />
             ) : (
-              <img 
+              <AvatarImage 
                 src={trade.sender.avatar_url || '/placeholder.svg'} 
                 alt={trade.sender.username} 
-                className="w-full h-full object-cover" 
               />
             )}
-          </div>
+            <AvatarFallback>{trade.sender.username?.charAt(0).toUpperCase()}</AvatarFallback>
+          </Avatar>
           <span className="text-xs mt-1">{trade.sender.id === user?.id ? 'あなた' : trade.sender.username}</span>
         </div>
         
         <ArrowLeftRight className="text-blue-500" size={20} />
         
         <div className="flex flex-col items-center">
-          <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
+          <Avatar className="h-12 w-12">
             {trade.receiver?.id === user?.id ? (
-              <img 
-                src={user?.avatar_url || '/placeholder.svg'} 
+              <AvatarImage 
+                src={user.user_metadata?.avatar_url || '/placeholder.svg'}
                 alt="Your avatar" 
-                className="w-full h-full object-cover" 
               />
             ) : (
-              <img 
+              <AvatarImage 
                 src={trade.receiver?.avatar_url || '/placeholder.svg'} 
                 alt={trade.receiver?.username || 'Receiver'} 
-                className="w-full h-full object-cover" 
               />
             )}
-          </div>
+            <AvatarFallback>{trade.receiver?.username?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
+          </Avatar>
           <span className="text-xs mt-1">{trade.receiver?.id === user?.id ? 'あなた' : trade.receiver?.username || '未定'}</span>
         </div>
       </div>

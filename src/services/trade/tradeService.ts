@@ -13,12 +13,14 @@ const tradeRequestSelectQuery = `
   sender:profiles!trade_requests_sender_id_fkey(
     id,
     username,
-    display_name
+    display_name,
+    avatar_url
   ),
   receiver:profiles!trade_requests_receiver_id_fkey(
     id,
     username,
-    display_name
+    display_name,
+    avatar_url
   ),
   offered_item:user_items!trade_requests_offered_item_id_fkey(
     id,
