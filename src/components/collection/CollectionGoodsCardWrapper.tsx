@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
@@ -120,12 +121,12 @@ export function CollectionGoodsCardWrapper({
         </div>
       </UICardFooter>
       
-      {/* 記録を追加ボタンを復活させる */}
+      {/* 記録を追加ボタンを復活させる - 横幅を大きくしました */}
       <UICardFooter className="px-3 py-2 flex justify-center items-center">
         <Button variant="outline" size="sm" onClick={e => {
         e.stopPropagation();
         setIsMemoriesModalOpen(true);
-      }} className="w-full flex items-center justify-center gap-2 bg-slate-300 hover:bg-slate-200 px-[2px] mx-px font-thin text-xs">
+      }} className="w-[98%] flex items-center justify-center gap-2 bg-slate-300 hover:bg-slate-200 px-3 py-2 mx-auto font-normal text-xs">
           <PlusCircle className="h-4 w-4" />
           <span>記録を追加</span>
         </Button>
