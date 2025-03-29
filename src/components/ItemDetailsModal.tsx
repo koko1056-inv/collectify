@@ -1,6 +1,6 @@
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useItemDetailsForm } from "./item-details/useItemDetailsForm";
 import { ItemDetailsHeader } from "./item-details/ItemDetailsHeader";
@@ -14,6 +14,8 @@ import { Badge } from "./ui/badge";
 import { ItemLabelValue } from "./item-details/ItemLabelValue";
 import { useToast } from "@/hooks/use-toast";
 import { isItemInUserCollection } from "@/utils/tag/tag-queries";
+import { useEffect } from "react";
+import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -48,6 +50,7 @@ export function ItemDetailsModal({
 }: ItemDetailsModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const isOwner = !userId || (user && user.id === userId);
   const canEdit = isOwner || (!isUserItem && user !== null);
 
@@ -142,7 +145,7 @@ export function ItemDetailsModal({
   });
 
   // 所有者の数を取得
-  const { data: ownersCount = 0 } = useQuery({
+  const { data: ownersCount = 0, refetch: refetchOwnersCount } = useQuery({
     queryKey: ["item-owners-count", itemId],
     queryFn: async () => {
       if (!isUserItem) {
@@ -211,6 +214,34 @@ export function ItemDetailsModal({
     enabled: !isUserItem && !!user,
   });
 
+  // リアルタイム更新のために購読を設定
+  useEffect(() => {
+    if (!user || isUserItem) return;
+
+    const channel = supabase
+      .channel('user-items-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_items',
+          filter: `user_id=eq.${user.id} and official_item_id=eq.${itemId}`
+        },
+        async () => {
+          await refetchIsInCollection();
+          await refetchOwnersCount();
+          await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
+          await queryClient.invalidateQueries({ queryKey: ["item-owners-count", itemId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [itemId, user?.id, isUserItem, queryClient, refetchIsInCollection, refetchOwnersCount]);
+
   // コレクションにアイテムを追加する関数
   const handleAddToCollection = async () => {
     if (!user) {
@@ -224,19 +255,26 @@ export function ItemDetailsModal({
 
     try {
       // Add to user's collection
-      const { error: insertError } = await supabase.from("user_items").insert({
+      const { data, error: insertError } = await supabase.from("user_items").insert({
         title: title,
         image: image,
         release_date: releaseDate,
         user_id: user.id,
         prize: price || "0",
         official_item_id: itemId,
-      });
+      }).select().single();
 
       if (insertError) throw insertError;
 
+      if (data) {
+        await copyTagsFromOfficialItem(itemId, data.id);
+      }
+
       // 状態を更新
-      refetchIsInCollection();
+      await refetchIsInCollection();
+      await refetchOwnersCount();
+      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", itemId] });
 
       toast({
         title: "成功",
@@ -271,6 +309,8 @@ export function ItemDetailsModal({
       });
 
       if (insertError) throw insertError;
+
+      await queryClient.invalidateQueries({ queryKey: ["wishlist", user.id] });
 
       toast({
         title: "成功",
