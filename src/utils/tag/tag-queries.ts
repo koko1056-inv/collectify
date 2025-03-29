@@ -1,15 +1,22 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag } from "./types";
+import { SimpleTag, SimpleItemTag } from "./types";
 
-// 特定のアイテムに関連するタグを取得
-export async function getTagsForItem(
-  itemId: string,
-  isUserItem: boolean
-): Promise<SimpleItemTag[]> {
+// アイテムに関連付けられたタグを取得する
+export async function getItemTags(
+  itemId: string | null,
+  isUserItem: boolean = false
+): Promise<SimpleTag[]> {
+  if (!itemId) return [];
+
   try {
+    // テーブル名を決定
+    const tableName = isUserItem ? "user_item_tags" : "item_tags";
+    const itemColumn = isUserItem ? "user_item_id" : "official_item_id";
+
+    // タグを取得
     const { data, error } = await supabase
-      .from(isUserItem ? "user_item_tags" : "item_tags")
+      .from(tableName)
       .select(`
         tag_id,
         tags (
@@ -19,16 +26,20 @@ export async function getTagsForItem(
           created_at
         )
       `)
-      .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
+      .eq(itemColumn, itemId);
 
     if (error) {
-      console.error("Error fetching tags for item:", error);
+      console.error(`Error fetching tags for ${tableName}:`, error);
       return [];
     }
 
-    return data as SimpleItemTag[];
+    // 結果を変換して返す
+    return data
+      .filter((item: SimpleItemTag) => item.tags) // nullのタグをフィルタリング
+      .map((item: SimpleItemTag) => item.tags as SimpleTag)
+      .sort((a: SimpleTag, b: SimpleTag) => a.name.localeCompare(b.name));
   } catch (error) {
-    console.error("Error in getTagsForItem:", error);
+    console.error(`Error in getItemTags for ${itemId}:`, error);
     return [];
   }
 }

@@ -9,6 +9,13 @@ export const enTranslations = {
       user: "Find Users"
     }
   },
+  footer: {
+    home: "Home",
+    search: "Search",
+    collection: "Collection",
+    trade: "Trade",
+    profile: "Profile"
+  },
   tabs: {
     official: "Official Goods",
     collection: "My Collection"

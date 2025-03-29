@@ -10,10 +10,10 @@ export const jaTranslations = {
     }
   },
   footer: {
-    home: "",
-    search: "検索",
+    home: "ホーム",
+    search: "探す",
+    collection: "コレクション",
     trade: "トレード",
-    wishlist: "ウィッシュ",
     profile: "プロフィール"
   },
   tabs: {

@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users, ShoppingBasket, Repeat2, User } from "lucide-react";
+import { Home, Search, Package, ArrowLeftRight, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
@@ -21,52 +21,63 @@ export function Footer() {
     <>
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t sm:hidden">
         <div className="flex justify-around items-center h-16">
-          <button
-            onClick={() => setIsFriendsListOpen(true)}
+          <Link
+            to="/"
             className={cn(
-              "flex items-center justify-center w-12 h-12"
+              "flex flex-col items-center justify-center w-1/5 text-xs",
+              isActive("/") ? "text-primary" : "text-gray-500"
             )}
           >
-            <Users className="h-6 w-6" />
-          </button>
-
-          <button
-            onClick={() => setIsWishlistModalOpen(true)}
-            className="flex items-center justify-center w-12 h-12"
+            <Home className={cn("h-6 w-6 mb-1", isActive("/") ? "text-primary" : "text-gray-400")} />
+            <span>ホーム</span>
+          </Link>
+          
+          <Link
+            to="/search"
+            className={cn(
+              "flex flex-col items-center justify-center w-1/5 text-xs",
+              isActive("/search") ? "text-primary" : "text-gray-500"
+            )}
           >
-            <ShoppingBasket className="h-6 w-6" />
-          </button>
+            <Search className={cn("h-6 w-6 mb-1", isActive("/search") ? "text-primary" : "text-gray-400")} />
+            <span>探す</span>
+          </Link>
 
           <Link
             to="/"
             className={cn(
-              "flex items-center justify-center",
-              isActive("/") && "text-primary"
+              "flex flex-col items-center justify-center w-1/5 text-xs",
+              isActive("/collection") ? "text-primary" : "text-gray-500"
             )}
+            onClick={(e) => {
+              e.preventDefault();
+              setIsWishlistModalOpen(true);
+            }}
           >
-            <div className="bg-primary rounded-full p-3">
-              <Home className="h-6 w-6 text-white" />
-            </div>
+            <Package className={cn("h-6 w-6 mb-1", isActive("/collection") ? "text-primary" : "text-gray-400")} />
+            <span>コレクション</span>
           </Link>
 
           <Link
             to="/trades"
             className={cn(
-              "flex items-center justify-center w-12 h-12",
-              isActive("/trades") && "text-primary"
+              "flex flex-col items-center justify-center w-1/5 text-xs",
+              isActive("/trades") ? "text-primary" : "text-gray-500"
             )}
           >
-            <Repeat2 className="h-6 w-6" />
+            <ArrowLeftRight className={cn("h-6 w-6 mb-1", isActive("/trades") ? "text-primary" : "text-gray-400")} />
+            <span>トレード</span>
           </Link>
 
           <Link
             to="/edit-profile"
             className={cn(
-              "flex items-center justify-center w-12 h-12",
-              isActive("/edit-profile") && "text-primary"
+              "flex flex-col items-center justify-center w-1/5 text-xs",
+              isActive("/edit-profile") ? "text-primary" : "text-gray-500"
             )}
           >
-            <User className="h-6 w-6" />
+            <User className={cn("h-6 w-6 mb-1", isActive("/edit-profile") ? "text-primary" : "text-gray-400")} />
+            <span>プロフィール</span>
           </Link>
         </div>
       </div>
