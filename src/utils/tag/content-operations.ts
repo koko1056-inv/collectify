@@ -6,7 +6,7 @@ import { ContentInfo } from "./types";
 export async function getContentInfo(contentId: string): Promise<ContentInfo | null> {
   try {
     const { data, error } = await supabase
-      .from("contents")
+      .from("content_names")
       .select("*")
       .eq("id", contentId)
       .single();
@@ -38,7 +38,7 @@ export async function getContentInfo(contentId: string): Promise<ContentInfo | n
 export async function getAvailableContents(): Promise<ContentInfo[]> {
   try {
     const { data, error } = await supabase
-      .from("contents")
+      .from("content_names")
       .select("*")
       .order("name");
 
@@ -75,7 +75,7 @@ export async function getContentIdByName(contentName: string): Promise<string | 
 
   try {
     const { data, error } = await supabase
-      .from("contents")
+      .from("content_names")
       .select("id")
       .eq("name", contentName)
       .single();
@@ -100,7 +100,7 @@ export async function getContentById(contentId: string): Promise<ContentInfo | n
 
   try {
     const { data, error } = await supabase
-      .from("contents")
+      .from("content_names")
       .select("*")
       .eq("id", contentId)
       .single();
