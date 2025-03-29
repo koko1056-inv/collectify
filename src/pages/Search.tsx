@@ -75,7 +75,7 @@ const Search = () => {
       <Navbar />
       <main className="container mx-auto px-2 py-4 pt-0 pb-24 sm:px-4 sm:py-8 sm:pt-20 sm:pb-8">
         <div className="flex items-center justify-center mb-2 sm:hidden mt-1">
-          <span className="logo-text">探す</span>
+          <span className="logo-text">Collectify</span>
         </div>
 
         <div className={`space-y-4 sm:space-y-6 ${isMobile ? "pt-2" : ""}`}>

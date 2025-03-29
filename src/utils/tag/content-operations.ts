@@ -1,14 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-
-export interface ContentInfo {
-  id: string;
-  name: string;
-  type: string;
-  created_at: string;
-  created_by: string;
-  icon_name: string;
-}
+import { ContentInfo } from "./types";
 
 // テーブルからコンテンツ情報を取得する
 export async function getContentInfo(): Promise<ContentInfo[]> {
@@ -38,7 +30,7 @@ export async function getContentInfo(): Promise<ContentInfo[]> {
   }
 }
 
-// コンテンツ名のみを取得する関数を追加
+// コンテンツ名のみを取得する関数
 export async function getContentNames(): Promise<ContentInfo[]> {
   return getContentInfo();
 }
@@ -120,7 +112,7 @@ export async function addContentInfo(newContent: Omit<ContentInfo, 'id' | 'creat
   }
 }
 
-// アイテムのコンテンツを設定する関数を追加
+// アイテムのコンテンツを設定する関数
 export async function setItemContent(
   itemId: string, 
   contentName: string | null, 

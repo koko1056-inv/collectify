@@ -36,7 +36,7 @@ export async function getTagsForItem(
     // 結果を変換して返す
     return data
       .filter((item) => item.tags) // nullのタグをフィルタリング
-      .map(item => ({
+      .map((item) => ({
         tag_id: item.tag_id,
         tags: item.tags ? {
           id: item.tags.id,
