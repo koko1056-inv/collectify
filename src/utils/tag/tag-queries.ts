@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleTag, SimpleItemTag, TaggedItemGroups, UserItem } from "./types";
+import { SimpleTag, SimpleItemTag, TaggedItemGroups, UserItem, TagQueryItem } from "./types";
 
 // 特定のアイテムに関連するタグを取得
 export async function getTagsForItem(
@@ -122,6 +122,10 @@ export async function getItemsGroupedByTag(userId: string): Promise<TaggedItemGr
         title,
         image,
         quantity,
+        user_id,
+        official_item_id,
+        created_at,
+        updated_at,
         user_item_tags (
           tag_id,
           tags (
@@ -142,16 +146,30 @@ export async function getItemsGroupedByTag(userId: string): Promise<TaggedItemGr
     const groupedItems: TaggedItemGroups = {};
 
     userItems?.forEach(item => {
-      if (!item.user_item_tags || item.user_item_tags.length === 0) {
+      const userItem = item as unknown as TagQueryItem;
+      
+      // UserItemに変換する
+      const convertedItem: UserItem = {
+        id: userItem.id,
+        title: userItem.title,
+        image: userItem.image,
+        user_id: userItem.user_id,
+        official_item_id: userItem.official_item_id,
+        created_at: userItem.created_at,
+        updated_at: userItem.updated_at,
+        quantity: userItem.quantity
+      };
+      
+      if (!userItem.user_item_tags || userItem.user_item_tags.length === 0) {
         // タグがないアイテムは「未分類」に入れる
         if (!groupedItems["未分類"]) {
           groupedItems["未分類"] = [];
         }
-        groupedItems["未分類"].push(item as UserItem);
+        groupedItems["未分類"].push(convertedItem);
         return;
       }
 
-      item.user_item_tags.forEach((tagRelation: any) => {
+      userItem.user_item_tags.forEach((tagRelation) => {
         if (tagRelation.tags) {
           const tagName = tagRelation.tags.name;
           if (!groupedItems[tagName]) {
@@ -159,9 +177,9 @@ export async function getItemsGroupedByTag(userId: string): Promise<TaggedItemGr
           }
           
           // 同じアイテムが重複して追加されないよう確認
-          const existingItem = groupedItems[tagName].find(existingItem => existingItem.id === item.id);
+          const existingItem = groupedItems[tagName].find(existingItem => existingItem.id === userItem.id);
           if (!existingItem) {
-            groupedItems[tagName].push(item as UserItem);
+            groupedItems[tagName].push(convertedItem);
           }
         }
       });

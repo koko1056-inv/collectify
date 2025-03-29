@@ -18,7 +18,23 @@ export interface GroupedTags {
   [category: string]: SimpleTag[];
 }
 
-// ユーザーアイテムの基本型
+// ユーザーアイテムの基本型（既存の UserItem と重複しないように、TagQueryItem として定義）
+export interface TagQueryItem {
+  id: string;
+  title: string;
+  image: string;
+  quantity?: number;
+  user_id: string;
+  official_item_id?: string;
+  created_at?: string;
+  updated_at?: string;
+  user_item_tags?: Array<{
+    tag_id: string;
+    tags: SimpleTag | null;
+  }>;
+}
+
+// 既存の UserItem インターフェースを維持
 export interface UserItem {
   id: string;
   title: string;
