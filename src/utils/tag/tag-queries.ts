@@ -33,6 +33,10 @@ export async function getTagsForItem(
       return [];
     }
 
+    if (!data || data.length === 0) {
+      return [];
+    }
+
     // 結果を変換して返す
     const result = data
       .filter((item) => item.tags) // nullのタグをフィルタリング
