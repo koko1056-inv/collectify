@@ -94,3 +94,52 @@ export async function getTagsByCategory(category: string): Promise<SimpleTag[]> 
     return [];
   }
 }
+
+// アイテムのタグを取得する関数
+export async function getTagsForItem(itemId: string, isUserItem: boolean = false): Promise<SimpleTag[]> {
+  try {
+    const table = isUserItem ? "user_item_tags" : "item_tags";
+    const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
+
+    const { data, error } = await supabase
+      .from(table)
+      .select(`
+        tags (
+          id,
+          name,
+          category,
+          created_at
+        )
+      `)
+      .eq(itemIdField, itemId);
+
+    if (error) throw error;
+    
+    // タグデータを抽出
+    const tags = data
+      .map(item => item.tags)
+      .filter((tag): tag is SimpleTag => tag !== null);
+    
+    return tags;
+  } catch (error) {
+    console.error("Error fetching tags for item:", error);
+    return [];
+  }
+}
+
+// 特定の公式アイテムが既にユーザーのコレクションに存在するか確認する関数
+export async function isItemInUserCollection(officialItemId: string, userId: string): Promise<boolean> {
+  try {
+    const { count, error } = await supabase
+      .from("user_items")
+      .select("*", { count: 'exact', head: true })
+      .eq("official_item_id", officialItemId)
+      .eq("user_id", userId);
+    
+    if (error) throw error;
+    return (count || 0) > 0;
+  } catch (error) {
+    console.error("Error checking if item is in collection:", error);
+    return false;
+  }
+}

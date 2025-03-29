@@ -12,6 +12,8 @@ import { Button } from "./ui/button";
 import { format } from "date-fns";
 import { Badge } from "./ui/badge";
 import { ItemLabelValue } from "./item-details/ItemLabelValue";
+import { useToast } from "@/hooks/use-toast";
+import { isItemInUserCollection } from "@/utils/tag/tag-queries";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -45,6 +47,7 @@ export function ItemDetailsModal({
   contentName,
 }: ItemDetailsModalProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const isOwner = !userId || (user && user.id === userId);
   const canEdit = isOwner || (!isUserItem && user !== null);
 
@@ -198,6 +201,91 @@ export function ItemDetailsModal({
     enabled: true,
   });
 
+  // アイテムがユーザーのコレクションに既に存在するかをチェック
+  const { data: isInCollection = false, refetch: refetchIsInCollection } = useQuery({
+    queryKey: ["is-in-collection", itemId, user?.id],
+    queryFn: async () => {
+      if (!user || isUserItem) return isUserItem;
+      return await isItemInUserCollection(itemId, user.id);
+    },
+    enabled: !isUserItem && !!user,
+  });
+
+  // コレクションにアイテムを追加する関数
+  const handleAddToCollection = async () => {
+    if (!user) {
+      toast({
+        title: "エラー",
+        description: "コレクションに追加するにはログインが必要です。",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Add to user's collection
+      const { error: insertError } = await supabase.from("user_items").insert({
+        title: title,
+        image: image,
+        release_date: releaseDate,
+        user_id: user.id,
+        prize: price || "0",
+        official_item_id: itemId,
+      });
+
+      if (insertError) throw insertError;
+
+      // 状態を更新
+      refetchIsInCollection();
+
+      toast({
+        title: "成功",
+        description: "コレクションに追加しました。",
+      });
+    } catch (error) {
+      console.error("Error adding to collection:", error);
+      toast({
+        title: "エラー",
+        description: "コレクションへの追加に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // ウィッシュリストにアイテムを追加する関数
+  const handleAddToWishlist = async () => {
+    if (!user) {
+      toast({
+        title: "エラー",
+        description: "ウィッシュリストに追加するにはログインが必要です。",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Add to user's wishlist
+      const { error: insertError } = await supabase.from("wishlists").insert({
+        user_id: user.id,
+        official_item_id: itemId,
+      });
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: "成功",
+        description: "ウィッシュリストに追加しました。",
+      });
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+      toast({
+        title: "エラー",
+        description: "ウィッシュリストへの追加に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
   // アイテムタイプのタグを取得
   const typeTag = officialTags.find(tag => tag.tags?.category === 'type')?.tags?.name || '';
 
@@ -284,13 +372,31 @@ export function ItemDetailsModal({
             
             {/* 下部アクションボタン */}
             <div className="pt-4 space-y-3">
-              <Button className="w-full bg-green-500 hover:bg-green-600">
-                すでにコレクションに追加済みです
-              </Button>
-              
-              <Button variant="outline" className="w-full text-blue-500 border-blue-500">
-                ウィッシュリストに追加
-              </Button>
+              {/* コレクションに関するボタン */}
+              {!isUserItem && (
+                <>
+                  {isInCollection ? (
+                    <Button className="w-full bg-green-500 hover:bg-green-600" disabled>
+                      すでにコレクションに追加済みです
+                    </Button>
+                  ) : (
+                    <Button 
+                      className="w-full bg-blue-500 hover:bg-blue-600"
+                      onClick={handleAddToCollection}
+                    >
+                      コレクションに追加
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full text-blue-500 border-blue-500"
+                    onClick={handleAddToWishlist}
+                  >
+                    ウィッシュリストに追加
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
