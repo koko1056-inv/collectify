@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { LikeButton } from "./LikeButton";
 import { BookMarked } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CollectionGoodsCardContentProps {
   id: string;
@@ -33,28 +34,32 @@ export function CollectionGoodsCardContent({
     },
     enabled: !!id,
     refetchOnWindowFocus: true,
-    staleTime: 0, // Changed from 1000 to 0 to ensure immediate updates
-    refetchInterval: 2000 // Add periodic refetching every 2 seconds
+    staleTime: 0,
+    refetchInterval: 2000
   });
 
-  return <UICardContent className="px-3 py-1 space-y-0.5">
-      <div className="flex items-center justify-center">
-        <div className="flex items-center gap-2">
+  return (
+    <UICardContent className="px-2 py-1 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
           <LikeButton itemId={id} />
-          <button 
-            onClick={e => {
-              e.stopPropagation();
-              onMemoriesClick();
-            }} 
-            className="flex flex-col items-center gap-0.5"
-            aria-label={`思い出: ${itemMemories.length}件`}
-          >
-            <div className={`h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${itemMemories.length > 0 ? 'text-green-500' : 'text-gray-400'}`}>
-              <BookMarked className="h-full w-full" />
-            </div>
-            <span className="text-[10px] sm:text-xs -mt-1 text-gray-500">{itemMemories.length}</span>
-          </button>
+          <span className="text-[10px] text-gray-500">0</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <BookMarked className="h-4 w-4 text-gray-400" />
+          <span className="text-[10px] text-gray-500">{itemMemories.length}</span>
         </div>
       </div>
-    </UICardContent>;
+      <Button 
+        variant="default" 
+        className="w-full h-8 bg-gray-900 hover:bg-gray-800 text-xs rounded-md"
+        onClick={(e) => {
+          e.stopPropagation();
+          onMemoriesClick();
+        }}
+      >
+        記録を追加
+      </Button>
+    </UICardContent>
+  );
 }
