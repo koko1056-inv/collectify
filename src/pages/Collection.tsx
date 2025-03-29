@@ -4,7 +4,6 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserCollection } from "@/components/UserCollection";
-import { FilterBar } from "@/components/FilterBar";
 import { useTags } from "@/hooks/useTags";
 
 export default function Collection() {
@@ -20,15 +19,7 @@ export default function Collection() {
       <Navbar />
       <main className={`container mx-auto pt-28 ${isMobile ? 'px-4 py-8' : 'px-4 py-8'}`}>
         <div className="max-w-3xl mx-auto space-y-6">
-          <FilterBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            selectedContent={selectedContent}
-            onContentChange={setSelectedContent}
-            tags={allTags}
-          />
+          {/* FilterBarコンポーネントを削除しました */}
           
           <UserCollection
             selectedTags={selectedTags}
