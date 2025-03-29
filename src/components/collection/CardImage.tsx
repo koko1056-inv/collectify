@@ -13,9 +13,10 @@ interface CardImageProps {
   title: string;
   itemId?: string;
   isEditable?: boolean;
+  className?: string;
 }
 
-export function CardImage({ image, title, itemId, isEditable = false }: CardImageProps) {
+export function CardImage({ image, title, itemId, isEditable = false, className = "" }: CardImageProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
@@ -89,18 +90,18 @@ export function CardImage({ image, title, itemId, isEditable = false }: CardImag
   };
 
   return (
-    <div className="aspect-square relative overflow-hidden rounded-t-lg group">
+    <div className={`aspect-square relative overflow-hidden ${className}`}>
       <img
         key={`${image}-${Date.now()}`}
         src={image}
         alt={title}
-        className="w-full h-full transition-all duration-300 hover:scale-105 object-cover"
+        className="w-full h-full object-cover"
       />
       {isEditable && (
         <Button
           variant="secondary"
           size="icon"
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity"
           onClick={() => setIsEditing(true)}
         >
           <Pencil className="h-4 w-4" />

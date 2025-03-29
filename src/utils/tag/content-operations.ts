@@ -2,117 +2,116 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ContentInfo } from "./types";
 
-// コンテンツ情報を取得する関数
-export async function getAllContentNames(): Promise<ContentInfo[]> {
+// コンテンツ情報の取得
+export const fetchContentList = async (): Promise<ContentInfo[]> => {
   try {
     const { data, error } = await supabase
-      .from('content_names')
-      .select('*')
-      .order('name');
-    
+      .from("content_info")
+      .select("*")
+      .order("name");
+
     if (error) {
-      console.error('Error fetching content names:', error);
-      return [];
+      console.error("Error fetching content list:", error);
+      throw error;
     }
-    
-    return data.map(item => ({
-      id: item.id,
-      name: item.name,
-      type: item.type,
-      created_at: item.created_at,
-      created_by: item.created_by,
-      // icon_nameプロパティが存在するか確認し、存在しない場合はundefinedを設定
-      icon_name: item.icon_name || undefined
+
+    // icon_nameプロパティがない場合に対応するための変換
+    return (data || []).map(content => ({
+      id: content.id,
+      name: content.name,
+      type: content.type,
+      created_at: content.created_at,
+      created_by: content.created_by,
+      icon_name: content.icon_name || undefined
     }));
   } catch (error) {
-    console.error('Exception in getAllContentNames:', error);
+    console.error("Error in fetchContentList:", error);
     return [];
   }
-}
+};
 
-// コンテンツ名を追加する関数
-export async function addContentName(name: string, type: string = 'other'): Promise<ContentInfo | null> {
-  if (!name.trim()) return null;
-  
+// アイテムのコンテンツ情報を設定
+export const setItemContent = async (
+  itemId: string,
+  contentName: string
+) => {
   try {
-    const { data, error } = await supabase
-      .from('content_names')
-      .insert([{ name, type, created_by: 'system' }])
-      .select('*')
-      .single();
-    
-    if (error) {
-      console.error('Error adding content name:', error);
-      return null;
-    }
-    
-    return {
-      id: data.id,
-      name: data.name,
-      type: data.type,
-      created_at: data.created_at,
-      created_by: data.created_by,
-      // icon_nameプロパティが存在するか確認し、存在しない場合はundefinedを設定
-      icon_name: data.icon_name || undefined
-    };
-  } catch (error) {
-    console.error('Exception in addContentName:', error);
-    return null;
-  }
-}
-
-// IDからコンテンツを取得する関数
-export async function getContentById(id: string): Promise<ContentInfo | null> {
-  if (!id) return null;
-  
-  try {
-    const { data, error } = await supabase
-      .from('content_names')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching content by ID:', error);
-      return null;
-    }
-    
-    return {
-      id: data.id,
-      name: data.name,
-      type: data.type,
-      created_at: data.created_at,
-      created_by: data.created_by,
-      // icon_nameプロパティが存在するか確認し、存在しない場合はundefinedを設定
-      icon_name: data.icon_name || undefined
-    };
-  } catch (error) {
-    console.error('Exception in getContentById:', error);
-    return null;
-  }
-}
-
-// アイテムのコンテンツを設定する関数（エラー修正のために追加）
-export async function setItemContent(itemId: string, contentName: string | null, isUserItem: boolean = false): Promise<boolean> {
-  if (!itemId) return false;
-  
-  try {
-    const tableName = isUserItem ? "user_items" : "official_items";
-    
-    // content_idではなくcontent_nameを使用するように修正
     const { error } = await supabase
-      .from(tableName)
+      .from("official_items")
       .update({ content_name: contentName })
-      .eq('id', itemId);
-    
-    if (error) {
-      console.error(`Error setting content for ${tableName}:`, error);
-      return false;
-    }
-    
+      .eq("id", itemId);
+
+    if (error) throw error;
     return true;
   } catch (error) {
-    console.error(`Exception in setItemContent for ${itemId}:`, error);
+    console.error("Error setting item content:", error);
     return false;
   }
-}
+};
+
+// コンテンツ名による検索
+export const fetchContentByName = async (
+  contentName: string
+): Promise<ContentInfo | null> => {
+  try {
+    const { data, error } = await supabase
+      .from("content_info")
+      .select("*")
+      .eq("name", contentName)
+      .single();
+
+    if (error) {
+      console.error("Error fetching content by name:", error);
+      return null;
+    }
+
+    // icon_nameプロパティがない場合に対応
+    return {
+      id: data.id,
+      name: data.name,
+      type: data.type,
+      created_at: data.created_at,
+      created_by: data.created_by,
+      icon_name: data.icon_name || undefined
+    };
+  } catch (error) {
+    console.error("Error in fetchContentByName:", error);
+    return null;
+  }
+};
+
+// 新しいコンテンツの作成
+export const createNewContent = async (
+  name: string,
+  type: string = "anime",
+  iconName?: string
+): Promise<ContentInfo | null> => {
+  try {
+    const { data, error } = await supabase
+      .from("content_info")
+      .insert([
+        { 
+          name, 
+          type,
+          icon_name: iconName
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    // icon_nameプロパティがない場合に対応
+    return {
+      id: data.id,
+      name: data.name,
+      type: data.type,
+      created_at: data.created_at,
+      created_by: data.created_by,
+      icon_name: data.icon_name || undefined
+    };
+  } catch (error) {
+    console.error("Error creating new content:", error);
+    return null;
+  }
+};

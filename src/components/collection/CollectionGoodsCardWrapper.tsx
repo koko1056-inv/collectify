@@ -13,8 +13,9 @@ import { TradeRequestModal } from "../trade/TradeRequestModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Pencil } from "lucide-react";
+import { Pencil, Heart, BookMarked, PlusCircle } from "lucide-react";
 import { QuantityEditModal } from "./QuantityEditModal";
+import { Button } from "../ui/button";
 
 interface CollectionGoodsCardWrapperProps {
   title: string;
@@ -49,6 +50,27 @@ export function CollectionGoodsCardWrapper({
   const isOwner = !userId || (user && user.id === userId);
   const canTrade = !isOwner && user !== null;
   const isOtherUserCollection = !isOwner && userId !== undefined;
+  
+  const { data: itemMemories = [] } = useQuery({
+    queryKey: ["item-memories", id],
+    queryFn: async () => {
+      if (!id) return [];
+      const { data, error } = await supabase
+        .from("item_memories")
+        .select("*")
+        .eq("user_item_id", id)
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Error fetching memories:", error);
+        throw error;
+      }
+      return data || [];
+    },
+    enabled: !!id,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    refetchInterval: 2000
+  });
 
   if (isOtherUserCollection || isCompact) {
     return (
@@ -57,21 +79,31 @@ export function CollectionGoodsCardWrapper({
         onClick={() => setIsDetailsModalOpen(true)}
       >
         <div className="space-y-2">
-          <CardImage 
-            title={title} 
-            image={image} 
-            itemId={id}
-            isEditable={false}
-          />
-          <div className="p-2 relative">
+          <div className="relative">
+            <CardImage 
+              title={title} 
+              image={image} 
+              itemId={id}
+              isEditable={false}
+            />
+            <Badge 
+              className="absolute top-2 right-2 bg-blue-500 hover:bg-blue-500 rounded-full"
+            >
+              ×{quantity}
+            </Badge>
+          </div>
+          <div className="p-2 pb-3 relative">
             <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
-            {quantity > 1 && (
-              <Badge 
-                className="absolute bottom-2 right-2 bg-purple-500 hover:bg-purple-500"
-              >
-                ×{quantity}
-              </Badge>
-            )}
+            <div className="flex items-center justify-between mt-1">
+              <div className="flex items-center gap-1">
+                <Heart className="h-3 w-3 text-gray-400" />
+                <span className="text-[10px] text-gray-500">0</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <BookMarked className="h-3 w-3 text-gray-400" />
+                <span className="text-[10px] text-gray-500">0</span>
+              </div>
+            </div>
           </div>
         </div>
         <CardModals
@@ -98,54 +130,54 @@ export function CollectionGoodsCardWrapper({
 
   return (
     <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
-      <CardHeader
-        title={title}
-        image={image}
-        onClick={() => setIsDetailsModalOpen(true)}
-        itemId={id}
-        isEditable={isOwner}
-      />
-      <div className="px-3 py-2 relative">
-        <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
-        {isOwner && quantity > 1 && (
-          <Badge 
-            className="absolute bottom-0 right-2 bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsQuantityEditModalOpen(true);
-            }}
-          >
-            <Pencil size={12} />
-            ×{quantity}
-          </Badge>
-        )}
-        {!isOwner && quantity > 1 && (
-          <Badge className="absolute bottom-0 right-2 bg-purple-500 hover:bg-purple-500">
-            ×{quantity}
-          </Badge>
-        )}
+      <div className="relative">
+        <CardImage 
+          title={title} 
+          image={image} 
+          itemId={id}
+          isEditable={isOwner}
+        />
+        <Badge 
+          className={`absolute top-2 right-2 ${isOwner ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1' : 'bg-blue-500'} rounded-full`}
+          onClick={isOwner ? (e) => {
+            e.stopPropagation();
+            setIsQuantityEditModalOpen(true);
+          } : undefined}
+        >
+          {isOwner && <Pencil size={10} className="mr-0.5" />}
+          ×{quantity}
+        </Badge>
       </div>
-      <CollectionGoodsCardContent
-        id={id}
-        isOwner={isOwner}
-        onMemoriesClick={() => setIsMemoriesModalOpen(true)}
-      />
-      {(isOwner || canTrade) && (
-        <UICardFooter className="px-2 py-1">
-          <CardActions
-            hasMemories={false}
-            hasTags={false}
-            onMemoriesClick={() => setIsMemoriesModalOpen(true)}
-            onTagManageClick={() => setIsTagManageModalOpen(true)}
-            onDeleteClick={() => setIsDeleteDialogOpen(true)}
-            onTradeClick={() => setIsTradeModalOpen(true)}
-            onLikeClick={() => {}}
-            showTradeButton={canTrade}
-            isOtherUserCollection={isOtherUserCollection}
-            isLiked={false}
-          />
-        </UICardFooter>
-      )}
+
+      <div onClick={() => setIsDetailsModalOpen(true)} className="cursor-pointer">
+        <div className="px-3 py-2 relative">
+          <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
+          <div className="flex items-center justify-between mt-1">
+            <div className="flex items-center gap-1">
+              <Heart className="h-3 w-3 text-gray-400" />
+              <span className="text-[10px] text-gray-500">0</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <BookMarked className="h-3 w-3 text-gray-400" />
+              <span className="text-[10px] text-gray-500">{itemMemories.length || 0}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <UICardFooter className="p-0">
+        <Button 
+          className="w-full rounded-none bg-black hover:bg-gray-800 text-white text-xs py-1.5 flex items-center justify-center gap-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsMemoriesModalOpen(true);
+          }}
+        >
+          <PlusCircle className="h-3.5 w-3.5" />
+          記録を追加
+        </Button>
+      </UICardFooter>
+
       <CardModals
         itemId={id}
         itemTitle={title}
