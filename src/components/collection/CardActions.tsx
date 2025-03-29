@@ -1,6 +1,5 @@
-
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Tag, Repeat } from "lucide-react";
+import { Trash2, Tag, Repeat } from "lucide-react";
 
 interface CardActionsProps {
   onMemoriesClick: () => void;
@@ -93,7 +92,7 @@ export function CardActions({
         </Button>
       </div>
       
-      {/* 記録を追加ボタンを全幅で表示し、他のボタンの下に配置 */}
+      {/* 記録を追加ボタン - プラスアイコンなし */}
       <Button 
         variant="default"
         size="sm"
@@ -103,7 +102,6 @@ export function CardActions({
         }}
         className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-7 px-2 text-xs w-full justify-center mt-1"
       >
-        <PlusCircle className="h-3 w-3 mr-1" />
         記録を追加
       </Button>
     </div>
