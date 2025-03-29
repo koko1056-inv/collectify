@@ -85,7 +85,7 @@ export function FollowButton({ userId }: FollowButtonProps) {
       size="sm"
       onClick={handleFollow}
       disabled={isLoading}
-      className="gap-2"
+      className="w-full gap-2"
     >
       {isFollowing ? (
         <>

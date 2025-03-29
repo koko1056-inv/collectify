@@ -34,7 +34,7 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
-    return data
+    const result = data
       .filter((item) => item.tags) // nullのタグをフィルタリング
       .map((item) => ({
         tag_id: item.tag_id,
@@ -44,11 +44,12 @@ export async function getTagsForItem(
           category: item.tags.category,
           created_at: item.tags.created_at
         } : null
-      }))
-      .sort((a, b) => {
-        if (!a.tags || !b.tags) return 0;
-        return a.tags.name.localeCompare(b.tags.name);
-      });
+      }));
+      
+    return result.sort((a, b) => {
+      if (!a.tags || !b.tags) return 0;
+      return a.tags.name.localeCompare(b.tags.name);
+    });
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
     return [];
