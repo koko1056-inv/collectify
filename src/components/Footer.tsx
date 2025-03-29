@@ -19,11 +19,6 @@ export function Footer() {
     <>
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t sm:hidden">
         <div className="flex flex-col w-full">
-          {/* ロゴ部分 */}
-          <div className="flex items-center justify-center py-2 border-b border-gray-100">
-            <span className="logo-text text-lg">Collectify</span>
-          </div>
-          
           {/* ナビゲーションボタン */}
           <div className="flex justify-around items-center h-16">
             <Link

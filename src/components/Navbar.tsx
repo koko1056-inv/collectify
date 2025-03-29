@@ -95,6 +95,13 @@ export function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b">
+      {/* すべての画面で表示されるロゴ */}
+      <div className="flex justify-center items-center h-10 pt-2 bg-white">
+        <Link to="/" className="logo-text text-xl">
+          Collectify
+        </Link>
+      </div>
+      
       <div className="hidden sm:flex h-14 sm:h-16 items-center px-2 sm:px-4 sm:container sm:mx-auto">
         <Link to="/" className="logo-text">
           Collectify

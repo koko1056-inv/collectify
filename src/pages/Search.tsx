@@ -39,10 +39,6 @@ const Search = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="container mx-auto px-2 py-4 pt-0 pb-24 sm:px-4 sm:py-8 sm:pt-20 sm:pb-8">
-        <div className="flex items-center justify-center mb-6 sm:mb-8 mt-4">
-          <span className="logo-text text-2xl font-bold">Collectify</span>
-        </div>
-
         <div className={`space-y-4 sm:space-y-6 ${isMobile ? "pt-2" : ""}`}>
           {!isMobile && (
             <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
