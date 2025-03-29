@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getContentNames } from "@/utils/tag/content-operations";
 
 interface ContentNameSectionProps {
   contentName: string | null;
@@ -23,7 +22,12 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
   const { data: contentNames = [], isLoading: isContentLoading } = useQuery({
     queryKey: ["content-names"],
     queryFn: async () => {
-      return await getContentNames();
+      const { data, error } = await supabase
+        .from("content_names")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
     },
   });
 

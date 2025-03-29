@@ -26,11 +26,31 @@ export async function getContentInfo(contentId: string): Promise<ContentInfo | n
       type: data.type,
       created_at: data.created_at,
       created_by: data.created_by,
-      icon_name: data.icon_name || "box" // デフォルト値を設定
+      icon_name: data.icon_name || "box" // アイコンがない場合のデフォルト値
     };
   } catch (error) {
     console.error("Error in getContentInfo:", error);
     return null;
+  }
+}
+
+// 使用可能なすべてのコンテンツ名を取得する関数
+export async function getContentNames(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from("content_names")
+      .select("name")
+      .order("name");
+
+    if (error) {
+      console.error("Error fetching content names:", error);
+      return [];
+    }
+
+    return data?.map(item => item.name) || [];
+  } catch (error) {
+    console.error("Error in getContentNames:", error);
+    return [];
   }
 }
 
@@ -59,7 +79,7 @@ export async function getAvailableContents(): Promise<ContentInfo[]> {
       type: item.type,
       created_at: item.created_at,
       created_by: item.created_by,
-      icon_name: item.icon_name || "box" // デフォルト値を設定
+      icon_name: item.icon_name || "box" // アイコンがない場合のデフォルト値
     }));
   } catch (error) {
     console.error("Error in getAvailableContents:", error);
@@ -120,7 +140,7 @@ export async function getContentById(contentId: string): Promise<ContentInfo | n
       type: data.type,
       created_at: data.created_at,
       created_by: data.created_by,
-      icon_name: data.icon_name || "box" // デフォルト値を設定
+      icon_name: data.icon_name || "box" // アイコンがない場合のデフォルト値
     };
   } catch (error) {
     console.error("Error in getContentById:", error);
