@@ -26,11 +26,11 @@ export async function getContentInfo(contentName: string | null): Promise<Conten
 }
 
 // コンテンツ名の一覧を取得
-export async function getContentNames(): Promise<string[]> {
+export async function getContentNames(): Promise<ContentInfo[]> {
   try {
     const { data, error } = await supabase
       .from("content_names")
-      .select("name")
+      .select("*")
       .order("name");
     
     if (error) {
@@ -38,7 +38,7 @@ export async function getContentNames(): Promise<string[]> {
       return [];
     }
     
-    return data.map(item => item.name);
+    return data as ContentInfo[];
   } catch (error) {
     console.error("Error in getContentNames:", error);
     return [];
@@ -86,10 +86,37 @@ export async function getContentsByType(contentType: string): Promise<ContentInf
       name: item.name,
       type: item.type,
       created_at: item.created_at,
-      created_by: item.created_by
+      created_by: item.created_by,
+      icon_name: item.icon_name
     }));
   } catch (error) {
     console.error(`Error in getContentsByType for ${contentType}:`, error);
     return [];
+  }
+}
+
+// アイテムのコンテンツを設定
+export async function setItemContent(
+  itemId: string,
+  contentName: string | null,
+  isUserItem: boolean
+): Promise<boolean> {
+  try {
+    const table = isUserItem ? "user_items" : "official_items";
+    
+    const { error } = await supabase
+      .from(table)
+      .update({ content_name: contentName })
+      .eq("id", itemId);
+    
+    if (error) {
+      console.error(`Error setting content for ${table} ${itemId}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error in setItemContent for ${itemId}:`, error);
+    return false;
   }
 }
