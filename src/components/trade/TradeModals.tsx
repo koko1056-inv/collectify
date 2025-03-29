@@ -1,7 +1,7 @@
 
-import { TradeRequest } from "./types";
 import { TradeCompletionModal } from "./TradeCompletionModal";
 import { ChatModal } from "../chat/ChatModal";
+import { TradeRequest } from "./types";
 
 interface TradeModalsProps {
   selectedRequest: TradeRequest | null;
@@ -20,7 +20,7 @@ export function TradeModals({
   activeChatTradeId,
   setShowCompletionModal,
   setSelectedRequest,
-  setShowChatModal
+  setShowChatModal,
 }: TradeModalsProps) {
   return (
     <>
@@ -35,11 +35,11 @@ export function TradeModals({
         />
       )}
 
-      {activeChatTradeId && (
+      {activeChatTradeId && selectedRequest && (
         <ChatModal
           isOpen={showChatModal}
           onClose={() => setShowChatModal(false)}
-          partnerId={selectedRequest?.sender.id || ''}
+          partnerId={selectedRequest.sender.id === selectedRequest.receiver?.id ? selectedRequest.receiver.id : selectedRequest.sender.id}
           tradeRequestId={activeChatTradeId}
         />
       )}

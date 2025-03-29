@@ -25,7 +25,7 @@ export function OpenTradesList({
 }: OpenTradesListProps) {
   const { user } = useAuth();
 
-  // Set up real-time subscription for open trade requests
+  // リアルタイムサブスクリプションの設定
   useEffect(() => {
     if (!user) return;
     
@@ -54,10 +54,11 @@ export function OpenTradesList({
       <div className="mt-4">
         <h2 className="text-xl font-semibold mb-4">オープントレード一覧</h2>
         <ScrollArea className="h-[calc(50vh-220px)]">
-          <div className="space-y-4 pr-4">
+          <div className="space-y-6 pr-4">
             {trades.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                現在オープンなトレードリクエストはありません
+              <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
+                <img src="/placeholder.svg" alt="No open trades" className="w-24 h-24 mb-4 opacity-50" />
+                <p>現在オープンなトレードリクエストはありません</p>
               </div>
             ) : (
               trades.map((trade) => (

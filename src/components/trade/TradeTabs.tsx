@@ -7,7 +7,7 @@ import { OpenTradesList } from "./OpenTradesList";
 import { TradeRequest } from "./types";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, Gift, Send, Inbox } from "lucide-react";
+import { Heart, Gift, Send, Inbox, ArrowLeftRight } from "lucide-react";
 
 interface TradeTabsProps {
   tradeRequests: TradeRequest[];
@@ -31,11 +31,6 @@ export function TradeTabs({
   const [showTradeTabs, setShowTradeTabs] = useState(true);
   const [showOpenTrades, setShowOpenTrades] = useState(false);
 
-  const toggleView = () => {
-    setShowTradeTabs(!showTradeTabs);
-    setShowOpenTrades(!showOpenTrades);
-  };
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between">
@@ -58,7 +53,7 @@ export function TradeTabs({
           }}
           className={`flex-1 rounded-l-none ${showOpenTrades ? "bg-black text-white" : "text-gray-600"}`}
         >
-          <Send className="mr-2 h-4 w-4" />
+          <ArrowLeftRight className="mr-2 h-4 w-4" />
           オープントレード
         </Button>
       </div>
