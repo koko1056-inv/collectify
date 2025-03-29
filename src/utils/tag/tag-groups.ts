@@ -39,9 +39,7 @@ export async function getItemsGroupedByTag(userId: string): Promise<TagGroupedIt
       
       // 各タグに対して処理
       for (const tag of tags) {
-        if (!tag.tags) continue;
-        
-        const tagName = tag.tags.name;
+        const tagName = tag.name;
         if (!itemsByTag[tagName]) {
           itemsByTag[tagName] = [];
         }

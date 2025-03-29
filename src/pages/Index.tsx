@@ -11,6 +11,8 @@ import { OfficialItem, Tag, Profile } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSearchParams } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { PopularCollectors } from "@/components/profile/PopularCollectors";
+import { FeaturedCollections } from "@/components/home/FeaturedCollections";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,6 +138,10 @@ const Index = () => {
     refetchProfile();
   };
 
+  // ユーザーIDがある場合は他のユーザーのコレクションを表示、
+  // そうでない場合はホーム画面を表示
+  const showUserCollection = !!userId;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -145,37 +151,54 @@ const Index = () => {
         </div>
 
         <div className={`space-y-4 sm:space-y-6 ${isMobile ? "pt-2" : ""}`}>
-          {userId && viewedProfile && (
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 px-2">
-              {viewedProfile.username}さんのコレクション
-            </h1>
-          )}
+          {userId && viewedProfile ? (
+            <>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 px-2">
+                {viewedProfile.username}さんのコレクション
+              </h1>
 
-          {!isMobile && (
-            <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
-              <FilterBar
+              {!isMobile && (
+                <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
+                  <FilterBar
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    selectedTags={selectedTags}
+                    onTagsChange={setSelectedTags}
+                    selectedContent={selectedContent}
+                    onContentChange={setSelectedContent}
+                    tags={allTags}
+                  />
+                </div>
+              )}
+
+              <CollectionTabs
+                filteredItems={sortedItems}
+                selectedTags={selectedTags}
+                userId={userId}
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-                selectedContent={selectedContent}
+                selectedContent={selectedContent} 
                 onContentChange={setSelectedContent}
                 tags={allTags}
+                onTagsChange={setSelectedTags}
               />
-            </div>
+            </>
+          ) : (
+            <>
+              {/* ホーム画面コンテンツ */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* 左側: 注目のコレクション (モバイルでは全幅、デスクトップでは2/3幅) */}
+                <div className="md:col-span-2">
+                  <FeaturedCollections />
+                </div>
+                
+                {/* 右側: 人気のコレクター (モバイルでは全幅、デスクトップでは1/3幅) */}
+                <div className="md:col-span-1">
+                  <PopularCollectors />
+                </div>
+              </div>
+            </>
           )}
-
-          <CollectionTabs
-            filteredItems={sortedItems}
-            selectedTags={selectedTags}
-            userId={userId}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedContent={selectedContent} 
-            onContentChange={setSelectedContent}
-            tags={allTags}
-            onTagsChange={setSelectedTags}
-          />
 
           {user && (
             <InitialInterestSelection
