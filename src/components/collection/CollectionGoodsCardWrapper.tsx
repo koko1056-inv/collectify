@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
@@ -16,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Heart, BookMarked, PlusCircle } from "lucide-react";
 import { QuantityEditModal } from "./QuantityEditModal";
 import { Button } from "../ui/button";
-
 interface CollectionGoodsCardWrapperProps {
   title: string;
   image: string;
@@ -27,7 +25,6 @@ interface CollectionGoodsCardWrapperProps {
   quantity?: number;
   isCompact?: boolean;
 }
-
 export function CollectionGoodsCardWrapper({
   title,
   image,
@@ -36,7 +33,7 @@ export function CollectionGoodsCardWrapper({
   releaseDate,
   prize,
   quantity = 1,
-  isCompact = false,
+  isCompact = false
 }: CollectionGoodsCardWrapperProps) {
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
@@ -44,22 +41,27 @@ export function CollectionGoodsCardWrapper({
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [isQuantityEditModalOpen, setIsQuantityEditModalOpen] = useState(false);
-
-  const { handleDelete } = useCardEventHandlers(id);
-  const { user } = useAuth();
-  const isOwner = !userId || (user && user.id === userId);
+  const {
+    handleDelete
+  } = useCardEventHandlers(id);
+  const {
+    user
+  } = useAuth();
+  const isOwner = !userId || user && user.id === userId;
   const canTrade = !isOwner && user !== null;
   const isOtherUserCollection = !isOwner && userId !== undefined;
-  
-  const { data: itemMemories = [] } = useQuery({
+  const {
+    data: itemMemories = []
+  } = useQuery({
     queryKey: ["item-memories", id],
     queryFn: async () => {
       if (!id) return [];
-      const { data, error } = await supabase
-        .from("item_memories")
-        .select("*")
-        .eq("user_item_id", id)
-        .order("created_at", { ascending: false });
+      const {
+        data,
+        error
+      } = await supabase.from("item_memories").select("*").eq("user_item_id", id).order("created_at", {
+        ascending: false
+      });
       if (error) {
         console.error("Error fetching memories:", error);
         throw error;
@@ -71,24 +73,12 @@ export function CollectionGoodsCardWrapper({
     staleTime: 0,
     refetchInterval: 2000
   });
-
   if (isOtherUserCollection || isCompact) {
-    return (
-      <Card 
-        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden"
-        onClick={() => setIsDetailsModalOpen(true)}
-      >
+    return <Card className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden" onClick={() => setIsDetailsModalOpen(true)}>
         <div className="space-y-2">
           <div className="relative">
-            <CardImage 
-              title={title} 
-              image={image} 
-              itemId={id}
-              isEditable={false}
-            />
-            <Badge 
-              className="absolute top-2 right-2 bg-blue-500 hover:bg-blue-500 rounded-full"
-            >
+            <CardImage title={title} image={image} itemId={id} isEditable={false} />
+            <Badge className="absolute top-2 right-2 bg-blue-500 hover:bg-blue-500 rounded-full">
               ×{quantity}
             </Badge>
           </div>
@@ -106,44 +96,16 @@ export function CollectionGoodsCardWrapper({
             </div>
           </div>
         </div>
-        <CardModals
-          itemId={id}
-          itemTitle={title}
-          userId={userId}
-          image={image}
-          releaseDate={releaseDate}
-          prize={prize}
-          quantity={quantity}
-          isMemoriesModalOpen={isMemoriesModalOpen}
-          isTagManageModalOpen={isTagManageModalOpen}
-          isDeleteDialogOpen={isDeleteDialogOpen}
-          isDetailsModalOpen={isDetailsModalOpen}
-          onMemoriesClose={() => setIsMemoriesModalOpen(false)}
-          onTagManageClose={() => setIsTagManageModalOpen(false)}
-          onDeleteClose={setIsDeleteDialogOpen}
-          onDetailsClose={() => setIsDetailsModalOpen(false)}
-          onDeleteConfirm={handleDelete}
-        />
-      </Card>
-    );
+        <CardModals itemId={id} itemTitle={title} userId={userId} image={image} releaseDate={releaseDate} prize={prize} quantity={quantity} isMemoriesModalOpen={isMemoriesModalOpen} isTagManageModalOpen={isTagManageModalOpen} isDeleteDialogOpen={isDeleteDialogOpen} isDetailsModalOpen={isDetailsModalOpen} onMemoriesClose={() => setIsMemoriesModalOpen(false)} onTagManageClose={() => setIsTagManageModalOpen(false)} onDeleteClose={setIsDeleteDialogOpen} onDetailsClose={() => setIsDetailsModalOpen(false)} onDeleteConfirm={handleDelete} />
+      </Card>;
   }
-
-  return (
-    <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
+  return <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
       <div className="relative">
-        <CardImage 
-          title={title} 
-          image={image} 
-          itemId={id}
-          isEditable={isOwner}
-        />
-        <Badge 
-          className={`absolute top-2 right-2 ${isOwner ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1' : 'bg-blue-500'} rounded-full`}
-          onClick={isOwner ? (e) => {
-            e.stopPropagation();
-            setIsQuantityEditModalOpen(true);
-          } : undefined}
-        >
+        <CardImage title={title} image={image} itemId={id} isEditable={isOwner} />
+        <Badge className={`absolute top-2 right-2 ${isOwner ? 'bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1' : 'bg-blue-500'} rounded-full`} onClick={isOwner ? e => {
+        e.stopPropagation();
+        setIsQuantityEditModalOpen(true);
+      } : undefined}>
           {isOwner && <Pencil size={10} className="mr-0.5" />}
           ×{quantity}
         </Badge>
@@ -166,54 +128,17 @@ export function CollectionGoodsCardWrapper({
       </div>
 
       <UICardFooter className="p-0">
-        <Button 
-          className="w-full rounded-none bg-black hover:bg-gray-800 text-white text-xs py-1.5 flex items-center justify-center gap-1"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsMemoriesModalOpen(true);
-          }}
-        >
+        <Button onClick={e => {
+        e.stopPropagation();
+        setIsMemoriesModalOpen(true);
+      }} className="w-full rounded-none bg-black hover:bg-gray-800 text-white text-xs flex items-center justify-center gap-1 py-0 my-0">
           <PlusCircle className="h-3.5 w-3.5" />
           記録を追加
         </Button>
       </UICardFooter>
 
-      <CardModals
-        itemId={id}
-        itemTitle={title}
-        userId={userId}
-        image={image}
-        releaseDate={releaseDate}
-        prize={prize}
-        quantity={quantity}
-        isMemoriesModalOpen={isMemoriesModalOpen}
-        isTagManageModalOpen={isTagManageModalOpen}
-        isDeleteDialogOpen={isDeleteDialogOpen}
-        isDetailsModalOpen={isDetailsModalOpen}
-        onMemoriesClose={() => setIsMemoriesModalOpen(false)}
-        onTagManageClose={() => setIsTagManageModalOpen(false)}
-        onDeleteClose={setIsDeleteDialogOpen}
-        onDetailsClose={() => setIsDetailsModalOpen(false)}
-        onDeleteConfirm={handleDelete}
-      />
-      {canTrade && (
-        <TradeRequestModal
-          isOpen={isTradeModalOpen}
-          onClose={() => setIsTradeModalOpen(false)}
-          requestedItemId={id}
-          requestedItemTitle={title}
-          receiverId={userId!}
-        />
-      )}
-      {isOwner && (
-        <QuantityEditModal
-          isOpen={isQuantityEditModalOpen}
-          onClose={() => setIsQuantityEditModalOpen(false)}
-          itemId={id}
-          initialQuantity={quantity}
-          itemTitle={title}
-        />
-      )}
-    </Card>
-  );
+      <CardModals itemId={id} itemTitle={title} userId={userId} image={image} releaseDate={releaseDate} prize={prize} quantity={quantity} isMemoriesModalOpen={isMemoriesModalOpen} isTagManageModalOpen={isTagManageModalOpen} isDeleteDialogOpen={isDeleteDialogOpen} isDetailsModalOpen={isDetailsModalOpen} onMemoriesClose={() => setIsMemoriesModalOpen(false)} onTagManageClose={() => setIsTagManageModalOpen(false)} onDeleteClose={setIsDeleteDialogOpen} onDetailsClose={() => setIsDetailsModalOpen(false)} onDeleteConfirm={handleDelete} />
+      {canTrade && <TradeRequestModal isOpen={isTradeModalOpen} onClose={() => setIsTradeModalOpen(false)} requestedItemId={id} requestedItemTitle={title} receiverId={userId!} />}
+      {isOwner && <QuantityEditModal isOpen={isQuantityEditModalOpen} onClose={() => setIsQuantityEditModalOpen(false)} itemId={id} initialQuantity={quantity} itemTitle={title} />}
+    </Card>;
 }
