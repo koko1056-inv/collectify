@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar } from "@/components/ui/avatar";
+import { UserCard } from "./profile/UserCard";
+import { PopularCollectors } from "./profile/PopularCollectors";
 
 interface FriendsListSheetProps {
   isOpen: boolean;
@@ -132,31 +133,47 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
       if (checkError) throw checkError;
 
       if (existingFollow) {
+        // フォロー解除
+        const { error: unfollowError } = await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", userId)
+          .eq("following_id", profileId);
+
+        if (unfollowError) throw unfollowError;
+
         toast({
-          title: "情報",
-          description: "既にフォローしています",
+          title: "成功",
+          description: "フォローを解除しました",
         });
-        return;
+      } else {
+        // フォロー関係を作成
+        const { error: followError } = await supabase
+          .from("follows")
+          .insert([
+            { follower_id: userId, following_id: profileId }
+          ]);
+
+        if (followError) throw followError;
+
+        toast({
+          title: "成功",
+          description: "ユーザーをフォローしました",
+        });
       }
 
-      // フォロー関係を作成
-      const { error: followError } = await supabase
-        .from("follows")
-        .insert([
-          { follower_id: userId, following_id: profileId }
-        ]);
+      // 検索結果を更新
+      if (searchResults.length > 0) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, username, avatar_url, bio, followers_count, following_count")
+          .in("id", searchResults.map(p => p.id))
+          .limit(10);
 
-      if (followError) throw followError;
-
-      toast({
-        title: "成功",
-        description: "ユーザーをフォローしました",
-      });
-
-      // フォロー成功後にフォロー中タブに切り替え
-      setActiveTab("following");
-      setSearchQuery("");
-      setSearchResults([]);
+        if (!error && data) {
+          setSearchResults(data);
+        }
+      }
     } catch (error) {
       console.error("Error following user:", error);
       toast({
@@ -206,62 +223,23 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
                 ) : searchResults.length > 0 ? (
                   <ScrollArea className="h-[calc(100vh-16rem)]">
                     <div className="space-y-4 pr-4 pb-4">
-                      {searchResults.map((profile) => (
-                        <div 
-                          key={profile.id} 
-                          className="flex flex-col gap-2 p-3 rounded-lg hover:bg-gray-100"
-                        >
-                          <div 
-                            className="flex items-center gap-3 cursor-pointer"
-                            onClick={() => handleUserClick(profile.id)}
-                          >
-                            <Avatar className="h-10 w-10">
-                              {profile.avatar_url ? (
-                                <img
-                                  src={profile.avatar_url}
-                                  alt={profile.username}
-                                  className="w-full h-full rounded-full object-cover"
-                                />
-                              ) : (
-                                <User className="h-5 w-5 text-muted-foreground" />
-                              )}
-                            </Avatar>
-                            <div className="flex-1">
-                              <span className="font-medium">{profile.username}</span>
-                              {profile.bio && (
-                                <p className="text-sm text-gray-600 line-clamp-1">{profile.bio}</p>
-                              )}
-                            </div>
-                            {profile.id !== userId && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleFollow(profile.id);
-                                }}
-                              >
-                                フォロー
-                              </Button>
-                            )}
-                          </div>
-                          
-                          <div className="flex gap-4 text-xs text-gray-500 mt-1">
-                            <div className="flex flex-col items-center">
-                              <span className="font-semibold">{profile.following_count || 0}</span>
-                              <span>フォロー中</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <span className="font-semibold">{profile.followers_count || 0}</span>
-                              <span>フォロワー</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                              <span className="font-semibold">{collectionCounts[profile.id] || 0}</span>
-                              <span>コレクション</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                      {searchResults.map((profile) => {
+                        const isFollowing = !!userId; // ここで本当はフォロー状態を取得すべき
+                        return (
+                          <UserCard
+                            key={profile.id}
+                            id={profile.id}
+                            username={profile.username}
+                            bio={profile.bio}
+                            avatar_url={profile.avatar_url}
+                            followersCount={profile.followers_count || 0}
+                            followingCount={profile.following_count || 0}
+                            collectionCount={collectionCounts[profile.id] || 0}
+                            isFollowing={isFollowing}
+                            onFollow={() => handleFollow(profile.id)}
+                          />
+                        );
+                      })}
                     </div>
                   </ScrollArea>
                 ) : (
@@ -275,6 +253,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
                 <TabsList className="w-full mb-4">
                   <TabsTrigger value="following" className="flex-1">フォロー中</TabsTrigger>
                   <TabsTrigger value="followers" className="flex-1">フォロワー</TabsTrigger>
+                  <TabsTrigger value="popular" className="flex-1">人気</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="following" className="h-[calc(100%-56px)]">
@@ -283,6 +262,10 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
                 
                 <TabsContent value="followers" className="h-[calc(100%-56px)]">
                   <FollowList userId={userId} type="followers" />
+                </TabsContent>
+
+                <TabsContent value="popular" className="h-[calc(100%-56px)]">
+                  <PopularCollectors />
                 </TabsContent>
               </Tabs>
             )}

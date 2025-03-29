@@ -1,10 +1,10 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Avatar } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { UserCard } from "./UserCard";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Profile {
   id: string;
@@ -24,6 +24,8 @@ export function FollowList({ userId, type }: FollowListProps) {
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [collectionCounts, setCollectionCounts] = useState<Record<string, number>>({});
+  const [followState, setFollowState] = useState<Record<string, boolean>>({});
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchFollows = async () => {
@@ -38,6 +40,7 @@ export function FollowList({ userId, type }: FollowListProps) {
 
       if (error) {
         console.error("Error fetching follows:", error);
+        setLoading(false);
         return;
       }
 
@@ -50,13 +53,18 @@ export function FollowList({ userId, type }: FollowListProps) {
       // 各ユーザーのコレクション数を取得
       if (profiles.length > 0) {
         fetchCollectionCounts(profiles.map(p => p.id));
+        
+        // 現在のユーザーがログインしている場合、フォロー状態を取得
+        if (user) {
+          fetchFollowState(profiles.map(p => p.id));
+        }
       } else {
         setLoading(false);
       }
     };
 
     fetchFollows();
-  }, [userId, type]);
+  }, [userId, type, user]);
 
   const fetchCollectionCounts = async (profileIds: string[]) => {
     try {
@@ -82,13 +90,83 @@ export function FollowList({ userId, type }: FollowListProps) {
     }
   };
 
+  const fetchFollowState = async (profileIds: string[]) => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("follows")
+        .select("following_id")
+        .eq("follower_id", user.id)
+        .in("following_id", profileIds);
+        
+      if (error) throw error;
+      
+      const newFollowState: Record<string, boolean> = {};
+      profileIds.forEach(id => {
+        newFollowState[id] = data?.some(f => f.following_id === id) || false;
+      });
+      
+      setFollowState(newFollowState);
+    } catch (error) {
+      console.error("Error fetching follow state:", error);
+    }
+  };
+
+  const handleFollow = async (profileId: string) => {
+    if (!user) return;
+
+    try {
+      if (followState[profileId]) {
+        // フォロー解除
+        await supabase
+          .from("follows")
+          .delete()
+          .eq("follower_id", user.id)
+          .eq("following_id", profileId);
+          
+        setFollowState(prev => ({ ...prev, [profileId]: false }));
+      } else {
+        // フォロー
+        await supabase
+          .from("follows")
+          .insert({ follower_id: user.id, following_id: profileId });
+          
+        setFollowState(prev => ({ ...prev, [profileId]: true }));
+      }
+      
+      // プロフィールデータを再取得
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url, bio, followers_count, following_count")
+        .in("id", profiles.map(p => p.id));
+        
+      if (!error && data) {
+        setProfiles(data);
+      }
+    } catch (error) {
+      console.error("Error updating follow:", error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <Skeleton className="h-4 w-32" />
+          <div key={i} className="p-4 bg-white rounded-lg shadow-sm">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="flex-1">
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+            </div>
+            <div className="flex justify-between mt-4">
+              <Skeleton className="h-6 w-12" />
+              <Skeleton className="h-6 w-12" />
+              <Skeleton className="h-6 w-12" />
+            </div>
+            <Skeleton className="h-9 w-full mt-3" />
           </div>
         ))}
       </div>
@@ -104,42 +182,18 @@ export function FollowList({ userId, type }: FollowListProps) {
           </p>
         ) : (
           profiles.map((profile) => (
-            <Link
+            <UserCard
               key={profile.id}
-              to={`/user/${profile.id}`}
-              className="flex flex-col gap-2 p-3 rounded-lg hover:bg-gray-100"
-            >
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <img
-                    src={profile.avatar_url || "/placeholder.svg"}
-                    alt={profile.username}
-                    className="object-cover"
-                  />
-                </Avatar>
-                <div className="flex-1">
-                  <span className="font-medium">{profile.username}</span>
-                  {profile.bio && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{profile.bio}</p>
-                  )}
-                </div>
-              </div>
-              
-              <div className="flex gap-4 text-xs text-gray-500 mt-1">
-                <div className="flex flex-col items-center">
-                  <span className="font-semibold">{profile.following_count}</span>
-                  <span>フォロー中</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="font-semibold">{profile.followers_count}</span>
-                  <span>フォロワー</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="font-semibold">{collectionCounts[profile.id] || 0}</span>
-                  <span>コレクション</span>
-                </div>
-              </div>
-            </Link>
+              id={profile.id}
+              username={profile.username}
+              bio={profile.bio}
+              avatar_url={profile.avatar_url}
+              followersCount={profile.followers_count || 0}
+              followingCount={profile.following_count || 0}
+              collectionCount={collectionCounts[profile.id] || 0}
+              isFollowing={followState[profile.id]}
+              onFollow={user && user.id !== profile.id ? () => handleFollow(profile.id) : undefined}
+            />
           ))
         )}
       </div>

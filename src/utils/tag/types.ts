@@ -1,6 +1,5 @@
 
-// タグ関連の共通の型定義
-
+// タグ関連の型定義
 export interface SimpleTag {
   id: string;
   name: string;
@@ -13,48 +12,17 @@ export interface SimpleItemTag {
   tags: SimpleTag | null;
 }
 
-// ネストされた構造を持つタグ型
-export interface GroupedTags {
-  [category: string]: SimpleTag[];
-}
-
-// ユーザーアイテムのタグクエリ結果型
-export interface TagQueryItem {
-  id: string;
-  title: string;
-  image: string;
-  quantity?: number;
-  user_id?: string;
-  official_item_id?: string;
-  created_at?: string;
-  updated_at?: string;
-  user_item_tags?: Array<{
-    tag_id: string;
-    tags: SimpleTag | null;
-  }>;
-}
-
-// 既存の UserItem インターフェースを維持
-export interface UserItem {
-  id: string;
-  title: string;
-  image: string;
-  user_id: string;
-  official_item_id?: string;
-  created_at?: string;
-  updated_at?: string;
-  quantity?: number;
-}
-
-// タグ付けされたアイテムグループの型
-export type TaggedItemGroups = Record<string, UserItem[]>;
-
-// コンテンツ情報の型
+// コンテンツ情報の型定義
 export interface ContentInfo {
-  id: string;
-  name: string;
-  icon_name?: string;
+  id?: string;
+  name?: string;
   type?: string;
-  created_by?: string;
   created_at?: string;
+  created_by?: string;
+  icon_name?: string; // アイコン名を追加
+}
+
+// タググループ化されたアイテムの型定義
+export interface TagGroupedItems {
+  [tagName: string]: any[];
 }
