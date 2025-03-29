@@ -8,6 +8,7 @@ import { ProfileStats } from "./ProfileStats";
 import { ProfileBio } from "./ProfileBio";
 import { ProfileFavorites } from "./ProfileFavorites";
 import { ProfileImageUpload } from "./ProfileImageUpload";
+import { ProfileWishlist } from "./ProfileWishlist";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -207,6 +208,11 @@ export function ProfileCard({
           isEditing={isFavoritesEditing} 
           onEditComplete={() => setIsFavoritesEditing(false)} 
         />
+      </div>
+
+      {/* ウィッシュリストセクションを追加 */}
+      <div className="mt-8">
+        {effectiveUserId && <ProfileWishlist userId={effectiveUserId} />}
       </div>
     </div>
   );

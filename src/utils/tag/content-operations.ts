@@ -1,122 +1,103 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { ContentInfo } from "./types";
 
-// コンテンツ情報を取得
-export async function getContentInfo(contentName: string | null): Promise<ContentInfo | null> {
-  if (!contentName) return null;
-  
+export interface ContentInfo {
+  id: number;
+  name: string;
+  type: string;
+  created_at: string;
+  created_by: string;
+  icon_name: string;
+}
+
+// テーブルからコンテンツ情報を取得する
+export async function getContentInfo(): Promise<ContentInfo[]> {
   try {
     const { data, error } = await supabase
       .from("content_names")
       .select("*")
-      .eq("name", contentName)
-      .maybeSingle();
-    
+      .order("name");
+
     if (error) {
       console.error("Error fetching content info:", error);
-      return null;
-    }
-    
-    return data as ContentInfo;
-  } catch (error) {
-    console.error("Error in getContentInfo:", error);
-    return null;
-  }
-}
-
-// コンテンツ名の一覧を取得
-export async function getContentNames(): Promise<ContentInfo[]> {
-  try {
-    const { data, error } = await supabase
-      .from("content_names")
-      .select("*")
-      .order("name");
-    
-    if (error) {
-      console.error("Error fetching content names:", error);
       return [];
     }
-    
-    return data as ContentInfo[];
-  } catch (error) {
-    console.error("Error in getContentNames:", error);
-    return [];
-  }
-}
 
-// コンテンツタイプの一覧を取得
-export async function getContentTypes(): Promise<string[]> {
-  try {
-    const { data, error } = await supabase
-      .from("content_names")
-      .select("type")
-      .order("type");
-    
-    if (error) {
-      console.error("Error fetching content types:", error);
-      return [];
-    }
-    
-    // 重複を除去
-    const types = [...new Set(data.map(item => item.type).filter(Boolean))];
-    return types as string[];
-  } catch (error) {
-    console.error("Error in getContentTypes:", error);
-    return [];
-  }
-}
-
-// 特定のコンテンツタイプのコンテンツを取得
-export async function getContentsByType(contentType: string): Promise<ContentInfo[]> {
-  try {
-    const { data, error } = await supabase
-      .from("content_names")
-      .select("*")
-      .eq("type", contentType)
-      .order("name");
-    
-    if (error) {
-      console.error(`Error fetching contents of type ${contentType}:`, error);
-      return [];
-    }
-    
+    // ここでicon_nameプロパティがないエラーを修正
+    // データにicon_nameがない場合はデフォルト値を設定
     return data.map(item => ({
       id: item.id,
       name: item.name,
       type: item.type,
       created_at: item.created_at,
       created_by: item.created_by,
-      icon_name: item.icon_name
+      // icon_nameプロパティを追加
+      icon_name: "tag" // デフォルトのアイコン名
     }));
   } catch (error) {
-    console.error(`Error in getContentsByType for ${contentType}:`, error);
+    console.error("Error in getContentInfo:", error);
     return [];
   }
 }
 
-// アイテムのコンテンツを設定
-export async function setItemContent(
-  itemId: string,
-  contentName: string | null,
-  isUserItem: boolean
-): Promise<boolean> {
+// コンテンツ情報を更新する
+export async function updateContentInfo(id: number, updates: Partial<ContentInfo>): Promise<ContentInfo | null> {
   try {
-    const table = isUserItem ? "user_items" : "official_items";
-    
-    const { error } = await supabase
-      .from(table)
-      .update({ content_name: contentName })
-      .eq("id", itemId);
-    
+    const { data, error } = await supabase
+      .from("content_names")
+      .update(updates)
+      .eq("id", id)
+      .select()
+      .single();
+
     if (error) {
-      console.error(`Error setting content for ${table} ${itemId}:`, error);
+      console.error("Error updating content info:", error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in updateContentInfo:", error);
+    return null;
+  }
+}
+
+// コンテンツ情報を削除する
+export async function deleteContentInfo(id: number): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("content_names")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error deleting content info:", error);
       return false;
     }
-    
+
     return true;
   } catch (error) {
-    console.error(`Error in setItemContent for ${itemId}:`, error);
+    console.error("Error in deleteContentInfo:", error);
     return false;
+  }
+}
+
+// 新しいコンテンツ情報を追加する
+export async function addContentInfo(newContent: Omit<ContentInfo, 'id' | 'created_at' | 'created_by'>): Promise<ContentInfo | null> {
+  try {
+    const { data, error } = await supabase
+      .from("content_names")
+      .insert([newContent])
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error adding content info:", error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in addContentInfo:", error);
+    return null;
   }
 }

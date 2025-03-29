@@ -36,7 +36,22 @@ export async function getTagsForItem(
     // 結果を変換して返す
     return data
       .filter((item) => item.tags) // nullのタグをフィルタリング
-      .sort((a, b) => a.tags.name.localeCompare(b.tags.name));
+      .map(item => {
+        // タグ情報を直接マッピングして循環参照を回避
+        return {
+          tag_id: item.tag_id,
+          tags: item.tags ? {
+            id: item.tags.id,
+            name: item.tags.name,
+            category: item.tags.category,
+            created_at: item.tags.created_at
+          } : null
+        };
+      })
+      .sort((a, b) => {
+        if (!a.tags || !b.tags) return 0;
+        return a.tags.name.localeCompare(b.tags.name);
+      });
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
     return [];

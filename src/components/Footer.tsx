@@ -4,14 +4,12 @@ import { Home, Search, Package, ArrowLeftRight, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
-import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchSheet } from "./UserSearchSheet";
 import { FriendsListSheet } from "./FriendsListSheet";
 
 export function Footer() {
   const location = useLocation();
   const { t } = useLanguage();
-  const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isSearchSheetOpen, setIsSearchSheetOpen] = useState(false);
   const [isFriendsListOpen, setIsFriendsListOpen] = useState(false);
 
@@ -44,15 +42,11 @@ export function Footer() {
           </Link>
 
           <Link
-            to="/"
+            to="/collection"
             className={cn(
               "flex flex-col items-center justify-center w-1/5 text-xs",
               isActive("/collection") ? "text-primary" : "text-gray-500"
             )}
-            onClick={(e) => {
-              e.preventDefault();
-              setIsWishlistModalOpen(true);
-            }}
           >
             <Package className={cn("h-6 w-6 mb-1", isActive("/collection") ? "text-primary" : "text-gray-400")} />
             <span>{t("footer.collection")}</span>
@@ -81,11 +75,6 @@ export function Footer() {
           </Link>
         </div>
       </div>
-
-      <WishlistViewModal
-        isOpen={isWishlistModalOpen}
-        onClose={() => setIsWishlistModalOpen(false)}
-      />
 
       <UserSearchSheet
         isOpen={isSearchSheetOpen}
