@@ -44,9 +44,9 @@ const App: React.FC = () => {
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <LanguageProvider>
+        <LanguageProvider>
+          <BrowserRouter>
+            <AuthProvider>
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
@@ -63,9 +63,9 @@ const App: React.FC = () => {
                   </Routes>
                 </Suspense>
               </TooltipProvider>
-            </LanguageProvider>
-          </AuthProvider>
-        </BrowserRouter>
+            </AuthProvider>
+          </BrowserRouter>
+        </LanguageProvider>
       </QueryClientProvider>
     </React.StrictMode>
   );
