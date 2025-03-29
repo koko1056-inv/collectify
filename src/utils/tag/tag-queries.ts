@@ -1,12 +1,14 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag } from "./types";
+import { SimpleItemTag, SimpleTag } from "./types";
 
-// 公式アイテムのタグを取得する
-export const fetchOfficialItemTags = async (itemId: string): Promise<SimpleItemTag[]> => {
+// タグの取得関連機能
+
+/**
+ * 公式アイテムに付けられたタグを取得
+ */
+export const fetchOfficialItemTags = async (itemId: string) => {
   try {
-    if (!itemId) return [];
-
     const { data, error } = await supabase
       .from("item_tags")
       .select(`
@@ -14,38 +16,24 @@ export const fetchOfficialItemTags = async (itemId: string): Promise<SimpleItemT
         tags (
           id,
           name,
-          category,
-          created_at
+          category
         )
       `)
       .eq("official_item_id", itemId);
 
-    if (error) {
-      console.error("Error fetching item tags:", error);
-      throw error;
-    }
-
-    // nullのタグを適切に処理する
-    return data.map((item) => ({
-      tag_id: item.tag_id,
-      tags: item.tags ? {
-        id: item.tags.id,
-        name: item.tags.name,
-        category: item.tags.category,
-        created_at: item.tags.created_at
-      } : null
-    }));
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    console.error("Error in fetchOfficialItemTags:", error);
+    console.error("Error fetching official item tags:", error);
     return [];
   }
 };
 
-// ユーザーアイテムのタグを取得する
-export const fetchUserItemTags = async (itemId: string): Promise<SimpleItemTag[]> => {
+/**
+ * ユーザーアイテムに付けられたタグを取得
+ */
+export const fetchUserItemTags = async (itemId: string) => {
   try {
-    if (!itemId) return [];
-
     const { data, error } = await supabase
       .from("user_item_tags")
       .select(`
@@ -53,139 +41,98 @@ export const fetchUserItemTags = async (itemId: string): Promise<SimpleItemTag[]
         tags (
           id,
           name,
-          category,
-          created_at
+          category
         )
       `)
       .eq("user_item_id", itemId);
 
-    if (error) {
-      console.error("Error fetching user item tags:", error);
-      throw error;
-    }
-
-    // データがない場合は空配列を返す
-    if (!data || !Array.isArray(data)) {
-      return [];
-    }
-
-    // nullのタグを適切に処理する
-    return data.map((item) => ({
-      tag_id: item.tag_id,
-      tags: item.tags ? {
-        id: item.tags.id,
-        name: item.tags.name,
-        category: item.tags.category,
-        created_at: item.tags.created_at
-      } : null
-    }));
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    console.error("Error in fetchUserItemTags:", error);
+    console.error("Error fetching user item tags:", error);
     return [];
   }
 };
 
-// アイテムのタグを取得する（ユーザーアイテムまたは公式アイテム）
-export const getTagsForItem = async (
-  itemId: string, 
-  isUserItem: boolean = false
-): Promise<SimpleItemTag[]> => {
+/**
+ * 複数のアイテムのタグを一度に取得
+ */
+export const fetchMultipleItemsTags = async (itemIds: string[], isUserItem: boolean = true) => {
   try {
-    return isUserItem 
-      ? await fetchUserItemTags(itemId) 
-      : await fetchOfficialItemTags(itemId);
-  } catch (error) {
-    console.error(`Error getting tags for ${isUserItem ? 'user' : 'official'} item:`, error);
-    return [];
-  }
-};
-
-// アイテムがユーザーのコレクションに存在するかチェック
-export const isItemInUserCollection = async (
-  itemId: string,
-  userId: string
-): Promise<boolean> => {
-  try {
-    const { count, error } = await supabase
-      .from("user_items")
-      .select("*", { count: 'exact', head: true })
-      .eq("official_item_id", itemId)
-      .eq("user_id", userId);
-
-    if (error) {
-      console.error("Error checking if item is in collection:", error);
-      return false;
-    }
-
-    return (count || 0) > 0;
-  } catch (error) {
-    console.error("Error in isItemInUserCollection:", error);
-    return false;
-  }
-};
-
-// 複数アイテムのタグを一度に取得する
-export const fetchMultipleItemsTags = async (
-  itemIds: string[],
-  isUserItem = false
-): Promise<Record<string, SimpleItemTag[]>> => {
-  try {
-    if (!itemIds || itemIds.length === 0) return {};
-
-    const table = isUserItem ? "user_item_tags" : "item_tags";
-    const itemColumn = isUserItem ? "user_item_id" : "official_item_id";
+    const tableName = isUserItem ? "user_item_tags" : "item_tags";
+    const itemIdColumn = isUserItem ? "user_item_id" : "official_item_id";
 
     const { data, error } = await supabase
-      .from(table)
+      .from(tableName)
       .select(`
-        ${itemColumn},
+        ${itemIdColumn},
         tag_id,
         tags (
           id,
           name,
-          category,
-          created_at
+          category
         )
       `)
-      .in(itemColumn, itemIds);
+      .in(itemIdColumn, itemIds);
 
-    if (error) {
-      console.error(`Error fetching multiple ${table}:`, error);
-      throw error;
-    }
-
-    // 結果をアイテムIDごとにグループ化
-    const result: Record<string, SimpleItemTag[]> = {};
-    itemIds.forEach(id => {
-      result[id] = [];
-    });
-
-    // データが存在し、有効な配列の場合にのみ処理
-    if (data && Array.isArray(data)) {
-      data.forEach(item => {
-        const itemId = item[itemColumn];
-        if (!result[itemId]) {
-          result[itemId] = [];
-        }
-
-        // 各項目が必要なプロパティを持っていることを確認
-        if (item && 'tag_id' in item) {
-          result[itemId].push({
-            tag_id: item.tag_id,
-            tags: item.tags ? {
-              id: item.tags.id,
-              name: item.tags.name,
-              category: item.tags.category,
-              created_at: item.tags.created_at
-            } : null
-          });
-        }
-      });
-    }
-
-    return result;
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    console.error("Error in fetchMultipleItemsTags:", error);
-    return {};
+    console.error(`Error fetching tags for multiple ${isUserItem ? 'user' : 'official'} items:`, error);
+    return [];
+  }
+};
+
+/**
+ * アイテムのタグを取得（ユーザーアイテムか公式アイテムかを自動判定）
+ */
+export const getTagsForItem = async (itemId: string, isUserItem: boolean = true): Promise<SimpleItemTag[]> => {
+  try {
+    // 適切なテーブルとカラム名を設定
+    const tableName = isUserItem ? "user_item_tags" : "item_tags";
+    const idColumnName = isUserItem ? "user_item_id" : "official_item_id";
+    
+    // データを取得
+    const { data, error } = await supabase
+      .from(tableName)
+      .select(`
+        tag_id,
+        tags (
+          id,
+          name,
+          category
+        )
+      `)
+      .eq(idColumnName, itemId);
+    
+    if (error) throw error;
+    
+    // 結果をSimpleItemTag形式に変換して返す
+    return (data || []).map(item => ({
+      tag_id: item.tag_id,
+      tags: item.tags
+    }));
+  } catch (error) {
+    console.error("Error in getTagsForItem:", error);
+    return [];
+  }
+};
+
+/**
+ * アイテムがユーザーのコレクションに存在するか確認
+ */
+export const isItemInUserCollection = async (officialItemId: string, userId: string): Promise<boolean> => {
+  try {
+    const { count, error } = await supabase
+      .from("user_items")
+      .select("*", { count: 'exact', head: true })
+      .eq("official_item_id", officialItemId)
+      .eq("user_id", userId);
+    
+    if (error) throw error;
+    return count !== null && count > 0;
+  } catch (error) {
+    console.error("Error checking if item is in collection:", error);
+    return false;
   }
 };

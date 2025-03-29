@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
@@ -15,6 +16,9 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, Heart, BookMarked, PlusCircle } from "lucide-react";
 import { QuantityEditModal } from "./QuantityEditModal";
 import { Button } from "../ui/button";
+import { LikeButton } from "./LikeButton";
+import { ItemMemoriesModal } from "../ItemMemoriesModal";
+
 interface CollectionGoodsCardWrapperProps {
   title: string;
   image: string;
@@ -25,6 +29,7 @@ interface CollectionGoodsCardWrapperProps {
   quantity?: number;
   isCompact?: boolean;
 }
+
 export function CollectionGoodsCardWrapper({
   title,
   image,
@@ -73,6 +78,7 @@ export function CollectionGoodsCardWrapper({
     staleTime: 0,
     refetchInterval: 2000
   });
+
   if (isOtherUserCollection || isCompact) {
     return <Card className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden" onClick={() => setIsDetailsModalOpen(true)}>
         <div className="space-y-2">
@@ -85,20 +91,26 @@ export function CollectionGoodsCardWrapper({
           <div className="p-2 pb-3 relative">
             <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
             <div className="flex items-center justify-between mt-1">
-              <div className="flex items-center gap-1">
-                <Heart className="h-3 w-3 text-gray-400" />
-                <span className="text-[10px] text-gray-500">0</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <BookMarked className="h-3 w-3 text-gray-400" />
-                <span className="text-[10px] text-gray-500">0</span>
-              </div>
+              <LikeButton itemId={id} />
+              {itemMemories.length > 0 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsMemoriesModalOpen(true);
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <BookMarked className="h-3 w-3 text-gray-400" />
+                  <span className="text-[10px] text-gray-500">{itemMemories.length}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
         <CardModals itemId={id} itemTitle={title} userId={userId} image={image} releaseDate={releaseDate} prize={prize} quantity={quantity} isMemoriesModalOpen={isMemoriesModalOpen} isTagManageModalOpen={isTagManageModalOpen} isDeleteDialogOpen={isDeleteDialogOpen} isDetailsModalOpen={isDetailsModalOpen} onMemoriesClose={() => setIsMemoriesModalOpen(false)} onTagManageClose={() => setIsTagManageModalOpen(false)} onDeleteClose={setIsDeleteDialogOpen} onDetailsClose={() => setIsDetailsModalOpen(false)} onDeleteConfirm={handleDelete} />
       </Card>;
   }
+
   return <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
       <div className="relative">
         <CardImage title={title} image={image} itemId={id} isEditable={isOwner} />
@@ -115,14 +127,19 @@ export function CollectionGoodsCardWrapper({
         <div className="px-3 py-2 relative">
           <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
           <div className="flex items-center justify-between mt-1">
-            <div className="flex items-center gap-1">
-              <Heart className="h-3 w-3 text-gray-400" />
-              <span className="text-[10px] text-gray-500">0</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <BookMarked className="h-3 w-3 text-gray-400" />
-              <span className="text-[10px] text-gray-500">{itemMemories.length || 0}</span>
-            </div>
+            <LikeButton itemId={id} />
+            {itemMemories.length > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMemoriesModalOpen(true);
+                }}
+                className="flex items-center gap-1"
+              >
+                <BookMarked className="h-3 w-3 text-gray-400" />
+                <span className="text-[10px] text-gray-500">{itemMemories.length}</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -140,5 +157,12 @@ export function CollectionGoodsCardWrapper({
       <CardModals itemId={id} itemTitle={title} userId={userId} image={image} releaseDate={releaseDate} prize={prize} quantity={quantity} isMemoriesModalOpen={isMemoriesModalOpen} isTagManageModalOpen={isTagManageModalOpen} isDeleteDialogOpen={isDeleteDialogOpen} isDetailsModalOpen={isDetailsModalOpen} onMemoriesClose={() => setIsMemoriesModalOpen(false)} onTagManageClose={() => setIsTagManageModalOpen(false)} onDeleteClose={setIsDeleteDialogOpen} onDetailsClose={() => setIsDetailsModalOpen(false)} onDeleteConfirm={handleDelete} />
       {canTrade && <TradeRequestModal isOpen={isTradeModalOpen} onClose={() => setIsTradeModalOpen(false)} requestedItemId={id} requestedItemTitle={title} receiverId={userId!} />}
       {isOwner && <QuantityEditModal isOpen={isQuantityEditModalOpen} onClose={() => setIsQuantityEditModalOpen(false)} itemId={id} initialQuantity={quantity} itemTitle={title} />}
+      <ItemMemoriesModal 
+        isOpen={isMemoriesModalOpen} 
+        onClose={() => setIsMemoriesModalOpen(false)} 
+        itemIds={[id]} 
+        itemTitles={[title]}
+        userId={userId}
+      />
     </Card>;
 }

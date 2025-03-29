@@ -1,119 +1,94 @@
+
+/**
+ * コンテンツ関連の操作を行うためのユーティリティ
+ */
 import { supabase } from "@/integrations/supabase/client";
 import { ContentInfo } from "./types";
 
-// コンテンツ情報の取得
-export const fetchContentList = async (): Promise<ContentInfo[]> => {
+/**
+ * 全てのコンテンツ情報を取得
+ */
+export const fetchAllContents = async (): Promise<ContentInfo[]> => {
   try {
     const { data, error } = await supabase
       .from("content_names")
-      .select("*")
-      .order("name");
+      .select("*");
 
-    if (error) {
-      console.error("Error fetching content list:", error);
-      throw error;
-    }
+    if (error) throw error;
 
-    // コンテンツデータを適切な形式に変換
     return (data || []).map(content => ({
       id: content.id,
       name: content.name,
-      type: content.type || 'anime',
+      type: content.type,
       created_at: content.created_at,
-      created_by: content.created_by || '',
-      icon_name: undefined  // この列はテーブルに存在しないので、undefinedを設定
+      created_by: content.created_by || "",
+      // icon_nameはデータベースに存在しないため、デフォルト値を設定
+      icon_name: ""
     }));
   } catch (error) {
-    console.error("Error in fetchContentList:", error);
+    console.error("Error fetching all contents:", error);
     return [];
   }
 };
 
-// アイテムのコンテンツ情報を設定
-export const setItemContent = async (
-  itemId: string,
-  contentName: string | null,
-  isUserItem: boolean = false
-): Promise<boolean> => {
+/**
+ * コンテンツ名で検索して情報を取得
+ */
+export const findContentByName = async (contentName: string): Promise<ContentInfo | null> => {
   try {
-    const table = isUserItem ? "user_items" : "official_items";
-    
-    // contentNameがnullの場合はnullを設定し、そうでない場合は文字列を設定
-    const { error } = await supabase
-      .from(table)
-      .update({ content_name: contentName })
-      .eq("id", itemId);
+    if (!contentName) return null;
 
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error("Error setting item content:", error);
-    return false;
-  }
-};
-
-// コンテンツ名による検索
-export const fetchContentByName = async (
-  contentName: string
-): Promise<ContentInfo | null> => {
-  try {
     const { data, error } = await supabase
       .from("content_names")
       .select("*")
-      .eq("name", contentName)
-      .single();
+      .ilike("name", contentName)
+      .maybeSingle();
 
-    if (error) {
-      console.error("Error fetching content by name:", error);
-      return null;
-    }
+    if (error) throw error;
+    if (!data) return null;
 
-    // コンテンツデータを適切な形式に変換
     return {
       id: data.id,
       name: data.name,
-      type: data.type || 'anime',
+      type: data.type,
       created_at: data.created_at,
-      created_by: data.created_by || '',
-      icon_name: undefined  // この列はテーブルに存在しないので、undefinedを設定
+      created_by: data.created_by || "",
+      // icon_nameはデータベースに存在しないため、デフォルト値を設定
+      icon_name: ""
     };
   } catch (error) {
-    console.error("Error in fetchContentByName:", error);
+    console.error("Error finding content by name:", error);
     return null;
   }
 };
 
-// 新しいコンテンツの作成
-export const createNewContent = async (
-  name: string,
-  type: string = "anime",
-  iconName?: string
-): Promise<ContentInfo | null> => {
+/**
+ * コンテンツIDで検索して情報を取得
+ */
+export const findContentById = async (contentId: string): Promise<ContentInfo | null> => {
   try {
-    // iconNameをinsertデータに含めるかどうかを決定
-    const insertData = iconName 
-      ? { name, type, icon_name: iconName }
-      : { name, type };
+    if (!contentId) return null;
 
     const { data, error } = await supabase
       .from("content_names")
-      .insert([insertData])
-      .select()
-      .single();
+      .select("*")
+      .eq("id", contentId)
+      .maybeSingle();
 
     if (error) throw error;
-    
-    // コンテンツデータを適切な形式に変換
+    if (!data) return null;
+
     return {
       id: data.id,
       name: data.name,
-      type: data.type || 'anime',
+      type: data.type,
       created_at: data.created_at,
-      created_by: data.created_by || '',
-      icon_name: undefined  // この列はテーブルに存在しないので、undefinedを設定
+      created_by: data.created_by || "",
+      // icon_nameはデータベースに存在しないため、デフォルト値を設定
+      icon_name: ""
     };
   } catch (error) {
-    console.error("Error creating new content:", error);
+    console.error("Error finding content by ID:", error);
     return null;
   }
 };
