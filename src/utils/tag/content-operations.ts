@@ -9,7 +9,7 @@ export async function getContentInfo(contentId: string): Promise<ContentInfo | n
       .from("content_names")
       .select("*")
       .eq("id", contentId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching content info:", error);
@@ -78,7 +78,7 @@ export async function getContentIdByName(contentName: string): Promise<string | 
       .from("content_names")
       .select("id")
       .eq("name", contentName)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching content ID by name:", error);
@@ -103,7 +103,7 @@ export async function getContentById(contentId: string): Promise<ContentInfo | n
       .from("content_names")
       .select("*")
       .eq("id", contentId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching content by ID:", error);
@@ -125,5 +125,31 @@ export async function getContentById(contentId: string): Promise<ContentInfo | n
   } catch (error) {
     console.error("Error in getContentById:", error);
     return null;
+  }
+}
+
+// アイテムのコンテンツを設定する関数
+export async function setItemContent(
+  itemId: string,
+  contentName: string | null,
+  isUserItem: boolean = false
+): Promise<boolean> {
+  try {
+    const table = isUserItem ? "user_items" : "official_items";
+    
+    const { error } = await supabase
+      .from(table)
+      .update({ content_name: contentName })
+      .eq("id", itemId);
+    
+    if (error) {
+      console.error(`Error updating content for ${table}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error in setItemContent:", error);
+    return false;
   }
 }

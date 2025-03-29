@@ -5,9 +5,7 @@ import { Footer } from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserCollection } from "@/components/UserCollection";
 import { FilterBar } from "@/components/FilterBar";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Tag } from "@/types";
+import { useTags } from "@/hooks/useTags";
 
 export default function Collection() {
   const isMobile = useIsMobile();
@@ -15,17 +13,7 @@ export default function Collection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContent, setSelectedContent] = useState("");
 
-  const { data: allTags = [] } = useQuery<Tag[]>({
-    queryKey: ["tags"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tags")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
+  const { data: allTags = [] } = useTags();
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
