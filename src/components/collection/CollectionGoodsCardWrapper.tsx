@@ -105,7 +105,7 @@ export function CollectionGoodsCardWrapper({
       </div>
       
       {/* いいねボタン部分 */}
-      <UICardFooter className="px-3 py-2 flex justify-center items-center">
+      <UICardFooter className="flex justify-center items-center py-0 px-[12px]">
         <div className="flex items-center gap-4 w-full justify-center">
           <LikeButton itemId={id} />
           <button onClick={e => {
@@ -121,7 +121,7 @@ export function CollectionGoodsCardWrapper({
       </UICardFooter>
       
       {/* 記録を追加ボタンを復活させる - 横幅を大きくしました */}
-      <UICardFooter className="px-3 py-2 flex justify-center items-center">
+      <UICardFooter className="px-3 flex justify-center items-center py-0">
         <Button variant="outline" size="sm" onClick={e => {
         e.stopPropagation();
         setIsMemoriesModalOpen(true);
