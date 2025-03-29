@@ -1,5 +1,5 @@
 
-import { Calendar, Tag, Star, Icon } from "lucide-react";
+import { Calendar, Tag, Star } from "lucide-react";
 
 interface ItemLabelValueProps {
   label: string;

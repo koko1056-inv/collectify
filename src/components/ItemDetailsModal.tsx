@@ -158,6 +158,46 @@ export function ItemDetailsModal({
     enabled: !isUserItem,
   });
 
+  // トレードの数を取得 (このアイテムが関係するトレードの数)
+  const { data: tradesCount = 0 } = useQuery({
+    queryKey: ["item-trades-count", itemId],
+    queryFn: async () => {
+      if (!isUserItem) {
+        // 公式アイテムに関連する全てのユーザーアイテムを取得
+        const { data: userItems, error: userItemsError } = await supabase
+          .from("user_items")
+          .select("id")
+          .eq("official_item_id", itemId);
+        
+        if (userItemsError) throw userItemsError;
+        
+        if (!userItems || userItems.length === 0) return 0;
+        
+        // これらのユーザーアイテムIDを使用して、関連するトレードをカウント
+        const userItemIds = userItems.map(item => item.id);
+        
+        // offered_item_idまたはrequested_item_idのいずれかにマッチするトレードをカウント
+        const { count, error } = await supabase
+          .from("trade_requests")
+          .select("id", { count: 'exact', head: true })
+          .or(`offered_item_id.in.(${userItemIds.join(',')}),requested_item_id.in.(${userItemIds.join(',')})`);
+          
+        if (error) throw error;
+        return count || 0;
+      } else {
+        // ユーザーアイテムの場合、直接そのアイテムが関係するトレードをカウント
+        const { count, error } = await supabase
+          .from("trade_requests")
+          .select("id", { count: 'exact', head: true })
+          .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
+          
+        if (error) throw error;
+        return count || 0;
+      }
+    },
+    enabled: true,
+  });
+
   // アイテムタイプのタグを取得
   const typeTag = officialTags.find(tag => tag.tags?.category === 'type')?.tags?.name || '';
 
@@ -211,7 +251,7 @@ export function ItemDetailsModal({
               
               <div className="flex flex-col items-center">
                 <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <span className="text-sm font-medium">1</span>
+                  <span className="text-sm font-medium">{tradesCount}</span>
                 </Button>
                 <span className="text-xs mt-1">トレード</span>
               </div>
