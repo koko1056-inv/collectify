@@ -6,7 +6,7 @@ import { ContentInfo } from "./types";
 export const fetchContentList = async (): Promise<ContentInfo[]> => {
   try {
     const { data, error } = await supabase
-      .from("content_info")
+      .from("content_names")  // content_infoからcontent_namesに変更
       .select("*")
       .order("name");
 
@@ -19,9 +19,9 @@ export const fetchContentList = async (): Promise<ContentInfo[]> => {
     return (data || []).map(content => ({
       id: content.id,
       name: content.name,
-      type: content.type,
+      type: content.type || 'anime',
       created_at: content.created_at,
-      created_by: content.created_by,
+      created_by: content.created_by || '',
       icon_name: content.icon_name || undefined
     }));
   } catch (error) {
@@ -33,11 +33,15 @@ export const fetchContentList = async (): Promise<ContentInfo[]> => {
 // アイテムのコンテンツ情報を設定
 export const setItemContent = async (
   itemId: string,
-  contentName: string
-) => {
+  contentName: string | null,
+  isUserItem: boolean = false
+): Promise<boolean> => {
   try {
+    const table = isUserItem ? "user_items" : "official_items";
+    
+    // contentNameがnullの場合はnullを設定し、そうでない場合は文字列を設定
     const { error } = await supabase
-      .from("official_items")
+      .from(table)
       .update({ content_name: contentName })
       .eq("id", itemId);
 
@@ -55,7 +59,7 @@ export const fetchContentByName = async (
 ): Promise<ContentInfo | null> => {
   try {
     const { data, error } = await supabase
-      .from("content_info")
+      .from("content_names")  // content_infoからcontent_namesに変更
       .select("*")
       .eq("name", contentName)
       .single();
@@ -69,9 +73,9 @@ export const fetchContentByName = async (
     return {
       id: data.id,
       name: data.name,
-      type: data.type,
+      type: data.type || 'anime',
       created_at: data.created_at,
-      created_by: data.created_by,
+      created_by: data.created_by || '',
       icon_name: data.icon_name || undefined
     };
   } catch (error) {
@@ -88,7 +92,7 @@ export const createNewContent = async (
 ): Promise<ContentInfo | null> => {
   try {
     const { data, error } = await supabase
-      .from("content_info")
+      .from("content_names")  // content_infoからcontent_namesに変更
       .insert([
         { 
           name, 
@@ -105,9 +109,9 @@ export const createNewContent = async (
     return {
       id: data.id,
       name: data.name,
-      type: data.type,
+      type: data.type || 'anime',
       created_at: data.created_at,
-      created_by: data.created_by,
+      created_by: data.created_by || '',
       icon_name: data.icon_name || undefined
     };
   } catch (error) {

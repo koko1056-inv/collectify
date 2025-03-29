@@ -15,8 +15,8 @@ export interface SimpleItemTag {
   tags: {
     id: string;
     name: string;
-    category: string;
-    created_at: string;
+    category?: string;
+    created_at?: string;
   } | null;
 }
 
