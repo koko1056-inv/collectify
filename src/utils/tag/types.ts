@@ -54,4 +54,7 @@ export interface ContentInfo {
   id: string;
   name: string;
   icon_name?: string;
+  type?: string;
+  created_by?: string;
+  created_at?: string;
 }
