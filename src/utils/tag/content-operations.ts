@@ -83,3 +83,27 @@ export async function updateContentIcon(contentId: string, iconName: string): Pr
     return false;
   }
 }
+
+/**
+ * アイテムのコンテンツを設定する
+ */
+export async function setItemContent(
+  itemId: string, 
+  contentName: string | null,
+  isUserItem: boolean = false
+): Promise<{ success: boolean }> {
+  try {
+    const table = isUserItem ? "user_items" : "official_items";
+    
+    const { error } = await supabase
+      .from(table)
+      .update({ content_name: contentName })
+      .eq("id", itemId);
+    
+    if (error) throw error;
+    return { success: true };
+  } catch (error) {
+    console.error(`Error setting content for item ${itemId}:`, error);
+    return { success: false };
+  }
+}
