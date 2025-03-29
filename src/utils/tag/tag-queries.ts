@@ -39,6 +39,7 @@ export async function getTagsForItem(
 
     // 結果を変換して返す
     // データの形式を適切に変換
+    // ここで型の循環参照を防ぐため、明示的に型定義を行う
     const result: SimpleItemTag[] = data
       .filter((item) => item.tags) // nullのタグをフィルタリング
       .map((item) => ({
@@ -46,8 +47,8 @@ export async function getTagsForItem(
         tags: {
           id: item.tags.id,
           name: item.tags.name,
-          category: item.tags.category,
-          created_at: item.tags.created_at
+          category: item.tags.category || "",
+          created_at: item.tags.created_at || ""
         }
       }));
       

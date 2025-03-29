@@ -5,6 +5,7 @@ export interface Tag {
   category?: string | null;
   created_at?: string;
   is_category?: boolean | null;
+  count?: number;
 }
 
 export interface ItemTag {

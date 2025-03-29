@@ -1,15 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-
-// ContentInfoの型定義
-export interface ContentInfo {
-  id: string;
-  name: string;
-  type: string;
-  created_at: string;
-  created_by: string;
-  icon_name?: string;
-}
+import { ContentInfo } from "./types";
 
 // コンテンツ情報を取得する関数
 export async function getAllContentNames(): Promise<ContentInfo[]> {
@@ -30,7 +21,8 @@ export async function getAllContentNames(): Promise<ContentInfo[]> {
       type: item.type,
       created_at: item.created_at,
       created_by: item.created_by,
-      icon_name: item.icon_name
+      // icon_nameが存在しない場合はundefinedを返す
+      ...(item.icon_name ? { icon_name: item.icon_name } : {})
     }));
   } catch (error) {
     console.error('Exception in getAllContentNames:', error);
@@ -60,7 +52,8 @@ export async function addContentName(name: string, type: string = 'other'): Prom
       type: data.type,
       created_at: data.created_at,
       created_by: data.created_by,
-      icon_name: data.icon_name
+      // icon_nameが存在しない場合は含めない
+      ...(data.icon_name ? { icon_name: data.icon_name } : {})
     };
   } catch (error) {
     console.error('Exception in addContentName:', error);
@@ -90,7 +83,8 @@ export async function getContentById(id: string): Promise<ContentInfo | null> {
       type: data.type,
       created_at: data.created_at,
       created_by: data.created_by,
-      icon_name: data.icon_name
+      // icon_nameが存在しない場合は含めない
+      ...(data.icon_name ? { icon_name: data.icon_name } : {})
     };
   } catch (error) {
     console.error('Exception in getContentById:', error);

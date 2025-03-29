@@ -1,5 +1,5 @@
 
-// ContentInfoの型定義（icon_nameプロパティをオプションとして追加）
+// ContentInfoの型定義（icon_nameプロパティをオプションとして明示的に追加）
 export interface ContentInfo {
   id: string;
   name: string;
@@ -9,7 +9,7 @@ export interface ContentInfo {
   icon_name?: string;
 }
 
-// SimpleItemTag型の修正（無限再帰を防ぐ）
+// SimpleItemTagの型定義（無限再帰を防ぐため、明示的に構造を定義）
 export interface SimpleItemTag {
   tag_id: string;
   tags: {
@@ -17,10 +17,10 @@ export interface SimpleItemTag {
     name: string;
     category: string;
     created_at: string;
-  } | null;
+  };
 }
 
-// SimpleTag型の定義を追加
+// SimpleTag型の定義
 export interface SimpleTag {
   id: string;
   name: string;
@@ -28,7 +28,7 @@ export interface SimpleTag {
   created_at: string;
 }
 
-// TagGroupedItems型の定義を追加
+// TagGroupedItems型の定義
 export interface TagGroupedItems {
   [tagName: string]: any[];
 }
