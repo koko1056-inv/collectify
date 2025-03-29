@@ -13,7 +13,7 @@ import { TradeRequestModal } from "../trade/TradeRequestModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, BookMarked } from "lucide-react";
+import { Pencil, BookMarked, PlusCircle } from "lucide-react";
 import { QuantityEditModal } from "./QuantityEditModal";
 import { Button } from "@/components/ui/button";
 import { LikeButton } from "./LikeButton";
@@ -169,7 +169,23 @@ export function CollectionGoodsCardWrapper({
         </div>
       </UICardFooter>
       
-      {/* トレードボタンのみ表示 - 記録追加ボタンは削除 */}
+      {/* 記録を追加ボタンを復活させる */}
+      <UICardFooter className="px-3 py-2 flex justify-center items-center">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsMemoriesModalOpen(true);
+          }}
+          className="w-full flex items-center justify-center gap-2"
+        >
+          <PlusCircle className="h-4 w-4" />
+          <span>記録を追加</span>
+        </Button>
+      </UICardFooter>
+      
+      {/* トレードボタンのみ表示 */}
       {canTrade && (
         <UICardFooter className="px-2 py-1">
           <CardActions
