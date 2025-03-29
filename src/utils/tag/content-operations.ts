@@ -21,6 +21,7 @@ export async function getAllContentNames(): Promise<ContentInfo[]> {
       type: item.type,
       created_at: item.created_at,
       created_by: item.created_by,
+      // icon_nameプロパティが存在するか確認し、存在しない場合はundefinedを設定
       icon_name: item.icon_name || undefined
     }));
   } catch (error) {
@@ -51,6 +52,7 @@ export async function addContentName(name: string, type: string = 'other'): Prom
       type: data.type,
       created_at: data.created_at,
       created_by: data.created_by,
+      // icon_nameプロパティが存在するか確認し、存在しない場合はundefinedを設定
       icon_name: data.icon_name || undefined
     };
   } catch (error) {
@@ -81,6 +83,7 @@ export async function getContentById(id: string): Promise<ContentInfo | null> {
       type: data.type,
       created_at: data.created_at,
       created_by: data.created_by,
+      // icon_nameプロパティが存在するか確認し、存在しない場合はundefinedを設定
       icon_name: data.icon_name || undefined
     };
   } catch (error) {
@@ -90,15 +93,16 @@ export async function getContentById(id: string): Promise<ContentInfo | null> {
 }
 
 // アイテムのコンテンツを設定する関数（エラー修正のために追加）
-export async function setItemContent(itemId: string, contentId: string, isUserItem: boolean = false): Promise<boolean> {
-  if (!itemId || !contentId) return false;
+export async function setItemContent(itemId: string, contentName: string | null, isUserItem: boolean = false): Promise<boolean> {
+  if (!itemId) return false;
   
   try {
     const tableName = isUserItem ? "user_items" : "official_items";
     
+    // content_idではなくcontent_nameを使用するように修正
     const { error } = await supabase
       .from(tableName)
-      .update({ content_id: contentId })
+      .update({ content_name: contentName })
       .eq('id', itemId);
     
     if (error) {

@@ -38,6 +38,7 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
+    // ここで問題を修正: tags プロパティがnullの場合に適切に処理
     const result: SimpleItemTag[] = data
       .filter((item) => item.tags) // nullのタグをフィルタリング
       .map((item) => ({
