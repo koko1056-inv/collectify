@@ -43,11 +43,15 @@ export async function getTagsForItem(
       .filter((item) => item.tags) // nullのタグをフィルタリング
       .map((item) => ({
         tag_id: item.tag_id,
-        tags: item.tags as { id: string; name: string; category: string; created_at: string }
+        tags: {
+          id: item.tags.id,
+          name: item.tags.name,
+          category: item.tags.category,
+          created_at: item.tags.created_at
+        }
       }));
       
     return result.sort((a, b) => {
-      if (!a.tags || !b.tags) return 0;
       return a.tags.name.localeCompare(b.tags.name);
     });
   } catch (error) {
