@@ -1,28 +1,21 @@
 
-// タグ関連の型定義
-export interface SimpleTag {
-  id: string;
-  name: string;
-  category?: string;
-  created_at?: string;
-}
-
-export interface SimpleItemTag {
-  tag_id: string;
-  tags: SimpleTag | null;
-}
-
-// コンテンツ情報の型定義
+// ContentInfoの型定義（icon_nameプロパティをオプションとして追加）
 export interface ContentInfo {
   id: string;
   name: string;
   type: string;
   created_at: string;
   created_by: string;
-  icon_name?: string; // オプショナルプロパティとして追加
+  icon_name?: string;
 }
 
-// タググループ化されたアイテムの型定義
-export interface TagGroupedItems {
-  [tagName: string]: any[];
+// SimpleItemTag型の修正（無限再帰を防ぐ）
+export interface SimpleItemTag {
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category: string;
+    created_at: string;
+  } | null;
 }

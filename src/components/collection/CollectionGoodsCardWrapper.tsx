@@ -64,7 +64,7 @@ export function CollectionGoodsCardWrapper({
             isEditable={false}
           />
           <div className="p-2 relative">
-            <h3 className="text-xs font-medium text-gray-900 truncate">{title}</h3>
+            <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
             {quantity > 1 && (
               <Badge 
                 className="absolute bottom-2 right-2 bg-purple-500 hover:bg-purple-500"
@@ -106,7 +106,7 @@ export function CollectionGoodsCardWrapper({
         isEditable={isOwner}
       />
       <div className="px-3 py-2 relative">
-        <h3 className="text-xs font-medium text-gray-900 truncate">{title}</h3>
+        <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
         {isOwner && quantity > 1 && (
           <Badge 
             className="absolute bottom-0 right-2 bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1"
