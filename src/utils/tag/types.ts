@@ -14,12 +14,12 @@ export interface SimpleItemTag {
 
 // コンテンツ情報の型定義
 export interface ContentInfo {
-  id?: string;
-  name?: string;
-  type?: string;
-  created_at?: string;
-  created_by?: string;
-  icon_name?: string;
+  id: string;
+  name: string;
+  type: string;
+  created_at: string;
+  created_by: string;
+  icon_name: string;
 }
 
 // タググループ化されたアイテムの型定義
