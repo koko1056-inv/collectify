@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Trash2, Tag, Repeat } from "lucide-react";
 
@@ -92,7 +93,7 @@ export function CardActions({
         </Button>
       </div>
       
-      {/* 記録を追加ボタン - プラスアイコンなし */}
+      {/* 記録を追加ボタン - フル幅 */}
       <Button 
         variant="default"
         size="sm"

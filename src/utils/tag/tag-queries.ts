@@ -52,7 +52,7 @@ export async function getTagsForItem(
       }));
       
     return result.sort((a, b) => {
-      return a.tags.name.localeCompare(b.tags.name);
+      return a.tags.name.localeCompare(b.tags.name, 'ja');
     });
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
