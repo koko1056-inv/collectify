@@ -4,7 +4,7 @@ import { TagGroupedItems } from "./types";
 import { getTagsForItem } from "./tag-queries";
 
 // ユーザーのアイテムをタグでグループ化して取得
-export async function getItemsGroupedByTag(userId: string): Promise<TagGroupedItems> {
+export async function getItemsGroupedByTag(userId: string, selectedTags: string[] = []): Promise<TagGroupedItems> {
   try {
     // ユーザーのアイテムを取得
     const { data: userItems, error: itemsError } = await supabase

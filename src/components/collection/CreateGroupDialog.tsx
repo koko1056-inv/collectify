@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createGroup } from "@/utils/tag/user-groups";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { GroupInfo } from "@/utils/tag/types";
 
 interface CreateGroupDialogProps {
@@ -25,19 +25,15 @@ export function CreateGroupDialog({ isOpen, onClose, onCreateGroup }: CreateGrou
     e.preventDefault();
     
     if (!user?.id) {
-      toast({
-        title: "エラー",
-        description: "ログインが必要です",
-        variant: "destructive",
+      toast("ログインが必要です", {
+        description: "グループを作成するにはログインしてください",
       });
       return;
     }
     
     if (!name.trim()) {
-      toast({
-        title: "エラー",
+      toast("エラー", {
         description: "グループ名を入力してください",
-        variant: "destructive",
       });
       return;
     }
@@ -53,8 +49,7 @@ export function CreateGroupDialog({ isOpen, onClose, onCreateGroup }: CreateGrou
       
       if (newGroup) {
         onCreateGroup(newGroup);
-        toast({
-          title: "成功",
+        toast("成功", {
           description: "グループを作成しました",
         });
         // フォームリセット
@@ -64,10 +59,8 @@ export function CreateGroupDialog({ isOpen, onClose, onCreateGroup }: CreateGrou
       }
     } catch (error) {
       console.error("Error creating group:", error);
-      toast({
-        title: "エラー",
+      toast("エラー", {
         description: "グループの作成に失敗しました",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);

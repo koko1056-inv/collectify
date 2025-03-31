@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { getItemsGroupedByTag } from "@/utils/tag-operations";
-import { ContentInfo, TagGroupedItems } from "@/utils/tag/types";
+import { TagGroupedItems } from "@/utils/tag/types";
 import { CollectionGrid } from "./CollectionGrid";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GroupShowcase } from "./GroupShowcase";
