@@ -1,3 +1,4 @@
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -5,14 +6,9 @@ import { ContentNameSection } from "./ContentNameSection";
 import { CreatorSection } from "./CreatorSection";
 import { MemoriesSection } from "./MemoriesSection";
 import { CategoryTagSelect } from "../tag/CategoryTagSelect";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ItemDescriptionField } from "./ItemDescriptionField";
-import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -27,7 +23,6 @@ interface ItemDetailsContentProps {
   releaseDate?: string;
   createdBy?: string | null;
   description?: string;
-  itemId?: string;
 }
 
 export function ItemDetailsContent({
@@ -43,58 +38,10 @@ export function ItemDetailsContent({
   releaseDate,
   createdBy,
   description,
-  itemId,
 }: ItemDetailsContentProps) {
-  const [isInShowcase, setIsInShowcase] = useState(false);
-  const { toast } = useToast();
-  const { user } = useAuth();
-
   const handleImageUpdate = (newImageUrl: string) => {
     setEditedData({ ...editedData, image: newImageUrl });
   };
-
-  // 一時的にショーケース機能をコメントアウトします。データベースが更新されるまで待ちます。
-  /*
-  // ショーケースのステータスをチェック
-  useEffect(() => {
-    if (isUserItem && itemId && user) {
-      const checkShowcaseStatus = async () => {
-        const { data, error } = await supabase
-          .from("user_items")
-          .select("*")
-          .eq("id", itemId)
-          .single();
-        
-        if (!error && data) {
-          setIsInShowcase(false); // 一時的に常にfalse
-        }
-      };
-      
-      checkShowcaseStatus();
-    }
-  }, [isUserItem, itemId, user]);
-
-  // ショーケース切り替え処理
-  const toggleShowcase = async () => {
-    if (!isUserItem || !itemId || !user) return;
-    
-    try {
-      // 実際の更新処理は一時的にトーストメッセージのみ表示
-      toast({
-        title: "この機能はまだ準備中です",
-        description: "データベースのセットアップ後にご利用いただけます",
-      });
-      
-    } catch (error) {
-      console.error("Error in showcase feature:", error);
-      toast({
-        title: "エラーが発生しました",
-        description: "ショーケースの更新に失敗しました。もう一度お試しください。",
-        variant: "destructive",
-      });
-    }
-  };
-  */
 
   // タグの初期値をセット
   useEffect(() => {
@@ -121,7 +68,7 @@ export function ItemDetailsContent({
   };
 
   return (
-    <ScrollArea className="flex-1 h-[70vh] px-6">
+    <ScrollArea className="flex-1 max-h-[calc(70vh-100px)] px-6">
       <div className="space-y-4 bg-white pb-6">
         <ItemImageEditor
           image={isEditing ? editedData.image : image}
@@ -129,20 +76,6 @@ export function ItemDetailsContent({
           isEditing={isEditing}
           onImageUpdate={handleImageUpdate}
         />
-
-        {/* 一時的にショーケースボタンを無効化 */}
-        {/*
-        {isUserItem && !isEditing && itemId && (
-          <Button
-            variant={isInShowcase ? "default" : "outline"}
-            className={`w-full ${isInShowcase ? "bg-purple-500 hover:bg-purple-600" : "border-purple-300 text-purple-600 hover:bg-purple-50"}`}
-            onClick={toggleShowcase}
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            {isInShowcase ? "ショーケース中" : "ショーケースに追加"}
-          </Button>
-        )}
-        */}
 
         {/* タグ表示セクション（ユーザーアイテムかつ編集モードでない場合） */}
         {isUserItem && !isEditing && tags.length > 0 && (
