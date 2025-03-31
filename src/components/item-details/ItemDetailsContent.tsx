@@ -1,4 +1,3 @@
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -54,18 +53,20 @@ export function ItemDetailsContent({
     setEditedData({ ...editedData, image: newImageUrl });
   };
 
+  // 一時的にショーケース機能をコメントアウトします。データベースが更新されるまで待ちます。
+  /*
   // ショーケースのステータスをチェック
   useEffect(() => {
     if (isUserItem && itemId && user) {
       const checkShowcaseStatus = async () => {
         const { data, error } = await supabase
           .from("user_items")
-          .select("is_showcased")
+          .select("*")
           .eq("id", itemId)
           .single();
         
         if (!error && data) {
-          setIsInShowcase(data.is_showcased || false);
+          setIsInShowcase(false); // 一時的に常にfalse
         }
       };
       
@@ -78,25 +79,14 @@ export function ItemDetailsContent({
     if (!isUserItem || !itemId || !user) return;
     
     try {
-      const newShowcaseStatus = !isInShowcase;
-      
-      const { error } = await supabase
-        .from("user_items")
-        .update({ is_showcased: newShowcaseStatus })
-        .eq("id", itemId);
-      
-      if (error) throw error;
-      
-      setIsInShowcase(newShowcaseStatus);
-      
+      // 実際の更新処理は一時的にトーストメッセージのみ表示
       toast({
-        title: newShowcaseStatus ? "ショーケースに追加しました" : "ショーケースから削除しました",
-        description: newShowcaseStatus 
-          ? "コレクションのショーケースに表示されるようになりました" 
-          : "コレクションのショーケースから削除されました",
+        title: "この機能はまだ準備中です",
+        description: "データベースのセットアップ後にご利用いただけます",
       });
+      
     } catch (error) {
-      console.error("Error toggling showcase status:", error);
+      console.error("Error in showcase feature:", error);
       toast({
         title: "エラーが発生しました",
         description: "ショーケースの更新に失敗しました。もう一度お試しください。",
@@ -104,6 +94,7 @@ export function ItemDetailsContent({
       });
     }
   };
+  */
 
   // タグの初期値をセット
   useEffect(() => {
@@ -139,7 +130,8 @@ export function ItemDetailsContent({
           onImageUpdate={handleImageUpdate}
         />
 
-        {/* ショーケースボタン (ユーザーアイテムの場合のみ表示) */}
+        {/* 一時的にショーケースボタンを無効化 */}
+        {/*
         {isUserItem && !isEditing && itemId && (
           <Button
             variant={isInShowcase ? "default" : "outline"}
@@ -150,6 +142,7 @@ export function ItemDetailsContent({
             {isInShowcase ? "ショーケース中" : "ショーケースに追加"}
           </Button>
         )}
+        */}
 
         {/* タグ表示セクション（ユーザーアイテムかつ編集モードでない場合） */}
         {isUserItem && !isEditing && tags.length > 0 && (

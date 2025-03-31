@@ -38,7 +38,6 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
-    // データの形式を適切に変換
     const result: SimpleItemTag[] = data
       .filter((item) => item.tags) // nullのタグをフィルタリング
       .map((item) => ({

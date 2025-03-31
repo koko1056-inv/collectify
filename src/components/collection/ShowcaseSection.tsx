@@ -17,12 +17,13 @@ export function ShowcaseSection({ userId }: ShowcaseSectionProps) {
   const { data: showcaseItems = [], isLoading } = useQuery({
     queryKey: ["showcase-items", userId],
     queryFn: async () => {
+      // まだis_showcasedカラムが追加されていないため、ここではユーザーの最新アイテムを表示しています
       const { data, error } = await supabase
         .from("user_items")
         .select("*")
         .eq("user_id", userId)
-        .eq("is_showcased", true)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(5); // 最新5つのアイテムを仮のショーケースとして表示
       
       if (error) throw error;
       return data || [];
