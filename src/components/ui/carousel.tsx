@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
@@ -57,8 +58,6 @@ const Carousel = React.forwardRef<
     ref
   ) => {
     const emblaOptions = {
-      align: "start",
-      dragFree: true,
       ...opts,
       axis: orientation === "horizontal" ? "x" : "y",
     }

@@ -108,7 +108,7 @@ export function FeaturedCollections() {
             </div>
           ) : (
             <div className="relative">
-              <Carousel className="w-full">
+              <Carousel className="w-full" opts={{ dragFree: true }}>
                 <CarouselContent className="-ml-2 md:-ml-4">
                   {todayItems.map((item) => (
                     <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5">
@@ -128,7 +128,7 @@ export function FeaturedCollections() {
               </Carousel>
               
               {isMobile && todayItems.length > 2 && (
-                <div className="flex justify-end items-center mt-2 text-gray-500 text-xs">
+                <div className="flex justify-center items-center mt-2 text-gray-500 text-xs bg-gray-100 py-1 px-2 rounded-full mx-auto w-fit">
                   <span>スワイプでもっと見る</span>
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </div>
@@ -150,7 +150,7 @@ export function FeaturedCollections() {
             </div>
           ) : (
             <div className="relative">
-              <Carousel className="w-full">
+              <Carousel className="w-full" opts={{ dragFree: true }}>
                 <CarouselContent className="-ml-2 md:-ml-4">
                   {trendingItems.map((item) => (
                     <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5">
@@ -170,7 +170,7 @@ export function FeaturedCollections() {
               </Carousel>
               
               {isMobile && trendingItems.length > 2 && (
-                <div className="flex justify-end items-center mt-2 text-gray-500 text-xs">
+                <div className="flex justify-center items-center mt-2 text-gray-500 text-xs bg-gray-100 py-1 px-2 rounded-full mx-auto w-fit">
                   <span>スワイプでもっと見る</span>
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </div>
