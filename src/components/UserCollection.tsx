@@ -97,7 +97,7 @@ export function UserCollection({
   }
   return <div className="space-y-4 my-0 mx-0 px-0 py-px">
       <div className="flex justify-end mb-4">
-        <Button onClick={() => setIsRandomModalOpen(true)} className="gap-2" variant="outline">
+        <Button onClick={() => setIsRandomModalOpen(true)} variant="outline" className="gap-2 px-0 mx-[90px]">
           <Dices className="h-4 w-4" />
           今日のコレクション
         </Button>
