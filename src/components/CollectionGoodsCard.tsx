@@ -14,5 +14,9 @@ interface CollectionGoodsCardProps {
 }
 
 export function CollectionGoodsCard(props: CollectionGoodsCardProps) {
-  return <CollectionGoodsCardWrapper {...props} />;
+  return (
+    <div className="h-full">
+      <CollectionGoodsCardWrapper {...props} />
+    </div>
+  );
 }
