@@ -10,6 +10,7 @@ import { DragEndEvent } from "@dnd-kit/core";
 import { Folder, MoreVertical, Plus, Search, ChevronLeft, PenLine } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
+import { AddItemsToGroup } from "./AddItemsToGroup";
 
 interface TagGroupedCollectionProps {
   userId: string;
@@ -17,13 +18,36 @@ interface TagGroupedCollectionProps {
 
 export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [activeTagId, setActiveTagId] = useState<string | null>(null);
   const [isCompact, setIsCompact] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAddItems, setShowAddItems] = useState(false);
   
-  const { data: itemsByTag = {}, isLoading } = useQuery({
+  const { data: itemsByTag = {}, isLoading, refetch } = useQuery({
     queryKey: ["items-by-tag", userId],
     queryFn: async () => {
       return getItemsGroupedByTag(userId);
+    },
+    enabled: !!userId,
+  });
+
+  // タグ情報を取得
+  const { data: tagsInfo = {} } = useQuery({
+    queryKey: ["tags-info", userId],
+    queryFn: async () => {
+      const { data, error } = await fetch(`/api/tags?userId=${userId}`).then(r => r.json());
+      if (error) throw error;
+      
+      // タグIDと名前のマッピングを作成
+      const tagsMap: Record<string, {id: string, name: string}> = {};
+      data?.forEach((tag: any) => {
+        tagsMap[tag.name] = {
+          id: tag.id,
+          name: tag.name
+        };
+      });
+      
+      return tagsMap;
     },
     enabled: !!userId,
   });
@@ -35,12 +59,26 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
   useEffect(() => {
     if (tagNames.length > 0 && !activeTag) {
       setActiveTag(tagNames[0]);
+      if (tagsInfo[tagNames[0]]) {
+        setActiveTagId(tagsInfo[tagNames[0]].id);
+      }
     }
-  }, [tagNames, activeTag]);
+  }, [tagNames, activeTag, tagsInfo]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     // ドラッグ&ドロップの実装はここに入れることができます
     // 現在は何もしません
+  };
+
+  // アイテム追加モードを切り替え
+  const toggleAddItems = () => {
+    setShowAddItems(!showAddItems);
+  };
+
+  // アイテム追加後にデータを再取得
+  const handleAddItemsClose = () => {
+    setShowAddItems(false);
+    refetch();
   };
 
   if (isLoading) {
@@ -61,6 +99,18 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
       <div className="text-center py-8">
         <p className="text-gray-500">コレクションに追加されたアイテムがありません。</p>
       </div>
+    );
+  }
+
+  // アイテム追加画面を表示
+  if (showAddItems && activeTag && activeTagId) {
+    return (
+      <AddItemsToGroup 
+        userId={userId} 
+        tagId={activeTagId} 
+        tagName={activeTag}
+        onClose={handleAddItemsClose}
+      />
     );
   }
 
@@ -101,7 +151,12 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
               key={tagName} 
               className="bg-blue-100 rounded-xl p-4 cursor-pointer relative"
               style={{ backgroundColor: getRandomPastelColor() }}
-              onClick={() => setActiveTag(tagName)}
+              onClick={() => {
+                setActiveTag(tagName);
+                if (tagsInfo[tagName]) {
+                  setActiveTagId(tagsInfo[tagName].id);
+                }
+              }}
             >
               <div className="absolute top-2 right-2">
                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -156,7 +211,11 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">{itemsByTag[activeTag].length}アイテム</p>
-        <Button variant="outline" className="text-blue-500 bg-blue-50 border-blue-100 flex items-center gap-1">
+        <Button 
+          variant="outline" 
+          className="text-blue-500 bg-blue-50 border-blue-100 flex items-center gap-1"
+          onClick={toggleAddItems}
+        >
           <Plus className="h-4 w-4" />
           アイテムを追加
         </Button>

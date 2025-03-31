@@ -34,3 +34,13 @@ export interface TagUpdate {
   category: string;
   value: string | null;
 }
+
+// コンテンツ情報インターフェース拡張（icon_nameプロパティを追加）
+export interface ContentInfo {
+  id: string;
+  name: string;
+  type: string;
+  created_at: string;
+  created_by: string;
+  icon_name?: string;
+}
