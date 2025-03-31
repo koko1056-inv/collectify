@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
@@ -57,14 +56,14 @@ const Carousel = React.forwardRef<
     },
     ref
   ) => {
-    const [carouselRef, api] = useEmblaCarousel(
-      {
-        ...opts,
-        axis: orientation === "horizontal" ? "x" : "y",
-        dragFree: true,
-      },
-      plugins
-    )
+    const emblaOptions = {
+      align: "start",
+      dragFree: true,
+      ...opts,
+      axis: orientation === "horizontal" ? "x" : "y",
+    }
+    
+    const [carouselRef, api] = useEmblaCarousel(emblaOptions, plugins)
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
 
@@ -125,7 +124,7 @@ const Carousel = React.forwardRef<
         value={{
           carouselRef,
           api: api,
-          opts,
+          opts: emblaOptions,
           orientation:
             orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
           scrollPrev,
