@@ -68,7 +68,7 @@ export function ItemDetailsContent({
   };
 
   return (
-    <ScrollArea className="flex-1 max-h-[calc(70vh-100px)] px-6">
+    <ScrollArea className="flex-1 h-[70vh] px-6">
       <div className="space-y-4 bg-white pb-6">
         <ItemImageEditor
           image={isEditing ? editedData.image : image}
