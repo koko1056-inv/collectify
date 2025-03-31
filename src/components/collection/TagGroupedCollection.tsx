@@ -1,82 +1,94 @@
 
-import React, { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useEffect, useState } from "react";
+import { getItemsGroupedByTag } from "@/utils/tag-operations";
+import { ContentInfo, TagGroupedItems } from "@/utils/tag/types";
+import { CollectionGrid } from "./CollectionGrid";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tag as TagIcon } from "lucide-react";
 import { GroupShowcase } from "./GroupShowcase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface TagGroupedCollectionProps {
-  userId: string;
+  userId?: string | null;
+  selectedTags: string[];
 }
 
-export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
-  const [activeView, setActiveView] = useState<string>("groups");
+export function TagGroupedCollection({ userId, selectedTags }: TagGroupedCollectionProps) {
+  const [groupedItems, setGroupedItems] = useState<TagGroupedItems>({});
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
-  
-  if (!user?.id) {
+  const effectiveUserId = userId || user?.id;
+
+  useEffect(() => {
+    if (effectiveUserId) {
+      const fetchGroupedItems = async () => {
+        setIsLoading(true);
+        try {
+          const items = await getItemsGroupedByTag(effectiveUserId, selectedTags);
+          setGroupedItems(items);
+        } catch (error) {
+          console.error("Error fetching grouped items:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchGroupedItems();
+    }
+  }, [effectiveUserId, selectedTags]);
+
+  if (isLoading) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">コレクションを表示するにはログインしてください。</p>
+      <div className="space-y-8">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="space-y-4">
+            <Skeleton className="h-6 w-48" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              {[...Array(6)].map((_, j) => (
+                <div key={j} className="space-y-3">
+                  <Skeleton className="h-32 w-full" />
+                  <Skeleton className="h-3 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
 
+  // すべてのグループを表示
   return (
-    <div className="space-y-4">
-      <Tabs defaultValue="groups" onValueChange={setActiveView} className="w-full">
-        <TabsList className="w-full max-w-[360px] mx-auto grid grid-cols-2 bg-white border border-gray-200 rounded-full mb-4">
-          <TabsTrigger
-            value="groups"
-            className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
-          >
-            グループ
-          </TabsTrigger>
-          <TabsTrigger
-            value="tags"
-            className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
-          >
-            タグ
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="groups" className="mt-4">
-          <GroupShowcase />
-        </TabsContent>
-
-        <TabsContent value="tags" className="mt-4">
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2 bg-white p-2 rounded-lg shadow-sm">
-              <TagIcon className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium">テーマで表示：</span>
-            </div>
-            
-            <ScrollArea className="w-full">
-              <div className="flex space-x-2 pb-2">
-                <Skeleton className="h-9 w-20" />
-                <Skeleton className="h-9 w-24" />
-                <Skeleton className="h-9 w-16" />
-                <Skeleton className="h-9 w-20" />
-              </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-
-            <div className="text-center py-8">
-              <Skeleton className="h-6 w-3/4 mx-auto mb-4" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="h-[120px] w-full" />
-                    <Skeleton className="h-3 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                  </div>
-                ))}
-              </div>
-            </div>
+    <div className="space-y-12">
+      {/* グループショーケースを表示 */}
+      <GroupShowcase userId={effectiveUserId} />
+      
+      {/* タグでグループ化された項目を表示 */}
+      {Object.keys(groupedItems).length === 0 ? (
+        selectedTags.length > 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">選択したタグにマッチするアイテムがありません。</p>
           </div>
-        </TabsContent>
-      </Tabs>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-gray-500">コレクションにはまだアイテムがありません。</p>
+          </div>
+        )
+      ) : (
+        Object.entries(groupedItems).map(([tagName, items]) => (
+          <div key={tagName} className="space-y-4">
+            <h2 className="text-lg font-medium text-gray-800">{tagName}</h2>
+            <CollectionGrid
+              items={items}
+              isCompact={false}
+              isSelectionMode={false}
+              selectedItems={[]}
+              onSelectItem={() => {}}
+              onDragEnd={() => {}}
+            />
+          </div>
+        ))
+      )}
     </div>
   );
 }

@@ -11,8 +11,8 @@ export {
 } from './tag/tag-queries';
 export {
   getTagsByCategory,
-  findTagIdByName,
-  isSimpleTag
+  searchTagsByCategory,
+  getPopularTags
 } from './tag/tag-search';
 export {
   getItemsGroupedByTag

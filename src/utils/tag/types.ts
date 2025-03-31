@@ -22,7 +22,7 @@ export interface ContentInfo {
   id: string;
   name: string;
   type: string;
-  icon_name?: string;  // icon_nameプロパティを明示的に追加
+  icon_name?: string;
   created_by: string;
   created_at: string;
 }
