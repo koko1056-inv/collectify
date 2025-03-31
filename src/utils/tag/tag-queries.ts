@@ -42,16 +42,19 @@ export async function getTagsForItem(
       .filter((item) => item.tags) // nullのタグをフィルタリング
       .map((item) => ({
         tag_id: item.tag_id,
-        tags: {
+        tags: item.tags ? {
           id: item.tags.id,
           name: item.tags.name,
           category: item.tags.category || "",
           created_at: item.tags.created_at || ""
-        }
+        } : null
       }));
       
     return result.sort((a, b) => {
-      return a.tags.name.localeCompare(b.tags.name, 'ja');
+      if (a.tags && b.tags) {
+        return a.tags.name.localeCompare(b.tags.name, 'ja');
+      }
+      return 0;
     });
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);

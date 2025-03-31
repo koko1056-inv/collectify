@@ -1,4 +1,6 @@
 
+"use client"
+
 import * as React from "react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import useEmblaCarousel, {
@@ -8,12 +10,12 @@ import useEmblaCarousel, {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
-type CarouselApi = ReturnType<typeof useEmblaCarousel>[1]
+type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>[0]
 
-type CarouselProps = {
+interface CarouselProps {
   opts?: UseCarouselParameters
-  plugins?: ReturnType<typeof useEmblaCarousel>[0]
+  plugins?: ReturnType<typeof useEmblaCarousel>[1][]
   orientation?: "horizontal" | "vertical"
   setApi?: (api: CarouselApi) => void
 }
@@ -47,8 +49,8 @@ const Carousel = React.forwardRef<
     {
       orientation = "horizontal",
       opts,
-      plugins,
       setApi,
+      plugins,
       className,
       children,
       ...props
@@ -60,7 +62,8 @@ const Carousel = React.forwardRef<
         ...opts,
         axis: orientation === "horizontal" ? "x" : "y",
       },
-      plugins
+      // TypeScript workaround - plugins passed as-is
+      plugins as any
     )
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
@@ -109,11 +112,12 @@ const Carousel = React.forwardRef<
       }
 
       onSelect(api)
-      api.on("reInit", onSelect)
       api.on("select", onSelect)
+      api.on("reInit", onSelect)
 
       return () => {
-        api?.off("select", onSelect)
+        api.off("select", onSelect)
+        api.off("reInit", onSelect)
       }
     }, [api, onSelect])
 

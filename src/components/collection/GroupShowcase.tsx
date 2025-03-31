@@ -1,147 +1,137 @@
-
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 import { GroupCard } from "./GroupCard";
-import { GroupItems } from "./GroupItems";
-import { AddGroupModal } from "./AddGroupModal";
-import { AddItemsToGroupModal } from "./AddItemsToGroupModal";
 import { getUserGroups } from "@/utils/tag/user-groups";
 import { GroupInfo } from "@/utils/tag/types";
-import { FolderPlus } from "lucide-react";
-import { DragEndEvent } from "@dnd-kit/core";
+import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { GroupItems } from "./GroupItems";
+import { CreateGroupDialog } from "./CreateGroupDialog";
+import { AddItemsToGroupDialog } from "./AddItemsToGroupDialog";
 
-export function GroupShowcase() {
-  const [groups, setGroups] = useState<GroupInfo[]>([]);
-  const [selectedGroup, setSelectedGroup] = useState<GroupInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
-  const [isAddItemsModalOpen, setIsAddItemsModalOpen] = useState(false);
+interface GroupShowcaseProps {
+  userId: string | null;
+}
+
+export function GroupShowcase({ userId }: GroupShowcaseProps) {
   const { user } = useAuth();
+  const [groups, setGroups] = useState<GroupInfo[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedGroup, setSelectedGroup] = useState<GroupInfo | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isAddItemsDialogOpen, setIsAddItemsDialogOpen] = useState(false);
 
-  const fetchGroups = async () => {
-    if (!user?.id) return;
-    
-    setIsLoading(true);
-    try {
-      const fetchedGroups = await getUserGroups(user.id);
-      setGroups(fetchedGroups);
-      
-      // 初回ロード時に最初のグループを選択
-      if (fetchedGroups.length > 0 && !selectedGroup) {
-        setSelectedGroup(fetchedGroups[0]);
-      }
-    } catch (error) {
-      console.error("Error fetching groups:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const effectiveUserId = userId || user?.id;
+  const isOwner = !userId || (user && user.id === userId);
 
   useEffect(() => {
-    fetchGroups();
-  }, [user?.id]);
+    if (effectiveUserId) {
+      const fetchGroups = async () => {
+        setIsLoading(true);
+        try {
+          const groups = await getUserGroups(effectiveUserId);
+          setGroups(groups);
+          if (groups.length > 0 && !selectedGroup) {
+            setSelectedGroup(groups[0]);
+          }
+        } catch (error) {
+          console.error("Error fetching groups:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchGroups();
+    }
+  }, [effectiveUserId, selectedGroup]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    // ドラッグ&ドロップの実装は必要に応じて追加
+  const handleCreateGroup = (newGroup: GroupInfo) => {
+    setGroups(prev => [newGroup, ...prev]);
+    setSelectedGroup(newGroup);
   };
 
-  const handleGroupSelection = (group: GroupInfo) => {
-    setSelectedGroup(group);
+  const handleDragEnd = (event: any) => {
+    // Handle drag end logic here
+    console.log("Drag ended:", event);
   };
 
-  const handleAddGroup = () => {
-    setIsAddGroupModalOpen(true);
-  };
-
-  const handleAddItems = () => {
-    setIsAddItemsModalOpen(true);
-  };
-
-  const handleGroupAdded = () => {
-    fetchGroups();
-  };
-
-  const handleItemsAdded = () => {
-    fetchGroups();
-  };
-
-  if (!user?.id) {
+  if (isLoading) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">ショーケースを表示するにはログインしてください。</p>
+      <div className="space-y-4">
+        <h2 className="text-lg font-medium text-gray-800">グループショーケース</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full rounded-lg" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900">グループショーケース</h2>
-        <Button 
-          onClick={handleAddGroup}
-          className="flex items-center gap-2"
-        >
-          <FolderPlus className="h-4 w-4" />
-          グループを追加
-        </Button>
+    <div className="space-y-4">
+      <h2 className="text-lg font-medium text-gray-800">グループショーケース</h2>
+      
+      <div className="flex flex-wrap gap-4">
+        {isOwner && (
+          <Button
+            onClick={() => setIsCreateDialogOpen(true)}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            新しいグループ
+          </Button>
+        )}
       </div>
       
-      {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-[100px] w-full" />
-          ))}
-        </div>
-      ) : groups.length === 0 ? (
+      {groups.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg">
           <p className="text-gray-500 mb-4">グループがまだありません</p>
-          <Button onClick={handleAddGroup}>
-            <FolderPlus className="h-4 w-4 mr-2" />
-            最初のグループを作成
-          </Button>
+          {isOwner && (
+            <Button onClick={() => setIsCreateDialogOpen(true)} variant="default">
+              <Plus className="h-4 w-4 mr-2" />
+              グループを作成
+            </Button>
+          )}
         </div>
       ) : (
-        <>
-          <ScrollArea className="pb-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pb-2">
-              {groups.map((group) => (
-                <GroupCard
-                  key={group.id}
-                  group={group}
-                  isSelected={selectedGroup?.id === group.id}
-                  onClick={() => handleGroupSelection(group)}
-                />
-              ))}
-            </div>
-          </ScrollArea>
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {groups.map(group => (
+              <GroupCard
+                key={group.id}
+                group={group}
+                isSelected={selectedGroup?.id === group.id}
+                onClick={() => setSelectedGroup(group)}
+              />
+            ))}
+          </div>
           
           {selectedGroup && (
-            <div className="mt-6">
-              <GroupItems
-                group={selectedGroup}
-                onAddItems={handleAddItems}
-                onDragEnd={handleDragEnd}
-              />
-            </div>
+            <GroupItems
+              group={selectedGroup}
+              onAddItems={() => setIsAddItemsDialogOpen(true)}
+              onDragEnd={handleDragEnd}
+            />
           )}
-        </>
+        </div>
       )}
       
-      <AddGroupModal
-        isOpen={isAddGroupModalOpen}
-        onClose={() => setIsAddGroupModalOpen(false)}
-        onGroupAdded={handleGroupAdded}
+      <CreateGroupDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onCreateGroup={handleCreateGroup}
       />
       
-      <AddItemsToGroupModal
-        isOpen={isAddItemsModalOpen}
-        onClose={() => setIsAddItemsModalOpen(false)}
-        group={selectedGroup}
-        onItemsAdded={handleItemsAdded}
-      />
+      {selectedGroup && (
+        <AddItemsToGroupDialog
+          isOpen={isAddItemsDialogOpen}
+          onClose={() => setIsAddItemsDialogOpen(false)}
+          groupId={selectedGroup.id}
+        />
+      )}
     </div>
   );
 }
