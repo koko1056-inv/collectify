@@ -1,19 +1,35 @@
+
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface BackButtonProps {
   className?: string;
+  to?: string; // 特定のルートに戻るためのオプショナルプロパティ
 }
 
-export function BackButton({ className }: BackButtonProps) {
+export function BackButton({ className, to }: BackButtonProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleBack = () => {
+    if (to) {
+      // 特定のルートが指定されている場合はそこに移動
+      navigate(to);
+    } else if (location.pathname === "/add-item") {
+      // add-item画面の場合は検索画面に戻る
+      navigate("/search");
+    } else {
+      // それ以外の場合は履歴を1つ戻る
+      navigate(-1);
+    }
+  };
 
   return (
     <Button
       variant="ghost"
       className={className}
-      onClick={() => navigate(-1)}
+      onClick={handleBack}
     >
       <ArrowLeft className="mr-2 h-4 w-4" />
       戻る
