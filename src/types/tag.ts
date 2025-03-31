@@ -15,7 +15,12 @@ export interface BaseItemTag {
 
 // タグ情報を含むタグ関連
 export interface ItemTagWithTag extends BaseItemTag {
-  tags: Tag;
+  tags: {
+    id: string;
+    name: string;
+    category?: string | null;
+    created_at?: string;
+  };
 }
 
 // ItemTagを純粋な型エイリアスとして定義（循環参照を避ける）

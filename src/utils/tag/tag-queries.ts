@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { SimpleItemTag } from "./types";
 
 /**
  * アイテムに関連するタグを取得する
@@ -31,7 +32,7 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
       return [];
     }
     
-    return data;
+    return data as SimpleItemTag[];
   } catch (error) {
     console.error("Error in getTagsForItem:", error);
     return [];

@@ -4,7 +4,6 @@ import useEmblaCarousel, {
   type UseEmblaCarouselType
 } from "embla-carousel-react"
 import { type UseEmblaCarouselOptions } from "embla-carousel-react"
-import { type PrevNextButtonProp, type DotButtonProp } from "embla-carousel-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
