@@ -108,22 +108,16 @@ export function AddItemsToGroupModal({
       const successCount = results.filter(Boolean).length;
       
       if (successCount > 0) {
-        toast("完了", {
-          description: `${successCount}アイテムをグループに追加しました`,
-        });
+        toast.success(`${successCount}アイテムをグループに追加しました`);
         onItemsAdded();
         onClose();
         setSelectedItems([]);
       } else {
-        toast("エラー", {
-          description: "アイテムの追加に失敗しました",
-        });
+        toast.error("アイテムの追加に失敗しました");
       }
     } catch (error) {
       console.error("Error adding items to group:", error);
-      toast("エラー", {
-        description: "エラーが発生しました",
-      });
+      toast.error("エラーが発生しました");
     } finally {
       setIsSubmitting(false);
     }

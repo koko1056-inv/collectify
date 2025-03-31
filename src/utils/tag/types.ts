@@ -1,4 +1,6 @@
 
+import { Tag } from "@/types/tag";
+
 // データグループの型
 export interface TagGroupedItems {
   [tagName: string]: any[];

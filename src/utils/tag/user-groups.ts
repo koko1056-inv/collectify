@@ -24,15 +24,19 @@ export async function getUserGroups(userId: string): Promise<GroupInfo[]> {
 }
 
 // 新しいグループを作成
-export async function createGroup(groupData: {
-  name: string;
-  description?: string;
-  created_by: string;
-}): Promise<GroupInfo | null> {
+export async function createGroup(
+  userId: string,
+  name: string,
+  description?: string
+): Promise<GroupInfo | null> {
   try {
     const { data, error } = await supabase
       .from("groups")
-      .insert(groupData)
+      .insert({
+        name,
+        description,
+        created_by: userId
+      })
       .select()
       .single();
     
