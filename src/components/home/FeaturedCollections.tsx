@@ -7,6 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OfficialItem } from "@/types";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselPrevious, 
+  CarouselNext 
+} from "@/components/ui/carousel";
 
 export function FeaturedCollections() {
   const [currentTab, setCurrentTab] = useState<string>("today");
@@ -26,7 +33,7 @@ export function FeaturedCollections() {
           )
         `)
         .order("created_at", { ascending: false })
-        .limit(4);
+        .limit(8); // 8アイテムに増やして横スクロールの効果を高める
 
       if (error) throw error;
       return data.map(item => ({
@@ -53,7 +60,7 @@ export function FeaturedCollections() {
           )
         `)
         .order("id", { ascending: false })
-        .limit(4);
+        .limit(8); // 8アイテムに増やして横スクロールの効果を高める
 
       if (error) throw error;
       return data.map(item => ({
@@ -88,57 +95,67 @@ export function FeaturedCollections() {
         
         <TabsContent value="today" className="mt-0">
           {isTodayLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex gap-4 overflow-x-auto pb-4">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <Skeleton className="h-36 w-full rounded-md" />
+                <div key={i} className="space-y-2 min-w-[150px]">
+                  <Skeleton className="h-36 w-[150px] rounded-md" />
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {todayItems.map((item) => (
-                <CollectionGoodsCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  image={item.image}
-                  releaseDate={item.release_date}
-                  prize={item.price}
-                  isCompact={true}
-                />
-              ))}
-            </div>
+            <Carousel className="w-full">
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {todayItems.map((item) => (
+                  <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5">
+                    <CollectionGoodsCard
+                      id={item.id}
+                      title={item.title}
+                      image={item.image}
+                      releaseDate={item.release_date}
+                      prize={item.price}
+                      isCompact={true}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden sm:flex left-0" />
+              <CarouselNext className="hidden sm:flex right-0" />
+            </Carousel>
           )}
         </TabsContent>
         
         <TabsContent value="trending" className="mt-0">
           {isTrendingLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex gap-4 overflow-x-auto pb-4">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <Skeleton className="h-36 w-full rounded-md" />
+                <div key={i} className="space-y-2 min-w-[150px]">
+                  <Skeleton className="h-36 w-[150px] rounded-md" />
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {trendingItems.map((item) => (
-                <CollectionGoodsCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  image={item.image}
-                  releaseDate={item.release_date}
-                  prize={item.price}
-                  isCompact={true}
-                />
-              ))}
-            </div>
+            <Carousel className="w-full">
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {trendingItems.map((item) => (
+                  <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5">
+                    <CollectionGoodsCard
+                      id={item.id}
+                      title={item.title}
+                      image={item.image}
+                      releaseDate={item.release_date}
+                      prize={item.price}
+                      isCompact={true}
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden sm:flex left-0" />
+              <CarouselNext className="hidden sm:flex right-0" />
+            </Carousel>
           )}
         </TabsContent>
       </Tabs>
