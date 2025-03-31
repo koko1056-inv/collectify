@@ -6,9 +6,14 @@ import { ContentNameSection } from "./ContentNameSection";
 import { CreatorSection } from "./CreatorSection";
 import { MemoriesSection } from "./MemoriesSection";
 import { CategoryTagSelect } from "../tag/CategoryTagSelect";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ItemDescriptionField } from "./ItemDescriptionField";
+import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -23,6 +28,7 @@ interface ItemDetailsContentProps {
   releaseDate?: string;
   createdBy?: string | null;
   description?: string;
+  itemId?: string;
 }
 
 export function ItemDetailsContent({
@@ -38,9 +44,65 @@ export function ItemDetailsContent({
   releaseDate,
   createdBy,
   description,
+  itemId,
 }: ItemDetailsContentProps) {
+  const [isInShowcase, setIsInShowcase] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+
   const handleImageUpdate = (newImageUrl: string) => {
     setEditedData({ ...editedData, image: newImageUrl });
+  };
+
+  // ショーケースのステータスをチェック
+  useEffect(() => {
+    if (isUserItem && itemId && user) {
+      const checkShowcaseStatus = async () => {
+        const { data, error } = await supabase
+          .from("user_items")
+          .select("is_showcased")
+          .eq("id", itemId)
+          .single();
+        
+        if (!error && data) {
+          setIsInShowcase(data.is_showcased || false);
+        }
+      };
+      
+      checkShowcaseStatus();
+    }
+  }, [isUserItem, itemId, user]);
+
+  // ショーケース切り替え処理
+  const toggleShowcase = async () => {
+    if (!isUserItem || !itemId || !user) return;
+    
+    try {
+      const newShowcaseStatus = !isInShowcase;
+      
+      const { error } = await supabase
+        .from("user_items")
+        .update({ is_showcased: newShowcaseStatus })
+        .eq("id", itemId);
+      
+      if (error) throw error;
+      
+      setIsInShowcase(newShowcaseStatus);
+      
+      toast({
+        title: newShowcaseStatus ? "ショーケースに追加しました" : "ショーケースから削除しました",
+        description: newShowcaseStatus 
+          ? "コレクションのショーケースに表示されるようになりました" 
+          : "コレクションのショーケースから削除されました",
+      });
+    } catch (error) {
+      console.error("Error toggling showcase status:", error);
+      toast({
+        title: "エラーが発生しました",
+        description: "ショーケースの更新に失敗しました。もう一度お試しください。",
+        variant: "destructive",
+      });
+    }
   };
 
   // タグの初期値をセット
@@ -76,6 +138,18 @@ export function ItemDetailsContent({
           isEditing={isEditing}
           onImageUpdate={handleImageUpdate}
         />
+
+        {/* ショーケースボタン (ユーザーアイテムの場合のみ表示) */}
+        {isUserItem && !isEditing && itemId && (
+          <Button
+            variant={isInShowcase ? "default" : "outline"}
+            className={`w-full ${isInShowcase ? "bg-purple-500 hover:bg-purple-600" : "border-purple-300 text-purple-600 hover:bg-purple-50"}`}
+            onClick={toggleShowcase}
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            {isInShowcase ? "ショーケース中" : "ショーケースに追加"}
+          </Button>
+        )}
 
         {/* タグ表示セクション（ユーザーアイテムかつ編集モードでない場合） */}
         {isUserItem && !isEditing && tags.length > 0 && (

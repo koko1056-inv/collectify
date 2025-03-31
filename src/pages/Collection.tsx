@@ -5,12 +5,15 @@ import { Footer } from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserCollection } from "@/components/UserCollection";
 import { useTags } from "@/hooks/useTags";
+import { FilterBar } from "@/components/FilterBar";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Collection() {
   const isMobile = useIsMobile();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContent, setSelectedContent] = useState("");
+  const { user } = useAuth();
 
   const { data: allTags = [] } = useTags();
 
@@ -19,11 +22,21 @@ export default function Collection() {
       <Navbar />
       <main className={`container mx-auto pt-28 ${isMobile ? 'px-4 py-8' : 'px-4 py-8'}`}>
         <div className="max-w-3xl mx-auto space-y-6">
-          {/* FilterBarコンポーネントを削除しました */}
+          <h1 className="text-2xl font-bold text-center mb-6">マイコレクション</h1>
+          
+          <FilterBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedTags={selectedTags}
+            onTagsChange={setSelectedTags}
+            selectedContent={selectedContent}
+            onContentChange={setSelectedContent}
+            tags={allTags}
+          />
           
           <UserCollection
             selectedTags={selectedTags}
-            userId={null}
+            userId={user?.id}
           />
         </div>
       </main>
