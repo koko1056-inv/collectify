@@ -15,7 +15,8 @@ export {
   getPopularTags
 } from './tag/tag-search';
 export {
-  getItemsGroupedByTag
+  getItemsGroupedByTag,
+  addItemsToGroup
 } from './tag/tag-groups';
 
 // Define a simplified ItemTag interface to avoid circular references

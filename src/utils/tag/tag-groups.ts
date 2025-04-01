@@ -1,28 +1,87 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { GroupInfo } from "./types";
+import { TagGroupedItems } from "./types";
 
-// ユーザーのグループ一覧を取得
-export async function getUserGroups(userId: string): Promise<GroupInfo[]> {
+// タグでグループ化されたアイテムを取得する
+export async function getItemsGroupedByTag(userId: string): Promise<TagGroupedItems> {
   try {
-    const { data, error } = await supabase
-      .from("groups")
+    // ユーザーのアイテムを取得
+    const { data: userItems, error: itemsError } = await supabase
+      .from("user_items")
       .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+      .eq("user_id", userId);
 
-    if (error) {
-      console.error("Error fetching user groups:", error);
-      return [];
+    if (itemsError) {
+      console.error("Error fetching user items:", itemsError);
+      return {};
     }
 
-    return data || [];
+    if (!userItems || userItems.length === 0) {
+      return {};
+    }
+
+    // アイテムのIDリストを作成
+    const itemIds = userItems.map(item => item.id);
+
+    // アイテムに関連するタグを取得
+    const { data: itemTags, error: tagsError } = await supabase
+      .from("user_item_tags")
+      .select(`
+        tag_id,
+        user_item_id,
+        tags (
+          id,
+          name,
+          category
+        )
+      `)
+      .in("user_item_id", itemIds);
+
+    if (tagsError) {
+      console.error("Error fetching tags for items:", tagsError);
+      return {};
+    }
+
+    // タグ名でアイテムをグループ化
+    const groupedItems: TagGroupedItems = {};
+
+    for (const item of userItems) {
+      // このアイテムに関連するタグを見つける
+      const itemTagsFiltered = itemTags.filter(tag => tag.user_item_id === item.id);
+      
+      if (itemTagsFiltered.length === 0) {
+        // タグがない場合は「未分類」に入れる
+        if (!groupedItems["未分類"]) {
+          groupedItems["未分類"] = [];
+        }
+        groupedItems["未分類"].push(item);
+        continue;
+      }
+
+      // 各タグごとにアイテムを追加
+      for (const tagRelation of itemTagsFiltered) {
+        if (tagRelation.tags) {
+          const tagName = tagRelation.tags.name;
+          if (!groupedItems[tagName]) {
+            groupedItems[tagName] = [];
+          }
+          
+          // 同じアイテムを複数回追加しないようにチェック
+          if (!groupedItems[tagName].some(i => i.id === item.id)) {
+            groupedItems[tagName].push(item);
+          }
+        }
+      }
+    }
+
+    return groupedItems;
   } catch (error) {
-    console.error("Error in getUserGroups:", error);
-    return [];
+    console.error("Error in getItemsGroupedByTag:", error);
+    return {};
   }
 }
 
-// グループにアイテムを追加
+// アイテムをグループに追加（新しく実装）
 export async function addItemsToGroup(
   groupId: string,
   itemIds: string[]
@@ -30,10 +89,10 @@ export async function addItemsToGroup(
   try {
     // 既存の関連付けを削除
     const { error: deleteError } = await supabase
-      .from("group_items")
+      .from("group_members")
       .delete()
       .eq("group_id", groupId)
-      .in("item_id", itemIds);
+      .in("user_id", itemIds);
 
     if (deleteError) {
       console.error("Error deleting existing group items:", deleteError);
@@ -43,11 +102,11 @@ export async function addItemsToGroup(
     // 新しい関連付けを挿入
     const groupItems = itemIds.map((itemId) => ({
       group_id: groupId,
-      item_id: itemId,
+      user_id: itemId,
     }));
 
     const { error: insertError } = await supabase
-      .from("group_items")
+      .from("group_members")
       .insert(groupItems);
 
     if (insertError) {
@@ -59,87 +118,5 @@ export async function addItemsToGroup(
   } catch (error) {
     console.error("Error in addItemsToGroup:", error);
     return false;
-  }
-}
-
-// グループからアイテムを削除
-export async function removeItemsFromGroup(
-  groupId: string,
-  itemIds: string[]
-): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from("group_items")
-      .delete()
-      .eq("group_id", groupId)
-      .in("item_id", itemIds);
-
-    if (error) {
-      console.error("Error removing items from group:", error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Error in removeItemsFromGroup:", error);
-    return false;
-  }
-}
-
-// グループのアイテム一覧を取得
-export async function getGroupItems(groupId: string): Promise<any[]> {
-  try {
-    const { data, error } = await supabase
-      .from("group_items")
-      .select("item_id")
-      .eq("group_id", groupId);
-
-    if (error) {
-      console.error("Error fetching group items:", error);
-      return [];
-    }
-
-    // アイテムIDの配列を取得
-    const itemIds = data.map((item) => item.item_id);
-
-    // アイテムIDに基づいてアイテム情報を取得
-    if (itemIds.length > 0) {
-      const { data: itemsData, error: itemsError } = await supabase
-        .from("user_items")
-        .select("*")
-        .in("id", itemIds);
-
-      if (itemsError) {
-        console.error("Error fetching item details:", itemsError);
-        return [];
-      }
-
-      return itemsData || [];
-    } else {
-      return [];
-    }
-  } catch (error) {
-    console.error("Error in getGroupItems:", error);
-    return [];
-  }
-}
-
-// グループのアイテム数を取得
-export async function getGroupItemCount(groupId: string): Promise<number> {
-  try {
-    const { count, error } = await supabase
-      .from("group_items")
-      .select("*", { count: "exact", head: true })
-      .eq("group_id", groupId);
-
-    if (error) {
-      console.error("Error fetching group item count:", error);
-      return 0;
-    }
-
-    return count || 0;
-  } catch (error) {
-    console.error("Error in getGroupItemCount:", error);
-    return 0;
   }
 }

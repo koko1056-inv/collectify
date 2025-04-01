@@ -9,9 +9,7 @@ export async function updateGroupColor(
   try {
     const { error } = await supabase
       .from("groups")
-      .update({ 
-        color: color  // groupsテーブルにcolorカラムが存在することを前提としています
-      })
+      .update({ color })
       .eq("id", groupId);
     
     if (error) {

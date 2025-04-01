@@ -1,134 +1,179 @@
+
 import { useState, useEffect } from "react";
-import { getUserGroups, getGroupItems, updateGroupColor, getGroupItemCount } from "@/utils/tag/user-groups";
-import { GroupInfo } from "@/utils/tag/types";
-import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { TagUpdate } from "@/types/tag";
+import { SimpleItemTag } from "@/utils/tag/types";
+import { updateGroupColor } from "@/utils/tag/group-updates";
 
-export function useGroupShowcase(userId?: string) {
-  const [groups, setGroups] = useState<GroupInfo[]>([]);
+export function useTagManage(
+  isOpen: boolean,
+  itemIds: string[],
+  isUserItem: boolean = false,
+  onClose: () => void,
+  onSubmit?: (updates: TagUpdate[]) => Promise<void>
+) {
+  const [currentTags, setCurrentTags] = useState<SimpleItemTag[]>([]);
+  const [pendingUpdates, setPendingUpdates] = useState<TagUpdate[]>([]);
+  const [contentName, setContentName] = useState<string | null>(null);
+  const [officialTags, setOfficialTags] = useState<SimpleItemTag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [isItemsDialogOpen, setIsItemsDialogOpen] = useState(false);
-  const [isAddItemsDialogOpen, setIsAddItemsDialogOpen] = useState(false);
-  const [currentItems, setCurrentItems] = useState<any[]>([]);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const { toast } = useToast();
 
-  // グループ一覧を取得
-  const fetchGroups = async () => {
-    if (!userId) return;
-    
+  // タグを読み込む
+  useEffect(() => {
+    if (isOpen && itemIds.length > 0) {
+      loadTags();
+    }
+    return () => {
+      setCurrentTags([]);
+      setPendingUpdates([]);
+      setContentName(null);
+    };
+  }, [isOpen, itemIds]);
+
+  // タグを読み込む関数
+  const loadTags = async () => {
     setIsLoading(true);
+    
     try {
-      const userGroups = await getUserGroups(userId);
+      // 現在のタグを取得
+      const { data, error } = await supabase
+        .from(isUserItem ? "user_item_tags" : "item_tags")
+        .select(`
+          tag_id,
+          tags (
+            id,
+            name,
+            category,
+            created_at
+          )
+        `)
+        .eq(isUserItem ? "user_item_id" : "official_item_id", itemIds[0]);
       
-      // 各グループのアイテム数を取得
-      const groupsWithItemCount = await Promise.all(
-        userGroups.map(async (group) => {
-          const count = await getGroupItemCount(group.id);
-          return { ...group, itemCount: count };
-        })
-      );
+      if (error) throw error;
       
-      setGroups(groupsWithItemCount);
+      setCurrentTags(data || []);
+      
+      // ユーザーアイテムの場合、コンテンツ名を取得
+      if (isUserItem) {
+        const { data: itemData, error: itemError } = await supabase
+          .from("user_items")
+          .select("content_name")
+          .eq("id", itemIds[0])
+          .single();
+        
+        if (!itemError && itemData) {
+          setContentName(itemData.content_name || null);
+        }
+        
+        // 公式アイテムのタグを取得（関連がある場合）
+        const { data: relatedItemData, error: relatedError } = await supabase
+          .from("user_items")
+          .select("official_item_id")
+          .eq("id", itemIds[0])
+          .single();
+        
+        if (!relatedError && relatedItemData && relatedItemData.official_item_id) {
+          const { data: officialTagsData, error: officialTagsError } = await supabase
+            .from("item_tags")
+            .select(`
+              tag_id,
+              tags (
+                id,
+                name,
+                category,
+                created_at
+              )
+            `)
+            .eq("official_item_id", relatedItemData.official_item_id);
+          
+          if (!officialTagsError) {
+            setOfficialTags(officialTagsData || []);
+          }
+        }
+      }
     } catch (error) {
-      console.error("Error fetching groups:", error);
+      console.error("Error loading tags:", error);
+      toast({
+        title: "エラー",
+        description: "タグの読み込みに失敗しました。",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
-
-  // 初回読み込み
-  useEffect(() => {
-    if (userId) {
-      fetchGroups();
-    }
-  }, [userId]);
-
-  // 新しいグループが作成された時の処理
-  const handleCreateGroup = (newGroup: GroupInfo) => {
-    setGroups((prev) => [newGroup, ...prev]);
-  };
-
-  // グループがクリックされた時の処理
-  const handleGroupClick = async (groupId: string) => {
-    setSelectedGroupId(groupId);
-    
-    try {
-      const items = await getGroupItems(groupId);
-      setCurrentItems(items);
-      setIsItemsDialogOpen(true);
-    } catch (error) {
-      console.error("Error fetching group items:", error);
-      toast.error("アイテムの取得に失敗しました");
-    }
-  };
-
-  // アイテム追加ボタンがクリックされた時の処理
-  const handleAddItemsClick = (groupId: string) => {
-    setSelectedGroupId(groupId);
-    setIsAddItemsDialogOpen(true);
-  };
-
-  // グループの色が変更された時の処理
-  const handleColorChange = async (groupId: string, color: string) => {
-    try {
-      console.log("Updating group color:", groupId, color);
-      const success = await updateGroupColor(groupId, color);
+  
+  // タグ変更ハンドラ
+  const handleTagChange = (category: string) => (value: string | null) => {
+    setPendingUpdates(prev => {
+      // 既存の更新がある場合は上書き
+      const filtered = prev.filter(update => update.category !== category);
       
-      if (success) {
-        // 成功時にローカルの状態を更新
-        setGroups(prevGroups => 
-          prevGroups.map(group => 
-            group.id === groupId ? { ...group, color } : group
-          )
-        );
-        toast.success("グループの色を更新しました");
-      } else {
-        toast.error("グループの色の更新に失敗しました");
+      if (value === null) {
+        // 値がnullの場合、既存のものを削除
+        return filtered;
       }
-    } catch (error) {
-      console.error("Error updating group color:", error);
-      toast.error("グループの色の更新に失敗しました");
-    }
+      
+      // 現在選択されているタグと同じ場合は更新しない
+      const currentTagInCategory = currentTags.find(tag => 
+        tag.tags?.category === category
+      );
+      
+      if (currentTagInCategory?.tags?.name === value) {
+        return filtered;
+      }
+      
+      // 更新を追加
+      return [...filtered, { category, value }];
+    });
   };
-
-  // 各ダイアログを閉じる処理
-  const handleItemsDialogClose = () => {
-    setIsItemsDialogOpen(false);
-    setSelectedGroupId(null);
+  
+  // コンテンツ名変更ハンドラ
+  const handleContentChange = (newContentName: string | null) => {
+    setContentName(newContentName);
   };
-
-  const handleAddItemsClose = () => {
-    setIsAddItemsDialogOpen(false);
-    fetchGroupItems();
-    fetchGroups();
-  };
-
-  // 選択中のグループのアイテムを再取得
-  const fetchGroupItems = async () => {
-    if (!selectedGroupId) return;
-    
+  
+  // 送信ハンドラ
+  const handleSubmit = async () => {
     try {
-      const items = await getGroupItems(selectedGroupId);
-      setCurrentItems(items);
+      // 親コンポーネントが送信処理を提供している場合はそれを使用
+      if (onSubmit) {
+        await onSubmit(pendingUpdates);
+      } else {
+        // デフォルトの送信処理（例としてグループ色の更新）
+        for (const update of pendingUpdates) {
+          if (update.category === 'color' && update.value && itemIds[0]) {
+            await updateGroupColor(itemIds[0], update.value);
+          }
+        }
+      }
+      
+      toast({
+        title: "保存しました",
+        description: "変更が正常に保存されました。",
+      });
+      
+      onClose();
     } catch (error) {
-      console.error("Error refreshing group items:", error);
+      console.error("Error submitting updates:", error);
+      toast({
+        title: "エラー",
+        description: "変更の保存中にエラーが発生しました。",
+        variant: "destructive",
+      });
     }
   };
 
   return {
-    groups,
+    currentTags,
+    pendingUpdates,
+    contentName,
+    officialTags,
     isLoading,
-    selectedGroupId,
-    currentItems,
-    isCreateDialogOpen,
-    isItemsDialogOpen,
-    isAddItemsDialogOpen,
-    setIsCreateDialogOpen,
-    handleCreateGroup,
-    handleGroupClick,
-    handleItemsDialogClose,
-    handleAddItemsClick,
-    handleAddItemsClose,
-    handleColorChange
+    handleTagChange,
+    handleContentChange,
+    handleSubmit
   };
 }
