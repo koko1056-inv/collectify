@@ -24,7 +24,7 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
 
   // ユーザーの全アイテムを取得
   const { data: userItems = [], isLoading } = useQuery({
-    queryKey: ["user-items", user?.id],
+    queryKey: ["user-items-for-group", user?.id, groupId, isOpen],
     queryFn: async () => {
       if (!user?.id) return [];
       

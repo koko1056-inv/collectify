@@ -1,6 +1,19 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag } from "./types";
+
+// 単純化されたタグ型を定義
+interface SimpleTag {
+  id: string;
+  name: string;
+  category: string;
+  created_at: string;
+}
+
+// アイテムタグの単純な型
+export interface SimpleItemTag {
+  tag_id: string;
+  tags: SimpleTag | null;
+}
 
 // アイテムに関連付けられたタグを取得する
 export async function getTagsForItem(

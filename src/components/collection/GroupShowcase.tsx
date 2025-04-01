@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { getUserGroups, getGroupItems, updateGroupColor } from "@/utils/tag/user-groups";
+import { getUserGroups, getGroupItems, updateGroupColor, getGroupItemCount } from "@/utils/tag/user-groups";
 import { GroupInfo } from "@/utils/tag/types";
 import { GroupCard } from "./GroupCard";
 import { CreateGroupDialog } from "./CreateGroupDialog";
@@ -35,7 +35,16 @@ export function GroupShowcase({ userId }: GroupShowcaseProps) {
     setIsLoading(true);
     try {
       const userGroups = await getUserGroups(userId);
-      setGroups(userGroups);
+      
+      // 各グループのアイテム数を取得
+      const groupsWithItemCount = await Promise.all(
+        userGroups.map(async (group) => {
+          const count = await getGroupItemCount(group.id);
+          return { ...group, itemCount: count };
+        })
+      );
+      
+      setGroups(groupsWithItemCount);
     } catch (error) {
       console.error("Error fetching groups:", error);
     } finally {
@@ -73,6 +82,7 @@ export function GroupShowcase({ userId }: GroupShowcaseProps) {
   const handleAddItemsClose = () => {
     setIsAddItemsDialogOpen(false);
     fetchGroupItems(); // アイテムが追加された場合のリフレッシュ
+    fetchGroups(); // グループリストも更新してアイテム数を反映
   };
 
   const fetchGroupItems = async () => {
