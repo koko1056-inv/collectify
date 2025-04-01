@@ -9,7 +9,7 @@ export async function updateGroupColor(
   try {
     const { error } = await supabase
       .from("groups")
-      .update({ color })
+      .update({ color }) // この部分でエラーが発生していました
       .eq("id", groupId);
     
     if (error) {
