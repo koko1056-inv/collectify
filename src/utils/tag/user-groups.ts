@@ -30,13 +30,15 @@ export async function createGroup(
   description?: string
 ): Promise<GroupInfo | null> {
   try {
+    const newGroup = {
+      name,
+      description,
+      created_by: userId
+    };
+    
     const { data, error } = await supabase
       .from("groups")
-      .insert({
-        name,
-        description,
-        created_by: userId
-      })
+      .insert(newGroup)
       .select()
       .single();
     

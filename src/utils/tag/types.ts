@@ -20,4 +20,16 @@ export interface GroupInfo {
   created_by: string;
   created_at: string;
   color?: string;
+  itemCount?: number;
+  image_url?: string;
+}
+
+// コンテンツ情報の型を追加
+export interface ContentInfo {
+  id: string;
+  name: string;
+  type: string;
+  icon_name?: string;
+  created_by: string;
+  created_at: string;
 }
