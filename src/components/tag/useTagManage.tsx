@@ -2,257 +2,172 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { addTagToItem, removeTagFromItem } from "@/utils/tag/tag-mutations";
-import { getTagsForItem } from "@/utils/tag/tag-queries";
-import { searchTagsByCategory, getTagsByCategory } from "@/utils/tag/tag-search";
-import { Tag } from "@/types/tag";
+import { TagUpdate } from "@/types/tag";
+import { SimpleItemTag } from "@/utils/tag/types";
 
-export function useTagManage(itemId?: string) {
+export function useTagManage(
+  isOpen: boolean,
+  itemIds: string[],
+  isUserItem: boolean = false,
+  onClose: () => void,
+  onSubmit?: (updates: TagUpdate[]) => Promise<void>
+) {
   const [isLoading, setIsLoading] = useState(false);
-  const [characterTags, setCharacterTags] = useState<string[]>([]);
-  const [typeTags, setTypeTags] = useState<string[]>([]);
-  const [seriesTags, setSeriesTags] = useState<string[]>([]);
-  const [contentName, setContentName] = useState<string>("");
-  const [availableContents, setAvailableContents] = useState<{id: string, name: string}[]>([]);
-  const [searchResults, setSearchResults] = useState<Tag[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [currentTags, setCurrentTags] = useState<SimpleItemTag[]>([]);
+  const [pendingUpdates, setPendingUpdates] = useState<TagUpdate[]>([]);
+  const [contentName, setContentName] = useState<string | null>(null);
+  const [officialTags, setOfficialTags] = useState<SimpleItemTag[]>([]);
+  
   const { toast } = useToast();
 
   // アイテムのタグを取得
-  const fetchItemTags = async () => {
-    if (!itemId) return;
-    
-    setIsLoading(true);
-    try {
-      const tags = await getTagsForItem(itemId);
-      
-      // カテゴリー別にタグを分類
-      const characters: string[] = [];
-      const types: string[] = [];
-      const series: string[] = [];
-      
-      tags.forEach(tag => {
-        if (!tag.tags) return;
-        
-        const tagName = tag.tags.name;
-        const category = tag.tags.category;
-        
-        if (category === "character") {
-          characters.push(tagName);
-        } else if (category === "type") {
-          types.push(tagName);
-        } else if (category === "series") {
-          series.push(tagName);
-        }
-      });
-      
-      setCharacterTags(characters);
-      setTypeTags(types);
-      setSeriesTags(series);
-    } catch (error) {
-      console.error("Error fetching item tags:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // コンテンツ名を取得
-  const fetchContentName = async () => {
-    if (!itemId) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from("official_items")
-        .select("content_name")
-        .eq("id", itemId)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching content name:", error);
-        return;
-      }
-      
-      if (data && data.content_name) {
-        setContentName(data.content_name);
-      }
-    } catch (error) {
-      console.error("Error in fetchContentName:", error);
-    }
-  };
-
-  // 利用可能なコンテンツを取得
-  const fetchAvailableContents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("content_names")
-        .select("id, name")
-        .order("name");
-      
-      if (error) {
-        console.error("Error fetching available contents:", error);
-        return;
-      }
-      
-      if (data) {
-        setAvailableContents(data);
-      }
-    } catch (error) {
-      console.error("Error in fetchAvailableContents:", error);
-    }
-  };
-
-  // タグ検索
-  const handleSearch = async (category: string, query: string) => {
-    if (query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-    
-    try {
-      const results = await searchTagsByCategory(category, query);
-      setSearchResults(results);
-    } catch (error) {
-      console.error("Error searching tags:", error);
-    }
-  };
-
-  // タグを追加
-  const addTag = async (category: string, tagName: string) => {
-    if (!itemId || !tagName.trim()) return;
-    
-    try {
-      const success = await addTagToItem(itemId, tagName, category);
-      
-      if (success) {
-        // 対応するカテゴリーのタグリストを更新
-        if (category === "character") {
-          setCharacterTags(prev => [...prev, tagName]);
-        } else if (category === "type") {
-          setTypeTags(prev => [...prev, tagName]);
-        } else if (category === "series") {
-          setSeriesTags(prev => [...prev, tagName]);
-        }
-        
-        toast({
-          title: "タグを追加しました",
-          description: `${tagName}を追加しました。`,
-        });
-      } else {
-        toast({
-          title: "エラー",
-          description: "タグの追加に失敗しました。",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error adding tag:", error);
-      toast({
-        title: "エラー",
-        description: "タグの追加中にエラーが発生しました。",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // タグを削除
-  const removeTag = async (category: string, tagName: string) => {
-    if (!itemId || !tagName) return;
-    
-    try {
-      const success = await removeTagFromItem(itemId, tagName);
-      
-      if (success) {
-        // 対応するカテゴリーのタグリストを更新
-        if (category === "character") {
-          setCharacterTags(prev => prev.filter(tag => tag !== tagName));
-        } else if (category === "type") {
-          setTypeTags(prev => prev.filter(tag => tag !== tagName));
-        } else if (category === "series") {
-          setSeriesTags(prev => prev.filter(tag => tag !== tagName));
-        }
-        
-        toast({
-          title: "タグを削除しました",
-          description: `${tagName}を削除しました。`,
-        });
-      } else {
-        toast({
-          title: "エラー",
-          description: "タグの削除に失敗しました。",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error removing tag:", error);
-      toast({
-        title: "エラー",
-        description: "タグの削除中にエラーが発生しました。",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // コンテンツ名を更新
-  const updateContentName = async (newContentName: string) => {
-    if (!itemId) return;
-    
-    try {
-      const { error } = await supabase
-        .from("official_items")
-        .update({ content_name: newContentName })
-        .eq("id", itemId);
-      
-      if (error) {
-        console.error("Error updating content name:", error);
-        toast({
-          title: "エラー",
-          description: "コンテンツ名の更新に失敗しました。",
-          variant: "destructive",
-        });
-        return false;
-      }
-      
-      setContentName(newContentName);
-      toast({
-        title: "コンテンツ名を更新しました",
-        description: `コンテンツ名を${newContentName}に更新しました。`,
-      });
-      return true;
-    } catch (error) {
-      console.error("Error in updateContentName:", error);
-      toast({
-        title: "エラー",
-        description: "コンテンツ名の更新中にエラーが発生しました。",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  // 初期読み込み
   useEffect(() => {
-    if (itemId) {
-      fetchItemTags();
-      fetchContentName();
+    if (!isOpen || !itemIds.length) return;
+
+    const fetchItemTags = async () => {
+      setIsLoading(true);
+      try {
+        // メインアイテムのタグを取得
+        const itemId = itemIds[0];
+        
+        // アイテムの種類に応じてテーブルを選択
+        const table = isUserItem ? "user_item_tags" : "item_tags";
+        const idField = isUserItem ? "user_item_id" : "official_item_id";
+        
+        const { data, error } = await supabase
+          .from(table)
+          .select(`
+            id,
+            tag_id,
+            tags:tag_id (
+              id,
+              name,
+              category,
+              created_at
+            )
+          `)
+          .eq(idField, itemId);
+        
+        if (error) throw error;
+        
+        // SimpleItemTagの形式に変換
+        const formattedTags = (data || []).map(tag => ({
+          id: tag.id,
+          tag_id: tag.tag_id,
+          tags: tag.tags
+        }));
+
+        setCurrentTags(formattedTags);
+        
+        // コンテンツ名を取得（オフィシャルアイテムの場合のみ）
+        if (!isUserItem) {
+          const { data: itemData } = await supabase
+            .from("official_items")
+            .select("content_name")
+            .eq("id", itemId)
+            .single();
+          
+          if (itemData) {
+            setContentName(itemData.content_name);
+          }
+        }
+        
+        // ユーザーアイテムの場合、対応するオフィシャルアイテムのタグを取得
+        if (isUserItem) {
+          const { data: userItem } = await supabase
+            .from("user_items")
+            .select("official_item_id")
+            .eq("id", itemId)
+            .single();
+          
+          if (userItem?.official_item_id) {
+            const { data: officialTagData } = await supabase
+              .from("item_tags")
+              .select(`
+                id,
+                tag_id,
+                tags:tag_id (
+                  id,
+                  name,
+                  category,
+                  created_at
+                )
+              `)
+              .eq("official_item_id", userItem.official_item_id);
+            
+            if (officialTagData) {
+              // SimpleItemTagの形式に変換
+              const formattedOfficialTags = officialTagData.map(tag => ({
+                id: tag.id,
+                tag_id: tag.tag_id,
+                tags: tag.tags
+              }));
+              
+              setOfficialTags(formattedOfficialTags);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+        toast({
+          title: "エラー",
+          description: "タグの読み込み中にエラーが発生しました。",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchItemTags();
+  }, [isOpen, itemIds, isUserItem, toast]);
+
+  // タグの変更を処理
+  const handleTagChange = (category: string) => (value: string | null) => {
+    // 既存の同じカテゴリの更新を削除
+    const filteredUpdates = pendingUpdates.filter(update => update.category !== category);
+    
+    // 新しい更新を追加
+    setPendingUpdates([...filteredUpdates, { category, value }]);
+  };
+
+  // コンテンツ名の変更を処理
+  const handleContentChange = (newContentName: string | null) => {
+    setContentName(newContentName);
+  };
+
+  // フォームの送信を処理
+  const handleSubmit = async () => {
+    try {
+      if (onSubmit) {
+        await onSubmit(pendingUpdates);
+      }
+      
+      setPendingUpdates([]);
+      onClose();
+      
+      toast({
+        title: "更新完了",
+        description: "タグが正常に更新されました。",
+      });
+    } catch (error) {
+      console.error("Error submitting tag updates:", error);
+      toast({
+        title: "エラー",
+        description: "タグの更新中にエラーが発生しました。",
+        variant: "destructive"
+      });
     }
-    fetchAvailableContents();
-  }, [itemId]);
+  };
 
   return {
-    isLoading,
-    characterTags,
-    typeTags,
-    seriesTags,
+    currentTags,
+    pendingUpdates,
     contentName,
-    availableContents,
-    searchResults,
-    searchQuery,
-    setSearchQuery,
-    handleSearch,
-    addTag,
-    removeTag,
-    updateContentName
+    officialTags,
+    isLoading,
+    handleTagChange,
+    handleContentChange,
+    handleSubmit
   };
 }
-
-export default useTagManage;

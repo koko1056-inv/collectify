@@ -20,6 +20,7 @@ export interface ContentInfo {
   type?: string;
   created_by?: string;
   created_at?: string;
+  icon_name?: string; // icon_nameプロパティを追加
 }
 
 // タグでグループ化されたアイテムの型

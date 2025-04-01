@@ -119,6 +119,9 @@ export async function addItemsToGroup(
     }
     
     // 各アイテムをグループに追加
+    const successfulItems = [];
+    const failedItems = [];
+    
     for (const itemId of itemIds) {
       // すでに追加済みかチェック
       const { count, error: checkError } = await supabase
@@ -129,33 +132,41 @@ export async function addItemsToGroup(
         
       if (checkError) {
         console.error("Error checking if item is in group:", checkError);
+        failedItems.push(itemId);
         continue;
       }
       
       // 既に存在する場合はスキップ
       if (count && count > 0) {
         console.log("Item already in group:", itemId);
+        successfulItems.push(itemId); // 既存も成功とみなす
         continue;
       }
       
       // 新しいグループメンバーとして追加
-      const { error: insertError } = await supabase
+      const { data, error: insertError } = await supabase
         .from("group_members")
         .insert({
           group_id: groupId,
           user_id: itemId,
           role: 'member'
-        });
+        })
+        .select();
         
       if (insertError) {
         console.error("Error adding item to group:", insertError, "for item:", itemId);
+        failedItems.push(itemId);
       } else {
-        console.log("Successfully added item to group:", itemId);
+        console.log("Successfully added item to group:", itemId, "result:", data);
+        successfulItems.push(itemId);
       }
     }
     
-    // すべて成功したとみなす（一部失敗してもtrue）
-    return true;
+    console.log(`Add items to group summary: 
+      - Success: ${successfulItems.length} items
+      - Failed: ${failedItems.length} items`);
+    
+    return successfulItems.length > 0;
   } catch (error) {
     console.error("Error in addItemsToGroup:", error);
     return false;

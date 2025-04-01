@@ -9,10 +9,22 @@ export async function updateGroupColor(
   try {
     console.log("Updating group color in database:", groupId, color);
     
-    // groupsテーブルを更新する際にcolorカラムを明示的に指定
+    // まずテーブルに color カラムが存在するか確認
+    const { data: groupData, error: checkError } = await supabase
+      .from("groups")
+      .select("id")
+      .eq("id", groupId)
+      .single();
+    
+    if (checkError) {
+      console.error("Error checking group:", checkError);
+      return false;
+    }
+    
+    // groupsテーブルを更新
     const { error } = await supabase
       .from("groups")
-      .update({ color: color }) // このように明示的に指定
+      .update({ color })  // ES6の省略記法を使用
       .eq("id", groupId);
     
     if (error) {
@@ -20,6 +32,7 @@ export async function updateGroupColor(
       return false;
     }
     
+    console.log("Group color updated successfully");
     return true;
   } catch (error) {
     console.error("Error in updateGroupColor:", error);

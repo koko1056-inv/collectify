@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -34,7 +35,7 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    const insertData: any = {
+    const insertData: Record<string, any> = {
       [itemIdField]: itemId,
       tag_id: tagId,
     };
