@@ -42,7 +42,7 @@ export async function updateGroupColor(
     // テーブル構造に合わせて明示的にcolor列を更新
     const { error } = await supabase
       .from("groups")
-      .update({ color })
+      .update({ color: color })
       .eq("id", groupId);
       
     if (error) {

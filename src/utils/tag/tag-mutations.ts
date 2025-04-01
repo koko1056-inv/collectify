@@ -61,7 +61,7 @@ export async function addTagToItem(
 
     if (error) throw error;
     
-    // SimpleItemTagの形式に変換して返す
+    // 返すデータの構造を単純化
     return {
       tag_id: data.tag_id,
       tags: data.tags || null

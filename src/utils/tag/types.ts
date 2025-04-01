@@ -28,9 +28,8 @@ export interface TagGroupedItems {
   [key: string]: any[];
 }
 
-// シンプルなアイテムタグ型
+// シンプルなアイテムタグ型（循環参照を避けるために単純化）
 export interface SimpleItemTag {
-  id?: string;
   tag_id: string;
   tags: {
     id: string;

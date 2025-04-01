@@ -63,7 +63,8 @@ export async function addItemToGroup(
       .insert({
         group_id: groupId,
         user_id: itemId,
-        role: 'member'
+        role: 'member',
+        created_by: userId
       });
     
     if (error) {
