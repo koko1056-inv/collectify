@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -96,8 +97,8 @@ export function UserCollection({
       </div>;
   }
   return <div className="space-y-4 my-0 mx-0 px-0 py-px">
-      <div className="flex justify-end mb-4">
-        <Button onClick={() => setIsRandomModalOpen(true)} variant="outline" className="gap-2 mx-[90px] px-[34px]">
+      <div className="flex justify-center mb-4">
+        <Button onClick={() => setIsRandomModalOpen(true)} variant="outline" className="gap-2">
           <Dices className="h-4 w-4" />
           今日のラッキーコレクション
         </Button>
