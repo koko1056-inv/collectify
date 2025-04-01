@@ -16,6 +16,7 @@ import { Pencil, BookMarked, PlusCircle } from "lucide-react";
 import { QuantityEditModal } from "./QuantityEditModal";
 import { Button } from "@/components/ui/button";
 import { LikeButton } from "./LikeButton";
+
 interface CollectionGoodsCardWrapperProps {
   title: string;
   image: string;
@@ -26,6 +27,7 @@ interface CollectionGoodsCardWrapperProps {
   quantity?: number;
   isCompact?: boolean;
 }
+
 export function CollectionGoodsCardWrapper({
   title,
   image,
@@ -74,11 +76,12 @@ export function CollectionGoodsCardWrapper({
     staleTime: 0,
     refetchInterval: 2000
   });
+
   if (isOtherUserCollection || isCompact) {
     return <Card className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden" onClick={() => setIsDetailsModalOpen(true)}>
         <div className="space-y-2">
           <CardImage title={title} image={image} itemId={id} isEditable={false} />
-          <div className="p-2 relative">
+          <div className="p-2 h-14 relative flex flex-col justify-center">
             <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
             {quantity > 1 && <Badge className="absolute bottom-2 right-2 bg-purple-500 hover:bg-purple-500">
                 ×{quantity}
@@ -88,18 +91,19 @@ export function CollectionGoodsCardWrapper({
         <CardModals itemId={id} itemTitle={title} userId={userId} image={image} releaseDate={releaseDate} prize={prize} quantity={quantity} isMemoriesModalOpen={isMemoriesModalOpen} isTagManageModalOpen={isTagManageModalOpen} isDeleteDialogOpen={isDeleteDialogOpen} isDetailsModalOpen={isDetailsModalOpen} onMemoriesClose={() => setIsMemoriesModalOpen(false)} onTagManageClose={() => setIsTagManageModalOpen(false)} onDeleteClose={setIsDeleteDialogOpen} onDetailsClose={() => setIsDetailsModalOpen(false)} onDeleteConfirm={handleDelete} />
       </Card>;
   }
+
   return <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
       <CardHeader title={title} image={image} onClick={() => setIsDetailsModalOpen(true)} itemId={id} isEditable={isOwner} />
-      <div className="px-3 py-2 relative">
+      <div className="px-3 py-2 h-14 relative flex flex-col justify-center">
         <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
-        {isOwner && quantity > 1 && <Badge className="absolute bottom-0 right-2 bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1" onClick={e => {
+        {isOwner && quantity > 1 && <Badge className="absolute bottom-2 right-2 bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1" onClick={e => {
         e.stopPropagation();
         setIsQuantityEditModalOpen(true);
       }}>
             <Pencil size={12} />
             ×{quantity}
           </Badge>}
-        {!isOwner && quantity > 1 && <Badge className="absolute bottom-0 right-2 bg-purple-500 hover:bg-purple-500">
+        {!isOwner && quantity > 1 && <Badge className="absolute bottom-2 right-2 bg-purple-500 hover:bg-purple-500">
             ×{quantity}
           </Badge>}
       </div>
