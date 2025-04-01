@@ -14,3 +14,7 @@ export * from "./tag-groups";
 
 // 型定義もエクスポート
 export * from "./types";
+
+// 重複しているエクスポートを修正
+// user-groupsからのエクスポートは明示的に必要な関数のみを再エクスポート
+export { createGroup } from "./user-groups";

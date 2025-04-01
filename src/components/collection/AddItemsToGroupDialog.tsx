@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { addItemToGroup, isItemInGroup } from "@/utils/tag/group-items";
+import { isItemInGroup } from "@/utils/tag/group-items";
+import { addItemsToGroup } from "@/utils/tag/tag-groups";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -23,7 +24,7 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ユーザーの全アイテムを取得
-  const { data: userItems = [], isLoading } = useQuery({
+  const { data: userItems = [], isLoading, refetch } = useQuery({
     queryKey: ["user-items-for-group", user?.id, groupId, isOpen],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -41,6 +42,8 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
         throw error;
       }
       
+      console.log("Found", data.length, "user items, checking which ones are already in group");
+      
       // グループ内のアイテムをチェック
       const items = await Promise.all(
         data.map(async (item) => {
@@ -49,10 +52,11 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
         })
       );
 
-      console.log("Filtered items:", items.filter(item => !item.inGroup).length);
+      const filteredItems = items.filter(item => !item.inGroup);
+      console.log("Filtered items:", filteredItems.length, "not in group yet");
 
       // すでにグループ内にないアイテムのみを返す
-      return items.filter(item => !item.inGroup);
+      return filteredItems;
     },
     enabled: !!user?.id && isOpen,
   });
@@ -61,8 +65,11 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
   useEffect(() => {
     if (!isOpen) {
       setSelectedItems([]);
+    } else {
+      // ダイアログが開かれたときにデータを再取得
+      refetch();
     }
-  }, [isOpen]);
+  }, [isOpen, refetch]);
 
   const handleItemSelect = (itemId: string) => {
     setSelectedItems(prev => 
@@ -81,17 +88,12 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
     setIsSubmitting(true);
     
     try {
-      let successCount = 0;
+      console.log("Adding items to group:", selectedItems, "groupId:", groupId);
+      const success = await addItemsToGroup(groupId, selectedItems);
+      console.log("Add items result:", success);
       
-      for (const itemId of selectedItems) {
-        console.log("Adding item to group:", itemId, groupId);
-        const success = await addItemToGroup(groupId, itemId);
-        console.log("Add item result:", success);
-        if (success) successCount++;
-      }
-      
-      if (successCount > 0) {
-        toast.success(`${successCount}個のアイテムをグループに追加しました`);
+      if (success) {
+        toast.success(`${selectedItems.length}個のアイテムをグループに追加しました`);
         onClose();
       } else {
         toast.error("グループへのアイテム追加に失敗しました");

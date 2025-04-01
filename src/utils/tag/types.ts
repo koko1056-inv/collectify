@@ -13,6 +13,15 @@ export interface GroupInfo {
   itemCount?: number; // 表示用のアイテム数
 }
 
+// コンテンツ情報のインターフェース
+export interface ContentInfo {
+  id: string;
+  name: string;
+  type?: string;
+  created_by?: string;
+  created_at?: string;
+}
+
 // タグでグループ化されたアイテムの型
 export interface TagGroupedItems {
   [key: string]: any[];

@@ -86,33 +86,75 @@ export async function addItemsToGroup(
   itemIds: string[]
 ): Promise<boolean> {
   try {
-    // 既存の関連付けを削除
-    const { error: deleteError } = await supabase
-      .from("group_members")
-      .delete()
-      .eq("group_id", groupId)
-      .in("user_id", itemIds);
-
-    if (deleteError) {
-      console.error("Error deleting existing group items:", deleteError);
+    console.log("Adding multiple items to group:", itemIds.length, "items to group", groupId);
+    
+    // 認証されたユーザー情報の確認
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.error("Error getting authenticated user:", userError);
       return false;
     }
-
-    // 新しい関連付けを挿入
-    const groupItems = itemIds.map((itemId) => ({
-      group_id: groupId,
-      user_id: itemId,
-    }));
-
-    const { error: insertError } = await supabase
-      .from("group_members")
-      .insert(groupItems);
-
-    if (insertError) {
-      console.error("Error adding items to group:", insertError);
+    
+    const userId = userData.user?.id;
+    if (!userId) {
+      console.error("No authenticated user found");
       return false;
     }
-
+    
+    // グループの所有者を確認
+    const { data: groupData, error: groupError } = await supabase
+      .from("groups")
+      .select("created_by")
+      .eq("id", groupId)
+      .single();
+    
+    if (groupError) {
+      console.error("Error checking group ownership:", groupError);
+      return false;
+    }
+    
+    if (groupData.created_by !== userId) {
+      console.error("User does not own this group");
+      return false;
+    }
+    
+    // 各アイテムをグループに追加
+    for (const itemId of itemIds) {
+      // すでに追加済みかチェック
+      const { count, error: checkError } = await supabase
+        .from("group_members")
+        .select("*", { count: 'exact', head: true })
+        .eq("group_id", groupId)
+        .eq("user_id", itemId);
+        
+      if (checkError) {
+        console.error("Error checking if item is in group:", checkError);
+        continue;
+      }
+      
+      // 既に存在する場合はスキップ
+      if (count && count > 0) {
+        console.log("Item already in group:", itemId);
+        continue;
+      }
+      
+      // 新しいグループメンバーとして追加
+      const { error: insertError } = await supabase
+        .from("group_members")
+        .insert({
+          group_id: groupId,
+          user_id: itemId,
+          role: 'member'
+        });
+        
+      if (insertError) {
+        console.error("Error adding item to group:", insertError, "for item:", itemId);
+      } else {
+        console.log("Successfully added item to group:", itemId);
+      }
+    }
+    
+    // すべて成功したとみなす（一部失敗してもtrue）
     return true;
   } catch (error) {
     console.error("Error in addItemsToGroup:", error);

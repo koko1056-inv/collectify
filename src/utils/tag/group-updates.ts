@@ -9,9 +9,10 @@ export async function updateGroupColor(
   try {
     console.log("Updating group color in database:", groupId, color);
     
+    // groupsテーブルを更新する際にcolorカラムを明示的に指定
     const { error } = await supabase
       .from("groups")
-      .update({ color })
+      .update({ color: color }) // このように明示的に指定
       .eq("id", groupId);
     
     if (error) {
