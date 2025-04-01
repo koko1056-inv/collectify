@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
-import { getItemsGroupedByTag } from "@/utils/tag-operations";
-import { ContentInfo, TagGroupedItems } from "@/utils/tag/types";
+import { getItemsGroupedByTag } from "@/utils/tag/tag-groups";
+import { TagGroupedItems } from "@/utils/tag/types";
 import { CollectionGrid } from "./CollectionGrid";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GroupShowcase } from "./GroupShowcase";
@@ -9,10 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface TagGroupedCollectionProps {
   userId?: string | null;
-  selectedTags: string[];
 }
 
-export function TagGroupedCollection({ userId, selectedTags }: TagGroupedCollectionProps) {
+export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
   const [groupedItems, setGroupedItems] = useState<TagGroupedItems>({});
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
@@ -23,7 +22,7 @@ export function TagGroupedCollection({ userId, selectedTags }: TagGroupedCollect
       const fetchGroupedItems = async () => {
         setIsLoading(true);
         try {
-          const items = await getItemsGroupedByTag(effectiveUserId, selectedTags);
+          const items = await getItemsGroupedByTag(effectiveUserId);
           setGroupedItems(items);
         } catch (error) {
           console.error("Error fetching grouped items:", error);
@@ -34,7 +33,7 @@ export function TagGroupedCollection({ userId, selectedTags }: TagGroupedCollect
       
       fetchGroupedItems();
     }
-  }, [effectiveUserId, selectedTags]);
+  }, [effectiveUserId]);
 
   if (isLoading) {
     return (
@@ -65,15 +64,9 @@ export function TagGroupedCollection({ userId, selectedTags }: TagGroupedCollect
       
       {/* タグでグループ化された項目を表示 */}
       {Object.keys(groupedItems).length === 0 ? (
-        selectedTags.length > 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">選択したタグにマッチするアイテムがありません。</p>
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-500">コレクションにはまだアイテムがありません。</p>
-          </div>
-        )
+        <div className="text-center py-8">
+          <p className="text-gray-500">コレクションにはまだアイテムがありません。</p>
+        </div>
       ) : (
         Object.entries(groupedItems).map(([tagName, items]) => (
           <div key={tagName} className="space-y-4">

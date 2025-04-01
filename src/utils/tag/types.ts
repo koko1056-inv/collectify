@@ -36,4 +36,5 @@ export interface GroupInfo {
   created_at: string;
   image_url?: string;
   itemCount?: number;
+  color?: string;
 }
