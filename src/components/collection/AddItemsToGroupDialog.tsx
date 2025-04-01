@@ -91,29 +91,6 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
       console.log("Adding items to group:", selectedItems, "groupId:", groupId);
       console.log("User ID:", user?.id);
       
-      // グループの所有者を確認
-      const { data: groupData, error: groupError } = await supabase
-        .from("groups")
-        .select("created_by, name")
-        .eq("id", groupId)
-        .single();
-      
-      if (groupError) {
-        console.error("Error checking group:", groupError);
-        toast.error("グループ情報の取得に失敗しました");
-        setIsSubmitting(false);
-        return;
-      }
-      
-      console.log("Group owner:", groupData.created_by, "Current user:", user?.id);
-      
-      if (groupData.created_by !== user?.id) {
-        console.error("User does not own this group");
-        toast.error("このグループの所有者ではありません");
-        setIsSubmitting(false);
-        return;
-      }
-      
       const success = await addItemsToGroup(groupId, selectedItems);
       console.log("Add items result:", success);
       

@@ -1,43 +1,59 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// グループの色を更新
+// グループの色を更新する
 export async function updateGroupColor(
   groupId: string,
   color: string
 ): Promise<boolean> {
   try {
-    console.log("Updating group color in database:", groupId, color);
+    console.log("Updating group color in DB:", groupId, color);
     
-    // まずテーブルに color カラムが存在するか確認
-    const { data: groupData, error: checkError } = await supabase
-      .from("groups")
-      .select("id")
-      .eq("id", groupId)
-      .single();
-    
-    if (checkError) {
-      console.error("Error checking group:", checkError);
+    // 認証されたユーザー情報の確認
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.error("Error getting authenticated user:", userError);
       return false;
     }
     
-    // groupsテーブルを更新
+    const userId = userData.user?.id;
+    if (!userId) {
+      console.error("No authenticated user found");
+      return false;
+    }
+    
+    // グループの所有者を確認
+    const { data: groupData, error: groupError } = await supabase
+      .from("groups")
+      .select("created_by")
+      .eq("id", groupId)
+      .single();
+    
+    if (groupError) {
+      console.error("Error checking group ownership:", groupError);
+      return false;
+    }
+    
+    if (groupData.created_by !== userId) {
+      console.error("User does not own this group");
+      return false;
+    }
+    
+    // テーブル構造に合わせて明示的にcolor列を更新
     const { error } = await supabase
       .from("groups")
-      .update({ color })  // ES6の省略記法を使用
+      .update({ color })
       .eq("id", groupId);
-    
+      
     if (error) {
       console.error("Error updating group color:", error);
       return false;
     }
     
-    console.log("Group color updated successfully");
+    console.log("Group color successfully updated");
     return true;
   } catch (error) {
     console.error("Error in updateGroupColor:", error);
     return false;
   }
 }
-
-// その他のグループ更新関連の関数はここに追加

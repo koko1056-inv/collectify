@@ -143,13 +143,14 @@ export async function addItemsToGroup(
         continue;
       }
       
-      // 新しいグループメンバーとして追加
+      // 新しいグループメンバーとして追加（RLSエラーを回避するため、ユーザーIDも設定）
       const { error: insertError } = await supabase
         .from("group_members")
         .insert({
           group_id: groupId,
           user_id: itemId,
-          role: 'member'
+          role: 'member',
+          created_by: userId
         });
         
       if (insertError) {
