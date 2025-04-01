@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Check } from "lucide-react";
+import { Check, Search, Tag } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { addItemToGroup } from "@/utils/tag/user-groups";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 interface AddItemsToGroupDialogProps {
   isOpen: boolean;
@@ -27,6 +29,8 @@ export function AddItemsToGroupDialog({
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { user } = useAuth();
 
   // アイテム一覧を取得
@@ -38,12 +42,21 @@ export function AddItemsToGroupDialog({
           // このグループにまだ追加されていないアイテムを取得
           const { data, error } = await supabase
             .from("user_items")
-            .select("*")
+            .select(`
+              *,
+              user_item_tags (
+                tags (
+                  id,
+                  name,
+                  category
+                )
+              )
+            `)
             .eq("user_id", user.id)
             .not("id", "in", (subquery) => {
               return subquery
                 .from("group_members")
-                .select("user_item_id")
+                .select("user_id")
                 .eq("group_id", groupId);
             });
             
@@ -54,6 +67,18 @@ export function AddItemsToGroupDialog({
           
           setItems(data || []);
           setFilteredItems(data || []);
+          
+          // 利用可能なすべてのタグを収集
+          const tags = new Set<string>();
+          data?.forEach(item => {
+            item.user_item_tags?.forEach((tag: any) => {
+              if (tag.tags?.name) {
+                tags.add(tag.tags.name);
+              }
+            });
+          });
+          
+          setAllTags(Array.from(tags).sort());
         } catch (error) {
           console.error("Error in fetchItems:", error);
         } finally {
@@ -67,19 +92,39 @@ export function AddItemsToGroupDialog({
 
   // 検索フィルター
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredItems(items);
-      return;
+    let filtered = [...items];
+    
+    // テキスト検索フィルター
+    if (searchQuery.trim() !== "") {
+      const lowerQuery = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (item) => item.title?.toLowerCase().includes(lowerQuery) || 
+                 item.item_name?.toLowerCase().includes(lowerQuery)
+      );
     }
     
-    const lowerQuery = searchQuery.toLowerCase();
-    const filtered = items.filter(
-      (item) => item.title?.toLowerCase().includes(lowerQuery) || 
-               item.item_name?.toLowerCase().includes(lowerQuery)
-    );
+    // タグフィルター
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(item => 
+        selectedTags.every(tagName => 
+          item.user_item_tags?.some((tag: any) => tag.tags?.name === tagName)
+        )
+      );
+    }
     
     setFilteredItems(filtered);
-  }, [searchQuery, items]);
+  }, [searchQuery, items, selectedTags]);
+
+  // タグ選択の切り替え
+  const toggleTagSelection = (tagName: string) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tagName)) {
+        return prev.filter(name => name !== tagName);
+      } else {
+        return [...prev, tagName];
+      }
+    });
+  };
 
   // アイテム選択の切り替え
   const toggleItemSelection = (itemId: string) => {
@@ -106,26 +151,15 @@ export function AddItemsToGroupDialog({
       const successCount = results.filter(Boolean).length;
       
       if (successCount > 0) {
-        toast({
-          title: "成功",
-          description: `${successCount}アイテムをグループに追加しました`,
-        });
+        toast.success(`${successCount}アイテムをグループに追加しました`);
         onClose();
         setSelectedItems([]);
       } else {
-        toast({
-          title: "エラー",
-          description: "アイテムの追加に失敗しました",
-          variant: "destructive",
-        });
+        toast.error("アイテムの追加に失敗しました");
       }
     } catch (error) {
       console.error("Error adding items to group:", error);
-      toast({
-        title: "エラー",
-        description: "エラーが発生しました",
-        variant: "destructive",
-      });
+      toast.error("エラーが発生しました");
     } finally {
       setIsSubmitting(false);
     }
@@ -135,74 +169,159 @@ export function AddItemsToGroupDialog({
   const handleClose = () => {
     setSelectedItems([]);
     setSearchQuery("");
+    setSelectedTags([]);
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-base">
             グループにアイテムを追加
           </DialogTitle>
         </DialogHeader>
         
-        <div className="mb-4">
-          <Input
-            placeholder="アイテムを検索..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
-          />
-        </div>
-        
-        {isLoading ? (
-          <div className="flex justify-center items-center py-8">
-            <p className="text-sm text-gray-500">読み込み中...</p>
-          </div>
-        ) : filteredItems.length === 0 ? (
-          <div className="text-center py-6">
-            <p className="text-sm text-gray-500">
-              {items.length === 0 
-                ? "追加できるアイテムがありません" 
-                : "検索条件に一致するアイテムがありません"}
-            </p>
-          </div>
-        ) : (
-          <ScrollArea className="flex-1 h-[400px]">
-            <div className="grid grid-cols-2 gap-3 pr-4">
-              {filteredItems.map((item) => (
-                <div
-                  key={item.id}
-                  className={`border rounded-md p-2 cursor-pointer transition-colors ${
-                    selectedItems.includes(item.id)
-                      ? "bg-primary/10 border-primary"
-                      : "hover:bg-gray-50"
-                  }`}
-                  onClick={() => toggleItemSelection(item.id)}
-                >
-                  <div className="relative">
-                    <img
-                      src={item.image || "/placeholder.svg"}
-                      alt={item.title || item.item_name || "アイテム"}
-                      className="w-full h-24 object-cover rounded"
-                    />
-                    {selectedItems.includes(item.id) && (
-                      <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1">
-                        <Check className="h-3 w-3" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-2">
-                    <p className="text-xs font-medium line-clamp-2">
-                      {item.title || item.item_name || "無題"}
-                    </p>
-                  </div>
-                </div>
-              ))}
+        <Tabs defaultValue="items" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="items">アイテム一覧</TabsTrigger>
+            <TabsTrigger value="tags">タグから選択</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="items" className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="アイテムを検索..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8"
+              />
             </div>
-          </ScrollArea>
-        )}
+            
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <p className="text-sm text-gray-500">読み込み中...</p>
+              </div>
+            ) : filteredItems.length === 0 ? (
+              <div className="text-center py-6">
+                <p className="text-sm text-gray-500">
+                  {items.length === 0 
+                    ? "追加できるアイテムがありません" 
+                    : "検索条件に一致するアイテムがありません"}
+                </p>
+              </div>
+            ) : (
+              <ScrollArea className="h-[400px]">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pr-4">
+                  {filteredItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className={`border rounded-md p-2 cursor-pointer transition-colors ${
+                        selectedItems.includes(item.id)
+                          ? "bg-primary/10 border-primary"
+                          : "hover:bg-gray-50"
+                      }`}
+                      onClick={() => toggleItemSelection(item.id)}
+                    >
+                      <div className="relative">
+                        <img
+                          src={item.image || "/placeholder.svg"}
+                          alt={item.title || "アイテム"}
+                          className="w-full h-24 object-cover rounded"
+                        />
+                        {selectedItems.includes(item.id) && (
+                          <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1">
+                            <Check className="h-3 w-3" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-2">
+                        <p className="text-xs font-medium line-clamp-2">
+                          {item.title || "無題"}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="tags" className="space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Tag className="h-4 w-4 text-gray-500" />
+              <span className="text-sm font-medium">タグを選択</span>
+            </div>
+            
+            {allTags.length === 0 ? (
+              <div className="text-center py-6">
+                <p className="text-sm text-gray-500">利用可能なタグがありません</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {allTags.map(tag => (
+                    <Badge
+                      key={tag}
+                      variant={selectedTags.includes(tag) ? "default" : "outline"}
+                      className="cursor-pointer"
+                      onClick={() => toggleTagSelection(tag)}
+                    >
+                      {tag}
+                      {selectedTags.includes(tag) && <Check className="ml-1 h-3 w-3" />}
+                    </Badge>
+                  ))}
+                </div>
+                
+                {selectedTags.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium">選択タグに一致するアイテム</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {filteredItems.length}件
+                      </Badge>
+                    </div>
+                    
+                    <ScrollArea className="h-[300px]">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pr-4">
+                        {filteredItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className={`border rounded-md p-2 cursor-pointer transition-colors ${
+                              selectedItems.includes(item.id)
+                                ? "bg-primary/10 border-primary"
+                                : "hover:bg-gray-50"
+                            }`}
+                            onClick={() => toggleItemSelection(item.id)}
+                          >
+                            <div className="relative">
+                              <img
+                                src={item.image || "/placeholder.svg"}
+                                alt={item.title || "アイテム"}
+                                className="w-full h-24 object-cover rounded"
+                              />
+                              {selectedItems.includes(item.id) && (
+                                <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1">
+                                  <Check className="h-3 w-3" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="mt-2">
+                              <p className="text-xs font-medium line-clamp-2">
+                                {item.title || "無題"}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </>
+                )}
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
         
         <DialogFooter className="mt-4">
           <div className="flex items-center justify-between w-full">

@@ -1,27 +1,27 @@
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { getUserGroups, getGroupItems, updateGroupColor } from "@/utils/tag/user-groups";
 import { GroupInfo } from "@/utils/tag/types";
 import { GroupCard } from "./GroupCard";
 import { CreateGroupDialog } from "./CreateGroupDialog";
-import { AddItemsToGroupDialog } from "./AddItemsToGroupDialog";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { GroupItems } from "./GroupItems";
-import { getUserGroups, updateGroupColor } from "@/utils/tag/user-groups";
+import { AddItemsToGroupDialog } from "./AddItemsToGroupDialog";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface GroupShowcaseProps {
-  userId?: string | null;
+  userId?: string;
 }
 
 export function GroupShowcase({ userId }: GroupShowcaseProps) {
   const [groups, setGroups] = useState<GroupInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [isItemsDialogOpen, setIsItemsDialogOpen] = useState(false);
   const [isAddItemsDialogOpen, setIsAddItemsDialogOpen] = useState(false);
-  const queryClient = useQueryClient();
+  const [currentItems, setCurrentItems] = useState<any[]>([]);
 
   useEffect(() => {
     if (userId) {
@@ -38,143 +38,169 @@ export function GroupShowcase({ userId }: GroupShowcaseProps) {
       setGroups(userGroups);
     } catch (error) {
       console.error("Error fetching groups:", error);
-      toast.error("グループの取得に失敗しました");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGroupClick = (groupId: string) => {
-    setSelectedGroupId(prevId => prevId === groupId ? null : groupId);
-  };
-
   const handleCreateGroup = (newGroup: GroupInfo) => {
-    setGroups(prev => [newGroup, ...prev]);
-    toast.success("グループを作成しました");
+    setGroups((prev) => [newGroup, ...prev]);
   };
 
-  const handleAddItems = () => {
-    if (selectedGroupId) {
-      setIsAddItemsDialogOpen(true);
-    } else {
-      toast.error("アイテムを追加するグループを選択してください");
+  const handleGroupClick = async (groupId: string) => {
+    setSelectedGroupId(groupId);
+    
+    try {
+      const items = await getGroupItems(groupId);
+      setCurrentItems(items);
+      setIsItemsDialogOpen(true);
+    } catch (error) {
+      console.error("Error fetching group items:", error);
+      toast.error("アイテムの取得に失敗しました");
     }
   };
 
-  const handleGroupColorChange = async (groupId: string, color: string) => {
+  const handleItemsDialogClose = () => {
+    setIsItemsDialogOpen(false);
+    setSelectedGroupId(null);
+  };
+
+  const handleAddItemsClick = (groupId: string) => {
+    setSelectedGroupId(groupId);
+    setIsAddItemsDialogOpen(true);
+  };
+
+  const handleAddItemsClose = () => {
+    setIsAddItemsDialogOpen(false);
+    fetchGroupItems(); // アイテムが追加された場合のリフレッシュ
+  };
+
+  const fetchGroupItems = async () => {
+    if (!selectedGroupId) return;
+    
     try {
-      // 楽観的UI更新
-      setGroups(prevGroups => 
-        prevGroups.map(group => 
-          group.id === groupId ? { ...group, color } : group
-        )
-      );
-      
-      // サーバーに更新を保存
+      const items = await getGroupItems(selectedGroupId);
+      setCurrentItems(items);
+    } catch (error) {
+      console.error("Error refreshing group items:", error);
+    }
+  };
+
+  const handleColorChange = async (groupId: string, color: string) => {
+    try {
       const success = await updateGroupColor(groupId, color);
-      
       if (success) {
-        toast.success("グループの色を更新しました");
-        // キャッシュを無効化して再取得を強制
-        queryClient.invalidateQueries({ queryKey: ["user-groups", userId] });
-      } else {
-        // 失敗した場合に元に戻す
-        toast.error("グループの色の更新に失敗しました");
-        fetchGroups();
+        // 成功時にローカルの状態を更新
+        setGroups(prevGroups => 
+          prevGroups.map(group => 
+            group.id === groupId ? { ...group, color } : group
+          )
+        );
       }
     } catch (error) {
       console.error("Error updating group color:", error);
-      toast.error("エラーが発生しました");
-      fetchGroups();
+      toast.error("グループの色の更新に失敗しました");
     }
   };
 
-  if (isLoading) {
-    return <div className="animate-pulse space-y-4">
-      <div className="h-8 w-48 bg-gray-200 rounded"></div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-32 bg-gray-200 rounded"></div>
-        ))}
-      </div>
-    </div>;
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-medium text-gray-800">マイグループ</h2>
-        <div className="flex gap-2">
-          {selectedGroupId && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleAddItems}
-            >
-              アイテムを追加
-            </Button>
-          )}
-          <Button 
+  if (isLoading && groups.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-800">マイショーケース</h2>
+          <Button
             size="sm"
-            variant="outline" 
-            className="flex items-center gap-1" 
             onClick={() => setIsCreateDialogOpen(true)}
+            className="flex items-center gap-1 text-xs"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             グループ作成
           </Button>
         </div>
+        
+        <div className="py-8 text-center text-gray-500">
+          <p>読み込み中...</p>
+        </div>
+        
+        <CreateGroupDialog
+          isOpen={isCreateDialogOpen}
+          onClose={() => setIsCreateDialogOpen(false)}
+          onCreateGroup={handleCreateGroup}
+        />
       </div>
+    );
+  }
 
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-gray-800">マイショーケース</h2>
+        <Button
+          size="sm"
+          onClick={() => setIsCreateDialogOpen(true)}
+          className="flex items-center gap-1 text-xs"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          グループ作成
+        </Button>
+      </div>
+      
       {groups.length === 0 ? (
-        <div className="text-center py-8 border rounded-lg bg-gray-50">
-          <p className="text-gray-500 mb-2">グループがありません</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setIsCreateDialogOpen(true)}
-            className="mt-2"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            新規グループを作成
-          </Button>
+        <div className="py-8 text-center text-gray-500">
+          <p>まだショーケースグループがありません。</p>
+          <p className="mt-2 text-sm">「グループ作成」からあなたのコレクションをグループ化しましょう。</p>
         </div>
       ) : (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {groups.map(group => (
-              <GroupCard 
-                key={group.id} 
-                group={group} 
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {groups.map((group) => (
+            <div key={group.id} className="flex flex-col">
+              <GroupCard
+                group={group}
                 isSelected={selectedGroupId === group.id}
                 onClick={() => handleGroupClick(group.id)}
-                onColorChange={handleGroupColorChange}
+                onColorChange={handleColorChange}
               />
-            ))}
-          </div>
-          
-          {selectedGroupId && (
-            <GroupItems 
-              groupId={selectedGroupId} 
-              groupName={groups.find(g => g.id === selectedGroupId)?.name || ""}
-              onClose={() => setSelectedGroupId(null)}
-            />
-          )}
-        </>
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-2 text-xs"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddItemsClick(group.id);
+                }}
+              >
+                アイテム追加
+              </Button>
+            </div>
+          ))}
+        </div>
       )}
-
-      <CreateGroupDialog 
+      
+      <CreateGroupDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onCreateGroup={handleCreateGroup}
       />
-
+      
+      {/* グループ内アイテム表示ダイアログ */}
       {selectedGroupId && (
-        <AddItemsToGroupDialog
-          isOpen={isAddItemsDialogOpen}
-          onClose={() => setIsAddItemsDialogOpen(false)}
-          groupId={selectedGroupId}
-        />
+        <>
+          {isItemsDialogOpen && (
+            <GroupItems
+              group={groups.find(g => g.id === selectedGroupId) || null}
+              items={currentItems}
+              onClose={handleItemsDialogClose}
+            />
+          )}
+          
+          {isAddItemsDialogOpen && (
+            <AddItemsToGroupDialog
+              isOpen={isAddItemsDialogOpen}
+              onClose={handleAddItemsClose}
+              groupId={selectedGroupId}
+            />
+          )}
+        </>
       )}
     </div>
   );

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -19,7 +18,7 @@ export async function getTagsForItem(
       .from(tableName)
       .select(`
         tag_id,
-        tags:tag_id (
+        tags (
           id,
           name,
           category,
