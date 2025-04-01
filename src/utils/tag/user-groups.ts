@@ -81,6 +81,25 @@ export async function addItemToGroup(
   itemId: string
 ): Promise<boolean> {
   try {
+    // 既に追加されているか確認
+    const { count, error: checkError } = await supabase
+      .from("group_members")
+      .select("*", { count: 'exact', head: true })
+      .eq("group_id", groupId)
+      .eq("user_id", itemId);
+    
+    if (checkError) {
+      console.error("Error checking if item is in group:", checkError);
+      return false;
+    }
+    
+    // 既にグループ内にある場合は追加しない
+    if (count && count > 0) {
+      console.log("Item already in group");
+      return true;
+    }
+    
+    // グループにアイテムを追加
     const { error } = await supabase
       .from("group_members")
       .insert({
