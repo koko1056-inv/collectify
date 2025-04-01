@@ -50,6 +50,7 @@ export function GroupCard({ group, isSelected, onClick, onColorChange }: GroupCa
   const handleColorClick = (e: React.MouseEvent, color: string) => {
     e.stopPropagation();
     if (onColorChange) {
+      console.log("Color selected:", color);
       onColorChange(group.id, color);
     }
     setShowColorPicker(false);

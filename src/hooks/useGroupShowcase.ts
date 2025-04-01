@@ -72,7 +72,9 @@ export function useGroupShowcase(userId?: string) {
   // グループの色が変更された時の処理
   const handleColorChange = async (groupId: string, color: string) => {
     try {
+      console.log("Updating group color:", groupId, color);
       const success = await updateGroupColor(groupId, color);
+      
       if (success) {
         // 成功時にローカルの状態を更新
         setGroups(prevGroups => 
@@ -80,6 +82,9 @@ export function useGroupShowcase(userId?: string) {
             group.id === groupId ? { ...group, color } : group
           )
         );
+        toast.success("グループの色を更新しました");
+      } else {
+        toast.error("グループの色の更新に失敗しました");
       }
     } catch (error) {
       console.error("Error updating group color:", error);

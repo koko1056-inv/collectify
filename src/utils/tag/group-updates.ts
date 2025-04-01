@@ -23,3 +23,5 @@ export async function updateGroupColor(
     return false;
   }
 }
+
+// その他のグループ更新関連の関数はここに追加

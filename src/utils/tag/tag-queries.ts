@@ -1,81 +1,44 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag } from "./types";
 
-// アイテムに関連付けられたタグを取得する
+// 特定のアイテムIDのタグを取得
 export async function getTagsForItem(
-  itemId: string | null,
-  isUserItem: boolean = false
-): Promise<SimpleItemTag[]> {
-  if (!itemId) return [];
+  itemId: string
+): Promise<any[]> {
+  const { data, error } = await supabase
+    .from("user_item_tags")
+    .select(`
+      id,
+      tag_id,
+      tags:tag_id (
+        id,
+        name,
+        category
+      )
+    `)
+    .eq("user_item_id", itemId);
 
-  try {
-    // テーブル名を決定
-    const tableName = isUserItem ? "user_item_tags" : "item_tags";
-    const itemColumn = isUserItem ? "user_item_id" : "official_item_id";
-
-    // タグを取得
-    const { data, error } = await supabase
-      .from(tableName)
-      .select(`
-        tag_id,
-        tags (
-          id,
-          name,
-          category,
-          created_at
-        )
-      `)
-      .eq(itemColumn, itemId);
-
-    if (error) {
-      console.error(`Error fetching tags for ${tableName}:`, error);
-      return [];
-    }
-
-    if (!data || data.length === 0) {
-      return [];
-    }
-
-    // 結果を変換して返す
-    const result: SimpleItemTag[] = data
-      .filter((item) => item.tags) // nullのタグをフィルタリング
-      .map((item) => ({
-        tag_id: item.tag_id,
-        tags: item.tags ? {
-          id: item.tags.id,
-          name: item.tags.name,
-          category: item.tags.category || "",
-          created_at: item.tags.created_at || ""
-        } : null
-      }));
-      
-    return result.sort((a, b) => {
-      if (a.tags && b.tags) {
-        return a.tags.name.localeCompare(b.tags.name, 'ja');
-      }
-      return 0;
-    });
-  } catch (error) {
-    console.error(`Error in getTagsForItem for ${itemId}:`, error);
+  if (error) {
+    console.error("Error fetching tags for item:", error);
     return [];
   }
+
+  return data || [];
 }
 
-// アイテムがユーザーのコレクションに存在するかチェック
+// ユーザーのコレクションにアイテムが存在するか確認
 export async function isItemInUserCollection(
-  itemId: string,
-  userId: string
+  userId: string,
+  itemId: string
 ): Promise<boolean> {
   try {
     const { count, error } = await supabase
       .from("user_items")
       .select("*", { count: 'exact', head: true })
-      .eq("official_item_id", itemId)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .eq("id", itemId);
     
     if (error) {
-      console.error("Error checking if item is in collection:", error);
+      console.error("Error checking if item is in user collection:", error);
       return false;
     }
     

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -28,13 +27,18 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
     queryFn: async () => {
       if (!user?.id) return [];
       
+      console.log("Fetching user items for group:", groupId);
+      
       const { data, error } = await supabase
         .from("user_items")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching user items:", error);
+        throw error;
+      }
       
       // グループ内のアイテムをチェック
       const items = await Promise.all(
@@ -43,6 +47,8 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
           return { ...item, inGroup };
         })
       );
+
+      console.log("Filtered items:", items.filter(item => !item.inGroup).length);
 
       // すでにグループ内にないアイテムのみを返す
       return items.filter(item => !item.inGroup);
@@ -77,6 +83,7 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
       let successCount = 0;
       
       for (const itemId of selectedItems) {
+        console.log("Adding item to group:", itemId, groupId);
         const success = await addItemToGroup(groupId, itemId);
         if (success) successCount++;
       }
