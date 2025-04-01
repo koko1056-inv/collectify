@@ -9,6 +9,9 @@ export * from "./content-operations";
 export * from "./user-groups";
 export * from "./tag-groups";
 export * from "./tag-copy";
+export * from "./group-core";
+export * from "./group-updates";
+export * from "./group-items";
 
 // 型定義もエクスポート
 export * from "./types";
