@@ -53,18 +53,27 @@ export function useTagManage(
       
       if (error) throw error;
       
-      setCurrentTags(data || []);
+      // タグデータを変換して設定
+      const formattedTags: SimpleItemTag[] = (data || []).map((tag: any) => ({
+        tag_id: tag.tag_id,
+        tags: tag.tags || { id: "", name: "", category: "" }
+      }));
+      
+      setCurrentTags(formattedTags);
       
       // ユーザーアイテムの場合、コンテンツ名を取得
       if (isUserItem) {
         const { data: itemData, error: itemError } = await supabase
           .from("user_items")
-          .select("content_name")
+          .select("*")
           .eq("id", itemIds[0])
           .single();
         
         if (!itemError && itemData) {
-          setContentName(itemData.content_name || null);
+          // content_nameプロパティが存在する場合のみ設定
+          if ('content_name' in itemData) {
+            setContentName(itemData.content_name || null);
+          }
         }
         
         // 公式アイテムのタグを取得（関連がある場合）
@@ -89,7 +98,13 @@ export function useTagManage(
             .eq("official_item_id", relatedItemData.official_item_id);
           
           if (!officialTagsError) {
-            setOfficialTags(officialTagsData || []);
+            // 同様に変換して設定
+            const formattedOfficialTags: SimpleItemTag[] = (officialTagsData || []).map((tag: any) => ({
+              tag_id: tag.tag_id,
+              tags: tag.tags || { id: "", name: "", category: "" }
+            }));
+            
+            setOfficialTags(formattedOfficialTags);
           }
         }
       }

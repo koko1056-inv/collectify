@@ -1,9 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { TagGroupedItems } from "./types";
 
 // タグでグループ化されたアイテムを取得する
-export async function getItemsGroupedByTag(userId: string): Promise<TagGroupedItems> {
+export async function getItemsGroupedByTag(userId: string): Promise<{[key: string]: any[]}> {
   try {
     // ユーザーのアイテムを取得
     const { data: userItems, error: itemsError } = await supabase
@@ -43,7 +42,7 @@ export async function getItemsGroupedByTag(userId: string): Promise<TagGroupedIt
     }
 
     // タグ名でアイテムをグループ化
-    const groupedItems: TagGroupedItems = {};
+    const groupedItems: {[key: string]: any[]} = {};
 
     for (const item of userItems) {
       // このアイテムに関連するタグを見つける

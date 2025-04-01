@@ -7,6 +7,8 @@ export async function updateGroupColor(
   color: string
 ): Promise<boolean> {
   try {
+    console.log("Updating group color in database:", groupId, color);
+    
     const { error } = await supabase
       .from("groups")
       .update({ color })

@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { addItemToGroup, isItemInGroup } from "@/utils/tag/user-groups";
+import { addItemToGroup, isItemInGroup } from "@/utils/tag/group-items";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -85,6 +86,7 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
       for (const itemId of selectedItems) {
         console.log("Adding item to group:", itemId, groupId);
         const success = await addItemToGroup(groupId, itemId);
+        console.log("Add item result:", success);
         if (success) successCount++;
       }
       

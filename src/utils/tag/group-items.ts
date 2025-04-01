@@ -7,6 +7,8 @@ export async function addItemToGroup(
   itemId: string
 ): Promise<boolean> {
   try {
+    console.log("Adding item to group:", itemId, groupId);
+    
     // 既に追加されているか確認
     const { count, error: checkError } = await supabase
       .from("group_members")
@@ -26,11 +28,21 @@ export async function addItemToGroup(
     }
     
     // グループにアイテムを追加
+    // RLSポリシーを満たすために認証されたユーザーIDを使用する必要がある
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.error("Error getting authenticated user:", userError);
+      return false;
+    }
+    
+    // グループにアイテムを追加
     const { error } = await supabase
       .from("group_members")
       .insert({
         group_id: groupId,
-        user_id: itemId
+        user_id: itemId,
+        // ユーザーがログインしている場合はその情報を追加
+        role: 'member'
       });
     
     if (error) {
