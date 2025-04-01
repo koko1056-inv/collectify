@@ -99,7 +99,7 @@ export function UserCollection({
       <div className="flex justify-end mb-4">
         <Button onClick={() => setIsRandomModalOpen(true)} variant="outline" className="gap-2 mx-[90px] px-[63px]">
           <Dices className="h-4 w-4" />
-          今日のコレクション
+          今日のラッキーコレクション
         </Button>
       </div>
       
