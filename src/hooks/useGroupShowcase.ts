@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { getUserGroups, getGroupItems, updateGroupColor, getGroupItemCount } from "@/utils/tag/user-groups";
+import { getUserGroups, getGroupItems, updateGroupColor, getGroupItemCount } from "@/utils/tag/index";
 import { GroupInfo } from "@/utils/tag/types";
 import { toast } from "sonner";
 

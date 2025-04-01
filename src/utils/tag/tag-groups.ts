@@ -144,20 +144,19 @@ export async function addItemsToGroup(
       }
       
       // 新しいグループメンバーとして追加
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from("group_members")
         .insert({
           group_id: groupId,
           user_id: itemId,
           role: 'member'
-        })
-        .select();
+        });
         
       if (insertError) {
         console.error("Error adding item to group:", insertError, "for item:", itemId);
         failedItems.push(itemId);
       } else {
-        console.log("Successfully added item to group:", itemId, "result:", data);
+        console.log("Successfully added item to group:", itemId);
         successfulItems.push(itemId);
       }
     }

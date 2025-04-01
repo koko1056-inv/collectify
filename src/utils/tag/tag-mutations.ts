@@ -35,10 +35,9 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    const insertData: Record<string, any> = {
-      [itemIdField]: itemId,
-      tag_id: tagId,
-    };
+    let insertData: any = {};
+    insertData[itemIdField] = itemId;
+    insertData.tag_id = tagId;
 
     // ユーザーアイテムの場合はユーザーIDも追加
     if (isUserItem && userId) {

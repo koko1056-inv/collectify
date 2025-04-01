@@ -7,7 +7,37 @@ export async function addItemToGroup(
   itemId: string
 ): Promise<boolean> {
   try {
-    console.log("Adding item to group:", itemId, groupId);
+    console.log("Adding item to group:", itemId, "to group:", groupId);
+    
+    // 認証されたユーザー情報の確認
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.error("Error getting authenticated user:", userError);
+      return false;
+    }
+    
+    const userId = userData.user?.id;
+    if (!userId) {
+      console.error("No authenticated user found");
+      return false;
+    }
+    
+    // グループの所有者を確認
+    const { data: groupData, error: groupError } = await supabase
+      .from("groups")
+      .select("created_by")
+      .eq("id", groupId)
+      .single();
+    
+    if (groupError) {
+      console.error("Error checking group ownership:", groupError);
+      return false;
+    }
+    
+    if (groupData.created_by !== userId) {
+      console.error("User does not own this group");
+      return false;
+    }
     
     // 既に追加されているか確認
     const { count, error: checkError } = await supabase
@@ -28,20 +58,11 @@ export async function addItemToGroup(
     }
     
     // グループにアイテムを追加
-    // RLSポリシーを満たすために認証されたユーザーIDを使用する必要がある
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError) {
-      console.error("Error getting authenticated user:", userError);
-      return false;
-    }
-    
-    // グループにアイテムを追加
     const { error } = await supabase
       .from("group_members")
       .insert({
         group_id: groupId,
         user_id: itemId,
-        // ユーザーがログインしている場合はその情報を追加
         role: 'member'
       });
     
@@ -50,6 +71,7 @@ export async function addItemToGroup(
       return false;
     }
     
+    console.log("Successfully added item to group");
     return true;
   } catch (error) {
     console.error("Error in addItemToGroup:", error);
@@ -121,6 +143,8 @@ export async function isItemInGroup(
   itemId: string
 ): Promise<boolean> {
   try {
+    console.log("Checking if item is in group:", itemId, "group:", groupId);
+    
     const { count, error } = await supabase
       .from("group_members")
       .select("*", { count: 'exact', head: true })

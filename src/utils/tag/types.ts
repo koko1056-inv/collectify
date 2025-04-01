@@ -37,5 +37,5 @@ export interface SimpleItemTag {
     name: string;
     category?: string;
     created_at?: string;
-  };
+  } | null;
 }
