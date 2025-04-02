@@ -28,13 +28,17 @@ export interface TagGroupedItems {
   [key: string]: any[];
 }
 
+// タグ情報のプレーン型（循環参照を避けるため）
+export interface SimpleTag {
+  id: string;
+  name: string;
+  category?: string;
+  created_at?: string;
+}
+
 // シンプルなアイテムタグ型（循環参照を避けるため単純化）
 export interface SimpleItemTag {
+  id?: string;
   tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  };
+  tags: SimpleTag;
 }
