@@ -179,3 +179,4 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
       </DialogContent>
     </Dialog>
   );
+}
