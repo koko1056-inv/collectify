@@ -37,7 +37,6 @@ export function useTagManage(
         const { data, error } = await supabase
           .from(table)
           .select(`
-            id,
             tag_id,
             tags:tag_id (
               id,
@@ -83,7 +82,6 @@ export function useTagManage(
             const { data: officialTagData } = await supabase
               .from("item_tags")
               .select(`
-                id,
                 tag_id,
                 tags:tag_id (
                   id,
