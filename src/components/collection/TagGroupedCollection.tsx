@@ -6,6 +6,8 @@ import { CollectionGrid } from "./CollectionGrid";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GroupShowcase } from "./GroupShowcase";
 import { useAuth } from "@/contexts/AuthContext";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ChevronDown } from "lucide-react";
 
 interface TagGroupedCollectionProps {
   userId?: string | null;
@@ -62,25 +64,36 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
       {/* グループショーケースを表示 */}
       <GroupShowcase userId={effectiveUserId} />
       
-      {/* タグでグループ化された項目を表示 */}
+      {/* タグでグループ化された項目をアコーディオン形式で表示 */}
       {Object.keys(groupedItems).length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-500">コレクションにはまだアイテムがありません。</p>
         </div>
       ) : (
-        Object.entries(groupedItems).map(([tagName, items]) => (
-          <div key={tagName} className="space-y-4">
-            <h2 className="text-lg font-medium text-gray-800">{tagName}</h2>
-            <CollectionGrid
-              items={items}
-              isCompact={false}
-              isSelectionMode={false}
-              selectedItems={[]}
-              onSelectItem={() => {}}
-              onDragEnd={() => {}}
-            />
-          </div>
-        ))
+        <Accordion type="multiple" className="w-full space-y-4">
+          {Object.entries(groupedItems).map(([tagName, items]) => (
+            <AccordionItem key={tagName} value={tagName} className="border rounded-lg overflow-hidden">
+              <AccordionTrigger className="px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors">
+                <h2 className="text-lg font-medium text-gray-800 flex items-center gap-2">
+                  {tagName}
+                  <span className="text-sm text-gray-500 font-normal">
+                    ({items.length}点)
+                  </span>
+                </h2>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 py-4 bg-white">
+                <CollectionGrid
+                  items={items}
+                  isCompact={false}
+                  isSelectionMode={false}
+                  selectedItems={[]}
+                  onSelectItem={() => {}}
+                  onDragEnd={() => {}}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       )}
     </div>
   );

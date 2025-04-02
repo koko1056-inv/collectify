@@ -1,15 +1,16 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// グループの色を更新する
-export async function updateGroupColor(
+// グループを更新する関数
+export async function updateGroup(
   groupId: string,
-  color: string
+  updates: {
+    name?: string;
+    description?: string;
+    image_url?: string;
+  }
 ): Promise<boolean> {
   try {
-    console.log("Updating group color in DB:", groupId, color);
-    
-    // 認証されたユーザー情報の確認
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError) {
       console.error("Error getting authenticated user:", userError);
@@ -39,21 +40,81 @@ export async function updateGroupColor(
       return false;
     }
     
-    // グループ情報を更新
+    // グループの更新
     const { error } = await supabase
       .from("groups")
-      .update({ color: color })
+      .update(updates)
       .eq("id", groupId);
       
     if (error) {
-      console.error("Error updating group color:", error);
+      console.error("Error updating group:", error);
       return false;
     }
     
-    console.log("Group color successfully updated");
     return true;
   } catch (error) {
-    console.error("Error in updateGroupColor:", error);
+    console.error("Error in updateGroup:", error);
+    return false;
+  }
+}
+
+// グループを削除する関数
+export async function deleteGroup(groupId: string): Promise<boolean> {
+  try {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError) {
+      console.error("Error getting authenticated user:", userError);
+      return false;
+    }
+    
+    const userId = userData.user?.id;
+    if (!userId) {
+      console.error("No authenticated user found");
+      return false;
+    }
+    
+    // グループの所有者を確認
+    const { data: groupData, error: groupError } = await supabase
+      .from("groups")
+      .select("created_by")
+      .eq("id", groupId)
+      .single();
+    
+    if (groupError) {
+      console.error("Error checking group ownership:", groupError);
+      return false;
+    }
+    
+    if (groupData.created_by !== userId) {
+      console.error("User does not own this group");
+      return false;
+    }
+    
+    // グループメンバーの削除
+    const { error: membersError } = await supabase
+      .from("group_members")
+      .delete()
+      .eq("group_id", groupId);
+      
+    if (membersError) {
+      console.error("Error deleting group members:", membersError);
+      return false;
+    }
+    
+    // グループの削除
+    const { error } = await supabase
+      .from("groups")
+      .delete()
+      .eq("id", groupId);
+      
+    if (error) {
+      console.error("Error deleting group:", error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error in deleteGroup:", error);
     return false;
   }
 }

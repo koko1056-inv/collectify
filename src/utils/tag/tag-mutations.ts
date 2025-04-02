@@ -1,100 +1,143 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
 
-/**
- * アイテムにタグを追加する関数
- */
+// アイテムにタグを追加
 export async function addTagToItem(
   itemId: string,
-  tagId: string,
-  isUserItem: boolean = false
-): Promise<{tag_id: string, tags: {id: string, name: string, category: string, created_at: string} | null} | null> {
+  tagId: string
+): Promise<boolean> {
   try {
-    const table = isUserItem ? "user_item_tags" : "item_tags";
-    const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
+    // まず、このタグがすでに追加されているか確認
+    const { data: existingTags, error: checkError } = await supabase
+      .from("user_item_tags")
+      .select("*")
+      .eq("user_item_id", itemId)
+      .eq("tag_id", tagId);
 
-    // タグが既に追加されているか確認
-    const { data: existingTag, error: checkError } = await supabase
-      .from(table)
-      .select("id")
-      .eq(itemIdField, itemId)
-      .eq("tag_id", tagId)
-      .maybeSingle();
-
-    if (checkError) throw checkError;
-
-    // 既に存在する場合は追加しない
-    if (existingTag) return null;
-
-    // ユーザーIDを取得（ユーザーアイテムの場合のみ使用）
-    let userId = null;
-    if (isUserItem) {
-      const { data: userData } = await supabase.auth.getUser();
-      userId = userData.user?.id;
+    if (checkError) {
+      console.error("Error checking existing tags:", checkError);
+      return false;
     }
 
-    // 挿入データを準備
-    let insertData: any = {};
-    
-    if (isUserItem) {
-      insertData = { user_item_id: itemId, tag_id: tagId };
-      if (userId) {
-        insertData.user_id = userId;
-      }
-    } else {
-      insertData = { official_item_id: itemId, tag_id: tagId };
+    // すでに存在する場合は追加しない
+    if (existingTags && existingTags.length > 0) {
+      console.log("Tag already exists for this item");
+      return true; // 既に追加済みなので成功とみなす
     }
 
-    // タグを追加
-    const { data, error } = await supabase
-      .from(table)
-      .insert(insertData)
-      .select(`
-        tag_id,
-        tags:tag_id (
-          id,
-          name,
-          category,
-          created_at
-        )
-      `)
-      .single();
+    // 新しいタグを追加
+    const { error } = await supabase
+      .from("user_item_tags")
+      .insert({
+        user_item_id: itemId,
+        tag_id: tagId
+      });
 
-    if (error) throw error;
-    
-    // 返すデータの構造を単純化
-    return {
-      tag_id: data.tag_id,
-      tags: data.tags || null
-    };
+    if (error) {
+      console.error("Error adding tag to item:", error);
+      return false;
+    }
+
+    return true;
   } catch (error) {
-    console.error("Error adding tag to item:", error);
-    return null;
+    console.error("Error in addTagToItem:", error);
+    return false;
   }
 }
 
-/**
- * アイテムからタグを削除する関数
- */
+// アイテムからタグを削除
 export async function removeTagFromItem(
-  tagId: string,
   itemId: string,
-  isUserItem: boolean = false
+  tagId: string
 ): Promise<boolean> {
   try {
-    const table = isUserItem ? "user_item_tags" : "item_tags";
-    const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
-
     const { error } = await supabase
-      .from(table)
+      .from("user_item_tags")
       .delete()
-      .eq(itemIdField, itemId)
-      .eq("tag_id", tagId);
+      .match({
+        user_item_id: itemId,
+        tag_id: tagId
+      });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error removing tag from item:", error);
+      return false;
+    }
+
     return true;
   } catch (error) {
-    console.error("Error removing tag from item:", error);
+    console.error("Error in removeTagFromItem:", error);
+    return false;
+  }
+}
+
+// オフィシャルアイテムにタグを追加
+export async function addTagToOfficialItem(
+  itemId: string,
+  tagId: string
+): Promise<boolean> {
+  try {
+    // 既にタグが追加されているか確認
+    const { data: existingTags, error: checkError } = await supabase
+      .from("item_tags")
+      .select("*")
+      .eq("official_item_id", itemId)
+      .eq("tag_id", tagId);
+      
+    if (checkError) {
+      console.error("Error checking existing tags:", checkError);
+      return false;
+    }
+    
+    // 既に存在する場合は追加しない
+    if (existingTags && existingTags.length > 0) {
+      console.log("Tag already exists for this official item");
+      return true; // 既に追加済みなので成功とみなす
+    }
+    
+    // 新しいタグを追加
+    const { error } = await supabase
+      .from("item_tags")
+      .insert({
+        official_item_id: itemId,
+        tag_id: tagId
+      });
+      
+    if (error) {
+      console.error("Error adding tag to official item:", error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error in addTagToOfficialItem:", error);
+    return false;
+  }
+}
+
+// オフィシャルアイテムからタグを削除
+export async function removeTagFromOfficialItem(
+  itemId: string,
+  tagId: string
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("item_tags")
+      .delete()
+      .match({
+        official_item_id: itemId,
+        tag_id: tagId
+      });
+      
+    if (error) {
+      console.error("Error removing tag from official item:", error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error in removeTagFromOfficialItem:", error);
     return false;
   }
 }
