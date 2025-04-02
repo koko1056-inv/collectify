@@ -1,4 +1,3 @@
-
 import { OfficialItem } from "@/types";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -38,18 +37,39 @@ export function OfficialItemsList({
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [visibleCount, setVisibleCount] = useState(isMobile ? 21 : 24);
   const { wishlistCounts, ownerCounts } = useItemCounts();
-  const [isScrolled, setIsScrolled] = useState(false);
   const filterBarRef = useRef<HTMLDivElement>(null);
+  
+  // スクロールに関する状態を管理
+  const [scrollY, setScrollY] = useState(0);
+  const [isFilterVisible, setIsFilterVisible] = useState(true);
+  const lastScrollY = useRef(0);
   
   // スクロール監視
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      // スクロール位置が50pxを超えたらtrueに設定
-      setIsScrolled(scrollPosition > 50);
+      const currentScrollY = window.scrollY;
+      const scrollDirection = currentScrollY > lastScrollY.current ? 'down' : 'up';
+      
+      // 少しスクロールしたらフィルターを隠す/表示する閾値（ピクセル単位）
+      const scrollThreshold = 10;
+      
+      // 上方向のスクロール、または先頭付近では常にフィルターを表示
+      if (scrollDirection === 'up' || currentScrollY < 50) {
+        setIsFilterVisible(true);
+      } 
+      // 十分な量の下スクロールがあればフィルターを隠す
+      else if (scrollDirection === 'down' && 
+               currentScrollY > 50 && 
+               Math.abs(currentScrollY - lastScrollY.current) > scrollThreshold) {
+        setIsFilterVisible(false);
+      }
+      
+      // スクロール位置を更新
+      setScrollY(currentScrollY);
+      lastScrollY.current = currentScrollY;
     };
     
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
@@ -128,15 +148,25 @@ export function OfficialItemsList({
   }, [sortBy, isMobile]);
 
   const currentItems = sortedItems.slice(0, visibleCount);
+  
+  // フィルターバーのスタイル計算
+  const filterBarStyle = {
+    transform: isFilterVisible ? 'translateY(0)' : 'translateY(-100%)',
+    position: 'sticky',
+    top: '64px', // Navbarの下に配置
+    zIndex: 30,
+    transition: 'transform 0.3s ease',
+    background: 'rgb(249, 250, 251)',
+    borderBottom: scrollY > 50 ? '1px solid rgb(229, 231, 235)' : 'none',
+    boxShadow: scrollY > 50 && isFilterVisible ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none',
+  } as React.CSSProperties;
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <div 
         ref={filterBarRef}
-        className={`sticky top-16 z-30 bg-gray-50 pb-2 pt-2 transition-all duration-300 ${
-          isScrolled ? "shadow-md" : ""
-        }`}
-        style={{ transform: 'translateY(0)' }}
+        style={filterBarStyle}
+        className="pb-2 pt-2"
       >
         <FilterBar
           searchQuery={searchQuery}
