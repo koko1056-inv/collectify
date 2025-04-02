@@ -24,3 +24,6 @@ export {
   updateGroup,
   updateGroupColor
 } from "./user-groups";
+
+// addSingleItemToGroup関数を短い名前でエクスポート
+export { addSingleItemToGroup as addItemToGroup } from "./tag-groups";

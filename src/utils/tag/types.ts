@@ -38,3 +38,19 @@ export interface SimpleItemTag {
     created_at?: string;
   };
 }
+
+// グループメンバー情報の型
+export interface GroupMember {
+  id: string;
+  group_id: string;
+  user_id: string;
+  role: string;
+  created_at?: string;
+}
+
+// APIレスポンスのステータス型
+export interface ApiResponse {
+  success: boolean;
+  message?: string;
+  data?: any;
+}

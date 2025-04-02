@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { GroupShowcase } from "./GroupShowcase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ChevronDown } from "lucide-react";
+import { AddToGroupButton } from "./AddToGroupButton";
 
 interface TagGroupedCollectionProps {
   userId?: string | null;
@@ -36,6 +36,11 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
       fetchGroupedItems();
     }
   }, [effectiveUserId]);
+
+  // アイテムコンポーネントに追加するグループ選択ボタン
+  const renderAddToGroupButton = (item) => (
+    <AddToGroupButton itemId={item.id} />
+  );
 
   if (isLoading) {
     return (
@@ -89,6 +94,7 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
                   selectedItems={[]}
                   onSelectItem={() => {}}
                   onDragEnd={() => {}}
+                  additionalItemComponent={renderAddToGroupButton}
                 />
               </AccordionContent>
             </AccordionItem>
