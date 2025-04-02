@@ -49,10 +49,15 @@ export function useTagManage(
         
         if (error) throw error;
         
-        // SimpleItemTagの形式に変換
+        // 単純化したタグデータに変換
         const formattedTags = (data || []).map(tag => ({
           tag_id: tag.tag_id,
-          tags: tag.tags
+          tags: {
+            id: tag.tags.id,
+            name: tag.tags.name,
+            category: tag.tags.category,
+            created_at: tag.tags.created_at
+          }
         }));
 
         setCurrentTags(formattedTags);
@@ -93,10 +98,15 @@ export function useTagManage(
               .eq("official_item_id", userItem.official_item_id);
             
             if (officialTagData) {
-              // SimpleItemTagの形式に変換
+              // 単純化したタグデータに変換
               const formattedOfficialTags = officialTagData.map(tag => ({
                 tag_id: tag.tag_id,
-                tags: tag.tags
+                tags: {
+                  id: tag.tags.id,
+                  name: tag.tags.name,
+                  category: tag.tags.category,
+                  created_at: tag.tags.created_at
+                }
               }));
               
               setOfficialTags(formattedOfficialTags);

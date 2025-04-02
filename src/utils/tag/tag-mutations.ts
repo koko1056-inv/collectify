@@ -31,30 +31,17 @@ export async function addTagToItem(
     }
 
     // 新しいタグを追加
-    if (isUserItem) {
-      const { error } = await supabase
-        .from(tableName)
-        .insert({
-          user_item_id: itemId,
-          tag_id: tagId
-        });
+    const insertData = isUserItem 
+      ? { user_item_id: itemId, tag_id: tagId } 
+      : { official_item_id: itemId, tag_id: tagId };
+
+    const { error } = await supabase
+      .from(tableName)
+      .insert(insertData);
         
-      if (error) {
-        console.error("Error adding tag to user item:", error);
-        return false;
-      }
-    } else {
-      const { error } = await supabase
-        .from(tableName)
-        .insert({
-          official_item_id: itemId,
-          tag_id: tagId
-        });
-        
-      if (error) {
-        console.error("Error adding tag to official item:", error);
-        return false;
-      }
+    if (error) {
+      console.error(`Error adding tag to ${isUserItem ? 'user' : 'official'} item:`, error);
+      return false;
     }
 
     return true;

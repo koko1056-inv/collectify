@@ -5,6 +5,11 @@ import { useEffect, useState } from "react";
 import { getGroupItemCount } from "@/utils/tag/user-groups";
 import { GroupInfo } from "@/utils/tag/types";
 import { FolderOpen, Palette } from "lucide-react";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // 選択可能な色の配列
 export const groupColorOptions = [
@@ -34,7 +39,7 @@ interface GroupCardProps {
 
 export function GroupCard({ group, isSelected, onClick, onColorChange }: GroupCardProps) {
   const [itemCount, setItemCount] = useState<number>(group.itemCount || 0);
-  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   
   useEffect(() => {
     if (group.id) {
@@ -53,12 +58,7 @@ export function GroupCard({ group, isSelected, onClick, onColorChange }: GroupCa
       console.log("Color selected:", color);
       onColorChange(group.id, color);
     }
-    setShowColorPicker(false);
-  };
-
-  const handleColorPickerToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowColorPicker(prev => !prev);
+    setIsPopoverOpen(false);
   };
 
   return (
@@ -77,30 +77,39 @@ export function GroupCard({ group, isSelected, onClick, onColorChange }: GroupCa
         </div>
         
         {onColorChange && (
-          <div className="relative">
-            <button 
-              onClick={handleColorPickerToggle}
-              className="p-1 rounded-full hover:bg-white/50"
-            >
-              <Palette className="h-4 w-4 text-gray-500" />
-            </button>
-            
-            {showColorPicker && (
-              <div 
-                className="absolute right-0 top-full mt-1 p-2 bg-white rounded-md shadow-lg z-10 grid grid-cols-4 gap-1"
-                onClick={(e) => e.stopPropagation()}
+          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+            <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <button 
+                className="p-1 rounded-full hover:bg-white/50"
               >
+                <Palette className="h-4 w-4 text-gray-500" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent 
+              className="w-auto p-3 bg-white"
+              onClick={(e) => e.stopPropagation()}
+              side="bottom"
+              align="end"
+            >
+              <div className="grid grid-cols-4 gap-2">
                 {groupColorOptions.map((color, index) => (
                   <div
                     key={index}
-                    className={`w-6 h-6 rounded-full cursor-pointer ${color.value.split(' ')[0]}`}
+                    className={`w-10 h-10 rounded-md cursor-pointer flex items-center justify-center hover:scale-110 transition-transform ${color.value.split(' ')[0]}`}
                     title={color.name}
                     onClick={(e) => handleColorClick(e, color.value)}
-                  />
+                  >
+                    {group.color && group.color.includes(color.value.split(' ')[0]) && (
+                      <div className="w-2 h-2 bg-gray-800 rounded-full"></div>
+                    )}
+                  </div>
                 ))}
               </div>
-            )}
-          </div>
+              <div className="mt-2 text-xs text-gray-500 text-center">
+                クリックして色を変更
+              </div>
+            </PopoverContent>
+          </Popover>
         )}
       </CardHeader>
       
