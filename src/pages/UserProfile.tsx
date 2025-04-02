@@ -16,7 +16,7 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar />
-      <main className={`container mx-auto pt-20 ${isMobile ? 'px-4 py-8' : 'px-4 py-8'}`}>
+      <main className={`container mx-auto pt-28 ${isMobile ? 'px-4 py-8' : 'px-4 py-8'}`}>
         <div className="max-w-3xl mx-auto space-y-6">
           <ProfileCard
             onShare={() => setIsShareModalOpen(true)}

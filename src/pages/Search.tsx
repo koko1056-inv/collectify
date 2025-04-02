@@ -32,7 +32,7 @@ const Search = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="container mx-auto px-2 pt-20 pb-24 sm:px-4 sm:py-8 sm:pb-8 py-[60px]">
+      <main className="container mx-auto px-2 pt-28 pb-24 sm:px-4 sm:py-8 sm:pb-8 py-[60px]">
         <div className={`space-y-4 sm:space-y-6 ${isMobile ? "pt-2" : ""}`}>
           <OfficialItemsList 
             items={filteredItems} 
