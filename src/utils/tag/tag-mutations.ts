@@ -34,9 +34,15 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    const insertData = isUserItem
-      ? { user_item_id: itemId, tag_id: tagId, ...(userId ? { user_id: userId } : {}) }
-      : { official_item_id: itemId, tag_id: tagId };
+    const insertData: Record<string, string> = {
+      [itemIdField]: itemId,
+      tag_id: tagId
+    };
+    
+    // ユーザーアイテムの場合、userIdが存在すればそれも追加
+    if (isUserItem && userId) {
+      insertData.user_id = userId;
+    }
 
     // タグを追加
     const { data, error } = await supabase

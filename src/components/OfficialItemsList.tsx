@@ -45,6 +45,7 @@ export function OfficialItemsList({
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
+      // スクロール位置が50pxを超えたらtrueに設定
       setIsScrolled(scrollPosition > 50);
     };
     
@@ -132,9 +133,10 @@ export function OfficialItemsList({
     <div className="space-y-4 sm:space-y-6">
       <div 
         ref={filterBarRef}
-        className={`sticky top-16 sm:top-0 z-10 bg-gray-50 pb-2 transition-transform duration-300 ${
-          isScrolled ? "transform translate-y-0" : "transform translate-y-0"
+        className={`sticky top-16 z-30 bg-gray-50 pb-2 pt-2 transition-all duration-300 ${
+          isScrolled ? "shadow-md" : ""
         }`}
+        style={{ transform: 'translateY(0)' }}
       >
         <FilterBar
           searchQuery={searchQuery}
