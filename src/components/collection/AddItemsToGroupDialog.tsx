@@ -44,18 +44,18 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
       
       console.log("Found", data.length, "user items, checking which ones are already in group");
       
-      // グループ内のアイテムをチェック
-      const items = await Promise.all(
+      // グループ内のアイテムをチェック（並列処理で高速化）
+      const itemChecks = await Promise.all(
         data.map(async (item) => {
           const inGroup = await isItemInGroup(groupId, item.id);
           return { ...item, inGroup };
         })
       );
 
-      const filteredItems = items.filter(item => !item.inGroup);
-      console.log("Filtered items:", filteredItems.length, "not in group yet");
-
       // すでにグループ内にないアイテムのみを返す
+      const filteredItems = itemChecks.filter(item => !item.inGroup);
+      console.log("Filtered items:", filteredItems.length, "not in group yet");
+      
       return filteredItems;
     },
     enabled: !!user?.id && isOpen,
@@ -89,7 +89,6 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
     
     try {
       console.log("Adding items to group:", selectedItems, "groupId:", groupId);
-      console.log("User ID:", user?.id);
       
       const success = await addItemsToGroup(groupId, selectedItems);
       console.log("Add items result:", success);
