@@ -6,6 +6,7 @@ export {
 } from './group-core';
 
 export {
+  updateGroup,
   updateGroupColor
 } from './group-updates';
 

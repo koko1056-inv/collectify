@@ -20,5 +20,7 @@ export {
   getUserGroups,
   getGroupItems,
   getGroupItemCount,
-  createGroup
+  createGroup,
+  updateGroup,
+  updateGroupColor
 } from "./user-groups";

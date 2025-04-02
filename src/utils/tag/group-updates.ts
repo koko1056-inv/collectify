@@ -58,6 +58,19 @@ export async function updateGroup(
   }
 }
 
+// グループの色を更新する関数
+export async function updateGroupColor(
+  groupId: string,
+  color: string
+): Promise<boolean> {
+  try {
+    return await updateGroup(groupId, { image_url: color });
+  } catch (error) {
+    console.error("Error in updateGroupColor:", error);
+    return false;
+  }
+}
+
 // グループを削除する関数
 export async function deleteGroup(groupId: string): Promise<boolean> {
   try {

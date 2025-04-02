@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
-import { getUserGroups, getGroupItems, updateGroupColor, getGroupItemCount } from "@/utils/tag/index";
+import { getUserGroups, getGroupItems, getGroupItemCount } from "@/utils/tag/index";
+import { updateGroup } from "@/utils/tag/group-updates";
 import { GroupInfo } from "@/utils/tag/types";
 import { toast } from "sonner";
 
@@ -73,7 +74,7 @@ export function useGroupShowcase(userId?: string) {
   const handleColorChange = async (groupId: string, color: string) => {
     try {
       console.log("Updating group color:", groupId, color);
-      const success = await updateGroupColor(groupId, color);
+      const success = await updateGroup(groupId, { image_url: color });
       
       if (success) {
         // 成功時にローカルの状態を更新
