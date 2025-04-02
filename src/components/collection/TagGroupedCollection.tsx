@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { getItemsGroupedByTag, getAvailableGroups, addItemToGroup } from "@/utils/tag/tag-groups";
+import { getItemsGroupedByTag, getAvailableGroups, addSingleItemToGroup } from "@/utils/tag/tag-groups";
 import { TagGroupedItems, GroupInfo } from "@/utils/tag/types";
 import { CollectionGrid } from "./CollectionGrid";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -50,7 +50,8 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
   const handleAddToGroup = async (groupId: string, itemId: string) => {
     setIsAddingToGroup(true);
     try {
-      const success = await addItemToGroup(groupId, itemId);
+      // 修正: addItemToGroup の代わりに addSingleItemToGroup を使用
+      const success = await addSingleItemToGroup(groupId, itemId);
       if (success) {
         toast.success("アイテムをグループに追加しました");
       } else {

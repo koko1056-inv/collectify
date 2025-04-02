@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { addItemToGroup } from "./group-items";
+// addItemToGroup のインポートを削除し、独自実装にリネームして競合を解決します
 import { TagGroupedItems, GroupInfo } from "./types";
 
 /**
@@ -186,12 +186,12 @@ export async function getAvailableGroups(userId: string): Promise<GroupInfo[]> {
 }
 
 /**
- * 単一アイテムをグループに追加する関数
+ * 単一アイテムをグループに追加する関数 (名前を変更して競合を避ける)
  * @param groupId グループID
  * @param itemId アイテムID
  * @returns 成功したかどうか
  */
-export async function addItemToGroup(
+export async function addSingleItemToGroup(
   groupId: string,
   itemId: string
 ): Promise<boolean> {
