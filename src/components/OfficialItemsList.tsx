@@ -136,7 +136,7 @@ export function OfficialItemsList({
       <div 
         ref={filterBarRef}
         className={`sticky top-16 sm:top-0 z-10 bg-gray-50 pb-2 transition-transform duration-300 ${
-          isScrolled ? "transform -translate-y-0" : ""
+          isScrolled ? "transform translate-y-0" : "transform translate-y-0"
         }`}
       >
         <FilterBar

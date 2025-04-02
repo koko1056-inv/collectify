@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag } from "./types";
 
 /**
  * アイテムにタグを追加する関数
@@ -9,7 +8,7 @@ export async function addTagToItem(
   itemId: string,
   tagId: string,
   isUserItem: boolean = false
-): Promise<SimpleItemTag | null> {
+): Promise<{tag_id: string, tags: {id: string, name: string, category: string, created_at: string} | null} | null> {
   try {
     const table = isUserItem ? "user_item_tags" : "item_tags";
     const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
@@ -35,9 +34,10 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    let insertData: any = {};
-    insertData[itemIdField] = itemId;
-    insertData.tag_id = tagId;
+    let insertData: Record<string, string> = {
+      [itemIdField]: itemId,
+      tag_id: tagId
+    };
 
     // ユーザーアイテムの場合はユーザーIDも追加
     if (isUserItem && userId) {
