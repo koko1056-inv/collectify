@@ -39,13 +39,10 @@ export async function updateGroupColor(
       return false;
     }
     
-    // テーブル構造に合わせて更新データを作成
-    const updateData = { color_code: color }; // color_code フィールドに変更
-    
     // グループ情報を更新
     const { error } = await supabase
       .from("groups")
-      .update(updateData)
+      .update({ color_code: color } as any)
       .eq("id", groupId);
       
     if (error) {

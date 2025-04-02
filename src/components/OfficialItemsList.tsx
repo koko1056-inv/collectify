@@ -8,9 +8,6 @@ import { useItemCounts } from "./official-goods/hooks/useItemCounts";
 import { useSortedItems } from "./official-goods/hooks/useSortedItems";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import { 
-  ScrollArea
-} from "@/components/ui/scroll-area";
 import { FilterBar } from "./FilterBar";
 import { Tag } from "@/types";
 
