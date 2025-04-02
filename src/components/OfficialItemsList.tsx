@@ -154,7 +154,7 @@ export function OfficialItemsList({
   const filterBarStyle = {
     transform: isFilterVisible ? 'translateY(0)' : 'translateY(-100%)',
     position: 'sticky',
-    top: isMobile ? '48px' : '64px', // モバイルの場合は上部に寄せる
+    top: isMobile ? '10px' : '64px', // モバイルの場合は上部に大きく寄せる (48pxから10pxに変更)
     zIndex: 30,
     transition: 'transform 0.3s ease',
     background: 'rgb(249, 250, 251)',
