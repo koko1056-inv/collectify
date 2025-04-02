@@ -7,7 +7,7 @@ const ImageSearch = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow container mx-auto px-4 pt-20">
         <ImageSearchComponent />
       </main>
       <Footer />

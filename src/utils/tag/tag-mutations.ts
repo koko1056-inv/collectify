@@ -34,7 +34,7 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    let insertData: any = {};
+    let insertData: Record<string, string> = {};
     
     if (isUserItem) {
       insertData = { user_item_id: itemId, tag_id: tagId };

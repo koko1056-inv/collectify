@@ -42,7 +42,7 @@ export async function updateGroupColor(
     // グループ情報を更新
     const { error } = await supabase
       .from("groups")
-      .update({ color: color })
+      .update({ color_code: color })
       .eq("id", groupId);
       
     if (error) {
