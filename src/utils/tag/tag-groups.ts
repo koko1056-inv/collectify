@@ -1,55 +1,93 @@
-import { supabase } from "@/integrations/supabase/client";
-import { addItemToGroup } from "./group-items";
 
-/**
- * タグでグループ化されたアイテムを取得する関数
- * @param userId ユーザーID
- * @param tag タグ
- * @returns タグでグループ化されたアイテムリスト
- */
-export async function getItemsGroupedByTag(
-  userId: string,
-  tag: string
-): Promise<Record<string, any[]>> {
+import { supabase } from "@/integrations/supabase/client";
+
+// タグでグループ化されたアイテムを取得する
+export async function getItemsGroupedByTag(userId: string): Promise<{[key: string]: any[]}> {
   try {
     // ユーザーのアイテムを取得
-    const { data: items, error: itemsError } = await supabase
+    const { data: userItems, error: itemsError } = await supabase
       .from("user_items")
       .select("*")
-      .eq("created_by", userId);
+      .eq("user_id", userId);
 
     if (itemsError) {
       console.error("Error fetching user items:", itemsError);
       return {};
     }
 
-    // タグでフィルタリング
-    const filteredItems = items?.filter((item) => {
-      // item.tags が存在し、その中に指定されたタグが存在するか確認
-      return item.tags && item.tags.some((t: any) => t.name === tag);
-    }) || [];
+    if (!userItems || userItems.length === 0) {
+      return {};
+    }
 
-    // タグでグループ化されたアイテムを返す
-    return { [tag]: filteredItems };
+    // アイテムのIDリストを作成
+    const itemIds = userItems.map(item => item.id);
+
+    // アイテムに関連するタグを取得
+    const { data: itemTags, error: tagsError } = await supabase
+      .from("user_item_tags")
+      .select(`
+        tag_id,
+        user_item_id,
+        tags (
+          id,
+          name,
+          category
+        )
+      `)
+      .in("user_item_id", itemIds);
+
+    if (tagsError) {
+      console.error("Error fetching tags for items:", tagsError);
+      return {};
+    }
+
+    // タグ名でアイテムをグループ化
+    const groupedItems: {[key: string]: any[]} = {};
+
+    for (const item of userItems) {
+      // このアイテムに関連するタグを見つける
+      const itemTagsFiltered = itemTags.filter(tag => tag.user_item_id === item.id);
+      
+      if (itemTagsFiltered.length === 0) {
+        // タグがない場合は「未分類」に入れる
+        if (!groupedItems["未分類"]) {
+          groupedItems["未分類"] = [];
+        }
+        groupedItems["未分類"].push(item);
+        continue;
+      }
+
+      // 各タグごとにアイテムを追加
+      for (const tagRelation of itemTagsFiltered) {
+        if (tagRelation.tags) {
+          const tagName = tagRelation.tags.name;
+          if (!groupedItems[tagName]) {
+            groupedItems[tagName] = [];
+          }
+          
+          // 同じアイテムを複数回追加しないようにチェック
+          if (!groupedItems[tagName].some(i => i.id === item.id)) {
+            groupedItems[tagName].push(item);
+          }
+        }
+      }
+    }
+
+    return groupedItems;
   } catch (error) {
     console.error("Error in getItemsGroupedByTag:", error);
     return {};
   }
 }
 
-/**
- * 複数のアイテムをグループに追加する関数
- * @param groupId グループID
- * @param itemIds 追加するアイテムIDのリスト
- * @returns 成功したかどうか
- */
+// アイテムをグループに追加（新しく実装）
 export async function addItemsToGroup(
   groupId: string,
   itemIds: string[]
 ): Promise<boolean> {
-  console.log("Adding multiple items to group:", itemIds.length, "items to group:", groupId);
-  
   try {
+    console.log("Adding multiple items to group:", itemIds.length, "items to group", groupId);
+    
     // 認証されたユーザー情報の確認
     const { data: userData, error: userError } = await supabase.auth.getUser();
     if (userError) {
@@ -80,48 +118,55 @@ export async function addItemsToGroup(
       return false;
     }
     
-    // 既に追加されているアイテムを確認
-    const { data: existingItems, error: existingError } = await supabase
-      .from("group_members")
-      .select("user_id")
-      .eq("group_id", groupId)
-      .in("user_id", itemIds);
+    // 各アイテムをグループに追加
+    const successfulItems = [];
+    const failedItems = [];
+    
+    for (const itemId of itemIds) {
+      // すでに追加済みかチェック
+      const { count, error: checkError } = await supabase
+        .from("group_members")
+        .select("*", { count: 'exact', head: true })
+        .eq("group_id", groupId)
+        .eq("user_id", itemId);
+        
+      if (checkError) {
+        console.error("Error checking if item is in group:", checkError);
+        failedItems.push(itemId);
+        continue;
+      }
       
-    if (existingError) {
-      console.error("Error checking existing items:", existingError);
-      return false;
+      // 既に存在する場合はスキップ
+      if (count && count > 0) {
+        console.log("Item already in group:", itemId);
+        successfulItems.push(itemId); // 既存も成功とみなす
+        continue;
+      }
+      
+      // 新しいグループメンバーとして追加
+      // 注意: created_byカラムは存在しないのでidを除外
+      const { error: insertError } = await supabase
+        .from("group_members")
+        .insert({
+          group_id: groupId,
+          user_id: itemId,
+          role: 'member'
+        });
+        
+      if (insertError) {
+        console.error("Error adding item to group:", insertError, "for item:", itemId);
+        failedItems.push(itemId);
+      } else {
+        console.log("Successfully added item to group:", itemId);
+        successfulItems.push(itemId);
+      }
     }
     
-    // 既に追加済みのアイテムIDを抽出
-    const existingItemIds = existingItems?.map(item => item.user_id) || [];
+    console.log(`Add items to group summary: 
+      - Success: ${successfulItems.length} items
+      - Failed: ${failedItems.length} items`);
     
-    // 追加されていないアイテムのみをフィルタリング
-    const itemsToAdd = itemIds.filter(id => !existingItemIds.includes(id));
-    
-    if (itemsToAdd.length === 0) {
-      console.log("All items are already in the group");
-      return true;
-    }
-    
-    // 一括で追加するためのデータを作成
-    const groupMembers = itemsToAdd.map(itemId => ({
-      group_id: groupId,
-      user_id: itemId,
-      role: 'member'
-    }));
-    
-    // 一括でアイテムを追加
-    const { error: insertError } = await supabase
-      .from("group_members")
-      .insert(groupMembers);
-    
-    if (insertError) {
-      console.error("Error adding items to group:", insertError);
-      return false;
-    }
-    
-    console.log("Successfully added", itemsToAdd.length, "items to group");
-    return true;
+    return successfulItems.length > 0;
   } catch (error) {
     console.error("Error in addItemsToGroup:", error);
     return false;

@@ -7,8 +7,7 @@ export {
 
 export {
   updateGroup,
-  updateGroupColor,
-  deleteGroup
+  updateGroupColor
 } from './group-updates';
 
 export {

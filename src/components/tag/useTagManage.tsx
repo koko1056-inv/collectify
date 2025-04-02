@@ -37,6 +37,7 @@ export function useTagManage(
         const { data, error } = await supabase
           .from(table)
           .select(`
+            id,
             tag_id,
             tags:tag_id (
               id,
@@ -51,6 +52,7 @@ export function useTagManage(
         
         // SimpleItemTagの形式に変換
         const formattedTags = (data || []).map(tag => ({
+          id: tag.id,
           tag_id: tag.tag_id,
           tags: tag.tags
         }));
@@ -82,6 +84,7 @@ export function useTagManage(
             const { data: officialTagData } = await supabase
               .from("item_tags")
               .select(`
+                id,
                 tag_id,
                 tags:tag_id (
                   id,
@@ -95,6 +98,7 @@ export function useTagManage(
             if (officialTagData) {
               // SimpleItemTagの形式に変換
               const formattedOfficialTags = officialTagData.map(tag => ({
+                id: tag.id,
                 tag_id: tag.tag_id,
                 tags: tag.tags
               }));

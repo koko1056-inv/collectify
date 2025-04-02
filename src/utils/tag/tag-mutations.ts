@@ -11,12 +11,13 @@ export async function addTagToItem(
   try {
     // テーブル名の決定
     const tableName = isUserItem ? "user_item_tags" : "item_tags";
+    const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
     
     // まず、このタグがすでに追加されているか確認
     const { data: existingTags, error: checkError } = await supabase
       .from(tableName)
       .select("*")
-      .eq(isUserItem ? "user_item_id" : "official_item_id", itemId)
+      .eq(itemIdField, itemId)
       .eq("tag_id", tagId);
 
     if (checkError) {
@@ -31,30 +32,16 @@ export async function addTagToItem(
     }
 
     // 新しいタグを追加
-    if (isUserItem) {
-      const { error } = await supabase
-        .from(tableName)
-        .insert({
-          user_item_id: itemId,
-          tag_id: tagId
-        });
-        
-      if (error) {
-        console.error("Error adding tag to user item:", error);
-        return false;
-      }
-    } else {
-      const { error } = await supabase
-        .from(tableName)
-        .insert({
-          official_item_id: itemId,
-          tag_id: tagId
-        });
-        
-      if (error) {
-        console.error("Error adding tag to official item:", error);
-        return false;
-      }
+    const { error } = await supabase
+      .from(tableName)
+      .insert({
+        [itemIdField]: itemId,
+        tag_id: tagId
+      });
+
+    if (error) {
+      console.error("Error adding tag to item:", error);
+      return false;
     }
 
     return true;
