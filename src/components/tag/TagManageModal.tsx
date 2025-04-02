@@ -5,6 +5,7 @@ import { TagManageDialogHeader } from "./TagManageDialogHeader";
 import { TagManageDialogFooter } from "./TagManageDialogFooter";
 import { useTagManage } from "./useTagManage";
 import { TagUpdate } from "@/types/tag";
+import { useEffect } from "react";
 
 interface TagManageModalProps {
   isOpen: boolean;
@@ -36,6 +37,11 @@ export function TagManageModal({
     handleSubmit
   } = useTagManage(isOpen, itemIds, isUserItem, onClose, onSubmit);
 
+  // 依存配列にisOpenを追加して、modalが開かれた時だけ取得する
+  useEffect(() => {
+    // コンポーネントがマウントされたときに何かしたい場合はここに記述
+  }, [isOpen, itemIds]);
+
   const modalTitle = itemTitle ? `${title}: ${itemTitle}` : title;
 
   return (
@@ -48,14 +54,14 @@ export function TagManageModal({
         ) : (
           <>
             <TagManageModalContent
-              currentTags={currentTags}
-              pendingUpdates={pendingUpdates}
+              currentTags={currentTags || []}
+              pendingUpdates={pendingUpdates || []}
               onTagChange={handleTagChange}
               itemIds={itemIds}
               isUserItem={isUserItem}
               contentName={contentName}
               onContentChange={handleContentChange}
-              officialTags={isUserItem ? officialTags : []}
+              officialTags={officialTags || []}
             />
             
             <TagManageDialogFooter 

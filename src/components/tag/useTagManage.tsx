@@ -130,6 +130,7 @@ export function useTagManage(
 
   // タグの変更を処理
   const handleTagChange = (category: string) => (value: string | null) => {
+    console.log(`Handling tag change for category ${category} with value ${value}`);
     // 既存の同じカテゴリの更新を削除
     const filteredUpdates = pendingUpdates.filter(update => update.category !== category);
     

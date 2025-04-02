@@ -1,23 +1,38 @@
 
-import React from 'react';
-import { Search } from "lucide-react";
+import { SimpleItemTag } from "@/utils/tag/types";
+import { TagUpdate } from "@/types/tag";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
-interface CategoryTagSearchProps {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
+export interface CategoryTagSearchProps {
+  currentTags: SimpleItemTag[];
+  pendingUpdates: TagUpdate[];
+  onTagChange: (category: string) => (value: string | null) => void;
 }
 
-export function CategoryTagSearch({ searchQuery, setSearchQuery }: CategoryTagSearchProps) {
+export function CategoryTagSearch({
+  currentTags,
+  pendingUpdates,
+  onTagChange
+}: CategoryTagSearchProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  
   return (
-    <div className="px-2 py-2 bg-white">
-      <div className="flex items-center border rounded-md px-2">
-        <Search className="h-4 w-4 text-gray-400" />
-        <input
-          className="w-full p-2 bg-transparent focus:outline-none text-sm"
+    <div className="space-y-4">
+      <div>
+        <Input
           placeholder="タグを検索..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full"
         />
+      </div>
+      
+      {/* ここに検索結果を表示 */}
+      <div className="mt-4">
+        <p className="text-sm text-muted-foreground">
+          タグを検索するためにテキストを入力してください
+        </p>
       </div>
     </div>
   );

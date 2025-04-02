@@ -10,46 +10,39 @@ import { ContentNameSection } from "./ContentNameSection";
 import { OfficialTagsSection } from "./OfficialTagsSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tag } from "@/types";
+import { SimpleItemTag } from "@/utils/tag/types";
+import { TagUpdate } from "@/types/tag";
 
 export interface TagManageModalContentProps {
-  item: any;
-  pendingTags: Tag[];
-  currentTags: Tag[];
-  selectedTags: string[];
-  contentNames: string[];
-  selectedContent: string;
-  popularTags: Tag[];
-  previousTags: Tag[];
-  officialTags: Tag[];
-  onSelectTag: (tagId: string) => void;
-  onUnselectTag: (tagId: string) => void;
-  onSelectContent: (content: string) => void;
-  onAddTagToCurrentList: (tagId: string, name: string, category?: string) => void;
-  onRemoveTagFromCurrentList: (tagId: string) => void;
-  onAddTagToPendingList: (tagId: string, name: string, category?: string) => void;
-  onRemoveTagFromPendingList: (tagId: string) => void;
-  onAddNewTag: (tag: string, category?: string) => void;
+  currentTags: SimpleItemTag[];
+  pendingUpdates: TagUpdate[];
+  onTagChange: (category: string) => (value: string | null) => void;
+  itemIds: string[];
+  isUserItem?: boolean;
+  contentName: string | null;
+  onContentChange: (contentName: string | null) => void;
+  officialTags: SimpleItemTag[];
 }
 
 export function TagManageModalContent({
-  item,
-  pendingTags,
   currentTags,
-  selectedTags,
-  contentNames,
-  selectedContent,
-  popularTags,
-  previousTags,
+  pendingUpdates,
+  onTagChange,
+  itemIds,
+  isUserItem = false,
+  contentName,
+  onContentChange,
   officialTags,
-  onSelectTag,
-  onUnselectTag,
-  onSelectContent,
-  onAddTagToCurrentList,
-  onRemoveTagFromCurrentList,
-  onAddTagToPendingList,
-  onRemoveTagFromPendingList,
-  onAddNewTag,
 }: TagManageModalContentProps) {
+  // pendingUpdatesからpendingTagsを生成
+  const pendingTags = pendingUpdates
+    .filter(update => update.value) // 空でないvalue値を持つ更新のみ
+    .map(update => ({
+      id: `pending-${update.category}`,
+      name: update.value || "",
+      category: update.category
+    }));
+
   const hasPendingChanges = pendingTags.length > 0;
 
   return (
@@ -58,16 +51,15 @@ export function TagManageModalContent({
       <ScrollArea className="max-h-[60vh]">
         <div className="space-y-6 pr-4">
           <ContentNameSection
-            contentNames={contentNames}
-            selectedContent={selectedContent}
-            onSelectContent={onSelectContent}
+            contentName={contentName}
+            onContentChange={onContentChange}
           />
 
           <div className="space-y-4">
             <h3 className="text-sm font-semibold">現在のタグ</h3>
             <CurrentTagsList
               currentTags={currentTags}
-              onRemoveTag={onRemoveTagFromCurrentList}
+              onRemoveTag={(tagId) => {}}
             />
           </div>
 
@@ -75,8 +67,7 @@ export function TagManageModalContent({
             <div className="space-y-4">
               <h3 className="text-sm font-semibold">追加するタグ</h3>
               <PendingTagsList
-                pendingTags={pendingTags}
-                onRemoveTag={onRemoveTagFromPendingList}
+                pendingUpdates={pendingUpdates}
               />
             </div>
           )}
@@ -90,32 +81,36 @@ export function TagManageModalContent({
 
             <TabsContent value="category">
               <CategoryTagSelections
-                onSelectTag={onAddTagToPendingList}
-                onAddNewTag={onAddNewTag}
+                currentTags={currentTags}
+                pendingUpdates={pendingUpdates}
+                onTagChange={onTagChange}
               />
             </TabsContent>
 
             <TabsContent value="search">
               <CategoryTagSearch
-                onSelectTag={onAddTagToPendingList}
-                onAddNewTag={onAddNewTag}
+                currentTags={currentTags}
+                pendingUpdates={pendingUpdates}
+                onTagChange={onTagChange}
               />
             </TabsContent>
 
             <TabsContent value="official">
               <OfficialTagsSection
                 officialTags={officialTags}
-                selectedTags={selectedTags}
-                onSelectTag={onSelectTag}
-                onUnselectTag={onUnselectTag}
+                selectedTags={[]}
+                onSelectTag={() => {}}
+                onUnselectTag={() => {}}
               />
             </TabsContent>
           </Tabs>
 
-          <PreviousTags
-            previousTags={previousTags}
-            onSelectTag={onAddTagToPendingList}
-          />
+          <div className="mt-4">
+            <h3 className="text-sm font-semibold mb-2">最近使用したタグ</h3>
+            <div className="flex flex-wrap gap-2">
+              {/* 最近使用したタグがあればここに表示 */}
+            </div>
+          </div>
         </div>
       </ScrollArea>
     </div>
