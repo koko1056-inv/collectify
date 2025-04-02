@@ -2,7 +2,7 @@
 import React from 'react';
 import { SelectItem } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CategoryTagSearch } from "./CategoryTagSearch";
+import { Input } from "@/components/ui/input";
 import type { Tag } from "@/types/tag";
 
 interface TagSelectContentProps {
@@ -14,10 +14,15 @@ interface TagSelectContentProps {
 export function TagSelectContent({ searchQuery, setSearchQuery, filteredTags }: TagSelectContentProps) {
   return (
     <>
-      <CategoryTagSearch 
-        searchQuery={searchQuery} 
-        setSearchQuery={setSearchQuery} 
-      />
+      <div className="p-2">
+        <Input
+          placeholder="タグを検索..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full"
+        />
+      </div>
+      
       <ScrollArea className="max-h-[200px] overflow-y-auto">
         {filteredTags.length > 0 ? (
           filteredTags.map((tag) => (

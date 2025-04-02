@@ -9,7 +9,6 @@ import { PreviousTags } from "./PreviousTags";
 import { ContentNameSection } from "./ContentNameSection";
 import { OfficialTagsSection } from "./OfficialTagsSection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tag } from "@/types";
 import { SimpleItemTag } from "@/utils/tag/types";
 import { TagUpdate } from "@/types/tag";
 
@@ -48,8 +47,8 @@ export function TagManageModalContent({
   return (
     <div className="space-y-6">
       {/* スクロールエリアを追加して内容をスクロール可能にする */}
-      <ScrollArea className="max-h-[60vh]">
-        <div className="space-y-6 pr-4">
+      <ScrollArea className="h-[60vh] pr-4">
+        <div className="space-y-6 p-1">
           <ContentNameSection
             contentName={contentName}
             onContentChange={onContentChange}
@@ -58,7 +57,7 @@ export function TagManageModalContent({
           <div className="space-y-4">
             <h3 className="text-sm font-semibold">現在のタグ</h3>
             <CurrentTagsList
-              currentTags={currentTags}
+              currentTags={currentTags || []}
               onRemoveTag={(tagId) => {}}
             />
           </div>
@@ -81,7 +80,7 @@ export function TagManageModalContent({
 
             <TabsContent value="category">
               <CategoryTagSelections
-                currentTags={currentTags}
+                currentTags={currentTags || []}
                 pendingUpdates={pendingUpdates}
                 onTagChange={onTagChange}
               />
@@ -89,7 +88,7 @@ export function TagManageModalContent({
 
             <TabsContent value="search">
               <CategoryTagSearch
-                currentTags={currentTags}
+                currentTags={currentTags || []}
                 pendingUpdates={pendingUpdates}
                 onTagChange={onTagChange}
               />
@@ -97,7 +96,7 @@ export function TagManageModalContent({
 
             <TabsContent value="official">
               <OfficialTagsSection
-                officialTags={officialTags}
+                officialTags={officialTags || []}
                 selectedTags={[]}
                 onSelectTag={() => {}}
                 onUnselectTag={() => {}}
