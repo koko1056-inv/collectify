@@ -1,38 +1,68 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { addItemToGroup } from "./group-items";
+import { TagGroupedItems, GroupInfo } from "./types";
 
 /**
  * タグでグループ化されたアイテムを取得する関数
  * @param userId ユーザーID
- * @param tag タグ
  * @returns タグでグループ化されたアイテムリスト
  */
 export async function getItemsGroupedByTag(
-  userId: string,
-  tag: string
-): Promise<Record<string, any[]>> {
+  userId: string
+): Promise<TagGroupedItems> {
   try {
     // ユーザーのアイテムを取得
     const { data: items, error: itemsError } = await supabase
       .from("user_items")
-      .select("*")
-      .eq("created_by", userId);
+      .select(`
+        *,
+        user_item_tags (
+          tag_id,
+          tags (
+            id,
+            name,
+            category
+          )
+        )
+      `)
+      .eq("user_id", userId);
 
     if (itemsError) {
       console.error("Error fetching user items:", itemsError);
       return {};
     }
 
-    // タグでフィルタリング
-    const filteredItems = items?.filter((item) => {
-      // ここでは単純にitem配列をフィルタリングするだけ
-      // user_item_tagsテーブルを使って適切にフィルタリングするように修正する必要があります
-      return true; // 実際のフィルタリングロジックは実装が必要
-    }) || [];
+    if (!items || items.length === 0) {
+      return {};
+    }
 
-    // タグでグループ化されたアイテムを返す
-    return { [tag]: filteredItems };
+    // タグでグループ化
+    const groupedItems: TagGroupedItems = {};
+    
+    items.forEach((item) => {
+      if (item.user_item_tags && item.user_item_tags.length > 0) {
+        item.user_item_tags.forEach((tagItem: any) => {
+          if (tagItem.tags && tagItem.tags.name) {
+            const tagName = tagItem.tags.name;
+            if (!groupedItems[tagName]) {
+              groupedItems[tagName] = [];
+            }
+            
+            // 同じアイテムが既に追加されていないか確認
+            const isDuplicate = groupedItems[tagName].some(
+              (existingItem) => existingItem.id === item.id
+            );
+            
+            if (!isDuplicate) {
+              groupedItems[tagName].push(item);
+            }
+          }
+        });
+      }
+    });
+
+    return groupedItems;
   } catch (error) {
     console.error("Error in getItemsGroupedByTag:", error);
     return {};
@@ -82,8 +112,8 @@ export async function addItemsToGroup(
       return false;
     }
     
-    // 既に追加されているアイテムを確認
-    const { data: existingItems, error: existingError } = await supabase
+    // 既にグループ内にあるアイテムを確認（一括で取得して効率化）
+    const { data: existingMembers, error: existingError } = await supabase
       .from("group_members")
       .select("user_id")
       .eq("group_id", groupId)
@@ -94,11 +124,11 @@ export async function addItemsToGroup(
       return false;
     }
     
-    // 既に追加済みのアイテムIDを抽出
-    const existingItemIds = existingItems?.map(item => item.user_id) || [];
+    // 既に追加済みのアイテムIDのセットを作成
+    const existingItemIds = new Set(existingMembers?.map(item => item.user_id) || []);
     
     // 追加されていないアイテムのみをフィルタリング
-    const itemsToAdd = itemIds.filter(id => !existingItemIds.includes(id));
+    const itemsToAdd = itemIds.filter(id => !existingItemIds.has(id));
     
     if (itemsToAdd.length === 0) {
       console.log("All items are already in the group");
@@ -128,4 +158,42 @@ export async function addItemsToGroup(
     console.error("Error in addItemsToGroup:", error);
     return false;
   }
+}
+
+/**
+ * 利用可能なグループ一覧を取得する関数
+ * @param userId ユーザーID
+ * @returns 利用可能なグループ一覧
+ */
+export async function getAvailableGroups(userId: string): Promise<GroupInfo[]> {
+  try {
+    const { data, error } = await supabase
+      .from("groups")
+      .select("*")
+      .eq("created_by", userId)
+      .order("created_at", { ascending: false });
+    
+    if (error) {
+      console.error("Error fetching available groups:", error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error in getAvailableGroups:", error);
+    return [];
+  }
+}
+
+/**
+ * 単一アイテムをグループに追加する関数
+ * @param groupId グループID
+ * @param itemId アイテムID
+ * @returns 成功したかどうか
+ */
+export async function addItemToGroup(
+  groupId: string,
+  itemId: string
+): Promise<boolean> {
+  return await addItemsToGroup(groupId, [itemId]);
 }

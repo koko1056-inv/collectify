@@ -1,70 +1,59 @@
 
-import { DndContext, DragEndEvent, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import React from "react";
+import { CollectionGoodsCard } from "../CollectionGoodsCard";
+import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
-import { MemoizedMyCollectionGoodsCard } from "./MyCollectionGoodsCard";
+import { SortableItem } from "./SortableItem";
+import { Checkbox } from "../ui/checkbox";
 
 interface CollectionGridProps {
   items: any[];
-  isCompact: boolean;
-  isSelectionMode: boolean;
+  isCompact?: boolean;
+  isSelectionMode?: boolean;
   selectedItems: string[];
   onSelectItem: (itemId: string) => void;
   onDragEnd: (event: DragEndEvent) => void;
+  additionalItemComponent?: (item: any) => React.ReactNode;
 }
 
 export function CollectionGrid({
   items,
-  isCompact,
-  isSelectionMode,
+  isCompact = false,
+  isSelectionMode = false,
   selectedItems,
   onSelectItem,
   onDragEnd,
+  additionalItemComponent
 }: CollectionGridProps) {
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 8,
-      },
-    })
-  );
-
-  const gridClass = isCompact
-    ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
-    : "grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1 sm:gap-4";
-
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={onDragEnd}
-    >
-      <SortableContext items={items} strategy={rectSortingStrategy}>
-        <div className={gridClass}>
+    <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy}>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
           {items.map((item) => (
             <div key={item.id} className="relative">
               {isSelectionMode && (
                 <div className="absolute top-2 left-2 z-10">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={selectedItems.includes(item.id)}
-                    onChange={() => onSelectItem(item.id)}
-                    className="w-4 h-4"
+                    onCheckedChange={() => onSelectItem(item.id)}
                   />
                 </div>
               )}
-              <MemoizedMyCollectionGoodsCard
-                id={item.id}
-                title={item.title}
-                image={item.image}
-                quantity={item.quantity}
-                isCompact={isCompact}
-              />
+              <SortableItem id={item.id}>
+                <div className="relative">
+                  <CollectionGoodsCard
+                    id={item.id}
+                    title={item.title}
+                    image={item.image}
+                    quantity={item.quantity}
+                    userId={item.user_id}
+                    releaseDate={item.release_date}
+                    prize={item.prize}
+                    isCompact={isCompact}
+                  />
+                  {additionalItemComponent && additionalItemComponent(item)}
+                </div>
+              </SortableItem>
             </div>
           ))}
         </div>
