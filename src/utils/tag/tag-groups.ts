@@ -17,15 +17,19 @@ export async function getItemsGroupedByTag(
     const { data: items, error: itemsError } = await supabase
       .from("user_items")
       .select("*")
-      .eq("user_id", userId);
+      .eq("created_by", userId);
 
     if (itemsError) {
       console.error("Error fetching user items:", itemsError);
       return {};
     }
 
-    // タグでフィルタリング - 後で実装
-    const filteredItems = items || [];
+    // タグでフィルタリング
+    const filteredItems = items?.filter((item) => {
+      // ここでは単純にitem配列をフィルタリングするだけ
+      // user_item_tagsテーブルを使って適切にフィルタリングするように修正する必要があります
+      return true; // 実際のフィルタリングロジックは実装が必要
+    }) || [];
 
     // タグでグループ化されたアイテムを返す
     return { [tag]: filteredItems };

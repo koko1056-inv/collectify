@@ -31,44 +31,31 @@ export function AddItemsToGroupDialog({ isOpen, onClose, groupId }: AddItemsToGr
       
       console.log("Fetching user items for group:", groupId);
       
-      // まずユーザーのアイテムを取得
-      const { data: userItems, error: userItemsError } = await supabase
+      const { data, error } = await supabase
         .from("user_items")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       
-      if (userItemsError) {
-        console.error("Error fetching user items:", userItemsError);
-        throw userItemsError;
+      if (error) {
+        console.error("Error fetching user items:", error);
+        throw error;
       }
       
-      if (!userItems || userItems.length === 0) {
-        console.log("No user items found");
-        return [];
-      }
+      console.log("Found", data.length, "user items, checking which ones are already in group");
       
-      console.log("Found", userItems.length, "user items, checking which ones are already in group");
-      
-      // グループ内のアイテムをチェック
-      // group_membersテーブルから既存のアイテムを一括取得（効率化）
-      const { data: groupMembers, error: groupMembersError } = await supabase
-        .from("group_members")
-        .select("user_id")
-        .eq("group_id", groupId);
-        
-      if (groupMembersError) {
-        console.error("Error fetching group members:", groupMembersError);
-        throw groupMembersError;
-      }
-      
-      // 既存のメンバーIDのセットを作成
-      const existingMemberIds = new Set(groupMembers?.map(item => item.user_id) || []);
-      
-      // すでにグループ内にないアイテムだけをフィルタリング
-      const filteredItems = userItems.filter(item => !existingMemberIds.has(item.id));
-      
+      // グループ内のアイテムをチェック（並列処理で高速化）
+      const itemChecks = await Promise.all(
+        data.map(async (item) => {
+          const inGroup = await isItemInGroup(groupId, item.id);
+          return { ...item, inGroup };
+        })
+      );
+
+      // すでにグループ内にないアイテムのみを返す
+      const filteredItems = itemChecks.filter(item => !item.inGroup);
       console.log("Filtered items:", filteredItems.length, "not in group yet");
+      
       return filteredItems;
     },
     enabled: !!user?.id && isOpen,
