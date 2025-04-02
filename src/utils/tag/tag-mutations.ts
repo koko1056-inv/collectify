@@ -30,9 +30,9 @@ export async function addTagToItem(
       return true; // 既に追加済みなので成功とみなす
     }
 
-    // 新しいタグを追加するデータを作成
+    // 新しいタグを追加
     const insertData = isUserItem 
-      ? { user_item_id: itemId, tag_id: tagId }
+      ? { user_item_id: itemId, tag_id: tagId } 
       : { official_item_id: itemId, tag_id: tagId };
 
     const { error } = await supabase

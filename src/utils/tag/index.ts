@@ -9,20 +9,8 @@ export * from "./content-operations";
 export * from "./tag-copy";
 export * from "./group-core";
 export * from "./group-updates";
-// 重複している関数を避けるためにタグ操作関数のエクスポートを調整
-export {
-  getGroupItems,
-  isItemInGroup,
-  getGroupItemCount,
-  removeItemFromGroup,
-} from "./group-items";
-
-export {
-  getItemsGroupedByTag,
-  addItemsToGroup,
-  getAvailableGroups,
-  addSingleItemToGroup as addItemToGroup
-} from "./tag-groups";
+export * from "./group-items";
+export * from "./tag-groups";
 
 // 型定義もエクスポート
 export * from "./types";
@@ -30,6 +18,8 @@ export * from "./types";
 // 重複している関数を明示的に再エクスポート
 export {
   getUserGroups,
+  getGroupItems,
+  getGroupItemCount,
   createGroup,
   updateGroup,
   updateGroupColor

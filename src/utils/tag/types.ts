@@ -38,11 +38,3 @@ export interface SimpleItemTag {
     created_at?: string;
   };
 }
-
-// CollectionGoodsCardWrapperの受け入れるアイテム用
-export interface ItemCardProps {
-  id: string;
-  title: string;
-  image: string;
-  quantity?: number;
-}
