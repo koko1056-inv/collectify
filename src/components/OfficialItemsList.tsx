@@ -41,6 +41,19 @@ export function OfficialItemsList({
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [visibleCount, setVisibleCount] = useState(isMobile ? 21 : 24);
   const { wishlistCounts, ownerCounts } = useItemCounts();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const filterBarRef = useRef<HTMLDivElement>(null);
+  
+  // スクロール監視
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setIsScrolled(scrollPosition > 50);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   // 選択したタグでフィルタリングされたアイテムを取得
   const filteredByTagsItems = items.filter(item => {
@@ -120,7 +133,12 @@ export function OfficialItemsList({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="sticky top-16 sm:top-0 z-10 bg-gray-50 pb-2">
+      <div 
+        ref={filterBarRef}
+        className={`sticky top-16 sm:top-0 z-10 bg-gray-50 pb-2 transition-transform duration-300 ${
+          isScrolled ? "transform -translate-y-0" : ""
+        }`}
+      >
         <FilterBar
           searchQuery={searchQuery}
           onSearchChange={onSearchChange}
