@@ -9,8 +9,8 @@ export interface GroupInfo {
   created_by?: string;
   created_at?: string;
   image_url?: string;
-  color?: string; // colorプロパティを追加
-  itemCount?: number; // 表示用のアイテム数
+  color?: string;
+  itemCount?: number;
 }
 
 // コンテンツ情報のインターフェース
@@ -20,7 +20,7 @@ export interface ContentInfo {
   type?: string;
   created_by?: string;
   created_at?: string;
-  icon_name?: string; // icon_nameプロパティを追加
+  icon_name?: string;
 }
 
 // タグでグループ化されたアイテムの型
@@ -36,5 +36,5 @@ export interface SimpleItemTag {
     name: string;
     category?: string;
     created_at?: string;
-  } | null;
+  };
 }
