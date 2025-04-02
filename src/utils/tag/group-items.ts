@@ -57,14 +57,13 @@ export async function addItemToGroup(
       return true;
     }
     
-    // グループにアイテムを追加
+    // グループにアイテムを追加（created_byフィールドは不要）
     const { error } = await supabase
       .from("group_members")
       .insert({
         group_id: groupId,
         user_id: itemId,
-        role: 'member',
-        created_by: userId
+        role: 'member'
       });
     
     if (error) {
@@ -109,29 +108,36 @@ export async function removeItemFromGroup(
 // グループに所属するアイテムを取得
 export async function getGroupItems(groupId: string): Promise<any[]> {
   try {
-    const { data, error } = await supabase
+    // group_membersテーブルからuser_idを取得
+    const { data: memberData, error: memberError } = await supabase
       .from("group_members")
-      .select(`
-        user_items:user_id (
-          id, 
-          title, 
-          image,
-          quantity
-        )
-      `)
+      .select("user_id")
       .eq("group_id", groupId);
-    
-    if (error) {
-      console.error("Error fetching group items:", error);
+      
+    if (memberError) {
+      console.error("Error fetching group members:", memberError);
       return [];
     }
     
-    // データを変換
-    const items = data
-      .filter(item => item.user_items)
-      .map(item => item.user_items);
+    if (!memberData || memberData.length === 0) {
+      return [];
+    }
     
-    return items;
+    // 取得したuser_idのリストを作成
+    const userIds = memberData.map(member => member.user_id);
+    
+    // user_itemsテーブルからアイテムを取得
+    const { data: itemsData, error: itemsError } = await supabase
+      .from("user_items")
+      .select("*")
+      .in("id", userIds);
+      
+    if (itemsError) {
+      console.error("Error fetching user items:", itemsError);
+      return [];
+    }
+    
+    return itemsData || [];
   } catch (error) {
     console.error("Error in getGroupItems:", error);
     return [];
