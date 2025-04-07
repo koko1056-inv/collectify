@@ -1,4 +1,3 @@
-
 import { OfficialItem } from "@/types";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -154,7 +153,7 @@ export function OfficialItemsList({
   const filterBarStyle = {
     transform: isFilterVisible ? 'translateY(0)' : 'translateY(-100%)',
     position: 'sticky',
-    top: isMobile ? '10px' : '64px', // モバイルの場合は上部に大きく寄せる (48pxから10pxに変更)
+    top: isMobile ? '10px' : '64px',
     zIndex: 30,
     transition: 'transform 0.3s ease',
     background: 'rgb(249, 250, 251)',
@@ -167,7 +166,7 @@ export function OfficialItemsList({
       <div 
         ref={filterBarRef}
         style={filterBarStyle}
-        className="pb-2 pt-2"
+        className="pt-1 pb-1"
       >
         <FilterBar
           searchQuery={searchQuery}
