@@ -2,13 +2,14 @@
 import React, { useState } from "react";
 import { Tag } from "@/types";
 import { TagFilter } from "./TagFilter";
-import { Input } from "./ui/input";
+import { SearchBar } from "./SearchBar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Input } from "./ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FilterBarProps {
@@ -56,47 +57,16 @@ export function FilterBar({
     if (!selectedContent || selectedContent === "all") return "コンテンツで絞り込む";
     return selectedContent;
   };
-  
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onSearchChange(e.target.value);
-  };
-
-  const handleSearchIconClick = () => {
-    // 検索アイコンをクリックしたときに検索を実行する
-    if (isMobile) {
-      onSearchChange(searchQuery);
-    }
-  };
-
-  // Enterキーを押したときにも検索を実行
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      onSearchChange(searchQuery);
-    }
-  };
 
   return (
     <div className="space-y-3 w-full">
-      {/* 検索バーコンポーネント */}
-      <div className="max-w-xl mx-auto mb-4">
-        <div className="relative">
-          <Input
-            type="text"
-            placeholder="グッズを検索..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            onKeyDown={handleKeyDown}
-            className="pl-10 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
-          />
-          <div 
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 cursor-pointer"
-            onClick={handleSearchIconClick}
-            aria-label="検索実行"
-          >
-            <Search className="h-5 w-5" />
-          </div>
-        </div>
-      </div>
+      <SearchBar
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        selectedTags={selectedTags}
+        onTagsChange={onTagsChange}
+        tags={tags}
+      />
 
       <div className="w-full">
         <Button

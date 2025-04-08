@@ -86,7 +86,7 @@ export function TagInputField({
 
         // アイテムにタグを追加
         for (const itemId of itemIds) {
-          await addTagToItem(itemId, tagId);
+          await addTagToItem(itemId, tagId, isUserItem);
         }
 
         // ローカルステートを更新

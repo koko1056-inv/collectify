@@ -3,7 +3,7 @@ import { CategoryTagSelect } from "./CategoryTagSelect";
 import { TagUpdate } from "@/types/tag";
 import { SimpleItemTag } from "@/utils/tag/types";
 
-export interface CategoryTagSelectionsProps {
+interface CategoryTagSelectionsProps {
   currentTags: SimpleItemTag[];
   pendingUpdates: TagUpdate[];
   onTagChange: (category: string) => (value: string | null) => void;
@@ -14,12 +14,6 @@ export function CategoryTagSelections({
   pendingUpdates, 
   onTagChange 
 }: CategoryTagSelectionsProps) {
-  // currentTagsからカテゴリー別の現在の値を取得
-  const getCurrentTagName = (category: string): string | null => {
-    const tag = currentTags.find(tag => tag.tags.category === category);
-    return tag ? tag.tags.name : null;
-  };
-  
   return (
     <div className="space-y-3 sm:space-y-4">
       <CategoryTagSelect
@@ -27,7 +21,8 @@ export function CategoryTagSelections({
         label="キャラ・人物名"
         value={
           pendingUpdates.find(u => u.category === 'character')?.value ||
-          getCurrentTagName('character')
+          currentTags.find(tag => tag.tags.category === 'character')?.tags.name ||
+          null
         }
         onChange={onTagChange("character")}
       />
@@ -36,7 +31,8 @@ export function CategoryTagSelections({
         label="グッズタイプ"
         value={
           pendingUpdates.find(u => u.category === 'type')?.value ||
-          getCurrentTagName('type')
+          currentTags.find(tag => tag.tags.category === 'type')?.tags.name ||
+          null
         }
         onChange={onTagChange("type")}
       />
@@ -45,7 +41,8 @@ export function CategoryTagSelections({
         label="グッズシリーズ"
         value={
           pendingUpdates.find(u => u.category === 'series')?.value ||
-          getCurrentTagName('series')
+          currentTags.find(tag => tag.tags.category === 'series')?.tags.name ||
+          null
         }
         onChange={onTagChange("series")}
       />

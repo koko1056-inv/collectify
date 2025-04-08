@@ -1,90 +1,99 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Tag } from "@/types/tag"; // 正しいインポートパスを使用
+import { SimpleItemTag } from "./types";
 
 /**
  * アイテムにタグを追加する関数
- * @param itemId アイテムID
- * @param tagId タグID
- * @returns 成功時はtrue、失敗時はfalse
  */
-export const addTagToItem = async (
+export async function addTagToItem(
   itemId: string,
-  tagId: string
-): Promise<boolean> => {
+  tagId: string,
+  isUserItem: boolean = false
+): Promise<SimpleItemTag | null> {
   try {
-    console.log(`Adding tag ${tagId} to item ${itemId}`);
-    
-    // すでに存在するかチェック
-    const { count, error: countError } = await supabase
-      .from("user_item_tags")
-      .select("*", { count: "exact", head: true })
-      .eq("user_item_id", itemId)
-      .eq("tag_id", tagId);
-    
-    if (countError) {
-      console.error("Error checking existing tag:", countError);
-      return false;
+    const table = isUserItem ? "user_item_tags" : "item_tags";
+    const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
+
+    // タグが既に追加されているか確認
+    const { data: existingTag, error: checkError } = await supabase
+      .from(table)
+      .select("id")
+      .eq(itemIdField, itemId)
+      .eq("tag_id", tagId)
+      .maybeSingle();
+
+    if (checkError) throw checkError;
+
+    // 既に存在する場合は追加しない
+    if (existingTag) return null;
+
+    // ユーザーIDを取得（ユーザーアイテムの場合のみ使用）
+    let userId = null;
+    if (isUserItem) {
+      const { data: userData } = await supabase.auth.getUser();
+      userId = userData.user?.id;
     }
-    
-    // すでに追加されている場合は成功として返す
-    if (count && count > 0) {
-      console.log("Tag already exists on this item");
-      return true;
+
+    // 挿入データを準備
+    const insertData: any = {
+      [itemIdField]: itemId,
+      tag_id: tagId,
+    };
+
+    // ユーザーアイテムの場合はユーザーIDも追加
+    if (isUserItem && userId) {
+      insertData.user_id = userId;
     }
+
+    // タグを追加
+    const { data, error } = await supabase
+      .from(table)
+      .insert(insertData)
+      .select(`
+        tag_id,
+        tags:tag_id (
+          id,
+          name,
+          category,
+          created_at
+        )
+      `)
+      .single();
+
+    if (error) throw error;
     
-    // タグの追加
-    const { error } = await supabase
-      .from("user_item_tags")
-      .insert({ 
-        user_item_id: itemId, 
-        tag_id: tagId 
-      });
-    
-    if (error) {
-      console.error("Error adding tag to item:", error);
-      return false;
-    }
-    
-    console.log(`Successfully added tag ${tagId} to item ${itemId}`);
-    return true;
+    // SimpleItemTagの形式に変換して返す
+    return {
+      tag_id: data.tag_id,
+      tags: data.tags || null
+    };
   } catch (error) {
-    console.error("Error in addTagToItem:", error);
-    return false;
+    console.error("Error adding tag to item:", error);
+    return null;
   }
-};
+}
 
 /**
  * アイテムからタグを削除する関数
- * @param itemId アイテムID
- * @param tagId タグID
- * @returns 成功時はtrue、失敗時はfalse
  */
-export const removeTagFromItem = async (
+export async function removeTagFromItem(
+  tagId: string,
   itemId: string,
-  tagId: string
-): Promise<boolean> => {
+  isUserItem: boolean = false
+): Promise<boolean> {
   try {
-    console.log(`Removing tag ${tagId} from item ${itemId}`);
-    
+    const table = isUserItem ? "user_item_tags" : "item_tags";
+    const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
+
     const { error } = await supabase
-      .from("user_item_tags")
+      .from(table)
       .delete()
-      .match({ 
-        user_item_id: itemId, 
-        tag_id: tagId 
-      });
-    
-    if (error) {
-      console.error("Error removing tag from item:", error);
-      return false;
-    }
-    
-    console.log(`Successfully removed tag ${tagId} from item ${itemId}`);
+      .eq(itemIdField, itemId)
+      .eq("tag_id", tagId);
+
+    if (error) throw error;
     return true;
   } catch (error) {
-    console.error("Error in removeTagFromItem:", error);
+    console.error("Error removing tag from item:", error);
     return false;
   }
-};
+}

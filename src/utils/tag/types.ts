@@ -1,56 +1,34 @@
 
-// 既存の型定義をそのまま保持
-
-// グループ情報のインターフェース
-export interface GroupInfo {
-  id: string;
-  name: string;
-  description?: string;
-  created_by?: string;
-  created_at?: string;
-  image_url?: string;
-  color?: string;
-  itemCount?: number;
-}
-
-// コンテンツ情報のインターフェース
+// ContentInfoの型定義（icon_nameプロパティをオプションとして明示的に追加）
 export interface ContentInfo {
   id: string;
   name: string;
-  type?: string;
-  created_by?: string;
-  created_at?: string;
+  type: string;
+  created_at: string;
+  created_by: string;
   icon_name?: string;
 }
 
-// タグでグループ化されたアイテムの型
-export interface TagGroupedItems {
-  [key: string]: any[];
-}
-
-// シンプルなアイテムタグ型（循環参照を避けるため単純化）
+// SimpleItemTagの型定義（無限再帰を防ぐため、明示的に構造を定義）
 export interface SimpleItemTag {
   tag_id: string;
   tags: {
     id: string;
     name: string;
-    category?: string;
-    created_at?: string;
+    category: string;
+    created_at: string;
   };
 }
 
-// グループメンバー情報の型
-export interface GroupMember {
+// SimpleTag型の定義
+export interface SimpleTag {
   id: string;
-  group_id: string;
-  user_id: string;
-  role: string;
-  created_at?: string;
+  name: string;
+  category?: string;
+  created_at: string;
 }
 
-// APIレスポンスのステータス型
-export interface ApiResponse {
-  success: boolean;
-  message?: string;
-  data?: any;
+// TagGroupedItems型の定義
+export interface TagGroupedItems {
+  [tagName: string]: any[];
 }

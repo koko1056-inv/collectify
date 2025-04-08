@@ -54,7 +54,7 @@ export function RandomCollectionItemModal({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="relative z-10 bg-white/80 backdrop-blur-sm py-2 rounded-t-md">
-            <DialogTitle className="text-center text-primary font-bold">今日のラッキーコレクション</DialogTitle>
+            <DialogTitle className="text-center text-primary font-bold">今日のコレクション</DialogTitle>
           </DialogHeader>
           
           <div className="py-4">

@@ -1,10 +1,7 @@
 
-import React from "react";
-import { CollectionGoodsCard } from "../CollectionGoodsCard";
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { MemoizedMyCollectionGoodsCard } from "./MyCollectionGoodsCard";
-import { Checkbox } from "../ui/checkbox";
 
 interface CollectionGridProps {
   items: any[];
@@ -13,7 +10,6 @@ interface CollectionGridProps {
   selectedItems: string[];
   onSelectItem: (itemId: string) => void;
   onDragEnd: (event: DragEndEvent) => void;
-  additionalItemComponent?: (item: any) => React.ReactNode;
 }
 
 export function CollectionGrid({
@@ -23,7 +19,6 @@ export function CollectionGrid({
   selectedItems,
   onSelectItem,
   onDragEnd,
-  additionalItemComponent
 }: CollectionGridProps) {
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -49,15 +44,17 @@ export function CollectionGrid({
       collisionDetection={closestCenter}
       onDragEnd={onDragEnd}
     >
-      <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy}>
+      <SortableContext items={items} strategy={rectSortingStrategy}>
         <div className={gridClass}>
           {items.map((item) => (
             <div key={item.id} className="relative">
               {isSelectionMode && (
                 <div className="absolute top-2 left-2 z-10">
-                  <Checkbox
+                  <input
+                    type="checkbox"
                     checked={selectedItems.includes(item.id)}
-                    onCheckedChange={() => onSelectItem(item.id)}
+                    onChange={() => onSelectItem(item.id)}
+                    className="w-4 h-4"
                   />
                 </div>
               )}
@@ -68,7 +65,6 @@ export function CollectionGrid({
                 quantity={item.quantity}
                 isCompact={isCompact}
               />
-              {additionalItemComponent && additionalItemComponent(item)}
             </div>
           ))}
         </div>

@@ -1,3 +1,4 @@
+
 import { OfficialItem } from "@/types";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -7,6 +8,13 @@ import { useItemCounts } from "./official-goods/hooks/useItemCounts";
 import { useSortedItems } from "./official-goods/hooks/useSortedItems";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { 
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerTitle
+} from "@/components/ui/drawer";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterBar } from "./FilterBar";
 import { Tag } from "@/types";
 
@@ -37,41 +45,6 @@ export function OfficialItemsList({
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [visibleCount, setVisibleCount] = useState(isMobile ? 21 : 24);
   const { wishlistCounts, ownerCounts } = useItemCounts();
-  const filterBarRef = useRef<HTMLDivElement>(null);
-  
-  // スクロールに関する状態を管理
-  const [scrollY, setScrollY] = useState(0);
-  const [isFilterVisible, setIsFilterVisible] = useState(true);
-  const lastScrollY = useRef(0);
-  
-  // スクロール監視
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollDirection = currentScrollY > lastScrollY.current ? 'down' : 'up';
-      
-      // 少しスクロールしたらフィルターを隠す/表示する閾値（ピクセル単位）
-      const scrollThreshold = 10;
-      
-      // 上方向のスクロール、または先頭付近では常にフィルターを表示
-      if (scrollDirection === 'up' || currentScrollY < 50) {
-        setIsFilterVisible(true);
-      } 
-      // 十分な量の下スクロールがあればフィルターを隠す
-      else if (scrollDirection === 'down' && 
-               currentScrollY > 50 && 
-               Math.abs(currentScrollY - lastScrollY.current) > scrollThreshold) {
-        setIsFilterVisible(false);
-      }
-      
-      // スクロール位置を更新
-      setScrollY(currentScrollY);
-      lastScrollY.current = currentScrollY;
-    };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
   
   // 選択したタグでフィルタリングされたアイテムを取得
   const filteredByTagsItems = items.filter(item => {
@@ -95,6 +68,7 @@ export function OfficialItemsList({
   const loaderRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const loadMoreItems = useCallback(() => {
     if (visibleCount >= sortedItems.length || isLoading) return;
@@ -148,42 +122,43 @@ export function OfficialItemsList({
   }, [sortBy, isMobile]);
 
   const currentItems = sortedItems.slice(0, visibleCount);
-  
-  // フィルターバーのスタイル計算
-  const filterBarStyle = {
-    transform: isFilterVisible ? 'translateY(0)' : 'translateY(-100%)',
-    position: 'sticky',
-    top: isMobile ? '10px' : '64px',
-    zIndex: 30,
-    transition: 'transform 0.3s ease',
-    background: 'rgb(249, 250, 251)',
-    borderBottom: scrollY > 50 ? '1px solid rgb(229, 231, 235)' : 'none',
-    boxShadow: scrollY > 50 && isFilterVisible ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none',
-  } as React.CSSProperties;
+
+  const handleFilterClick = () => {
+    setIsFilterOpen(true);
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div 
-        ref={filterBarRef}
-        style={filterBarStyle}
-        className="pt-1 pb-1"
-      >
-        <FilterBar
-          searchQuery={searchQuery}
-          onSearchChange={onSearchChange}
-          selectedTags={selectedTags}
-          onTagsChange={onTagsChange}
-          selectedContent={selectedContent}
-          onContentChange={onContentChange}
-          tags={tags}
-        />
-      </div>
-      
       <OfficialItemsHeader 
         sortBy={sortBy} 
         onSortChange={setSortBy} 
         totalItems={sortedItems.length}
+        onFilterClick={handleFilterClick}
       />
+      
+      <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <DrawerContent className="max-h-[90vh] px-4 pt-4 pb-8">
+          <div className="mx-auto w-full max-w-sm">
+            <DrawerTitle className="text-center font-medium mb-4">フィルター</DrawerTitle>
+            <DrawerClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none">
+              <button className="text-sm text-gray-600">
+                完了
+              </button>
+            </DrawerClose>
+            <ScrollArea className="h-[70vh] pr-4">
+              <FilterBar
+                searchQuery={searchQuery}
+                onSearchChange={onSearchChange}
+                selectedTags={selectedTags}
+                onTagsChange={onTagsChange}
+                selectedContent={selectedContent}
+                onContentChange={onContentChange}
+                tags={tags}
+              />
+            </ScrollArea>
+          </div>
+        </DrawerContent>
+      </Drawer>
       
       <OfficialItemsGrid items={currentItems} />
       

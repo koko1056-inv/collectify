@@ -1,4 +1,3 @@
-
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -55,11 +54,11 @@ export function ItemDetailsForm({
       const updateTag = async (newTag: string | null, oldTag: string | null, category: string) => {
         if (oldTag && (!newTag || newTag !== oldTag)) {
           // 古いタグを削除
-          await removeTagFromItem(itemId, oldTag);
+          await removeTagFromItem(oldTag, itemId, isUserItem);
         }
         if (newTag && newTag !== oldTag) {
           // 新しいタグを追加
-          await addTagToItem(itemId, newTag);
+          await addTagToItem(itemId, newTag, isUserItem);
         }
       };
 

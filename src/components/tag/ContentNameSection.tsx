@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-export interface ContentNameSectionProps {
+interface ContentNameSectionProps {
   contentName: string | null;
   onContentChange: (contentName: string | null) => void;
 }

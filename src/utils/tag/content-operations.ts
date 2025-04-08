@@ -2,94 +2,114 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ContentInfo } from "./types";
 
-// コンテンツを取得する関数
-export async function getContentByName(name: string | null): Promise<ContentInfo | null> {
-  if (!name) return null;
+// コンテンツ情報を取得する関数
+export async function getAllContentNames(): Promise<ContentInfo[]> {
+  try {
+    const { data, error } = await supabase
+      .from('content_names')
+      .select('*')
+      .order('name');
+    
+    if (error) {
+      console.error('Error fetching content names:', error);
+      return [];
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      created_at: item.created_at,
+      created_by: item.created_by,
+      icon_name: item.icon_name
+    }));
+  } catch (error) {
+    console.error('Exception in getAllContentNames:', error);
+    return [];
+  }
+}
+
+// コンテンツ名を追加する関数
+export async function addContentName(name: string, type: string = 'other'): Promise<ContentInfo | null> {
+  if (!name.trim()) return null;
   
   try {
     const { data, error } = await supabase
-      .from("content_names")
-      .select("*")
-      .eq("name", name)
+      .from('content_names')
+      .insert([{ name, type, created_by: 'system' }])
+      .select('*')
       .single();
     
     if (error) {
-      console.error("Error fetching content by name:", error);
+      console.error('Error adding content name:', error);
       return null;
     }
     
-    return data as ContentInfo;
+    return {
+      id: data.id,
+      name: data.name,
+      type: data.type,
+      created_at: data.created_at,
+      created_by: data.created_by,
+      icon_name: data.icon_name
+    };
   } catch (error) {
-    console.error("Error in getContentByName:", error);
+    console.error('Exception in addContentName:', error);
     return null;
   }
 }
 
-// コンテンツのリストを取得する関数
-export async function getAllContents(): Promise<ContentInfo[]> {
+// IDからコンテンツを取得する関数
+export async function getContentById(id: string): Promise<ContentInfo | null> {
+  if (!id) return null;
+  
   try {
     const { data, error } = await supabase
-      .from("content_names")
-      .select("*")
-      .order("name");
+      .from('content_names')
+      .select('*')
+      .eq('id', id)
+      .single();
     
     if (error) {
-      console.error("Error fetching all contents:", error);
-      return [];
+      console.error('Error fetching content by ID:', error);
+      return null;
     }
     
-    return data as ContentInfo[];
+    return {
+      id: data.id,
+      name: data.name,
+      type: data.type,
+      created_at: data.created_at,
+      created_by: data.created_by,
+      icon_name: data.icon_name
+    };
   } catch (error) {
-    console.error("Error in getAllContents:", error);
-    return [];
-  }
-}
-
-// 特定のタイプのコンテンツを取得する関数
-export async function getContentsByType(type: string): Promise<ContentInfo[]> {
-  try {
-    const { data, error } = await supabase
-      .from("content_names")
-      .select("*")
-      .eq("type", type)
-      .order("name");
-    
-    if (error) {
-      console.error(`Error fetching contents of type ${type}:`, error);
-      return [];
-    }
-    
-    return data as ContentInfo[];
-  } catch (error) {
-    console.error("Error in getContentsByType:", error);
-    return [];
+    console.error('Exception in getContentById:', error);
+    return null;
   }
 }
 
 // アイテムのコンテンツを設定する関数
-export async function setItemContent(
-  itemId: string,
-  contentName: string | null,
-  isUserItem: boolean = false
-): Promise<boolean> {
+export async function setItemContent(itemId: string, contentName: string | null, isUserItem: boolean = false): Promise<boolean> {
   if (!itemId) return false;
   
   try {
-    const table = isUserItem ? "user_items" : "official_items";
+    const tableName = isUserItem ? "user_items" : "official_items";
     
+    // content_idではなくcontent_nameを使用するように修正
     const { error } = await supabase
-      .from(table)
+      .from(tableName)
       .update({ content_name: contentName })
-      .eq("id", itemId);
+      .eq('id', itemId);
     
     if (error) {
-      console.error(`Error setting content for ${table}:`, error);
+      console.error(`Error setting content for ${tableName}:`, error);
       return false;
     }
     
     return true;
   } catch (error) {
-    console.error("Error in setItemContent:", error);
+    console.error(`Exception in setItemContent for ${itemId}:`, error);
     return false;
   }
 }

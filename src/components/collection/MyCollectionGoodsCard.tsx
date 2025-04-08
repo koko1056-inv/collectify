@@ -46,8 +46,8 @@ function MyCollectionGoodsCardComponent({
         className="hover-scale card-shadow bg-white border border-gray-200 relative"
       >
         <CardImage image={image} title={title} />
-        <div className="p-2 h-14 flex flex-col justify-center relative">
-          <h3 className="text-xs font-medium text-gray-900 line-clamp-2">{title}</h3>
+        <div className="p-2 relative">
+          <h3 className="text-xs font-medium text-gray-900 truncate">{title}</h3>
           {quantity && quantity > 1 && (
             <Badge 
               className="absolute bottom-2 right-2 bg-purple-500 hover:bg-purple-500"

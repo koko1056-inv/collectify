@@ -17,14 +17,15 @@ interface TagDialogProps {
   onTagsSelect?: (tags: string[]) => void;
 }
 
-// シンプル化したタグの型
-interface SimpleItemTag {
+// Define tag item type directly to avoid deep nesting
+interface ItemTagSimple {
   id: string;
   tag_id: string;
   tags: {
     id: string;
     name: string;
-    category?: string | null;
+    category?: string;
+    created_at?: string;
   } | null;
 }
 
@@ -39,7 +40,7 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false, onTagsS
   const [activeCategory, setActiveCategory] = useState<TagCategory>("character");
   const { toast } = useToast();
 
-  const { data: currentTags = [] } = useQuery<SimpleItemTag[]>({
+  const { data: currentTags = [] } = useQuery<ItemTagSimple[]>({
     queryKey: ["item-tags", itemId, isUserItem],
     queryFn: async () => {
       if (!itemId) return [];
@@ -49,7 +50,7 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false, onTagsS
         .select(`
           id,
           tag_id,
-          tags (
+          tags:tags (
             id,
             name,
             category,
@@ -59,7 +60,7 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false, onTagsS
         .eq(isUserItem ? "user_item_id" : "official_item_id", itemId);
       
       if (error) throw error;
-      return data || [];
+      return (data || []);
     },
     enabled: !!itemId,
   });

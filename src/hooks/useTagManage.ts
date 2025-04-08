@@ -1,134 +1,135 @@
-import { useState, useEffect } from "react";
-import { getUserGroups, getGroupItems, updateGroupColor, getGroupItemCount } from "@/utils/tag/user-groups";
-import { GroupInfo } from "@/utils/tag/types";
-import { toast } from "sonner";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { TagUpdate } from "@/types/tag";
+import { getTagsForItem } from "@/utils/tag/tag-queries";
+import { setItemContent } from "@/utils/tag/content-operations";
+import { SimpleItemTag } from "@/utils/tag/types";
 
-export function useGroupShowcase(userId?: string) {
-  const [groups, setGroups] = useState<GroupInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [isItemsDialogOpen, setIsItemsDialogOpen] = useState(false);
-  const [isAddItemsDialogOpen, setIsAddItemsDialogOpen] = useState(false);
-  const [currentItems, setCurrentItems] = useState<any[]>([]);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+export function useTagManage(
+  isOpen: boolean,
+  itemIds: string[],
+  isUserItem: boolean = false,
+  onClose: () => void,
+  onSubmit?: (updates: TagUpdate[]) => Promise<void>
+) {
+  const [pendingUpdates, setPendingUpdates] = useState<TagUpdate[]>([]);
+  const [contentName, setContentName] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  
+  const { data: currentTags = [], isLoading } = useQuery({
+    queryKey: ["current-tags", itemIds],
+    queryFn: async () => {
+      const firstItemId = itemIds[0];
+      return await getTagsForItem(firstItemId, isUserItem);
+    },
+    enabled: isOpen && itemIds.length > 0,
+  });
 
-  // グループ一覧を取得
-  const fetchGroups = async () => {
-    if (!userId) return;
-    
-    setIsLoading(true);
-    try {
-      const userGroups = await getUserGroups(userId);
+  // If it's a user item, also fetch the original official item tags for reference
+  const { data: officialItemId } = useQuery({
+    queryKey: ["user-item-official-id", itemIds[0]],
+    queryFn: async () => {
+      if (!itemIds[0] || !isUserItem) return null;
       
-      // 各グループのアイテム数を取得
-      const groupsWithItemCount = await Promise.all(
-        userGroups.map(async (group) => {
-          const count = await getGroupItemCount(group.id);
-          return { ...group, itemCount: count };
-        })
-      );
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("official_item_id")
+        .eq("id", itemIds[0])
+        .maybeSingle();
       
-      setGroups(groupsWithItemCount);
-    } catch (error) {
-      console.error("Error fetching groups:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      if (error || !data) return null;
+      return data.official_item_id;
+    },
+    enabled: isOpen && itemIds.length > 0 && isUserItem,
+  });
 
-  // 初回読み込み
-  useEffect(() => {
-    if (userId) {
-      fetchGroups();
-    }
-  }, [userId]);
+  const { data: officialTags = [] } = useQuery({
+    queryKey: ["official-item-tags", officialItemId],
+    queryFn: async () => {
+      if (!officialItemId) return [];
+      return await getTagsForItem(officialItemId, false);
+    },
+    enabled: !!officialItemId,
+  });
 
-  // 新しいグループが作成された時の処理
-  const handleCreateGroup = (newGroup: GroupInfo) => {
-    setGroups((prev) => [newGroup, ...prev]);
-  };
-
-  // グループがクリックされた時の処理
-  const handleGroupClick = async (groupId: string) => {
-    setSelectedGroupId(groupId);
-    
-    try {
-      const items = await getGroupItems(groupId);
-      setCurrentItems(items);
-      setIsItemsDialogOpen(true);
-    } catch (error) {
-      console.error("Error fetching group items:", error);
-      toast.error("アイテムの取得に失敗しました");
-    }
-  };
-
-  // アイテム追加ボタンがクリックされた時の処理
-  const handleAddItemsClick = (groupId: string) => {
-    setSelectedGroupId(groupId);
-    setIsAddItemsDialogOpen(true);
-  };
-
-  // グループの色が変更された時の処理
-  const handleColorChange = async (groupId: string, color: string) => {
-    try {
-      console.log("Updating group color:", groupId, color);
-      const success = await updateGroupColor(groupId, color);
+  const { data: itemData } = useQuery({
+    queryKey: ["item-content", itemIds[0], isUserItem],
+    queryFn: async () => {
+      if (!itemIds[0]) return null;
       
-      if (success) {
-        // 成功時にローカルの状態を更新
-        setGroups(prevGroups => 
-          prevGroups.map(group => 
-            group.id === groupId ? { ...group, color } : group
-          )
-        );
-        toast.success("グループの色を更新しました");
-      } else {
-        toast.error("グループの色の更新に失敗しました");
+      const table = isUserItem ? "user_items" : "official_items";
+      const { data, error } = await supabase
+        .from(table)
+        .select("content_name")
+        .eq("id", itemIds[0])
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error fetching item content:", error);
+        return null;
       }
-    } catch (error) {
-      console.error("Error updating group color:", error);
-      toast.error("グループの色の更新に失敗しました");
+      
+      return data;
+    },
+    enabled: isOpen && itemIds.length > 0,
+  });
+
+  useEffect(() => {
+    if (itemData && 'content_name' in itemData) {
+      setContentName(itemData.content_name as string | null);
     }
-  };
+  }, [itemData]);
 
-  // 各ダイアログを閉じる処理
-  const handleItemsDialogClose = () => {
-    setIsItemsDialogOpen(false);
-    setSelectedGroupId(null);
-  };
+  useEffect(() => {
+    if (!isOpen) {
+      setPendingUpdates([]);
+      setContentName(null);
+    }
+  }, [isOpen]);
 
-  const handleAddItemsClose = () => {
-    setIsAddItemsDialogOpen(false);
-    fetchGroupItems();
-    fetchGroups();
-  };
+  const handleTagChange = useCallback((category: string) => (value: string | null) => {
+    setPendingUpdates((prev) => {
+      const existing = prev.findIndex((u) => u.category === category);
+      if (existing !== -1) {
+        const updated = [...prev];
+        updated[existing] = { category, value };
+        return updated;
+      }
+      return [...prev, { category, value }];
+    });
+  }, []);
 
-  // 選択中のグループのアイテムを再取得
-  const fetchGroupItems = async () => {
-    if (!selectedGroupId) return;
-    
+  const handleContentChange = useCallback((newContentName: string | null) => {
+    setContentName(newContentName);
+  }, []);
+
+  const handleSubmit = async () => {
     try {
-      const items = await getGroupItems(selectedGroupId);
-      setCurrentItems(items);
+      for (const itemId of itemIds) {
+        await setItemContent(itemId, contentName, isUserItem);
+      }
+      
+      await queryClient.invalidateQueries({ queryKey: ["item-content"] });
+      
+      if (onSubmit && pendingUpdates.length > 0) {
+        await onSubmit(pendingUpdates.filter((u) => u.value !== null));
+      }
+      
+      onClose();
     } catch (error) {
-      console.error("Error refreshing group items:", error);
+      console.error("Error updating item:", error);
     }
   };
 
   return {
-    groups,
+    currentTags,
+    pendingUpdates,
+    contentName,
+    officialTags,
     isLoading,
-    selectedGroupId,
-    currentItems,
-    isCreateDialogOpen,
-    isItemsDialogOpen,
-    isAddItemsDialogOpen,
-    setIsCreateDialogOpen,
-    handleCreateGroup,
-    handleGroupClick,
-    handleItemsDialogClose,
-    handleAddItemsClick,
-    handleAddItemsClose,
-    handleColorChange
+    handleTagChange,
+    handleContentChange,
+    handleSubmit
   };
 }

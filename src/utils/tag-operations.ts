@@ -11,14 +11,11 @@ export {
 } from './tag/tag-queries';
 export {
   getTagsByCategory,
-  searchTagsByCategory,
-  getPopularTags
+  findTagIdByName,
+  isSimpleTag
 } from './tag/tag-search';
 export {
-  getItemsGroupedByTag,
-  addItemsToGroup,
-  addSingleItemToGroup,
-  getAvailableGroups
+  getItemsGroupedByTag
 } from './tag/tag-groups';
 
 // Define a simplified ItemTag interface to avoid circular references

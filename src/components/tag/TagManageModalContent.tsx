@@ -1,26 +1,24 @@
 
-import React from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { CategoryTagSelections } from "./CategoryTagSelections";
 import { CurrentTagsList } from "./CurrentTagsList";
 import { PendingTagsList } from "./PendingTagsList";
-import { CategoryTagSearch } from "./CategoryTagSearch";
-import { PreviousTags } from "./PreviousTags";
 import { ContentNameSection } from "./ContentNameSection";
 import { OfficialTagsSection } from "./OfficialTagsSection";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SimpleItemTag } from "@/utils/tag/types";
 import { TagUpdate } from "@/types/tag";
+import { removeTagFromItem } from "@/utils/tag/tag-mutations";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { SimpleItemTag } from "@/utils/tag/types";
 
-export interface TagManageModalContentProps {
+interface TagManageModalContentProps {
   currentTags: SimpleItemTag[];
   pendingUpdates: TagUpdate[];
   onTagChange: (category: string) => (value: string | null) => void;
   itemIds: string[];
   isUserItem?: boolean;
-  contentName: string | null;
-  onContentChange: (contentName: string | null) => void;
-  officialTags: SimpleItemTag[];
+  contentName?: string | null;
+  onContentChange?: (contentName: string | null) => void;
+  officialTags?: SimpleItemTag[];
 }
 
 export function TagManageModalContent({
@@ -31,87 +29,58 @@ export function TagManageModalContent({
   isUserItem = false,
   contentName,
   onContentChange,
-  officialTags,
+  officialTags = []
 }: TagManageModalContentProps) {
-  // pendingUpdatesからpendingTagsを生成
-  const pendingTags = pendingUpdates
-    .filter(update => update.value) // 空でないvalue値を持つ更新のみ
-    .map(update => ({
-      id: `pending-${update.category}`,
-      name: update.value || "",
-      category: update.category
-    }));
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const hasPendingChanges = pendingTags.length > 0;
+  const handleRemoveTag = async (tagId: string) => {
+    try {
+      for (const itemId of itemIds) {
+        await removeTagFromItem(tagId, itemId, isUserItem);
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["current-tags", itemIds] });
+      
+      toast({
+        title: "タグを削除しました",
+        description: "タグが正常に削除されました。",
+      });
+    } catch (error) {
+      console.error("Error removing tag:", error);
+      toast({
+        title: "エラー",
+        description: "タグの削除中にエラーが発生しました。",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {/* スクロールエリアを追加して内容をスクロール可能にする */}
-      <ScrollArea className="h-[60vh] pr-4">
-        <div className="space-y-6 p-1">
-          <ContentNameSection
-            contentName={contentName}
-            onContentChange={onContentChange}
-          />
+    <div className="space-y-4 sm:space-y-6 py-4">
+      <CurrentTagsList 
+        currentTags={currentTags} 
+        onRemoveTag={handleRemoveTag}
+      />
+      
+      {isUserItem && officialTags.length > 0 && (
+        <OfficialTagsSection officialTags={officialTags} />
+      )}
+      
+      {onContentChange && (
+        <ContentNameSection 
+          contentName={contentName || null} 
+          onContentChange={onContentChange} 
+        />
+      )}
+      
+      <CategoryTagSelections 
+        currentTags={currentTags}
+        pendingUpdates={pendingUpdates}
+        onTagChange={onTagChange}
+      />
 
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold">現在のタグ</h3>
-            <CurrentTagsList
-              currentTags={currentTags || []}
-              onRemoveTag={(tagId) => {}}
-            />
-          </div>
-
-          {hasPendingChanges && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold">追加するタグ</h3>
-              <PendingTagsList
-                pendingUpdates={pendingUpdates}
-              />
-            </div>
-          )}
-
-          <Tabs defaultValue="category">
-            <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="category">カテゴリ別タグ</TabsTrigger>
-              <TabsTrigger value="search">タグ検索</TabsTrigger>
-              <TabsTrigger value="official">公式タグ</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="category">
-              <CategoryTagSelections
-                currentTags={currentTags || []}
-                pendingUpdates={pendingUpdates}
-                onTagChange={onTagChange}
-              />
-            </TabsContent>
-
-            <TabsContent value="search">
-              <CategoryTagSearch
-                currentTags={currentTags || []}
-                pendingUpdates={pendingUpdates}
-                onTagChange={onTagChange}
-              />
-            </TabsContent>
-
-            <TabsContent value="official">
-              <OfficialTagsSection
-                officialTags={officialTags || []}
-                selectedTags={[]}
-                onSelectTag={() => {}}
-                onUnselectTag={() => {}}
-              />
-            </TabsContent>
-          </Tabs>
-
-          <div className="mt-4">
-            <h3 className="text-sm font-semibold mb-2">最近使用したタグ</h3>
-            <div className="flex flex-wrap gap-2">
-              {/* 最近使用したタグがあればここに表示 */}
-            </div>
-          </div>
-        </div>
-      </ScrollArea>
+      <PendingTagsList pendingUpdates={pendingUpdates} />
     </div>
   );
 }

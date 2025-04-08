@@ -1,92 +1,57 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Tag } from "@/types/tag";
-import { SimpleItemTag } from "./types";
+import { SimpleTag } from "./types";
 
-// タグを検索する (カテゴリごとにグループ化)
-export async function searchTagsByCategory(
-  query: string,
-  limit: number = 10
-): Promise<{ [category: string]: Tag[] }> {
+// カテゴリーごとのタグを取得
+export async function getTagsByCategory(
+  category: string
+): Promise<SimpleTag[]> {
   try {
     const { data, error } = await supabase
       .from("tags")
       .select("*")
-      .ilike("name", `%${query}%`)
-      .order("name")
-      .limit(limit);
-
-    if (error) {
-      console.error("Error searching tags:", error);
-      return {};
-    }
-
-    // カテゴリごとにグループ化
-    const groupedTags: { [category: string]: Tag[] } = {};
+      .eq("category", category)
+      .order("name");
     
-    data.forEach((tag: Tag) => {
-      const category = tag.category || "その他";
-      if (!groupedTags[category]) {
-        groupedTags[category] = [];
-      }
-      groupedTags[category].push(tag);
-    });
-    
-    return groupedTags;
-  } catch (error) {
-    console.error("Error in searchTagsByCategory:", error);
-    return {};
-  }
-}
-
-// 人気のタグを取得する
-export async function getPopularTags(limit: number = 10): Promise<Tag[]> {
-  try {
-    const { data, error } = await supabase
-      .from("tags")
-      .select("*")
-      .order("usage_count", { ascending: false })
-      .limit(limit);
-
     if (error) {
-      console.error("Error fetching popular tags:", error);
+      console.error(`Error fetching ${category} tags:`, error);
       return [];
     }
     
-    return data;
+    return data as SimpleTag[];
   } catch (error) {
-    console.error("Error in getPopularTags:", error);
+    console.error(`Error in getTagsByCategory for ${category}:`, error);
     return [];
   }
 }
 
-// カテゴリごとのタグを取得する
-export async function getTagsByCategory(): Promise<{ [category: string]: Tag[] }> {
-  try {
-    const { data, error } = await supabase
-      .from("tags")
-      .select("*")
-      .order("name");
-
-    if (error) {
-      console.error("Error fetching tags by category:", error);
-      return {};
-    }
-
-    // カテゴリごとにグループ化
-    const groupedTags: { [category: string]: Tag[] } = {};
-    
-    data.forEach((tag: Tag) => {
-      const category = tag.category || "その他";
-      if (!groupedTags[category]) {
-        groupedTags[category] = [];
-      }
-      groupedTags[category].push(tag);
-    });
-    
-    return groupedTags;
-  } catch (error) {
-    console.error("Error in getTagsByCategory:", error);
-    return {};
+// タグ名からタグIDを検索
+export async function findTagIdByName(
+  name: string,
+  category?: string
+): Promise<string | null> {
+  const query = supabase.from("tags").select("id").eq("name", name);
+  
+  if (category) {
+    query.eq("category", category);
   }
+  
+  const { data, error } = await query.maybeSingle();
+  
+  if (error || !data) {
+    console.error(`Tag not found: ${name}`, error);
+    return null;
+  }
+  
+  return data.id;
+}
+
+// SimpleTagかどうかをチェック（型ガード関数）
+export function isSimpleTag(tag: any): tag is SimpleTag {
+  return (
+    typeof tag === 'object' &&
+    tag !== null &&
+    'id' in tag &&
+    'name' in tag
+  );
 }

@@ -32,7 +32,7 @@ export default function TradeRequests() {
   return <div className="pb-16 sm:pb-0 bg-gradient-to-b from-white to-gray-50 min-h-screen">
       <Navbar />
       <div className="container pt-28 sm:pt-28 max-w-2xl py-[56px]">
-        <h1 className="font-bold mb-6 text-gray-900 pb-2 border-b border-gray-200 text-lg py-px text-left">トレード管理</h1>
+        <h1 className="font-bold mb-6 text-center text-gray-900 pb-2 border-b border-gray-200 text-lg py-px">トレード管理</h1>
         
         <TradeTabs tradeRequests={tradeRequests} acceptedTrades={acceptedTrades} completedTrades={completedTrades} openTrades={openTrades} handleTradeResponse={handleTradeResponse} openChat={openChat} refreshOpenTrades={refreshOpenTrades} />
 

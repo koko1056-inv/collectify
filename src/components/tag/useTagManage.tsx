@@ -1,169 +1,124 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { TagUpdate } from "@/types/tag";
+import { getTagsForItem } from "@/utils/tag/tag-queries";
+import { setItemContent } from "@/utils/tag/content-operations";
 import { SimpleItemTag } from "@/utils/tag/types";
 
 export function useTagManage(
   isOpen: boolean,
   itemIds: string[],
-  isUserItem: boolean = false,
+  isUserItem: boolean,
   onClose: () => void,
   onSubmit?: (updates: TagUpdate[]) => Promise<void>
 ) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentTags, setCurrentTags] = useState<SimpleItemTag[]>([]);
   const [pendingUpdates, setPendingUpdates] = useState<TagUpdate[]>([]);
   const [contentName, setContentName] = useState<string | null>(null);
-  const [officialTags, setOfficialTags] = useState<SimpleItemTag[]>([]);
+  const queryClient = useQueryClient();
   
-  const { toast } = useToast();
+  const { data: currentTags = [], isLoading } = useQuery({
+    queryKey: ["current-tags", itemIds],
+    queryFn: async () => {
+      const firstItemId = itemIds[0];
+      return await getTagsForItem(firstItemId, isUserItem);
+    },
+    enabled: isOpen && itemIds.length > 0,
+  });
 
-  // アイテムのタグを取得
-  useEffect(() => {
-    if (!isOpen || !itemIds.length) return;
+  // If it's a user item, also fetch the original official item tags for reference
+  const { data: officialItemId } = useQuery({
+    queryKey: ["user-item-official-id", itemIds[0]],
+    queryFn: async () => {
+      if (!itemIds[0] || !isUserItem) return null;
+      
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("official_item_id")
+        .eq("id", itemIds[0])
+        .maybeSingle();
+      
+      if (error || !data) return null;
+      return data.official_item_id;
+    },
+    enabled: isOpen && itemIds.length > 0 && isUserItem,
+  });
 
-    const fetchItemTags = async () => {
-      setIsLoading(true);
-      try {
-        // メインアイテムのタグを取得
-        const itemId = itemIds[0];
-        
-        // アイテムの種類に応じてテーブルを選択
-        const table = isUserItem ? "user_item_tags" : "item_tags";
-        const idField = isUserItem ? "user_item_id" : "official_item_id";
-        
-        const { data, error } = await supabase
-          .from(table)
-          .select(`
-            tag_id,
-            tags:tag_id (
-              id,
-              name,
-              category,
-              created_at
-            )
-          `)
-          .eq(idField, itemId);
-        
-        if (error) throw error;
-        
-        // 単純化したタグデータに変換
-        const formattedTags = (data || []).map(tag => ({
-          tag_id: tag.tag_id,
-          tags: {
-            id: tag.tags.id,
-            name: tag.tags.name,
-            category: tag.tags.category,
-            created_at: tag.tags.created_at
-          }
-        }));
+  const { data: officialTags = [] } = useQuery({
+    queryKey: ["official-item-tags", officialItemId],
+    queryFn: async () => {
+      if (!officialItemId) return [];
+      return await getTagsForItem(officialItemId, false);
+    },
+    enabled: !!officialItemId,
+  });
 
-        setCurrentTags(formattedTags);
-        
-        // コンテンツ名を取得（オフィシャルアイテムの場合のみ）
-        if (!isUserItem) {
-          const { data: itemData } = await supabase
-            .from("official_items")
-            .select("content_name")
-            .eq("id", itemId)
-            .single();
-          
-          if (itemData) {
-            setContentName(itemData.content_name);
-          }
-        }
-        
-        // ユーザーアイテムの場合、対応するオフィシャルアイテムのタグを取得
-        if (isUserItem) {
-          const { data: userItem } = await supabase
-            .from("user_items")
-            .select("official_item_id")
-            .eq("id", itemId)
-            .single();
-          
-          if (userItem?.official_item_id) {
-            const { data: officialTagData } = await supabase
-              .from("item_tags")
-              .select(`
-                tag_id,
-                tags:tag_id (
-                  id,
-                  name,
-                  category,
-                  created_at
-                )
-              `)
-              .eq("official_item_id", userItem.official_item_id);
-            
-            if (officialTagData) {
-              // 単純化したタグデータに変換
-              const formattedOfficialTags = officialTagData.map(tag => ({
-                tag_id: tag.tag_id,
-                tags: {
-                  id: tag.tags.id,
-                  name: tag.tags.name,
-                  category: tag.tags.category,
-                  created_at: tag.tags.created_at
-                }
-              }));
-              
-              setOfficialTags(formattedOfficialTags);
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching tags:", error);
-        toast({
-          title: "エラー",
-          description: "タグの読み込み中にエラーが発生しました。",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
+  const { data: itemData } = useQuery({
+    queryKey: ["item-content", itemIds[0], isUserItem],
+    queryFn: async () => {
+      if (!itemIds[0]) return null;
+      
+      const table = isUserItem ? "user_items" : "official_items";
+      const { data, error } = await supabase
+        .from(table)
+        .select("content_name")
+        .eq("id", itemIds[0])
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error fetching item content:", error);
+        return null;
       }
-    };
+      
+      return data;
+    },
+    enabled: isOpen && itemIds.length > 0,
+  });
 
-    fetchItemTags();
-  }, [isOpen, itemIds, isUserItem, toast]);
+  useEffect(() => {
+    if (itemData && 'content_name' in itemData) {
+      setContentName(itemData.content_name as string | null);
+    }
+  }, [itemData]);
 
-  // タグの変更を処理
-  const handleTagChange = (category: string) => (value: string | null) => {
-    console.log(`Handling tag change for category ${category} with value ${value}`);
-    // 既存の同じカテゴリの更新を削除
-    const filteredUpdates = pendingUpdates.filter(update => update.category !== category);
-    
-    // 新しい更新を追加
-    setPendingUpdates([...filteredUpdates, { category, value }]);
-  };
+  useEffect(() => {
+    if (!isOpen) {
+      setPendingUpdates([]);
+      setContentName(null);
+    }
+  }, [isOpen]);
 
-  // コンテンツ名の変更を処理
-  const handleContentChange = (newContentName: string | null) => {
+  const handleTagChange = useCallback((category: string) => (value: string | null) => {
+    setPendingUpdates((prev) => {
+      const existing = prev.findIndex((u) => u.category === category);
+      if (existing !== -1) {
+        const updated = [...prev];
+        updated[existing] = { category, value };
+        return updated;
+      }
+      return [...prev, { category, value }];
+    });
+  }, []);
+
+  const handleContentChange = useCallback((newContentName: string | null) => {
     setContentName(newContentName);
-  };
+  }, []);
 
-  // フォームの送信を処理
   const handleSubmit = async () => {
     try {
-      if (onSubmit) {
-        await onSubmit(pendingUpdates);
+      for (const itemId of itemIds) {
+        await setItemContent(itemId, contentName, isUserItem);
       }
       
-      setPendingUpdates([]);
-      onClose();
+      await queryClient.invalidateQueries({ queryKey: ["item-content"] });
       
-      toast({
-        title: "更新完了",
-        description: "タグが正常に更新されました。",
-      });
+      if (onSubmit && pendingUpdates.length > 0) {
+        await onSubmit(pendingUpdates.filter((u) => u.value !== null));
+      }
+      
+      onClose();
     } catch (error) {
-      console.error("Error submitting tag updates:", error);
-      toast({
-        title: "エラー",
-        description: "タグの更新中にエラーが発生しました。",
-        variant: "destructive"
-      });
+      console.error("Error updating item:", error);
     }
   };
 

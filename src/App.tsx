@@ -31,7 +31,6 @@ const LoadingFallback = () => (
   </div>
 );
 
-// QueryClientインスタンスの作成をコンポーネント外部に移動し、定数として宣言
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -43,35 +42,36 @@ const queryClient = new QueryClient({
   },
 });
 
-// React.StrictModeを削除し、QueryClientProviderの使い方を修正
 const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/admin" element={<Admin />} />
-                  <Route path="/add-item" element={<AddItem />} />
-                  <Route path="/user/:userId" element={<UserProfile />} />
-                  <Route path="/edit-profile" element={<EditProfile />} />
-                  <Route path="/trades" element={<TradeRequests />} />
-                  <Route path="/search" element={<Search />} />
-                  <Route path="/collection" element={<Collection />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </Suspense>
-            </TooltipProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </LanguageProvider>
-    </QueryClientProvider>
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/admin" element={<Admin />} />
+                    <Route path="/add-item" element={<AddItem />} />
+                    <Route path="/user/:userId" element={<UserProfile />} />
+                    <Route path="/edit-profile" element={<EditProfile />} />
+                    <Route path="/trades" element={<TradeRequests />} />
+                    <Route path="/search" element={<Search />} />
+                    <Route path="/collection" element={<Collection />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </Suspense>
+              </TooltipProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </React.StrictMode>
   );
 };
 

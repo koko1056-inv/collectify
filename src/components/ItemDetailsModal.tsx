@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { isItemInUserCollection } from "@/utils/tag/tag-queries";
 import { ModalHeader } from "./item-details/ModalHeader";
 import { ItemStatistics } from "./item-details/ItemStatistics";
@@ -13,8 +13,8 @@ import { Button } from "./ui/button";
 import { Tag, Trash2 } from "lucide-react";
 import { useToast } from "./ui/use-toast";
 import { TagManageModal } from "./tag/TagManageModal";
-import { useState } from "react";
 import { deleteUserItem } from "@/utils/tag/user-item-operations";
+import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -52,6 +52,14 @@ export function ItemDetailsModal({
   const { toast } = useToast();
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedData, setEditedData] = useState({
+    image,
+    title,
+    price,
+    description,
+    quantity,
+  });
 
   // タグの取得
   const { data: officialTags = [] } = useQuery({
@@ -72,7 +80,7 @@ export function ItemDetailsModal({
       if (error) throw error;
       return data;
     },
-    enabled: !isUserItem,
+    enabled: !isUserItem && !!itemId,
   });
 
   // いいねの数を取得
@@ -89,7 +97,7 @@ export function ItemDetailsModal({
       }
       return 0;
     },
-    enabled: isUserItem,
+    enabled: isUserItem && !!itemId,
   });
 
   // 所有者の数を取得
@@ -109,7 +117,7 @@ export function ItemDetailsModal({
       }
       return 0;
     },
-    enabled: !isUserItem,
+    enabled: !isUserItem && !!itemId,
   });
 
   // トレードの数を取得
@@ -149,7 +157,7 @@ export function ItemDetailsModal({
         return count || 0;
       }
     },
-    enabled: true,
+    enabled: !!itemId,
   });
 
   // アイテムがユーザーのコレクションに既に存在するかをチェック
@@ -159,12 +167,30 @@ export function ItemDetailsModal({
       if (!user || isUserItem) return isUserItem;
       return await isItemInUserCollection(itemId, user.id);
     },
-    enabled: !isUserItem && !!user,
+    enabled: !isUserItem && !!user && !!itemId,
   });
+
+  // 編集モードをリセット
+  useEffect(() => {
+    if (!isOpen) {
+      setIsEditing(false);
+    }
+  }, [isOpen]);
+
+  // 編集データの初期化
+  useEffect(() => {
+    setEditedData({
+      image,
+      title,
+      price,
+      description,
+      quantity,
+    });
+  }, [image, title, price, description, quantity]);
 
   // リアルタイム更新のために購読を設定
   useEffect(() => {
-    if (!user || isUserItem) return;
+    if (!user || isUserItem || !itemId) return;
 
     const channel = supabase
       .channel('user-items-changes')
@@ -233,70 +259,71 @@ export function ItemDetailsModal({
         <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
           <ModalHeader onClose={onClose} />
           
-          {/* メインコンテンツ */}
-          <div className="flex-1 overflow-auto">
-            {/* アイテム画像 */}
-            <div className="aspect-square w-full">
-              <img 
-                src={image} 
-                alt={title} 
-                className="w-full h-full object-contain bg-gray-50"
-              />
-            </div>
+          {/* メインコンテンツ - スクロール領域 */}
+          <ItemDetailsContent
+            image={image}
+            title={title}
+            tags={officialTags}
+            isUserItem={isUserItem}
+            isEditing={isEditing}
+            editedData={editedData}
+            setEditedData={setEditedData}
+            contentName={contentName}
+            releaseDate={releaseDate}
+            createdBy={createdBy}
+            description={description}
+          />
+          
+          {/* 下部固定エリア */}
+          <div className="p-4 border-t border-gray-100">
+            {/* ユーザーアイテムの場合の管理ボタン */}
+            {isUserItem && (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+                  onClick={() => setIsTagModalOpen(true)}
+                >
+                  <Tag className="h-4 w-4 mr-2" />
+                  タグを管理
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-500"
+                  onClick={() => setIsDeleteConfirmOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  削除
+                </Button>
+              </div>
+            )}
             
-            {/* アイテム情報 */}
-            <div className="p-4">
-              <h3 className="text-lg font-bold mb-2">{title}</h3>
-              
-              {/* 統計情報 */}
-              <ItemStatistics 
-                likesCount={likesCount} 
-                ownersCount={ownersCount} 
-                tradesCount={tradesCount} 
+            {/* 統計情報 */}
+            <ItemStatistics 
+              likesCount={likesCount} 
+              ownersCount={ownersCount} 
+              tradesCount={tradesCount} 
+            />
+            
+            {/* アイテム詳細情報 */}
+            <ItemDetailInfo 
+              releaseDate={releaseDate} 
+              tags={officialTags} 
+            />
+            
+            {/* 下部アクションボタン */}
+            {!isUserItem && (
+              <ItemButtons 
+                isInCollection={isInCollection}
+                itemId={itemId}
+                title={title}
+                image={image}
+                releaseDate={releaseDate}
+                price={price}
+                refetchIsInCollection={refetchIsInCollection}
+                refetchOwnersCount={refetchOwnersCount}
               />
-              
-              {/* アイテム詳細情報 */}
-              <ItemDetailInfo 
-                releaseDate={releaseDate} 
-                tags={officialTags} 
-              />
-              
-              {/* ユーザーアイテムの場合の管理ボタン */}
-              {isUserItem && (
-                <div className="mt-4 flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    className="flex-1 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
-                    onClick={() => setIsTagModalOpen(true)}
-                  >
-                    <Tag className="h-4 w-4 mr-2" />
-                    タグを管理
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="flex-1 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-500"
-                    onClick={() => setIsDeleteConfirmOpen(true)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    削除
-                  </Button>
-                </div>
-              )}
-              
-              {/* 下部アクションボタン */}
-              {!isUserItem && (
-                <ItemButtons 
-                  isInCollection={isInCollection}
-                  itemId={itemId}
-                  title={title}
-                  image={image}
-                  releaseDate={releaseDate}
-                  price={price}
-                  refetchIsInCollection={refetchIsInCollection}
-                  refetchOwnersCount={refetchOwnersCount}
-                />
-              )}
-            </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

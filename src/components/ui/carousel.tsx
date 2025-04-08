@@ -1,21 +1,21 @@
 
-"use client"
-
 import * as React from "react"
-import { ArrowLeft, ArrowRight } from "lucide-react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 type CarouselApi = UseEmblaCarouselType[1]
-type UseCarouselParameters = Parameters<typeof useEmblaCarousel>[0]
+type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
+type CarouselOptions = UseCarouselParameters[0]
+type CarouselPlugin = UseCarouselParameters[1]
 
-interface CarouselProps {
-  opts?: UseCarouselParameters
-  plugins?: ReturnType<typeof useEmblaCarousel>[1][]
+type CarouselProps = {
+  opts?: CarouselOptions
+  plugins?: CarouselPlugin
   orientation?: "horizontal" | "vertical"
   setApi?: (api: CarouselApi) => void
 }
@@ -57,14 +57,12 @@ const Carousel = React.forwardRef<
     },
     ref
   ) => {
-    const [carouselRef, api] = useEmblaCarousel(
-      {
-        ...opts,
-        axis: orientation === "horizontal" ? "x" : "y",
-      },
-      // TypeScript workaround - plugins passed as-is
-      plugins as any
-    )
+    const emblaOptions = {
+      ...opts,
+      axis: orientation === "horizontal" ? "x" : "y",
+    }
+    
+    const [carouselRef, api] = useEmblaCarousel(emblaOptions, plugins)
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)
     const [canScrollNext, setCanScrollNext] = React.useState(false)
 
@@ -112,12 +110,11 @@ const Carousel = React.forwardRef<
       }
 
       onSelect(api)
-      api.on("select", onSelect)
       api.on("reInit", onSelect)
+      api.on("select", onSelect)
 
       return () => {
-        api.off("select", onSelect)
-        api.off("reInit", onSelect)
+        api?.off("select", onSelect)
       }
     }, [api, onSelect])
 
@@ -126,7 +123,7 @@ const Carousel = React.forwardRef<
         value={{
           carouselRef,
           api: api,
-          opts,
+          opts: emblaOptions,
           orientation:
             orientation || (opts?.axis === "y" ? "vertical" : "horizontal"),
           scrollPrev,
@@ -207,7 +204,7 @@ const CarouselPrevious = React.forwardRef<
       variant={variant}
       size={size}
       className={cn(
-        "absolute h-8 w-8 rounded-full",
+        "absolute  h-8 w-8 rounded-full",
         orientation === "horizontal"
           ? "-left-12 top-1/2 -translate-y-1/2"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
