@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
@@ -60,7 +59,7 @@ const Carousel = React.forwardRef<
     const emblaOptions = {
       ...opts,
       axis: orientation === "horizontal" ? "x" : "y",
-    }
+    } as CarouselOptions;
     
     const [carouselRef, api] = useEmblaCarousel(emblaOptions, plugins)
     const [canScrollPrev, setCanScrollPrev] = React.useState(false)

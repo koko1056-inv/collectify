@@ -108,9 +108,11 @@ export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) 
       />
 
       <TagDialog
-        isOpen={isDialogOpen}
+        open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
-        onTagsSelect={handleTagsSelect}
+        initialValue={null}
+        onSelect={(tag) => tag && handleTagsSelect([tag])}
+        category="character"
       />
     </div>
   );
