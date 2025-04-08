@@ -55,11 +55,11 @@ export function ItemDetailsForm({
       const updateTag = async (newTag: string | null, oldTag: string | null, category: string) => {
         if (oldTag && (!newTag || newTag !== oldTag)) {
           // 古いタグを削除
-          await removeTagFromItem(oldTag, itemId, isUserItem);
+          await removeTagFromItem(itemId, oldTag);
         }
         if (newTag && newTag !== oldTag) {
           // 新しいタグを追加
-          await addTagToItem(itemId, newTag, isUserItem);
+          await addTagToItem(itemId, newTag);
         }
       };
 

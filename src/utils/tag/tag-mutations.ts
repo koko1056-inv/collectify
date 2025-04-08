@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ItemTag, Tag } from "../tag-operations";
+import { Tag } from "@/types/tag"; // 正しいインポートパスを使用
 
 /**
  * アイテムにタグを追加する関数

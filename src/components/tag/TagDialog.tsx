@@ -17,15 +17,14 @@ interface TagDialogProps {
   onTagsSelect?: (tags: string[]) => void;
 }
 
-// 単純化されたタグ項目の型定義
-interface ItemTagSimple {
+// シンプル化したタグの型
+interface SimpleItemTag {
   id: string;
   tag_id: string;
   tags: {
     id: string;
     name: string;
     category?: string | null;
-    created_at?: string | null;
   } | null;
 }
 
@@ -40,7 +39,7 @@ export function TagDialog({ isOpen, onClose, itemId, isUserItem = false, onTagsS
   const [activeCategory, setActiveCategory] = useState<TagCategory>("character");
   const { toast } = useToast();
 
-  const { data: currentTags = [] } = useQuery<ItemTagSimple[]>({
+  const { data: currentTags = [] } = useQuery<SimpleItemTag[]>({
     queryKey: ["item-tags", itemId, isUserItem],
     queryFn: async () => {
       if (!itemId) return [];

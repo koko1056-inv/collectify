@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -149,7 +150,7 @@ export function useItemSubmit({
           
           const tagId = await createOrGetTag(tag.name, tag.category);
           if (tagId) {
-            await addTagToItem(itemData.id, tagId, false);
+            await addTagToItem(itemData.id, tagId);
             console.log(`Added ${tag.category} tag: ${tag.name}`);
           }
         } catch (error) {
@@ -164,7 +165,7 @@ export function useItemSubmit({
           if (!tagName) continue;
           const tagId = await createOrGetTag(tagName, null);
           if (tagId) {
-            await addTagToItem(itemData.id, tagId, false);
+            await addTagToItem(itemData.id, tagId);
             console.log(`Added additional tag: ${tagName}`);
           }
         } catch (error) {
