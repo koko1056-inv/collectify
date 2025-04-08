@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { TagInputField } from "./TagInputField";
 import { getTagsByCategory } from "@/utils/tag/tag-search";
+import { TagCategory } from "@/types/tag";
 
 // 循環参照を避けるために、必要な型だけをインポート
 import type { Tag } from "@/types/tag";
@@ -13,7 +14,7 @@ interface TagDialogProps {
   onClose: () => void;
   initialValue: string | null;
   onSelect: (value: string | null) => void;
-  category: string;
+  category: TagCategory;
 }
 
 export function TagDialog({
@@ -91,7 +92,7 @@ export function TagDialog({
 }
 
 // カテゴリーに応じたタイトルを返す関数
-function getCategoryTitle(category: string): string {
+function getCategoryTitle(category: TagCategory): string {
   switch (category) {
     case 'character':
       return 'キャラクター';

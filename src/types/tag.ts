@@ -21,8 +21,8 @@ export interface ItemTagWithTag extends BaseItemTag {
 // ItemTagを純粋な型エイリアスとして定義（循環参照を避ける）
 export type ItemTag = ItemTagWithTag;
 
-// タグカテゴリー型
-export type TagCategory = "character" | "type" | "series";
+// タグカテゴリー型 - 文字列リテラル型を拡張して "character" | "type" | "series" | string に変更
+export type TagCategory = "character" | "type" | "series" | string;
 
 // タグ更新のインターフェース
 export interface TagUpdate {

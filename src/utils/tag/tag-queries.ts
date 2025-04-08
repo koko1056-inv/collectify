@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
-// アイテムに関連付けられたタグを取得する
+// アイテムに関連付けられたタグを取得する関数
 export async function getTagsForItem(
   itemId: string | null,
   isUserItem: boolean = false
