@@ -16,7 +16,9 @@ export {
 } from './tag/tag-search';
 export {
   getItemsGroupedByTag,
-  addItemsToGroup
+  addItemsToGroup,
+  addSingleItemToGroup,
+  getAvailableGroups
 } from './tag/tag-groups';
 
 // Define a simplified ItemTag interface to avoid circular references
