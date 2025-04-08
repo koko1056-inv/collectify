@@ -71,10 +71,17 @@ export function TagDialog({
         <div className="py-4">
           <TagInputField
             category={category}
-            value={inputValue}
-            onChange={setInputValue}
-            onSelect={handleTagSelect}
-            availableTags={availableTags}
+            selectedTags={selectedTag ? [selectedTag] : []}
+            onTagsChange={(tags) => {
+              if (tags.length > 0) {
+                handleTagSelect(tags[0]);
+              } else {
+                handleTagSelect(null);
+              }
+            }}
+            itemIds={[]}
+            onClose={() => {}}
+            isUserItem={false}
           />
         </div>
         
