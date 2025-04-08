@@ -55,3 +55,42 @@ export function isSimpleTag(tag: any): tag is SimpleTag {
     'name' in tag
   );
 }
+
+// グループ化されたタグを取得
+export async function getTagGroups(): Promise<{[key: string]: string[]}> {
+  try {
+    const { data, error } = await supabase
+      .from("tags")
+      .select("*")
+      .eq("is_category", true)
+      .order("name");
+    
+    if (error) {
+      console.error("Error fetching tag groups:", error);
+      return {};
+    }
+    
+    const groups: {[key: string]: string[]} = {};
+    
+    // カテゴリとして設定されているタグを取得
+    for (const group of data) {
+      groups[group.name] = [];
+      
+      // 各カテゴリに属するタグを取得
+      const { data: groupTags, error: groupError } = await supabase
+        .from("tags")
+        .select("name")
+        .eq("category", group.name)
+        .order("name");
+      
+      if (!groupError && groupTags) {
+        groups[group.name] = groupTags.map(tag => tag.name);
+      }
+    }
+    
+    return groups;
+  } catch (error) {
+    console.error("Error in getTagGroups:", error);
+    return {};
+  }
+}

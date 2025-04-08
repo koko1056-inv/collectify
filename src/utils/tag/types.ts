@@ -26,9 +26,16 @@ export interface SimpleTag {
   name: string;
   category?: string;
   created_at: string;
+  is_category?: boolean;
 }
 
 // TagGroupedItems型の定義
 export interface TagGroupedItems {
   [tagName: string]: any[];
+}
+
+// TagGroup型の定義
+export interface TagGroup {
+  name: string;
+  tags: string[];
 }

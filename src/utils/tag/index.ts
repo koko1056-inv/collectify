@@ -13,5 +13,6 @@ export * from './tag-groups';
 export type { 
   SimpleTag,
   SimpleItemTag,
-  TagGroupedItems 
+  TagGroupedItems,
+  TagGroup
 } from './types';
