@@ -68,3 +68,26 @@ export async function getContentById(id: string): Promise<ContentInfo | null> {
   }
 }
 
+// アイテムにコンテンツを設定する関数
+export async function setItemContent(itemId: string, contentName: string | null, isUserItem: boolean = false): Promise<boolean> {
+  if (!itemId) return false;
+  
+  const tableName = isUserItem ? 'user_items' : 'official_items';
+  
+  try {
+    const { error } = await supabase
+      .from(tableName)
+      .update({ content_name: contentName })
+      .eq('id', itemId);
+    
+    if (error) {
+      console.error(`Error setting content for ${tableName}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Exception in setItemContent for ${itemId}:`, error);
+    return false;
+  }
+}
