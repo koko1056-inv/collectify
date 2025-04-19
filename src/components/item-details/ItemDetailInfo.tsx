@@ -10,7 +10,7 @@ interface ItemDetailInfoProps {
 }
 
 export function ItemDetailInfo({ tags, price, description, contentName }: ItemDetailInfoProps) {
-  // カテゴリータグを取得
+  // グッズタイプとグッズシリーズのタグを取得
   const typeTag = tags.find(tag => tag.tags?.category === 'type')?.tags?.name || '';
   const seriesTag = tags.find(tag => tag.tags?.category === 'series')?.tags?.name || '';
   
@@ -27,7 +27,7 @@ export function ItemDetailInfo({ tags, price, description, contentName }: ItemDe
       {typeTag && (
         <ItemLabelValue 
           icon="tag" 
-          label="カテゴリー" 
+          label="グッズタイプ" 
           value={typeTag} 
         />
       )}
