@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -38,10 +37,11 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
-    // データの形式を適切に変換
-    const result: SimpleItemTag[] = data
-      .filter((item) => item.tags) // nullのタグをフィルタリング
-      .map((item) => ({
+    return data
+      .filter((item): item is { tag_id: string; tags: NonNullable<typeof item.tags> } => 
+        item.tags !== null
+      )
+      .map(item => ({
         tag_id: item.tag_id,
         tags: {
           id: item.tags.id,
@@ -50,10 +50,6 @@ export async function getTagsForItem(
           created_at: item.tags.created_at || ""
         }
       }));
-      
-    return result.sort((a, b) => {
-      return a.tags.name.localeCompare(b.tags.name, 'ja');
-    });
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
     return [];
