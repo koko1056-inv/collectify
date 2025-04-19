@@ -1,4 +1,3 @@
-
 // ContentInfoの型定義（icon_nameプロパティをオプションとして明示的に追加）
 export interface ContentInfo {
   id: string;
