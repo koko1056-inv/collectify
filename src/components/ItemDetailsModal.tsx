@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +8,7 @@ import { ModalHeader } from "./item-details/ModalHeader";
 import { ItemStatistics } from "./item-details/ItemStatistics";
 import { ItemDetailInfo } from "./item-details/ItemDetailInfo";
 import { ItemButtons } from "./item-details/ItemButtons";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { Tag, Trash2 } from "lucide-react";
 import { useToast } from "./ui/use-toast";
 import { TagManageModal } from "./tag/TagManageModal";
@@ -305,10 +304,10 @@ export function ItemDetailsModal({
               tradesCount={tradesCount} 
             />
             
-            {/* アイテム詳細情報 */}
             <ItemDetailInfo 
-              releaseDate={releaseDate} 
-              tags={officialTags} 
+              tags={officialTags}
+              price={price}
+              description={description}
             />
             
             {/* 下部アクションボタン */}
