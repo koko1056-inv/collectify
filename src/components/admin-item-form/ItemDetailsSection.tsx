@@ -6,6 +6,8 @@ import { ContentSection } from "./sections/ContentSection";
 import { TagsSection } from "./sections/TagsSection";
 import { TitleSection } from "./sections/TitleSection";
 import { MerchandiseCategorySection } from "./sections/MerchandiseCategorySection";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface FormData {
   title: string;
@@ -48,52 +50,68 @@ export function ItemDetailsSection({
   };
 
   return (
-    <div className="space-y-4">
-      <TitleSection  // タイトルセクションをカテゴリの前に移動
-        title={formData.title}
-        onChange={handleChange}
-      />
+    <Card className="bg-white shadow-sm">
+      <CardContent className="p-6">
+        <div className="space-y-6">
+          <TitleSection
+            title={formData.title}
+            onChange={handleChange}
+          />
 
-      <MerchandiseCategorySection
-        value={formData.category}
-        onChange={handleCategoryChange}
-      />
+          <Separator className="my-4" />
 
-      <ContentSection
-        contentName={formData.content_name || ""}
-        onChange={handleChange}
-      />
+          <MerchandiseCategorySection
+            value={formData.category}
+            onChange={handleCategoryChange}
+          />
 
-      <TagsSection
-        characterTag={formData.characterTag}
-        typeTag={formData.typeTag}
-        seriesTag={formData.seriesTag}
-        onTagChange={handleTagChange}
-      />
+          <Separator className="my-4" />
 
-      <div className="space-y-2">
-        <Label htmlFor="price">価格</Label>
-        <Input
-          id="price"
-          name="price"
-          value={formData.price}
-          onChange={handleChange}
-          placeholder="価格を入力"
-        />
-      </div>
+          <ContentSection
+            contentName={formData.content_name || ""}
+            onChange={handleChange}
+          />
 
-      <div className="space-y-2">
-        <Label htmlFor="description">自由メモ</Label>
-        <Textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows={4}
-          placeholder="グッズに関する自由なメモを入力してください"
-        />
-      </div>
-    </div>
+          <Separator className="my-4" />
+
+          <TagsSection
+            characterTag={formData.characterTag}
+            typeTag={formData.typeTag}
+            seriesTag={formData.seriesTag}
+            onTagChange={handleTagChange}
+          />
+
+          <Separator className="my-4" />
+
+          <div className="space-y-2">
+            <Label htmlFor="price" className="text-sm font-medium">価格</Label>
+            <div className="relative">
+              <Input
+                id="price"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                placeholder="価格を入力"
+                className="pl-8"
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">¥</span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-sm font-medium">自由メモ</Label>
+            <Textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={4}
+              placeholder="グッズに関する自由なメモを入力してください"
+              className="resize-none"
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
-

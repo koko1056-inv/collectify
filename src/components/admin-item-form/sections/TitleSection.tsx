@@ -13,7 +13,7 @@ export function TitleSection({
 }: TitleSectionProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor="title">タイトル</Label>
+      <Label htmlFor="title" className="text-sm font-medium">タイトル</Label>
       <Input
         id="title"
         name="title"
@@ -21,6 +21,7 @@ export function TitleSection({
         onChange={onChange}
         placeholder="アイテム名を入力"
         required
+        className="font-medium text-lg"
       />
     </div>
   );
