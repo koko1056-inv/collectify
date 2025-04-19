@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -35,20 +36,23 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
-    return data
-      .filter((item): item is { tag_id: string; tags: NonNullable<typeof item.tags> } => 
-        item.tags !== null
-      )
-      .map(item => ({
-        tag_id: item.tag_id,
-        tags: {
-          id: item.tags.id,
-          name: item.tags.name,
-          category: item.tags.category || "",
-          created_at: new Date().toISOString() // フォールバック値を提供
-        }
-      }));
-
+    const result: SimpleItemTag[] = [];
+    
+    for (const item of data) {
+      if (item.tags !== null) {
+        result.push({
+          tag_id: item.tag_id,
+          tags: {
+            id: item.tags.id,
+            name: item.tags.name,
+            category: item.tags.category || "",
+            created_at: new Date().toISOString() // フォールバック値を提供
+          }
+        });
+      }
+    }
+    
+    return result;
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
     return [];

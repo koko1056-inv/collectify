@@ -4,7 +4,18 @@ import { TitleSection } from './sections/TitleSection';
 import { ContentSection } from './sections/ContentSection';
 import { ItemTypeSection } from './sections/ItemTypeSection';
 import { TagsSection } from './sections/TagsSection';
-import type { ItemFormData } from '@/types';
+
+interface ItemFormData {
+  title: string;
+  description: string;
+  category: string;
+  content_name: string | null;
+  characterTag?: string | null;
+  typeTag?: string | null;
+  seriesTag?: string | null;
+  price: string;
+  [key: string]: any; // 追加のプロパティに対応するため
+}
 
 interface ItemDetailsSectionProps {
   formData: ItemFormData;
@@ -16,19 +27,25 @@ export function ItemDetailsSection({ formData, onUpdate }: ItemDetailsSectionPro
     <div className="space-y-6">
       <TitleSection 
         title={formData.title}
-        onUpdate={onUpdate}
+        onChange={(e) => onUpdate({ title: e.target.value })}
       />
       <ContentSection 
-        content={formData.content_name}
-        onUpdate={onUpdate}
+        contentName={formData.content_name}
+        onChange={(e) => onUpdate({ content_name: e.target.value })}
       />
       <ItemTypeSection 
-        itemType={formData.item_type}
-        onUpdate={onUpdate}
+        itemType={formData.item_type || ''}
+        onChange={(e) => onUpdate({ item_type: e.target.value })}
       />
       <TagsSection 
-        tags={formData.tags}
-        onUpdate={onUpdate}
+        characterTag={formData.characterTag}
+        typeTag={formData.typeTag}
+        seriesTag={formData.seriesTag}
+        onTagChange={(category, value) => {
+          const update = {};
+          update[`${category}Tag`] = value;
+          onUpdate(update);
+        }}
       />
     </div>
   );

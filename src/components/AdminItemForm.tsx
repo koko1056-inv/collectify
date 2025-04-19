@@ -51,6 +51,10 @@ export function AdminItemForm() {
     resetForm,
   });
 
+  const handleFormUpdate = (updates: Partial<typeof formData>) => {
+    setFormData(prevData => ({ ...prevData, ...updates }));
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -75,9 +79,7 @@ export function AdminItemForm() {
 
           <ItemDetailsSection
             formData={formData}
-            setFormData={setFormData}
-            selectedTags={selectedTags}
-            setSelectedTags={setSelectedTags}
+            onUpdate={handleFormUpdate}
           />
 
           <Button type="submit" className="w-full" disabled={loading}>

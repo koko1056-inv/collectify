@@ -1,15 +1,18 @@
 
 import { useState } from "react";
 
-interface FormData {
+// FormDataの型定義を更新
+export interface FormData {
   title: string;
   description: string;
   category: string;
-  content_name?: string | null;
+  content_name: string | null;
   characterTag?: string | null;
   typeTag?: string | null;
   seriesTag?: string | null;
   price: string;
+  item_type?: string;
+  [key: string]: any; // 追加のプロパティを許可
 }
 
 export function useItemDetails() {
@@ -22,6 +25,7 @@ export function useItemDetails() {
     typeTag: null,
     seriesTag: null,
     price: "",
+    item_type: "official",
   });
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
