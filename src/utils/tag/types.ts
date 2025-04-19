@@ -1,11 +1,11 @@
-// ContentInfoの型定義（icon_nameプロパティをオプションとして明示的に追加）
+// ContentInfoの型定義（icon_nameプロパティを明示的に追加）
 export interface ContentInfo {
   id: string;
   name: string;
   type: string;
   created_at: string;
   created_by: string;
-  icon_name?: string;
+  icon_name?: string | null;
 }
 
 // SimpleItemTagの型定義（無限再帰を防ぐため、明示的に構造を定義）

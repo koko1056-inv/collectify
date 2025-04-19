@@ -21,7 +21,7 @@ export async function getAllContentNames(): Promise<ContentInfo[]> {
       type: item.type,
       created_at: item.created_at,
       created_by: item.created_by,
-      icon_name: item.icon_name
+      icon_name: item.icon_name ?? null
     }));
   } catch (error) {
     console.error('Exception in getAllContentNames:', error);
@@ -51,7 +51,7 @@ export async function addContentName(name: string, type: string = 'other'): Prom
       type: data.type,
       created_at: data.created_at,
       created_by: data.created_by,
-      icon_name: data.icon_name
+      icon_name: data.icon_name ?? null
     };
   } catch (error) {
     console.error('Exception in addContentName:', error);
@@ -81,7 +81,7 @@ export async function getContentById(id: string): Promise<ContentInfo | null> {
       type: data.type,
       created_at: data.created_at,
       created_by: data.created_by,
-      icon_name: data.icon_name
+      icon_name: data.icon_name ?? null
     };
   } catch (error) {
     console.error('Exception in getContentById:', error);
@@ -96,7 +96,6 @@ export async function setItemContent(itemId: string, contentName: string | null,
   try {
     const tableName = isUserItem ? "user_items" : "official_items";
     
-    // content_idではなくcontent_nameを使用するように修正
     const { error } = await supabase
       .from(tableName)
       .update({ content_name: contentName })
