@@ -1,7 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
-// アイテムに関連付けられたタグを取得する関数
 export async function getTagsForItem(
   itemId: string | null,
   isUserItem: boolean = false
@@ -13,7 +12,7 @@ export async function getTagsForItem(
     const tableName = isUserItem ? "user_item_tags" : "item_tags";
     const itemColumn = isUserItem ? "user_item_id" : "official_item_id";
 
-    // タグを取得
+    // タグを取得（再帰を避けるため、必要な情報のみを選択）
     const { data, error } = await supabase
       .from(tableName)
       .select(`
@@ -21,8 +20,7 @@ export async function getTagsForItem(
         tags (
           id,
           name,
-          category,
-          created_at
+          category
         )
       `)
       .eq(itemColumn, itemId);
@@ -47,9 +45,10 @@ export async function getTagsForItem(
           id: item.tags.id,
           name: item.tags.name,
           category: item.tags.category || "",
-          created_at: item.tags.created_at || ""
+          created_at: new Date().toISOString() // フォールバック値を提供
         }
       }));
+
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
     return [];
