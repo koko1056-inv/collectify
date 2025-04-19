@@ -77,7 +77,7 @@ export function ItemDetailsContent({
           onImageUpdate={handleImageUpdate}
         />
 
-        {/* タグ表示セクション（ユーザーアイテムかつ編集モードでない場合） */}
+        {/* タグ表示セクション */}
         {isUserItem && !isEditing && tags.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-sm font-medium">タグ</h3>

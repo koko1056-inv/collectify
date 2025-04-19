@@ -6,19 +6,37 @@ interface ItemDetailInfoProps {
   tags: SimpleItemTag[];
   price?: string;
   description?: string;
+  contentName?: string | null;
 }
 
-export function ItemDetailInfo({ tags, price, description }: ItemDetailInfoProps) {
-  // アイテムタイプのタグを取得
+export function ItemDetailInfo({ tags, price, description, contentName }: ItemDetailInfoProps) {
+  // カテゴリータグを取得
   const typeTag = tags.find(tag => tag.tags?.category === 'type')?.tags?.name || '';
+  const seriesTag = tags.find(tag => tag.tags?.category === 'series')?.tags?.name || '';
   
   return (
     <div className="space-y-3 py-3 border-b border-gray-100">
+      {contentName && (
+        <ItemLabelValue 
+          icon="bookmark" 
+          label="コンテンツ" 
+          value={contentName} 
+        />
+      )}
+      
       {typeTag && (
         <ItemLabelValue 
           icon="tag" 
           label="カテゴリー" 
           value={typeTag} 
+        />
+      )}
+
+      {seriesTag && (
+        <ItemLabelValue 
+          icon="layers" 
+          label="グッズシリーズ" 
+          value={seriesTag} 
         />
       )}
       
