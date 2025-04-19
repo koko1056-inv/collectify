@@ -15,14 +15,7 @@ export async function getAllContentNames(): Promise<ContentInfo[]> {
       return [];
     }
     
-    return data.map(item => ({
-      id: item.id,
-      name: item.name,
-      type: item.type,
-      created_at: item.created_at,
-      created_by: item.created_by,
-      icon_name: item.icon_name ?? null
-    }));
+    return data;
   } catch (error) {
     console.error('Exception in getAllContentNames:', error);
     return [];
@@ -45,14 +38,7 @@ export async function addContentName(name: string, type: string = 'other'): Prom
       return null;
     }
     
-    return {
-      id: data.id,
-      name: data.name,
-      type: data.type,
-      created_at: data.created_at,
-      created_by: data.created_by,
-      icon_name: data.icon_name ?? null
-    };
+    return data;
   } catch (error) {
     console.error('Exception in addContentName:', error);
     return null;
@@ -75,40 +61,10 @@ export async function getContentById(id: string): Promise<ContentInfo | null> {
       return null;
     }
     
-    return {
-      id: data.id,
-      name: data.name,
-      type: data.type,
-      created_at: data.created_at,
-      created_by: data.created_by,
-      icon_name: data.icon_name ?? null
-    };
+    return data;
   } catch (error) {
     console.error('Exception in getContentById:', error);
     return null;
   }
 }
 
-// アイテムのコンテンツを設定する関数
-export async function setItemContent(itemId: string, contentName: string | null, isUserItem: boolean = false): Promise<boolean> {
-  if (!itemId) return false;
-  
-  try {
-    const tableName = isUserItem ? "user_items" : "official_items";
-    
-    const { error } = await supabase
-      .from(tableName)
-      .update({ content_name: contentName })
-      .eq('id', itemId);
-    
-    if (error) {
-      console.error(`Error setting content for ${tableName}:`, error);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error(`Exception in setItemContent for ${itemId}:`, error);
-    return false;
-  }
-}

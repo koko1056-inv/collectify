@@ -29,10 +29,12 @@ export function AdminItemForm() {
     setFormData({
       title: "",
       description: "",
+      category: "",
       content_name: null,
       characterTag: null,
       typeTag: null,
       seriesTag: null,
+      price: "",
     });
     setImageFile(null);
     if (previewUrl) {
