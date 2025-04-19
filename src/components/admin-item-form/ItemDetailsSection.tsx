@@ -49,6 +49,11 @@ export function ItemDetailsSection({
 
   return (
     <div className="space-y-4">
+      <TitleSection  // タイトルセクションをカテゴリの前に移動
+        title={formData.title}
+        onChange={handleChange}
+      />
+
       <MerchandiseCategorySection
         value={formData.category}
         onChange={handleCategoryChange}
@@ -77,11 +82,6 @@ export function ItemDetailsSection({
         />
       </div>
 
-      <TitleSection
-        title={formData.title}
-        onChange={handleChange}
-      />
-
       <div className="space-y-2">
         <Label htmlFor="description">自由メモ</Label>
         <Textarea
@@ -96,3 +96,4 @@ export function ItemDetailsSection({
     </div>
   );
 }
+
