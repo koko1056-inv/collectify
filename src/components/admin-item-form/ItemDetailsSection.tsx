@@ -3,16 +3,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ContentSection } from "./sections/ContentSection";
-import { ItemTypeSection } from "./sections/ItemTypeSection";
-import { TitleSection } from "./sections/TitleSection";
 import { TagsSection } from "./sections/TagsSection";
+import { TitleSection } from "./sections/TitleSection";
 import { useState } from "react";
 
 interface FormData {
   title: string;
   description: string;
   content_name?: string | null;
-  item_type?: string;
   characterTag?: string | null;
   typeTag?: string | null;
   seriesTag?: string | null;
@@ -65,11 +63,6 @@ export function ItemDetailsSection({
 
       <ContentSection
         contentName={formData.content_name || ""}
-        onChange={handleChange}
-      />
-
-      <ItemTypeSection
-        itemType={formData.item_type || ""}
         onChange={handleChange}
       />
 
