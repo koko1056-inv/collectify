@@ -2,8 +2,8 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionGrid } from "./CollectionGrid";
-import { TagGroupedCollection } from "./TagGroupedCollection";
 import { DragEndEvent } from "@dnd-kit/core";
+import { CollectionWishlist } from "./CollectionWishlist";
 
 interface CollectionViewToggleProps {
   userId: string;
@@ -28,10 +28,10 @@ export function CollectionViewToggle({
           通常表示
         </TabsTrigger>
         <TabsTrigger
-          value="byTag"
+          value="wishlist"
           className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
         >
-          テーマ別
+          欲しい物リスト
         </TabsTrigger>
       </TabsList>
 
@@ -46,8 +46,8 @@ export function CollectionViewToggle({
         />
       </TabsContent>
 
-      <TabsContent value="byTag" className="mt-2">
-        <TagGroupedCollection userId={userId} />
+      <TabsContent value="wishlist" className="mt-2">
+        <CollectionWishlist userId={userId} />
       </TabsContent>
     </Tabs>
   );
