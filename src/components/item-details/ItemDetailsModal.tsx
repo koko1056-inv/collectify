@@ -33,6 +33,14 @@ interface ItemDetailsModalProps {
   contentName?: string | null;
 }
 
+// ユーザーアイテム詳細の型定義
+interface UserItemDetails {
+  note: string | null;
+  content_name: string | null;
+  quantity: number;
+  user_item_tags: SimpleItemTag[];
+}
+
 export function ItemDetailsModal({
   isOpen,
   onClose,
@@ -91,7 +99,7 @@ export function ItemDetailsModal({
   });
 
   // ユーザーアイテムの詳細（note, user_item_tags, memories）取得
-  const { data: userItemDetails } = useQuery({
+  const { data: userItemDetails } = useQuery<UserItemDetails | null>({
     queryKey: ["user-item-details", itemId],
     queryFn: async () => {
       if (!isUserItem || !itemId) return null;
@@ -202,8 +210,6 @@ export function ItemDetailsModal({
       setIsSaving(false);
     }
   };
-
-  // 削除・タグ管理などその他ボタンロジックはそのまま
 
   // いいねの数を取得
   const { data: likesCount = 0 } = useQuery({
