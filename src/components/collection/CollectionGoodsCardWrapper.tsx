@@ -92,10 +92,10 @@ export function CollectionGoodsCardWrapper({
       <CardHeader title={title} image={image} onClick={() => setIsDetailsModalOpen(true)} itemId={id} isEditable={isOwner} />
       <div className="px-3 py-2 relative">
         <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
-        {isOwner && quantity > 1 && <Badge className="absolute bottom-0 right-2 bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1" onClick={e => {
+        {isOwner && quantity > 1 && <Badge onClick={e => {
         e.stopPropagation();
         setIsQuantityEditModalOpen(true);
-      }}>
+      }} className="absolute bottom-0 right-2 bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1 py-0 my-[128px]">
             <Pencil size={12} />
             ×{quantity}
           </Badge>}
