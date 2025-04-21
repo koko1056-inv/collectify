@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -107,8 +108,8 @@ export function useItemSubmit({
     try {
       const imageUrl = await uploadImage();
 
-      // データベースに保存するデータから、タグ関連のフィールドを除外
-      const { characterTag, typeTag, seriesTag, ...dbFormData } = formData;
+      // データベースに保存するデータから、不要なフィールドを除外
+      const { characterTag, typeTag, seriesTag, category, ...dbFormData } = formData;
 
       console.log("Form data:", formData);
 
