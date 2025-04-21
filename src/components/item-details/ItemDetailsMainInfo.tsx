@@ -42,6 +42,7 @@ export function ItemDetailsMainInfo({
           isEditing={isEditing}
           note={editedData?.note ?? note}
           onChange={(v) => setEditedData({ ...editedData, note: v })}
+          memories={memories} // 追加
         />
       }
     </div>
