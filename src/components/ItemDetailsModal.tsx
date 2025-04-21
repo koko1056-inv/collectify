@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,7 +60,8 @@ export function ItemDetailsModal({
     price,
     description,
     quantity,
-    note: undefined as string | null | undefined
+    note: undefined as string | null | undefined,
+    content_name: contentName ?? null,  // 初期値として親から受け取ったcontentName
   });
   const [isQuantityEditing, setIsQuantityEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -204,7 +204,8 @@ export function ItemDetailsModal({
           price,
           description,
           quantity,
-          note: data?.note
+          note: data?.note,
+          content_name: contentName ?? null, // <- 必ずcontent_name保持
         });
       };
       
@@ -216,11 +217,12 @@ export function ItemDetailsModal({
         price,
         description,
         quantity,
-        note: undefined
+        note: undefined,
+        content_name: contentName ?? null,
       });
     }
   // eslint-disable-next-line
-  }, [image, title, price, description, quantity, isUserItem, userId, user?.id, itemId]);
+  }, [image, title, price, description, quantity, isUserItem, userId, user?.id, itemId, contentName]);
 
   // リアルタイム更新のために購読を設定
   useEffect(() => {
@@ -297,6 +299,7 @@ export function ItemDetailsModal({
         .update({
           quantity: editedData.quantity,
           note: editedData.note ?? null,
+          content_name: editedData.content_name ?? null, // ← 追加
         })
         .eq("id", itemId);
 
@@ -306,7 +309,7 @@ export function ItemDetailsModal({
 
       toast({
         title: "保存完了",
-        description: "個数・メモを保存しました。",
+        description: "個数・メモ・コンテンツを保存しました。",
       });
       setIsQuantityEditing(false);
       setIsEditing(false);
@@ -337,7 +340,7 @@ export function ItemDetailsModal({
             isEditing={isEditing}
             editedData={editedData}
             setEditedData={setEditedData}
-            contentName={contentName}
+            contentName={editedData.content_name ?? contentName}
             releaseDate={releaseDate}
             createdBy={createdBy}
             description={description}

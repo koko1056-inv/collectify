@@ -1,4 +1,3 @@
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -54,7 +53,7 @@ export function ContentNameSection({
       setEditedData({ ...editedData, content_name: data.name });
       setIsAddingNewContent(false);
       setNewContentName("");
-      
+
       toast({
         title: "コンテンツを追加しました",
         description: `${data.name}を追加しました`,
@@ -144,23 +143,26 @@ export function ContentNameSection({
         )}
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">
-          商品タイプ
-        </label>
-        <Select
-          value={editedData.item_type || "official"}
-          onValueChange={handleItemTypeChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="商品タイプを選択" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="official">公式グッズ</SelectItem>
-            <SelectItem value="original">オリジナルグッズ</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {/* 商品タイプは公式アイテムのみ編集可 */}
+      {"item_type" in editedData && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            商品タイプ
+          </label>
+          <Select
+            value={editedData.item_type || "official"}
+            onValueChange={handleItemTypeChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="商品タイプを選択" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="official">公式グッズ</SelectItem>
+              <SelectItem value="original">オリジナルグッズ</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 }

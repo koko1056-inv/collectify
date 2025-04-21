@@ -1,4 +1,3 @@
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -99,6 +98,7 @@ export function ItemDetailsContent({
           </div>
         )}
 
+        {/* 公式アイテム: 編集モード時のみコンテンツ編集可能 */}
         {!isUserItem && (
           <div className="space-y-4">
             <ContentNameSection
@@ -163,6 +163,16 @@ export function ItemDetailsContent({
               </>
             )}
           </div>
+        )}
+
+        {/* ユーザーアイテムの場合も編集モードでContentNameSectionを表示 */}
+        {isUserItem && isEditing && (
+          <ContentNameSection
+            isEditing={isEditing}
+            editedData={editedData}
+            setEditedData={setEditedData}
+            contentName={editedData.content_name ?? contentName}
+          />
         )}
 
         {isUserItem && (
