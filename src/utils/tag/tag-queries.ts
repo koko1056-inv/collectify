@@ -7,7 +7,7 @@ export interface SimpleItemTag {
   tags: {
     id: string;
     name: string;
-    category?: string;
+    category?: string; // categoryをオプショナルに変更
     created_at: string;
   } | null;
 }

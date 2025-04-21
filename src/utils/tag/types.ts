@@ -17,7 +17,7 @@ export interface SimpleItemTag {
     name: string;
     category?: string; // categoryをオプショナルに変更
     created_at: string;
-  };
+  } | null;
 }
 
 // SimpleTag型の定義

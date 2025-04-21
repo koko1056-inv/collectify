@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +15,7 @@ import { ItemDetailsHeaderArea } from "./ItemDetailsHeaderArea";
 import { ItemDetailsMainInfo } from "./ItemDetailsMainInfo";
 import { ItemDetailsActions } from "./ItemDetailsActions";
 import { ItemStatisticsDetail } from "./ItemStatisticsDetail";
+import { Button } from "@/components/ui/button";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -93,26 +95,44 @@ export function ItemDetailsModal({
     queryKey: ["user-item-details", itemId],
     queryFn: async () => {
       if (!isUserItem || !itemId) return null;
-      const { data, error } = await supabase
-        .from("user_items")
-        .select(`
-          note,
-          content_name,
-          quantity,
-          user_item_tags (
-            tag_id,
-            tags (
-              id,
-              name,
-              category,
-              created_at
+      try {
+        const { data, error } = await supabase
+          .from("user_items")
+          .select(`
+            note,
+            content_name,
+            quantity,
+            user_item_tags (
+              tag_id,
+              tags (
+                id,
+                name,
+                category,
+                created_at
+              )
             )
-          )
-        `)
-        .eq("id", itemId)
-        .maybeSingle();
-      if (error || !data) {
-        // エラー時は型を満たす空データ返却
+          `)
+          .eq("id", itemId)
+          .maybeSingle();
+          
+        if (error) {
+          console.error("Error fetching user item details:", error);
+          // エラー時は型を満たす空データ返却
+          return {
+            note: "",
+            content_name: null,
+            quantity: 1,
+            user_item_tags: [],
+          };
+        }
+        return data || {
+          note: "",
+          content_name: null,
+          quantity: 1,
+          user_item_tags: [],
+        };
+      } catch (error) {
+        console.error("Exception in user item details query:", error);
         return {
           note: "",
           content_name: null,
@@ -120,7 +140,6 @@ export function ItemDetailsModal({
           user_item_tags: [],
         };
       }
-      return data;
     },
     enabled: isUserItem && !!itemId,
   });
@@ -145,7 +164,7 @@ export function ItemDetailsModal({
     if (userItemDetails && isUserItem) {
       setEditedData((prev) => ({
         ...prev,
-        note: userItemDetails.note,
+        note: userItemDetails.note || "",
         content_name: userItemDetails.content_name,
         quantity: userItemDetails.quantity || 1,
       }));
@@ -267,6 +286,7 @@ export function ItemDetailsModal({
   });
 
   // タグ用データ
+  // userItemDetailsがnullの場合は空配列を使用
   const userTags = userItemDetails?.user_item_tags || [];
 
   return (
