@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,6 +61,7 @@ export function ItemDetailsModal({
     price,
     description,
     quantity,
+    note: undefined as string | null | undefined
   });
   const [isQuantityEditing, setIsQuantityEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -180,18 +182,45 @@ export function ItemDetailsModal({
     }
   }, [isOpen]);
 
-  // 編集データの初期化
+  // 編集データの初期化（ユーザーアイテムデータを含む）
   useEffect(() => {
-    setEditedData({
-      image,
-      title,
-      price,
-      description,
-      quantity,
-      note: (isUserItem && userId === user?.id && typeof quantity !== 'undefined') ? (editedData.note ?? "") : undefined,
-    });
+    if (isUserItem && userId === user?.id) {
+      // ユーザーのメモデータを取得
+      const fetchUserItemDetails = async () => {
+        const { data, error } = await supabase
+          .from("user_items")
+          .select("note")
+          .eq("id", itemId)
+          .single();
+        
+        if (error) {
+          console.error("Error fetching user item details:", error);
+          return;
+        }
+
+        setEditedData({
+          image,
+          title,
+          price,
+          description,
+          quantity,
+          note: data?.note
+        });
+      };
+      
+      fetchUserItemDetails();
+    } else {
+      setEditedData({
+        image,
+        title,
+        price,
+        description,
+        quantity,
+        note: undefined
+      });
+    }
   // eslint-disable-next-line
-  }, [image, title, price, description, quantity]);
+  }, [image, title, price, description, quantity, isUserItem, userId, user?.id, itemId]);
 
   // リアルタイム更新のために購読を設定
   useEffect(() => {
@@ -321,7 +350,7 @@ export function ItemDetailsModal({
                 <label className="text-sm font-medium">所有個数</label>
                 <QuantityInput
                   value={editedData.quantity}
-                  onChange={(val) => setEditedData((prev: any) => ({ ...prev, quantity: val }))}
+                  onChange={(val) => setEditedData((prev) => ({ ...prev, quantity: val }))}
                   min={1}
                   max={200}
                   className="mt-2"
@@ -330,7 +359,7 @@ export function ItemDetailsModal({
               <ItemNoteField
                 isEditing={isEditing}
                 note={editedData.note}
-                onChange={(v) => setEditedData((prev: any) => ({ ...prev, note: v }))}
+                onChange={(v) => setEditedData((prev) => ({ ...prev, note: v }))}
               />
             </div>
           )}

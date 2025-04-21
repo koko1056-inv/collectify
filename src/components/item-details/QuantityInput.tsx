@@ -1,31 +1,23 @@
+
 import { Input } from "../ui/input";
-import { Label } from "../ui/label";
 
 interface QuantityInputProps {
-  isEditing: boolean;
-  quantity: number;
+  value: number;
   onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  className?: string;
 }
 
-export function QuantityInput({ isEditing, quantity, onChange }: QuantityInputProps) {
-  if (!isEditing) {
-    return (
-      <div>
-        <span className="font-semibold">数量：</span>
-        <span>{quantity}</span>
-      </div>
-    );
-  }
-
+export function QuantityInput({ value, onChange, min = 1, max = 999, className = "" }: QuantityInputProps) {
   return (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium">数量</Label>
-      <Input
-        type="number"
-        min="1"
-        value={quantity}
-        onChange={(e) => onChange(parseInt(e.target.value) || 1)}
-      />
-    </div>
+    <Input
+      type="number"
+      min={min}
+      max={max}
+      value={value}
+      className={className}
+      onChange={(e) => onChange(Math.max(min, Math.min(max, parseInt(e.target.value) || min)))}
+    />
   );
 }
