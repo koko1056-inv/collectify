@@ -5,8 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
+import { useQueryClient, QueryObserverResult } from "@tanstack/react-query";
 
 interface ItemButtonsProps {
   isInCollection: boolean;
