@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,16 +5,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { isItemInUserCollection } from "@/utils/tag/tag-queries";
 import { ModalHeader } from "./ModalHeader";
-import { ItemStatistics } from "./ItemStatistics";
-import { ItemDetailInfo } from "./ItemDetailInfo";
 import { ItemButtons } from "./ItemButtons";
-import { Button } from "@/components/ui/button";
-import { Tag, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TagManageModal } from "../tag/TagManageModal";
 import { deleteUserItem } from "@/utils/tag/user-item-operations";
-import { ItemDetailsContent } from "./ItemDetailsContent";
-import { useItemDetailsForm } from "./useItemDetailsForm";
+import { SimpleItemTag } from "@/utils/tag/types";
+import { ItemDetailsHeaderArea } from "./ItemDetailsHeaderArea";
+import { ItemDetailsMainInfo } from "./ItemDetailsMainInfo";
+import { ItemDetailsActions } from "./ItemDetailsActions";
+import { ItemStatisticsDetail } from "./ItemStatisticsDetail";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -54,33 +52,24 @@ export function ItemDetailsModal({
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  // 初期データをセットアップ
-  const initialData = {
+  // 編集状態と編集中データ
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedData, setEditedData] = useState({
     image,
     title,
     price,
     description,
     quantity,
-    note: null,
+    note: "",
     content_name: contentName ?? null,
-  };
+  });
+  const [isSaving, setIsSaving] = useState(false);
 
-  // 詳細フォームのカスタムフックを使用
-  const {
-    isEditing,
-    setIsEditing,
-    editedData,
-    setEditedData,
-    isSaving,
-    handleSaveUserItem
-  } = useItemDetailsForm(itemId, isUserItem, initialData, onClose);
-
-  // タグの取得
+  // タグ取得
   const { data: officialTags = [] } = useQuery({
     queryKey: ["item-tags", itemId],
     queryFn: async () => {
       if (!itemId) return [];
-      
       const { data, error } = await supabase
         .from("item_tags")
         .select(`
@@ -93,19 +82,17 @@ export function ItemDetailsModal({
           )
         `)
         .eq("official_item_id", itemId);
-        
       if (error) throw error;
       return data || [];
     },
     enabled: !isUserItem && !!itemId,
   });
 
-  // ユーザーアイテムのメモとタグを取得
-  const { data: userItemDetails, isLoading: isLoadingUserItemDetails } = useQuery({
+  // ユーザーアイテムの詳細（note, user_item_tags, memories）取得
+  const { data: userItemDetails } = useQuery({
     queryKey: ["user-item-details", itemId],
     queryFn: async () => {
       if (!isUserItem || !itemId) return null;
-      
       const { data, error } = await supabase
         .from("user_items")
         .select(`
@@ -123,51 +110,81 @@ export function ItemDetailsModal({
           )
         `)
         .eq("id", itemId)
-        .single();
-        
-      if (error) {
-        console.error("Error fetching user item details:", error);
-        return null;
+        .maybeSingle();
+      if (error || !data) {
+        // エラー時は型を満たす空データ返却
+        return {
+          note: "",
+          content_name: null,
+          quantity: 1,
+          user_item_tags: [],
+        };
       }
-      
       return data;
     },
     enabled: isUserItem && !!itemId,
   });
 
-  // メモリー（思い出）を取得
   const { data: memories = [] } = useQuery({
     queryKey: ["item-memories", [itemId]],
     queryFn: async () => {
       if (!isUserItem || !itemId) return [];
-      
       const { data, error } = await supabase
         .from("item_memories")
         .select("*")
         .eq("user_item_id", itemId)
         .order("created_at", { ascending: false });
-        
-      if (error) {
-        console.error("Error fetching memories:", error);
-        return [];
-      }
-      
+      if (error) return [];
       return data || [];
     },
     enabled: isUserItem && !!itemId,
   });
 
-  // ユーザー情報を編集データに設定
+  // 編集データの同期
   useEffect(() => {
     if (userItemDetails && isUserItem) {
-      setEditedData(prev => ({
+      setEditedData((prev) => ({
         ...prev,
         note: userItemDetails.note,
         content_name: userItemDetails.content_name,
         quantity: userItemDetails.quantity || 1,
       }));
     }
-  }, [userItemDetails, isUserItem, setEditedData]);
+  }, [userItemDetails, isUserItem]);
+
+  // 保存ハンドラ
+  const handleSaveUserItem = async () => {
+    if (!isUserItem || !itemId) return;
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_items")
+        .update({
+          quantity: editedData.quantity,
+          note: editedData.note ?? null,
+          content_name: editedData.content_name ?? null,
+        })
+        .eq("id", itemId);
+      if (error) throw error;
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      toast({
+        title: "保存完了",
+        description: "アイテム情報を保存しました。",
+      });
+      setIsEditing(false);
+      onClose();
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: "保存に失敗しました。",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 削除・タグ管理などその他ボタンロジックはそのまま
 
   // いいねの数を取得
   const { data: likesCount = 0 } = useQuery({
@@ -185,8 +202,6 @@ export function ItemDetailsModal({
     },
     enabled: isUserItem && !!itemId,
   });
-
-  // 所有者の数を取得
   const { data: ownersCount = 0, refetch: refetchOwnersCount } = useQuery({
     queryKey: ["item-owners-count", itemId],
     queryFn: async () => {
@@ -205,8 +220,6 @@ export function ItemDetailsModal({
     },
     enabled: !isUserItem && !!itemId,
   });
-
-  // トレードの数を取得
   const { data: tradesCount = 0 } = useQuery({
     queryKey: ["item-trades-count", itemId],
     queryFn: async () => {
@@ -244,8 +257,6 @@ export function ItemDetailsModal({
     },
     enabled: !!itemId,
   });
-
-  // アイテムがユーザーのコレクションに既に存在するかをチェック
   const { data: isInCollection = false, refetch: refetchIsInCollection } = useQuery({
     queryKey: ["is-in-collection", itemId, user?.id],
     queryFn: async () => {
@@ -255,155 +266,77 @@ export function ItemDetailsModal({
     enabled: !isUserItem && !!user && !!itemId,
   });
 
-  // アイテム削除ハンドラ
-  const handleDeleteItem = async () => {
-    if (!isUserItem || !itemId) return;
-    
-    try {
-      const { error, officialItemId } = await deleteUserItem(itemId);
-      if (error) throw error;
-
-      // Invalidate user items query
-      queryClient.invalidateQueries({ queryKey: ["user-items"] });
-      
-      // Invalidate specific official item query if we have the ID
-      if (officialItemId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["user-item-exists", officialItemId, user?.id] 
-        });
-        queryClient.invalidateQueries({ 
-          queryKey: ["item-owners-count", officialItemId] 
-        });
-      }
-      
-      toast({
-        title: "アイテムを削除しました",
-        description: "コレクションからアイテムを削除しました。",
-      });
-      
-      onClose(); // モーダルを閉じる
-    } catch (error) {
-      console.error("Error deleting item:", error);
-      toast({
-        title: "エラー",
-        description: "アイテムの削除に失敗しました。",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // ユーザータグの取得
+  // タグ用データ
   const userTags = userItemDetails?.user_item_tags || [];
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
+
           <ModalHeader onClose={onClose} />
 
-          {/* メインコンテンツ */}
-          <ItemDetailsContent
+          {/* ヘッダー（画像＋タイトル） */}
+          <ItemDetailsHeaderArea
             image={image}
             title={title}
+            isEditing={isEditing}
+            editedData={editedData}
+            setEditedData={setEditedData}
+          />
+
+          {/* 情報メイン（タグ・メモ・思い出） */}
+          <ItemDetailsMainInfo
             tags={isUserItem ? userTags : officialTags}
-            memories={memories}
             isUserItem={isUserItem}
             isEditing={isEditing}
             editedData={editedData}
             setEditedData={setEditedData}
-            contentName={editedData.content_name}
-            releaseDate={releaseDate}
-            createdBy={createdBy}
-            description={description}
+            memories={memories}
+            note={userItemDetails?.note}
           />
 
-          {/* 下部固定エリア */}
-          <div className="p-4 border-t border-gray-100">
-            {/* ユーザーアイテム：編集／保存UI */}
-            {isUserItem && (
-              <div className="flex gap-2 mb-2">
-                {!isEditing && (
-                  <>
-                    <Button
-                      variant="outline"
-                      className="flex-1 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
-                      onClick={() => setIsTagModalOpen(true)}
-                    >
-                      <Tag className="h-4 w-4 mr-2" />
-                      タグを管理
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1 border-gray-300 hover:bg-gray-50"
-                      onClick={() => setIsEditing(true)}
-                    >
-                      編集
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-500"
-                      onClick={() => setIsDeleteConfirmOpen(true)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      削除
-                    </Button>
-                  </>
-                )}
-                {isEditing && (
-                  <>
-                    <Button
-                      variant="default"
-                      className="flex-1"
-                      onClick={handleSaveUserItem}
-                      disabled={isSaving}
-                    >
-                      {isSaving ? "保存中..." : "保存"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => setIsEditing(false)}
-                      disabled={isSaving}
-                    >
-                      キャンセル
-                    </Button>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* 統計・説明等 */}
-            <ItemStatistics
-              likesCount={likesCount}
-              ownersCount={ownersCount}
-              tradesCount={tradesCount}
+          {/* アクション（編集/保存/削除/タグ） */}
+          {isUserItem && (
+            <ItemDetailsActions
+              isEditing={isEditing}
+              isSaving={isSaving}
+              onSave={handleSaveUserItem}
+              onEdit={() => setIsEditing(true)}
+              onCancel={() => setIsEditing(false)}
+              onTag={() => setIsTagModalOpen(true)}
+              onDelete={() => setIsDeleteConfirmOpen(true)}
             />
+          )}
 
-            <ItemDetailInfo
-              tags={isUserItem ? userTags : officialTags}
+          {/* 統計/詳細手前部分 */}
+          <ItemStatisticsDetail
+            likesCount={likesCount}
+            ownersCount={ownersCount}
+            tradesCount={tradesCount}
+            tags={isUserItem ? userTags : officialTags}
+            price={price}
+            description={description}
+            contentName={editedData.content_name || contentName}
+          />
+
+          {/* 下部公式アイテム用アクション */}
+          {!isUserItem && (
+            <ItemButtons
+              isInCollection={isInCollection}
+              itemId={itemId}
+              title={title}
+              image={image}
+              releaseDate={releaseDate}
               price={price}
-              description={description}
-              contentName={editedData.content_name || contentName}
+              refetchIsInCollection={refetchIsInCollection}
+              refetchOwnersCount={refetchOwnersCount}
             />
-
-            {/* 下部アクション：公式アイテム */}
-            {!isUserItem && (
-              <ItemButtons
-                isInCollection={isInCollection}
-                itemId={itemId}
-                title={title}
-                image={image}
-                releaseDate={releaseDate}
-                price={price}
-                refetchIsInCollection={refetchIsInCollection}
-                refetchOwnersCount={refetchOwnersCount}
-              />
-            )}
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 
-      {/* 削除確認ダイアログ */}
+      {/* 削除ダイアログ */}
       {isDeleteConfirmOpen && (
         <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
           <DialogContent className="sm:max-w-[425px]">
@@ -418,7 +351,41 @@ export function ItemDetailsModal({
               </Button>
               <Button 
                 variant="destructive"
-                onClick={handleDeleteItem}
+                onClick={async () => {
+                  if (!isUserItem || !itemId) return;
+    
+                  try {
+                    const { error, officialItemId } = await deleteUserItem(itemId);
+                    if (error) throw error;
+
+                    // Invalidate user items query
+                    queryClient.invalidateQueries({ queryKey: ["user-items"] });
+                    
+                    // Invalidate specific official item query if we have the ID
+                    if (officialItemId) {
+                      queryClient.invalidateQueries({ 
+                        queryKey: ["user-item-exists", officialItemId, user?.id] 
+                      });
+                      queryClient.invalidateQueries({ 
+                        queryKey: ["item-owners-count", officialItemId] 
+                      });
+                    }
+                    
+                    toast({
+                      title: "アイテムを削除しました",
+                      description: "コレクションからアイテムを削除しました。",
+                    });
+                    
+                    onClose(); // モーダルを閉じる
+                  } catch (error) {
+                    console.error("Error deleting item:", error);
+                    toast({
+                      title: "エラー",
+                      description: "アイテムの削除に失敗しました。",
+                      variant: "destructive",
+                    });
+                  }
+                }}
               >
                 削除する
               </Button>
@@ -426,7 +393,7 @@ export function ItemDetailsModal({
           </DialogContent>
         </Dialog>
       )}
-      
+
       {/* タグ管理モーダル */}
       <TagManageModal
         isOpen={isTagModalOpen}
