@@ -16,6 +16,14 @@ export const deleteUserItem = async (itemId: string) => {
     if (fetchError) throw fetchError;
     const officialItemId = userItem?.official_item_id;
     
+    // Delete related likes first to avoid foreign key constraint errors
+    const { error: likesError } = await supabase
+      .from("user_item_likes")
+      .delete()
+      .eq("user_item_id", itemId);
+    
+    if (likesError) throw likesError;
+    
     // Delete related tags
     const { error: tagsError } = await supabase
       .from("user_item_tags")

@@ -1,6 +1,3 @@
-
-// wrapper: 本体のロジック・レイアウトをまとめる
-
 import { ModalHeader } from "./ModalHeader";
 import { ItemDetailsHeaderArea } from "./ItemDetailsHeaderArea";
 import { ItemDetailsMainInfo } from "./ItemDetailsMainInfo";
@@ -230,6 +227,7 @@ export function ItemDetailsWrapper({
       isRefetching: false,
       isStale: false,
       isSuccess: true,
+      isInitialLoading: false,
       refetch: async () => refetchOwnersCount(),
       status: 'success',
     };
@@ -260,6 +258,7 @@ export function ItemDetailsWrapper({
       isRefetching: false,
       isStale: false,
       isSuccess: true,
+      isInitialLoading: false,
       refetch: async () => refetchIsInCollection(),
       status: 'success',
     };

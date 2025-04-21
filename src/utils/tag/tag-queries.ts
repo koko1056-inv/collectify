@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -13,12 +12,12 @@ export async function getTagsForItem(
     const tableName = isUserItem ? "user_item_tags" : "item_tags";
     const itemColumn = isUserItem ? "user_item_id" : "official_item_id";
 
-    // タグを取得（カンマを使用して直接参照を避ける）
+    // タグを取得するクエリ
     const { data, error } = await supabase
       .from(tableName)
       .select(`
         tag_id,
-        tags (
+        tags:tags (
           id,
           name,
           category,
@@ -37,12 +36,10 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
-    const result: SimpleItemTag[] = data.map(item => ({
+    return data.map(item => ({
       tag_id: item.tag_id,
       tags: item.tags
     }));
-    
-    return result;
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
     return [];
