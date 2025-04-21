@@ -1,3 +1,4 @@
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -8,6 +9,8 @@ import { CategoryTagSelect } from "../tag/CategoryTagSelect";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ItemDescriptionField } from "./ItemDescriptionField";
+import { TagsSection } from "./TagsSection";
+import { ItemNoteField } from "./ItemNoteField";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -76,8 +79,31 @@ export function ItemDetailsContent({
           onImageUpdate={handleImageUpdate}
         />
 
-        {/* タグ表示セクション */}
-        {isUserItem && !isEditing && tags.length > 0 && (
+        {/* ▼ ここからユーザーアイテム専用の下部エリア */}
+        {isUserItem && (
+          <div className="space-y-4">
+            {/* タグセクション（編集中の場合も含む） */}
+            <TagsSection
+              isEditing={isEditing}
+              tags={tags}
+              editedData={editedData}
+              setEditedData={setEditedData}
+            />
+
+            {/* 思い出（メモリー）セクション */}
+            <MemoriesSection memories={memories} />
+
+            {/* メモ欄 */}
+            <ItemNoteField
+              isEditing={isEditing}
+              note={editedData.note}
+              onChange={(v) => setEditedData({ ...editedData, note: v })}
+            />
+          </div>
+        )}
+
+        {/* タグ（公式アイテムのみ、非編集時） */}
+        {isUserItem === false && !isEditing && tags.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-sm font-medium">タグ</h3>
             <div className="space-y-1">
@@ -174,11 +200,8 @@ export function ItemDetailsContent({
             contentName={editedData.content_name ?? contentName}
           />
         )}
-
-        {isUserItem && (
-          <MemoriesSection memories={memories} />
-        )}
       </div>
     </ScrollArea>
   );
 }
+
