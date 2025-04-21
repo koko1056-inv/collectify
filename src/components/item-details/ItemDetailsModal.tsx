@@ -17,6 +17,7 @@ import { ItemDetailsActions } from "./ItemDetailsActions";
 import { ItemStatisticsDetail } from "./ItemStatisticsDetail";
 import { Button } from "@/components/ui/button";
 
+// UserItemDetails型を型安全に定義
 interface ItemDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -33,13 +34,20 @@ interface ItemDetailsModalProps {
   contentName?: string | null;
 }
 
-// ユーザーアイテム詳細の型定義
 interface UserItemDetails {
   note: string | null;
   content_name: string | null;
   quantity: number;
   user_item_tags: SimpleItemTag[];
 }
+
+// 型安全な空データを用意
+const EMPTY_USER_ITEM_DETAILS: UserItemDetails = {
+  note: "",
+  content_name: null,
+  quantity: 1,
+  user_item_tags: [],
+};
 
 export function ItemDetailsModal({
   isOpen,
@@ -61,8 +69,6 @@ export function ItemDetailsModal({
   const { toast } = useToast();
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-
-  // 編集状態と編集中データ
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({
     image,
@@ -98,11 +104,11 @@ export function ItemDetailsModal({
     enabled: !isUserItem && !!itemId,
   });
 
-  // ユーザーアイテムの詳細（note, user_item_tags, memories）取得
-  const { data: userItemDetails } = useQuery<UserItemDetails | null>({
+  // ユーザーアイテム詳細の取得（型安全を担保）
+  const { data: userItemDetails = EMPTY_USER_ITEM_DETAILS } = useQuery<UserItemDetails>({
     queryKey: ["user-item-details", itemId],
     queryFn: async () => {
-      if (!isUserItem || !itemId) return null;
+      if (!isUserItem || !itemId) return EMPTY_USER_ITEM_DETAILS;
       try {
         const { data, error } = await supabase
           .from("user_items")
@@ -122,42 +128,20 @@ export function ItemDetailsModal({
           `)
           .eq("id", itemId)
           .maybeSingle();
-          
-        if (error) {
-          console.error("Error fetching user item details:", error);
-          // エラー時は型を満たす空データ返却
-          return {
-            note: "",
-            content_name: null,
-            quantity: 1,
-            user_item_tags: [],
-          };
+
+        if (error || !data) {
+          return EMPTY_USER_ITEM_DETAILS;
         }
-        
-        // データがnullの場合も空のデータを返す
-        if (!data) {
-          return {
-            note: "",
-            content_name: null,
-            quantity: 1,
-            user_item_tags: [],
-          };
-        }
-        
+
         return {
-          note: data.note,
-          content_name: data.content_name,
+          note: data.note ?? "",
+          content_name: data.content_name ?? null,
           quantity: data.quantity ?? 1,
           user_item_tags: data.user_item_tags ?? [],
         };
       } catch (error) {
         console.error("Exception in user item details query:", error);
-        return {
-          note: "",
-          content_name: null,
-          quantity: 1,
-          user_item_tags: [],
-        };
+        return EMPTY_USER_ITEM_DETAILS;
       }
     },
     enabled: isUserItem && !!itemId,
@@ -246,9 +230,8 @@ export function ItemDetailsModal({
           .from("user_items")
           .select("user_id")
           .eq("official_item_id", itemId);
-        
+
         if (error) throw error;
-        // ユニークなユーザーIDの数を計算
         const uniqueUserIds = new Set(data.map(item => item.user_id));
         return uniqueUserIds.size;
       }
@@ -260,33 +243,30 @@ export function ItemDetailsModal({
     queryKey: ["item-trades-count", itemId],
     queryFn: async () => {
       if (!isUserItem) {
-        // 公式アイテムに関連する全てのユーザーアイテムを取得
         const { data: userItems, error: userItemsError } = await supabase
           .from("user_items")
           .select("id")
           .eq("official_item_id", itemId);
-        
+
         if (userItemsError) throw userItemsError;
-        
+
         if (!userItems || userItems.length === 0) return 0;
-        
-        // これらのユーザーアイテムIDを使用して、関連するトレードをカウント
+
         const userItemIds = userItems.map(item => item.id);
-        
+
         const { count, error } = await supabase
           .from("trade_requests")
           .select("id", { count: 'exact', head: true })
           .or(`offered_item_id.in.(${userItemIds.join(',')}),requested_item_id.in.(${userItemIds.join(',')})`);
-          
+
         if (error) throw error;
         return count || 0;
       } else {
-        // ユーザーアイテムの場合、直接そのアイテムが関係するトレードをカウント
         const { count, error } = await supabase
           .from("trade_requests")
           .select("id", { count: 'exact', head: true })
           .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
-          
+
         if (error) throw error;
         return count || 0;
       }
@@ -303,7 +283,6 @@ export function ItemDetailsModal({
   });
 
   // タグ用データ
-  // userItemDetailsがnullの場合は空配列を使用
   const userTags = userItemDetails?.user_item_tags || [];
 
   return (
@@ -313,7 +292,7 @@ export function ItemDetailsModal({
 
           <ModalHeader onClose={onClose} />
 
-          {/* ヘッダー（画像＋タイトル） */}
+          {/* ヘッダー */}
           <ItemDetailsHeaderArea
             image={image}
             title={title}
@@ -380,40 +359,38 @@ export function ItemDetailsModal({
             <h2 className="text-lg font-bold mb-2">アイテムの削除</h2>
             <p className="mb-4">「{title}」をコレクションから削除しますか？</p>
             <div className="flex justify-end gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setIsDeleteConfirmOpen(false)}
               >
                 キャンセル
               </Button>
-              <Button 
+              <Button
                 variant="destructive"
                 onClick={async () => {
                   if (!isUserItem || !itemId) return;
-    
+
                   try {
                     const { error, officialItemId } = await deleteUserItem(itemId);
                     if (error) throw error;
 
-                    // Invalidate user items query
                     queryClient.invalidateQueries({ queryKey: ["user-items"] });
-                    
-                    // Invalidate specific official item query if we have the ID
+
                     if (officialItemId) {
-                      queryClient.invalidateQueries({ 
-                        queryKey: ["user-item-exists", officialItemId, user?.id] 
+                      queryClient.invalidateQueries({
+                        queryKey: ["user-item-exists", officialItemId, user?.id]
                       });
-                      queryClient.invalidateQueries({ 
-                        queryKey: ["item-owners-count", officialItemId] 
+                      queryClient.invalidateQueries({
+                        queryKey: ["item-owners-count", officialItemId]
                       });
                     }
-                    
+
                     toast({
                       title: "アイテムを削除しました",
                       description: "コレクションからアイテムを削除しました。",
                     });
-                    
-                    onClose(); // モーダルを閉じる
+
+                    onClose();
                   } catch (error) {
                     console.error("Error deleting item:", error);
                     toast({
@@ -442,3 +419,4 @@ export function ItemDetailsModal({
     </>
   );
 }
+// 他サブコンポーネントは再利用/流用のため新規分割は行いません。必要に応じて今後も分割可。
