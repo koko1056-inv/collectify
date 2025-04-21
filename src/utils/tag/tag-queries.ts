@@ -1,6 +1,16 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag } from "./types";
+
+// SimpleItemTagを単純化した形で定義して循環参照を避ける
+export interface SimpleItemTag {
+  tag_id: string;
+  tags: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at: string;
+  } | null;
+}
 
 export async function getTagsForItem(
   itemId: string | null,

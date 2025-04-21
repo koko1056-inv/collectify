@@ -1,107 +1,71 @@
 
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
-interface UseItemDetailsFormProps {
-  title: string;
-  price?: string;
-  releaseDate?: string;
-  description?: string;
-  quantity?: number;
-  itemId: string;
-  isUserItem?: boolean;
-  onEditComplete: () => void;
-}
-
-export function useItemDetailsForm({
-  title,
-  price = "",
-  releaseDate = "",
-  description = "",
-  quantity = 1,
-  itemId,
-  isUserItem = false,
-  onEditComplete,
-}: UseItemDetailsFormProps) {
+export function useItemDetailsForm(itemId: string, isUserItem: boolean, initialData: any, onClose: () => void) {
   const [isEditing, setIsEditing] = useState(false);
+  const [editedData, setEditedData] = useState(initialData);
   const [isSaving, setIsSaving] = useState(false);
-  const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  const [editedData, setEditedData] = useState({
-    title,
-    price,
-    release_date: releaseDate,
-    description,
-    quantity,
-    content_name: null,
-    tags: [] as string[],
-  });
+  // 編集データの初期化
+  useEffect(() => {
+    setEditedData(initialData);
+  }, [initialData, isUserItem, itemId]);
 
-  const handleCancel = () => {
-    setEditedData({
-      title,
-      price,
-      release_date: releaseDate,
-      description,
-      quantity,
-      content_name: null,
-      tags: [],
-    });
-    setIsEditing(false);
-  };
+  // 編集モードのリセット
+  useEffect(() => {
+    return () => {
+      setIsEditing(false);
+    };
+  }, []);
 
-  const handleSave = async () => {
-    if (editedData.quantity < 1) {
-      toast({
-        title: "エラー",
-        description: "数量は1以上を指定してください。",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  // ユーザーアイテム保存ハンドラ
+  const handleSaveUserItem = async () => {
+    if (!isUserItem || !itemId) return;
     setIsSaving(true);
+    
     try {
-      const table = isUserItem ? "user_items" : "official_items";
+      console.log("Saving user item with data:", editedData);
+      
       const updateData = {
-        title: editedData.title,
-        [isUserItem ? "prize" : "price"]: editedData.price,
-        release_date: editedData.release_date,
         quantity: editedData.quantity,
+        note: editedData.note,
+        content_name: editedData.content_name,
+        image: editedData.image
       };
-
-      // Only include description and content_name for official items
-      if (!isUserItem) {
-        Object.assign(updateData, { 
-          description: editedData.description,
-          content_name: editedData.content_name 
-        });
-      }
-
-      const { error: updateError } = await supabase
-        .from(table)
+      
+      console.log("Update data:", updateData);
+      
+      const { error } = await supabase
+        .from("user_items")
         .update(updateData)
         .eq("id", itemId);
 
-      if (updateError) throw updateError;
+      if (error) {
+        console.error("Error updating user item:", error);
+        throw error;
+      }
 
-      queryClient.invalidateQueries({ queryKey: ["official-items"] });
-      queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      // キャッシュを更新
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      await queryClient.invalidateQueries({ queryKey: ["item-memories", [itemId]] });
 
       toast({
-        title: "更新完了",
-        description: "アイテム情報を更新しました。",
+        title: "保存完了",
+        description: "アイテム情報を保存しました。",
       });
-
-      onEditComplete();
+      
+      setIsEditing(false);
+      onClose();
     } catch (error) {
-      console.error("Error updating item:", error);
+      console.error("Error saving user item:", error);
       toast({
         title: "エラー",
-        description: "アイテムの更新に失敗しました。",
+        description: "保存に失敗しました。",
         variant: "destructive",
       });
     } finally {
@@ -112,10 +76,9 @@ export function useItemDetailsForm({
   return {
     isEditing,
     setIsEditing,
-    isSaving,
     editedData,
     setEditedData,
-    handleSave,
-    handleCancel,
+    isSaving,
+    handleSaveUserItem
   };
 }
