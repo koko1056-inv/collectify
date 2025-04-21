@@ -14,6 +14,8 @@ import { useToast } from "./ui/use-toast";
 import { TagManageModal } from "./tag/TagManageModal";
 import { deleteUserItem } from "@/utils/tag/user-item-operations";
 import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
+import { ItemNoteField } from "./item-details/ItemNoteField";
+import { QuantityInput } from "./item-details/QuantityInput";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -59,6 +61,8 @@ export function ItemDetailsModal({
     description,
     quantity,
   });
+  const [isQuantityEditing, setIsQuantityEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // タグの取得
   const { data: officialTags = [] } = useQuery({
@@ -184,7 +188,9 @@ export function ItemDetailsModal({
       price,
       description,
       quantity,
+      note: (isUserItem && userId === user?.id && typeof quantity !== 'undefined') ? (editedData.note ?? "") : undefined,
     });
+  // eslint-disable-next-line
   }, [image, title, price, description, quantity]);
 
   // リアルタイム更新のために購読を設定
@@ -252,13 +258,48 @@ export function ItemDetailsModal({
     }
   };
 
+  // 所有数量・メモ保存ハンドラ（ユーザーアイテムのみ）
+  const handleSaveUserItemFields = async () => {
+    if (!isUserItem || !itemId) return;
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_items")
+        .update({
+          quantity: editedData.quantity,
+          note: editedData.note ?? null,
+        })
+        .eq("id", itemId);
+
+      if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+
+      toast({
+        title: "保存完了",
+        description: "個数・メモを保存しました。",
+      });
+      setIsQuantityEditing(false);
+      setIsEditing(false);
+      onClose();
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: "保存に失敗しました。",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
           <ModalHeader onClose={onClose} />
-          
-          {/* メインコンテンツ - スクロール領域 */}
+
+          {/* メインコンテンツ */}
           <ItemDetailsContent
             image={image}
             title={title}
@@ -272,47 +313,99 @@ export function ItemDetailsModal({
             createdBy={createdBy}
             description={description}
           />
-          
+
+          {/* ユーザーアイテムの場合のみ：数量＋メモ編集UI */}
+          {isUserItem && isEditing && (
+            <div className="p-4 pt-0 pb-0 border-t border-gray-100 space-y-4">
+              <div>
+                <label className="text-sm font-medium">所有個数</label>
+                <QuantityInput
+                  value={editedData.quantity}
+                  onChange={(val) => setEditedData((prev: any) => ({ ...prev, quantity: val }))}
+                  min={1}
+                  max={200}
+                  className="mt-2"
+                />
+              </div>
+              <ItemNoteField
+                isEditing={isEditing}
+                note={editedData.note}
+                onChange={(v) => setEditedData((prev: any) => ({ ...prev, note: v }))}
+              />
+            </div>
+          )}
+
           {/* 下部固定エリア */}
           <div className="p-4 border-t border-gray-100">
-            {/* ユーザーアイテムの場合の管理ボタン */}
+            {/* ユーザーアイテム：編集／保存UI */}
             {isUserItem && (
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  className="flex-1 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
-                  onClick={() => setIsTagModalOpen(true)}
-                >
-                  <Tag className="h-4 w-4 mr-2" />
-                  タグを管理
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="flex-1 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-500"
-                  onClick={() => setIsDeleteConfirmOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  削除
-                </Button>
+              <div className="flex gap-2 mb-2">
+                {!isEditing && (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+                      onClick={() => setIsTagModalOpen(true)}
+                    >
+                      <Tag className="h-4 w-4 mr-2" />
+                      タグを管理
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-gray-300 hover:bg-gray-50"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      編集
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-red-200 hover:bg-red-50 hover:border-red-300 hover:text-red-500"
+                      onClick={() => setIsDeleteConfirmOpen(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      削除
+                    </Button>
+                  </>
+                )}
+                {isEditing && (
+                  <>
+                    <Button
+                      variant="default"
+                      className="flex-1"
+                      onClick={handleSaveUserItemFields}
+                      disabled={isSaving}
+                    >{isSaving ? "保存中..." : "保存"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setIsEditing(false)}
+                      disabled={isSaving}
+                    >
+                      キャンセル
+                    </Button>
+                  </>
+                )}
               </div>
             )}
-            
-            {/* 統計情報 */}
-            <ItemStatistics 
-              likesCount={likesCount} 
-              ownersCount={ownersCount} 
-              tradesCount={tradesCount} 
+
+            {/* 統計・説明等 */}
+            <ItemStatistics
+              likesCount={likesCount}
+              ownersCount={ownersCount}
+              tradesCount={tradesCount}
             />
-            
-            <ItemDetailInfo 
+
+            <ItemDetailInfo
               tags={officialTags}
               price={price}
               description={description}
+              contentName={contentName}
             />
-            
-            {/* 下部アクションボタン */}
+
+            {/* 下部アクション：公式アイテム */}
             {!isUserItem && (
-              <ItemButtons 
+              <ItemButtons
                 isInCollection={isInCollection}
                 itemId={itemId}
                 title={title}
@@ -326,7 +419,7 @@ export function ItemDetailsModal({
           </div>
         </DialogContent>
       </Dialog>
-      
+
       {/* 削除確認ダイアログ */}
       {isDeleteConfirmOpen && (
         <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>

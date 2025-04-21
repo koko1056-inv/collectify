@@ -922,6 +922,7 @@ export type Database = {
           id: string
           image: string
           images: string[] | null
+          note: string | null
           official_item_id: string | null
           official_link: string | null
           original_item_id: string | null
@@ -939,6 +940,7 @@ export type Database = {
           id?: string
           image: string
           images?: string[] | null
+          note?: string | null
           official_item_id?: string | null
           official_link?: string | null
           original_item_id?: string | null
@@ -956,6 +958,7 @@ export type Database = {
           id?: string
           image?: string
           images?: string[] | null
+          note?: string | null
           official_item_id?: string | null
           official_link?: string | null
           original_item_id?: string | null
