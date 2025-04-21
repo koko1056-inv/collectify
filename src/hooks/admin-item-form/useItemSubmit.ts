@@ -109,7 +109,7 @@ export function useItemSubmit({
       const imageUrl = await uploadImage();
 
       // データベースに保存するデータから、不要なフィールドを除外
-      const { characterTag, typeTag, seriesTag, category, ...dbFormData } = formData;
+      const { characterTag, typeTag, seriesTag, ...dbFormData } = formData;
 
       console.log("Form data:", formData);
 

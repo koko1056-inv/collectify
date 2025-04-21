@@ -65,9 +65,10 @@ export function UserCollection({
       );
     }
     if (selectedContent && selectedContent !== "all") {
-      filtered = filtered.filter(item =>
-        item.content_name === selectedContent
-      );
+      filtered = filtered.filter(item => {
+        // TypeScript エラーを回避するために、content_nameプロパティの存在を確認
+        return 'content_name' in item && item.content_name === selectedContent;
+      });
     }
     return filtered;
   }, [items, selectedTags, selectedContent]);
