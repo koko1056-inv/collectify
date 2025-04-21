@@ -22,6 +22,7 @@ export function useTagManage(
     queryKey: ["current-tags", itemIds],
     queryFn: async () => {
       const firstItemId = itemIds[0];
+      if (!firstItemId) return [];
       return await getTagsForItem(firstItemId, isUserItem);
     },
     enabled: isOpen && itemIds.length > 0,
@@ -112,6 +113,7 @@ export function useTagManage(
       }
       
       await queryClient.invalidateQueries({ queryKey: ["item-content"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       
       if (onSubmit && pendingUpdates.length > 0) {
         await onSubmit(pendingUpdates.filter((u) => u.value !== null));

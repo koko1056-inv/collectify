@@ -13,12 +13,12 @@ export async function getTagsForItem(
     const tableName = isUserItem ? "user_item_tags" : "item_tags";
     const itemColumn = isUserItem ? "user_item_id" : "official_item_id";
 
-    // タグを取得（再帰を避けるため、必要な情報のみを選択）
+    // タグを取得（直接JOINを使用して再帰を避ける）
     const { data, error } = await supabase
       .from(tableName)
       .select(`
         tag_id,
-        tags (
+        tags:tags (
           id,
           name,
           category,

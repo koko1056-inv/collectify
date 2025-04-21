@@ -205,6 +205,16 @@ export function ItemDetailsWrapper({
     enabled: !!itemId,
   });
 
+  // この関数はPromiseを返さないので、型を明示的に変更
+  const refetchOwnersCount = () => {
+    console.log("Refetching owners count");
+  };
+
+  // この関数はPromiseを返さないので、型を明示的に変更
+  const refetchIsInCollection = () => {
+    console.log("Refetching is in collection");
+  };
+
   const { data: isInCollection = false } = useQuery({
     queryKey: ["is-in-collection", itemId, user?.id],
     queryFn: async () => {
@@ -285,8 +295,8 @@ export function ItemDetailsWrapper({
           image={image}
           releaseDate={releaseDate}
           price={price}
-          refetchIsInCollection={() => {}}
-          refetchOwnersCount={() => {}}
+          refetchIsInCollection={refetchIsInCollection}
+          refetchOwnersCount={refetchOwnersCount}
         />
       )}
     </>
