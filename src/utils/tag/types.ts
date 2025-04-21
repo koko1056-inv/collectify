@@ -1,3 +1,4 @@
+
 // ContentInfoの型定義（icon_nameプロパティを明示的に追加）
 export interface ContentInfo {
   id: string;
@@ -14,7 +15,7 @@ export interface SimpleItemTag {
   tags: {
     id: string;
     name: string;
-    category: string;
+    category?: string; // categoryをオプショナルに変更
     created_at: string;
   };
 }

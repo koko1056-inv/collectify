@@ -1,10 +1,11 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TagUpdate } from "@/types/tag";
 import { getTagsForItem } from "@/utils/tag/tag-queries";
 import { setItemContent } from "@/utils/tag/content-operations";
-import { SimpleItemTag } from "@/utils/tag/types";
+import { SimpleItemTag } from "@/utils/tag/tag-queries";
 
 export function useTagManage(
   isOpen: boolean,
