@@ -37,6 +37,8 @@ export default function Collection() {
           <UserCollection
             selectedTags={selectedTags}
             userId={user?.id || null}
+            selectedContent={selectedContent}
+            onContentChange={setSelectedContent}
           />
         </div>
       </main>

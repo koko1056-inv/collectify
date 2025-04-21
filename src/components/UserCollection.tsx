@@ -1,3 +1,4 @@
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,25 +11,26 @@ import { Button } from "./ui/button";
 import { Dices } from "lucide-react";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
+
 interface UserCollectionProps {
   selectedTags: string[];
   userId?: string | null;
+  selectedContent?: string;
+  onContentChange?: (content: string) => void;
 }
+
 export function UserCollection({
   selectedTags,
-  userId
+  userId,
+  selectedContent,
+  onContentChange,
 }: UserCollectionProps) {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const [isCompact, setIsCompact] = useState(false);
   const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
-  const {
-    data: items = [],
-    isLoading: isItemsLoading
-  } = useQuery({
+  const { data: items = [], isLoading: isItemsLoading } = useQuery({
     queryKey: ["user-items", effectiveUserId, selectedTags],
     queryFn: async () => {
       if (!effectiveUserId) return [];
@@ -43,10 +45,7 @@ export function UserCollection({
         `).eq("user_id", effectiveUserId).order("created_at", {
         ascending: false
       });
-      const {
-        data,
-        error
-      } = await query;
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
@@ -54,15 +53,27 @@ export function UserCollection({
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10
   });
+
+  // content_nameでのフィルタを追加
   const filteredItems = useMemo(() => {
-    if (selectedTags.length === 0) return items;
-    return items.filter(item => selectedTags.some(tag => item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)));
-  }, [items, selectedTags]);
+    let filtered = items;
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(item =>
+        selectedTags.some(tag =>
+          item.user_item_tags?.some(itemTag => itemTag.tags?.name === tag)
+        )
+      );
+    }
+    if (selectedContent && selectedContent !== "all") {
+      filtered = filtered.filter(item =>
+        item.content_name === selectedContent
+      );
+    }
+    return filtered;
+  }, [items, selectedTags, selectedContent]);
+
   const handleDragEnd = (event: DragEndEvent) => {
-    const {
-      active,
-      over
-    } = event;
+    const { active, over } = event;
     if (!over) return;
     if (active.id !== over.id) {
       const oldIndex = items.findIndex(item => item.id === active.id);
@@ -71,6 +82,7 @@ export function UserCollection({
       queryClient.setQueryData(["user-items", effectiveUserId, selectedTags], newItems);
     }
   };
+
   if (!effectiveUserId) {
     return <div className="text-center py-8">
         <p className="text-gray-500">コレクションを表示するにはログインしてください。</p>
@@ -92,7 +104,7 @@ export function UserCollection({
   }
   if (filteredItems.length === 0) {
     return <div className="text-center py-8">
-        <p className="text-gray-500">選択されたタグに一致するアイテムがありません。</p>
+        <p className="text-gray-500">選択されたタグやコンテンツに一致するアイテムがありません。</p>
       </div>;
   }
   return <div className="space-y-4 my-0 mx-0 px-0 py-px">
