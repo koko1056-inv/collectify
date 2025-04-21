@@ -1,16 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-
-// SimpleItemTagを単純化した形で定義して循環参照を避ける
-export interface SimpleItemTag {
-  tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string; // categoryをオプショナルに変更
-    created_at: string;
-  } | null;
-}
+import { SimpleItemTag } from "./types";
 
 export async function getTagsForItem(
   itemId: string | null,
@@ -31,7 +21,8 @@ export async function getTagsForItem(
         tags (
           id,
           name,
-          category
+          category,
+          created_at
         )
       `)
       .eq(itemColumn, itemId);
@@ -46,21 +37,10 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
-    const result: SimpleItemTag[] = [];
-    
-    for (const item of data) {
-      if (item.tags !== null) {
-        result.push({
-          tag_id: item.tag_id,
-          tags: {
-            id: item.tags.id,
-            name: item.tags.name,
-            category: item.tags.category || "",
-            created_at: new Date().toISOString() // フォールバック値を提供
-          }
-        });
-      }
-    }
+    const result: SimpleItemTag[] = data.map(item => ({
+      tag_id: item.tag_id,
+      tags: item.tags
+    }));
     
     return result;
   } catch (error) {

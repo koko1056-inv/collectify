@@ -133,11 +133,22 @@ export function ItemDetailsModal({
             user_item_tags: [],
           };
         }
-        return data || {
-          note: "",
-          content_name: null,
-          quantity: 1,
-          user_item_tags: [],
+        
+        // データがnullの場合も空のデータを返す
+        if (!data) {
+          return {
+            note: "",
+            content_name: null,
+            quantity: 1,
+            user_item_tags: [],
+          };
+        }
+        
+        return {
+          note: data.note,
+          content_name: data.content_name,
+          quantity: data.quantity ?? 1,
+          user_item_tags: data.user_item_tags ?? [],
         };
       } catch (error) {
         console.error("Exception in user item details query:", error);
