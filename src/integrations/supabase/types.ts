@@ -918,6 +918,7 @@ export type Database = {
       }
       user_items: {
         Row: {
+          content_name: string | null
           created_at: string
           id: string
           image: string
@@ -936,6 +937,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          content_name?: string | null
           created_at?: string
           id?: string
           image: string
@@ -954,6 +956,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          content_name?: string | null
           created_at?: string
           id?: string
           image?: string
