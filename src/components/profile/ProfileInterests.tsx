@@ -1,12 +1,14 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { getAllContentNames } from "@/utils/tag/content-operations";
 
 interface ProfileInterestsProps {
@@ -19,6 +21,7 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
   const { toast } = useToast();
   const [selectedInterests, setSelectedInterests] = useState<string[]>(currentInterests || []);
   const [saving, setSaving] = useState(false);
+  const [isSelectingContent, setIsSelectingContent] = useState(false);
   const [isAddingContent, setIsAddingContent] = useState(false);
   const [newContentName, setNewContentName] = useState("");
   const queryClient = useQueryClient();
@@ -56,8 +59,6 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
     }
 
     try {
-      // content_namesテーブルのtype列には特定の値しか設定できないようなので、
-      // ここでは 'anime' という既存の値を使用します
       const { error } = await supabase
         .from("content_names")
         .insert([{ name: newContentName, type: "anime" }]);
@@ -73,7 +74,6 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
         description: `${newContentName}を追加しました`,
       });
 
-      // 追加したコンテンツを自動的に選択します
       setSelectedInterests(prev => [...prev, newContentName]);
     } catch (error) {
       console.error("Error adding content:", error);
@@ -129,33 +129,77 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
         <Button 
           size="sm" 
           variant="outline" 
-          onClick={() => setIsAddingContent(true)}
+          onClick={() => setIsSelectingContent(true)}
         >
-          <Plus className="h-4 w-4 mr-1" />
-          追加
+          選択する
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-        {contentNames.map((content) => (
-          <Button
-            key={content.id}
-            variant={selectedInterests.includes(content.name) ? "default" : "outline"}
-            className="h-8 px-2 text-xs rounded-full hover:bg-primary/10 transition-colors duration-200"
-            onClick={() => handleToggleContent(content.name)}
+      <div className="flex flex-wrap gap-2">
+        {selectedInterests.map((interest) => (
+          <div
+            key={interest}
+            className="bg-primary/5 text-primary flex items-center gap-1 px-3 py-1.5 rounded-full text-sm"
           >
-            {content.name}
-          </Button>
+            {interest}
+            <button
+              onClick={() => handleToggleContent(interest)}
+              className="text-primary/50 hover:text-primary"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
         ))}
       </div>
 
-      <Button 
-        onClick={handleSave}
-        disabled={saving}
-        className="w-full"
-      >
-        {saving ? "保存中..." : "保存する"}
-      </Button>
+      <Dialog open={isSelectingContent} onOpenChange={setIsSelectingContent}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>推しコンテンツを選択</DialogTitle>
+            <DialogDescription>
+              あなたの推しコンテンツを選んでください
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex justify-end mb-4">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsAddingContent(true)}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              新規追加
+            </Button>
+          </div>
+
+          <ScrollArea className="h-[300px] pr-4">
+            <div className="grid grid-cols-2 gap-2">
+              {contentNames.map((content) => (
+                <Button
+                  key={content.id}
+                  variant={selectedInterests.includes(content.name) ? "default" : "outline"}
+                  className="w-full justify-start text-sm"
+                  onClick={() => handleToggleContent(content.name)}
+                >
+                  {content.name}
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setIsSelectingContent(false)}>
+              キャンセル
+            </Button>
+            <Button onClick={() => {
+              handleSave();
+              setIsSelectingContent(false);
+            }}>
+              保存する
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
         <DialogContent>
