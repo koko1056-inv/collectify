@@ -40,6 +40,7 @@ export async function getTagsForItem(
 
     // 結果を変換して返す
     return data.map(item => ({
+      id: item.id,
       tag_id: item.tag_id,
       tags: item.tags
     }));

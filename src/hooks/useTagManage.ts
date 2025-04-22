@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,7 @@ import { SimpleItemTag } from "@/utils/tag/types";
 export function useTagManage(
   isOpen: boolean,
   itemIds: string[],
-  isUserItem: boolean = false,
+  isUserItem: boolean,
   onClose: () => void,
   onSubmit?: (updates: TagUpdate[]) => Promise<void>
 ) {
@@ -21,6 +22,7 @@ export function useTagManage(
     queryKey: ["current-tags", itemIds],
     queryFn: async () => {
       const firstItemId = itemIds[0];
+      if (!firstItemId) return [];
       return await getTagsForItem(firstItemId, isUserItem);
     },
     enabled: isOpen && itemIds.length > 0,
@@ -111,6 +113,7 @@ export function useTagManage(
       }
       
       await queryClient.invalidateQueries({ queryKey: ["item-content"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       
       if (onSubmit && pendingUpdates.length > 0) {
         await onSubmit(pendingUpdates.filter((u) => u.value !== null));

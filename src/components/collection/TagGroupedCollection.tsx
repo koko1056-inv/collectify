@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CategoryTagSearch } from "@/components/tag/CategoryTagSearch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TagGroupedCollectionProps {
   userId: string;
@@ -29,7 +30,7 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
   const { data: itemsByTag = {}, isLoading: isTagLoading } = useQuery({
     queryKey: ["items-by-tag", userId],
     queryFn: async () => {
-      return getItemsGroupedByTag(userId);
+      return getItemsGroupedByTag(userId, true);
     },
     enabled: !!userId && groupViewMode === "tags",
   });
