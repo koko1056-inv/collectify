@@ -34,47 +34,71 @@ export async function addTagToItem(
 
     // 挿入データを準備
     // 型安全に扱うために明示的に型を指定する
-    let insertData: {
-      tag_id: string;
-      user_item_id?: string;
-      official_item_id?: string;
-      user_id?: string;
-    } = {
-      tag_id: tagId,
-    };
-    
     if (isUserItem) {
-      insertData.user_item_id = itemId;
-      if (userId) {
-        insertData.user_id = userId;
-      }
-    } else {
-      insertData.official_item_id = itemId;
-    }
+      // ユーザーアイテムの場合
+      const insertData = {
+        tag_id: tagId,
+        user_item_id: itemId,
+      } as const;
+      
+      // もしユーザーIDがある場合は追加
+      const userData = userId ? { user_id: userId } : {};
+      const fullData = { ...insertData, ...userData };
 
-    // タグを追加
-    const { data, error } = await supabase
-      .from(table)
-      .insert(insertData)
-      .select(`
-        id,
-        tag_id,
-        tags:tag_id (
+      // タグを追加
+      const { data, error } = await supabase
+        .from(table)
+        .insert(fullData)
+        .select(`
           id,
-          name,
-          category,
-          created_at
-        )
-      `)
-      .single();
+          tag_id,
+          tags:tag_id (
+            id,
+            name,
+            category,
+            created_at
+          )
+        `)
+        .single();
 
-    if (error) throw error;
-    
-    return {
-      id: data.id,
-      tag_id: data.tag_id,
-      tags: data.tags
-    };
+      if (error) throw error;
+      
+      return {
+        id: data.id,
+        tag_id: data.tag_id,
+        tags: data.tags
+      };
+    } else {
+      // 公式アイテムの場合
+      const insertData = {
+        tag_id: tagId,
+        official_item_id: itemId,
+      };
+
+      // タグを追加
+      const { data, error } = await supabase
+        .from(table)
+        .insert(insertData)
+        .select(`
+          id,
+          tag_id,
+          tags:tag_id (
+            id,
+            name,
+            category,
+            created_at
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      
+      return {
+        id: data.id,
+        tag_id: data.tag_id,
+        tags: data.tags
+      };
+    }
   } catch (error) {
     console.error("Error adding tag to item:", error);
     return null;

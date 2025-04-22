@@ -12,7 +12,7 @@ import { BookMarked, Link2, Loader2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { isUUID } from "@/utils/tag/tag-core";
-import { Link } from "react-router-dom"; // ここをreact-router-domに変更
+import { Link } from "react-router-dom";
 import { SimpleItemTag } from "@/utils/tag/types";
 
 interface ItemDetailsWrapperProps {
@@ -141,18 +141,9 @@ export function ItemDetailsWrapper({
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
       
-      const queryParams: Record<string, any> = {
-        official_item_id: itemId
-      };
-      
-      // ユーザーIDが存在する場合、クエリにuser_idを含める
-      if (userId) {
-        queryParams.user_id = userId;
-      }
-      
       const { data, error } = await supabase
         .from("user_items")
-        .select("id");
+        .select("id, official_item_id");
       
       // ここでは特定の条件で絞り込む
       // ユーザーIDとは無関係に、すべての一致するアイテムを取得
@@ -290,15 +281,14 @@ export function ItemDetailsWrapper({
     );
   }
 
-  // ModalHeaderでのエラー修正: childrenをpropsで渡す
   return (
     <>
       {isModal && (
-        <ModalHeader onClose={
+        <ModalHeader>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
             <X className="h-4 w-4" />
           </Button>
-        } />
+        </ModalHeader>
       )}
       <div className="px-6 py-4">
         <h2 className="text-lg font-semibold mb-2">{itemDetails.title}</h2>

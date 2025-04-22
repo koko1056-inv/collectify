@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -146,5 +147,30 @@ export function ItemButtons({
       setIsAddingToWishlist(false);
     }
   };
-  return;
+  
+  // ItemButtonsコンポーネントが何も返していなかったので、UIを追加
+  return (
+    <div className="flex gap-2">
+      {!isInCollection ? (
+        <Button 
+          onClick={handleAddToCollection} 
+          disabled={isAddingToCollection}
+          className="w-full"
+        >
+          {isAddingToCollection ? "追加中..." : "コレクションに追加"}
+        </Button>
+      ) : (
+        <Button variant="secondary" disabled className="w-full">
+          コレクション済み
+        </Button>
+      )}
+      <Button 
+        variant="outline" 
+        onClick={handleAddToWishlist} 
+        disabled={isAddingToWishlist}
+      >
+        {isAddingToWishlist ? "追加中..." : "ウィッシュリスト"}
+      </Button>
+    </div>
+  );
 }
