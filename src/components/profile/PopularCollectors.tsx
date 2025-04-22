@@ -64,7 +64,18 @@ export function PopularCollectors() {
     <div className="space-y-4">
       <h2 className="text-lg font-semibold mb-3">人気のコレクター</h2>
       
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex items-center justify-between pl-4">
+        <h3 className="text-xl font-bold text-gray-800">推しコンテンツ</h3>
+        <Button 
+          size="sm" 
+          variant="outline"
+          onClick={() => {}}
+        >
+          フィルター
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2 pl-4 mb-4">
         <Button
           variant={selectedContent === null ? "default" : "outline"}
           size="sm"
@@ -84,6 +95,7 @@ export function PopularCollectors() {
         ))}
       </div>
 
+      {/* 残りのコードは変更なし */}
       {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
@@ -125,4 +137,4 @@ export function PopularCollectors() {
       )}
     </div>
   );
-}
+};
