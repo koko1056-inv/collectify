@@ -83,8 +83,8 @@ export function ItemDetailsContent({
         </div>
       </div>
 
-      {/* スクロール可能な詳細情報エリア */}
-      <ScrollArea className="flex-1 px-4 overflow-y-auto">
+      {/* スクロール可能な詳細情報エリア - 高さを明示的に設定して、ちゃんとスクロールするようにする */}
+      <ScrollArea className="flex-1 px-4 overflow-y-auto max-h-[calc(100vh-350px)]">
         <div className="space-y-4 pb-6">
           {/* ユーザーアイテムの場合の表示 */}
           {isUserItem && (

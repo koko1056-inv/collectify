@@ -8,6 +8,7 @@ export { addTagToItem, removeTagFromItem } from './tag/tag-mutations';
 export { 
   getTagsForItem, 
   isItemInUserCollection,
+  getTagsByCategory
 } from './tag/tag-queries';
 export {
   findTagIdByName,
