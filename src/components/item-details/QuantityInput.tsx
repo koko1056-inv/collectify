@@ -31,9 +31,9 @@ export function QuantityInput({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = parseInt(e.target.value) || min;
-    const newValue = Math.max(min, Math.min(max, inputValue));
-    onChange(newValue);
+    const inputValue = e.target.value === '' ? '' : parseInt(e.target.value);
+    const newValue = inputValue === '' ? '' : Math.max(min, Math.min(max, inputValue));
+    onChange(newValue as number);
   };
 
   return (
@@ -54,6 +54,7 @@ export function QuantityInput({
         value={value}
         onChange={handleInputChange}
         className="w-20 text-center"
+        placeholder="数量"
       />
       <Button 
         type="button"
