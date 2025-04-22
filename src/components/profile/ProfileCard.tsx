@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +10,8 @@ import { ProfileImageUpload } from "./ProfileImageUpload";
 import { ProfileWishlist } from "./ProfileWishlist";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ProfileInterests } from "./ProfileInterests";
+import { useProfile } from "@/hooks/useProfile";
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -36,6 +37,8 @@ export function ProfileCard({
   const isMobile = useIsMobile();
   const isOwnProfile = !userId || user?.id === userId;
   const effectiveUserId = userId || user?.id;
+
+  const { profile, refetchProfile } = useProfile(effectiveUserId);
 
   useEffect(() => {
     if (!effectiveUserId) return;
@@ -201,6 +204,15 @@ export function ProfileCard({
           isOwnProfile={isOwnProfile} 
         />
       </div>
+
+      {isOwnProfile && (
+        <div className="mt-6">
+          <ProfileInterests 
+            currentInterests={profile?.interests || []} 
+            onUpdate={refetchProfile}
+          />
+        </div>
+      )}
 
       <div className="mt-6">
         <ProfileFavorites 
