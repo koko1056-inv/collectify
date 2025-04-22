@@ -81,14 +81,14 @@ export function FeaturedCollections() {
         <TabsList className="mb-4 bg-gray-100">
           <TabsTrigger 
             value="today" 
-            className="flex items-center gap-1 data-[state=active]:bg-white rounded-full px-6"
+            className="flex items-center gap-1 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:border text-gray-500 rounded-full px-3 py-1 text-xs transition-colors"
           >
             <Calendar className="h-4 w-4" />
             <span>今日のコレクション</span>
           </TabsTrigger>
           <TabsTrigger 
             value="trending" 
-            className="flex items-center gap-1 data-[state=active]:bg-white rounded-full px-6"
+            className="flex items-center gap-1 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:border text-gray-500 rounded-full px-3 py-1 text-xs transition-colors"
           >
             <TrendingUp className="h-4 w-4" />
             <span>トレンド</span>
