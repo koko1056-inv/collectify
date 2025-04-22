@@ -124,7 +124,7 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pl-4">
         <h3 className="text-xl font-bold text-gray-800">推しコンテンツ</h3>
         <Button 
           size="sm" 
