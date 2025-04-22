@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "./CardHeader";
@@ -78,18 +77,44 @@ export function CollectionGoodsCardWrapper({
     refetchInterval: 2000
   });
   if (isOtherUserCollection || isCompact) {
-    return <Card className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden" onClick={() => setIsDetailsModalOpen(true)}>
-        <div className="space-y-2">
+    return (
+      <Card 
+        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden text-xs"
+        onClick={() => setIsDetailsModalOpen(true)}
+      >
+        <div className="space-y-1">
           <CardImage title={title} image={image} itemId={id} isEditable={false} />
-          <div className="p-2 relative">
-            <h3 className="text-[10px] font-medium text-gray-900 line-clamp-2">{title}</h3>
-            {quantity > 1 && <Badge className="absolute top-1 right-1 bg-purple-500 hover:bg-purple-500">
+          <div className="p-1.5 relative">
+            <h3 className="text-[10px] font-medium text-gray-900 line-clamp-1">{title}</h3>
+            {quantity > 1 && (
+              <Badge 
+                className="absolute top-1 right-1 bg-purple-500 hover:bg-purple-500 px-1 py-0 text-[10px]"
+              >
                 ×{quantity}
-              </Badge>}
+              </Badge>
+            )}
           </div>
         </div>
-        <CardModals itemId={id} itemTitle={title} userId={userId} image={image} releaseDate={releaseDate} prize={prize} quantity={quantity} isMemoriesModalOpen={isMemoriesModalOpen} isTagManageModalOpen={isTagManageModalOpen} isDeleteDialogOpen={isDeleteDialogOpen} isDetailsModalOpen={isDetailsModalOpen} onMemoriesClose={() => setIsMemoriesModalOpen(false)} onTagManageClose={() => setIsTagManageModalOpen(false)} onDeleteClose={setIsDeleteDialogOpen} onDetailsClose={() => setIsDetailsModalOpen(false)} onDeleteConfirm={handleDelete} />
-      </Card>;
+        <CardModals
+          itemId={id}
+          itemTitle={title}
+          userId={userId}
+          image={image}
+          releaseDate={releaseDate}
+          prize={prize}
+          quantity={quantity}
+          isMemoriesModalOpen={isMemoriesModalOpen}
+          isTagManageModalOpen={isTagManageModalOpen}
+          isDeleteDialogOpen={isDeleteDialogOpen}
+          isDetailsModalOpen={isDetailsModalOpen}
+          onMemoriesClose={() => setIsMemoriesModalOpen(false)}
+          onTagManageClose={() => setIsTagManageModalOpen(false)}
+          onDeleteClose={setIsDeleteDialogOpen}
+          onDetailsClose={() => setIsDetailsModalOpen(false)}
+          onDeleteConfirm={handleDelete}
+        />
+      </Card>
+    );
   }
   return <Card className="hover-scale card-shadow bg-white border border-gray-200 relative overflow-hidden">
       <CardHeader title={title} image={image} onClick={() => setIsDetailsModalOpen(true)} itemId={id} isEditable={isOwner} />
@@ -143,4 +168,3 @@ export function CollectionGoodsCardWrapper({
       {isOwner && <QuantityEditModal isOpen={isQuantityEditModalOpen} onClose={() => setIsQuantityEditModalOpen(false)} itemId={id} initialQuantity={quantity} itemTitle={title} />}
     </Card>;
 }
-
