@@ -1,307 +1,342 @@
-
-import { ModalHeader } from "./ModalHeader";
-import { ItemDetailsHeaderArea } from "./ItemDetailsHeaderArea";
-import { ItemDetailsMainInfo } from "./ItemDetailsMainInfo";
-import { ItemDetailsActions } from "./ItemDetailsActions";
-import { ItemStatisticsDetail } from "./ItemStatisticsDetail";
-import { ItemButtons } from "./ItemButtons";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
-import { isItemInUserCollection } from "@/utils/tag/tag-queries";
-import { SimpleItemTag } from "@/utils/tag/types";
-
-type UserItemDetails = {
-  note: string | null;
-  content_name: string | null;
-  quantity: number;
-  user_item_tags: SimpleItemTag[];
-};
-
-const EMPTY_USER_ITEM_DETAILS: UserItemDetails = {
-  note: "",
-  content_name: null,
-  quantity: 1,
-  user_item_tags: [],
-};
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { Tag } from "@/utils/tag";
+import { TagList } from "@/components/collection/TagList";
+import { TagManageModal } from "./TagManageModal";
+import { ModalHeader } from "./ModalHeader";
+import { Button } from "@/components/ui/button";
+import { BookMarked, Link2, Loader2, X } from "lucide-react";
+import { useRouter } from "next/router";
+import { Badge } from "@/components/ui/badge";
+import { isUUID } from "@/utils/uuid-check";
+import { Profile } from "@/types";
+import Link from "next/link";
 
 interface ItemDetailsWrapperProps {
-  image: string;
-  title: string;
-  price?: string;
-  releaseDate?: string;
-  description?: string;
   itemId: string;
-  isUserItem?: boolean;
-  quantity?: number;
-  userId?: string;
-  createdBy?: string | null;
-  contentName?: string | null;
-  editedData: any;
-  setEditedData: (data: any) => void;
-  isEditing: boolean;
-  setIsEditing: (editing: boolean) => void;
-  onSaveUserItem: () => void;
-  isSaving: boolean;
-  onTag: () => void;
-  onDelete: () => void;
-  setIsTagModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  itemTitle?: string;
+  itemImage?: string;
+  itemDescription?: string | null;
+  itemLink?: string | null;
+  itemArtist?: string | null;
+  itemAnime?: string | null;
+  onClose?: () => void;
+  isModal?: boolean;
+  isUserCollection?: boolean;
+  setIsTagModalOpen?: (open: boolean) => void;
 }
 
 export function ItemDetailsWrapper({
-  image, title, price, releaseDate, description, itemId, isUserItem = false,
-  quantity = 1, userId, createdBy, contentName,
-  editedData, setEditedData, isEditing, setIsEditing, onSaveUserItem, isSaving,
-  onTag, onDelete, setIsTagModalOpen
+  itemId,
+  itemTitle,
+  itemImage,
+  itemDescription,
+  itemLink,
+  itemArtist,
+  itemAnime,
+  onClose,
+  isModal = true,
+  isUserCollection = false,
+  setIsTagModalOpen,
 }: ItemDetailsWrapperProps) {
-  const { user } = useAuth();
+  const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
-  // タグ取得
-  const { data: officialTags = [] } = useQuery({
-    queryKey: ["item-tags", itemId],
-    queryFn: async () => {
-      if (!itemId) return [];
+  const queryClient = useQueryClient();
+
+  const refetchIsInCollection = async () => {
+    await queryClient.invalidateQueries({ 
+      queryKey: ["user-item-exists", itemId] 
+    });
+  };
+
+  const refetchOwnersCount = async () => {
+    await queryClient.invalidateQueries({ 
+      queryKey: ["item-owners-count", itemId] 
+    });
+  };
+
+  const { data: itemDetails, isLoading: isItemDetailsLoading } = useQuery(
+    ["official-item-details", itemId],
+    async () => {
+      if (!isUUID(itemId)) {
+        return null;
+      }
+      const { data, error } = await supabase
+        .from("official_items")
+        .select("*")
+        .eq("id", itemId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching item details:", error);
+        throw error;
+      }
+      return data;
+    },
+    {
+      enabled: isUUID(itemId),
+    }
+  );
+
+  const { data: itemTags = [], isLoading: isItemTagsLoading } = useQuery(
+    ["item-tags", itemId],
+    async () => {
+      if (!isUUID(itemId)) {
+        return [];
+      }
       const { data, error } = await supabase
         .from("item_tags")
         .select(`
-          tag_id,
-          tags (
-            id,
-            name,
-            category,
-            created_at
-          )
+          *,
+          tags (*)
         `)
         .eq("official_item_id", itemId);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !isUserItem && !!itemId,
-  });
 
-  // ユーザーアイテム詳細
-  const { data: userItemDetails = EMPTY_USER_ITEM_DETAILS } = useQuery<UserItemDetails>({
-    queryKey: ["user-item-details", itemId],
-    queryFn: async () => {
-      if (!isUserItem || !itemId) return EMPTY_USER_ITEM_DETAILS;
+      if (error) {
+        console.error("Error fetching item tags:", error);
+        throw error;
+      }
+      return data?.map((itemTag) => itemTag.tags) as Tag[];
+    },
+    {
+      enabled: isUUID(itemId),
+    }
+  );
+
+  const { data: wishlistCount, isLoading: isWishlistCountLoading } = useQuery(
+    ["item-wishlist-count", itemId],
+    async () => {
+      if (!isUUID(itemId)) {
+        return 0;
+      }
+      const { data, error } = await supabase
+        .from("wishlists")
+        .select("*", { count: "exact" })
+        .eq("official_item_id", itemId);
+
+      if (error) {
+        console.error("Error fetching wishlist count:", error);
+        throw error;
+      }
+      return data?.length || 0;
+    },
+    {
+      enabled: isUUID(itemId),
+    }
+  );
+
+  const { data: itemOwnersCount, isLoading: isItemOwnersCountLoading } = useQuery(
+    ["item-owners-count", itemId],
+    async () => {
+      if (!isUUID(itemId)) {
+        return 0;
+      }
       const { data, error } = await supabase
         .from("user_items")
-        .select(`
-          note,
-          content_name,
-          quantity,
-          user_item_tags (
-            tag_id,
-            tags (
-              id,
-              name,
-              category,
-              created_at
-            )
-          )
-        `)
-        .eq("id", itemId)
-        .maybeSingle();
+        .select("*", { count: "exact" })
+        .eq("official_item_id", itemId);
 
-      if (error || !data) {
-        return EMPTY_USER_ITEM_DETAILS;
+      if (error) {
+        console.error("Error fetching item owners count:", error);
+        throw error;
       }
-
-      return {
-        note: (data as any).note ?? "",
-        content_name: (data as any).content_name ?? null,
-        quantity: (data as any).quantity ?? 1,
-        user_item_tags: (data as any).user_item_tags ?? [],
-      };
+      return data?.length || 0;
     },
-    enabled: isUserItem && !!itemId,
-  });
-
-  const { data: memories = [] } = useQuery({
-    queryKey: ["item-memories", [itemId]],
-    queryFn: async () => {
-      if (!isUserItem || !itemId) return [];
-      const { data, error } = await supabase
-        .from("item_memories")
-        .select("*")
-        .eq("user_item_id", itemId)
-        .order("created_at", { ascending: false });
-      if (error) return [];
-      return data || [];
-    },
-    enabled: isUserItem && !!itemId,
-  });
-
-  // いいね・owner・trades 等
-  const { data: likesCount = 0 } = useQuery({
-    queryKey: ["item-likes-count", itemId],
-    queryFn: async () => {
-      if (isUserItem) {
-        const { count, error } = await supabase
-          .from("user_item_likes")
-          .select("*", { count: 'exact', head: true })
-          .eq("user_item_id", itemId);
-        if (error) throw error;
-        return count || 0;
-      }
-      return 0;
-    },
-    enabled: isUserItem && !!itemId,
-  });
-
-  const { data: ownersCount = 0 } = useQuery({
-    queryKey: ["item-owners-count", itemId],
-    queryFn: async () => {
-      if (!isUserItem) {
-        const { data, error } = await supabase
-          .from("user_items")
-          .select("user_id")
-          .eq("official_item_id", itemId);
-
-        if (error) throw error;
-        const uniqueUserIds = new Set(data.map((item: any) => item.user_id));
-        return uniqueUserIds.size;
-      }
-      return 0;
-    },
-    enabled: !isUserItem && !!itemId,
-  });
-
-  const { data: tradesCount = 0 } = useQuery({
-    queryKey: ["item-trades-count", itemId],
-    queryFn: async () => {
-      if (!isUserItem) {
-        const { data: userItems, error: userItemsError } = await supabase
-          .from("user_items")
-          .select("id")
-          .eq("official_item_id", itemId);
-
-        if (userItemsError) throw userItemsError;
-
-        if (!userItems || userItems.length === 0) return 0;
-
-        const userItemIds = userItems.map((item: any) => item.id);
-
-        const { count, error } = await supabase
-          .from("trade_requests")
-          .select("id", { count: 'exact', head: true })
-          .or(`offered_item_id.in.(${userItemIds.join(',')}),requested_item_id.in.(${userItemIds.join(',')})`);
-
-        if (error) throw error;
-        return count || 0;
-      } else {
-        const { count, error } = await supabase
-          .from("trade_requests")
-          .select("id", { count: 'exact', head: true })
-          .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
-
-        if (error) throw error;
-        return count || 0;
-      }
-    },
-    enabled: !!itemId,
-  });
-
-  const { data: isInCollection = false } = useQuery({
-    queryKey: ["is-in-collection", itemId, user?.id],
-    queryFn: async () => {
-      if (!user || isUserItem) return isUserItem;
-      return await isItemInUserCollection(itemId, user.id);
-    },
-    enabled: !isUserItem && !!user && !!itemId,
-  });
-
-  const userTags = userItemDetails?.user_item_tags || [];
-
-  // 編集データの初期化
-  useEffect(() => {
-    if (userItemDetails && isUserItem) {
-      setEditedData((prev: any) => ({
-        ...prev,
-        note: userItemDetails.note || "",
-        content_name: userItemDetails.content_name,
-        quantity: userItemDetails.quantity || 1,
-      }));
+    {
+      enabled: isUUID(itemId),
     }
-  }, [userItemDetails, isUserItem, setEditedData]);
+  );
 
-  // Ensure all tag arrays are properly typed and processed
-  const processedOfficialTags: SimpleItemTag[] = Array.isArray(officialTags) ? 
-    officialTags.map(tag => ({
-      id: tag.tag_id || "",  // tag_idをidとして使用
-      tag_id: tag.tag_id || "",
-      tags: tag.tags
-    })) : [];
+  const { data: itemCreator, isLoading: isItemCreatorLoading } = useQuery(
+    ["item-creator", itemDetails?.created_by],
+    async () => {
+      if (!itemDetails?.created_by) {
+        return null;
+      }
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", itemDetails.created_by)
+        .single();
 
-  const processedUserTags: SimpleItemTag[] = Array.isArray(userTags) ? 
-    userTags.map(tag => ({
-      id: tag.tag_id || "",  // tag_idをidとして使用
-      tag_id: tag.tag_id || "",
-      tags: tag.tags
-    })) : [];
+      if (error) {
+        console.error("Error fetching item creator:", error);
+        throw error;
+      }
+      return data as Profile;
+    },
+    {
+      enabled: !!itemDetails?.created_by,
+    }
+  );
+
+  const handleAddToWishlist = async () => {
+    try {
+      const { error } = await supabase
+        .from("wishlists")
+        .insert({ official_item_id: itemId });
+
+      if (error) {
+        console.error("Error adding to wishlist:", error);
+        throw error;
+      }
+
+      toast({
+        title: "ウィッシュリストに追加しました",
+        description: "アイテムをウィッシュリストに追加しました。",
+      });
+
+      // Invalidate queries to update the UI
+      await queryClient.invalidateQueries({ queryKey: ["item-wishlist-count", itemId] });
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: "ウィッシュリストへの追加に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveFromWishlist = async () => {
+    try {
+      const { error } = await supabase
+        .from("wishlists")
+        .delete()
+        .eq("official_item_id", itemId);
+
+      if (error) {
+        console.error("Error removing from wishlist:", error);
+        throw error;
+      }
+
+      toast({
+        title: "ウィッシュリストから削除しました",
+        description: "アイテムをウィッシュリストから削除しました。",
+      });
+
+      // Invalidate queries to update the UI
+      await queryClient.invalidateQueries({ queryKey: ["item-wishlist-count", itemId] });
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: "ウィッシュリストからの削除に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddToCollection = useCallback(async () => {
+    try {
+      router.push(`/collection/add/${itemId}`);
+    } catch (error) {
+      console.error("Error adding to collection:", error);
+      toast({
+        title: "エラー",
+        description: "コレクションへの追加に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  }, [itemId, router, toast]);
+
+  if (isItemDetailsLoading || isItemTagsLoading || isWishlistCountLoading || isItemOwnersCountLoading || isItemCreatorLoading) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!itemDetails) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        アイテムが見つかりませんでした
+      </div>
+    );
+  }
 
   return (
     <>
-      <ModalHeader onClose={onDelete} />
-
-      {/* ヘッダー */}
-      <ItemDetailsHeaderArea
-        image={image}
-        title={title}
-        isEditing={isEditing}
-        editedData={editedData}
-        setEditedData={setEditedData}
-      />
-
-      {/* 情報メイン（タグ・メモ・思い出） */}
-      <ItemDetailsMainInfo
-        tags={isUserItem ? processedUserTags : processedOfficialTags}
-        isUserItem={isUserItem}
-        isEditing={isEditing}
-        editedData={editedData}
-        setEditedData={setEditedData}
-        memories={memories}
-        note={userItemDetails?.note}
-      />
-
-      {/* アクション（編集/保存/削除/タグ） */}
-      {isUserItem && (
-        <ItemDetailsActions
-          isEditing={isEditing}
-          isSaving={isSaving}
-          onSave={onSaveUserItem}
-          onEdit={() => setIsEditing(true)}
-          onCancel={() => setIsEditing(false)}
-          onTag={onTag}
-          onDelete={onDelete}
-        />
+      {isModal && (
+        <ModalHeader onClose={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+            <X className="h-4 w-4" />
+          </Button>
+        </ModalHeader>
       )}
-
-      {/* 統計/詳細手前部分 */}
-      <ItemStatisticsDetail
-        likesCount={likesCount}
-        ownersCount={ownersCount}
-        tradesCount={tradesCount}
-        tags={isUserItem ? processedUserTags : processedOfficialTags}
-        price={price}
-        description={description}
-        contentName={editedData.content_name || contentName}
+      <div className="px-6 py-4">
+        <h2 className="text-lg font-semibold mb-2">{itemDetails.title}</h2>
+        {itemOwnersCount > 0 && (
+          <Badge className="mb-2">
+            {itemOwnersCount}人が所持
+          </Badge>
+        )}
+        <div className="mb-4">
+          <img
+            src={itemDetails.image}
+            alt={itemDetails.title}
+            className="w-full rounded-md aspect-square object-cover"
+          />
+        </div>
+        {itemDetails.description && (
+          <p className="text-sm text-gray-600 mb-4">{itemDetails.description}</p>
+        )}
+        {itemDetails.artist && (
+          <p className="text-sm text-gray-600 mb-2">
+            アーティスト: {itemDetails.artist}
+          </p>
+        )}
+        {itemDetails.anime && (
+          <p className="text-sm text-gray-600 mb-2">
+            アニメ: {itemDetails.anime}
+          </p>
+        )}
+        {itemDetails.release_date && (
+          <p className="text-sm text-gray-600 mb-2">
+            発売日: {itemDetails.release_date}
+          </p>
+        )}
+        {itemDetails.price && (
+          <p className="text-sm text-gray-600 mb-2">
+            価格: {itemDetails.price}
+          </p>
+        )}
+        {itemLink && (
+          <p className="text-sm text-gray-600 mb-2">
+            <Link href={itemLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:underline">
+              <Link2 className="h-4 w-4" />
+              公式サイト
+            </Link>
+          </p>
+        )}
+        {itemCreator && (
+          <p className="text-sm text-gray-600 mb-2">
+            作成者: <Link href={`/profile/${itemCreator.id}`} className="hover:underline">{itemCreator.username}</Link>
+          </p>
+        )}
+        <div className="mb-4">
+          <TagList tags={itemTags} />
+        </div>
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <Button size="sm" variant="outline" onClick={handleAddToWishlist}>
+              <BookMarked className="h-4 w-4 mr-2" />
+              ウィッシュリストに追加
+            </Button>
+            <Button size="sm" onClick={handleAddToCollection}>
+              コレクションに追加
+            </Button>
+          </div>
+        </div>
+      </div>
+      <TagManageModal
+        isOpen={isTagManageModalOpen}
+        onClose={() => setIsTagManageModalOpen(false)}
+        itemId={itemId}
       />
-
-      {/* 下部公式アイテム用アクション */}
-      {!isUserItem && (
-        <ItemButtons
-          isInCollection={isInCollection}
-          itemId={itemId}
-          title={title}
-          image={image}
-          releaseDate={releaseDate}
-          price={price}
-          refetchIsInCollection={() => {}}  // 空の関数を渡す
-          refetchOwnersCount={() => {}}     // 空の関数を渡す
-        />
-      )}
     </>
   );
 }
