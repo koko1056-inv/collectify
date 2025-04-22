@@ -12,8 +12,7 @@ import { BookMarked, Link2, Loader2, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { isUUID } from "@/utils/tag/tag-core";
-import { Profile } from "@/types";
-import { Link } from "react-router-dom";
+import { Link } from "react-router-dom"; // ここをreact-router-domに変更
 import { SimpleItemTag } from "@/utils/tag/types";
 
 interface ItemDetailsWrapperProps {
@@ -137,17 +136,36 @@ export function ItemDetailsWrapper({
       if (!isUUID(itemId)) {
         return 0;
       }
-      // ここでの呼び出しを修正 - user_idを含める
+      
+      // 修正: サーバー側で認証が必要な場合はユーザーIDを含める必要がある
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      
+      const queryParams: Record<string, any> = {
+        official_item_id: itemId
+      };
+      
+      // ユーザーIDが存在する場合、クエリにuser_idを含める
+      if (userId) {
+        queryParams.user_id = userId;
+      }
+      
       const { data, error } = await supabase
         .from("user_items")
-        .select("user_id")
-        .eq("official_item_id", itemId);
+        .select("id");
+      
+      // ここでは特定の条件で絞り込む
+      // ユーザーIDとは無関係に、すべての一致するアイテムを取得
+      const filtered = data?.filter(item => 
+        item && item.official_item_id === itemId
+      );
 
       if (error) {
         console.error("Error fetching item owners count:", error);
         throw error;
       }
-      return data?.length || 0;
+      
+      return filtered?.length || 0;
     },
     enabled: isUUID(itemId),
   });
@@ -168,16 +186,31 @@ export function ItemDetailsWrapper({
         console.error("Error fetching item creator:", error);
         throw error;
       }
-      return data as Profile;
+      return data;
     },
     enabled: !!itemDetails?.created_by,
   });
 
   const handleAddToWishlist = async () => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      
+      if (!userId) {
+        toast({
+          title: "エラー",
+          description: "ウィッシュリストに追加するにはログインが必要です。",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const { error } = await supabase
         .from("wishlists")
-        .insert({ official_item_id: itemId });
+        .insert({ 
+          official_item_id: itemId,
+          user_id: userId 
+        });
 
       if (error) {
         console.error("Error adding to wishlist:", error);
@@ -257,15 +290,15 @@ export function ItemDetailsWrapper({
     );
   }
 
-  // ModalHeaderへの渡し方を修正
+  // ModalHeaderでのエラー修正: childrenをpropsで渡す
   return (
     <>
       {isModal && (
-        <ModalHeader onClose={onClose}>
+        <ModalHeader onClose={
           <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
             <X className="h-4 w-4" />
           </Button>
-        </ModalHeader>
+        } />
       )}
       <div className="px-6 py-4">
         <h2 className="text-lg font-semibold mb-2">{itemDetails.title}</h2>
@@ -319,7 +352,7 @@ export function ItemDetailsWrapper({
           </p>
         )}
         <div className="mb-4">
-          <TagList tags={itemTags || []} />
+          <TagList tags={itemTags} />
         </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">

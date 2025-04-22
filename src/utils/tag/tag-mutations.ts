@@ -33,21 +33,23 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    let insertData: Record<string, any> = {};
+    // 型安全に扱うために明示的に型を指定する
+    let insertData: {
+      tag_id: string;
+      user_item_id?: string;
+      official_item_id?: string;
+      user_id?: string;
+    } = {
+      tag_id: tagId,
+    };
     
     if (isUserItem) {
-      insertData = { 
-        tag_id: tagId, 
-        user_item_id: itemId 
-      };
+      insertData.user_item_id = itemId;
       if (userId) {
         insertData.user_id = userId;
       }
     } else {
-      insertData = { 
-        tag_id: tagId, 
-        official_item_id: itemId 
-      };
+      insertData.official_item_id = itemId;
     }
 
     // タグを追加
