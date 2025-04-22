@@ -1,6 +1,7 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Twitter, Facebook, Share2 } from "lucide-react";
+import { Share2, Facebook, Twitter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ShareModalProps {
@@ -29,6 +30,24 @@ export function ShareModal({ isOpen, onClose, title, url, image }: ShareModalPro
         break;
       case 'line':
         shareLink = `https://social-plugins.line.me/lineit/share?url=${shareUrl}`;
+        break;
+      case 'tiktok':
+        // TikTokはブラウザ共有APIを使用
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: title,
+              text: "TikTokで共有",
+              url: url,
+            });
+            onClose();
+            return;
+          } catch (error) {
+            console.error('Error sharing:', error);
+          }
+        }
+        // フォールバック: TikTokアプリを開く
+        shareLink = `https://www.tiktok.com/share?url=${shareUrl}`;
         break;
       default:
         if (navigator.share) {
@@ -80,6 +99,14 @@ export function ShareModal({ isOpen, onClose, title, url, image }: ShareModalPro
           >
             <Facebook className="h-5 w-5 text-blue-600" />
             Facebook で共有
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-2"
+            onClick={() => handleShare('tiktok')}
+          >
+            <img src="/tiktok-icon.svg" alt="TikTok" className="h-5 w-5" />
+            TikTok で共有
           </Button>
           <Button
             variant="outline"
