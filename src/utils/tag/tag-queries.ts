@@ -1,5 +1,52 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { SimpleItemTag } from "./types";
+
+// アイテムのタグを取得する関数
+export async function getTagsForItem(
+  itemId: string | null,
+  isUserItem: boolean = false
+): Promise<SimpleItemTag[]> {
+  if (!itemId) return [];
+
+  try {
+    // テーブル名を決定
+    const tableName = isUserItem ? "user_item_tags" : "item_tags";
+    const itemColumn = isUserItem ? "user_item_id" : "official_item_id";
+
+    // タグを取得するクエリ
+    const { data, error } = await supabase
+      .from(tableName)
+      .select(`
+        tag_id,
+        tags:tags (
+          id,
+          name,
+          category,
+          created_at
+        )
+      `)
+      .eq(itemColumn, itemId);
+
+    if (error) {
+      console.error(`Error fetching tags for ${tableName}:`, error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // 結果を変換して返す
+    return data.map(item => ({
+      tag_id: item.tag_id,
+      tags: item.tags
+    }));
+  } catch (error) {
+    console.error(`Error in getTagsForItem for ${itemId}:`, error);
+    return [];
+  }
+}
 
 // アイテムがユーザーのコレクションに存在するかチェック
 export const isItemInUserCollection = async (itemId: string, userId: string) => {

@@ -10,7 +10,6 @@ export {
   isItemInUserCollection,
 } from './tag/tag-queries';
 export {
-  getTagsByCategory,
   findTagIdByName,
   isSimpleTag
 } from './tag/tag-search';

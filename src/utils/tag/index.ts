@@ -6,7 +6,8 @@ export * from './tag-queries';
 export * from './tag-copy';
 export * from './content-operations';
 export * from './user-item-operations';
-export * from './tag-search';
+// tag-searchからのエクスポートは重複するため、個別に必要な関数だけを再エクスポート
+export { findTagIdByName, isSimpleTag } from './tag-search';
 export * from './tag-groups';
 
 // types.tsから直接型をインポートして再エクスポート（重複を避けるため）
