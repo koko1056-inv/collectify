@@ -8,6 +8,15 @@ export interface Tag {
   count?: number;
 }
 
+// Simple Tag definition for backwards compatibility
+export interface SimpleTag {
+  id: string;
+  name: string;
+  category?: string;
+  created_at?: string;
+  count?: number;
+}
+
 // Simple Item Tag structure
 export interface SimpleItemTag {
   id: string;
@@ -34,4 +43,27 @@ export interface UserItemWithTags {
 export interface ItemsGroupedByTag {
   group_name: string;
   items: any[];
+}
+
+// Tag Groups
+export interface TagGroup {
+  id: string;
+  name: string;
+  created_by: string;
+  created_at: string;
+}
+
+// Content Info
+export interface ContentInfo {
+  id: string;
+  name: string;
+  type: string;
+  created_at?: string;
+  created_by?: string;
+  icon_name?: string;
+}
+
+// Tag Grouped Items
+export interface TagGroupedItems {
+  [tagName: string]: any[];
 }

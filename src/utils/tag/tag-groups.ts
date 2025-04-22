@@ -1,11 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleTag } from "./types";
-
-// 定義：タグでグループ化されたアイテム型
-export interface TagGroupedItems {
-  [tagName: string]: any[];
-}
+import { Tag, TagGroup, TagGroupedItems, ItemsGroupedByTag } from "./types";
 
 // タグでグループ化されたアイテムを取得する関数
 export async function getItemsGroupedByTag(
@@ -92,18 +86,52 @@ export async function getItemsGroupedByTag(
 // カスタムグループでアイテムをグループ化する関数
 export async function getItemsGroupedByCustomGroups(
   userId: string
-): Promise<TagGroupedItems> {
+): Promise<ItemsGroupedByTag[]> {
   // 現時点ではカスタムグループ機能は実装されていないため、単純にタグでグループ化した結果を返す
   // 将来的にカスタムグループ機能を実装する際に、この関数を拡張することができます
-  return getItemsGroupedByTag(userId);
-}
+  try {
+    const { data, error } = await supabase
+      .from("user_items")
+      .select(`
+        id,
+        title,
+        image,
+        content_name,
+        quantity,
+        user_item_tags (
+          tags (
+            id,
+            name,
+            category
+          )
+        )
+      `)
+      .eq("user_id", userId);
 
-// タググループ型
-export interface TagGroup {
-  id: string;
-  name: string;
-  created_by: string;
-  created_at: string;
+    if (error) {
+      console.error("Error fetching user items for grouping:", error);
+      return [];
+    }
+
+    // コンテンツ名でグループ化
+    const groupedByContent: Record<string, any[]> = {};
+    data?.forEach(item => {
+      const contentKey = item.content_name || "Other";
+      if (!groupedByContent[contentKey]) {
+        groupedByContent[contentKey] = [];
+      }
+      groupedByContent[contentKey].push(item);
+    });
+
+    // 結果をフォーマット
+    return Object.entries(groupedByContent).map(([groupName, items]) => ({
+      group_name: groupName,
+      items: items
+    }));
+  } catch (error) {
+    console.error("Error grouping items by custom groups:", error);
+    return [];
+  }
 }
 
 // タググループを取得する関数

@@ -45,7 +45,6 @@ interface ItemDetailsWrapperProps {
   isSaving: boolean;
   onTag: () => void;
   onDelete: () => void;
-  setIsTagModalOpen: (open: boolean) => void;
 }
 
 export function ItemDetailsWrapper({
@@ -202,68 +201,6 @@ export function ItemDetailsWrapper({
     enabled: !!itemId,
   });
 
-  // モック関数を適切な型で実装
-  const refetchOwnersCount = async (): Promise<QueryObserverResult<number, Error>> => {
-    console.log("Refetching owners count");
-    return {
-      data: ownersCount,
-      dataUpdatedAt: Date.now(),
-      error: null,
-      errorUpdateCount: 0,
-      errorUpdatedAt: 0,
-      failureCount: 0,
-      failureReason: null,
-      fetchStatus: 'idle',
-      isError: false,
-      isFetched: true,
-      isFetchedAfterMount: true,
-      isFetching: false,
-      isLoading: false,
-      isLoadingError: false,
-      isPaused: false,
-      isPending: false,
-      isPlaceholderData: false,
-      isRefetchError: false,
-      isRefetching: false,
-      isStale: false,
-      isSuccess: true,
-      isInitialLoading: false,
-      refetch: async () => refetchOwnersCount(),
-      status: 'success',
-    };
-  };
-
-  // モック関数を適切な型で実装
-  const refetchIsInCollection = async (): Promise<QueryObserverResult<boolean, Error>> => {
-    console.log("Refetching is in collection");
-    return {
-      data: isInCollection,
-      dataUpdatedAt: Date.now(),
-      error: null,
-      errorUpdateCount: 0,
-      errorUpdatedAt: 0,
-      failureCount: 0,
-      failureReason: null,
-      fetchStatus: 'idle',
-      isError: false,
-      isFetched: true,
-      isFetchedAfterMount: true,
-      isFetching: false,
-      isLoading: false,
-      isLoadingError: false,
-      isPaused: false,
-      isPending: false,
-      isPlaceholderData: false,
-      isRefetchError: false,
-      isRefetching: false,
-      isStale: false,
-      isSuccess: true,
-      isInitialLoading: false,
-      refetch: async () => refetchIsInCollection(),
-      status: 'success',
-    };
-  };
-
   const { data: isInCollection = false } = useQuery({
     queryKey: ["is-in-collection", itemId, user?.id],
     queryFn: async () => {
@@ -287,6 +224,21 @@ export function ItemDetailsWrapper({
     }
   }, [userItemDetails, isUserItem, setEditedData]);
 
+  // Ensure all tag arrays are properly typed and processed
+  const processedOfficialTags: SimpleItemTag[] = Array.isArray(officialTags) ? 
+    officialTags.map(tag => ({
+      id: tag.id || tag.tag_id || "",
+      tag_id: tag.tag_id || "",
+      tags: tag.tags
+    })) : [];
+
+  const processedUserTags: SimpleItemTag[] = Array.isArray(userTags) ? 
+    userTags.map(tag => ({
+      id: tag.id || tag.tag_id || "",
+      tag_id: tag.tag_id || "",
+      tags: tag.tags
+    })) : [];
+
   return (
     <>
       <ModalHeader onClose={onDelete} />
@@ -302,7 +254,7 @@ export function ItemDetailsWrapper({
 
       {/* 情報メイン（タグ・メモ・思い出） */}
       <ItemDetailsMainInfo
-        tags={isUserItem ? userTags : officialTags}
+        tags={isUserItem ? processedUserTags : processedOfficialTags}
         isUserItem={isUserItem}
         isEditing={isEditing}
         editedData={editedData}
@@ -329,7 +281,7 @@ export function ItemDetailsWrapper({
         likesCount={likesCount}
         ownersCount={ownersCount}
         tradesCount={tradesCount}
-        tags={isUserItem ? userTags : officialTags}
+        tags={isUserItem ? processedUserTags : processedOfficialTags}
         price={price}
         description={description}
         contentName={editedData.content_name || contentName}

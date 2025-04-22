@@ -33,9 +33,21 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    const insertData = isUserItem 
-      ? { tag_id: tagId, user_item_id: itemId, ...(userId ? { user_id: userId } : {}) }
-      : { tag_id: tagId, official_item_id: itemId };
+    let insertData;
+    if (isUserItem) {
+      insertData = { 
+        tag_id: tagId, 
+        user_item_id: itemId 
+      };
+      if (userId) {
+        insertData.user_id = userId;
+      }
+    } else {
+      insertData = { 
+        tag_id: tagId, 
+        official_item_id: itemId 
+      };
+    }
 
     // タグを追加
     const { data, error } = await supabase

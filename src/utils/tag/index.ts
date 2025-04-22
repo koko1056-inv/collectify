@@ -8,16 +8,16 @@ export * from './content-operations';
 export * from './user-item-operations';
 // tag-searchからのエクスポートは重複するため、個別に必要な関数だけを再エクスポート
 export { findTagIdByName, isSimpleTag } from './tag-search';
-export { getItemsGroupedByTag } from './tag-groups';
+export { getItemsGroupedByTag, getItemsGroupedByCustomGroups } from './tag-groups';
 
 // types.tsから直接型をインポートして再エクスポート（重複を避けるため）
 export type { 
+  Tag,
   SimpleTag,
   SimpleItemTag,
   TagGroup,
-  ContentInfo
+  ContentInfo,
+  TagGroupedItems,
+  ItemsGroupedByTag,
+  UserItemWithTags
 } from './types';
-
-export interface TagGroupedItems {
-  [tagName: string]: any[];
-}

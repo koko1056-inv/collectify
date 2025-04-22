@@ -16,6 +16,7 @@ import { deleteUserItem } from "@/utils/tag/user-item-operations";
 import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
 import { ItemNoteField } from "./item-details/ItemNoteField";
 import { QuantityInput } from "./item-details/QuantityInput";
+import { X } from "lucide-react";
 interface ItemDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -336,7 +337,11 @@ export function ItemDetailsModal({
   return <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
-          <ModalHeader onClose={onClose} />
+          <ModalHeader onClose={
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+              <X className="h-4 w-4" />
+            </Button>
+          } />
 
           {/* メインコンテンツ */}
           <ItemDetailsContent image={image} title={title} tags={officialTags} isUserItem={isUserItem} isEditing={isEditing} editedData={editedData} setEditedData={setEditedData} contentName={editedData.content_name ?? contentName} releaseDate={releaseDate} createdBy={createdBy} description={description} />
@@ -358,6 +363,42 @@ export function ItemDetailsModal({
 
           {/* 下部固定エリア */}
           
+
+          {/* 編集/保存/削除ボタン（ユーザーアイテムのみ） */}
+          {isUserItem && <div className="flex justify-between items-center p-4 border-t border-gray-100">
+              {isEditing ? <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => {
+                    handleSaveUserItemFields();
+                  }} disabled={isSaving}>
+                      {isSaving ? "保存中..." : "保存"}
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                    setIsEditing(false);
+                    setEditedData({
+                      image,
+                      title,
+                      price,
+                      description,
+                      quantity,
+                      note: undefined,
+                      content_name: contentName ?? null
+                    });
+                  }}>
+                      キャンセル
+                    </Button>
+                  </div> : <Button onClick={() => setIsEditing(true)}>
+                    編集する
+                  </Button>}
+
+              <Button variant="destructive" size="icon" onClick={() => setIsDeleteConfirmOpen(true)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>}
+
+          {/* 公式アイテムの場合：コレクションに追加ボタン */}
+          {!isUserItem && <div className="p-4 border-t border-gray-100">
+              <ItemButtons isInCollection={isInCollection} itemId={itemId} title={title} image={image} releaseDate={releaseDate} price={price} refetchIsInCollection={refetchIsInCollection} refetchOwnersCount={refetchOwnersCount} />
+            </div>}
         </DialogContent>
       </Dialog>
 
@@ -378,6 +419,12 @@ export function ItemDetailsModal({
         </Dialog>}
       
       {/* タグ管理モーダル */}
-      <TagManageModal isOpen={isTagModalOpen} onClose={() => setIsTagModalOpen(false)} itemIds={[itemId]} itemTitle={title} isUserItem={isUserItem} />
+      <TagManageModal 
+        isOpen={isTagModalOpen} 
+        onClose={() => setIsTagModalOpen(false)} 
+        itemIds={[itemId]} 
+        itemTitle={title} 
+        isUserItem={isUserItem} 
+      />
     </>;
 }

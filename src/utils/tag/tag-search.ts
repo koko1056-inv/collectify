@@ -1,11 +1,10 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleTag } from "./types";
+import { SimpleTag, Tag } from "./types";
 
 // カテゴリーごとのタグを取得
 export async function getTagsByCategory(
   category: string
-): Promise<SimpleTag[]> {
+): Promise<Tag[]> {
   try {
     const { data, error } = await supabase
       .from("tags")
@@ -18,7 +17,7 @@ export async function getTagsByCategory(
       return [];
     }
     
-    return data as SimpleTag[];
+    return data as Tag[];
   } catch (error) {
     console.error(`Error in getTagsByCategory for ${category}:`, error);
     return [];

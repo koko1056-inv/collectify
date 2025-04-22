@@ -1,8 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag, Tag } from "./types";
+import { SimpleItemTag, Tag, ItemsGroupedByTag } from "./types";
 
-export async function getTagsForItem(itemId: string, isUserItem: boolean = false) {
+export async function getTagsForItem(itemId: string, isUserItem: boolean = false): Promise<SimpleItemTag[]> {
   const table = isUserItem ? "user_item_tags" : "item_tags";
   const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
 
@@ -22,7 +21,13 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
       .eq(itemIdField, itemId);
 
     if (error) throw error;
-    return data || [];
+    
+    // Ensure each item has the required fields
+    return (data || []).map(item => ({
+      id: item.id,
+      tag_id: item.tag_id,
+      tags: item.tags
+    }));
   } catch (error) {
     console.error("Error fetching tags for item:", error);
     return [];
@@ -98,7 +103,7 @@ export function isSimpleTag(obj: any): obj is Tag {
  * @param userId ユーザーID
  * @returns タグでグループ化されたアイテムの配列
  */
-export async function getItemsGroupedByTag(userId: string) {
+export async function getItemsGroupedByTag(userId: string, tagCategory?: string): Promise<ItemsGroupedByTag[]> {
   try {
     const { data, error } = await supabase.rpc('get_items_grouped_by_tag', {
       param_user_id: userId,
@@ -121,7 +126,7 @@ export async function getItemsGroupedByTag(userId: string) {
  * @param userId ユーザーID
  * @returns カスタムグループでグループ化されたアイテムの配列
  */
-export async function getItemsGroupedByCustomGroups(userId: string) {
+export async function getItemsGroupedByCustomGroups(userId: string): Promise<ItemsGroupedByTag[]> {
   try {
     // ユーザーのコレクションを取得
     const { data, error } = await supabase
