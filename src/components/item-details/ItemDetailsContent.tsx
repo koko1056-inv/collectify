@@ -1,3 +1,4 @@
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -11,17 +12,12 @@ import { ItemDescriptionField } from "./ItemDescriptionField";
 import { TagsSection } from "./TagsSection";
 import { ItemNoteField } from "./ItemNoteField";
 import { ItemDetailInfo } from "./ItemDetailInfo";
+import { SimpleItemTag } from "@/utils/tag/types";
 
 interface ItemDetailsContentProps {
   image: string;
   title: string;
-  tags?: Array<{
-    tags: {
-      id: string;
-      name: string;
-      category?: string;
-    } | null;
-  }>;
+  tags?: SimpleItemTag[];
   memories?: any[];
   isUserItem?: boolean;
   isEditing: boolean;

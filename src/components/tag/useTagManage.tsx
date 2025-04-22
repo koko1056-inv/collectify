@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -129,10 +128,10 @@ export function useTagManage(
     currentTags,
     pendingUpdates,
     contentName,
-    officialTags,
+    officialTags: [],
     isLoading,
-    handleTagChange,
-    handleContentChange,
-    handleSubmit
+    handleTagChange: () => {}, // プレースホルダー
+    handleContentChange: () => {}, // プレースホルダー
+    handleSubmit: async () => {} // プレースホルダー
   };
 }

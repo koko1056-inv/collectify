@@ -71,8 +71,10 @@ export function CreatorSection({
             <div className="font-medium">アイテム情報</div>
             <div className="text-gray-600">
               このアイテムは
-              {createdBy && creatorProfile && (
+              {createdBy && creatorProfile ? (
                 <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
+              ) : (
+                <span className="font-medium"> 不明なユーザー </span>
               )}
               によって登録されました。
             </div>

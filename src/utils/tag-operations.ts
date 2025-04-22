@@ -7,6 +7,7 @@ export * from './tag/index';
 export { addTagToItem, removeTagFromItem } from './tag/tag-mutations';
 export { 
   isItemInUserCollection,
+  getTagsForItem
 } from './tag/tag-queries';
 export {
   findTagIdByName,

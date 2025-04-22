@@ -18,6 +18,7 @@ export async function getTagsForItem(
     const { data, error } = await supabase
       .from(tableName)
       .select(`
+        id,
         tag_id,
         tags (
           id,
