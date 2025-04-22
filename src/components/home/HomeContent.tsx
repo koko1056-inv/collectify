@@ -1,5 +1,6 @@
 
 import { FeaturedCollections } from "@/components/home/FeaturedCollections";
+import { PopularCollectors } from "@/components/profile/PopularCollectors";
 import { Profile } from "@/types";
 
 interface HomeContentProps {
@@ -10,7 +11,10 @@ export function HomeContent({ profile }: HomeContentProps) {
   return (
     <div className="space-y-6">
       <FeaturedCollections />
-      {/* PopularCollectorsコンポーネントを削除 */}
+      
+      <div className="mt-8">
+        <PopularCollectors />
+      </div>
     </div>
   );
 }
