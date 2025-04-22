@@ -70,8 +70,8 @@ export function ItemDetailsContent({
   };
 
   return (
-    <ScrollArea className="flex-1 max-h-[calc(70vh-100px)] px-6">
-      <div className="space-y-4 bg-white pb-6">
+    <ScrollArea className="flex-1 max-h-[calc(80vh-100px)] px-4">
+      <div className="space-y-4 bg-white pb-6 pt-2 visible">
         {/* 画像表示エリアの改善 */}
         <div className="w-full aspect-square relative overflow-hidden rounded-lg bg-white">
           <ItemImageEditor
