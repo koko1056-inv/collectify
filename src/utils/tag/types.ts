@@ -1,69 +1,29 @@
 
-// Basic Tag definition
-export interface Tag {
-  id: string;
-  name: string;
-  category?: string | null;
-  created_at?: string;
-  count?: number;
-}
+import { Tag as TagBase } from "@/types/tag";
 
-// Simple Tag definition for backwards compatibility
-export interface SimpleTag {
+/**
+ * ベーシックなタグ型
+ */
+export interface Tag extends TagBase {
   id: string;
   name: string;
   category?: string;
   created_at?: string;
-  count?: number;
 }
 
-// Simple Item Tag structure
+/**
+ * 簡易版のアイテムタグ型
+ */
 export interface SimpleItemTag {
-  id?: string;
-  tag_id: string;
-  tags?: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  };
-}
-
-// User Items with Tags
-export interface UserItemWithTags {
   id: string;
-  title: string;
-  image: string;
-  user_item_tags: {
-    tags: Tag;
-  }[];
+  tag_id: string;
+  tags: Tag | null;
 }
 
-// Grouped items by tag
+/**
+ * タグでグループ化されたアイテム
+ */
 export interface ItemsGroupedByTag {
   group_name: string;
-  items: any[];
-}
-
-// Tag Groups
-export interface TagGroup {
-  id: string;
-  name: string;
-  created_by: string;
-  created_at: string;
-}
-
-// Content Info
-export interface ContentInfo {
-  id: string;
-  name: string;
-  type: string;
-  created_at?: string;
-  created_by?: string;
-  icon_name?: string;
-}
-
-// Tag Grouped Items
-export interface TagGroupedItems {
-  [tagName: string]: any[];
+  items: any[]; // アイテムの詳細はサーバーからの応答によって異なる場合がある
 }

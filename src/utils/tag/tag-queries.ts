@@ -129,6 +129,21 @@ export async function getItemsGroupedByTag(userId: string, tagCategory?: string)
  * @returns カスタムグループでグループ化されたアイテムの配列
  */
 export async function getItemsGroupedByCustomGroups(userId: string): Promise<ItemsGroupedByTag[]> {
+  type GroupedItem = {
+    id: string;
+    title: string;
+    image: string;
+    content_name: string | null;
+    quantity: number;
+    user_item_tags: {
+      tags: {
+        id: string;
+        name: string;
+        category: string | null;
+      } | null;
+    }[];
+  };
+
   try {
     // ユーザーのコレクションを取得
     const { data, error } = await supabase
@@ -155,8 +170,8 @@ export async function getItemsGroupedByCustomGroups(userId: string): Promise<Ite
     }
 
     // コンテンツ名でグループ化
-    const groupedByContent: Record<string, any[]> = {};
-    data?.forEach(item => {
+    const groupedByContent: Record<string, GroupedItem[]> = {};
+    (data as GroupedItem[] || []).forEach(item => {
       const contentKey = item.content_name || "Other";
       if (!groupedByContent[contentKey]) {
         groupedByContent[contentKey] = [];

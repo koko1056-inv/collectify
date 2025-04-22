@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -284,7 +283,7 @@ export function ItemDetailsWrapper({
   return (
     <>
       {isModal && (
-        <ModalHeader>
+        <ModalHeader onClose={onClose ? onClose : () => {}}>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
             <X className="h-4 w-4" />
           </Button>
@@ -360,7 +359,7 @@ export function ItemDetailsWrapper({
         isOpen={isTagManageModalOpen}
         onClose={() => setIsTagManageModalOpen(false)}
         itemIds={[itemId]}
-        itemTitle={itemDetails.title}
+        itemTitle={itemTitle}
       />
     </>
   );
