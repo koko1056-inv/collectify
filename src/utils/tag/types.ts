@@ -1,3 +1,4 @@
+
 // 基本的なタグ型
 export interface SimpleTag {
   id: string;
@@ -40,4 +41,3 @@ export interface ContentInfo {
   created_by?: string;
   icon_name?: string;
 }
-
