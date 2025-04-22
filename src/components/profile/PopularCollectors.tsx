@@ -75,24 +75,26 @@ export function PopularCollectors() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-1 pl-4 mb-2">
-        <Button
-          variant={selectedContent === null ? "default" : "outline"}
-          size="sm"
-          onClick={() => setSelectedContent(null)}
-        >
-          すべて
-        </Button>
-        {contentNames.map((content) => (
+      <div className="overflow-x-auto no-scrollbar">
+        <div className="flex gap-1 pl-4 mb-2 whitespace-nowrap">
           <Button
-            key={content.id}
-            variant={selectedContent === content.name ? "default" : "outline"}
+            variant={selectedContent === null ? "default" : "outline"}
             size="sm"
-            onClick={() => setSelectedContent(content.name)}
+            onClick={() => setSelectedContent(null)}
           >
-            {content.name}
+            すべて
           </Button>
-        ))}
+          {contentNames.map((content) => (
+            <Button
+              key={content.id}
+              variant={selectedContent === content.name ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedContent(content.name)}
+            >
+              {content.name}
+            </Button>
+          ))}
+        </div>
       </div>
 
       <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>

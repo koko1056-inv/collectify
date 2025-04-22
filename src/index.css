@@ -30,3 +30,12 @@
 .logo-text {
   @apply font-['Righteous'] text-xl tracking-wider;
 }
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
