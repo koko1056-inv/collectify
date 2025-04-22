@@ -5,7 +5,6 @@ import { ProfileCard } from "./ProfileCard";
 import { ShareModal } from "@/components/ShareModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
-import { ThemeSelector } from "./ThemeSelector";
 
 export function ProfilePage() {
   const isMobile = useIsMobile();
@@ -17,7 +16,6 @@ export function ProfilePage() {
       <Navbar />
       <main className={`container mx-auto pt-28 ${isMobile ? 'px-0' : 'px-4'}`}>
         <div className={`${isMobile ? '' : 'max-w-3xl mx-auto'} space-y-6`}>
-          <ThemeSelector />
           <ProfileCard 
             onShare={() => setIsShareModalOpen(true)}
             setUsername={setUsername}
