@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -178,7 +177,7 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
                 <Button
                   key={content.id}
                   variant={selectedInterests.includes(content.name) ? "default" : "outline"}
-                  className="w-full justify-start text-sm"
+                  className="w-full justify-start text-sm px-2 truncate" // 追加: truncate と余白の調整
                   onClick={() => handleToggleContent(content.name)}
                 >
                   {content.name}
