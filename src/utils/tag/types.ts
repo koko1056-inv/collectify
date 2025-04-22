@@ -11,7 +11,7 @@ export interface SimpleTag {
 export interface SimpleItemTag {
   id?: string;
   tag_id: string;
-  tags: {
+  tags?: {
     id: string;
     name: string;
     category?: string;

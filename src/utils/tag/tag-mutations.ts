@@ -35,10 +35,12 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    const insertData: any = {
-      [itemIdField]: itemId,
+    const insertData: Record<string, string> = {
       tag_id: tagId,
     };
+    
+    // itemIdFieldに適切な値をセット
+    insertData[itemIdField] = itemId;
 
     // ユーザーアイテムの場合はユーザーIDも追加
     if (isUserItem && userId) {
@@ -50,6 +52,7 @@ export async function addTagToItem(
       .from(table)
       .insert(insertData)
       .select(`
+        id,
         tag_id,
         tags:tag_id (
           id,
@@ -64,6 +67,7 @@ export async function addTagToItem(
     
     // SimpleItemTagの形式に変換して返す
     return {
+      id: data.id,
       tag_id: data.tag_id,
       tags: data.tags || null
     };

@@ -113,17 +113,21 @@ export function useItemSubmit({
 
       console.log("Form data:", formData);
 
+      // categoryフィールドはデータベースに存在しないため、削除
+      const dataToInsert = {
+        title: dbFormData.title,
+        description: dbFormData.description || "",
+        content_name: dbFormData.content_name || null,
+        item_type: dbFormData.item_type || "official",
+        image: imageUrl,
+        price: "0",
+        release_date: new Date().toISOString().split('T')[0],
+        created_by: user?.id,
+      };
+
       const { data: itemData, error: itemError } = await supabase
         .from("official_items")
-        .insert([
-          {
-            ...dbFormData,
-            image: imageUrl,
-            price: "0",
-            release_date: new Date().toISOString(),
-            created_by: user?.id,
-          },
-        ])
+        .insert([dataToInsert])
         .select()
         .single();
 

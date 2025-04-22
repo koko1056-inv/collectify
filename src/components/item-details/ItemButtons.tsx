@@ -2,10 +2,9 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient, QueryObserverResult } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ItemButtonsProps {
   isInCollection: boolean;
@@ -14,8 +13,8 @@ interface ItemButtonsProps {
   image: string;
   releaseDate: string;
   price?: string;
-  refetchIsInCollection: () => Promise<QueryObserverResult<boolean, Error>>;
-  refetchOwnersCount: () => Promise<QueryObserverResult<number, Error>>;
+  refetchIsInCollection: () => Promise<any>;
+  refetchOwnersCount: () => Promise<any>;
 }
 
 export function ItemButtons({
@@ -59,8 +58,25 @@ export function ItemButtons({
         official_item_id: itemId
       }).select().single();
       if (insertError) throw insertError;
+
+      // タグをコピー
       if (data) {
-        await copyTagsFromOfficialItem(itemId, data.id);
+        // タグコピー処理（既存実装を利用）
+        const { data: tags, error: tagsError } = await supabase
+          .from("item_tags")
+          .select("tag_id")
+          .eq("official_item_id", itemId);
+        
+        if (!tagsError && tags && tags.length > 0) {
+          for (const tag of tags) {
+            await supabase
+              .from("user_item_tags")
+              .insert({
+                user_item_id: data.id,
+                tag_id: tag.tag_id
+              });
+          }
+        }
       }
 
       // 状態を更新
