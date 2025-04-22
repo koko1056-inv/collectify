@@ -97,21 +97,21 @@ export function FeaturedCollections() {
         
         <TabsContent value="today" className="mt-0">
           {isTodayLoading ? (
-            <div className="flex gap-4 overflow-x-auto pb-4">
+            <div className="flex gap-2 overflow-x-auto pb-4">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-2 min-w-[150px]">
-                  <Skeleton className="h-36 w-[150px] rounded-md" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
+                <div key={i} className="space-y-1 min-w-[100px]">
+                  <Skeleton className="h-24 w-[100px] rounded-md" />
+                  <Skeleton className="h-3 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
               ))}
             </div>
           ) : (
             <div className="relative">
               <Carousel className="w-full" opts={{ dragFree: true }}>
-                <CarouselContent className="-ml-2 md:-ml-4">
+                <CarouselContent className="-ml-1 md:-ml-2">
                   {todayItems.map((item) => (
-                    <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                    <CarouselItem key={item.id} className="pl-1 md:pl-2 basis-1/3 md:basis-1/4 lg:basis-1/5">
                       <CollectionGoodsCard
                         id={item.id}
                         title={item.title}
@@ -128,9 +128,9 @@ export function FeaturedCollections() {
               </Carousel>
               
               {isMobile && todayItems.length > 3 && (
-                <div className="flex justify-center items-center mt-2 text-gray-500 text-xs bg-gray-100 py-1 px-2 rounded-full mx-auto w-fit">
+                <div className="flex justify-center items-center mt-1 text-gray-500 text-[10px] bg-gray-100 py-1 px-2 rounded-full mx-auto w-fit">
                   <span>スワイプでもっと見る</span>
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <ChevronRight className="h-3 w-3 ml-1" />
                 </div>
               )}
             </div>
@@ -139,21 +139,21 @@ export function FeaturedCollections() {
         
         <TabsContent value="trending" className="mt-0">
           {isTrendingLoading ? (
-            <div className="flex gap-4 overflow-x-auto pb-4">
+            <div className="flex gap-2 overflow-x-auto pb-4">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-2 min-w-[150px]">
-                  <Skeleton className="h-36 w-[150px] rounded-md" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
+                <div key={i} className="space-y-1 min-w-[100px]">
+                  <Skeleton className="h-24 w-[100px] rounded-md" />
+                  <Skeleton className="h-3 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
               ))}
             </div>
           ) : (
             <div className="relative">
               <Carousel className="w-full" opts={{ dragFree: true }}>
-                <CarouselContent className="-ml-2 md:-ml-4">
+                <CarouselContent className="-ml-1 md:-ml-2">
                   {trendingItems.map((item) => (
-                    <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5">
+                    <CarouselItem key={item.id} className="pl-1 md:pl-2 basis-1/3 md:basis-1/4 lg:basis-1/5">
                       <CollectionGoodsCard
                         id={item.id}
                         title={item.title}
@@ -170,9 +170,9 @@ export function FeaturedCollections() {
               </Carousel>
               
               {isMobile && trendingItems.length > 3 && (
-                <div className="flex justify-center items-center mt-2 text-gray-500 text-xs bg-gray-100 py-1 px-2 rounded-full mx-auto w-fit">
+                <div className="flex justify-center items-center mt-1 text-gray-500 text-[10px] bg-gray-100 py-1 px-2 rounded-full mx-auto w-fit">
                   <span>スワイプでもっと見る</span>
-                  <ChevronRight className="h-4 w-4 ml-1" />
+                  <ChevronRight className="h-3 w-3 ml-1" />
                 </div>
               )}
             </div>
