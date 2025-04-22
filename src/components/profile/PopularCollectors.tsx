@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,10 +66,11 @@ export function PopularCollectors() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between pl-4">
-        <h2 className="text-lg font-semibold">人気のコレクター</h2>
+        <h2 className="text-[15px] font-semibold">人気のコレクター</h2>
         <Button 
           size="sm" 
           variant="outline"
+          className="text-[10px]"
           onClick={() => setIsFilterOpen(true)}
         >
           フィルター
@@ -80,6 +82,7 @@ export function PopularCollectors() {
           <Button
             variant={selectedContent === null ? "default" : "outline"}
             size="sm"
+            className="text-[10px]"
             onClick={() => setSelectedContent(null)}
           >
             すべて
@@ -89,6 +92,7 @@ export function PopularCollectors() {
               key={content.id}
               variant={selectedContent === content.name ? "default" : "outline"}
               size="sm"
+              className="text-[10px]"
               onClick={() => setSelectedContent(content.name)}
             >
               {content.name}
