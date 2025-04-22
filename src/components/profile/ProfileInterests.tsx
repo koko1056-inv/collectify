@@ -43,6 +43,8 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
         return prev.filter(name => name !== contentName);
       } else {
         return [...prev, contentName];
+      } else {
+        return [...prev, contentName];
       }
     });
   };
@@ -177,7 +179,7 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
                 <Button
                   key={content.id}
                   variant={selectedInterests.includes(content.name) ? "default" : "outline"}
-                  className="w-full justify-start text-sm px-2 truncate" // 追加: truncate と余白の調整
+                  className="w-full justify-center text-sm px-2 truncate" // 変更: justify-start から justify-center に変更
                   onClick={() => handleToggleContent(content.name)}
                 >
                   {content.name}
