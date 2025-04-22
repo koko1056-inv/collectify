@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { ItemDescriptionField } from "./ItemDescriptionField";
 import { TagsSection } from "./TagsSection";
 import { ItemNoteField } from "./ItemNoteField";
+import { ItemDetailInfo } from "./ItemDetailInfo";
+
 interface ItemDetailsContentProps {
   image: string;
   title: string;
@@ -29,7 +31,9 @@ interface ItemDetailsContentProps {
   releaseDate?: string;
   createdBy?: string | null;
   description?: string;
+  price?: string;
 }
+
 export function ItemDetailsContent({
   image,
   title,
@@ -42,7 +46,8 @@ export function ItemDetailsContent({
   contentName,
   releaseDate,
   createdBy,
-  description
+  description,
+  price
 }: ItemDetailsContentProps) {
   const handleImageUpdate = (newImageUrl: string) => {
     setEditedData({
@@ -73,26 +78,37 @@ export function ItemDetailsContent({
     series: tags.filter(tag => tag.tags?.category === 'series'),
     other: tags.filter(tag => !tag.tags?.category || !['character', 'type', 'series'].includes(tag.tags?.category))
   };
+
   return <ScrollArea className="flex-1 h-[calc(100vh-250px)] px-4">
       <div className="space-y-4 bg-white pb-6 pt-2">
-        {/* 画像表示エリアの改善 */}
-        <div className="w-full aspect-square relative overflow-hidden rounded-lg bg-white">
-          <ItemImageEditor image={isEditing ? editedData.image : image} title={title} isEditing={isEditing} onImageUpdate={handleImageUpdate} />
+        {/* 画像表示エリアと詳細情報の統合 */}
+        <div className="space-y-6">
+          <div className="w-full aspect-square relative overflow-hidden rounded-lg bg-white">
+            <ItemImageEditor
+              image={isEditing ? editedData.image : image}
+              title={title}
+              isEditing={isEditing}
+              onImageUpdate={handleImageUpdate}
+            />
+          </div>
+
+          {/* アイテム詳細情報 */}
+          <ItemDetailInfo
+            tags={tags}
+            price={price}
+            description={description}
+            contentName={contentName}
+          />
         </div>
 
-        {/* 以降の既存コード */}
+        {/* 以降の既存のコード */}
         {isUserItem && <div className="space-y-4">
-            {/* タグセクション（編集中の場合も含む） */}
             <TagsSection isEditing={isEditing} tags={tags} editedData={editedData} setEditedData={setEditedData} />
-
-            {/* 思い出（メモリー）セクション */}
             <MemoriesSection memories={memories} />
-
-            {/* メモ欄 */}
             <ItemNoteField isEditing={isEditing} note={editedData.note} onChange={v => setEditedData({
-          ...editedData,
-          note: v
-        })} />
+              ...editedData,
+              note: v
+            })} />
           </div>}
 
         {/* タグ（公式アイテムのみ、非編集時） */}
@@ -113,23 +129,23 @@ export function ItemDetailsContent({
             
             {isEditing && <>
                 <ItemDescriptionField isEditing={isEditing} description={editedData.description || ""} onChange={value => setEditedData({
-            ...editedData,
-            description: value
-          })} />
+                  ...editedData,
+                  description: value
+                })} />
                 
                 <div className="space-y-4 mt-4">
                   <CategoryTagSelect category="character" label="キャラクター・人物名" value={editedData.characterTag} onChange={value => setEditedData({
-              ...editedData,
-              characterTag: value
-            })} />
+                    ...editedData,
+                    characterTag: value
+                  })} />
                   <CategoryTagSelect category="type" label="グッズタイプ" value={editedData.typeTag} onChange={value => setEditedData({
-              ...editedData,
-              typeTag: value
-            })} />
+                    ...editedData,
+                    typeTag: value
+                  })} />
                   <CategoryTagSelect category="series" label="グッズシリーズ" value={editedData.seriesTag} onChange={value => setEditedData({
-              ...editedData,
-              seriesTag: value
-            })} />
+                    ...editedData,
+                    seriesTag: value
+                  })} />
                 </div>
               </>}
             
