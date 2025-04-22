@@ -177,7 +177,7 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
                 <Button
                   key={content.id}
                   variant={selectedInterests.includes(content.name) ? "default" : "outline"}
-                  className="w-full justify-center text-sm px-2 truncate"
+                  className="w-full justify-center text-sm px-2 truncate max-w-full"
                   onClick={() => handleToggleContent(content.name)}
                 >
                   {content.name}
