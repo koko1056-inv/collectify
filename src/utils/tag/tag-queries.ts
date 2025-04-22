@@ -1,4 +1,6 @@
+
 import { supabase } from "@/integrations/supabase/client";
+import { SimpleItemTag, Tag } from "./types";
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean = false) {
   const table = isUserItem ? "user_item_tags" : "item_tags";
@@ -27,8 +29,6 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
   }
 }
 
-import { SimpleItemTag } from "./types";
-
 /**
  * アイテムがユーザーのコレクションに存在するか確認する関数
  */
@@ -55,8 +55,6 @@ export async function isItemInUserCollection(
     return false;
   }
 }
-
-import { Tag } from "@/types";
 
 /**
  * タグ名からタグIDを検索する関数
@@ -114,6 +112,58 @@ export async function getItemsGroupedByTag(userId: string) {
     return data || [];
   } catch (error) {
     console.error("Error fetching items grouped by tag:", error);
+    return [];
+  }
+}
+
+/**
+ * カスタムグループでグループ化されたアイテムを取得する関数
+ * @param userId ユーザーID
+ * @returns カスタムグループでグループ化されたアイテムの配列
+ */
+export async function getItemsGroupedByCustomGroups(userId: string) {
+  try {
+    // ユーザーのコレクションを取得
+    const { data, error } = await supabase
+      .from("user_items")
+      .select(`
+        id,
+        title,
+        image,
+        content_name,
+        quantity,
+        user_item_tags (
+          tags (
+            id,
+            name,
+            category
+          )
+        )
+      `)
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("Error fetching user items for grouping:", error);
+      return [];
+    }
+
+    // コンテンツ名でグループ化
+    const groupedByContent: Record<string, any[]> = {};
+    data?.forEach(item => {
+      const contentKey = item.content_name || "Other";
+      if (!groupedByContent[contentKey]) {
+        groupedByContent[contentKey] = [];
+      }
+      groupedByContent[contentKey].push(item);
+    });
+
+    // 結果をフォーマット
+    return Object.entries(groupedByContent).map(([groupName, items]) => ({
+      group_name: groupName,
+      items: items
+    }));
+  } catch (error) {
+    console.error("Error grouping items by custom groups:", error);
     return [];
   }
 }

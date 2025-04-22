@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -32,15 +33,9 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    const insertData: Record<string, string> = {
-      tag_id: tagId,
-      [itemIdField]: itemId,
-    };
-
-    // ユーザーアイテムの場合はユーザーIDも追加
-    if (isUserItem && userId) {
-      insertData.user_id = userId;
-    }
+    const insertData = isUserItem 
+      ? { tag_id: tagId, user_item_id: itemId, ...(userId ? { user_id: userId } : {}) }
+      : { tag_id: tagId, official_item_id: itemId };
 
     // タグを追加
     const { data, error } = await supabase

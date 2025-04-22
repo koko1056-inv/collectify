@@ -1,15 +1,16 @@
 
-// 基本的なタグ型
-export interface SimpleTag {
+// Basic Tag definition
+export interface Tag {
   id: string;
   name: string;
-  category?: string;
+  category?: string | null;
   created_at?: string;
+  count?: number;
 }
 
-// シンプルなアイテムタグ型
+// Simple Item Tag structure
 export interface SimpleItemTag {
-  id?: string;
+  id: string;
   tag_id: string;
   tags?: {
     id: string;
@@ -19,25 +20,18 @@ export interface SimpleItemTag {
   };
 }
 
-// タグでグループ化されたアイテム
-export interface TagGroupedItems {
-  [tagName: string]: any[];
+// User Items with Tags
+export interface UserItemWithTags {
+  id: string;
+  title: string;
+  image: string;
+  user_item_tags: {
+    tags: Tag;
+  }[];
 }
 
-// タググループ型
-export interface TagGroup {
-  id: string;
-  name: string;
-  created_by: string;
-  created_at: string;
-}
-
-// コンテンツ情報型を追加
-export interface ContentInfo {
-  id: string;
-  name: string;
-  type: string;
-  created_at?: string;
-  created_by?: string;
-  icon_name?: string;
+// Grouped items by tag
+export interface ItemsGroupedByTag {
+  group_name: string;
+  items: any[];
 }
