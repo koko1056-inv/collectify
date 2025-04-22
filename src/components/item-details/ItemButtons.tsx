@@ -1,11 +1,9 @@
-
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-
 interface ItemButtonsProps {
   isInCollection: boolean;
   itemId: string;
@@ -16,7 +14,6 @@ interface ItemButtonsProps {
   refetchIsInCollection: () => Promise<any>;
   refetchOwnersCount: () => Promise<any>;
 }
-
 export function ItemButtons({
   isInCollection,
   itemId,
@@ -29,8 +26,12 @@ export function ItemButtons({
 }: ItemButtonsProps) {
   const [isAddingToCollection, setIsAddingToCollection] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const {
+    user
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const queryClient = useQueryClient();
 
   // コレクションにアイテムを追加する関数
@@ -62,19 +63,16 @@ export function ItemButtons({
       // タグをコピー
       if (data) {
         // タグコピー処理（既存実装を利用）
-        const { data: tags, error: tagsError } = await supabase
-          .from("item_tags")
-          .select("tag_id")
-          .eq("official_item_id", itemId);
-        
+        const {
+          data: tags,
+          error: tagsError
+        } = await supabase.from("item_tags").select("tag_id").eq("official_item_id", itemId);
         if (!tagsError && tags && tags.length > 0) {
           for (const tag of tags) {
-            await supabase
-              .from("user_item_tags")
-              .insert({
-                user_item_id: data.id,
-                tag_id: tag.tag_id
-              });
+            await supabase.from("user_item_tags").insert({
+              user_item_id: data.id,
+              tag_id: tag.tag_id
+            });
           }
         }
       }
@@ -148,30 +146,5 @@ export function ItemButtons({
       setIsAddingToWishlist(false);
     }
   };
-
-  return (
-    <div className="flex space-x-2 px-4 py-3 border-t border-gray-100">
-      {isInCollection ? (
-        <Button variant="outline" className="w-full" disabled>
-          コレクション済み
-        </Button>
-      ) : (
-        <Button 
-          onClick={handleAddToCollection} 
-          disabled={isAddingToCollection} 
-          className="w-full"
-        >
-          {isAddingToCollection ? "追加中..." : "コレクションに追加"}
-        </Button>
-      )}
-      <Button 
-        variant="outline" 
-        onClick={handleAddToWishlist} 
-        disabled={isAddingToWishlist}
-        className="w-full"
-      >
-        {isAddingToWishlist ? "追加中..." : "ウィッシュリストに追加"}
-      </Button>
-    </div>
-  );
+  return;
 }
