@@ -64,7 +64,7 @@ export function ItemDetailsModalContent({
       const fetchUserItemDetails = async () => {
         const { data, error } = await supabase
           .from("user_items")
-          .select("note")
+          .select("note, quantity")
           .eq("id", itemId)
           .single();
 
@@ -78,13 +78,23 @@ export function ItemDetailsModalContent({
           title,
           price,
           description,
-          quantity,
+          quantity: data?.quantity || quantity,
           note: data?.note ?? "",
           content_name: contentName ?? null
         });
       };
 
       fetchUserItemDetails();
+    } else {
+      setEditedData({
+        image,
+        title,
+        price,
+        description,
+        quantity,
+        note: "",
+        content_name: contentName ?? null,
+      });
     }
   }, [image, title, price, description, quantity, isUserItem, userId, user?.id, itemId, contentName]);
 
@@ -97,8 +107,8 @@ export function ItemDetailsModalContent({
         .from("user_items")
         .update({
           quantity: editedData.quantity,
-          note: editedData.note ?? null,
-          content_name: editedData.content_name ?? null,
+          note: editedData.note || null,
+          content_name: editedData.content_name || null,
         })
         .eq("id", itemId);
 
@@ -110,8 +120,8 @@ export function ItemDetailsModalContent({
         description: "アイテム情報を保存しました。",
       });
       setIsEditing(false);
-      onClose();
     } catch (error) {
+      console.error("Error saving user item:", error);
       toast({
         title: "エラー",
         description: "保存に失敗しました。",

@@ -1,137 +1,55 @@
-import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag } from "./types";
 
-// アイテムのタグを取得する関数
-export async function getTagsForItem(
-  itemId: string | null,
-  isUserItem: boolean = false
-): Promise<SimpleItemTag[]> {
-  if (!itemId) return [];
+import { supabase } from '@/integrations/supabase/client';
 
-  try {
-    // テーブル名を決定
-    const tableName = isUserItem ? "user_item_tags" : "item_tags";
-    const itemColumn = isUserItem ? "user_item_id" : "official_item_id";
-
-    // タグを取得するクエリ
-    const { data, error } = await supabase
-      .from(tableName)
-      .select(`
-        id,
-        tag_id,
-        tags (
-          id,
-          name,
-          category,
-          created_at
-        )
-      `)
-      .eq(itemColumn, itemId);
-
-    if (error) {
-      console.error(`Error fetching tags for ${tableName}:`, error);
-      return [];
-    }
-
-    return data?.map(item => ({
-      id: item.id,
-      tag_id: item.tag_id,
-      tags: item.tags
-    })) || [];
-  } catch (error) {
-    console.error(`Error in getTagsForItem for ${itemId}:`, error);
-    return [];
-  }
-}
-
-// アイテムがユーザーのコレクションに存在するかチェック
-export const isItemInUserCollection = async (itemId: string, userId: string) => {
+/**
+ * アイテムがユーザーのコレクションに存在するか確認
+ */
+export const isItemInUserCollection = async (
+  officialItemId: string,
+  userId: string
+): Promise<boolean> => {
   const { data, error } = await supabase
-    .from("user_items")
-    .select("id")
-    .eq("official_item_id", itemId)
-    .eq("user_id", userId)
+    .from('user_items')
+    .select('id')
+    .eq('official_item_id', officialItemId)
+    .eq('user_id', userId)
     .maybeSingle();
-  
+
   if (error) {
-    console.error("Error checking if item exists in collection:", error);
+    console.error('Error checking if item exists in collection:', error);
     return false;
   }
-  
+
   return !!data;
 };
 
-// ユーザーコレクションのサイズを取得
-export const getUserCollectionSize = async (userId: string) => {
-  const { count, error } = await supabase
-    .from("user_items")
-    .select("id", { count: 'exact', head: true })
-    .eq("user_id", userId);
-  
-  if (error) {
-    console.error("Error getting user collection size:", error);
-    return 0;
-  }
-  
-  return count || 0;
-};
+/**
+ * アイテムに対するタグを取得
+ */
+export const getTagsForItem = async (
+  itemId: string,
+  isUserItem: boolean
+): Promise<any[]> => {
+  const table = isUserItem ? 'user_item_tags' : 'item_tags';
+  const idField = isUserItem ? 'user_item_id' : 'official_item_id';
 
-// アイテムに対するユーザーのいいねをチェック
-export const hasUserLikedItem = async (itemId: string, userId: string) => {
   const { data, error } = await supabase
-    .from("user_item_likes")
-    .select("id")
-    .eq("user_item_id", itemId)
-    .eq("user_id", userId)
-    .maybeSingle();
-  
-  if (error) {
-    console.error("Error checking if user liked item:", error);
-    return false;
-  }
-  
-  return !!data;
-};
-
-// カテゴリごとにタグを取得
-export const getTagsByCategory = async (category: string) => {
-  const { data, error } = await supabase
-    .from("tags")
-    .select("id, name")
-    .eq("category", category)
-    .order("name");
-  
-  if (error) {
-    console.error(`Error fetching ${category} tags:`, error);
-    return [];
-  }
-  
-  return data || [];
-};
-
-// タグに基づいてアイテムを検索
-export const searchItemsByTags = async (tagIds: string[]) => {
-  if (!tagIds.length) return [];
-  
-  const { data, error } = await supabase
-    .from("item_tags")
+    .from(table)
     .select(`
-      official_item_id,
-      official_items (*)
+      id,
+      tag_id,
+      tags (
+        id,
+        name,
+        category
+      )
     `)
-    .in("tag_id", tagIds);
-  
+    .eq(idField, itemId);
+
   if (error) {
-    console.error("Error searching items by tags:", error);
+    console.error('Error fetching tags for item:', error);
     return [];
   }
-  
-  // ユニークな公式アイテムIDのみを抽出
-  const uniqueItems = Array.from(
-    new Set(data.map(item => item.official_item_id))
-  ).map(id => {
-    return data.find(item => item.official_item_id === id)?.official_items;
-  }).filter(Boolean);
-  
-  return uniqueItems;
+
+  return data || [];
 };
