@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -156,7 +157,7 @@ export function ItemDetailsModal({
         userId={userId}
         user={user}
       />
-        {/* タグ管理モーダル */}
+      {/* タグ管理モーダル */}
       <ItemDetailsTagManageSection
         isOpen={isTagModalOpen}
         onClose={() => setIsTagModalOpen(false)}

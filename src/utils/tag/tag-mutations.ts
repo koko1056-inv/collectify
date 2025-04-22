@@ -33,7 +33,8 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    let insertData;
+    let insertData: Record<string, any> = {};
+    
     if (isUserItem) {
       insertData = { 
         tag_id: tagId, 

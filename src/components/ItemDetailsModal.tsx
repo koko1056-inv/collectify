@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,8 @@ import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
 import { ItemNoteField } from "./item-details/ItemNoteField";
 import { QuantityInput } from "./item-details/QuantityInput";
 import { X } from "lucide-react";
+import { SimpleItemTag } from "@/utils/tag/types";
+
 interface ItemDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -334,6 +337,15 @@ export function ItemDetailsModal({
       setIsSaving(false);
     }
   };
+  
+  // SimpleItemTag配列に変換
+  const processedOfficialTags: SimpleItemTag[] = Array.isArray(officialTags) ? 
+    officialTags.map(tag => ({
+      id: tag.tag_id || "",  // tag_idをidとして使用
+      tag_id: tag.tag_id || "",
+      tags: tag.tags
+    })) : [];
+    
   return <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
@@ -344,7 +356,7 @@ export function ItemDetailsModal({
           } />
 
           {/* メインコンテンツ */}
-          <ItemDetailsContent image={image} title={title} tags={officialTags} isUserItem={isUserItem} isEditing={isEditing} editedData={editedData} setEditedData={setEditedData} contentName={editedData.content_name ?? contentName} releaseDate={releaseDate} createdBy={createdBy} description={description} />
+          <ItemDetailsContent image={image} title={title} tags={processedOfficialTags} isUserItem={isUserItem} isEditing={isEditing} editedData={editedData} setEditedData={setEditedData} contentName={editedData.content_name ?? contentName} releaseDate={releaseDate} createdBy={createdBy} description={description} />
 
           {/* ユーザーアイテムの場合のみ：数量＋メモ編集UI */}
           {isUserItem && isEditing && <div className="p-4 pt-0 pb-0 border-t border-gray-100 space-y-4">

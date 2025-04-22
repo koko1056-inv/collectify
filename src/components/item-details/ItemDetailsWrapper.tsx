@@ -1,10 +1,11 @@
+
 import { ModalHeader } from "./ModalHeader";
 import { ItemDetailsHeaderArea } from "./ItemDetailsHeaderArea";
 import { ItemDetailsMainInfo } from "./ItemDetailsMainInfo";
 import { ItemDetailsActions } from "./ItemDetailsActions";
 import { ItemStatisticsDetail } from "./ItemStatisticsDetail";
 import { ItemButtons } from "./ItemButtons";
-import { useQuery, QueryObserverResult } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
@@ -45,13 +46,14 @@ interface ItemDetailsWrapperProps {
   isSaving: boolean;
   onTag: () => void;
   onDelete: () => void;
+  setIsTagModalOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function ItemDetailsWrapper({
   image, title, price, releaseDate, description, itemId, isUserItem = false,
   quantity = 1, userId, createdBy, contentName,
   editedData, setEditedData, isEditing, setIsEditing, onSaveUserItem, isSaving,
-  onTag, onDelete
+  onTag, onDelete, setIsTagModalOpen
 }: ItemDetailsWrapperProps) {
   const { user } = useAuth();
 
@@ -227,14 +229,14 @@ export function ItemDetailsWrapper({
   // Ensure all tag arrays are properly typed and processed
   const processedOfficialTags: SimpleItemTag[] = Array.isArray(officialTags) ? 
     officialTags.map(tag => ({
-      id: tag.id || tag.tag_id || "",
+      id: tag.tag_id || "",  // tag_idをidとして使用
       tag_id: tag.tag_id || "",
       tags: tag.tags
     })) : [];
 
   const processedUserTags: SimpleItemTag[] = Array.isArray(userTags) ? 
     userTags.map(tag => ({
-      id: tag.id || tag.tag_id || "",
+      id: tag.tag_id || "",  // tag_idをidとして使用
       tag_id: tag.tag_id || "",
       tags: tag.tags
     })) : [];
@@ -296,8 +298,8 @@ export function ItemDetailsWrapper({
           image={image}
           releaseDate={releaseDate}
           price={price}
-          refetchIsInCollection={refetchIsInCollection}
-          refetchOwnersCount={refetchOwnersCount}
+          refetchIsInCollection={() => {}}  // 空の関数を渡す
+          refetchOwnersCount={() => {}}     // 空の関数を渡す
         />
       )}
     </>

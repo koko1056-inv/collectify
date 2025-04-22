@@ -2,9 +2,10 @@
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ReactNode } from "react";
 
 interface ModalHeaderProps {
-  onClose?: React.ReactNode | (() => void);
+  onClose?: ReactNode | (() => void);
 }
 
 export function ModalHeader({

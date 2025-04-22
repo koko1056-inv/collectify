@@ -17,9 +17,9 @@ export interface SimpleTag {
   count?: number;
 }
 
-// Simple Item Tag structure
+// Simple Item Tag structure - より柔軟な定義に変更
 export interface SimpleItemTag {
-  id: string;
+  id?: string;
   tag_id: string;
   tags?: {
     id: string;

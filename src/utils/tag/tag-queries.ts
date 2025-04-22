@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag, Tag, ItemsGroupedByTag } from "./types";
 
@@ -105,6 +106,7 @@ export function isSimpleTag(obj: any): obj is Tag {
  */
 export async function getItemsGroupedByTag(userId: string, tagCategory?: string): Promise<ItemsGroupedByTag[]> {
   try {
+    // タグでグループ化するストアドプロシージャを呼び出す
     const { data, error } = await supabase.rpc('get_items_grouped_by_tag', {
       param_user_id: userId,
     });
