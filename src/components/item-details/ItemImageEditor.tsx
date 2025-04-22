@@ -54,12 +54,14 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
   };
 
   return (
-    <div className="aspect-square relative overflow-hidden rounded-lg group">
-      <img
-        src={image}
-        alt={title}
-        className="w-full h-full object-contain bg-gray-100"
-      />
+    <div className="w-full h-full relative group">
+      <div className="w-full h-full flex items-center justify-center bg-gray-50">
+        <img
+          src={image}
+          alt={title}
+          className="w-full h-full object-contain"
+        />
+      </div>
       {isEditing && (
         <Button
           variant="secondary"

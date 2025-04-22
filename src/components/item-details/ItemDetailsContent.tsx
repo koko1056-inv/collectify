@@ -72,14 +72,17 @@ export function ItemDetailsContent({
   return (
     <ScrollArea className="flex-1 max-h-[calc(70vh-100px)] px-6">
       <div className="space-y-4 bg-white pb-6">
-        <ItemImageEditor
-          image={isEditing ? editedData.image : image}
-          title={title}
-          isEditing={isEditing}
-          onImageUpdate={handleImageUpdate}
-        />
+        {/* 画像表示エリアの改善 */}
+        <div className="w-full aspect-square relative overflow-hidden rounded-lg bg-white">
+          <ItemImageEditor
+            image={isEditing ? editedData.image : image}
+            title={title}
+            isEditing={isEditing}
+            onImageUpdate={handleImageUpdate}
+          />
+        </div>
 
-        {/* ▼ ここからユーザーアイテム専用の下部エリア */}
+        {/* 以降の既存コード */}
         {isUserItem && (
           <div className="space-y-4">
             {/* タグセクション（編集中の場合も含む） */}
