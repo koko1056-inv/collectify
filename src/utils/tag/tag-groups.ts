@@ -1,6 +1,7 @@
 
 import { SimpleItemTag, TagGroupedItems } from "./types";
 import { getTagsForItem } from "./tag-queries";
+import { supabase } from "@/integrations/supabase/client";
 
 // ユーザーアイテムをタグごとにグループ化する関数
 export const getItemsGroupedByTag = async (
@@ -49,7 +50,7 @@ export const getItemsGroupedByTag = async (
   }
 };
 
-// カスタムグループでアイテムをグループ化する関数（実装例）
+// カスタムグループでアイテムをグループ化する関数
 export const getItemsGroupedByCustomGroups = async (
   userId: string
 ): Promise<TagGroupedItems> => {
