@@ -55,7 +55,7 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
 
   return (
     <div className="w-full h-full relative group">
-      <div className="w-full h-full flex items-center justify-center bg-gray-50">
+      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden">
         <img
           src={image}
           alt={title}

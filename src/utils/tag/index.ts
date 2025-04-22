@@ -17,3 +17,8 @@ export type {
   TagGroupedItems,
   TagGroup
 } from './types';
+
+// 追加された型も再エクスポート
+export type { 
+  SimpleItemTagData 
+} from './tag-queries';
