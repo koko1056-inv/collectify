@@ -74,8 +74,16 @@ export interface TagGroupedItems {
 
 /**
  * タグでグループ化されたアイテム
+ * 明示的に型を定義して循環参照を避ける
  */
 export interface ItemsGroupedByTag {
   group_name: string;
-  items: any[]; // アイテムの詳細はサーバーからの応答によって異なる場合がある
+  items: Array<{
+    id: string;
+    title: string;
+    image: string;
+    content_name?: string | null;
+    quantity?: number;
+    [key: string]: any;
+  }>;
 }
