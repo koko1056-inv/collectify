@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ImagePlus } from "lucide-react";
 
 const formSchema = z.object({
   comment: z.string().optional(),
@@ -53,14 +54,20 @@ export function MemoriesForm({ onSubmit }: MemoriesFormProps) {
             <FormItem>
               <FormLabel>画像</FormLabel>
               <FormControl>
-                <div className="h-14 px-6 flex items-center">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="w-full flex items-center gap-2"
+                >
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
-                    className="cursor-pointer w-full"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
                   />
-                </div>
+                  <ImagePlus className="h-4 w-4" />
+                  {selectedImage ? `選択済み: ${selectedImage.name}` : "画像を選択"}
+                </Button>
               </FormControl>
             </FormItem>
           )}
