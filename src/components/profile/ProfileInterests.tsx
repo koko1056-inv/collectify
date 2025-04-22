@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -142,7 +141,7 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
           <Button
             key={content.id}
             variant={selectedInterests.includes(content.name) ? "default" : "outline"}
-            className="h-auto py-1.5 px-2 text-xs"
+            className="h-8 px-2 text-xs rounded-full hover:bg-primary/10 transition-colors duration-200"
             onClick={() => handleToggleContent(content.name)}
           >
             {content.name}
