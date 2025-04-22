@@ -1,23 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { SimpleTag } from "./types";
-
-// タグ情報をシンプルに表現する型
-export interface SimpleItemTagData {
-  tag_id: string;
-  tags: {
-    id: string;
-    name: string;
-    category?: string;
-    created_at?: string;
-  } | null;
-}
+import { SimpleItemTag } from "./types";
 
 // アイテムのタグを取得する関数
 export async function getTagsForItem(
   itemId: string | null,
   isUserItem: boolean = false
-): Promise<SimpleItemTagData[]> {
+): Promise<SimpleItemTag[]> {
   if (!itemId) return [];
 
   try {
@@ -49,7 +38,10 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
-    return data as SimpleItemTagData[];
+    return data.map(item => ({
+      tag_id: item.tag_id,
+      tags: item.tags
+    }));
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
     return [];
