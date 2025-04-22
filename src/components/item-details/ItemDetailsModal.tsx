@@ -16,7 +16,6 @@ import { ItemDetailsMainInfo } from "./ItemDetailsMainInfo";
 import { ItemDetailsActions } from "./ItemDetailsActions";
 import { ItemStatisticsDetail } from "./ItemStatisticsDetail";
 import { Button } from "@/components/ui/button";
-// 分割した子コンポーネント
 import { ItemDetailsWrapper } from "./ItemDetailsWrapper";
 import { ItemDetailsDeleteDialog } from "./ItemDetailsDeleteDialog";
 import { ItemDetailsTagManageSection } from "./ItemDetailsTagManageSection";
@@ -122,28 +121,19 @@ export function ItemDetailsModal({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
-          <ItemDetailsWrapper
-            image={image}
-            title={title}
-            price={price}
-            releaseDate={releaseDate}
-            description={description}
-            itemId={itemId}
-            isUserItem={isUserItem}
-            quantity={quantity}
-            userId={userId}
-            createdBy={createdBy}
-            contentName={contentName}
-            editedData={editedData}
-            setEditedData={setEditedData}
-            isEditing={isEditing}
-            setIsEditing={setIsEditing}
-            onSaveUserItem={handleSaveUserItem}
-            isSaving={isSaving}
-            onTag={() => setIsTagModalOpen(true)}
-            onDelete={() => setIsDeleteConfirmOpen(true)}
-            setIsTagModalOpen={setIsTagModalOpen}
-          />
+          <div className="overflow-auto">
+            <ItemDetailsWrapper
+              itemId={itemId}
+              itemTitle={title}
+              itemImage={image}
+              itemDescription={description}
+              itemArtist={null}
+              itemAnime={null}
+              onClose={onClose}
+              isModal={true}
+              setIsTagModalOpen={setIsTagModalOpen}
+            />
+          </div>
         </DialogContent>
       </Dialog>
       {/* 削除ダイアログ */}

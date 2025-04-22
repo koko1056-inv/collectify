@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -32,7 +33,7 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    let insertData: Record<string, any> = {};
+    let insertData: any = {}; // Record<string, any>ではなくanyを使用
     
     if (isUserItem) {
       insertData = { 

@@ -1,18 +1,20 @@
+
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Tag } from "@/utils/tag";
 import { TagList } from "@/components/collection/TagList";
-import { TagManageModal } from "./TagManageModal";
+import { TagManageModal } from "@/components/tag/TagManageModal";
 import { ModalHeader } from "./ModalHeader";
 import { Button } from "@/components/ui/button";
 import { BookMarked, Link2, Loader2, X } from "lucide-react";
 import { useRouter } from "next/router";
 import { Badge } from "@/components/ui/badge";
-import { isUUID } from "@/utils/uuid-check";
+import { isUUID } from "@/utils/tag/tag-core";
 import { Profile } from "@/types";
 import Link from "next/link";
+import { SimpleItemTag } from "@/utils/tag/types";
 
 interface ItemDetailsWrapperProps {
   itemId: string;
@@ -59,9 +61,9 @@ export function ItemDetailsWrapper({
     });
   };
 
-  const { data: itemDetails, isLoading: isItemDetailsLoading } = useQuery(
-    ["official-item-details", itemId],
-    async () => {
+  const { data: itemDetails, isLoading: isItemDetailsLoading } = useQuery({
+    queryKey: ["official-item-details", itemId],
+    queryFn: async () => {
       if (!isUUID(itemId)) {
         return null;
       }
@@ -77,14 +79,12 @@ export function ItemDetailsWrapper({
       }
       return data;
     },
-    {
-      enabled: isUUID(itemId),
-    }
-  );
+    enabled: isUUID(itemId),
+  });
 
-  const { data: itemTags = [], isLoading: isItemTagsLoading } = useQuery(
-    ["item-tags", itemId],
-    async () => {
+  const { data: itemTags = [], isLoading: isItemTagsLoading } = useQuery({
+    queryKey: ["item-tags", itemId],
+    queryFn: async () => {
       if (!isUUID(itemId)) {
         return [];
       }
@@ -100,16 +100,20 @@ export function ItemDetailsWrapper({
         console.error("Error fetching item tags:", error);
         throw error;
       }
-      return data?.map((itemTag) => itemTag.tags) as Tag[];
+      return data?.map((itemTag) => {
+        return {
+          id: itemTag.id,
+          tag_id: itemTag.tag_id,
+          tags: itemTag.tags
+        } as SimpleItemTag;
+      }) as SimpleItemTag[];
     },
-    {
-      enabled: isUUID(itemId),
-    }
-  );
+    enabled: isUUID(itemId),
+  });
 
-  const { data: wishlistCount, isLoading: isWishlistCountLoading } = useQuery(
-    ["item-wishlist-count", itemId],
-    async () => {
+  const { data: wishlistCount, isLoading: isWishlistCountLoading } = useQuery({
+    queryKey: ["item-wishlist-count", itemId],
+    queryFn: async () => {
       if (!isUUID(itemId)) {
         return 0;
       }
@@ -124,14 +128,12 @@ export function ItemDetailsWrapper({
       }
       return data?.length || 0;
     },
-    {
-      enabled: isUUID(itemId),
-    }
-  );
+    enabled: isUUID(itemId),
+  });
 
-  const { data: itemOwnersCount, isLoading: isItemOwnersCountLoading } = useQuery(
-    ["item-owners-count", itemId],
-    async () => {
+  const { data: itemOwnersCount, isLoading: isItemOwnersCountLoading } = useQuery({
+    queryKey: ["item-owners-count", itemId],
+    queryFn: async () => {
       if (!isUUID(itemId)) {
         return 0;
       }
@@ -146,14 +148,12 @@ export function ItemDetailsWrapper({
       }
       return data?.length || 0;
     },
-    {
-      enabled: isUUID(itemId),
-    }
-  );
+    enabled: isUUID(itemId),
+  });
 
-  const { data: itemCreator, isLoading: isItemCreatorLoading } = useQuery(
-    ["item-creator", itemDetails?.created_by],
-    async () => {
+  const { data: itemCreator, isLoading: isItemCreatorLoading } = useQuery({
+    queryKey: ["item-creator", itemDetails?.created_by],
+    queryFn: async () => {
       if (!itemDetails?.created_by) {
         return null;
       }
@@ -169,10 +169,8 @@ export function ItemDetailsWrapper({
       }
       return data as Profile;
     },
-    {
-      enabled: !!itemDetails?.created_by,
-    }
-  );
+    enabled: !!itemDetails?.created_by,
+  });
 
   const handleAddToWishlist = async () => {
     try {
@@ -318,7 +316,7 @@ export function ItemDetailsWrapper({
           </p>
         )}
         <div className="mb-4">
-          <TagList tags={itemTags} />
+          <TagList tags={itemTags || []} />
         </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
@@ -335,7 +333,8 @@ export function ItemDetailsWrapper({
       <TagManageModal
         isOpen={isTagManageModalOpen}
         onClose={() => setIsTagManageModalOpen(false)}
-        itemId={itemId}
+        itemIds={[itemId]}
+        itemTitle={itemDetails.title}
       />
     </>
   );
