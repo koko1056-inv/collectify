@@ -22,7 +22,7 @@ export function ItemDetailsActions({
   onDelete,
 }: ItemDetailsActionsProps) {
   return (
-    <div className="flex gap-2 mb-2">
+    <div className="flex gap-2 px-6 py-4">
       {!isEditing ? (
         <>
           <Button

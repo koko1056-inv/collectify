@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -141,3 +140,4 @@ export const searchItemsByTags = async (tagIds: string[]) => {
   
   return uniqueItems;
 };
+
