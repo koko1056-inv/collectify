@@ -7,7 +7,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { getAllContentNames } from "@/utils/tag/content-operations";
 
 interface ProfileInterestsProps {
   currentInterests: string[] | null;
@@ -26,12 +27,12 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
   const { data: contentNames = [], isLoading } = useQuery({
     queryKey: ["content-names"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("content_names")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data;
+      try {
+        return await getAllContentNames();
+      } catch (error) {
+        console.error("Error fetching content names:", error);
+        return [];
+      }
     },
   });
 
@@ -56,9 +57,11 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
     }
 
     try {
+      // content_namesテーブルのtype列には特定の値しか設定できないようなので、
+      // ここでは 'anime' という既存の値を使用します
       const { error } = await supabase
         .from("content_names")
-        .insert([{ name: newContentName, type: "other" }]);
+        .insert([{ name: newContentName, type: "anime" }]);
 
       if (error) throw error;
 
@@ -70,6 +73,9 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
         title: "コンテンツを追加しました",
         description: `${newContentName}を追加しました`,
       });
+
+      // 追加したコンテンツを自動的に選択します
+      setSelectedInterests(prev => [...prev, newContentName]);
     } catch (error) {
       console.error("Error adding content:", error);
       toast({
@@ -156,6 +162,9 @@ export function ProfileInterests({ currentInterests = [], onUpdate }: ProfileInt
         <DialogContent>
           <DialogHeader>
             <DialogTitle>新しいコンテンツを追加</DialogTitle>
+            <DialogDescription>
+              推しコンテンツとして表示したい作品名などを追加できます
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <Input
