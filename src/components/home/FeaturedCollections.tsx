@@ -83,7 +83,7 @@ export function FeaturedCollections() {
             className="flex items-center gap-1 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:border text-gray-500 rounded-full px-3 py-1 text-xs transition-colors"
           >
             <Calendar className="h-4 w-4" />
-            <span>今日のコレクション</span>
+            <span>最新のコレクション</span>
           </TabsTrigger>
           <TabsTrigger 
             value="trending" 
