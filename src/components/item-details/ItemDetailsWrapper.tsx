@@ -1,17 +1,15 @@
-
-import { useQuery, QueryObserverResult } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 import { ModalHeader } from "./ModalHeader";
+import { ItemDetailsHeaderArea } from "./ItemDetailsHeaderArea";
 import { ItemDetailsMainInfo } from "./ItemDetailsMainInfo";
 import { ItemDetailsActions } from "./ItemDetailsActions";
 import { ItemStatisticsDetail } from "./ItemStatisticsDetail";
+import { ItemButtons } from "./ItemButtons";
+import { useQuery, QueryObserverResult } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
+import { isItemInUserCollection } from "@/utils/tag/tag-queries";
 import { SimpleItemTag } from "@/utils/tag/types";
-import { Button } from "@/components/ui/button";
-import { QuantityInput } from "./QuantityInput";
-import { ItemNoteField } from "./ItemNoteField";
 
 type UserItemDetails = {
   note: string | null;
@@ -28,12 +26,17 @@ const EMPTY_USER_ITEM_DETAILS: UserItemDetails = {
 };
 
 interface ItemDetailsWrapperProps {
+  image: string;
+  title: string;
+  price?: string;
+  releaseDate?: string;
+  description?: string;
   itemId: string;
   isUserItem?: boolean;
-  onClose: () => void;
-  title: string;
-  image: string;
+  quantity?: number;
   userId?: string;
+  createdBy?: string | null;
+  contentName?: string | null;
   editedData: any;
   setEditedData: (data: any) => void;
   isEditing: boolean;
@@ -42,34 +45,45 @@ interface ItemDetailsWrapperProps {
   isSaving: boolean;
   onTag: () => void;
   onDelete: () => void;
+  setIsTagModalOpen: (open: boolean) => void;
 }
 
 export function ItemDetailsWrapper({
-  itemId,
-  isUserItem = false,
-  onClose,
-  title,
-  image,
-  userId,
-  editedData,
-  setEditedData,
-  isEditing,
-  setIsEditing,
-  onSaveUserItem,
-  isSaving,
-  onTag,
-  onDelete
+  image, title, price, releaseDate, description, itemId, isUserItem = false,
+  quantity = 1, userId, createdBy, contentName,
+  editedData, setEditedData, isEditing, setIsEditing, onSaveUserItem, isSaving,
+  onTag, onDelete
 }: ItemDetailsWrapperProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [isQuantityEditing, setIsQuantityEditing] = useState(false);
 
-  // ユーザーアイテム詳細の取得
+  // タグ取得
+  const { data: officialTags = [] } = useQuery({
+    queryKey: ["item-tags", itemId],
+    queryFn: async () => {
+      if (!itemId) return [];
+      const { data, error } = await supabase
+        .from("item_tags")
+        .select(`
+          tag_id,
+          tags (
+            id,
+            name,
+            category,
+            created_at
+          )
+        `)
+        .eq("official_item_id", itemId);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !isUserItem && !!itemId,
+  });
+
+  // ユーザーアイテム詳細
   const { data: userItemDetails = EMPTY_USER_ITEM_DETAILS } = useQuery<UserItemDetails>({
     queryKey: ["user-item-details", itemId],
     queryFn: async () => {
       if (!isUserItem || !itemId) return EMPTY_USER_ITEM_DETAILS;
-      
       const { data, error } = await supabase
         .from("user_items")
         .select(`
@@ -90,41 +104,176 @@ export function ItemDetailsWrapper({
         .maybeSingle();
 
       if (error || !data) {
-        console.error("Error fetching user item details:", error);
         return EMPTY_USER_ITEM_DETAILS;
       }
 
       return {
-        note: data.note,
-        content_name: data.content_name,
-        quantity: data.quantity || 1,
-        user_item_tags: data.user_item_tags || [],
+        note: (data as any).note ?? "",
+        content_name: (data as any).content_name ?? null,
+        quantity: (data as any).quantity ?? 1,
+        user_item_tags: (data as any).user_item_tags ?? [],
       };
     },
     enabled: isUserItem && !!itemId,
   });
 
-  // メモリーの取得
   const { data: memories = [] } = useQuery({
-    queryKey: ["item-memories", itemId],
+    queryKey: ["item-memories", [itemId]],
     queryFn: async () => {
       if (!isUserItem || !itemId) return [];
-      
       const { data, error } = await supabase
         .from("item_memories")
         .select("*")
         .eq("user_item_id", itemId)
         .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching memories:", error);
-        return [];
-      }
-      
+      if (error) return [];
       return data || [];
     },
     enabled: isUserItem && !!itemId,
   });
+
+  // いいね・owner・trades 等
+  const { data: likesCount = 0 } = useQuery({
+    queryKey: ["item-likes-count", itemId],
+    queryFn: async () => {
+      if (isUserItem) {
+        const { count, error } = await supabase
+          .from("user_item_likes")
+          .select("*", { count: 'exact', head: true })
+          .eq("user_item_id", itemId);
+        if (error) throw error;
+        return count || 0;
+      }
+      return 0;
+    },
+    enabled: isUserItem && !!itemId,
+  });
+
+  const { data: ownersCount = 0 } = useQuery({
+    queryKey: ["item-owners-count", itemId],
+    queryFn: async () => {
+      if (!isUserItem) {
+        const { data, error } = await supabase
+          .from("user_items")
+          .select("user_id")
+          .eq("official_item_id", itemId);
+
+        if (error) throw error;
+        const uniqueUserIds = new Set(data.map((item: any) => item.user_id));
+        return uniqueUserIds.size;
+      }
+      return 0;
+    },
+    enabled: !isUserItem && !!itemId,
+  });
+
+  const { data: tradesCount = 0 } = useQuery({
+    queryKey: ["item-trades-count", itemId],
+    queryFn: async () => {
+      if (!isUserItem) {
+        const { data: userItems, error: userItemsError } = await supabase
+          .from("user_items")
+          .select("id")
+          .eq("official_item_id", itemId);
+
+        if (userItemsError) throw userItemsError;
+
+        if (!userItems || userItems.length === 0) return 0;
+
+        const userItemIds = userItems.map((item: any) => item.id);
+
+        const { count, error } = await supabase
+          .from("trade_requests")
+          .select("id", { count: 'exact', head: true })
+          .or(`offered_item_id.in.(${userItemIds.join(',')}),requested_item_id.in.(${userItemIds.join(',')})`);
+
+        if (error) throw error;
+        return count || 0;
+      } else {
+        const { count, error } = await supabase
+          .from("trade_requests")
+          .select("id", { count: 'exact', head: true })
+          .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
+
+        if (error) throw error;
+        return count || 0;
+      }
+    },
+    enabled: !!itemId,
+  });
+
+  // モック関数を適切な型で実装
+  const refetchOwnersCount = async (): Promise<QueryObserverResult<number, Error>> => {
+    console.log("Refetching owners count");
+    return {
+      data: ownersCount,
+      dataUpdatedAt: Date.now(),
+      error: null,
+      errorUpdateCount: 0,
+      errorUpdatedAt: 0,
+      failureCount: 0,
+      failureReason: null,
+      fetchStatus: 'idle',
+      isError: false,
+      isFetched: true,
+      isFetchedAfterMount: true,
+      isFetching: false,
+      isLoading: false,
+      isLoadingError: false,
+      isPaused: false,
+      isPending: false,
+      isPlaceholderData: false,
+      isRefetchError: false,
+      isRefetching: false,
+      isStale: false,
+      isSuccess: true,
+      isInitialLoading: false,
+      refetch: async () => refetchOwnersCount(),
+      status: 'success',
+    };
+  };
+
+  // モック関数を適切な型で実装
+  const refetchIsInCollection = async (): Promise<QueryObserverResult<boolean, Error>> => {
+    console.log("Refetching is in collection");
+    return {
+      data: isInCollection,
+      dataUpdatedAt: Date.now(),
+      error: null,
+      errorUpdateCount: 0,
+      errorUpdatedAt: 0,
+      failureCount: 0,
+      failureReason: null,
+      fetchStatus: 'idle',
+      isError: false,
+      isFetched: true,
+      isFetchedAfterMount: true,
+      isFetching: false,
+      isLoading: false,
+      isLoadingError: false,
+      isPaused: false,
+      isPending: false,
+      isPlaceholderData: false,
+      isRefetchError: false,
+      isRefetching: false,
+      isStale: false,
+      isSuccess: true,
+      isInitialLoading: false,
+      refetch: async () => refetchIsInCollection(),
+      status: 'success',
+    };
+  };
+
+  const { data: isInCollection = false } = useQuery({
+    queryKey: ["is-in-collection", itemId, user?.id],
+    queryFn: async () => {
+      if (!user || isUserItem) return isUserItem;
+      return await isItemInUserCollection(itemId, user.id);
+    },
+    enabled: !isUserItem && !!user && !!itemId,
+  });
+
+  const userTags = userItemDetails?.user_item_tags || [];
 
   // 編集データの初期化
   useEffect(() => {
@@ -139,63 +288,66 @@ export function ItemDetailsWrapper({
   }, [userItemDetails, isUserItem, setEditedData]);
 
   return (
-    <div className="flex flex-col h-full">
-      <ModalHeader onClose={onClose} />
+    <>
+      <ModalHeader onClose={onDelete} />
 
-      <div className="flex-1 overflow-y-auto">
-        {/* メインのコンテンツエリア */}
-        <ItemDetailsMainInfo
-          tags={userItemDetails.user_item_tags}
-          isUserItem={isUserItem}
-          isEditing={isEditing}
-          editedData={editedData}
-          setEditedData={setEditedData}
-          memories={memories}
-        />
+      {/* ヘッダー */}
+      <ItemDetailsHeaderArea
+        image={image}
+        title={title}
+        isEditing={isEditing}
+        editedData={editedData}
+        setEditedData={setEditedData}
+      />
 
-        {/* ユーザーアイテムの場合のみ：数量＋メモ編集UI */}
-        {isUserItem && (
-          <div className="p-4 space-y-4">
-            <div>
-              <label className="text-sm font-medium">所有個数</label>
-              <QuantityInput
-                value={editedData.quantity}
-                onChange={val => setEditedData((prev: any) => ({
-                  ...prev,
-                  quantity: val
-                }))}
-                min={1}
-                max={999}
-                className="mt-2"
-              />
-            </div>
-            <ItemNoteField
-              isEditing={isEditing}
-              note={editedData.note}
-              onChange={v => setEditedData((prev: any) => ({
-                ...prev,
-                note: v
-              }))}
-              memories={memories}
-            />
-          </div>
-        )}
-      </div>
+      {/* 情報メイン（タグ・メモ・思い出） */}
+      <ItemDetailsMainInfo
+        tags={isUserItem ? userTags : officialTags}
+        isUserItem={isUserItem}
+        isEditing={isEditing}
+        editedData={editedData}
+        setEditedData={setEditedData}
+        memories={memories}
+        note={userItemDetails?.note}
+      />
 
       {/* アクション（編集/保存/削除/タグ） */}
       {isUserItem && (
-        <div className="p-4 border-t border-gray-100">
-          <ItemDetailsActions
-            isEditing={isEditing}
-            isSaving={isSaving}
-            onSave={onSaveUserItem}
-            onEdit={() => setIsEditing(true)}
-            onCancel={() => setIsEditing(false)}
-            onTag={onTag}
-            onDelete={onDelete}
-          />
-        </div>
+        <ItemDetailsActions
+          isEditing={isEditing}
+          isSaving={isSaving}
+          onSave={onSaveUserItem}
+          onEdit={() => setIsEditing(true)}
+          onCancel={() => setIsEditing(false)}
+          onTag={onTag}
+          onDelete={onDelete}
+        />
       )}
-    </div>
+
+      {/* 統計/詳細手前部分 */}
+      <ItemStatisticsDetail
+        likesCount={likesCount}
+        ownersCount={ownersCount}
+        tradesCount={tradesCount}
+        tags={isUserItem ? userTags : officialTags}
+        price={price}
+        description={description}
+        contentName={editedData.content_name || contentName}
+      />
+
+      {/* 下部公式アイテム用アクション */}
+      {!isUserItem && (
+        <ItemButtons
+          isInCollection={isInCollection}
+          itemId={itemId}
+          title={title}
+          image={image}
+          releaseDate={releaseDate}
+          price={price}
+          refetchIsInCollection={refetchIsInCollection}
+          refetchOwnersCount={refetchOwnersCount}
+        />
+      )}
+    </>
   );
 }
