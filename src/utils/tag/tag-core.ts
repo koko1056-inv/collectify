@@ -1,41 +1,18 @@
+// UUIDを検証するための正規表現
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-import { Tag } from "@/types/tag";
-
-// Helper function to create a tag object from a string or existing tag
-export function createTag(input: string | Tag): Tag {
-  if (typeof input === 'string') {
-    return {
-      id: '', // Will be assigned by the database
-      name: input.trim(),
-      count: 0
-    };
-  }
-  return input;
+/**
+ * 文字列がUUIDの形式に合致するかどうかを検証します。
+ *
+ * @param str 検証する文字列
+ * @returns 文字列がUUIDの形式に合致する場合はtrue、そうでない場合はfalse
+ */
+export function isValidUUID(str: string): boolean {
+  return uuidRegex.test(str);
 }
 
-// Check if two tags are the same (by id if available, otherwise by name)
-export function tagsAreEqual(a: Tag, b: Tag): boolean {
-  if (a.id && b.id) {
-    return a.id === b.id;
-  }
-  return a.name.toLowerCase() === b.name.toLowerCase();
-}
-
-// Filter out duplicate tags from an array
-export function filterDuplicateTags(tags: Tag[]): Tag[] {
-  return tags.reduce((acc: Tag[], current: Tag) => {
-    const isDuplicate = acc.some(tag => tagsAreEqual(tag, current));
-    if (!isDuplicate) {
-      acc.push(current);
-    }
-    return acc;
-  }, []);
-}
-
-// Generate a clean array of tags from various input types
-export function processTagInput(input: (string | Tag)[]): Tag[] {
-  // Convert all inputs to Tag objects
-  const tags = input.map(item => createTag(item));
-  // Filter out duplicates
-  return filterDuplicateTags(tags);
+// UUID検証関数を追加
+export function isUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
 }

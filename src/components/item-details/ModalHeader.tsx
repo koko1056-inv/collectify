@@ -1,26 +1,28 @@
 
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 
 interface ModalHeaderProps {
-  onClose?: ReactNode | (() => void);
+  onClose: (() => void) | ReactNode;
+  children?: ReactNode;  // childrenプロパティを追加
 }
 
-export function ModalHeader({
-  onClose
-}: ModalHeaderProps) {
+export function ModalHeader({ onClose, children }: ModalHeaderProps) {
   return (
-    <DialogHeader className="px-6 pt-6 pb-0 flex justify-between items-center">
-      <DialogTitle className="text-lg">アイテム詳細</DialogTitle>
-      {typeof onClose === 'function' ? (
-        <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
-          <X className="h-4 w-4" />
-        </Button>
-      ) : (
-        onClose
-      )}
-    </DialogHeader>
+    <div className="flex justify-between items-center p-2 border-b border-gray-100">
+      <div className="flex-1"></div>
+      <div className="flex-1 flex justify-center">
+        <h3 className="font-semibold text-sm">アイテム詳細</h3>
+      </div>
+      <div className="flex-1 flex justify-end">
+        {typeof onClose === 'function' ? (
+          <button onClick={onClose} className="text-gray-400">
+            &times;
+          </button>
+        ) : (
+          onClose
+        )}
+      </div>
+      {children}
+    </div>
   );
 }

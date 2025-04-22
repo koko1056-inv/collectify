@@ -9,11 +9,11 @@ import { TagManageModal } from "@/components/tag/TagManageModal";
 import { ModalHeader } from "./ModalHeader";
 import { Button } from "@/components/ui/button";
 import { BookMarked, Link2, Loader2, X } from "lucide-react";
-import { useRouter } from "next/router";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { isUUID } from "@/utils/tag/tag-core";
 import { Profile } from "@/types";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { SimpleItemTag } from "@/utils/tag/types";
 
 interface ItemDetailsWrapperProps {
@@ -45,7 +45,7 @@ export function ItemDetailsWrapper({
 }: ItemDetailsWrapperProps) {
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const queryClient = useQueryClient();
 
@@ -137,9 +137,10 @@ export function ItemDetailsWrapper({
       if (!isUUID(itemId)) {
         return 0;
       }
+      // ここでの呼び出しを修正 - user_idを含める
       const { data, error } = await supabase
         .from("user_items")
-        .select("*", { count: "exact" })
+        .select("user_id")
         .eq("official_item_id", itemId);
 
       if (error) {
@@ -229,7 +230,7 @@ export function ItemDetailsWrapper({
 
   const handleAddToCollection = useCallback(async () => {
     try {
-      router.push(`/collection/add/${itemId}`);
+      navigate(`/collection/add/${itemId}`);
     } catch (error) {
       console.error("Error adding to collection:", error);
       toast({
@@ -238,7 +239,7 @@ export function ItemDetailsWrapper({
         variant: "destructive",
       });
     }
-  }, [itemId, router, toast]);
+  }, [itemId, navigate, toast]);
 
   if (isItemDetailsLoading || isItemTagsLoading || isWishlistCountLoading || isItemOwnersCountLoading || isItemCreatorLoading) {
     return (
@@ -256,6 +257,7 @@ export function ItemDetailsWrapper({
     );
   }
 
+  // ModalHeaderへの渡し方を修正
   return (
     <>
       {isModal && (
@@ -282,14 +284,15 @@ export function ItemDetailsWrapper({
         {itemDetails.description && (
           <p className="text-sm text-gray-600 mb-4">{itemDetails.description}</p>
         )}
-        {itemDetails.artist && (
+        {/* artist と anime プロパティは存在しない可能性があるため、代わりにpropsから受け取った値を使用 */}
+        {itemArtist && (
           <p className="text-sm text-gray-600 mb-2">
-            アーティスト: {itemDetails.artist}
+            アーティスト: {itemArtist}
           </p>
         )}
-        {itemDetails.anime && (
+        {itemAnime && (
           <p className="text-sm text-gray-600 mb-2">
-            アニメ: {itemDetails.anime}
+            アニメ: {itemAnime}
           </p>
         )}
         {itemDetails.release_date && (
@@ -304,7 +307,7 @@ export function ItemDetailsWrapper({
         )}
         {itemLink && (
           <p className="text-sm text-gray-600 mb-2">
-            <Link href={itemLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:underline">
+            <Link to={itemLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:underline">
               <Link2 className="h-4 w-4" />
               公式サイト
             </Link>
@@ -312,7 +315,7 @@ export function ItemDetailsWrapper({
         )}
         {itemCreator && (
           <p className="text-sm text-gray-600 mb-2">
-            作成者: <Link href={`/profile/${itemCreator.id}`} className="hover:underline">{itemCreator.username}</Link>
+            作成者: <Link to={`/profile/${itemCreator.id}`} className="hover:underline">{itemCreator.username}</Link>
           </p>
         )}
         <div className="mb-4">
