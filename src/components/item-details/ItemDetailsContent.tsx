@@ -1,4 +1,3 @@
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -70,8 +69,8 @@ export function ItemDetailsContent({
   };
 
   return (
-    <ScrollArea className="flex-1 max-h-[calc(80vh-100px)] px-4">
-      <div className="space-y-4 bg-white pb-6 pt-2 visible">
+    <ScrollArea className="flex-1 h-[calc(100vh-250px)] px-4">
+      <div className="space-y-4 bg-white pb-6 pt-2">
         {/* 画像表示エリアの改善 */}
         <div className="w-full aspect-square relative overflow-hidden rounded-lg bg-white">
           <ItemImageEditor
