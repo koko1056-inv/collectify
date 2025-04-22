@@ -6,7 +6,6 @@ export * from './tag/index';
 // タグ追加と削除関数を直接エクスポート
 export { addTagToItem, removeTagFromItem } from './tag/tag-mutations';
 export { 
-  getTagsForItem, 
   isItemInUserCollection,
 } from './tag/tag-queries';
 export {

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -5,6 +6,7 @@ import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, QueryObserverResult } from "@tanstack/react-query";
+
 interface ItemButtonsProps {
   isInCollection: boolean;
   itemId: string;
@@ -15,6 +17,7 @@ interface ItemButtonsProps {
   refetchIsInCollection: () => Promise<QueryObserverResult<boolean, Error>>;
   refetchOwnersCount: () => Promise<QueryObserverResult<number, Error>>;
 }
+
 export function ItemButtons({
   isInCollection,
   itemId,
@@ -27,12 +30,8 @@ export function ItemButtons({
 }: ItemButtonsProps) {
   const [isAddingToCollection, setIsAddingToCollection] = useState(false);
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // コレクションにアイテムを追加する関数
@@ -133,5 +132,30 @@ export function ItemButtons({
       setIsAddingToWishlist(false);
     }
   };
-  return;
+
+  return (
+    <div className="flex space-x-2 px-4 py-3 border-t border-gray-100">
+      {isInCollection ? (
+        <Button variant="outline" className="w-full" disabled>
+          コレクション済み
+        </Button>
+      ) : (
+        <Button 
+          onClick={handleAddToCollection} 
+          disabled={isAddingToCollection} 
+          className="w-full"
+        >
+          {isAddingToCollection ? "追加中..." : "コレクションに追加"}
+        </Button>
+      )}
+      <Button 
+        variant="outline" 
+        onClick={handleAddToWishlist} 
+        disabled={isAddingToWishlist}
+        className="w-full"
+      >
+        {isAddingToWishlist ? "追加中..." : "ウィッシュリストに追加"}
+      </Button>
+    </div>
+  );
 }

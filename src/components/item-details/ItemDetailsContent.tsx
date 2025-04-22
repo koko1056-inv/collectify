@@ -1,3 +1,4 @@
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -49,6 +50,7 @@ export function ItemDetailsContent({
   description,
   price
 }: ItemDetailsContentProps) {
+  // イメージ更新ハンドラを実装
   const handleImageUpdate = (newImageUrl: string) => {
     setEditedData({
       ...editedData,
@@ -154,7 +156,10 @@ export function ItemDetailsContent({
             {!isEditing && <>
                 {description && <ItemDescriptionField isEditing={false} description={description} onChange={() => {}} />}
                 
-                {releaseDate}
+                {releaseDate && <div className="space-y-1">
+                    <h3 className="text-sm font-medium">登録された日付</h3>
+                    <p className="text-sm text-gray-600">{releaseDate}</p>
+                  </div>}
               </>}
           </div>}
 
