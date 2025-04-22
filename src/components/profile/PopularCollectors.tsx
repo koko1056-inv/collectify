@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,7 +78,7 @@ export function PopularCollectors() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-2 pl-4 mb-4">
+      <div className="flex flex-wrap gap-1 pl-4 mb-2">
         <Button
           variant={selectedContent === null ? "default" : "outline"}
           size="sm"
@@ -173,4 +174,4 @@ export function PopularCollectors() {
       )}
     </div>
   );
-};
+}
