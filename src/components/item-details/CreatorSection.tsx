@@ -74,9 +74,6 @@ export function CreatorSection({
               {createdBy && creatorProfile && (
                 <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
               )}
-              {(!createdBy || !creatorProfile) && (
-                <span className="font-medium"> 不明なユーザー </span>
-              )}
               によって登録されました。
             </div>
           </div>
