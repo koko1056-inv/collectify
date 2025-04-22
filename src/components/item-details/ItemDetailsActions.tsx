@@ -22,7 +22,7 @@ export function ItemDetailsActions({
   onDelete,
 }: ItemDetailsActionsProps) {
   return (
-    <div className="flex gap-2 px-6 py-4">
+    <div className="flex gap-2 px-6 py-4 border-t">
       {!isEditing ? (
         <>
           <Button
@@ -35,7 +35,7 @@ export function ItemDetailsActions({
           </Button>
           <Button
             variant="outline"
-            className="flex-1 border-gray-300 hover:bg-gray-50"
+            className="flex-1"
             onClick={onEdit}
           >
             編集

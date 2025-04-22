@@ -33,16 +33,11 @@ export async function getTagsForItem(
       return [];
     }
 
-    if (!data || data.length === 0) {
-      return [];
-    }
-
-    // 結果を変換して返す
-    return data.map(item => ({
+    return data?.map(item => ({
       id: item.id,
       tag_id: item.tag_id,
       tags: item.tags
-    }));
+    })) || [];
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
     return [];
@@ -140,4 +135,3 @@ export const searchItemsByTags = async (tagIds: string[]) => {
   
   return uniqueItems;
 };
-
