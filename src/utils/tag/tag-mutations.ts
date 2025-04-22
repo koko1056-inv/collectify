@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleItemTag } from "./types";
 
@@ -23,8 +22,6 @@ export async function addTagToItem(
       .maybeSingle();
 
     if (checkError) throw checkError;
-
-    // 既に存在する場合は追加しない
     if (existingTag) return null;
 
     // ユーザーIDを取得（ユーザーアイテムの場合のみ使用）
@@ -35,12 +32,10 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    const insertData: any = {
+    const insertData: Record<string, string> = {
       tag_id: tagId,
+      [itemIdField]: itemId,
     };
-    
-    // itemIdFieldに適切な値をセット
-    insertData[itemIdField] = itemId;
 
     // ユーザーアイテムの場合はユーザーIDも追加
     if (isUserItem && userId) {
@@ -65,11 +60,10 @@ export async function addTagToItem(
 
     if (error) throw error;
     
-    // SimpleItemTagの形式に変換して返す
     return {
       id: data.id,
       tag_id: data.tag_id,
-      tags: data.tags || null
+      tags: data.tags
     };
   } catch (error) {
     console.error("Error adding tag to item:", error);

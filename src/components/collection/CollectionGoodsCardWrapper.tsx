@@ -88,8 +88,13 @@ export function CollectionGoodsCardWrapper({
             <h3 className="text-[10px] font-medium text-gray-900 line-clamp-1">{title}</h3>
             {quantity > 1 && (
               <Badge 
-                className="absolute top-1 right-1 bg-purple-500 hover:bg-purple-500 px-1 py-0 text-[10px]"
+                onClick={e => {
+                  e.stopPropagation();
+                  setIsQuantityEditModalOpen(true);
+                }}
+                className="absolute top-1 right-1 bg-blue-500 hover:bg-blue-600 cursor-pointer flex items-center gap-1 py-0 px-1 rounded"
               >
+                <Pencil size={12} />
                 ×{quantity}
               </Badge>
             )}
