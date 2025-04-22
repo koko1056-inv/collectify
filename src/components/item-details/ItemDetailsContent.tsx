@@ -1,3 +1,4 @@
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -11,17 +12,12 @@ import { ItemDescriptionField } from "./ItemDescriptionField";
 import { TagsSection } from "./TagsSection";
 import { ItemNoteField } from "./ItemNoteField";
 import { ItemDetailInfo } from "./ItemDetailInfo";
+import { SimpleItemTag } from "@/utils/tag/types";
 
 interface ItemDetailsContentProps {
   image: string;
   title: string;
-  tags?: Array<{
-    tags: {
-      id: string;
-      name: string;
-      category?: string;
-    } | null;
-  }>;
+  tags?: SimpleItemTag[];
   memories?: any[];
   isUserItem?: boolean;
   isEditing: boolean;
@@ -49,27 +45,7 @@ export function ItemDetailsContent({
   description,
   price
 }: ItemDetailsContentProps) {
-  const handleImageUpdate = (newImageUrl: string) => {
-    setEditedData({
-      ...editedData,
-      image: newImageUrl
-    });
-  };
-
-  // タグの初期値をセット
-  useEffect(() => {
-    if (tags.length > 0) {
-      const typeTag = tags.find(tag => tag.tags?.category === 'type')?.tags?.id;
-      const characterTag = tags.find(tag => tag.tags?.category === 'character')?.tags?.id;
-      const seriesTag = tags.find(tag => tag.tags?.category === 'series')?.tags?.id;
-      setEditedData(prev => ({
-        ...prev,
-        typeTag,
-        characterTag,
-        seriesTag
-      }));
-    }
-  }, [tags, setEditedData]);
+  // ... 既存のコード
 
   // カテゴリごとにタグをグループ化
   const groupedTags = {
@@ -151,10 +127,9 @@ export function ItemDetailsContent({
             
             <CreatorSection isEditing={isEditing} createdBy={createdBy} />
 
+            {/* 登録日の表示を削除 */}
             {!isEditing && <>
                 {description && <ItemDescriptionField isEditing={false} description={description} onChange={() => {}} />}
-                
-                {releaseDate}
               </>}
           </div>}
 
