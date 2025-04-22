@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,10 +64,8 @@ export function PopularCollectors() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold mb-3">人気のコレクター</h2>
-      
       <div className="flex items-center justify-between pl-4">
-        <h3 className="text-xl font-bold text-gray-800">推しコンテンツ</h3>
+        <h2 className="text-lg font-semibold">人気のコレクター</h2>
         <Button 
           size="sm" 
           variant="outline"
