@@ -30,7 +30,7 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
   const { data: itemsByTag = {}, isLoading: isTagLoading } = useQuery({
     queryKey: ["items-by-tag", userId],
     queryFn: async () => {
-      return getItemsGroupedByTag(userId, true);
+      return getItemsGroupedByTag(userId);
     },
     enabled: !!userId && groupViewMode === "tags",
   });

@@ -1,6 +1,7 @@
 
 // This file is kept for backward compatibility.
 // It re-exports all functions from the new modular structure.
+import { supabase } from "@/integrations/supabase/client";
 export * from './tag/index';
 
 // タグ追加と削除関数を直接エクスポート
@@ -20,8 +21,6 @@ export {
 // ユーザーアイテムからランダムにアイテムを取得する関数
 export async function getRandomUserItem(userId: string) {
   if (!userId) return null;
-
-  const { supabase } = await import('./tag/index');
   
   try {
     const { data, error } = await supabase
@@ -43,8 +42,6 @@ export async function getRandomUserItem(userId: string) {
 // 公式アイテムからユーザーアイテムにタグをコピーする関数
 export async function copyTagsFromOfficialItem(officialItemId: string, userItemId: string) {
   if (!officialItemId || !userItemId) return false;
-  
-  const { supabase } = await import('./tag/index');
   
   try {
     // 公式アイテムのタグを取得

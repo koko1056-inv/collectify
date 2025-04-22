@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleTag } from "./types";
 
@@ -9,7 +10,7 @@ export interface TagGroupedItems {
 // タグでグループ化されたアイテムを取得する関数
 export async function getItemsGroupedByTag(
   userId: string, 
-  tagCategory: string
+  tagCategory?: string 
 ): Promise<TagGroupedItems> {
   try {
     // ユーザーの全アイテムを取得
@@ -24,11 +25,15 @@ export async function getItemsGroupedByTag(
     // ユーザーアイテムIDs
     const userItemIds = userItems.map(item => item.id);
 
-    // カテゴリでフィルタリングされたタグを取得
-    const { data: tags, error: tagsError } = await supabase
-      .from("tags")
-      .select("id, name")
-      .eq("category", tagCategory);
+    // タグを取得（オプションでカテゴリでフィルタリング）
+    let tagsQuery = supabase.from("tags").select("id, name");
+    
+    // カテゴリが指定されている場合は、そのカテゴリのタグのみを取得
+    if (tagCategory && typeof tagCategory === 'string') {
+      tagsQuery = tagsQuery.eq("category", tagCategory);
+    }
+    
+    const { data: tags, error: tagsError } = await tagsQuery;
 
     if (tagsError) throw tagsError;
     if (!tags || tags.length === 0) return {};
@@ -62,8 +67,7 @@ export async function getItemsGroupedByTag(
 
     // タグに基づいてアイテムをグループ化
     for (const itemTag of itemTags) {
-      // カテゴリが一致するタグのみ処理
-      if (itemTag.tags && itemTag.tags.category === tagCategory) {
+      if (itemTag.tags) {
         const tagName = itemTag.tags.name;
         // まだグループが存在しない場合は作成
         if (!groupedItems[tagName]) {
@@ -85,6 +89,15 @@ export async function getItemsGroupedByTag(
   }
 }
 
+// カスタムグループでアイテムをグループ化する関数
+export async function getItemsGroupedByCustomGroups(
+  userId: string
+): Promise<TagGroupedItems> {
+  // 現時点ではカスタムグループ機能は実装されていないため、単純にタグでグループ化した結果を返す
+  // 将来的にカスタムグループ機能を実装する際に、この関数を拡張することができます
+  return getItemsGroupedByTag(userId);
+}
+
 // タググループ型
 export interface TagGroup {
   id: string;
@@ -98,7 +111,11 @@ export async function getTagGroups(): Promise<{ [key: string]: string[] }> {
   try {
     const { data, error } = await supabase
       .from("tags")
-      .select("*")
+      .select(`
+        id,
+        name,
+        category
+      `)
       .eq("is_category", true)
       .order("name");
 

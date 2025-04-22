@@ -1,10 +1,11 @@
 
 import { Badge } from "@/components/ui/badge";
 import { TagInput } from "@/components/TagInput";
+import { SimpleItemTag } from "@/utils/tag/types";
 
 interface TagsSectionProps {
   isEditing: boolean;
-  tags: Array<{ tags: { id: string; name: string; } | null; }>;
+  tags: SimpleItemTag[];
   editedData: any;
   setEditedData: (data: any) => void;
 }
@@ -15,11 +16,9 @@ export function TagsSection({
   editedData,
   setEditedData,
 }: TagsSectionProps) {
-  const selectedTags = tags
-    .filter((tag): tag is { tags: { id: string; name: string; } } => 
-      tag.tags !== null
-    )
-    .map(tag => tag.tags.name);
+  // タグのリストを処理（nullチェックを含む）
+  const validTags = tags.filter(tag => tag.tags !== null);
+  const selectedTags = validTags.map(tag => tag.tags?.name || "");
 
   const handleTagsChange = (newTags: string[]) => {
     setEditedData({ ...editedData, tags: newTags });
@@ -37,21 +36,19 @@ export function TagsSection({
     );
   }
 
-  if (tags.length === 0) return null;
+  if (validTags.length === 0) return null;
 
   return (
     <div className="space-y-2">
       <div className="text-sm font-medium">タグ</div>
       <div className="flex flex-wrap gap-2">
-        {tags
-          .filter((tag): tag is { tags: { id: string; name: string; } } => 
-            tag.tags !== null
-          )
-          .map((tag) => (
+        {validTags.map((tag) => (
+          tag.tags && (
             <Badge key={tag.tags.id} variant="secondary">
               {tag.tags.name}
             </Badge>
-          ))}
+          )
+        ))}
       </div>
     </div>
   );

@@ -35,7 +35,7 @@ export async function addTagToItem(
     }
 
     // 挿入データを準備
-    const insertData: Record<string, string> = {
+    const insertData: any = {
       tag_id: tagId,
     };
     
