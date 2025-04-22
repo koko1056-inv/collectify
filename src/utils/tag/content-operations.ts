@@ -1,76 +1,93 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { ContentInfo } from "./types";
 
-// アイテムのコンテンツ名を設定
-export const setItemContent = async (
-  itemId: string, 
-  contentName: string | null,
-  isUserItem: boolean = false
-) => {
-  try {
-    const table = isUserItem ? "user_items" : "official_items";
-    
-    const { error } = await supabase
-      .from(table)
-      .update({ content_name: contentName })
-      .eq("id", itemId);
-    
-    if (error) throw error;
-    return { error: null };
-  } catch (error) {
-    console.error("Error setting content name:", error);
-    return { error };
-  }
-};
-
-// コンテンツごとにアイテムをグループ化
-export const getItemsByContent = async (userId: string) => {
+// コンテンツ情報を取得する関数
+export async function getAllContentNames(): Promise<ContentInfo[]> {
   try {
     const { data, error } = await supabase
-      .from("user_items")
-      .select(`
-        id, 
-        title, 
-        image, 
-        content_name,
-        quantity
-      `)
-      .eq("user_id", userId)
-      .order("content_name", { ascending: true })
-      .order("title", { ascending: true });
+      .from('content_names')
+      .select('*')
+      .order('name');
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching content names:', error);
+      return [];
+    }
     
-    // コンテンツ名でグループ化
-    const groupedItems: Record<string, any[]> = {};
-    
-    data.forEach(item => {
-      const contentKey = item.content_name || "未分類";
-      if (!groupedItems[contentKey]) {
-        groupedItems[contentKey] = [];
-      }
-      groupedItems[contentKey].push(item);
-    });
-    
-    return groupedItems;
+    return data;
   } catch (error) {
-    console.error("Error fetching items by content:", error);
-    return {};
-  }
-};
-
-// 利用可能なすべてのコンテンツ名を取得
-export const getAllContentNames = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("content_names")
-      .select("*")
-      .order("name", { ascending: true });
-    
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error("Error fetching content names:", error);
+    console.error('Exception in getAllContentNames:', error);
     return [];
   }
-};
+}
+
+// コンテンツ名を追加する関数
+export async function addContentName(name: string, type: string = 'other'): Promise<ContentInfo | null> {
+  if (!name.trim()) return null;
+  
+  try {
+    const { data, error } = await supabase
+      .from('content_names')
+      .insert([{ name, type, created_by: 'system' }])
+      .select('*')
+      .single();
+    
+    if (error) {
+      console.error('Error adding content name:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Exception in addContentName:', error);
+    return null;
+  }
+}
+
+// IDからコンテンツを取得する関数
+export async function getContentById(id: string): Promise<ContentInfo | null> {
+  if (!id) return null;
+  
+  try {
+    const { data, error } = await supabase
+      .from('content_names')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching content by ID:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Exception in getContentById:', error);
+    return null;
+  }
+}
+
+// アイテムにコンテンツを設定する関数
+export async function setItemContent(itemId: string, contentName: string | null, isUserItem: boolean = false): Promise<boolean> {
+  if (!itemId) return false;
+  
+  const tableName = isUserItem ? 'user_items' : 'official_items';
+  
+  try {
+    const { error } = await supabase
+      .from(tableName)
+      .update({ content_name: contentName })
+      .eq('id', itemId);
+    
+    if (error) {
+      console.error(`Error setting content for ${tableName}:`, error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Exception in setItemContent for ${itemId}:`, error);
+    return false;
+  }
+}
