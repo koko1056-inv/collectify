@@ -1,96 +1,82 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleTag } from "./types";
+import { SimpleItemTag, SimpleTag } from "./types";
 
-// カテゴリーごとのタグを取得
-export async function getTagsByCategory(
-  category: string
-): Promise<SimpleTag[]> {
+// タグ名からタグIDを検索する関数
+export const findTagIdByName = async (tagName: string, category?: string) => {
+  try {
+    let query = supabase
+      .from("tags")
+      .select("id")
+      .eq("name", tagName);
+    
+    if (category) {
+      query = query.eq("category", category);
+    }
+    
+    const { data, error } = await query.maybeSingle();
+    
+    if (error) throw error;
+    return data?.id || null;
+  } catch (error) {
+    console.error("Error finding tag by name:", error);
+    return null;
+  }
+};
+
+// カテゴリでタグを検索する関数
+export const getTagsByCategory = async (category: string) => {
   try {
     const { data, error } = await supabase
       .from("tags")
-      .select("*")
+      .select("id, name")
       .eq("category", category)
       .order("name");
     
-    if (error) {
-      console.error(`Error fetching ${category} tags:`, error);
-      return [];
-    }
-    
-    return data as SimpleTag[];
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    console.error(`Error in getTagsByCategory for ${category}:`, error);
+    console.error(`Error fetching ${category} tags:`, error);
     return [];
   }
-}
+};
 
-// タグ名からタグIDを検索
-export async function findTagIdByName(
-  name: string,
-  category?: string
-): Promise<string | null> {
-  const query = supabase.from("tags").select("id").eq("name", name);
-  
-  if (category) {
-    query.eq("category", category);
+// シンプルなタグを検証する関数
+export const isSimpleTag = (tag: any): tag is SimpleTag => {
+  return tag && typeof tag.id === "string" && typeof tag.name === "string";
+};
+
+// アイテムのタグの中からカテゴリでタグを検索する関数
+export const findTagByCategoryInItemTags = (tags: SimpleItemTag[], category: string): SimpleTag | null => {
+  for (const tag of tags) {
+    if (tag.tags && tag.tags.category === category) {
+      return tag.tags;
+    }
   }
-  
-  const { data, error } = await query.maybeSingle();
-  
-  if (error || !data) {
-    console.error(`Tag not found: ${name}`, error);
-    return null;
-  }
-  
-  return data.id;
-}
+  return null;
+};
 
-// SimpleTagかどうかをチェック（型ガード関数）
-export function isSimpleTag(tag: any): tag is SimpleTag {
-  return (
-    typeof tag === 'object' &&
-    tag !== null &&
-    'id' in tag &&
-    'name' in tag
-  );
-}
-
-// グループ化されたタグを取得
-export async function getTagGroups(): Promise<{[key: string]: string[]}> {
+// タグ名から始まるタグを検索する関数（オートコンプリート用）
+export const searchTagsByPrefix = async (prefix: string, category?: string, limit: number = 10) => {
   try {
-    const { data, error } = await supabase
+    if (!prefix) return [];
+    
+    let query = supabase
       .from("tags")
-      .select("*")
-      .eq("is_category", true)
-      .order("name");
+      .select("id, name, category")
+      .ilike("name", `${prefix}%`)
+      .limit(limit);
     
-    if (error) {
-      console.error("Error fetching tag groups:", error);
-      return {};
+    if (category) {
+      query = query.eq("category", category);
     }
     
-    const groups: {[key: string]: string[]} = {};
+    const { data, error } = await query;
     
-    // カテゴリとして設定されているタグを取得
-    for (const group of data) {
-      groups[group.name] = [];
-      
-      // 各カテゴリに属するタグを取得
-      const { data: groupTags, error: groupError } = await supabase
-        .from("tags")
-        .select("name")
-        .eq("category", group.name)
-        .order("name");
-      
-      if (!groupError && groupTags) {
-        groups[group.name] = groupTags.map(tag => tag.name);
-      }
-    }
-    
-    return groups;
+    if (error) throw error;
+    return data || [];
   } catch (error) {
-    console.error("Error in getTagGroups:", error);
-    return {};
+    console.error("Error searching tags by prefix:", error);
+    return [];
   }
-}
+};

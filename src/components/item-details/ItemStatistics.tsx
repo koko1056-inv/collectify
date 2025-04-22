@@ -1,6 +1,5 @@
 
-import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import { Users, Heart, RefreshCw } from "lucide-react";
 
 interface ItemStatisticsProps {
   likesCount: number;
@@ -14,24 +13,28 @@ export function ItemStatistics({
   tradesCount
 }: ItemStatisticsProps) {
   return (
-    <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100">
-      <div className="flex space-x-6">
-        <div className="text-center">
-          <div className="text-sm font-medium">{likesCount}</div>
-          <div className="text-xs text-gray-500">いいね</div>
-        </div>
-        <div className="text-center">
-          <div className="text-sm font-medium">{ownersCount}</div>
-          <div className="text-xs text-gray-500">オーナー</div>
-        </div>
-        <div className="text-center">
-          <div className="text-sm font-medium">{tradesCount}</div>
-          <div className="text-xs text-gray-500">トレード</div>
+    <div className="flex justify-around mb-4 text-sm text-gray-600">
+      <div className="flex flex-col items-center">
+        <Heart className="h-5 w-5 mb-1 text-red-500" />
+        <div className="flex flex-col items-center">
+          <span className="font-medium text-gray-900">{likesCount}</span>
+          <span>いいね</span>
         </div>
       </div>
-      <Button variant="ghost" size="sm" className="rounded-full p-2 h-8 w-8">
-        <Heart className="h-4 w-4" />
-      </Button>
+      <div className="flex flex-col items-center">
+        <Users className="h-5 w-5 mb-1 text-blue-500" />
+        <div className="flex flex-col items-center">
+          <span className="font-medium text-gray-900">{ownersCount}</span>
+          <span>所有者</span>
+        </div>
+      </div>
+      <div className="flex flex-col items-center">
+        <RefreshCw className="h-5 w-5 mb-1 text-green-500" />
+        <div className="flex flex-col items-center">
+          <span className="font-medium text-gray-900">{tradesCount}</span>
+          <span>トレード</span>
+        </div>
+      </div>
     </div>
   );
 }

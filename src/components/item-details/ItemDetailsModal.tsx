@@ -1,21 +1,23 @@
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { isItemInUserCollection } from "@/utils/tag/tag-queries";
-import { ModalHeader } from "./item-details/ModalHeader";
-import { ItemStatistics } from "./item-details/ItemStatistics";
-import { ItemDetailInfo } from "./item-details/ItemDetailInfo";
-import { ItemButtons } from "./item-details/ItemButtons";
+import { ModalHeader } from "./ModalHeader";
+import { ItemStatistics } from "./ItemStatistics";
+import { ItemDetailInfo } from "./ItemDetailInfo";
+import { ItemButtons } from "./ItemButtons";
 import { Button } from "@/components/ui/button";
 import { Tag, Trash2 } from "lucide-react";
-import { useToast } from "./ui/use-toast";
-import { TagManageModal } from "./tag/TagManageModal";
+import { useToast } from "@/hooks/use-toast";
+import { TagManageModal } from "../tag/TagManageModal";
 import { deleteUserItem } from "@/utils/tag/user-item-operations";
-import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
-import { ItemNoteField } from "./item-details/ItemNoteField";
-import { QuantityInput } from "./item-details/QuantityInput";
+import { ItemDetailsContent } from "./ItemDetailsContent";
+import { ItemNoteField } from "./ItemNoteField";
+import { QuantityInput } from "./QuantityInput";
+
 interface ItemDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,6 +33,7 @@ interface ItemDetailsModalProps {
   createdBy?: string | null;
   contentName?: string | null;
 }
+
 export function ItemDetailsModal({
   isOpen,
   onClose,
@@ -46,13 +49,9 @@ export function ItemDetailsModal({
   createdBy,
   contentName
 }: ItemDetailsModalProps) {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -64,15 +63,12 @@ export function ItemDetailsModal({
   const [isSaving, setIsSaving] = useState(false);
 
   // タグの取得
-  const {
-    data: officialTags = []
-  } = useQuery({
+  const { data: officialTags = [] } = useQuery({
     queryKey: ["item-tags", itemId],
     queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from("item_tags").select(`
+      const { data, error } = await supabase
+        .from("item_tags")
+        .select(`
           tag_id,
           tags (
             id,
@@ -80,7 +76,8 @@ export function ItemDetailsModal({
             category,
             created_at
           )
-        `).eq("official_item_id", itemId);
+        `)
+        .eq("official_item_id", itemId);
       if (error) throw error;
       return data;
     },
@@ -88,19 +85,14 @@ export function ItemDetailsModal({
   });
 
   // いいねの数を取得
-  const {
-    data: likesCount = 0
-  } = useQuery({
+  const { data: likesCount = 0 } = useQuery({
     queryKey: ["item-likes-count", itemId],
     queryFn: async () => {
       if (isUserItem) {
-        const {
-          count,
-          error
-        } = await supabase.from("user_item_likes").select("*", {
-          count: 'exact',
-          head: true
-        }).eq("user_item_id", itemId);
+        const { count, error } = await supabase
+          .from("user_item_likes")
+          .select("*", { count: 'exact', head: true })
+          .eq("user_item_id", itemId);
         if (error) throw error;
         return count || 0;
       }
@@ -110,17 +102,14 @@ export function ItemDetailsModal({
   });
 
   // 所有者の数を取得
-  const {
-    data: ownersCount = 0,
-    refetch: refetchOwnersCount
-  } = useQuery({
+  const { data: ownersCount = 0, refetch: refetchOwnersCount } = useQuery({
     queryKey: ["item-owners-count", itemId],
     queryFn: async () => {
       if (!isUserItem) {
-        const {
-          data,
-          error
-        } = await supabase.from("user_items").select("user_id").eq("official_item_id", itemId);
+        const { data, error } = await supabase
+          .from("user_items")
+          .select("user_id")
+          .eq("official_item_id", itemId);
         if (error) throw error;
         // ユニークなユーザーIDの数を計算
         const uniqueUserIds = new Set(data.map(item => item.user_id));
@@ -132,17 +121,15 @@ export function ItemDetailsModal({
   });
 
   // トレードの数を取得
-  const {
-    data: tradesCount = 0
-  } = useQuery({
+  const { data: tradesCount = 0 } = useQuery({
     queryKey: ["item-trades-count", itemId],
     queryFn: async () => {
       if (!isUserItem) {
         // 公式アイテムに関連する全てのユーザーアイテムを取得
-        const {
-          data: userItems,
-          error: userItemsError
-        } = await supabase.from("user_items").select("id").eq("official_item_id", itemId);
+        const { data: userItems, error: userItemsError } = await supabase
+          .from("user_items")
+          .select("id")
+          .eq("official_item_id", itemId);
         if (userItemsError) throw userItemsError;
         if (!userItems || userItems.length === 0) return 0;
 
@@ -150,24 +137,18 @@ export function ItemDetailsModal({
         const userItemIds = userItems.map(item => item.id);
 
         // offered_item_idまたはrequested_item_idのいずれかにマッチするトレードをカウント
-        const {
-          count,
-          error
-        } = await supabase.from("trade_requests").select("id", {
-          count: 'exact',
-          head: true
-        }).or(`offered_item_id.in.(${userItemIds.join(',')}),requested_item_id.in.(${userItemIds.join(',')})`);
+        const { count, error } = await supabase
+          .from("trade_requests")
+          .select("id", { count: 'exact', head: true })
+          .or(`offered_item_id.in.(${userItemIds.join(',')}),requested_item_id.in.(${userItemIds.join(',')})`);
         if (error) throw error;
         return count || 0;
       } else {
         // ユーザーアイテムの場合、直接そのアイテムが関係するトレードをカウント
-        const {
-          count,
-          error
-        } = await supabase.from("trade_requests").select("id", {
-          count: 'exact',
-          head: true
-        }).or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
+        const { count, error } = await supabase
+          .from("trade_requests")
+          .select("id", { count: 'exact', head: true })
+          .or(`offered_item_id.eq.${itemId},requested_item_id.eq.${itemId}`);
         if (error) throw error;
         return count || 0;
       }
@@ -176,10 +157,7 @@ export function ItemDetailsModal({
   });
 
   // アイテムがユーザーのコレクションに既に存在するかをチェック
-  const {
-    data: isInCollection = false,
-    refetch: refetchIsInCollection
-  } = useQuery({
+  const { data: isInCollection = false, refetch: refetchIsInCollection } = useQuery({
     queryKey: ["is-in-collection", itemId, user?.id],
     queryFn: async () => {
       if (!user || isUserItem) return isUserItem;
@@ -200,10 +178,11 @@ export function ItemDetailsModal({
     if (isUserItem && userId === user?.id) {
       // ユーザーのメモデータを取得
       const fetchUserItemDetails = async () => {
-        const {
-          data,
-          error
-        } = await supabase.from("user_items").select("note").eq("id", itemId).single();
+        const { data, error } = await supabase
+          .from("user_items")
+          .select("note")
+          .eq("id", itemId)
+          .single();
         if (error) {
           console.error("Error fetching user item details:", error);
           return;
@@ -236,12 +215,8 @@ export function ItemDetailsModal({
     }, async () => {
       await refetchIsInCollection();
       await refetchOwnersCount();
-      await queryClient.invalidateQueries({
-        queryKey: ["user-items", user.id]
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["item-owners-count", itemId]
-      });
+      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", itemId] });
     }).subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -252,25 +227,16 @@ export function ItemDetailsModal({
   const handleDeleteItem = async () => {
     if (!isUserItem || !itemId) return;
     try {
-      const {
-        error,
-        officialItemId
-      } = await deleteUserItem(itemId);
+      const { error, officialItemId } = await deleteUserItem(itemId);
       if (error) throw error;
 
       // Invalidate user items query
-      queryClient.invalidateQueries({
-        queryKey: ["user-items"]
-      });
+      queryClient.invalidateQueries({ queryKey: ["user-items"] });
 
       // Invalidate specific official item query if we have the ID
       if (officialItemId) {
-        queryClient.invalidateQueries({
-          queryKey: ["user-item-exists", officialItemId, user?.id]
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["item-owners-count", officialItemId]
-        });
+        queryClient.invalidateQueries({ queryKey: ["user-item-exists", officialItemId, user?.id] });
+        queryClient.invalidateQueries({ queryKey: ["item-owners-count", officialItemId] });
       }
       toast({
         title: "アイテムを削除しました",
@@ -292,17 +258,16 @@ export function ItemDetailsModal({
     if (!isUserItem || !itemId) return;
     setIsSaving(true);
     try {
-      const {
-        error
-      } = await supabase.from("user_items").update({
-        quantity: editedData.quantity,
-        note: editedData.note ?? null,
-        content_name: editedData.content_name ?? null // ← 追加
-      }).eq("id", itemId);
+      const { error } = await supabase
+        .from("user_items")
+        .update({
+          quantity: editedData.quantity,
+          note: editedData.note ?? null,
+          content_name: editedData.content_name ?? null // ← 追加
+        })
+        .eq("id", itemId);
       if (error) throw error;
-      await queryClient.invalidateQueries({
-        queryKey: ["user-items"]
-      });
+      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       toast({
         title: "保存完了",
         description: "個数・メモ・コンテンツを保存しました。"
@@ -319,56 +284,104 @@ export function ItemDetailsModal({
       setIsSaving(false);
     }
   };
-  return <>
+
+  return (
+    <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
           <ModalHeader onClose={onClose} />
 
           {/* メインコンテンツ */}
-          <ItemDetailsContent image={image} title={title} tags={officialTags} isUserItem={isUserItem} isEditing={isEditing} editedData={editedData} setEditedData={setEditedData} contentName={editedData.content_name ?? contentName} releaseDate={releaseDate} createdBy={createdBy} description={description} />
+          <ItemDetailsContent 
+            image={image} 
+            title={title} 
+            tags={officialTags} 
+            isUserItem={isUserItem} 
+            isEditing={isEditing} 
+            editedData={editedData} 
+            setEditedData={setEditedData} 
+            contentName={editedData.content_name ?? contentName} 
+            releaseDate={releaseDate} 
+            createdBy={createdBy} 
+            description={description} 
+          />
 
           {/* ユーザーアイテムの場合のみ：数量＋メモ編集UI */}
-          {isUserItem && isEditing && <div className="p-4 pt-0 pb-0 border-t border-gray-100 space-y-4">
+          {isUserItem && isEditing && (
+            <div className="p-4 pt-0 pb-0 border-t border-gray-100 space-y-4">
               <div>
                 <label className="text-sm font-medium">所有個数</label>
-                <QuantityInput value={editedData.quantity} onChange={val => setEditedData(prev => ({
-              ...prev,
-              quantity: val
-            }))} min={1} max={200} className="mt-2" />
+                <QuantityInput 
+                  value={editedData.quantity} 
+                  onChange={val => setEditedData(prev => ({
+                    ...prev,
+                    quantity: val
+                  }))} 
+                  min={1} 
+                  max={200} 
+                  className="mt-2" 
+                />
               </div>
-              <ItemNoteField isEditing={isEditing} note={editedData.note} onChange={v => setEditedData(prev => ({
-            ...prev,
-            note: v
-          }))} />
-            </div>}
+              <ItemNoteField 
+                isEditing={isEditing} 
+                note={editedData.note} 
+                onChange={v => setEditedData(prev => ({
+                  ...prev,
+                  note: v
+                }))} 
+              />
+            </div>
+          )}
 
           {/* 下部固定エリア */}
-          {!isUserItem && <div className="border-t border-gray-100 p-4">
+          {!isUserItem && (
+            <div className="border-t border-gray-100 p-4">
               <ItemStatistics likesCount={likesCount} ownersCount={ownersCount} tradesCount={tradesCount} />
               <ItemDetailInfo tags={officialTags} price={price} description={description} contentName={contentName} />
-              <ItemButtons isInCollection={isInCollection} itemId={itemId} title={title} image={image} releaseDate={releaseDate} price={price} refetchIsInCollection={refetchIsInCollection} refetchOwnersCount={refetchOwnersCount} />
-            </div>}
-          {isUserItem && <div className="border-t border-gray-100 p-4 flex justify-between items-center">
-              <Button variant="destructive" onClick={() => setIsDeleteConfirmOpen(true)} className="gap-2">
+              <ItemButtons 
+                isInCollection={isInCollection} 
+                itemId={itemId} 
+                title={title} 
+                image={image} 
+                releaseDate={releaseDate} 
+                price={price} 
+                refetchIsInCollection={refetchIsInCollection}
+                refetchOwnersCount={refetchOwnersCount}
+              />
+            </div>
+          )}
+          {isUserItem && (
+            <div className="border-t border-gray-100 p-4 flex justify-between items-center">
+              <Button 
+                variant="destructive" 
+                onClick={() => setIsDeleteConfirmOpen(true)} 
+                className="gap-2"
+              >
                 <Trash2 className="h-4 w-4" />
                 削除
               </Button>
-              {!isEditing ? <Button onClick={() => setIsEditing(true)}>
+              {!isEditing ? (
+                <Button onClick={() => setIsEditing(true)}>
                   編集する
-                </Button> : <div className="flex gap-2">
+                </Button>
+              ) : (
+                <div className="flex gap-2">
                   <Button variant="outline" onClick={() => setIsEditing(false)}>
                     キャンセル
                   </Button>
                   <Button onClick={handleSaveUserItemFields} disabled={isSaving}>
                     {isSaving ? "保存中..." : "保存"}
                   </Button>
-                </div>}
-            </div>}
+                </div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
       {/* 削除確認ダイアログ */}
-      {isDeleteConfirmOpen && <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+      {isDeleteConfirmOpen && (
+        <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <h2 className="text-lg font-bold mb-2">アイテムの削除</h2>
             <p className="mb-4">「{title}」をコレクションから削除しますか？</p>
@@ -381,9 +394,11 @@ export function ItemDetailsModal({
               </Button>
             </div>
           </DialogContent>
-        </Dialog>}
+        </Dialog>
+      )}
       
       {/* タグ管理モーダル */}
       <TagManageModal isOpen={isTagModalOpen} onClose={() => setIsTagModalOpen(false)} itemIds={[itemId]} itemTitle={title} isUserItem={isUserItem} />
-    </>;
+    </>
+  );
 }

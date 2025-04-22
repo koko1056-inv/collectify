@@ -1,6 +1,17 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag } from "./types";
+
+// SimpleItemTag型を定義して、循環参照の問題を解消
+export interface SimpleItemTag {
+  id: string;
+  tag_id: string;
+  tags?: {
+    id: string;
+    name: string;
+    category?: string;
+    created_at?: string;
+  } | null;
+}
 
 // アイテムのタグを取得する関数
 export async function getTagsForItem(
@@ -39,11 +50,7 @@ export async function getTagsForItem(
     }
 
     // 結果を変換して返す
-    return data.map(item => ({
-      id: item.id,
-      tag_id: item.tag_id,
-      tags: item.tags
-    }));
+    return data as SimpleItemTag[];
   } catch (error) {
     console.error(`Error in getTagsForItem for ${itemId}:`, error);
     return [];
