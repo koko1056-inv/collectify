@@ -1,13 +1,15 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserCard } from "./UserCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function PopularCollectors() {
   const [selectedContent, setSelectedContent] = useState<string | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const { data: popularUsers, isLoading } = useQuery({
     queryKey: ["popular-collectors", selectedContent],
@@ -69,7 +71,7 @@ export function PopularCollectors() {
         <Button 
           size="sm" 
           variant="outline"
-          onClick={() => {}}
+          onClick={() => setIsFilterOpen(true)}
         >
           フィルター
         </Button>
@@ -95,7 +97,41 @@ export function PopularCollectors() {
         ))}
       </div>
 
-      {/* 残りのコードは変更なし */}
+      <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>推しコンテンツを選択</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[300px] pr-4">
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant={selectedContent === null ? "default" : "outline"}
+                className="w-full justify-start text-sm"
+                onClick={() => {
+                  setSelectedContent(null);
+                  setIsFilterOpen(false);
+                }}
+              >
+                すべて
+              </Button>
+              {contentNames.map((content) => (
+                <Button
+                  key={content.id}
+                  variant={selectedContent === content.name ? "default" : "outline"}
+                  className="w-full justify-start text-sm"
+                  onClick={() => {
+                    setSelectedContent(content.name);
+                    setIsFilterOpen(false);
+                  }}
+                >
+                  {content.name}
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
       {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
