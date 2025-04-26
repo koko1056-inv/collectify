@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +27,10 @@ export function MemoriesForm({ onSubmit }: MemoriesFormProps) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      comment: "",
+      image: undefined,
+    },
   });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,20 +59,26 @@ export function MemoriesForm({ onSubmit }: MemoriesFormProps) {
             <FormItem>
               <FormLabel>画像</FormLabel>
               <FormControl>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full flex items-center gap-2"
-                >
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                  />
-                  <ImagePlus className="h-4 w-4" />
-                  {selectedImage ? `選択済み: ${selectedImage.name}` : "画像を選択"}
-                </Button>
+                <div className="relative">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full flex items-center gap-2"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // この行は何もしません。ファイル選択はinputのonChangeイベントで処理されます
+                    }}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                    <ImagePlus className="h-4 w-4" />
+                    {selectedImage ? `選択済み: ${selectedImage.name}` : "画像を選択"}
+                  </Button>
+                </div>
               </FormControl>
             </FormItem>
           )}
