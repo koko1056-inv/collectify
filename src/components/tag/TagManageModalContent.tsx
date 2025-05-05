@@ -63,7 +63,7 @@ export function TagManageModalContent({
         onRemoveTag={handleRemoveTag}
       />
       
-      {isUserItem && officialTags.length > 0 && (
+      {isUserItem && officialTags && officialTags.length > 0 && (
         <OfficialTagsSection officialTags={officialTags} />
       )}
       

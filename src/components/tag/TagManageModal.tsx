@@ -38,6 +38,13 @@ export function TagManageModal({
 
   const modalTitle = itemTitle ? `${title}: ${itemTitle}` : title;
 
+  console.log('TagManageModal render:', {
+    isOpen,
+    currentTags: currentTags?.length,
+    pendingUpdates: pendingUpdates?.length,
+    contentName
+  });
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent>

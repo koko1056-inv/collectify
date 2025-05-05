@@ -1,12 +1,13 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { AddTagDialog } from "./AddTagDialog";
 import { TagSelectContent } from "./TagSelectContent";
-import { useTagSelect } from "@/hooks/useTagSelect";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CategoryTagSelectProps {
   category: string;
@@ -21,31 +22,83 @@ export function CategoryTagSelect({
   value,
   onChange,
 }: CategoryTagSelectProps) {
-  const {
-    selectedTag,
-    searchQuery,
-    setSearchQuery,
-    filteredTags,
-    isDialogOpen,
-    setIsDialogOpen,
-    refetch,
-    getPlaceholderText,
-    handleAddNewTag
-  } = useTagSelect(category, value);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  const handleValueChange = (tagId: string) => {
-    const selectedTag = filteredTags.find(tag => tag.id === tagId);
-    if (selectedTag) {
-      console.log(`CategoryTagSelect: Changed to "${selectedTag.name}" for category "${category}"`);
-      onChange(selectedTag.name);
-    } else {
-      console.warn(`Tag with ID ${tagId} not found in tags list for category ${category}`);
+  const { data: tags = [], refetch } = useQuery({
+    queryKey: ["tags-by-category", category],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("*")
+        .eq("category", category)
+        .order("name");
+      
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 60000, // 1分間キャッシュを保持
+  });
+
+  // 検索クエリに基づいてタグをフィルタリング
+  const filteredTags = tags.filter((tag) => 
+    tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // 現在選択されているタグを見つける
+  const selectedTag = tags.find(tag => tag.name === value);
+
+  // プレースホルダーテキストを取得
+  const getPlaceholderText = () => {
+    if (value) {
+      return selectedTag?.name || value;
+    }
+    return "選択してください";
+  };
+
+  // 新しいタグの追加処理
+  const handleAddNewTag = async (tagName: string) => {
+    if (!tagName.trim()) return;
+
+    try {
+      // 既存のタグとの重複をチェック
+      const existingTag = tags.find(
+        (tag) => tag.name.toLowerCase() === tagName.toLowerCase()
+      );
+
+      if (existingTag) {
+        console.log(`Tag "${tagName}" already exists, using existing tag`);
+        onChange(existingTag.name);
+        return;
+      }
+
+      const { data: newTag, error } = await supabase
+        .from("tags")
+        .insert([{ name: tagName, category }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // キャッシュを更新
+      queryClient.invalidateQueries({ queryKey: ["tags-by-category", category] });
+      
+      console.log(`Added new tag: ${tagName} with ID: ${newTag.id}`);
+      onChange(tagName);
+    } catch (error) {
+      console.error("Error adding new tag:", error);
     }
   };
 
-  const handleNewTagAdded = (tagName: string) => {
+  // デバッグ用ログ出力
+  useEffect(() => {
+    console.log(`CategoryTagSelect for ${category}: current value = ${value || 'null'}, tags count = ${tags.length}`);
+  }, [category, value, tags.length]);
+
+  const handleValueChange = (tagName: string) => {
+    console.log(`CategoryTagSelect: Changed to "${tagName}" for category "${category}"`);
     onChange(tagName);
-    handleAddNewTag(tagName);
   };
 
   return (
@@ -53,7 +106,7 @@ export function CategoryTagSelect({
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Select 
-          value={selectedTag?.id}
+          value={value || undefined}
           onValueChange={handleValueChange}
           onOpenChange={(open) => {
             if (open) {
@@ -89,7 +142,10 @@ export function CategoryTagSelect({
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         category={category}
-        onTagAdded={handleNewTagAdded}
+        onTagAdded={(tagName) => {
+          handleAddNewTag(tagName);
+          setIsDialogOpen(false);
+        }}
       />
     </div>
   );

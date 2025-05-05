@@ -91,6 +91,7 @@ export function useTagManage(
   }, [isOpen]);
 
   const handleTagChange = useCallback((category: string) => (value: string | null) => {
+    console.log(`Updating tag for category: ${category} with value: ${value}`);
     setPendingUpdates((prev) => {
       const existing = prev.findIndex((u) => u.category === category);
       if (existing !== -1) {
@@ -103,11 +104,16 @@ export function useTagManage(
   }, []);
 
   const handleContentChange = useCallback((newContentName: string | null) => {
+    console.log(`Setting content name to: ${newContentName}`);
     setContentName(newContentName);
   }, []);
 
   const handleSubmit = async () => {
     try {
+      console.log(`Saving content name: ${contentName}`);
+      console.log(`Pending updates: ${JSON.stringify(pendingUpdates)}`);
+      
+      // コンテンツ名を更新
       for (const itemId of itemIds) {
         await setItemContent(itemId, contentName, isUserItem);
       }
@@ -115,6 +121,7 @@ export function useTagManage(
       await queryClient.invalidateQueries({ queryKey: ["item-content"] });
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       
+      // タグ更新を実行
       if (onSubmit && pendingUpdates.length > 0) {
         await onSubmit(pendingUpdates.filter((u) => u.value !== null));
       }

@@ -129,7 +129,7 @@ export async function getItemsGroupedByTag(userId: string, tagCategory?: string)
  * @returns カスタムグループでグループ化されたアイテムの配列
  */
 export async function getItemsGroupedByCustomGroups(userId: string): Promise<ItemsGroupedByTag[]> {
-  type GroupedItem = {
+  interface GroupedItem {
     id: string;
     title: string;
     image: string;
@@ -142,7 +142,7 @@ export async function getItemsGroupedByCustomGroups(userId: string): Promise<Ite
         category: string | null;
       } | null;
     }[];
-  };
+  }
 
   try {
     // ユーザーのコレクションを取得
@@ -182,7 +182,7 @@ export async function getItemsGroupedByCustomGroups(userId: string): Promise<Ite
     // 結果をフォーマット
     return Object.entries(groupedByContent).map(([groupName, items]) => ({
       group_name: groupName,
-      items: items
+      items: items as any[]
     }));
   } catch (error) {
     console.error("Error grouping items by custom groups:", error);

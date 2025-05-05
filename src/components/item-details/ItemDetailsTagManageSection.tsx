@@ -26,13 +26,18 @@ export function ItemDetailsTagManageSection({
   // タグ更新を処理する関数
   const handleTagUpdates = async (updates: TagUpdate[]) => {
     try {
+      console.log(`Processing ${updates.length} tag updates for item ${itemId}`);
+      
       // 各更新を処理
       for (const update of updates) {
         const { category, value } = update;
         
         if (value) {
           // タグを追加
-          await addTagToItem(itemId, value, isUserItem);
+          const result = await addTagToItem(itemId, value, isUserItem);
+          if (result) {
+            console.log(`Added tag ${value} (${category}) to item ${itemId}`);
+          }
         }
       }
       

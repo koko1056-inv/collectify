@@ -32,6 +32,7 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
   });
 
   const handleContentChange = (value: string) => {
+    console.log(`ContentNameSection: Selected value: ${value}`);
     if (value === "other") {
       setIsAddingNewContent(true);
       onContentChange(null);
@@ -118,17 +119,17 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
             value={contentName || "none"}
             onValueChange={handleContentChange}
           >
-            <SelectTrigger className="w-full bg-white text-black">
-              <SelectValue placeholder="コンテンツを選択" className="text-black" />
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="コンテンツを選択" />
             </SelectTrigger>
-            <SelectContent className="bg-white">
-              <SelectItem value="none" className="text-black">選択なし</SelectItem>
+            <SelectContent>
+              <SelectItem value="none">選択なし</SelectItem>
               {contentNames.map((content) => (
-                <SelectItem key={content.id} value={content.name} className="text-black">
+                <SelectItem key={content.id} value={content.name}>
                   {content.name}
                 </SelectItem>
               ))}
-              <SelectItem value="other" className="text-black">その他（新規追加）</SelectItem>
+              <SelectItem value="other">その他（新規追加）</SelectItem>
             </SelectContent>
           </Select>
         )
