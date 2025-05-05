@@ -2,6 +2,7 @@
 import { CategoryTagSelect } from "./CategoryTagSelect";
 import { TagUpdate } from "@/types/tag";
 import { SimpleItemTag } from "@/utils/tag/types";
+import { useEffect } from "react";
 
 interface CategoryTagSelectionsProps {
   currentTags: SimpleItemTag[];
@@ -25,24 +26,46 @@ export function CategoryTagSelections({
     return currentTag?.tags?.name || null;
   };
 
+  // デバッグ: 起動時に現在のタグ情報をログ出力
+  useEffect(() => {
+    console.log('CategoryTagSelections - Current tags:', currentTags);
+    const characterTag = currentTags.find(tag => tag.tags?.category === 'character');
+    const typeTag = currentTags.find(tag => tag.tags?.category === 'type');
+    const seriesTag = currentTags.find(tag => tag.tags?.category === 'series');
+    
+    console.log('Character tag:', characterTag?.tags?.name);
+    console.log('Type tag:', typeTag?.tags?.name);
+    console.log('Series tag:', seriesTag?.tags?.name);
+  }, [currentTags]);
+
+  const characterValue = getCurrentTagValue("character");
+  const typeValue = getCurrentTagValue("type");
+  const seriesValue = getCurrentTagValue("series");
+  
+  console.log('CategoryTagSelections - Current values:', {
+    character: characterValue,
+    type: typeValue,
+    series: seriesValue
+  });
+
   return (
     <div className="space-y-3 sm:space-y-4">
       <CategoryTagSelect
         category="character"
         label="キャラ・人物名"
-        value={getCurrentTagValue("character")}
+        value={characterValue}
         onChange={onTagChange("character")}
       />
       <CategoryTagSelect
         category="type"
         label="グッズタイプ"
-        value={getCurrentTagValue("type")}
+        value={typeValue}
         onChange={onTagChange("type")}
       />
       <CategoryTagSelect
         category="series"
         label="グッズシリーズ"
-        value={getCurrentTagValue("series")}
+        value={seriesValue}
         onChange={onTagChange("series")}
       />
     </div>

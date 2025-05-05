@@ -9,7 +9,7 @@ interface ItemDetailsTagManageSectionProps {
   isOpen: boolean;
   onClose: () => void;
   itemId: string;
-  itemTitle: string;
+  itemTitle?: string;
   isUserItem: boolean;
 }
 

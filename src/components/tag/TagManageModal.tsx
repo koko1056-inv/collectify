@@ -36,10 +36,14 @@ export function TagManageModal({
     handleSubmit
   } = useTagManage(isOpen, itemIds, isUserItem, onClose, onSubmit);
 
-  const modalTitle = itemTitle ? `${title}: ${itemTitle}` : title;
+  // 複数アイテムの場合はカウントを表示、単一アイテムの場合はタイトルを表示
+  const modalTitle = itemIds.length > 1 
+    ? `${title} (${itemIds.length}件のアイテム)` 
+    : itemTitle ? `${title}: ${itemTitle}` : title;
 
   console.log('TagManageModal render:', {
     isOpen,
+    itemIds: itemIds.length,
     currentTags: currentTags?.length,
     pendingUpdates: pendingUpdates?.length,
     contentName
@@ -68,6 +72,7 @@ export function TagManageModal({
             <TagManageDialogFooter 
               onCancel={onClose}
               onSubmit={handleSubmit}
+              itemCount={itemIds.length}
             />
           </>
         )}

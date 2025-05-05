@@ -124,6 +124,46 @@ export async function getItemsGroupedByTag(userId: string, tagCategory?: string)
 }
 
 /**
+ * 複数のアイテムのタグを一度に取得する関数
+ * @param itemIds アイテムIDの配列
+ * @param isUserItem ユーザーアイテムかどうか
+ * @returns タグ情報の配列
+ */
+export async function getTagsForMultipleItems(
+  itemIds: string[], 
+  isUserItem: boolean = false
+): Promise<SimpleItemTag[]> {
+  if (itemIds.length === 0) return [];
+  
+  const table = isUserItem ? "user_item_tags" : "item_tags";
+  const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
+
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .select(`
+        id,
+        tag_id,
+        ${itemIdField},
+        tags:tag_id (
+          id,
+          name,
+          category,
+          created_at
+        )
+      `)
+      .in(itemIdField, itemIds);
+
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error("Error fetching tags for multiple items:", error);
+    return [];
+  }
+}
+
+/**
  * カスタムグループでグループ化されたアイテムを取得する関数
  * @param userId ユーザーID
  * @returns カスタムグループでグループ化されたアイテムの配列

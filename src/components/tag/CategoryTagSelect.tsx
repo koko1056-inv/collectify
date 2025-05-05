@@ -47,7 +47,7 @@ export function CategoryTagSelect({
   );
 
   // 現在選択されているタグを見つける
-  const selectedTag = tags.find(tag => tag.name === value);
+  const selectedTag = value ? tags.find(tag => tag.name === value) : null;
 
   // プレースホルダーテキストを取得
   const getPlaceholderText = () => {
@@ -94,7 +94,17 @@ export function CategoryTagSelect({
   // デバッグ用ログ出力
   useEffect(() => {
     console.log(`CategoryTagSelect for ${category}: current value = ${value || 'null'}, tags count = ${tags.length}`);
-  }, [category, value, tags.length]);
+    
+    // valueがある場合、対応するタグがtagsに存在するか確認
+    if (value) {
+      const matchingTag = tags.find(tag => tag.name === value);
+      console.log(`  Value "${value}" ${matchingTag ? 'matches' : 'does NOT match'} a tag in the list`);
+      
+      if (!matchingTag && tags.length > 0) {
+        console.log(`  Available tags: ${tags.slice(0, 5).map(t => t.name).join(', ')}${tags.length > 5 ? '...' : ''}`);
+      }
+    }
+  }, [category, value, tags]);
 
   const handleValueChange = (tagName: string) => {
     console.log(`CategoryTagSelect: Changed to "${tagName}" for category "${category}"`);
