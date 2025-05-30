@@ -251,7 +251,13 @@ export async function getItemsGroupedByCustomGroups(userId: string): Promise<Ite
     // 結果をフォーマット
     return Object.entries(groupedByContent).map(([groupName, items]) => ({
       group_name: groupName,
-      items: items as any[]
+      items: items.map(item => ({
+        id: item.id,
+        title: item.title,
+        image: item.image,
+        content_name: item.content_name,
+        quantity: item.quantity
+      }))
     }));
   } catch (error) {
     console.error("Error grouping items by custom groups:", error);
