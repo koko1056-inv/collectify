@@ -9,7 +9,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CreatePostModal } from "./CreatePostModal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, SortAsc } from "lucide-react";
+import { Search, Filter, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useTags } from "@/hooks/useTags";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface CreatePostFromCollectionModalProps {
   isOpen: boolean;
@@ -33,7 +36,10 @@ export function CreatePostFromCollectionModal({
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [filterBy, setFilterBy] = useState<FilterOption>("all");
   const [selectedContentNames, setSelectedContentNames] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+
+  const { data: allTags = [] } = useTags();
 
   const { data: userItems, isLoading } = useQuery({
     queryKey: ["user-items-with-tags", user?.id],
@@ -69,6 +75,9 @@ export function CreatePostFromCollectionModal({
   const uniqueContentNames = userItems ? 
     [...new Set(userItems.map(item => item.content_name).filter(Boolean))] : [];
 
+  // グッズタイプのタグだけをフィルタリング
+  const typeTags = allTags.filter(tag => tag.category === 'type');
+
   // 検索、フィルタ、ソートロジック
   const filteredAndSortedItems = userItems ? userItems
     .filter(item => {
@@ -81,13 +90,19 @@ export function CreatePostFromCollectionModal({
       const matchesContentFilter = selectedContentNames.length === 0 || 
         (item.content_name && selectedContentNames.includes(item.content_name));
 
+      // タグフィルタ
+      const matchesTagFilter = selectedTags.length === 0 || 
+        selectedTags.every(selectedTag =>
+          item.user_item_tags?.some(itemTag => itemTag.tags?.name === selectedTag)
+        );
+
       // タグの有無フィルタ
       const hasTags = item.user_item_tags && item.user_item_tags.length > 0;
-      const matchesTagFilter = filterBy === "all" || 
+      const matchesTagPresenceFilter = filterBy === "all" || 
         (filterBy === "withTags" && hasTags) ||
         (filterBy === "noTags" && !hasTags);
 
-      return matchesSearch && matchesContentFilter && matchesTagFilter;
+      return matchesSearch && matchesContentFilter && matchesTagFilter && matchesTagPresenceFilter;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -109,6 +124,7 @@ export function CreatePostFromCollectionModal({
     setSelectedItem(null);
     setSearchQuery("");
     setSelectedContentNames([]);
+    setSelectedTags([]);
     setSortBy("newest");
     setFilterBy("all");
     setShowFilters(false);
@@ -122,6 +138,23 @@ export function CreatePostFromCollectionModal({
         : [...prev, contentName]
     );
   };
+
+  const handleTagToggle = (tagName: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tagName)
+        ? prev.filter(name => name !== tagName)
+        : [...prev, tagName]
+    );
+  };
+
+  const clearAllFilters = () => {
+    setSelectedContentNames([]);
+    setSelectedTags([]);
+    setFilterBy("all");
+    setSearchQuery("");
+  };
+
+  const hasActiveFilters = selectedContentNames.length > 0 || selectedTags.length > 0 || filterBy !== "all" || searchQuery;
 
   if (selectedItem) {
     return (
@@ -154,8 +187,32 @@ export function CreatePostFromCollectionModal({
           />
         </div>
 
+        {/* タグフィルタ（水平スクロール） */}
+        {typeTags.length > 0 && (
+          <div className="mb-4">
+            <ScrollArea className="w-full whitespace-nowrap">
+              <div className="flex w-max space-x-2 p-1">
+                {typeTags.map((tag) => (
+                  <Button
+                    key={tag.id}
+                    variant="outline"
+                    size="sm"
+                    className={selectedTags.includes(tag.name) 
+                      ? "bg-purple-100 text-purple-700 border-purple-300" 
+                      : "bg-white text-gray-700 border-gray-200"}
+                    onClick={() => handleTagToggle(tag.name)}
+                  >
+                    {tag.name}
+                  </Button>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </div>
+        )}
+
         {/* フィルタとソートのコントロール */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           <Button
             variant="outline"
             size="sm"
@@ -164,7 +221,24 @@ export function CreatePostFromCollectionModal({
           >
             <Filter className="h-4 w-4" />
             フィルタ
+            {hasActiveFilters && (
+              <Badge variant="destructive" className="ml-1 h-4 w-4 p-0 text-xs">
+                !
+              </Badge>
+            )}
           </Button>
+          
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="flex items-center gap-1 text-gray-500"
+            >
+              <X className="h-4 w-4" />
+              クリア
+            </Button>
+          )}
           
           <select
             value={sortBy}
@@ -186,6 +260,44 @@ export function CreatePostFromCollectionModal({
             <option value="noTags">タグなし</option>
           </select>
         </div>
+
+        {/* 選択されたフィルタの表示 */}
+        {(selectedContentNames.length > 0 || selectedTags.length > 0) && (
+          <div className="mb-3">
+            <div className="flex flex-wrap gap-1">
+              {selectedContentNames.map((contentName) => (
+                <Badge
+                  key={contentName}
+                  variant="secondary"
+                  className="text-xs"
+                >
+                  {contentName}
+                  <button
+                    onClick={() => handleContentNameToggle(contentName)}
+                    className="ml-1 hover:bg-gray-300 rounded-full"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+              {selectedTags.map((tagName) => (
+                <Badge
+                  key={tagName}
+                  variant="outline"
+                  className="text-xs border-purple-300 text-purple-700"
+                >
+                  {tagName}
+                  <button
+                    onClick={() => handleTagToggle(tagName)}
+                    className="ml-1 hover:bg-purple-100 rounded-full"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* コンテンツ名フィルタ */}
         {showFilters && uniqueContentNames.length > 0 && (
@@ -271,7 +383,7 @@ export function CreatePostFromCollectionModal({
                 </Button>
               ))}
             </div>
-          ) : searchQuery || selectedContentNames.length > 0 ? (
+          ) : searchQuery || selectedContentNames.length > 0 || selectedTags.length > 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500">検索条件に一致するグッズが見つかりません</p>
               <p className="text-sm text-gray-400 mt-2">
