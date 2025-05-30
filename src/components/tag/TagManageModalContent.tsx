@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { SimpleItemTag } from "@/utils/tag/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface TagManageModalContentProps {
   currentTags: SimpleItemTag[];
@@ -59,30 +61,68 @@ export function TagManageModalContent({
 
   return (
     <ScrollArea className="max-h-[60vh] pr-4">
-      <div className="space-y-4 sm:space-y-6 py-4">
-        <CurrentTagsList 
-          currentTags={currentTags} 
-          onRemoveTag={handleRemoveTag}
-        />
+      <div className="space-y-6 py-2">
+        {/* 現在のタグ */}
+        <Card className="border-0 shadow-none bg-gray-50/50">
+          <CardContent className="p-4">
+            <CurrentTagsList 
+              currentTags={currentTags} 
+              onRemoveTag={handleRemoveTag}
+            />
+          </CardContent>
+        </Card>
         
+        {/* 公式タグセクション */}
         {isUserItem && officialTags && officialTags.length > 0 && (
-          <OfficialTagsSection officialTags={officialTags} />
+          <>
+            <Separator className="my-4" />
+            <Card className="border-0 shadow-none bg-blue-50/30">
+              <CardContent className="p-4">
+                <OfficialTagsSection officialTags={officialTags} />
+              </CardContent>
+            </Card>
+          </>
         )}
         
+        {/* コンテンツ名セクション */}
         {onContentChange && (
-          <ContentNameSection 
-            contentName={contentName || null} 
-            onContentChange={onContentChange} 
-          />
+          <>
+            <Separator className="my-4" />
+            <Card className="border-0 shadow-none bg-green-50/30">
+              <CardContent className="p-4">
+                <ContentNameSection 
+                  contentName={contentName || null} 
+                  onContentChange={onContentChange} 
+                />
+              </CardContent>
+            </Card>
+          </>
         )}
         
-        <CategoryTagSelections 
-          currentTags={currentTags}
-          pendingUpdates={pendingUpdates}
-          onTagChange={onTagChange}
-        />
+        <Separator className="my-4" />
+        
+        {/* タグ選択 */}
+        <Card className="border border-gray-200">
+          <CardContent className="p-4">
+            <CategoryTagSelections 
+              currentTags={currentTags}
+              pendingUpdates={pendingUpdates}
+              onTagChange={onTagChange}
+            />
+          </CardContent>
+        </Card>
 
-        <PendingTagsList pendingUpdates={pendingUpdates} />
+        {/* 保留中のタグ */}
+        {pendingUpdates.length > 0 && (
+          <>
+            <Separator className="my-4" />
+            <Card className="border-0 shadow-none bg-amber-50/50">
+              <CardContent className="p-4">
+                <PendingTagsList pendingUpdates={pendingUpdates} />
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </ScrollArea>
   );

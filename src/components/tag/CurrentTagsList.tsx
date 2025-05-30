@@ -10,24 +10,36 @@ interface CurrentTagsListProps {
 }
 
 export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListProps) {
-  if (currentTags.length === 0) return null;
+  if (currentTags.length === 0) {
+    return (
+      <div className="text-center py-6">
+        <p className="text-sm text-muted-foreground">現在タグは設定されていません</p>
+        <p className="text-xs text-muted-foreground mt-1">下からタグを選択してください</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="mb-6">
-      <h3 className="text-sm font-medium mb-2">現在のタグ:</h3>
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-gray-900">現在のタグ</h3>
+        <Badge variant="secondary" className="text-xs">
+          {currentTags.length}
+        </Badge>
+      </div>
       <div className="flex flex-wrap gap-2">
         {currentTags.map((tag) => (
           <Badge 
             key={tag.tag_id} 
-            variant="secondary" 
-            className="text-sm pr-2 flex items-center gap-1"
+            variant="default" 
+            className="group bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors px-3 py-1.5 text-sm font-medium"
           >
-            {tag.tags.name}
+            <span>{tag.tags.name}</span>
             {onRemoveTag && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-auto p-0.5 hover:bg-transparent"
+                className="h-auto p-0 ml-1.5 -mr-1 hover:bg-transparent group-hover:text-destructive transition-colors"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
