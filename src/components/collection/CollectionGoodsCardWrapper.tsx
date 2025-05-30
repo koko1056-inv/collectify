@@ -69,7 +69,7 @@ export function CollectionGoodsCardWrapper({
         <CardContent className="p-2 relative">
           <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
           {quantity && quantity > 1 && (
-            <div className="absolute bottom-2 right-2 bg-white border-2 border-blue-500 text-blue-500 font-semibold px-2 py-1 rounded-full text-xs shadow-sm">
+            <div className="absolute top-1 right-1 bg-white border-2 border-blue-500 text-blue-500 font-semibold px-2 py-1 rounded-full text-xs shadow-sm">
               ×{quantity}
             </div>
           )}
