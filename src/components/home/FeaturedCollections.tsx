@@ -1,9 +1,9 @@
+
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, TrendingUp, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CollectionGoodsCard } from "@/components/CollectionGoodsCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { OfficialItem } from "@/types";
 import { 
@@ -14,6 +14,7 @@ import {
   CarouselNext 
 } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { OfficialGoodsCard } from "@/components/OfficialGoodsCard";
 
 export function FeaturedCollections() {
   const [currentTab, setCurrentTab] = useState<string>("today");
@@ -34,7 +35,7 @@ export function FeaturedCollections() {
           )
         `)
         .order("created_at", { ascending: false })
-        .limit(8);
+        .limit(12);
 
       if (error) throw error;
       return data.map(item => ({
@@ -48,7 +49,7 @@ export function FeaturedCollections() {
   const { data: trendingItems = [], isLoading: isTrendingLoading } = useQuery<OfficialItem[]>({
     queryKey: ["featured-items", "trending"],
     queryFn: async () => {
-      // 実際の実装ではトレンドの基準に基づいてクエリを調整
+      // コレクション追加数でソートしてトレンドを決定
       const { data, error } = await supabase
         .from("official_items")
         .select(`
@@ -58,17 +59,28 @@ export function FeaturedCollections() {
               id,
               name
             )
+          ),
+          user_items (
+            id,
+            user_id
           )
         `)
-        .order("id", { ascending: false })
-        .limit(8);
+        .order("created_at", { ascending: false })
+        .limit(50);
 
       if (error) throw error;
-      return data.map(item => ({
+      
+      // コレクション追加数でソート
+      const itemsWithCounts = data.map(item => ({
         ...item,
         artist: null,
-        anime: null
-      })) as OfficialItem[];
+        anime: null,
+        collectionCount: item.user_items?.length || 0
+      }));
+      
+      return itemsWithCounts
+        .sort((a, b) => b.collectionCount - a.collectionCount)
+        .slice(0, 12) as OfficialItem[];
     },
   });
 
@@ -96,84 +108,60 @@ export function FeaturedCollections() {
         
         <TabsContent value="today" className="mt-0">
           {isTodayLoading ? (
-            <div className="flex gap-2 overflow-x-auto pb-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-1 min-w-[100px]">
-                  <Skeleton className="h-24 w-[100px] rounded-md" />
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="space-y-1">
+                  <Skeleton className="aspect-square w-full rounded-md" />
                   <Skeleton className="h-3 w-3/4" />
                   <Skeleton className="h-3 w-1/2" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="relative">
-              <Carousel className="w-full" opts={{ dragFree: true }}>
-                <CarouselContent className="-ml-1 md:-ml-2">
-                  {todayItems.map((item) => (
-                    <CarouselItem key={item.id} className="pl-1 md:pl-2 basis-1/3 md:basis-1/4 lg:basis-1/5">
-                      <CollectionGoodsCard
-                        id={item.id}
-                        title={item.title}
-                        image={item.image}
-                        releaseDate={item.release_date}
-                        prize={item.price}
-                        isCompact={true}
-                      />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="hidden sm:flex left-0" />
-                <CarouselNext className="hidden sm:flex right-0" />
-              </Carousel>
-              
-              {isMobile && todayItems.length > 3 && (
-                <div className="flex justify-center items-center mt-1 text-gray-500 text-[10px] bg-gray-100 py-1 px-2 rounded-full mx-auto w-fit">
-                  <span>スワイプでもっと見る</span>
-                  <ChevronRight className="h-3 w-3 ml-1" />
-                </div>
-              )}
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+              {todayItems.map((item) => (
+                <OfficialGoodsCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  image={item.image}
+                  artist={item.artist}
+                  anime={item.anime}
+                  price={item.price}
+                  releaseDate={item.release_date}
+                  description={item.description}
+                />
+              ))}
             </div>
           )}
         </TabsContent>
         
         <TabsContent value="trending" className="mt-0">
           {isTrendingLoading ? (
-            <div className="flex gap-2 overflow-x-auto pb-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="space-y-1 min-w-[100px]">
-                  <Skeleton className="h-24 w-[100px] rounded-md" />
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="space-y-1">
+                  <Skeleton className="aspect-square w-full rounded-md" />
                   <Skeleton className="h-3 w-3/4" />
                   <Skeleton className="h-3 w-1/2" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="relative">
-              <Carousel className="w-full" opts={{ dragFree: true }}>
-                <CarouselContent className="-ml-1 md:-ml-2">
-                  {trendingItems.map((item) => (
-                    <CarouselItem key={item.id} className="pl-1 md:pl-2 basis-1/3 md:basis-1/4 lg:basis-1/5">
-                      <CollectionGoodsCard
-                        id={item.id}
-                        title={item.title}
-                        image={item.image}
-                        releaseDate={item.release_date}
-                        prize={item.price}
-                        isCompact={true}
-                      />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="hidden sm:flex left-0" />
-                <CarouselNext className="hidden sm:flex right-0" />
-              </Carousel>
-              
-              {isMobile && trendingItems.length > 3 && (
-                <div className="flex justify-center items-center mt-1 text-gray-500 text-[10px] bg-gray-100 py-1 px-2 rounded-full mx-auto w-fit">
-                  <span>スワイプでもっと見る</span>
-                  <ChevronRight className="h-3 w-3 ml-1" />
-                </div>
-              )}
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+              {trendingItems.map((item) => (
+                <OfficialGoodsCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  image={item.image}
+                  artist={item.artist}
+                  anime={item.anime}
+                  price={item.price}
+                  releaseDate={item.release_date}
+                  description={item.description}
+                />
+              ))}
             </div>
           )}
         </TabsContent>
