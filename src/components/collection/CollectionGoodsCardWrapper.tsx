@@ -1,4 +1,3 @@
-
 import { Card } from "@/components/ui/card";
 import { CardHeader } from "@/components/ui/card";
 import { CardContent } from "@/components/ui/card";
@@ -7,7 +6,6 @@ import { CollectionGoodsCardFooter } from "./CollectionGoodsCardFooter";
 import { useState, useCallback } from "react";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { CollectionGoodsCardModals } from "./CollectionGoodsCardModals";
-
 interface CollectionGoodsCardProps {
   title: string;
   image: string;
@@ -19,7 +17,6 @@ interface CollectionGoodsCardProps {
   quantity?: number;
   isCompact?: boolean;
 }
-
 export function CollectionGoodsCardWrapper({
   title,
   image,
@@ -29,74 +26,43 @@ export function CollectionGoodsCardWrapper({
   releaseDate,
   prize,
   quantity,
-  isCompact = false,
+  isCompact = false
 }: CollectionGoodsCardProps) {
   const [isItemDetailsOpen, setIsItemDetailsOpen] = useState(false);
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
-
   const handleMemoriesClick = useCallback(() => {
     setIsMemoriesModalOpen(true);
   }, []);
-
   const handleTagManageClick = useCallback(() => {
     setIsTagModalOpen(true);
   }, []);
-
   const handleDeleteClick = useCallback(() => {
     setIsDeleteConfirmOpen(true);
   }, []);
-
   const handleCreatePostClick = useCallback(() => {
     setIsCreatePostModalOpen(true);
   }, []);
-
   const handleCardClick = useCallback(() => {
     setIsItemDetailsOpen(true);
   }, []);
-
-  return (
-    <>
-      <Card 
-        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative group"
-        onClick={handleCardClick}
-      >
+  return <>
+      <Card className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative group" onClick={handleCardClick}>
         <CardHeader className="p-0">
           <CollectionGoodsCardHeader title={title} image={image} />
         </CardHeader>
         <CardContent className="p-2 relative">
-          <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
-          {quantity && quantity > 1 && (
-            <div className="absolute top-1 right-1 bg-white border-2 border-blue-500 text-blue-500 font-semibold px-2 py-1 rounded-full text-xs shadow-sm">
+          <h3 className="font-medium text-gray-900 truncate text-xs">{title}</h3>
+          {quantity && quantity > 1 && <div className="absolute top-1 right-1 bg-white border-2 border-blue-500 text-blue-500 font-semibold px-2 py-1 rounded-full text-xs shadow-sm">
               ×{quantity}
-            </div>
-          )}
+            </div>}
         </CardContent>
         
-        <CollectionGoodsCardFooter
-          id={id}
-          onMemoriesClick={handleMemoriesClick}
-          onTagManageClick={handleTagManageClick}
-          onDeleteClick={handleDeleteClick}
-          onCreatePostClick={handleCreatePostClick}
-        />
+        <CollectionGoodsCardFooter id={id} onMemoriesClick={handleMemoriesClick} onTagManageClick={handleTagManageClick} onDeleteClick={handleDeleteClick} onCreatePostClick={handleCreatePostClick} />
       </Card>
 
-      <CollectionGoodsCardModals
-        isMemoriesModalOpen={isMemoriesModalOpen}
-        setIsMemoriesModalOpen={setIsMemoriesModalOpen}
-        isTagModalOpen={isTagModalOpen}
-        setIsTagModalOpen={setIsTagModalOpen}
-        isDeleteConfirmOpen={isDeleteConfirmOpen}
-        setIsDeleteConfirmOpen={setIsDeleteConfirmOpen}
-        isCreatePostModalOpen={isCreatePostModalOpen}
-        setIsCreatePostModalOpen={setIsCreatePostModalOpen}
-        id={id}
-        title={title}
-        image={image}
-      />
-    </>
-  );
+      <CollectionGoodsCardModals isMemoriesModalOpen={isMemoriesModalOpen} setIsMemoriesModalOpen={setIsMemoriesModalOpen} isTagModalOpen={isTagModalOpen} setIsTagModalOpen={setIsTagModalOpen} isDeleteConfirmOpen={isDeleteConfirmOpen} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} isCreatePostModalOpen={isCreatePostModalOpen} setIsCreatePostModalOpen={setIsCreatePostModalOpen} id={id} title={title} image={image} />
+    </>;
 }
