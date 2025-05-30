@@ -172,16 +172,18 @@ export async function getTagsForMultipleItems(
           created_at
         )
       `)
-      .in(itemIdField, itemIds);
+      .in(itemIdField, itemIds as any[]);
 
     if (error) {
       console.error("Error fetching tags for multiple items:", error);
       return [];
     }
     
-    if (!data) return [];
+    // 型アサーションで安全に処理
+    const typedData = data as any[];
+    if (!typedData) return [];
     
-    return data.map(item => ({
+    return typedData.map(item => ({
       id: item.id,
       tag_id: item.tag_id,
       tags: item.tags
