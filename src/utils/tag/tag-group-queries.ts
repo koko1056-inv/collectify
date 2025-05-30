@@ -80,7 +80,7 @@ export async function getItemsGroupedByCustomGroups(userId: string): Promise<Ite
     }
 
     // コンテンツ名でグループ化 - 型を明示的に定義
-    const groupedByContent: { [key: string]: GroupedItem[] } = {};
+    const groupedByContent: Record<string, GroupedItem[]> = {};
     (data as GroupedItem[] || []).forEach(item => {
       const contentKey = item.content_name || "Other";
       if (!groupedByContent[contentKey]) {
