@@ -22,6 +22,15 @@ interface SearchSuggestion {
   type: 'item' | 'content';
 }
 
+interface ItemDetails {
+  id: string;
+  title: string;
+  image: string;
+  price?: string;
+  description?: string;
+  release_date?: string;
+}
+
 export function SearchBar({
   searchQuery,
   onSearchChange,
@@ -73,6 +82,28 @@ export function SearchBar({
       return suggestions;
     },
     enabled: searchQuery.length >= 2,
+  });
+
+  // 選択されたアイテムの詳細を取得
+  const { data: selectedItemDetails } = useQuery({
+    queryKey: ["item-details", selectedItemId],
+    queryFn: async () => {
+      if (!selectedItemId) return null;
+
+      const { data, error } = await supabase
+        .from("official_items")
+        .select("id, title, image, price, description, release_date")
+        .eq("id", selectedItemId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching item details:", error);
+        return null;
+      }
+
+      return data as ItemDetails;
+    },
+    enabled: !!selectedItemId,
   });
 
   useEffect(() => {
@@ -156,14 +187,19 @@ export function SearchBar({
       </div>
 
       {/* アイテム詳細モーダル */}
-      {selectedItemId && (
+      {selectedItemDetails && (
         <ItemDetailsModal
           isOpen={isItemDetailsOpen}
           onClose={() => {
             setIsItemDetailsOpen(false);
             setSelectedItemId(null);
           }}
-          itemId={selectedItemId}
+          itemId={selectedItemDetails.id}
+          title={selectedItemDetails.title}
+          image={selectedItemDetails.image}
+          price={selectedItemDetails.price}
+          description={selectedItemDetails.description}
+          releaseDate={selectedItemDetails.release_date}
         />
       )}
     </>
