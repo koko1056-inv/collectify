@@ -173,7 +173,7 @@ export async function getTagsForMultipleItems(
           created_at
         )
       `)
-      .in(itemIdField, itemIds as string[]);
+      .in(itemIdField, itemIds);
 
     if (error) {
       console.error("Error fetching tags for multiple items:", error);
