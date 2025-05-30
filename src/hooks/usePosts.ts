@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GoodsPost, PostComment } from "@/types/posts";
@@ -19,7 +18,12 @@ export function usePosts() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return (data || []) as GoodsPost[];
+      return (data || []).map(post => ({
+        ...post,
+        profiles: post.profiles || { username: "Unknown", avatar_url: null },
+        user_items: post.user_items || { title: "Unknown", image: "" },
+        post_likes: post.post_likes || []
+      })) as GoodsPost[];
     },
   });
 }
@@ -40,7 +44,12 @@ export function usePostsForItem(userItemId: string) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return (data || []) as GoodsPost[];
+      return (data || []).map(post => ({
+        ...post,
+        profiles: post.profiles || { username: "Unknown", avatar_url: null },
+        user_items: post.user_items || { title: "Unknown", image: "" },
+        post_likes: post.post_likes || []
+      })) as GoodsPost[];
     },
   });
 }
@@ -134,7 +143,10 @@ export function usePostComments(postId: string) {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      return (data || []) as PostComment[];
+      return (data || []).map(comment => ({
+        ...comment,
+        profiles: comment.profiles || { username: "Unknown", avatar_url: null }
+      })) as PostComment[];
     },
   });
 }

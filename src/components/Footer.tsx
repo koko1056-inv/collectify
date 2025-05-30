@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, Package, ArrowLeftRight, User } from "lucide-react";
+import { Home, Search, Package, Image, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
@@ -55,14 +55,14 @@ export function Footer() {
             </Link>
 
             <Link
-              to="/trades"
+              to="/posts"
               className={cn(
                 "flex flex-col items-center justify-center w-1/5 text-xs",
-                isActive("/trades") ? "text-primary" : "text-gray-500"
+                isActive("/posts") ? "text-primary" : "text-gray-500"
               )}
             >
-              <ArrowLeftRight className={cn("h-6 w-6 mb-1", isActive("/trades") ? "text-primary" : "text-gray-400")} />
-              <span>{t("footer.trade")}</span>
+              <Image className={cn("h-6 w-6 mb-1", isActive("/posts") ? "text-primary" : "text-gray-400")} />
+              <span>投稿</span>
             </Link>
 
             <Link

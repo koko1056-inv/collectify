@@ -17,7 +17,7 @@ const Admin = lazy(() => import("./pages/Admin").catch(() => ({ default: () => <
 const AddItem = lazy(() => import("./pages/AddItem").catch(() => ({ default: () => <div>Error loading page</div> })));
 const UserProfile = lazy(() => import("./pages/UserProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 const EditProfile = lazy(() => import("./pages/EditProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
-const TradeRequests = lazy(() => import("./pages/TradeRequests").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Posts = lazy(() => import("./pages/Posts").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Search = lazy(() => import("./pages/Search").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Collection = lazy(() => import("./pages/Collection").catch(() => ({ default: () => <div>Error loading page</div> })));
 
@@ -60,7 +60,7 @@ const App: React.FC = () => {
                     <Route path="/add-item" element={<AddItem />} />
                     <Route path="/user/:userId" element={<UserProfile />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
-                    <Route path="/trades" element={<TradeRequests />} />
+                    <Route path="/posts" element={<Posts />} />
                     <Route path="/search" element={<Search />} />
                     <Route path="/collection" element={<Collection />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
