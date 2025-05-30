@@ -179,13 +179,12 @@ export async function getTagsForMultipleItems(
       return [];
     }
     
-    // Type-safe processing with proper error handling
     if (!data) return [];
     
     return data.map(item => ({
-      id: item.id || '',
-      tag_id: item.tag_id || '',
-      tags: item.tags || null
+      id: item.id,
+      tag_id: item.tag_id,
+      tags: item.tags
     }));
   } catch (error) {
     console.error("Error fetching tags for multiple items:", error);
