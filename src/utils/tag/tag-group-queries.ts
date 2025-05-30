@@ -33,17 +33,67 @@ interface GroupedItem {
  */
 export async function getItemsGroupedByTag(userId: string, tagCategory?: string): Promise<ItemsGroupedByTag[]> {
   try {
-    // タグでグループ化するストアドプロシージャを呼び出す
-    const { data, error } = await supabase.rpc('get_items_grouped_by_tag', {
-      param_user_id: userId
-    });
+    // ユーザーのアイテムとタグ情報を取得
+    const { data, error } = await supabase
+      .from("user_items")
+      .select(`
+        id,
+        title,
+        image,
+        content_name,
+        quantity,
+        user_item_tags (
+          tags (
+            id,
+            name,
+            category
+          )
+        )
+      `)
+      .eq("user_id", userId);
 
     if (error) {
       console.error("Error fetching items grouped by tag:", error);
       return [];
     }
 
-    return data || [];
+    if (!data || data.length === 0) return [];
+
+    // タグでグループ化
+    const groupedByTag: Record<string, Array<GroupedItem>> = {};
+    
+    (data as GroupedItem[]).forEach(item => {
+      item.user_item_tags.forEach(itemTag => {
+        if (itemTag.tags) {
+          const tagName = itemTag.tags.name;
+          // カテゴリフィルターが指定されている場合はチェック
+          if (tagCategory && itemTag.tags.category !== tagCategory) {
+            return;
+          }
+          
+          if (!groupedByTag[tagName]) {
+            groupedByTag[tagName] = [];
+          }
+          
+          // 重複チェック
+          if (!groupedByTag[tagName].find(i => i.id === item.id)) {
+            groupedByTag[tagName].push(item);
+          }
+        }
+      });
+    });
+
+    // 結果をフォーマット
+    return Object.entries(groupedByTag).map(([groupName, items]) => ({
+      group_name: groupName,
+      items: items.map(item => ({
+        id: item.id,
+        title: item.title,
+        image: item.image,
+        content_name: item.content_name,
+        quantity: item.quantity
+      }))
+    }));
   } catch (error) {
     console.error("Error fetching items grouped by tag:", error);
     return [];
