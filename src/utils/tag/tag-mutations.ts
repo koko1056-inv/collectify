@@ -53,13 +53,14 @@ export async function addTagToItem(
       return true;
     }
     
-    // タグを追加
+    // タグを追加 - 正しい型で明示的にオブジェクトを作成
+    const insertData = isUserItem 
+      ? { user_item_id: itemId, tag_id: tagId }
+      : { official_item_id: itemId, tag_id: tagId };
+    
     const { error } = await supabase
       .from(table)
-      .insert({
-        [itemField]: itemId,
-        tag_id: tagId
-      });
+      .insert(insertData);
     
     if (error) {
       console.error("Error adding tag to item:", error);

@@ -1,6 +1,31 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleItemTag, Tag, ItemsGroupedByTag } from "./types";
+
+// 循環参照を避けるため、型を直接定義
+interface Tag {
+  id: string;
+  name: string;
+  category?: string;
+  created_at?: string;
+}
+
+interface SimpleItemTag {
+  id: string;
+  tag_id: string;
+  tags: Tag | null;
+}
+
+interface ItemsGroupedByTag {
+  group_name: string;
+  items: Array<{
+    id: string;
+    title: string;
+    image: string;
+    content_name?: string | null;
+    quantity?: number;
+    [key: string]: any;
+  }>;
+}
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean = false): Promise<SimpleItemTag[]> {
   const table = isUserItem ? "user_item_tags" : "item_tags";
@@ -86,9 +111,7 @@ export async function findTagIdByName(tagName: string): Promise<string | null> {
 }
 
 /**
- * 与えられたオブジェクトがSimpleTag型かどうかを判定するType Guard
- * @param obj 判定するオブジェクト
- * @returns objがSimpleTag型であればtrue、そうでなければfalse
+ * 与えられたオブジェクトがTag型かどうかを判定するType Guard
  */
 export function isSimpleTag(obj: any): obj is Tag {
   return (
@@ -101,8 +124,6 @@ export function isSimpleTag(obj: any): obj is Tag {
 
 /**
  * タグでグループ化されたアイテムを取得する関数
- * @param userId ユーザーID
- * @returns タグでグループ化されたアイテムの配列
  */
 export async function getItemsGroupedByTag(userId: string, tagCategory?: string): Promise<ItemsGroupedByTag[]> {
   try {
@@ -125,9 +146,6 @@ export async function getItemsGroupedByTag(userId: string, tagCategory?: string)
 
 /**
  * 複数のアイテムのタグを一度に取得する関数
- * @param itemIds アイテムIDの配列
- * @param isUserItem ユーザーアイテムかどうか
- * @returns タグ情報の配列
  */
 export async function getTagsForMultipleItems(
   itemIds: string[], 
@@ -156,7 +174,11 @@ export async function getTagsForMultipleItems(
 
     if (error) throw error;
     
-    return data || [];
+    return (data || []).map(item => ({
+      id: item.id,
+      tag_id: item.tag_id,
+      tags: item.tags
+    }));
   } catch (error) {
     console.error("Error fetching tags for multiple items:", error);
     return [];
@@ -165,8 +187,6 @@ export async function getTagsForMultipleItems(
 
 /**
  * カスタムグループでグループ化されたアイテムを取得する関数
- * @param userId ユーザーID
- * @returns カスタムグループでグループ化されたアイテムの配列
  */
 export async function getItemsGroupedByCustomGroups(userId: string): Promise<ItemsGroupedByTag[]> {
   interface GroupedItem {
