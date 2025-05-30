@@ -175,7 +175,14 @@ export async function getTagsForMultipleItems(
 
     if (error) throw error;
     
-    return (data || []).map(item => ({
+    // Type-safe processing with proper error handling
+    const validData = data?.filter((item): item is any => {
+      return item && 
+             typeof item.id === 'string' && 
+             typeof item.tag_id === 'string';
+    }) || [];
+    
+    return validData.map(item => ({
       id: item.id,
       tag_id: item.tag_id,
       tags: item.tags
