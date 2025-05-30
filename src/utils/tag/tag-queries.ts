@@ -180,7 +180,13 @@ export async function getTagsForMultipleItems(
     }
     
     // 型アサーションで安全に処理
-    const typedData = data as any[];
+    const typedData = data as Array<{
+      id: string;
+      tag_id: string;
+      [key: string]: any;
+      tags: Tag | null;
+    }>;
+    
     if (!typedData) return [];
     
     return typedData.map(item => ({
