@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CreatePostModal } from "./CreatePostModal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTags } from "@/hooks/useTags";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -38,6 +38,8 @@ export function CreatePostFromCollectionModal({
   const [selectedContentNames, setSelectedContentNames] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [contentSearchQuery, setContentSearchQuery] = useState("");
+  const [isContentDialogOpen, setIsContentDialogOpen] = useState(false);
 
   const { data: allTags = [] } = useTags();
 
@@ -71,12 +73,29 @@ export function CreatePostFromCollectionModal({
     enabled: !!user && isOpen,
   });
 
-  // ユニークなコンテンツ名を取得
-  const uniqueContentNames = userItems ? 
-    [...new Set(userItems.map(item => item.content_name).filter(Boolean))] : [];
+  // コンテンツ名を取得
+  const { data: contentNames = [] } = useQuery({
+    queryKey: ["content-names"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("content_names")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   // グッズタイプのタグだけをフィルタリング
   const typeTags = allTags.filter(tag => tag.category === 'type');
+
+  // フィルタリングされたコンテンツ名
+  const filteredContentNames = contentNames.filter(content =>
+    content.name.toLowerCase().includes(contentSearchQuery.toLowerCase())
+  );
+
+  // 人気のコンテンツ名（最初の5つ）
+  const popularContentNames = contentNames.slice(0, 5);
 
   // 検索、フィルタ、ソートロジック
   const filteredAndSortedItems = userItems ? userItems
@@ -156,6 +175,12 @@ export function CreatePostFromCollectionModal({
 
   const hasActiveFilters = selectedContentNames.length > 0 || selectedTags.length > 0 || filterBy !== "all" || searchQuery;
 
+  const getContentDisplayText = () => {
+    if (selectedContentNames.length === 0) return "コンテンツで絞り込む";
+    if (selectedContentNames.length === 1) return selectedContentNames[0];
+    return `${selectedContentNames.length}個のコンテンツ`;
+  };
+
   if (selectedItem) {
     return (
       <CreatePostModal
@@ -185,6 +210,95 @@ export function CreatePostFromCollectionModal({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
+        </div>
+
+        {/* コンテンツフィルタ（検索ページスタイル） */}
+        <div className="mb-4">
+          <Button
+            variant="outline"
+            onClick={() => setIsContentDialogOpen(true)}
+            className="w-full justify-between font-normal text-xs h-8"
+          >
+            <span className="truncate">{getContentDisplayText()}</span>
+            <ChevronDown className="h-3 w-3 opacity-50 ml-2 flex-shrink-0" />
+          </Button>
+
+          <ScrollArea className="w-full whitespace-nowrap mt-2">
+            <div className="flex gap-1.5 pb-2">
+              <Button
+                key="all"
+                variant={selectedContentNames.length === 0 ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-6 px-2 shrink-0"
+                onClick={() => setSelectedContentNames([])}
+              >
+                すべて
+              </Button>
+              {popularContentNames.map((content) => (
+                <Button
+                  key={content.id}
+                  variant={selectedContentNames.includes(content.name) ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs h-6 px-2 shrink-0"
+                  onClick={() => handleContentNameToggle(content.name)}
+                >
+                  {content.name}
+                </Button>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+
+          {/* コンテンツ選択ダイアログ */}
+          <Dialog open={isContentDialogOpen} onOpenChange={setIsContentDialogOpen}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold">
+                  コンテンツを選択
+                </DialogTitle>
+              </DialogHeader>
+              <div className="p-4 pb-0">
+                <Input
+                  placeholder="コンテンツを検索..."
+                  value={contentSearchQuery}
+                  onChange={(e) => setContentSearchQuery(e.target.value)}
+                  className="mb-4"
+                />
+              </div>
+              <ScrollArea className="h-[50vh] pr-4">
+                <div className="grid grid-cols-2 gap-2 p-4">
+                  {contentSearchQuery === "" && (
+                    <Button
+                      key="all"
+                      variant={selectedContentNames.length === 0 ? "default" : "outline"}
+                      className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
+                      onClick={() => {
+                        setSelectedContentNames([]);
+                        setIsContentDialogOpen(false);
+                      }}
+                    >
+                      <span className="text-base">すべて</span>
+                    </Button>
+                  )}
+                  {filteredContentNames.map((content) => (
+                    <Button
+                      key={content.id}
+                      variant={selectedContentNames.includes(content.name) ? "default" : "outline"}
+                      className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
+                      onClick={() => {
+                        handleContentNameToggle(content.name);
+                        setIsContentDialogOpen(false);
+                      }}
+                    >
+                      <span className="text-xs break-words text-center w-full line-clamp-2">
+                        {content.name}
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* タグフィルタ（水平スクロール） */}
@@ -294,30 +408,6 @@ export function CreatePostFromCollectionModal({
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* コンテンツ名フィルタ */}
-        {showFilters && uniqueContentNames.length > 0 && (
-          <div className="mb-4 p-3 border rounded bg-gray-50">
-            <h4 className="text-sm font-medium mb-2">コンテンツで絞り込み</h4>
-            <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-              {uniqueContentNames.map((contentName) => (
-                <div key={contentName} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={contentName}
-                    checked={selectedContentNames.includes(contentName)}
-                    onCheckedChange={() => handleContentNameToggle(contentName)}
-                  />
-                  <label
-                    htmlFor={contentName}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    {contentName}
-                  </label>
-                </div>
               ))}
             </div>
           </div>
