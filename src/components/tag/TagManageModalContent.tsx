@@ -9,6 +9,7 @@ import { removeTagFromItem } from "@/utils/tag/tag-mutations";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { SimpleItemTag } from "@/utils/tag/types";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TagManageModalContentProps {
   currentTags: SimpleItemTag[];
@@ -57,30 +58,32 @@ export function TagManageModalContent({
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 py-4">
-      <CurrentTagsList 
-        currentTags={currentTags} 
-        onRemoveTag={handleRemoveTag}
-      />
-      
-      {isUserItem && officialTags && officialTags.length > 0 && (
-        <OfficialTagsSection officialTags={officialTags} />
-      )}
-      
-      {onContentChange && (
-        <ContentNameSection 
-          contentName={contentName || null} 
-          onContentChange={onContentChange} 
+    <ScrollArea className="max-h-[60vh] pr-4">
+      <div className="space-y-4 sm:space-y-6 py-4">
+        <CurrentTagsList 
+          currentTags={currentTags} 
+          onRemoveTag={handleRemoveTag}
         />
-      )}
-      
-      <CategoryTagSelections 
-        currentTags={currentTags}
-        pendingUpdates={pendingUpdates}
-        onTagChange={onTagChange}
-      />
+        
+        {isUserItem && officialTags && officialTags.length > 0 && (
+          <OfficialTagsSection officialTags={officialTags} />
+        )}
+        
+        {onContentChange && (
+          <ContentNameSection 
+            contentName={contentName || null} 
+            onContentChange={onContentChange} 
+          />
+        )}
+        
+        <CategoryTagSelections 
+          currentTags={currentTags}
+          pendingUpdates={pendingUpdates}
+          onTagChange={onTagChange}
+        />
 
-      <PendingTagsList pendingUpdates={pendingUpdates} />
-    </div>
+        <PendingTagsList pendingUpdates={pendingUpdates} />
+      </div>
+    </ScrollArea>
   );
 }
