@@ -1,4 +1,5 @@
-import { ItemMemoriesModal } from "@/components/item-details/ItemMemoriesModal";
+
+import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
 import { ItemDetailsDeleteDialog } from "@/components/item-details/ItemDetailsDeleteDialog";
 import { ItemDetailsTagManageSection } from "@/components/item-details/ItemDetailsTagManageSection";
 import { CreatePostModal } from "@/components/posts/CreatePostModal";
@@ -35,8 +36,8 @@ export function CollectionGoodsCardModals({
       <ItemMemoriesModal
         isOpen={isMemoriesModalOpen}
         onClose={() => setIsMemoriesModalOpen(false)}
-        itemId={id}
-        itemTitle={title}
+        itemIds={[id]}
+        itemTitles={[title]}
       />
 
       <ItemDetailsTagManageSection
@@ -53,6 +54,7 @@ export function CollectionGoodsCardModals({
         title={title}
         itemId={id}
         isUserItem
+        onCloseModal={() => setIsDeleteConfirmOpen(false)}
       />
       
       <CreatePostModal

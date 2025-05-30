@@ -1,94 +1,72 @@
 
 import { Button } from "@/components/ui/button";
-import { Trash2, Tag, Repeat, Heart } from "lucide-react";
+import { MessageSquare, Tag, Trash2, Camera } from "lucide-react";
 
 interface CardActionsProps {
   onMemoriesClick: () => void;
   onTagManageClick: () => void;
   onDeleteClick: () => void;
-  onTradeClick?: () => void;
-  onLikeClick?: () => void;
+  onCreatePostClick: () => void;
   hasMemories: boolean;
   hasTags: boolean;
-  showTradeButton?: boolean;
-  isOtherUserCollection?: boolean;
-  isLiked?: boolean;
 }
 
 export function CardActions({
   onMemoriesClick,
   onTagManageClick,
   onDeleteClick,
-  onTradeClick,
-  onLikeClick,
+  onCreatePostClick,
   hasMemories,
   hasTags,
-  showTradeButton = false,
-  isOtherUserCollection = false,
-  isLiked = false,
 }: CardActionsProps) {
-  // If it's another user's collection, only show trade button if applicable
-  if (isOtherUserCollection) {
-    return showTradeButton ? (
-      <div className="flex justify-end gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
-        <Button
-          variant="default"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onTradeClick?.();
-          }}
-          className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-6 px-2 text-xs"
-        >
-          <Repeat className="h-3 w-3 mr-1" />
-          トレード
-        </Button>
-      </div>
-    ) : null;
-  }
-
-  // Show all action buttons for user's own collection
   return (
-    <div className="flex justify-end gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
-      {showTradeButton && (
-        <Button
-          variant="default"
-          size="sm"
-          onClick={(e) => {
-            e.stopPropagation();
-            onTradeClick?.();
-          }}
-          className="bg-gray-900 hover:bg-gray-800 text-white transition-colors h-6 px-2 text-xs"
-        >
-          <Repeat className="h-3 w-3 mr-1" />
-          トレード
-        </Button>
-      )}
-      <Button 
-        variant="outline" 
+    <div className="flex justify-center w-full gap-1">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation();
+          onMemoriesClick();
+        }}
+        className="h-8 w-8 p-0"
+      >
+        <MessageSquare className={`h-4 w-4 ${hasMemories ? 'text-blue-500' : 'text-gray-400'}`} />
+      </Button>
+      
+      <Button
+        variant="ghost"
         size="sm"
         onClick={(e) => {
           e.stopPropagation();
           onTagManageClick();
         }}
-        className={`${
-          hasTags 
-            ? "border-purple-200 bg-purple-50 hover:bg-purple-100 hover:border-purple-300" 
-            : "border-gray-200 hover:bg-gray-50"
-        } transition-colors h-6 w-6 p-0`}
+        className="h-8 w-8 p-0"
       >
-        <Tag className={`h-3 w-3 ${hasTags ? "text-purple-500" : ""}`} />
+        <Tag className={`h-4 w-4 ${hasTags ? 'text-purple-500' : 'text-gray-400'}`} />
       </Button>
-      <Button 
-        variant="outline" 
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={(e) => {
+          e.stopPropagation();
+          onCreatePostClick();
+        }}
+        className="h-8 w-8 p-0"
+      >
+        <Camera className="h-4 w-4 text-green-500" />
+      </Button>
+      
+      <Button
+        variant="ghost"
         size="sm"
         onClick={(e) => {
           e.stopPropagation();
           onDeleteClick();
         }}
-        className="border-gray-200 hover:bg-gray-50 hover:border-red-200 hover:text-red-500 h-6 w-6 p-0"
+        className="h-8 w-8 p-0"
       >
-        <Trash2 className="h-3 w-3" />
+        <Trash2 className="h-4 w-4 text-red-500" />
       </Button>
     </div>
   );

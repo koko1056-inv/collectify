@@ -9,6 +9,7 @@ interface CollectionGoodsCardFooterProps {
   onMemoriesClick: () => void;
   onTagManageClick: () => void;
   onDeleteClick: () => void;
+  onCreatePostClick: () => void;
 }
 
 export function CollectionGoodsCardFooter({
@@ -16,6 +17,7 @@ export function CollectionGoodsCardFooter({
   onMemoriesClick,
   onTagManageClick,
   onDeleteClick,
+  onCreatePostClick,
 }: CollectionGoodsCardFooterProps) {
   const { data: itemTags = [] } = useQuery({
     queryKey: ["user-item-tags", id],
@@ -35,6 +37,7 @@ export function CollectionGoodsCardFooter({
         onMemoriesClick={onMemoriesClick}
         onTagManageClick={onTagManageClick}
         onDeleteClick={onDeleteClick}
+        onCreatePostClick={onCreatePostClick}
         hasMemories={false}
         hasTags={itemTags.length > 0}
       />

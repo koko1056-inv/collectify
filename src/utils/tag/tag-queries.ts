@@ -28,6 +28,8 @@ interface ItemsGroupedByTag {
 }
 
 export async function getTagsForItem(itemId: string, isUserItem: boolean = false): Promise<SimpleItemTag[]> {
+  if (!itemId) return [];
+  
   const table = isUserItem ? "user_item_tags" : "item_tags";
   const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
 
@@ -174,14 +176,14 @@ export async function getTagsForMultipleItems(
 
     if (error) throw error;
     
-    // Type-safe processing with proper error handling
-    const validData = data?.filter((item): item is any => {
+    // Type-safe processing with proper null checks
+    const validData = (data || []).filter((item: any): item is any => {
       return item && 
              typeof item.id === 'string' && 
              typeof item.tag_id === 'string';
-    }) || [];
+    });
     
-    return validData.map(item => ({
+    return validData.map((item: any) => ({
       id: item.id,
       tag_id: item.tag_id,
       tags: item.tags

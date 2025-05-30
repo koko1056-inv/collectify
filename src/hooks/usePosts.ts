@@ -12,14 +12,14 @@ export function usePosts() {
         .from("goods_posts")
         .select(`
           *,
-          profiles (username, avatar_url),
-          user_items (title, image),
+          profiles!goods_posts_user_id_fkey (username, avatar_url),
+          user_items!goods_posts_user_item_id_fkey (title, image),
           post_likes (id, user_id)
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as GoodsPost[];
+      return (data || []) as GoodsPost[];
     },
   });
 }
@@ -32,15 +32,15 @@ export function usePostsForItem(userItemId: string) {
         .from("goods_posts")
         .select(`
           *,
-          profiles (username, avatar_url),
-          user_items (title, image),
+          profiles!goods_posts_user_id_fkey (username, avatar_url),
+          user_items!goods_posts_user_item_id_fkey (title, image),
           post_likes (id, user_id)
         `)
         .eq("user_item_id", userItemId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as GoodsPost[];
+      return (data || []) as GoodsPost[];
     },
   });
 }
@@ -128,13 +128,13 @@ export function usePostComments(postId: string) {
         .from("post_comments")
         .select(`
           *,
-          profiles (username, avatar_url)
+          profiles!post_comments_user_id_fkey (username, avatar_url)
         `)
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      return data as PostComment[];
+      return (data || []) as PostComment[];
     },
   });
 }
