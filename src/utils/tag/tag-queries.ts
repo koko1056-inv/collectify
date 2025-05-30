@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 // 循環参照を避けるため、型を直接定義
@@ -171,7 +172,7 @@ export async function getTagsForMultipleItems(
           created_at
         )
       `)
-      .in(itemIdField, itemIds as never[]);
+      .in(itemIdField, itemIds);
 
     if (error) {
       console.error("Error fetching tags for multiple items:", error);
