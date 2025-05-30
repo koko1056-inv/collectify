@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 
 interface SearchBarProps {
   searchQuery: string;
@@ -28,6 +29,8 @@ export function SearchBar({
   const isMobile = useIsMobile();
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [isItemDetailsOpen, setIsItemDetailsOpen] = useState(false);
 
   // 検索候補を取得
   const { data: searchSuggestions = [] } = useQuery({
@@ -85,6 +88,12 @@ export function SearchBar({
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
     onSearchChange(suggestion.title);
     setShowSuggestions(false);
+    
+    // グッズの場合は詳細モーダルを開く
+    if (suggestion.type === 'item') {
+      setSelectedItemId(suggestion.id);
+      setIsItemDetailsOpen(true);
+    }
   };
 
   const handleInputFocus = () => {
@@ -108,41 +117,55 @@ export function SearchBar({
   };
 
   return (
-    <div className="max-w-xl mx-auto mb-4 relative">
-      <div className="relative">
-        <Input
-          type="text"
-          placeholder="グッズを検索..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-          onFocus={handleInputFocus}
-          onBlur={handleInputBlur}
-          onKeyDown={handleKeyDown}
-          className="pl-10 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
-        />
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-          <Search className="h-5 w-5" />
+    <>
+      <div className="max-w-xl mx-auto mb-4 relative">
+        <div className="relative">
+          <Input
+            type="text"
+            placeholder="グッズを検索..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
+            onKeyDown={handleKeyDown}
+            className="pl-10 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
+          />
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <Search className="h-5 w-5" />
+          </div>
         </div>
+
+        {/* 検索候補のドロップダウン */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 mt-1 max-h-60 overflow-y-auto">
+            {suggestions.map((suggestion) => (
+              <div
+                key={`${suggestion.type}-${suggestion.id}`}
+                className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-2"
+                onClick={() => handleSuggestionClick(suggestion)}
+              >
+                <Search className="h-4 w-4 text-gray-400" />
+                <span className="text-sm text-gray-700">{suggestion.title}</span>
+                <span className="text-xs text-gray-400 ml-auto">
+                  {suggestion.type === 'item' ? 'グッズ' : 'コンテンツ'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* 検索候補のドロップダウン */}
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 mt-1 max-h-60 overflow-y-auto">
-          {suggestions.map((suggestion) => (
-            <div
-              key={`${suggestion.type}-${suggestion.id}`}
-              className="px-4 py-2 hover:bg-gray-50 cursor-pointer flex items-center gap-2"
-              onClick={() => handleSuggestionClick(suggestion)}
-            >
-              <Search className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-700">{suggestion.title}</span>
-              <span className="text-xs text-gray-400 ml-auto">
-                {suggestion.type === 'item' ? 'グッズ' : 'コンテンツ'}
-              </span>
-            </div>
-          ))}
-        </div>
+      {/* アイテム詳細モーダル */}
+      {selectedItemId && (
+        <ItemDetailsModal
+          isOpen={isItemDetailsOpen}
+          onClose={() => {
+            setIsItemDetailsOpen(false);
+            setSelectedItemId(null);
+          }}
+          itemId={selectedItemId}
+        />
       )}
-    </div>
+    </>
   );
 }
