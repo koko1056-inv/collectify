@@ -36,7 +36,7 @@ export async function getItemsGroupedByTag(userId: string, tagCategory?: string)
     // タグでグループ化するストアドプロシージャを呼び出す
     const { data, error } = await supabase.rpc('get_items_grouped_by_tag', {
       param_user_id: userId
-    });
+    } as { param_user_id: string });
 
     if (error) {
       console.error("Error fetching items grouped by tag:", error);
