@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 interface ItemsGroupedByTag {
@@ -34,7 +35,7 @@ export async function getItemsGroupedByTag(userId: string, tagCategory?: string)
   try {
     // タグでグループ化するストアドプロシージャを呼び出す
     const { data, error } = await supabase.rpc('get_items_grouped_by_tag', {
-      param_user_id: userId
+      param_user_id: userId as any
     });
 
     if (error) {
