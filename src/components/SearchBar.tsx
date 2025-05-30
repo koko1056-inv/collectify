@@ -33,16 +33,18 @@ export function SearchBar({
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isItemDetailsOpen, setIsItemDetailsOpen] = useState(false);
   
-  const { suggestions, showSuggestions, setShowSuggestions } = useSearchSuggestions(searchQuery);
+  const { suggestions, showSuggestions, setShowSuggestions, isLoading, error } = useSearchSuggestions(searchQuery);
   const { data: itemDetails } = useItemDetails(selectedItemId || "", !!selectedItemId);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    console.log('検索入力変更:', value);
     onSearchChange(value);
     setShowSuggestions(value.length >= 2);
   };
 
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
+    console.log('候補クリック:', suggestion);
     onSearchChange(suggestion.title);
     setShowSuggestions(false);
     
@@ -61,7 +63,7 @@ export function SearchBar({
 
   const handleInputBlur = () => {
     // 少し遅延を入れてクリックイベントを処理できるようにする
-    setTimeout(() => setShowSuggestions(false), 150);
+    setTimeout(() => setShowSuggestions(false), 200);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -88,6 +90,8 @@ export function SearchBar({
           suggestions={suggestions}
           showSuggestions={showSuggestions}
           onSuggestionClick={handleSuggestionClick}
+          isLoading={isLoading}
+          error={error}
         />
       </div>
 
