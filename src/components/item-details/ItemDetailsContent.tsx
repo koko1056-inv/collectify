@@ -1,4 +1,3 @@
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { ItemImageEditor } from "./ItemImageEditor";
@@ -12,6 +11,7 @@ import { ItemDescriptionField } from "./ItemDescriptionField";
 import { TagsSection } from "./TagsSection";
 import { ItemNoteField } from "./ItemNoteField";
 import { ItemDetailInfo } from "./ItemDetailInfo";
+import { ItemPostsSection } from "./ItemPostsSection";
 import { SimpleItemTag } from "@/utils/tag/types";
 
 interface ItemDetailsContentProps {
@@ -28,6 +28,7 @@ interface ItemDetailsContentProps {
   createdBy?: string | null;
   description?: string;
   price?: string;
+  itemId: string;
 }
 
 export function ItemDetailsContent({
@@ -43,7 +44,8 @@ export function ItemDetailsContent({
   releaseDate,
   createdBy,
   description,
-  price
+  price,
+  itemId
 }: ItemDetailsContentProps) {
   // イメージ更新ハンドラを実装
   const handleImageUpdate = (newImageUrl: string) => {
@@ -53,7 +55,6 @@ export function ItemDetailsContent({
     });
   };
 
-  // タグの初期値をセット
   useEffect(() => {
     if (tags.length > 0) {
       const typeTag = tags.find(tag => tag.tags?.category === 'type')?.tags?.id;
@@ -68,7 +69,6 @@ export function ItemDetailsContent({
     }
   }, [tags, setEditedData]);
 
-  // カテゴリごとにタグをグループ化
   const groupedTags = {
     character: tags.filter(tag => tag.tags?.category === 'character'),
     type: tags.filter(tag => tag.tags?.category === 'type'),
@@ -78,7 +78,6 @@ export function ItemDetailsContent({
 
   return <ScrollArea className="flex-1 h-[calc(100vh-250px)] px-4">
       <div className="space-y-4 bg-white pb-6 pt-2">
-        {/* 画像表示エリアと詳細情報の統合 */}
         <div className="space-y-6">
           <div className="w-full aspect-square relative overflow-hidden rounded-lg bg-white">
             <ItemImageEditor
@@ -89,7 +88,6 @@ export function ItemDetailsContent({
             />
           </div>
 
-          {/* アイテム詳細情報 */}
           <ItemDetailInfo
             tags={tags}
             price={price}
@@ -98,7 +96,9 @@ export function ItemDetailsContent({
           />
         </div>
 
-        {/* 以降の既存のコード */}
+        {/* ユーザーアイテムの場合：投稿セクション追加 */}
+        {isUserItem && <ItemPostsSection userItemId={itemId} />}
+
         {isUserItem && <div className="space-y-4">
             <TagsSection isEditing={isEditing} tags={tags} editedData={editedData} setEditedData={setEditedData} />
             <MemoriesSection memories={memories} />
@@ -108,7 +108,6 @@ export function ItemDetailsContent({
             })} />
           </div>}
 
-        {/* タグ（公式アイテムのみ、非編集時） */}
         {isUserItem === false && !isEditing && tags.length > 0 && <div className="space-y-2">
             <h3 className="text-sm font-medium">タグ</h3>
             <div className="space-y-1">
@@ -120,7 +119,6 @@ export function ItemDetailsContent({
             </div>
           </div>}
 
-        {/* 公式アイテム: 編集モード時のみコンテンツ編集可能 */}
         {!isUserItem && <div className="space-y-4">
             <ContentNameSection isEditing={isEditing} editedData={editedData} setEditedData={setEditedData} contentName={contentName} />
             
@@ -158,7 +156,6 @@ export function ItemDetailsContent({
               </>}
           </div>}
 
-        {/* ユーザーアイテムの場合も編集モードでContentNameSectionを表示 */}
         {isUserItem && isEditing && <ContentNameSection isEditing={isEditing} editedData={editedData} setEditedData={setEditedData} contentName={editedData.content_name ?? contentName} />}
       </div>
     </ScrollArea>;
