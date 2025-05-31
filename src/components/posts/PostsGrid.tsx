@@ -1,12 +1,17 @@
 
 import { usePosts } from "@/hooks/usePosts";
 import { PostCard } from "./PostCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CommentsModal } from "./CommentsModal";
 
 export function PostsGrid() {
-  const { data: posts, isLoading } = usePosts();
+  const { data: posts, isLoading, refetch } = usePosts();
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+
+  // ページ表示時に最新の投稿を取得
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   if (isLoading) {
     return (

@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GoodsPost, PostComment } from "@/types/posts";
@@ -82,13 +83,17 @@ export function useCreatePost() {
       return data;
     },
     onSuccess: () => {
+      // 投稿リストのキャッシュを無効化して即座に最新データを取得
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.refetchQueries({ queryKey: ["posts"] });
+      
       toast({
         title: "投稿しました",
         description: "投稿が正常に作成されました。",
       });
     },
     onError: (error) => {
+      console.error("投稿作成エラー:", error);
       toast({
         title: "エラー",
         description: "投稿の作成に失敗しました。",
