@@ -223,14 +223,7 @@ export function CreatePostFromCollectionModal({
                   <div className="text-left w-full flex-1 flex flex-col justify-between">
                     <div className="font-medium text-xs line-clamp-2 leading-tight">{item.title}</div>
                     {item.content_name && <div className="text-xs text-gray-500 mt-1 line-clamp-1">{item.content_name}</div>}
-                    {item.user_item_tags && item.user_item_tags.length > 0 && <div className="flex flex-wrap gap-1 mt-2">
-                        {item.user_item_tags.slice(0, 2).map((itemTag, index) => itemTag.tags && <span key={index} className="inline-block bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded text-[10px] leading-tight">
-                              {itemTag.tags.name}
-                            </span>)}
-                        {item.user_item_tags.length > 2 && <span className="text-xs text-gray-500">
-                            +{item.user_item_tags.length - 2}
-                          </span>}
-                      </div>}
+                    {item.user_item_tags && item.user_item_tags.length > 0}
                   </div>
                 </Button>)}
             </div> : searchQuery || selectedContentNames.length > 0 || selectedTags.length > 0 ? <div className="text-center py-16">
