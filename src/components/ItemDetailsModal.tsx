@@ -50,13 +50,9 @@ export function ItemDetailsModal({
   createdBy,
   contentName
 }: ItemDetailsModalProps) {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -326,7 +322,8 @@ export function ItemDetailsModal({
       tags: tag.tags
     })) : [];
     
-  return <>
+  return (
+    <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col p-0 overflow-hidden">
           <ModalHeader onClose={
@@ -351,28 +348,40 @@ export function ItemDetailsModal({
             itemId={itemId}
           />
 
-          {isUserItem && isEditing && <div className="p-4 pt-0 pb-0 border-t border-gray-100 space-y-4">
+          {isUserItem && isEditing && (
+            <div className="p-4 pt-0 pb-0 border-t border-gray-100 space-y-4">
               <div>
                 <label className="text-sm font-medium">所有個数</label>
-                <QuantityInput value={editedData.quantity} onChange={val => setEditedData(prev => ({
-              ...prev,
-              quantity: val
-            }))} min={1} max={200} className="mt-2" />
+                <QuantityInput 
+                  value={editedData.quantity} 
+                  onChange={val => setEditedData(prev => ({
+                    ...prev,
+                    quantity: val
+                  }))} 
+                  min={1} 
+                  max={200} 
+                  className="mt-2" 
+                />
               </div>
-              <ItemNoteField isEditing={isEditing} note={editedData.note} onChange={v => setEditedData(prev => ({
-            ...prev,
-            note: v
-          }))} />
-            </div>}
+              <ItemNoteField 
+                isEditing={isEditing} 
+                note={editedData.note} 
+                onChange={v => setEditedData(prev => ({
+                  ...prev,
+                  note: v
+                }))} 
+              />
+            </div>
+          )}
 
-          {isUserItem && <div className="flex justify-between items-center p-4 border-t border-gray-100">
-              {isEditing ? <div className="flex gap-2">
-                    <Button variant="secondary" onClick={() => {
-                    handleSaveUserItemFields();
-                  }} disabled={isSaving}>
-                      {isSaving ? "保存中..." : "保存"}
-                    </Button>
-                    <Button variant="outline" onClick={() => {
+          {isUserItem && (
+            <div className="flex justify-between items-center p-4 border-t border-gray-100">
+              {isEditing ? (
+                <div className="flex gap-2">
+                  <Button variant="secondary" onClick={handleSaveUserItemFields} disabled={isSaving}>
+                    {isSaving ? "保存中..." : "保存"}
+                  </Button>
+                  <Button variant="outline" onClick={() => {
                     setIsEditing(false);
                     setEditedData({
                       image,
@@ -384,24 +393,40 @@ export function ItemDetailsModal({
                       content_name: contentName ?? null
                     });
                   }}>
-                      キャンセル
-                    </Button>
-                  </div> : <Button onClick={() => setIsEditing(true)}>
-                    編集する
-                  </Button>}
+                    キャンセル
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={() => setIsEditing(true)}>
+                  編集する
+                </Button>
+              )}
 
               <Button variant="destructive" size="icon" onClick={() => setIsDeleteConfirmOpen(true)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
-            </div>}
+            </div>
+          )}
 
-          {!isUserItem && <div className="p-4 border-t border-gray-100">
-              <ItemButtons isInCollection={isInCollection} itemId={itemId} title={title} image={image} releaseDate={releaseDate} price={price} refetchIsInCollection={refetchIsInCollection} refetchOwnersCount={refetchOwnersCount} />
-            </div>}
+          {!isUserItem && (
+            <div className="p-4 border-t border-gray-100">
+              <ItemButtons 
+                isInCollection={isInCollection} 
+                itemId={itemId} 
+                title={title} 
+                image={image} 
+                releaseDate={releaseDate} 
+                price={price} 
+                refetchIsInCollection={refetchIsInCollection} 
+                refetchOwnersCount={refetchOwnersCount} 
+              />
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
-      {isDeleteConfirmOpen && <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+      {isDeleteConfirmOpen && (
+        <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
           <DialogContent className="sm:max-w-[425px]">
             <h2 className="text-lg font-bold mb-2">アイテムの削除</h2>
             <p className="mb-4">「{title}」をコレクションから削除しますか？</p>
@@ -413,8 +438,9 @@ export function ItemDetailsModal({
                 削除する
               </Button>
             </div>
-          </div>
-        </Dialog>}
+          </DialogContent>
+        </Dialog>
+      )}
       
       <TagManageModal 
         isOpen={isTagModalOpen} 
@@ -423,5 +449,6 @@ export function ItemDetailsModal({
         itemTitle={title} 
         isUserItem={isUserItem} 
       />
-    </>;
+    </>
+  );
 }
