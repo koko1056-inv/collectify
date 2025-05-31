@@ -162,7 +162,7 @@ export function CreatePostFromCollectionModal({
     return <CreatePostModal isOpen={true} onClose={handleClosePostModal} userItemId={selectedItem.id} userItemTitle={selectedItem.title} userItemImage={selectedItem.image} />;
   }
   return <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">投稿するグッズを選択</DialogTitle>
         </DialogHeader>
@@ -260,22 +260,22 @@ export function CreatePostFromCollectionModal({
         </div>
         
         <div className="flex-1 overflow-y-auto">
-          {isLoading ? <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {[...Array(12)].map((_, i) => <div key={i} className="flex flex-col space-y-3">
+          {isLoading ? <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 p-2">
+              {[...Array(21)].map((_, i) => <div key={i} className="flex flex-col space-y-3">
                   <Skeleton className="w-full h-32 rounded" />
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-3 w-3/4" />
                   </div>
                 </div>)}
-            </div> : filteredAndSortedItems.length > 0 ? <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {filteredAndSortedItems.map(item => <Button key={item.id} variant="outline" onClick={() => handleItemSelect(item)} className="flex flex-col items-center p-3 h-auto space-y-2 hover:shadow-md transition-shadow">
-                  <img src={item.image} alt={item.title} className="w-full h-24 md:h-32 object-cover rounded" />
-                  <div className="text-left w-full">
-                    <div className="font-medium text-sm line-clamp-2">{item.title}</div>
-                    {item.content_name && <div className="text-xs text-gray-500 mt-1">{item.content_name}</div>}
+            </div> : filteredAndSortedItems.length > 0 ? <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 p-2">
+              {filteredAndSortedItems.map(item => <Button key={item.id} variant="outline" onClick={() => handleItemSelect(item)} className="flex flex-col items-center p-3 h-auto space-y-2 hover:shadow-md transition-shadow min-h-[180px]">
+                  <img src={item.image} alt={item.title} className="w-full h-24 md:h-28 lg:h-32 object-cover rounded flex-shrink-0" />
+                  <div className="text-left w-full flex-1 flex flex-col justify-between">
+                    <div className="font-medium text-xs line-clamp-2 leading-tight">{item.title}</div>
+                    {item.content_name && <div className="text-xs text-gray-500 mt-1 line-clamp-1">{item.content_name}</div>}
                     {item.user_item_tags && item.user_item_tags.length > 0 && <div className="flex flex-wrap gap-1 mt-2">
-                        {item.user_item_tags.slice(0, 2).map((itemTag, index) => itemTag.tags && <span key={index} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                        {item.user_item_tags.slice(0, 2).map((itemTag, index) => itemTag.tags && <span key={index} className="inline-block bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded text-[10px] leading-tight">
                               {itemTag.tags.name}
                             </span>)}
                         {item.user_item_tags.length > 2 && <span className="text-xs text-gray-500">
