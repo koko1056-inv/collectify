@@ -174,56 +174,7 @@ export function CreatePostFromCollectionModal({
         </div>
 
         {/* コンテンツフィルタ */}
-        <div className="mb-4">
-          <Button variant="outline" onClick={() => setIsContentDialogOpen(true)} className="w-full justify-between font-normal h-10">
-            <span className="truncate">{getContentDisplayText()}</span>
-            <ChevronDown className="h-4 w-4 opacity-50 ml-2 flex-shrink-0" />
-          </Button>
-
-          <ScrollArea className="w-full whitespace-nowrap mt-3">
-            <div className="flex gap-2 pb-2">
-              <Button key="all" variant={selectedContentNames.length === 0 ? "default" : "outline"} size="sm" className="h-8 px-3 shrink-0" onClick={() => setSelectedContentNames([])}>
-                すべて
-              </Button>
-              {popularContentNames.map(content => <Button key={content.id} variant={selectedContentNames.includes(content.name) ? "default" : "outline"} size="sm" className="h-8 px-3 shrink-0" onClick={() => handleContentNameToggle(content.name)}>
-                  {content.name}
-                </Button>)}
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-
-          {/* コンテンツ選択ダイアログ */}
-          <Dialog open={isContentDialogOpen} onOpenChange={setIsContentDialogOpen}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-bold">
-                  コンテンツを選択
-                </DialogTitle>
-              </DialogHeader>
-              <div className="p-4 pb-0">
-                <Input placeholder="コンテンツを検索..." value={contentSearchQuery} onChange={e => setContentSearchQuery(e.target.value)} className="mb-4" />
-              </div>
-              <ScrollArea className="h-[50vh] pr-4">
-                <div className="grid grid-cols-3 gap-3 p-4">
-                  {contentSearchQuery === "" && <Button key="all" variant={selectedContentNames.length === 0 ? "default" : "outline"} className="h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2" onClick={() => {
-                  setSelectedContentNames([]);
-                  setIsContentDialogOpen(false);
-                }}>
-                      <span className="text-base">すべて</span>
-                    </Button>}
-                  {filteredContentNames.map(content => <Button key={content.id} variant={selectedContentNames.includes(content.name) ? "default" : "outline"} className="h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2" onClick={() => {
-                  handleContentNameToggle(content.name);
-                  setIsContentDialogOpen(false);
-                }}>
-                      <span className="text-sm break-words text-center w-full line-clamp-2">
-                        {content.name}
-                      </span>
-                    </Button>)}
-                </div>
-              </ScrollArea>
-            </DialogContent>
-          </Dialog>
-        </div>
+        
 
         {/* タグフィルタ（水平スクロール） */}
         {typeTags.length > 0 && <div className="mb-4">
@@ -255,9 +206,7 @@ export function CreatePostFromCollectionModal({
           </div>}
 
         {/* 結果の表示 */}
-        <div className="text-sm text-gray-500 mb-2">
-          {filteredAndSortedItems.length}件のグッズが見つかりました
-        </div>
+        
         
         <div className="flex-1 overflow-y-auto">
           {isLoading ? <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 p-2">
