@@ -57,19 +57,19 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
 
   return (
     <>
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto">
         <CardContent className="p-0">
           {/* ヘッダー */}
-          <div className="flex items-center p-4 pb-2">
-            <Avatar className="h-8 w-8">
+          <div className="flex items-center p-3 sm:p-4 pb-2">
+            <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
               <AvatarImage src={post.profiles?.avatar_url} />
               <AvatarFallback>
                 {post.profiles?.username?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className="ml-2 flex-1">
-              <p className="text-sm font-semibold">{post.profiles?.username}</p>
-              <p className="text-xs text-gray-500">
+            <div className="ml-2 sm:ml-3 flex-1">
+              <p className="text-sm sm:text-base font-semibold">{post.profiles?.username}</p>
+              <p className="text-xs sm:text-sm text-gray-500">
                 {formatDistanceToNow(new Date(post.created_at), { 
                   addSuffix: true, 
                   locale: ja 
@@ -106,7 +106,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
           </div>
 
           {/* アクションボタン */}
-          <div className="flex items-center p-4 pb-2">
+          <div className="flex items-center p-3 sm:p-4 pb-2">
             <Button
               variant="ghost"
               size="sm"
@@ -114,7 +114,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
               className="p-0 h-auto"
             >
               <Heart 
-                className={`h-6 w-6 ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
+                className={`h-5 w-5 sm:h-6 sm:w-6 ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
               />
             </Button>
             <Button
@@ -123,28 +123,28 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
               onClick={onCommentClick}
               className="p-0 h-auto ml-3"
             >
-              <MessageCircle className="h-6 w-6" />
+              <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               className="p-0 h-auto ml-3"
             >
-              <Share className="h-6 w-6" />
+              <Share className="h-5 w-5 sm:h-6 sm:w-6" />
             </Button>
           </div>
 
           {/* いいね数 */}
           {likesCount > 0 && (
-            <div className="px-4 pb-2">
-              <p className="text-sm font-semibold">{likesCount}件のいいね</p>
+            <div className="px-3 sm:px-4 pb-2">
+              <p className="text-sm sm:text-base font-semibold">{likesCount}件のいいね</p>
             </div>
           )}
 
           {/* キャプション */}
           {post.caption && (
-            <div className="px-4 pb-2">
-              <p className="text-sm">
+            <div className="px-3 sm:px-4 pb-2">
+              <p className="text-sm sm:text-base">
                 <span className="font-semibold">{post.profiles?.username}</span>{" "}
                 {post.caption}
               </p>
@@ -152,17 +152,17 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
           )}
 
           {/* グッズ情報 */}
-          <div className="px-4 pb-4">
+          <div className="px-3 sm:px-4 pb-3 sm:pb-4">
             <button
               onClick={handleItemClick}
-              className="flex items-center bg-gray-50 rounded-lg p-2 w-full hover:bg-gray-100 transition-colors cursor-pointer"
+              className="flex items-center bg-gray-50 rounded-lg p-2 sm:p-3 w-full hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <img
                 src={post.user_items?.image}
                 alt={post.user_items?.title}
-                className="w-10 h-10 object-cover rounded"
+                className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded"
               />
-              <p className="ml-2 text-sm text-gray-700">
+              <p className="ml-2 sm:ml-3 text-sm sm:text-base text-gray-700 truncate">
                 {post.user_items?.title}
               </p>
             </button>

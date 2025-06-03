@@ -35,7 +35,7 @@ export function PostsGrid() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 lg:space-y-8">
         {posts.map((post) => (
           <PostCard
             key={post.id}
