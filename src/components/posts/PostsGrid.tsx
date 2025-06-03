@@ -1,5 +1,5 @@
 
-import { usePosts } from "@/hooks/usePosts";
+import { usePosts } from "@/hooks/posts";
 import { PostCard } from "./PostCard";
 import { useState } from "react";
 import { CommentsModal } from "./CommentsModal";

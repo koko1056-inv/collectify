@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { usePostComments, useAddComment } from "@/hooks/usePosts";
+import { usePostComments, useAddComment } from "@/hooks/posts";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 

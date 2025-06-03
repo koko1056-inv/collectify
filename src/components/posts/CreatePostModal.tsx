@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreatePost } from "@/hooks/usePosts";
+import { useCreatePost } from "@/hooks/posts";
 import { useImageUpload } from "@/hooks/admin-item-form/useImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
