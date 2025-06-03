@@ -9,6 +9,7 @@ import { useToggleLike } from "@/hooks/posts";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 interface PostCardProps {
   post: GoodsPost;
@@ -17,6 +18,7 @@ interface PostCardProps {
 
 export function PostCard({ post, onCommentClick }: PostCardProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const toggleLike = useToggleLike();
   
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
@@ -25,6 +27,14 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
   const handleLike = () => {
     if (!user) return;
     toggleLike.mutate({ postId: post.id, isLiked });
+  };
+
+  const handleItemClick = () => {
+    // user_itemsからofficial_item_idを取得して探すページに遷移
+    const officialItemId = post.user_items?.official_item_id;
+    if (officialItemId) {
+      navigate(`/search?item=${officialItemId}`);
+    }
   };
 
   return (
@@ -106,7 +116,10 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
 
         {/* グッズ情報 */}
         <div className="px-4 pb-4">
-          <div className="flex items-center bg-gray-50 rounded-lg p-2">
+          <button
+            onClick={handleItemClick}
+            className="flex items-center bg-gray-50 rounded-lg p-2 w-full hover:bg-gray-100 transition-colors cursor-pointer"
+          >
             <img
               src={post.user_items?.image}
               alt={post.user_items?.title}
@@ -115,7 +128,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
             <p className="ml-2 text-sm text-gray-700">
               {post.user_items?.title}
             </p>
-          </div>
+          </button>
         </div>
       </CardContent>
     </Card>

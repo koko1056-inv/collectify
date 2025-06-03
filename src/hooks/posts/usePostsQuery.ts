@@ -17,7 +17,7 @@ export function usePosts() {
         .select(`
           *,
           profiles (username, avatar_url),
-          user_items (title, image),
+          user_items (title, image, official_item_id),
           post_likes (id, user_id)
         `)
         .order("created_at", { ascending: false });
@@ -32,7 +32,7 @@ export function usePosts() {
       return (data || []).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
-        user_items: post.user_items || { title: "Unknown", image: "" },
+        user_items: post.user_items || { title: "Unknown", image: "", official_item_id: null },
         post_likes: post.post_likes || []
       })) as GoodsPost[];
     },
@@ -88,7 +88,7 @@ export function usePostsForItem(userItemId: string) {
         .select(`
           *,
           profiles (username, avatar_url),
-          user_items (title, image),
+          user_items (title, image, official_item_id),
           post_likes (id, user_id)
         `)
         .eq("user_item_id", userItemId)
@@ -98,7 +98,7 @@ export function usePostsForItem(userItemId: string) {
       return (data || []).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
-        user_items: post.user_items || { title: "Unknown", image: "" },
+        user_items: post.user_items || { title: "Unknown", image: "", official_item_id: null },
         post_likes: post.post_likes || []
       })) as GoodsPost[];
     },
