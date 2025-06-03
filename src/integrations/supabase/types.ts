@@ -249,6 +249,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "goods_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "goods_posts_user_item_id_fkey"
             columns: ["user_item_id"]
             isOneToOne: false

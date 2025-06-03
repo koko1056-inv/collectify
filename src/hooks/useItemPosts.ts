@@ -10,18 +10,26 @@ export function useItemPosts(userItemId: string) {
   const query = useQuery({
     queryKey: ["item-posts", userItemId],
     queryFn: async () => {
+      console.log("アイテム固有の投稿を取得中:", userItemId);
+      
       const { data, error } = await supabase
         .from("goods_posts")
         .select(`
           *,
-          profiles!goods_posts_user_id_fkey (username, avatar_url),
-          user_items!goods_posts_user_item_id_fkey (title, image),
+          profiles (username, avatar_url),
+          user_items (title, image),
           post_likes (id, user_id)
         `)
         .eq("user_item_id", userItemId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("アイテム投稿取得エラー:", error);
+        throw error;
+      }
+      
+      console.log("取得したアイテム投稿データ:", data);
+      
       return (data || []).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
@@ -49,6 +57,7 @@ export function useItemPosts(userItemId: string) {
           filter: `user_item_id=eq.${userItemId}`
         },
         () => {
+          console.log("アイテム投稿データに変更を検知、リフェッチします");
           queryClient.invalidateQueries({ queryKey: ["item-posts", userItemId] });
           queryClient.refetchQueries({ queryKey: ["item-posts", userItemId] });
         }

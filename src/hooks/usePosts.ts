@@ -10,17 +10,25 @@ export function usePosts() {
   const query = useQuery({
     queryKey: ["posts"],
     queryFn: async () => {
+      console.log("投稿を取得中...");
+      
       const { data, error } = await supabase
         .from("goods_posts")
         .select(`
           *,
-          profiles!goods_posts_user_id_fkey (username, avatar_url),
-          user_items!goods_posts_user_item_id_fkey (title, image),
+          profiles (username, avatar_url),
+          user_items (title, image),
           post_likes (id, user_id)
         `)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("投稿取得エラー:", error);
+        throw error;
+      }
+      
+      console.log("取得した投稿データ:", data);
+      
       return (data || []).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
@@ -44,6 +52,7 @@ export function usePosts() {
           table: 'goods_posts'
         },
         () => {
+          console.log("投稿データに変更を検知、リフェッチします");
           // 投稿に変更があった場合、即座にリフェッチ
           queryClient.invalidateQueries({ queryKey: ["posts"] });
           queryClient.refetchQueries({ queryKey: ["posts"] });
@@ -67,8 +76,8 @@ export function usePostsForItem(userItemId: string) {
         .from("goods_posts")
         .select(`
           *,
-          profiles!goods_posts_user_id_fkey (username, avatar_url),
-          user_items!goods_posts_user_item_id_fkey (title, image),
+          profiles (username, avatar_url),
+          user_items (title, image),
           post_likes (id, user_id)
         `)
         .eq("user_item_id", userItemId)
@@ -98,6 +107,8 @@ export function useCreatePost() {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("ログインが必要です");
 
+      console.log("投稿を作成中...", { userItemId, caption, imageUrl });
+
       const { data, error } = await supabase
         .from("goods_posts")
         .insert({
@@ -109,10 +120,17 @@ export function useCreatePost() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("投稿作成エラー:", error);
+        throw error;
+      }
+      
+      console.log("投稿が作成されました:", data);
       return data;
     },
     onSuccess: async (newPost) => {
+      console.log("投稿作成成功、キャッシュを更新中...");
+      
       // すべての関連クエリを無効化
       await queryClient.invalidateQueries({ queryKey: ["posts"] });
       await queryClient.invalidateQueries({ queryKey: ["item-posts", newPost.user_item_id] });
@@ -120,6 +138,8 @@ export function useCreatePost() {
       // 強制的にリフェッチを実行
       await queryClient.refetchQueries({ queryKey: ["posts"] });
       await queryClient.refetchQueries({ queryKey: ["item-posts", newPost.user_item_id] });
+      
+      console.log("キャッシュ更新完了");
       
       toast({
         title: "投稿しました",
@@ -177,7 +197,7 @@ export function usePostComments(postId: string) {
         .from("post_comments")
         .select(`
           *,
-          profiles!post_comments_user_id_fkey (username, avatar_url)
+          profiles (username, avatar_url)
         `)
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
