@@ -57,7 +57,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
 
   return (
     <>
-      <Card className="w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl mx-auto">
+      <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl mx-auto">
         <CardContent className="p-0">
           {/* ヘッダー */}
           <div className="flex items-center p-3 sm:p-4 pb-2">
