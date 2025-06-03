@@ -16,7 +16,7 @@ interface CommentsModalProps {
 
 export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
   const [newComment, setNewComment] = useState("");
-  const { data: comments, isLoading } = usePostComments(postId);
+  const { data: comments, isLoading, error } = usePostComments(postId);
   const addComment = useAddComment();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,19 +41,23 @@ export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
         <div className="flex-1 overflow-y-auto space-y-4 pr-2">
           {isLoading ? (
             <div className="text-center py-4">読み込み中...</div>
+          ) : error ? (
+            <div className="text-center py-4 text-red-500">
+              コメントの読み込みに失敗しました
+            </div>
           ) : comments && comments.length > 0 ? (
             comments.map((comment) => (
               <div key={comment.id} className="flex items-start space-x-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={comment.profiles?.avatar_url} />
                   <AvatarFallback>
-                    {comment.profiles?.username?.charAt(0).toUpperCase()}
+                    {comment.profiles?.username?.charAt(0).toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="bg-gray-100 rounded-lg p-3">
                     <p className="text-sm font-semibold">
-                      {comment.profiles?.username}
+                      {comment.profiles?.username || 'Unknown User'}
                     </p>
                     <p className="text-sm text-gray-800 mt-1">
                       {comment.comment}

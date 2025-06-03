@@ -212,8 +212,15 @@ export function usePostComments(postId: string) {
       const { data, error } = await supabase
         .from("post_comments")
         .select(`
-          *,
-          profiles (username, avatar_url)
+          id,
+          post_id,
+          user_id,
+          comment,
+          created_at,
+          profiles!post_comments_user_id_fkey (
+            username,
+            avatar_url
+          )
         `)
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
@@ -271,26 +278,41 @@ export function useAddComment() {
 
       console.log("コメントを追加中:", { postId, comment });
 
-      const { data, error } = await supabase
+      // まずコメントを挿入
+      const { data: commentData, error: insertError } = await supabase
         .from("post_comments")
         .insert({
           post_id: postId,
           user_id: userData.user.id,
           comment,
         })
-        .select(`
-          *,
-          profiles (username, avatar_url)
-        `)
+        .select()
         .single();
 
-      if (error) {
-        console.error("コメント追加エラー:", error);
-        throw error;
+      if (insertError) {
+        console.error("コメント挿入エラー:", insertError);
+        throw insertError;
       }
+
+      // 次にプロフィール情報を別途取得
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("username, avatar_url")
+        .eq("id", userData.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("プロフィール取得エラー:", profileError);
+        // プロフィール取得に失敗してもコメント自体は成功とする
+      }
+
+      const result = {
+        ...commentData,
+        profiles: profileData || { username: "Unknown", avatar_url: null }
+      };
       
-      console.log("コメントが追加されました:", data);
-      return data;
+      console.log("コメントが追加されました:", result);
+      return result;
     },
     onSuccess: (newComment, variables) => {
       console.log("コメント追加成功、キャッシュを更新中...");
