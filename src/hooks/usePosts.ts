@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GoodsPost, PostComment } from "@/types/posts";
@@ -53,9 +54,20 @@ export function usePosts() {
         },
         () => {
           console.log("投稿データに変更を検知、リフェッチします");
-          // 投稿に変更があった場合、即座にリフェッチ
           queryClient.invalidateQueries({ queryKey: ["posts"] });
           queryClient.refetchQueries({ queryKey: ["posts"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'post_comments'
+        },
+        () => {
+          console.log("コメントデータに変更を検知、コメントクエリをリフェッチします");
+          queryClient.invalidateQueries({ queryKey: ["comments"] });
         }
       )
       .subscribe();
@@ -190,9 +202,13 @@ export function useToggleLike() {
 }
 
 export function usePostComments(postId: string) {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["comments", postId],
     queryFn: async () => {
+      console.log("コメントを取得中:", postId);
+      
       const { data, error } = await supabase
         .from("post_comments")
         .select(`
@@ -202,22 +218,58 @@ export function usePostComments(postId: string) {
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("コメント取得エラー:", error);
+        throw error;
+      }
+      
+      console.log("取得したコメントデータ:", data);
+      
       return (data || []).map(comment => ({
         ...comment,
         profiles: comment.profiles || { username: "Unknown", avatar_url: null }
       })) as PostComment[];
     },
   });
+
+  // コメントのリアルタイム更新
+  useEffect(() => {
+    const channel = supabase
+      .channel(`comments-${postId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'post_comments',
+          filter: `post_id=eq.${postId}`
+        },
+        () => {
+          console.log("コメントに変更を検知、リフェッチします");
+          queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+          queryClient.refetchQueries({ queryKey: ["comments", postId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [postId, queryClient]);
+
+  return query;
 }
 
 export function useAddComment() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({ postId, comment }: { postId: string; comment: string }) => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("ログインが必要です");
+
+      console.log("コメントを追加中:", { postId, comment });
 
       const { data, error } = await supabase
         .from("post_comments")
@@ -226,14 +278,39 @@ export function useAddComment() {
           user_id: userData.user.id,
           comment,
         })
-        .select()
+        .select(`
+          *,
+          profiles (username, avatar_url)
+        `)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("コメント追加エラー:", error);
+        throw error;
+      }
+      
+      console.log("コメントが追加されました:", data);
       return data;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (newComment, variables) => {
+      console.log("コメント追加成功、キャッシュを更新中...");
+      
+      // コメントクエリを即座に更新
       queryClient.invalidateQueries({ queryKey: ["comments", variables.postId] });
+      queryClient.refetchQueries({ queryKey: ["comments", variables.postId] });
+      
+      toast({
+        title: "コメントを追加しました",
+        description: "コメントが正常に追加されました。",
+      });
+    },
+    onError: (error) => {
+      console.error("コメント追加エラー:", error);
+      toast({
+        title: "エラー",
+        description: "コメントの追加に失敗しました。",
+        variant: "destructive",
+      });
     },
   });
 }

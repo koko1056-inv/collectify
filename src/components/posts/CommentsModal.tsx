@@ -81,12 +81,13 @@ export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="コメントを追加..."
             className="flex-1"
+            disabled={addComment.isPending}
           />
           <Button
             type="submit"
             disabled={!newComment.trim() || addComment.isPending}
           >
-            送信
+            {addComment.isPending ? "送信中..." : "送信"}
           </Button>
         </form>
       </DialogContent>
