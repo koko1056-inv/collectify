@@ -2,9 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GoodsPost, PostComment } from "@/types/posts";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export function usePosts() {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["posts"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,7 +28,35 @@ export function usePosts() {
         post_likes: post.post_likes || []
       })) as GoodsPost[];
     },
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
+
+  // リアルタイム更新の設定
+  useEffect(() => {
+    const channel = supabase
+      .channel('posts-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'goods_posts'
+        },
+        () => {
+          // 投稿に変更があった場合、即座にリフェッチ
+          queryClient.invalidateQueries({ queryKey: ["posts"] });
+          queryClient.refetchQueries({ queryKey: ["posts"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function usePostsForItem(userItemId: string) {
@@ -81,16 +112,14 @@ export function useCreatePost() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (newPost) => {
-      // 全ての投稿関連のクエリキャッシュを無効化
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    onSuccess: async (newPost) => {
+      // すべての関連クエリを無効化
+      await queryClient.invalidateQueries({ queryKey: ["posts"] });
+      await queryClient.invalidateQueries({ queryKey: ["item-posts", newPost.user_item_id] });
       
-      // 特定のアイテムの投稿クエリも無効化
-      queryClient.invalidateQueries({ queryKey: ["item-posts", newPost.user_item_id] });
-      
-      // 即座にリフェッチ
-      queryClient.refetchQueries({ queryKey: ["posts"] });
-      queryClient.refetchQueries({ queryKey: ["item-posts", newPost.user_item_id] });
+      // 強制的にリフェッチを実行
+      await queryClient.refetchQueries({ queryKey: ["posts"] });
+      await queryClient.refetchQueries({ queryKey: ["item-posts", newPost.user_item_id] });
       
       toast({
         title: "投稿しました",

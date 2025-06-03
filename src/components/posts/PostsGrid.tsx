@@ -1,22 +1,26 @@
 
 import { usePosts } from "@/hooks/usePosts";
 import { PostCard } from "./PostCard";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CommentsModal } from "./CommentsModal";
 
 export function PostsGrid() {
-  const { data: posts, isLoading, refetch } = usePosts();
+  const { data: posts, isLoading, error } = usePosts();
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-
-  // ページ表示時に最新の投稿を取得
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-48">
         <div className="text-lg">読み込み中...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error("投稿の取得に失敗:", error);
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500">投稿の読み込みに失敗しました</p>
       </div>
     );
   }
