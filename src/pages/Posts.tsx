@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,9 +8,12 @@ import { PostsGrid } from "@/components/posts/PostsGrid";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { CreatePostFromCollectionModal } from "@/components/posts/CreatePostFromCollectionModal";
+
 export default function Posts() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  return <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+  
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <Navbar />
       
       {/* ヘッダー部分 */}
@@ -19,7 +23,11 @@ export default function Posts() {
             <div className="space-y-1">
               <h1 className="font-bold text-gray-900 text-2xl">みんなの投稿</h1>
             </div>
-            <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 shadow-md hover:shadow-lg transition-shadow" size="lg">
+            <Button 
+              onClick={() => setIsCreateModalOpen(true)} 
+              className="flex items-center gap-2 shadow-md hover:shadow-lg transition-shadow" 
+              size="lg"
+            >
               <Plus className="h-5 w-5" />
               投稿を作成
             </Button>
@@ -30,7 +38,27 @@ export default function Posts() {
       {/* 統計情報カード */}
       <div className="container mx-auto px-4 py-8">
         {/* トレンドタグ */}
-        
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+              トレンドタグ
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {["フィギュア", "アニメグッズ", "限定版", "レア", "新作"].map(tag => (
+                <Badge 
+                  key={tag} 
+                  variant="secondary" 
+                  className="hover:bg-primary hover:text-primary-foreground cursor-pointer transition-colors"
+                >
+                  #{tag}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* メインコンテンツ */}
         <Card className="shadow-sm">
@@ -49,6 +77,10 @@ export default function Posts() {
       <Footer />
 
       {/* 投稿作成モーダル */}
-      <CreatePostFromCollectionModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
-    </div>;
+      <CreatePostFromCollectionModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+      />
+    </div>
+  );
 }
