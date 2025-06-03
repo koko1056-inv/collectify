@@ -27,5 +27,8 @@ export function useItemPosts(userItemId: string) {
       })) as GoodsPost[];
     },
     enabled: !!userItemId,
+    // より頻繁にリフェッチして最新状態を保つ
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 }

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GoodsPost, PostComment } from "@/types/posts";
@@ -82,10 +81,16 @@ export function useCreatePost() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      // 投稿リストのキャッシュを無効化して即座に最新データを取得
+    onSuccess: (newPost) => {
+      // 全ての投稿関連のクエリキャッシュを無効化
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      
+      // 特定のアイテムの投稿クエリも無効化
+      queryClient.invalidateQueries({ queryKey: ["item-posts", newPost.user_item_id] });
+      
+      // 即座にリフェッチ
       queryClient.refetchQueries({ queryKey: ["posts"] });
+      queryClient.refetchQueries({ queryKey: ["item-posts", newPost.user_item_id] });
       
       toast({
         title: "投稿しました",
@@ -130,6 +135,7 @@ export function useToggleLike() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["item-posts"] });
     },
   });
 }
