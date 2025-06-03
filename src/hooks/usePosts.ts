@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GoodsPost, PostComment } from "@/types/posts";
@@ -209,33 +208,41 @@ export function usePostComments(postId: string) {
     queryFn: async () => {
       console.log("コメントを取得中:", postId);
       
-      const { data, error } = await supabase
+      // コメントを取得
+      const { data: commentsData, error: commentsError } = await supabase
         .from("post_comments")
-        .select(`
-          id,
-          post_id,
-          user_id,
-          comment,
-          created_at,
-          profiles!post_comments_user_id_fkey (
-            username,
-            avatar_url
-          )
-        `)
+        .select("*")
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
 
-      if (error) {
-        console.error("コメント取得エラー:", error);
-        throw error;
+      if (commentsError) {
+        console.error("コメント取得エラー:", commentsError);
+        throw commentsError;
       }
+
+      // 各コメントに対してプロフィール情報を取得
+      const commentsWithProfiles = await Promise.all(
+        (commentsData || []).map(async (comment) => {
+          const { data: profileData, error: profileError } = await supabase
+            .from("profiles")
+            .select("username, avatar_url")
+            .eq("id", comment.user_id)
+            .single();
+
+          if (profileError) {
+            console.error("プロフィール取得エラー:", profileError);
+          }
+
+          return {
+            ...comment,
+            profiles: profileData || { username: "Unknown User", avatar_url: null }
+          };
+        })
+      );
       
-      console.log("取得したコメントデータ:", data);
+      console.log("取得したコメントデータ:", commentsWithProfiles);
       
-      return (data || []).map(comment => ({
-        ...comment,
-        profiles: comment.profiles || { username: "Unknown", avatar_url: null }
-      })) as PostComment[];
+      return commentsWithProfiles as PostComment[];
     },
   });
 
