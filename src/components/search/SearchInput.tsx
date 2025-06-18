@@ -8,6 +8,7 @@ interface SearchInputProps {
   onFocus: () => void;
   onBlur: () => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  placeholder?: string;
 }
 
 export function SearchInput({
@@ -15,13 +16,14 @@ export function SearchInput({
   onSearchChange,
   onFocus,
   onBlur,
-  onKeyDown
+  onKeyDown,
+  placeholder = "グッズを検索..."
 }: SearchInputProps) {
   return (
     <div className="relative">
       <Input
         type="text"
-        placeholder="グッズを検索..."
+        placeholder={placeholder}
         value={searchQuery}
         onChange={onSearchChange}
         onFocus={onFocus}
