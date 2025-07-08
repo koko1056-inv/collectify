@@ -57,7 +57,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
 
   return (
     <>
-      <div className="w-full px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer">
+      <div className="w-full px-3 md:px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer">
         {/* ヘッダー */}
         <div className="flex items-start gap-3 mb-3">
           <Avatar className="h-10 w-10 flex-shrink-0">

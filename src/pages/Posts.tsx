@@ -35,7 +35,7 @@ export default function Posts() {
           )}
           
           {/* メインコンテンツ */}
-          <main className={`flex-1 ${!isMobile ? 'max-w-2xl mx-auto border-x border-border' : ''}`}>
+          <main className={`flex-1 ${!isMobile ? 'max-w-2xl mx-auto border-x border-border' : 'px-0'}`}>
             {/* ヘッダー */}
             <div className="sticky top-16 bg-background/95 backdrop-blur-sm border-b border-border p-4 z-10">
               <div className="flex items-center justify-between">
