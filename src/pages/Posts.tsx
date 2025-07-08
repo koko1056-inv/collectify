@@ -45,29 +45,29 @@ export default function Posts() {
                 </div>
                 <div className="flex items-center gap-2">
                   {/* モバイル用フィルターボタン */}
-                  {isMobile && (
-                    <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
-                      <SheetTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <Filter className="h-4 w-4 mr-2" />
-                          フィルター
-                        </Button>
-                      </SheetTrigger>
-                       <SheetContent side="left" className="w-80 p-4">
-                         <SheetHeader className="mb-4">
-                           <SheetTitle>投稿を絞り込み</SheetTitle>
-                         </SheetHeader>
-                         <div className="flex-1 overflow-y-auto">
-                           <PostsSidebar 
-                             onFiltersChange={(newFilters) => {
-                               setFilters(newFilters);
-                               setIsFilterSheetOpen(false);
-                             }} 
-                           />
-                         </div>
-                      </SheetContent>
-                    </Sheet>
-                  )}
+                   {isMobile && (
+                     <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+                       <SheetTrigger asChild>
+                         <Button variant="outline" size="sm">
+                           <Filter className="h-4 w-4 mr-2" />
+                           フィルター
+                         </Button>
+                       </SheetTrigger>
+                        <SheetContent side="left" className="w-80 p-0">
+                          <SheetHeader className="p-4 pb-2">
+                            <SheetTitle>投稿を絞り込み</SheetTitle>
+                          </SheetHeader>
+                          <div className="flex-1 overflow-y-auto px-4 pb-4">
+                            <PostsSidebar 
+                              onFiltersChange={(newFilters) => {
+                                setFilters(newFilters);
+                                // シート自動閉じを削除して手動操作にする
+                              }} 
+                            />
+                          </div>
+                       </SheetContent>
+                     </Sheet>
+                   )}
                   
                   <Button 
                     onClick={() => setIsCreateModalOpen(true)} 

@@ -152,7 +152,7 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
   return (
     <div className="w-full space-y-4 p-0 md:p-4 md:border-r md:border-border md:w-72">
       <div className="md:hidden block">
-        <aside className="w-full space-y-4">
+        <div className="w-full space-y-4">
           {/* 検索 */}
           <Card>
             <CardHeader className="pb-3">
@@ -169,7 +169,9 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
                   placeholder="投稿を検索..."
                   value={searchQuery}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className="h-9"
+                  className="h-9 bg-background border-input"
+                  autoComplete="off"
+                  autoFocus={false}
                 />
               </div>
 
@@ -186,7 +188,7 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
               )}
             </CardContent>
           </Card>
-        </aside>
+        </div>
       </div>
 
       {/* デスクトップ用（既存） */}
