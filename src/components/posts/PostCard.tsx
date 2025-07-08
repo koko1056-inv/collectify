@@ -65,19 +65,38 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
     };
 
     try {
-      // Web Share API が利用可能な場合
-      if (navigator.share) {
+      // Web Share API が利用可能で、かつHTTPS環境の場合のみ使用
+      if (navigator.share && window.location.protocol === 'https:') {
         await navigator.share(shareData);
-      } else {
-        // クリップボードにコピー
-        await navigator.clipboard.writeText(window.location.href);
-        setIsCopied(true);
-        toast.success("リンクをクリップボードにコピーしました");
-        setTimeout(() => setIsCopied(false), 2000);
+        return;
       }
     } catch (error) {
-      console.error("シェアに失敗しました:", error);
-      toast.error("シェアに失敗しました");
+      console.log("Web Share API failed, falling back to clipboard:", error);
+    }
+
+    // フォールバック: クリップボードにコピー
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setIsCopied(true);
+      toast.success("リンクをクリップボードにコピーしました");
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (clipboardError) {
+      console.error("クリップボードのコピーに失敗しました:", clipboardError);
+      // 最後のフォールバック: テキスト選択
+      const textArea = document.createElement('textarea');
+      textArea.value = window.location.href;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        toast.success("リンクをクリップボードにコピーしました");
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      } catch (fallbackError) {
+        toast.error("シェア機能をご利用いただけません");
+      } finally {
+        document.body.removeChild(textArea);
+      }
     }
   };
 
