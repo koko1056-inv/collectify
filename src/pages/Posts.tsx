@@ -53,18 +53,18 @@ export default function Posts() {
                           フィルター
                         </Button>
                       </SheetTrigger>
-                      <SheetContent side="left" className="w-80">
-                        <SheetHeader>
-                          <SheetTitle>投稿を絞り込み</SheetTitle>
-                        </SheetHeader>
-                        <div className="mt-6">
-                          <PostsSidebar 
-                            onFiltersChange={(newFilters) => {
-                              setFilters(newFilters);
-                              setIsFilterSheetOpen(false);
-                            }} 
-                          />
-                        </div>
+                       <SheetContent side="left" className="w-80 p-4">
+                         <SheetHeader className="mb-4">
+                           <SheetTitle>投稿を絞り込み</SheetTitle>
+                         </SheetHeader>
+                         <div className="flex-1 overflow-y-auto">
+                           <PostsSidebar 
+                             onFiltersChange={(newFilters) => {
+                               setFilters(newFilters);
+                               setIsFilterSheetOpen(false);
+                             }} 
+                           />
+                         </div>
                       </SheetContent>
                     </Sheet>
                   )}

@@ -150,42 +150,83 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
   const hasActiveFilters = selectedTags.length > 0 || selectedContent || searchQuery;
 
   return (
-    <aside className="hidden md:block w-72 p-4 space-y-4 border-r border-border">
-      {/* 検索 */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            投稿を絞り込み
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="search">キーワード検索</Label>
-            <Input
-              id="search"
-              placeholder="投稿を検索..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="h-9"
-            />
-          </div>
+    <div className="w-full space-y-4 p-0 md:p-4 md:border-r md:border-border md:w-72">
+      <div className="md:hidden block">
+        <aside className="w-full space-y-4">
+          {/* 検索 */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                投稿を絞り込み
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="search-mobile">キーワード検索</Label>
+                <Input
+                  id="search-mobile"
+                  placeholder="投稿を検索..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="h-9"
+                />
+              </div>
 
-          {hasActiveFilters && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearAllFilters}
-              className="w-full"
-            >
-              <X className="h-4 w-4 mr-2" />
-              フィルターをクリア
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="w-full"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  フィルターをクリア
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </aside>
+      </div>
 
-      {/* コンテンツ名で絞り込み */}
+      {/* デスクトップ用（既存） */}
+      <div className="hidden md:block">
+        {/* 検索 */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              投稿を絞り込み
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="search">キーワード検索</Label>
+              <Input
+                id="search"
+                placeholder="投稿を検索..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="h-9"
+              />
+            </div>
+
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearAllFilters}
+                className="w-full"
+              >
+                <X className="h-4 w-4 mr-2" />
+                フィルターをクリア
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* コンテンツ名で絞り込み（共通） */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -195,22 +236,28 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 max-h-48 overflow-y-auto">
-            {contentNames.map((content) => (
-              <Button
-                key={content}
-                variant={selectedContent === content ? "default" : "ghost"}
-                size="sm"
-                onClick={() => handleContentSelect(content)}
-                className="w-full justify-start text-left h-auto py-2 px-3"
-              >
-                <span className="truncate">{content}</span>
-              </Button>
-            ))}
+            {contentNames.length > 0 ? (
+              contentNames.map((content) => (
+                <Button
+                  key={content}
+                  variant={selectedContent === content ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => handleContentSelect(content)}
+                  className="w-full justify-start text-left h-auto py-2 px-3"
+                >
+                  <span className="truncate">{content}</span>
+                </Button>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                コンテンツを読み込み中...
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* タグで絞り込み */}
+      {/* タグで絞り込み（共通） */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -220,18 +267,24 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 max-h-64 overflow-y-auto">
-            <div className="flex flex-wrap gap-2">
-              {popularTags.map((tag) => (
-                <Badge
-                  key={tag.id}
-                  variant={selectedTags.includes(tag.name) ? "default" : "secondary"}
-                  className="cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => handleTagToggle(tag.name)}
-                >
-                  #{tag.name}
-                </Badge>
-              ))}
-            </div>
+            {popularTags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {popularTags.map((tag) => (
+                  <Badge
+                    key={tag.id}
+                    variant={selectedTags.includes(tag.name) ? "default" : "secondary"}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => handleTagToggle(tag.name)}
+                  >
+                    #{tag.name}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                タグを読み込み中...
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -280,6 +333,6 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
           </CardContent>
         </Card>
       )}
-    </aside>
+    </div>
   );
 }
