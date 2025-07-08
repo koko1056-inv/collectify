@@ -42,11 +42,10 @@ export function PostsGrid({ filters }: PostsGridProps) {
 
     // タグで絞り込み（投稿に関連するユーザーアイテムのタグをチェック）
     if (filters?.selectedTags && filters.selectedTags.length > 0) {
-      filtered = filtered.filter((post) => {
-        // TODO: ユーザーアイテムのタグ情報を取得して絞り込み
-        // 現在は投稿データにタグ情報がないため、この機能は後で実装
-        return true;
-      });
+      // TODO: 現在は投稿データにタグ情報が含まれていないため、
+      // 実際の実装では user_items と user_item_tags を JOIN する必要があります
+      // とりあえず全ての投稿を表示
+      filtered = filtered;
     }
 
     return filtered;
