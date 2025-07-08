@@ -12,7 +12,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { PostsSidebar } from "@/components/posts/PostsSidebar";
 import { PostsRightSidebar } from "@/components/posts/PostsRightSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 export default function Posts() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
@@ -22,31 +21,26 @@ export default function Posts() {
     searchQuery: ""
   });
   const isMobile = useIsMobile();
-
-  return (
-    <SidebarProvider>
+  return <SidebarProvider>
       <div className="min-h-screen bg-background w-full">
         <Navbar />
         
         <div className="flex min-h-screen pt-16">
           {/* デスクトップ用左サイドバー */}
-          {!isMobile && (
-            <PostsSidebar onFiltersChange={setFilters} />
-          )}
+          {!isMobile && <PostsSidebar onFiltersChange={setFilters} />}
           
           {/* メインコンテンツ */}
-          <main className={`flex-1 ${!isMobile ? 'max-w-2xl mx-auto border-x border-border' : 'w-full'}`}>
+          <main className={`flex-1 ${!isMobile ? 'max-w-2xl mx-auto border-x border-border' : ''}`}>
             {/* ヘッダー */}
-            <div className={`sticky top-16 bg-background/95 backdrop-blur-sm border-b border-border z-10 ${isMobile ? 'px-3 py-3' : 'p-4'}`}>
+            <div className="sticky top-16 bg-background/95 backdrop-blur-sm border-b border-border p-4 z-10">
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-xl font-bold">投稿</h1>
-                  <p className="text-sm text-muted-foreground">コレクションを共有しよう</p>
+                  
                 </div>
                 <div className="flex items-center gap-2">
                   {/* モバイル用フィルターボタン */}
-                  {isMobile && (
-                    <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+                  {isMobile && <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
                       <SheetTrigger asChild>
                         <Button variant="outline" size="sm">
                           <Filter className="h-4 w-4 mr-2" />
@@ -58,22 +52,15 @@ export default function Posts() {
                           <SheetTitle>投稿を絞り込み</SheetTitle>
                         </SheetHeader>
                         <div className="mt-6">
-                          <PostsSidebar 
-                            onFiltersChange={(newFilters) => {
-                              setFilters(newFilters);
-                              setIsFilterSheetOpen(false);
-                            }} 
-                          />
+                          <PostsSidebar onFiltersChange={newFilters => {
+                        setFilters(newFilters);
+                        setIsFilterSheetOpen(false);
+                      }} />
                         </div>
                       </SheetContent>
-                    </Sheet>
-                  )}
+                    </Sheet>}
                   
-                  <Button 
-                    onClick={() => setIsCreateModalOpen(true)} 
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90"
-                  >
+                  <Button onClick={() => setIsCreateModalOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">
                     <Plus className="h-4 w-4 mr-2" />
                     投稿
                   </Button>
@@ -88,20 +75,14 @@ export default function Posts() {
           </main>
 
           {/* デスクトップ用右サイドバー */}
-          {!isMobile && (
-            <PostsRightSidebar />
-          )}
+          {!isMobile && <PostsRightSidebar />}
         </div>
 
         {/* フッター */}
         <Footer />
 
         {/* 投稿作成モーダル */}
-        <CreatePostFromCollectionModal 
-          isOpen={isCreateModalOpen} 
-          onClose={() => setIsCreateModalOpen(false)} 
-        />
+        <CreatePostFromCollectionModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 }
