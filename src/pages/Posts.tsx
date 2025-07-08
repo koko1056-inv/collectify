@@ -7,48 +7,96 @@ import { PostsGrid } from "@/components/posts/PostsGrid";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { CreatePostFromCollectionModal } from "@/components/posts/CreatePostFromCollectionModal";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { PostsSidebar } from "@/components/posts/PostsSidebar";
+
 export default function Posts() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  return <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <Navbar />
-      
-      {/* ヘッダー部分 */}
-      <div className="bg-white border-b shadow-sm pt-16 sm:pt-16">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h1 className="font-bold text-gray-900 text-2xl">投稿一覧</h1>
-            </div>
-            <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 shadow-md hover:shadow-lg transition-shadow" size="lg">
-              <Plus className="h-5 w-5" />
-              投稿を作成
-            </Button>
-          </div>
-        </div>
-      </div>
+  const [filters, setFilters] = useState({
+    selectedTags: [] as string[],
+    selectedContent: "",
+    searchQuery: ""
+  });
 
-      {/* 統計情報カード */}
-      <div className="container mx-auto px-4 py-8">
-        {/* トレンドタグ */}
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen bg-background w-full">
+        <Navbar />
         
-
-        {/* メインコンテンツ */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle>最新の投稿</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 sm:p-6">
-            <div className="w-full max-w-4xl mx-auto">
-              <PostsGrid />
+        <div className="flex min-h-screen pt-16">
+          {/* 左サイドバー */}
+          <PostsSidebar onFiltersChange={setFilters} />
+          
+          {/* メインコンテンツ */}
+          <main className="flex-1 max-w-2xl mx-auto border-x border-border">
+            {/* ヘッダー */}
+            <div className="sticky top-16 bg-background/95 backdrop-blur-sm border-b border-border p-4 z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-xl font-bold">投稿</h1>
+                  <p className="text-sm text-muted-foreground">コレクションを共有しよう</p>
+                </div>
+                <Button 
+                  onClick={() => setIsCreateModalOpen(true)} 
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  投稿
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+
+            {/* 投稿一覧 */}
+            <div className="pb-20">
+              <PostsGrid filters={filters} />
+            </div>
+          </main>
+
+          {/* 右サイドバー */}
+          <aside className="hidden lg:block w-80 p-4 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  人気のタグ
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary">#フィギュア</Badge>
+                  <Badge variant="secondary">#キーホルダー</Badge>
+                  <Badge variant="secondary">#缶バッジ</Badge>
+                  <Badge variant="secondary">#アクスタ</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  アクティブユーザー
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  今週の投稿数: 127件
+                </p>
+              </CardContent>
+            </Card>
+          </aside>
+        </div>
+
+        {/* フッター */}
+        <Footer />
+
+        {/* 投稿作成モーダル */}
+        <CreatePostFromCollectionModal 
+          isOpen={isCreateModalOpen} 
+          onClose={() => setIsCreateModalOpen(false)} 
+        />
       </div>
-
-      {/* フッター */}
-      <Footer />
-
-      {/* 投稿作成モーダル */}
-      <CreatePostFromCollectionModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
-    </div>;
+    </SidebarProvider>
+  );
 }

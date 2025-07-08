@@ -3,32 +3,59 @@ import { usePosts } from "@/hooks/posts";
 import { PostCard } from "./PostCard";
 import { useState, useMemo } from "react";
 import { CommentsModal } from "./CommentsModal";
-import { PostsSearchBar } from "./PostsSearchBar";
 
-export function PostsGrid() {
+interface PostsGridProps {
+  filters?: {
+    selectedTags: string[];
+    selectedContent: string;
+    searchQuery: string;
+  };
+}
+
+export function PostsGrid({ filters }: PostsGridProps) {
   const { data: posts, isLoading, error } = usePosts();
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
 
-  // 検索でフィルタリングされた投稿
+  // フィルタリングされた投稿
   const filteredPosts = useMemo(() => {
-    if (!posts || !searchQuery.trim()) {
-      return posts;
+    if (!posts) return posts;
+
+    let filtered = posts;
+
+    // キーワード検索
+    if (filters?.searchQuery?.trim()) {
+      const query = filters.searchQuery.toLowerCase();
+      filtered = filtered.filter((post) => {
+        const titleMatch = post.user_items?.title?.toLowerCase().includes(query);
+        const captionMatch = post.caption?.toLowerCase().includes(query);
+        const usernameMatch = post.profiles?.username?.toLowerCase().includes(query);
+        return titleMatch || captionMatch || usernameMatch;
+      });
     }
 
-    return posts.filter((post) => {
-      const titleMatch = post.user_items?.title?.toLowerCase().includes(searchQuery.toLowerCase());
-      const captionMatch = post.caption?.toLowerCase().includes(searchQuery.toLowerCase());
-      const usernameMatch = post.profiles?.username?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      return titleMatch || captionMatch || usernameMatch;
-    });
-  }, [posts, searchQuery]);
+    // 作品で絞り込み
+    if (filters?.selectedContent) {
+      filtered = filtered.filter((post) => 
+        post.user_items?.content_name === filters.selectedContent
+      );
+    }
+
+    // タグで絞り込み（投稿に関連するユーザーアイテムのタグをチェック）
+    if (filters?.selectedTags && filters.selectedTags.length > 0) {
+      filtered = filtered.filter((post) => {
+        // TODO: ユーザーアイテムのタグ情報を取得して絞り込み
+        // 現在は投稿データにタグ情報がないため、この機能は後で実装
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [posts, filters]);
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-48">
-        <div className="text-lg">読み込み中...</div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -37,50 +64,42 @@ export function PostsGrid() {
     console.error("投稿の取得に失敗:", error);
     return (
       <div className="text-center py-12">
-        <p className="text-red-500">投稿の読み込みに失敗しました</p>
+        <p className="text-destructive">投稿の読み込みに失敗しました</p>
       </div>
     );
   }
 
   if (!posts || posts.length === 0) {
     return (
-      <div className="space-y-6">
-        <PostsSearchBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-        <div className="text-center py-12">
-          <p className="text-gray-500">まだ投稿がありません</p>
-        </div>
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">まだ投稿がありません</p>
+      </div>
+    );
+  }
+
+  if (!filteredPosts || filteredPosts.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">検索条件に一致する投稿が見つかりません</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          別のキーワードで検索してみてください
+        </p>
       </div>
     );
   }
 
   return (
     <>
-      <PostsSearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
-
-      {filteredPosts && filteredPosts.length > 0 ? (
-        <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-          {filteredPosts.map((post) => (
+      <div className="divide-y divide-border">
+        {filteredPosts.map((post) => (
+          <div key={post.id} className="hover:bg-muted/30 transition-colors">
             <PostCard
-              key={post.id}
               post={post}
               onCommentClick={() => setSelectedPostId(post.id)}
             />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-gray-500">検索条件に一致する投稿が見つかりません</p>
-          <p className="text-sm text-gray-400 mt-2">
-            別のキーワードで検索してみてください
-          </p>
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
 
       {selectedPostId && (
         <CommentsModal

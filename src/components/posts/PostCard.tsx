@@ -57,118 +57,133 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
 
   return (
     <>
-      <Card className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl xl:max-w-3xl 2xl:max-w-4xl mx-auto">
-        <CardContent className="p-0">
-          {/* ヘッダー */}
-          <div className="flex items-center p-3 sm:p-4 pb-2">
-            <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
-              <AvatarImage src={post.profiles?.avatar_url} />
-              <AvatarFallback>
-                {post.profiles?.username?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="ml-2 sm:ml-3 flex-1">
-              <p className="text-sm sm:text-base font-semibold">{post.profiles?.username}</p>
-              <p className="text-xs sm:text-sm text-gray-500">
+      <div className="w-full px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer">
+        {/* ヘッダー */}
+        <div className="flex items-start gap-3 mb-3">
+          <Avatar className="h-10 w-10 flex-shrink-0">
+            <AvatarImage src={post.profiles?.avatar_url} />
+            <AvatarFallback>
+              {post.profiles?.username?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <p className="font-semibold hover:underline cursor-pointer">
+                {post.profiles?.username}
+              </p>
+              <span className="text-muted-foreground">·</span>
+              <p className="text-sm text-muted-foreground">
                 {formatDistanceToNow(new Date(post.created_at), { 
                   addSuffix: true, 
                   locale: ja 
                 })}
               </p>
+              
+              {isOwner && (
+                <div className="ml-auto">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => setIsDeleteDialogOpen(true)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        削除
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              )}
             </div>
-            {isOwner && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="p-1 h-auto">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => setIsDeleteDialogOpen(true)}
-                    className="text-red-600 focus:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    削除
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
 
-          {/* 投稿画像 */}
-          <div className="aspect-square">
-            <img
-              src={post.image_url}
-              alt="投稿画像"
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* アクションボタン */}
-          <div className="flex items-center p-3 sm:p-4 pb-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLike}
-              className="p-0 h-auto"
-            >
-              <Heart 
-                className={`h-5 w-5 sm:h-6 sm:w-6 ${isLiked ? 'fill-red-500 text-red-500' : ''}`}
-              />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onCommentClick}
-              className="p-0 h-auto ml-3"
-            >
-              <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-0 h-auto ml-3"
-            >
-              <Share className="h-5 w-5 sm:h-6 sm:w-6" />
-            </Button>
-          </div>
-
-          {/* いいね数 */}
-          {likesCount > 0 && (
-            <div className="px-3 sm:px-4 pb-2">
-              <p className="text-sm sm:text-base font-semibold">{likesCount}件のいいね</p>
-            </div>
-          )}
-
-          {/* キャプション */}
-          {post.caption && (
-            <div className="px-3 sm:px-4 pb-2">
-              <p className="text-sm sm:text-base">
-                <span className="font-semibold">{post.profiles?.username}</span>{" "}
+            {/* キャプション */}
+            {post.caption && (
+              <p className="text-sm mb-3 leading-5">
                 {post.caption}
               </p>
-            </div>
-          )}
+            )}
 
-          {/* グッズ情報 */}
-          <div className="px-3 sm:px-4 pb-3 sm:pb-4">
-            <button
-              onClick={handleItemClick}
-              className="flex items-center bg-gray-50 rounded-lg p-2 sm:p-3 w-full hover:bg-gray-100 transition-colors cursor-pointer"
-            >
+            {/* 投稿画像 */}
+            <div className="rounded-2xl overflow-hidden border border-border mb-3">
               <img
-                src={post.user_items?.image}
-                alt={post.user_items?.title}
-                className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded"
+                src={post.image_url}
+                alt="投稿画像"
+                className="w-full max-h-96 object-cover"
               />
-              <p className="ml-2 sm:ml-3 text-sm sm:text-base text-gray-700 truncate">
-                {post.user_items?.title}
-              </p>
-            </button>
+            </div>
+
+            {/* グッズ情報カード */}
+            <div className="mb-3">
+              <button
+                onClick={handleItemClick}
+                className="flex items-center gap-3 p-3 border border-border rounded-2xl w-full hover:bg-muted/50 transition-colors"
+              >
+                <img
+                  src={post.user_items?.image}
+                  alt={post.user_items?.title}
+                  className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                />
+                <div className="text-left flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">
+                    {post.user_items?.title}
+                  </p>
+                  {post.user_items?.content_name && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {post.user_items.content_name}
+                    </p>
+                  )}
+                </div>
+              </button>
+            </div>
+
+            {/* アクションボタン */}
+            <div className="flex items-center justify-between max-w-md">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onCommentClick}
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary h-9"
+              >
+                <MessageCircle className="h-5 w-5" />
+                <span className="text-sm">コメント</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLike}
+                className={`flex items-center gap-2 h-9 ${
+                  isLiked 
+                    ? 'text-red-500 hover:text-red-600' 
+                    : 'text-muted-foreground hover:text-red-500'
+                }`}
+              >
+                <Heart 
+                  className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`}
+                />
+                {likesCount > 0 && (
+                  <span className="text-sm">{likesCount}</span>
+                )}
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary h-9"
+              >
+                <Share className="h-5 w-5" />
+                <span className="text-sm">シェア</span>
+              </Button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <DeletePostDialog
         isOpen={isDeleteDialogOpen}

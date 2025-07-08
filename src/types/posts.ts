@@ -14,6 +14,7 @@ export interface GoodsPost {
   user_items?: {
     title: string;
     image: string;
+    content_name?: string;
     official_item_id?: string;
   };
   post_likes?: Array<{
