@@ -40,12 +40,13 @@ export function PostsGrid({ filters }: PostsGridProps) {
       );
     }
 
-    // タグで絞り込み（投稿に関連するユーザーアイテムのタグをチェック）
+    // タグで絞り込み
     if (filters?.selectedTags && filters.selectedTags.length > 0) {
-      // TODO: 現在は投稿データにタグ情報が含まれていないため、
-      // 実際の実装では user_items と user_item_tags を JOIN する必要があります
-      // とりあえず全ての投稿を表示
-      filtered = filtered;
+      filtered = filtered.filter((post) => {
+        if (!post.user_items?.user_item_tags) return false;
+        const itemTags = post.user_items.user_item_tags.map(ut => ut.tags?.name).filter(Boolean);
+        return filters.selectedTags.some(selectedTag => itemTags.includes(selectedTag));
+      });
     }
 
     return filtered;

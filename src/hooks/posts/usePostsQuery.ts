@@ -17,7 +17,15 @@ export function usePosts() {
         .select(`
           *,
           profiles (username, avatar_url),
-          user_items (title, image, official_item_id),
+          user_items (
+            title, 
+            image, 
+            official_item_id, 
+            content_name,
+            user_item_tags (
+              tags (id, name)
+            )
+          ),
           post_likes (id, user_id)
         `)
         .order("created_at", { ascending: false });
