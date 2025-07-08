@@ -57,10 +57,10 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
 
   return (
     <>
-      <div className="w-full px-2 sm:px-3 md:px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden">
+      <div className="w-full px-3 py-3 hover:bg-muted/50 transition-colors border-b border-border">
         {/* ヘッダー */}
-        <div className="flex items-start gap-2 sm:gap-3 mb-3">
-          <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
+        <div className="flex items-start gap-3 mb-3">
+          <Avatar className="h-10 w-10 flex-shrink-0">
             <AvatarImage src={post.profiles?.avatar_url} />
             <AvatarFallback>
               {post.profiles?.username?.charAt(0).toUpperCase()}
@@ -69,11 +69,11 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <p className="font-semibold hover:underline cursor-pointer">
+              <p className="font-semibold hover:underline cursor-pointer text-sm">
                 {post.profiles?.username}
               </p>
               <span className="text-muted-foreground">·</span>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(post.created_at), { 
                   addSuffix: true, 
                   locale: ja 
@@ -104,84 +104,84 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
 
             {/* キャプション */}
             {post.caption && (
-              <p className="text-sm mb-3 leading-5">
+              <p className="text-sm mb-3 leading-5 break-words">
                 {post.caption}
               </p>
             )}
-
-            {/* 投稿画像 */}
-            <div className="rounded-2xl overflow-hidden border border-border mb-3 max-w-full">
-              <img
-                src={post.image_url}
-                alt="投稿画像"
-                className="w-full max-h-80 sm:max-h-96 object-cover"
-              />
-            </div>
-
-            {/* グッズ情報カード */}
-            <div className="mb-3">
-              <button
-                onClick={handleItemClick}
-                className="flex items-center gap-3 p-3 border border-border rounded-2xl w-full hover:bg-muted/50 transition-colors"
-              >
-                <img
-                  src={post.user_items?.image}
-                  alt={post.user_items?.title}
-                  className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
-                />
-                <div className="text-left flex-1 min-w-0 overflow-hidden">
-                  <p className="font-medium text-sm truncate">
-                    {post.user_items?.title}
-                  </p>
-                  {post.user_items?.content_name && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {post.user_items.content_name}
-                    </p>
-                  )}
-                </div>
-              </button>
-            </div>
-
-            {/* アクションボタン */}
-            <div className="flex items-center justify-between max-w-md">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onCommentClick}
-                className="flex items-center gap-2 text-muted-foreground hover:text-primary h-9"
-              >
-                <MessageCircle className="h-5 w-5" />
-                <span className="text-sm">コメント</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLike}
-                className={`flex items-center gap-2 h-9 ${
-                  isLiked 
-                    ? 'text-red-500 hover:text-red-600' 
-                    : 'text-muted-foreground hover:text-red-500'
-                }`}
-              >
-                <Heart 
-                  className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`}
-                />
-                {likesCount > 0 && (
-                  <span className="text-sm">{likesCount}</span>
-                )}
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-2 text-muted-foreground hover:text-primary h-9"
-              >
-                <Share className="h-5 w-5" />
-                <span className="text-sm">シェア</span>
-              </Button>
-            </div>
           </div>
+        </div>
+
+        {/* 投稿画像 */}
+        <div className="rounded-2xl overflow-hidden border border-border mb-3 w-full">
+          <img
+            src={post.image_url}
+            alt="投稿画像"
+            className="w-full h-auto max-h-96 object-contain bg-muted"
+          />
+        </div>
+
+        {/* グッズ情報カード */}
+        <div className="mb-3">
+          <button
+            onClick={handleItemClick}
+            className="flex items-center gap-3 p-3 border border-border rounded-2xl w-full hover:bg-muted/50 transition-colors"
+          >
+            <img
+              src={post.user_items?.image}
+              alt={post.user_items?.title}
+              className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+            />
+            <div className="text-left flex-1 min-w-0 overflow-hidden">
+              <p className="font-medium text-sm truncate">
+                {post.user_items?.title}
+              </p>
+              {post.user_items?.content_name && (
+                <p className="text-xs text-muted-foreground truncate">
+                  {post.user_items.content_name}
+                </p>
+              )}
+            </div>
+          </button>
+        </div>
+
+        {/* アクションボタン */}
+        <div className="flex items-center justify-around">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onCommentClick}
+            className="flex items-center gap-2 text-muted-foreground hover:text-primary h-9"
+          >
+            <MessageCircle className="h-5 w-5" />
+            <span className="text-sm">コメント</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLike}
+            className={`flex items-center gap-2 h-9 ${
+              isLiked 
+                ? 'text-red-500 hover:text-red-600' 
+                : 'text-muted-foreground hover:text-red-500'
+            }`}
+          >
+            <Heart 
+              className={`h-5 w-5 ${isLiked ? 'fill-current' : ''}`}
+            />
+            {likesCount > 0 && (
+              <span className="text-sm">{likesCount}</span>
+            )}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2 text-muted-foreground hover:text-primary h-9"
+          >
+            <Share className="h-5 w-5" />
+            <span className="text-sm">シェア</span>
+          </Button>
         </div>
       </div>
 
