@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Share, Trash2, MoreHorizontal } from "lucide-react";
+import { Heart, MessageCircle, Share, Trash2, MoreHorizontal, Copy, Check } from "lucide-react";
 import { GoodsPost } from "@/types/posts";
 import { useToggleLike, useDeletePost } from "@/hooks/posts";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { DeletePostDialog } from "./DeletePostDialog";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
   const toggleLike = useToggleLike();
   const deletePost = useDeletePost();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
@@ -53,6 +55,30 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
         setIsDeleteDialogOpen(false);
       }
     });
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: `${post.profiles?.username}さんの投稿`,
+      text: post.caption || `${post.user_items?.title}の投稿`,
+      url: window.location.href
+    };
+
+    try {
+      // Web Share API が利用可能な場合
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // クリップボードにコピー
+        await navigator.clipboard.writeText(window.location.href);
+        setIsCopied(true);
+        toast.success("リンクをクリップボードにコピーしました");
+        setTimeout(() => setIsCopied(false), 2000);
+      }
+    } catch (error) {
+      console.error("シェアに失敗しました:", error);
+      toast.error("シェアに失敗しました");
+    }
   };
 
   return (
@@ -177,9 +203,14 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
           <Button
             variant="ghost"
             size="sm"
+            onClick={handleShare}
             className="flex items-center gap-2 text-muted-foreground hover:text-primary h-9"
           >
-            <Share className="h-5 w-5" />
+            {isCopied ? (
+              <Check className="h-5 w-5" />
+            ) : (
+              <Share className="h-5 w-5" />
+            )}
             <span className="text-sm">シェア</span>
           </Button>
         </div>
