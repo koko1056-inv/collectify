@@ -35,9 +35,9 @@ export default function Posts() {
           )}
           
           {/* メインコンテンツ */}
-          <main className={`flex-1 ${!isMobile ? 'max-w-2xl mx-auto border-x border-border' : ''}`}>
+          <main className={`flex-1 ${!isMobile ? 'max-w-2xl mx-auto border-x border-border' : 'w-full'}`}>
             {/* ヘッダー */}
-            <div className={`sticky top-16 bg-background/95 backdrop-blur-sm border-b border-border z-10 ${isMobile ? 'px-4 py-3' : 'p-4'}`}>
+            <div className={`sticky top-16 bg-background/95 backdrop-blur-sm border-b border-border z-10 ${isMobile ? 'px-3 py-3' : 'p-4'}`}>
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-xl font-bold">投稿</h1>
@@ -82,7 +82,7 @@ export default function Posts() {
             </div>
 
             {/* 投稿一覧 */}
-            <div className={`pb-20 ${isMobile ? 'px-0' : ''}`}>
+            <div className="pb-20">
               <PostsGrid filters={filters} />
             </div>
           </main>

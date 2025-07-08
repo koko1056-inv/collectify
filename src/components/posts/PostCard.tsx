@@ -57,10 +57,10 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
 
   return (
     <>
-      <div className="w-full px-3 md:px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer">
+      <div className="w-full px-2 sm:px-3 md:px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer overflow-hidden">
         {/* ヘッダー */}
-        <div className="flex items-start gap-3 mb-3">
-          <Avatar className="h-10 w-10 flex-shrink-0">
+        <div className="flex items-start gap-2 sm:gap-3 mb-3">
+          <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
             <AvatarImage src={post.profiles?.avatar_url} />
             <AvatarFallback>
               {post.profiles?.username?.charAt(0).toUpperCase()}
@@ -110,11 +110,11 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
             )}
 
             {/* 投稿画像 */}
-            <div className="rounded-2xl overflow-hidden border border-border mb-3">
+            <div className="rounded-2xl overflow-hidden border border-border mb-3 max-w-full">
               <img
                 src={post.image_url}
                 alt="投稿画像"
-                className="w-full max-h-96 object-cover"
+                className="w-full max-h-80 sm:max-h-96 object-cover"
               />
             </div>
 
@@ -127,9 +127,9 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
                 <img
                   src={post.user_items?.image}
                   alt={post.user_items?.title}
-                  className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+                  className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
                 />
-                <div className="text-left flex-1 min-w-0">
+                <div className="text-left flex-1 min-w-0 overflow-hidden">
                   <p className="font-medium text-sm truncate">
                     {post.user_items?.title}
                   </p>
