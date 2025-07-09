@@ -44,7 +44,11 @@ export function ItemDetailsTagManageSection({
         console.log('[ItemDetailsTagManage] Invalidating queries');
         // 関連するクエリを無効化してデータを再取得
         await queryClient.invalidateQueries({ queryKey: ["current-tags", [itemId]] });
-        await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+        if (isUserItem) {
+          await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+        } else {
+          await queryClient.invalidateQueries({ queryKey: ["official-items"] });
+        }
         await queryClient.invalidateQueries({ queryKey: ["item-tags", itemId] });
         console.log('[ItemDetailsTagManage] Queries invalidated');
         

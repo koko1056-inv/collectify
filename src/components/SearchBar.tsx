@@ -109,6 +109,7 @@ export function SearchBar({
           price={itemDetails.price}
           description={itemDetails.description}
           releaseDate={itemDetails.release_date}
+          isUserItem={false}
         />
       )}
     </>
