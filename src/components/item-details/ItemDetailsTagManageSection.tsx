@@ -1,6 +1,6 @@
 
 import { useQueryClient } from "@tanstack/react-query";
-import { addTagToItem, removeTagFromItem } from "@/utils/tag/tag-mutations";
+import { updateTagsForMultipleItems } from "@/utils/tag/tag-mutations";
 import { TagManageModal } from "../tag/TagManageModal";
 import { TagUpdate } from "@/types/tag";
 import { useToast } from "@/hooks/use-toast";
@@ -28,28 +28,25 @@ export function ItemDetailsTagManageSection({
     try {
       console.log(`Processing ${updates.length} tag updates for item ${itemId}`);
       
-      // 各更新を処理
-      for (const update of updates) {
-        const { category, value } = update;
+      // 現在のタグを取得
+      const currentTags = queryClient.getQueryData(["current-tags", [itemId]]) as any[] || [];
+      
+      // 更新処理を実行
+      const success = await updateTagsForMultipleItems([itemId], updates, isUserItem, currentTags);
+      
+      if (success) {
+        // 関連するクエリを無効化してデータを再取得
+        await queryClient.invalidateQueries({ queryKey: ["current-tags", [itemId]] });
+        await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+        await queryClient.invalidateQueries({ queryKey: ["item-tags", itemId] });
         
-        if (value) {
-          // タグを追加
-          const result = await addTagToItem(itemId, value, isUserItem);
-          if (result) {
-            console.log(`Added tag ${value} (${category}) to item ${itemId}`);
-          }
-        }
+        toast({
+          title: "タグを更新しました",
+          description: "タグの変更が保存されました。",
+        });
+      } else {
+        throw new Error("Tag update failed");
       }
-      
-      // 関連するクエリを無効化してデータを再取得
-      await queryClient.invalidateQueries({ queryKey: ["current-tags", [itemId]] });
-      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
-      await queryClient.invalidateQueries({ queryKey: ["item-tags", itemId] });
-      
-      toast({
-        title: "タグを更新しました",
-        description: "タグの変更が保存されました。",
-      });
     } catch (error) {
       console.error("Error updating tags:", error);
       toast({

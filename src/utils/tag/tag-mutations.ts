@@ -113,21 +113,36 @@ export async function removeTagFromItem(
  * @param itemIds アイテムIDの配列
  * @param updates タグ更新の配列
  * @param isUserItem ユーザーアイテムかどうか
+ * @param currentTags 現在のタグ（削除用）
  */
 export async function updateTagsForMultipleItems(
   itemIds: string[],
   updates: TagUpdate[],
-  isUserItem: boolean = false
+  isUserItem: boolean = false,
+  currentTags: any[] = []
 ): Promise<boolean> {
   try {
     if (itemIds.length === 0 || updates.length === 0) return true;
     
+    console.log('Updating tags for items:', { itemIds, updates, currentTags });
+    
     // 各アイテムに対して各更新を適用
     for (const itemId of itemIds) {
       for (const update of updates) {
+        // 同じカテゴリの既存タグを削除
+        const existingTagsInCategory = currentTags.filter(
+          tag => tag.tags?.category === update.category
+        );
+        
+        for (const existingTag of existingTagsInCategory) {
+          await removeTagFromItem(existingTag.tag_id, itemId, isUserItem);
+          console.log(`Removed existing tag ${existingTag.tag_id} from item ${itemId}`);
+        }
+        
         if (update.value) {
-          // タグを追加
-          await addTagToItem(itemId, update.value, isUserItem);
+          // 新しいタグを追加
+          const success = await addTagToItem(itemId, update.value, isUserItem);
+          console.log(`Added tag ${update.value} to item ${itemId}: ${success}`);
         }
       }
     }
