@@ -26,6 +26,14 @@ export function CategoryTagSelect({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
+  // valueがリセットされたときに内部状態をリセット
+  useEffect(() => {
+    if (!value) {
+      setSearchQuery('');
+      setIsDialogOpen(false);
+    }
+  }, [value]);
+
   const { data: tags = [], refetch } = useQuery({
     queryKey: ["tags-by-category", category],
     queryFn: async () => {

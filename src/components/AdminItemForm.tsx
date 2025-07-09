@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImageSection } from "./admin-item-form/ImageSection";
@@ -25,6 +26,9 @@ export function AdminItemForm() {
     setSelectedTags,
   } = useItemDetails();
 
+  // フォームのリセット状態を管理するためのkey
+  const [formKey, setFormKey] = useState(0);
+
   const resetForm = () => {
     setFormData({
       title: "",
@@ -35,6 +39,7 @@ export function AdminItemForm() {
       typeTag: null,
       seriesTag: null,
       price: "",
+      item_type: "official",
     });
     setImageFile(null);
     if (previewUrl) {
@@ -42,6 +47,8 @@ export function AdminItemForm() {
       setPreviewUrl(null);
     }
     setSelectedTags([]);
+    // フォーム全体を再レンダリング
+    setFormKey(prev => prev + 1);
   };
 
   const { loading, handleSubmit } = useItemSubmit({
@@ -69,7 +76,7 @@ export function AdminItemForm() {
           </AlertDescription>
         </Alert>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form key={formKey} onSubmit={handleSubmit} className="space-y-4">
           <ImageSection
             imageFile={imageFile}
             setImageFile={setImageFile}

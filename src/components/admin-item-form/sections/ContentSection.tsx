@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,14 @@ export function ContentSection({
   const queryClient = useQueryClient();
   const [isAddingNewContent, setIsAddingNewContent] = useState(false);
   const [newContentName, setNewContentName] = useState("");
+
+  // contentNameがリセットされたときに内部状態をリセット
+  useEffect(() => {
+    if (!contentName) {
+      setIsAddingNewContent(false);
+      setNewContentName("");
+    }
+  }, [contentName]);
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
