@@ -34,12 +34,26 @@ export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListPro
           // タグデータの詳細をログ出力
           console.log('Individual tag data:', tag);
           console.log('Tag.tags:', tag.tags);
+          console.log('Tag.tag_id:', tag.tag_id);
           
-          const tagName = tag.tags?.name || tag.tag_id || 'タグ名なし';
+          // より安全なタグ名の取得
+          let tagName = 'タグ名なし';
+          if (tag.tags && tag.tags.name) {
+            tagName = tag.tags.name;
+          } else if (typeof tag.tag_id === 'string' && tag.tag_id.length > 0) {
+            // tag_idが文字列の場合は、それがタグ名の可能性がある
+            if (tag.tag_id.length < 50) { // UUIDは36文字程度なので、それより短い場合は名前の可能性
+              tagName = tag.tag_id;
+            } else {
+              tagName = `タグID: ${tag.tag_id.substring(0, 8)}...`;
+            }
+          }
+          
+          console.log('Final tagName:', tagName);
           
           return (
             <Badge 
-              key={tag.tag_id} 
+              key={tag.tag_id || tag.id} 
               variant="default" 
               className="group bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors px-3 py-1.5 text-sm font-medium"
             >
@@ -52,7 +66,7 @@ export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListPro
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    onRemoveTag(tag.tag_id);
+                    onRemoveTag(tag.tag_id || tag.id);
                   }}
                 >
                   <X className="h-3 w-3" />

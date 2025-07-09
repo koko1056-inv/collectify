@@ -70,6 +70,8 @@ export function CategoryTagSelect({
     if (!tagName.trim()) return;
 
     try {
+      console.log(`Adding new tag: "${tagName}" for category: "${category}"`);
+      
       // 既存のタグとの重複をチェック
       const existingTag = tags.find(
         (tag) => tag.name.toLowerCase() === tagName.toLowerCase()
@@ -83,17 +85,22 @@ export function CategoryTagSelect({
 
       const { data: newTag, error } = await supabase
         .from("tags")
-        .insert([{ name: tagName, category }])
+        .insert([{ name: tagName.trim(), category }])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error adding new tag:", error);
+        throw error;
+      }
 
+      console.log(`Successfully added new tag:`, newTag);
+      
       // キャッシュを更新
       queryClient.invalidateQueries({ queryKey: ["tags-by-category", category] });
       
-      console.log(`Added new tag: ${tagName} with ID: ${newTag.id}`);
-      onChange(newTag.name); // IDではなく名前を渡す
+      // 新しいタグの名前を設定
+      onChange(newTag.name);
     } catch (error) {
       console.error("Error adding new tag:", error);
     }
@@ -114,9 +121,15 @@ export function CategoryTagSelect({
     }
   }, [category, value, tags]);
 
-  const handleValueChange = (tagName: string) => {
-    console.log(`CategoryTagSelect: Changed to "${tagName}" for category "${category}"`);
-    onChange(tagName);
+  const handleValueChange = (selectedValue: string) => {
+    console.log(`CategoryTagSelect: Changed to "${selectedValue}" for category "${category}"`);
+    // 選択されたタグ名を取得
+    const selectedTag = tags.find(tag => tag.name === selectedValue);
+    if (selectedTag) {
+      onChange(selectedTag.name);
+    } else {
+      onChange(selectedValue);
+    }
   };
 
   return (

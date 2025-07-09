@@ -22,6 +22,8 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
   const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
 
   try {
+    console.log(`Fetching tags for ${isUserItem ? 'user' : 'official'} item: ${itemId}`);
+    
     const { data, error } = await supabase
       .from(table)
       .select(`
@@ -36,14 +38,32 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
       `)
       .eq(itemIdField, itemId);
 
-    if (error) throw error;
+    if (error) {
+      console.error(`Error fetching tags for item ${itemId}:`, error);
+      throw error;
+    }
     
-    // Ensure each item has the required fields
-    return (data || []).map(item => ({
-      id: item.id,
-      tag_id: item.tag_id,
-      tags: item.tags
-    }));
+    console.log(`Raw tag data for item ${itemId}:`, data);
+    
+    // Ensure each item has the required fields and valid tag data
+    const processedData = (data || []).map(item => {
+      console.log(`Processing tag item:`, item);
+      
+      // タグ情報が正しく取得されているか確認
+      if (!item.tags) {
+        console.warn(`Tag data is null for tag_id: ${item.tag_id}`);
+        return null;
+      }
+      
+      return {
+        id: item.id,
+        tag_id: item.tag_id,
+        tags: item.tags
+      };
+    }).filter(Boolean); // null値を除去
+    
+    console.log(`Processed tag data for item ${itemId}:`, processedData);
+    return processedData;
   } catch (error) {
     console.error("Error fetching tags for item:", error);
     return [];
