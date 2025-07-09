@@ -37,14 +37,20 @@ export function CategoryTagSelect({
   const { data: tags = [], refetch } = useQuery({
     queryKey: ["tags-by-category", category],
     queryFn: async () => {
+      console.log(`Fetching tags for category: ${category}`);
       const { data, error } = await supabase
         .from("tags")
         .select("*")
         .eq("category", category)
         .order("name");
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error(`Error fetching tags for category ${category}:`, error);
+        throw error;
+      }
+      
+      console.log(`Tags fetched for category ${category}:`, data);
+      return data || [];
     },
     staleTime: 60000, // 1分間キャッシュを保持
   });
@@ -53,6 +59,20 @@ export function CategoryTagSelect({
   const filteredTags = tags.filter((tag) => 
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  // フィルタリング後のタグをログ出力
+  console.log(`CategoryTagSelect - filteredTags for ${category}:`, filteredTags);
+  console.log(`CategoryTagSelect - searchQuery: "${searchQuery}"`);
+  
+  // 個別のタグを詳細チェック
+  filteredTags.forEach((tag, index) => {
+    console.log(`CategoryTagSelect - Tag ${index}:`, {
+      id: tag.id,
+      name: tag.name,
+      category: tag.category,
+      nameType: typeof tag.name
+    });
+  });
 
   // 現在選択されているタグを見つける
   const selectedTag = value ? tags.find(tag => tag.name === value) : null;
