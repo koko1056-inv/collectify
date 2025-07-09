@@ -9,8 +9,6 @@ interface CurrentTagsListProps {
 }
 
 export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListProps) {
-  // デバッグログを追加
-  console.log('CurrentTagsList - currentTags:', currentTags);
   
   if (currentTags.length === 0) {
     return (
@@ -31,25 +29,7 @@ export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListPro
       </div>
       <div className="flex flex-wrap gap-2">
         {currentTags.map((tag) => {
-          // タグデータの詳細をログ出力
-          console.log('Individual tag data:', tag);
-          console.log('Tag.tags:', tag.tags);
-          console.log('Tag.tag_id:', tag.tag_id);
-          
-          // より安全なタグ名の取得
-          let tagName = 'タグ名なし';
-          if (tag.tags && tag.tags.name) {
-            tagName = tag.tags.name;
-          } else if (typeof tag.tag_id === 'string' && tag.tag_id.length > 0) {
-            // tag_idが文字列の場合は、それがタグ名の可能性がある
-            if (tag.tag_id.length < 50) { // UUIDは36文字程度なので、それより短い場合は名前の可能性
-              tagName = tag.tag_id;
-            } else {
-              tagName = `タグID: ${tag.tag_id.substring(0, 8)}...`;
-            }
-          }
-          
-          console.log('Final tagName:', tagName);
+          const tagName = tag.tags?.name || tag.tag_id || 'タグ名なし';
           
           return (
             <Badge 

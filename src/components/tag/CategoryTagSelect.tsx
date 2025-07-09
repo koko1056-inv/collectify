@@ -37,7 +37,6 @@ export function CategoryTagSelect({
   const { data: tags = [], refetch } = useQuery({
     queryKey: ["tags-by-category", category],
     queryFn: async () => {
-      console.log(`Fetching tags for category: ${category}`);
       const { data, error } = await supabase
         .from("tags")
         .select("*")
@@ -49,7 +48,6 @@ export function CategoryTagSelect({
         throw error;
       }
       
-      console.log(`Tags fetched for category ${category}:`, data);
       return data || [];
     },
     staleTime: 60000, // 1分間キャッシュを保持
@@ -60,19 +58,6 @@ export function CategoryTagSelect({
     tag.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
-  // フィルタリング後のタグをログ出力
-  console.log(`CategoryTagSelect - filteredTags for ${category}:`, filteredTags);
-  console.log(`CategoryTagSelect - searchQuery: "${searchQuery}"`);
-  
-  // 個別のタグを詳細チェック
-  filteredTags.forEach((tag, index) => {
-    console.log(`CategoryTagSelect - Tag ${index}:`, {
-      id: tag.id,
-      name: tag.name,
-      category: tag.category,
-      nameType: typeof tag.name
-    });
-  });
 
   // 現在選択されているタグを見つける
   const selectedTag = value ? tags.find(tag => tag.name === value) : null;
@@ -109,25 +94,33 @@ export function CategoryTagSelect({
 
   // 新しいタグの追加処理
   const handleAddNewTag = async (tagName: string) => {
-    if (!tagName.trim()) return;
+    const trimmedName = tagName.trim();
+    if (!trimmedName) return;
 
     try {
-      console.log(`Adding new tag: "${tagName}" for category: "${category}"`);
+      console.log(`Adding new tag: "${trimmedName}" for category: "${category}"`);
+      
+      // UUIDでないことを確認
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmedName);
+      if (isUUID) {
+        console.error(`Cannot add UUID as tag name: ${trimmedName}`);
+        return;
+      }
       
       // 既存のタグとの重複をチェック
       const existingTag = tags.find(
-        (tag) => tag.name.toLowerCase() === tagName.toLowerCase()
+        (tag) => tag.name.toLowerCase() === trimmedName.toLowerCase()
       );
 
       if (existingTag) {
-        console.log(`Tag "${tagName}" already exists, using existing tag`);
+        console.log(`Tag "${trimmedName}" already exists, using existing tag`);
         onChange(existingTag.name);
         return;
       }
 
       const { data: newTag, error } = await supabase
         .from("tags")
-        .insert([{ name: tagName.trim(), category }])
+        .insert([{ name: trimmedName, category }])
         .select()
         .single();
 
@@ -148,20 +141,6 @@ export function CategoryTagSelect({
     }
   };
 
-  // デバッグ用ログ出力
-  useEffect(() => {
-    console.log(`CategoryTagSelect for ${category}: current value = ${value || 'null'}, tags count = ${tags.length}`);
-    
-    // valueがある場合、対応するタグがtagsに存在するか確認
-    if (value) {
-      const matchingTag = tags.find(tag => tag.name === value);
-      console.log(`  Value "${value}" ${matchingTag ? 'matches' : 'does NOT match'} a tag in the list`);
-      
-      if (!matchingTag && tags.length > 0) {
-        console.log(`  Available tags: ${tags.slice(0, 5).map(t => t.name).join(', ')}${tags.length > 5 ? '...' : ''}`);
-      }
-    }
-  }, [category, value, tags]);
 
   const handleValueChange = (selectedValue: string) => {
     console.log(`CategoryTagSelect: Received value "${selectedValue}" for category "${category}"`);

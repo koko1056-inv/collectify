@@ -56,10 +56,24 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded }: AddTagDi
       }
 
       // 新しいタグを追加
+      const trimmedName = newTagName.trim();
+      
+      // UUIDでないことを確認
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmedName);
+      if (isUUID) {
+        console.error(`Cannot add UUID as tag name: ${trimmedName}`);
+        toast({
+          title: "エラー",
+          description: "無効なタグ名です。",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const { data: newTag, error } = await supabase
         .from("tags")
         .insert([{
-          name: newTagName.trim(),
+          name: trimmedName,
           category: category,
         }])
         .select()
@@ -72,11 +86,11 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded }: AddTagDi
 
       if (newTag) {
         console.log(`Successfully added new tag: ${JSON.stringify(newTag)}`);
-        onTagAdded(newTag.name);
+        onTagAdded(newTag.name); // 常にタグ名を返す
         
         toast({
           title: "タグを追加しました",
-          description: `${newTagName}を追加しました。`,
+          description: `${trimmedName}を追加しました。`,
         });
       }
 
