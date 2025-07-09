@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,9 @@ interface CurrentTagsListProps {
 }
 
 export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListProps) {
+  // デバッグログを追加
+  console.log('CurrentTagsList - currentTags:', currentTags);
+  
   if (currentTags.length === 0) {
     return (
       <div className="text-center py-6">
@@ -28,29 +30,37 @@ export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListPro
         </Badge>
       </div>
       <div className="flex flex-wrap gap-2">
-        {currentTags.map((tag) => (
-          <Badge 
-            key={tag.tag_id} 
-            variant="default" 
-            className="group bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors px-3 py-1.5 text-sm font-medium"
-          >
-            <span>{tag.tags.name}</span>
-            {onRemoveTag && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-auto p-0 ml-1.5 -mr-1 hover:bg-transparent group-hover:text-destructive transition-colors"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onRemoveTag(tag.tag_id);
-                }}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            )}
-          </Badge>
-        ))}
+        {currentTags.map((tag) => {
+          // タグデータの詳細をログ出力
+          console.log('Individual tag data:', tag);
+          console.log('Tag.tags:', tag.tags);
+          
+          const tagName = tag.tags?.name || tag.tag_id || 'タグ名なし';
+          
+          return (
+            <Badge 
+              key={tag.tag_id} 
+              variant="default" 
+              className="group bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors px-3 py-1.5 text-sm font-medium"
+            >
+              <span>{tagName}</span>
+              {onRemoveTag && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-auto p-0 ml-1.5 -mr-1 hover:bg-transparent group-hover:text-destructive transition-colors"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onRemoveTag(tag.tag_id);
+                  }}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
+            </Badge>
+          );
+        })}
       </div>
     </div>
   );

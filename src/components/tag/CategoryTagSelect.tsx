@@ -93,7 +93,7 @@ export function CategoryTagSelect({
       queryClient.invalidateQueries({ queryKey: ["tags-by-category", category] });
       
       console.log(`Added new tag: ${tagName} with ID: ${newTag.id}`);
-      onChange(tagName);
+      onChange(newTag.name); // IDではなく名前を渡す
     } catch (error) {
       console.error("Error adding new tag:", error);
     }
