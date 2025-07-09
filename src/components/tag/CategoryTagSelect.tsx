@@ -75,6 +75,18 @@ export function CategoryTagSelect({
     return "選択してください";
   };
 
+  // 現在の値を正規化する（UUIDからタグ名に変換）
+  const normalizedValue = (() => {
+    if (!value) return undefined;
+    
+    const isUUID = value.length === 36 && value.includes('-');
+    if (isUUID) {
+      const matchingTag = tags.find(tag => tag.id === value);
+      return matchingTag?.name || undefined;
+    }
+    return value;
+  })();
+
   // 新しいタグの追加処理
   const handleAddNewTag = async (tagName: string) => {
     if (!tagName.trim()) return;
@@ -159,7 +171,7 @@ export function CategoryTagSelect({
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Select 
-          value={value || undefined}
+          value={normalizedValue}
           onValueChange={handleValueChange}
           onOpenChange={(open) => {
             if (open) {
