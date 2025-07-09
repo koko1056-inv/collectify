@@ -19,11 +19,20 @@ export function CategoryTagSelections({
   const getCurrentTagValue = (category: string) => {
     // まず保留中の更新からタグ値を探す
     const pendingUpdate = pendingUpdates.find(u => u.category === category);
-    if (pendingUpdate !== undefined) return pendingUpdate.value;
+    if (pendingUpdate !== undefined) {
+      console.log(`Pending update for ${category}:`, pendingUpdate.value);
+      return pendingUpdate.value;
+    }
     
     // 保留中の更新がなければ現在のタグから探す
     const currentTag = currentTags.find(tag => tag.tags?.category === category);
-    return currentTag?.tags?.name || null;
+    if (currentTag && currentTag.tags) {
+      console.log(`Current tag for ${category}:`, currentTag.tags.name);
+      return currentTag.tags.name;
+    }
+    
+    console.log(`No tag found for ${category}`);
+    return null;
   };
 
   // デバッグ: 起動時に現在のタグ情報をログ出力

@@ -60,7 +60,17 @@ export function CategoryTagSelect({
   // プレースホルダーテキストを取得
   const getPlaceholderText = () => {
     if (value) {
-      return selectedTag?.name || value;
+      // UUIDかどうか確認
+      const isUUID = value.length === 36 && value.includes('-');
+      
+      if (isUUID) {
+        // UUIDの場合は対応するタグ名を探す
+        const matchingTag = tags.find(tag => tag.id === value);
+        return matchingTag?.name || "タグが見つかりません";
+      } else {
+        // タグ名の場合はそのまま表示
+        return value;
+      }
     }
     return "選択してください";
   };
@@ -122,12 +132,24 @@ export function CategoryTagSelect({
   }, [category, value, tags]);
 
   const handleValueChange = (selectedValue: string) => {
-    console.log(`CategoryTagSelect: Changed to "${selectedValue}" for category "${category}"`);
-    // 選択されたタグ名を取得
-    const selectedTag = tags.find(tag => tag.name === selectedValue);
-    if (selectedTag) {
-      onChange(selectedTag.name);
+    console.log(`CategoryTagSelect: Received value "${selectedValue}" for category "${category}"`);
+    
+    // UUIDかどうか確認（36文字で-が含まれる）
+    const isUUID = selectedValue.length === 36 && selectedValue.includes('-');
+    
+    if (isUUID) {
+      // UUIDが来た場合は対応するタグ名を見つける
+      const matchingTag = tags.find(tag => tag.id === selectedValue);
+      if (matchingTag) {
+        console.log(`Converting UUID ${selectedValue} to tag name: ${matchingTag.name}`);
+        onChange(matchingTag.name);
+      } else {
+        console.warn(`No tag found for UUID: ${selectedValue}`);
+        onChange(null);
+      }
     } else {
+      // タグ名が直接来た場合はそのまま使用
+      console.log(`Using tag name directly: ${selectedValue}`);
       onChange(selectedValue);
     }
   };
