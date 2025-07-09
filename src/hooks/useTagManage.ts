@@ -200,11 +200,15 @@ export function useTagManage(
   // 保存ハンドラ
   const handleSubmit = async () => {
     try {
-      console.log(`Saving content name: ${contentName}`);
-      console.log(`Pending updates: ${JSON.stringify(pendingUpdates)}`);
+      console.log('[TagManage] Starting save process');
+      console.log('[TagManage] Content name:', contentName);
+      console.log('[TagManage] Pending updates:', JSON.stringify(pendingUpdates, null, 2));
+      console.log('[TagManage] Item IDs:', itemIds);
+      console.log('[TagManage] Current tags:', currentTags);
       
       // コンテンツ名を更新
       for (const itemId of itemIds) {
+        console.log(`[TagManage] Updating content for item: ${itemId}`);
         await setItemContent(itemId, contentName, isUserItem);
       }
       
@@ -214,12 +218,19 @@ export function useTagManage(
       
       // タグ更新を実行
       if (onSubmit && pendingUpdates.length > 0) {
-        await onSubmit(pendingUpdates.filter((u) => u.value !== null));
+        console.log('[TagManage] Calling onSubmit with updates:', pendingUpdates);
+        const filteredUpdates = pendingUpdates.filter((u) => u.value !== null);
+        console.log('[TagManage] Filtered updates:', filteredUpdates);
+        await onSubmit(filteredUpdates);
+        console.log('[TagManage] onSubmit completed');
+      } else {
+        console.log('[TagManage] No onSubmit or no updates to process');
       }
       
+      console.log('[TagManage] Save process completed successfully');
       onClose();
     } catch (error) {
-      console.error("Error updating items:", error);
+      console.error("[TagManage] Error updating items:", error);
     }
   };
 
