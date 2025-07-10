@@ -29,6 +29,7 @@ export function ImageSection({
   setPreviewUrl,
 }: ImageSectionProps) {
   const [urlInput, setUrlInput] = useState("");
+  const [imageUrlInput, setImageUrlInput] = useState("");
   const [isScrapingImages, setIsScrapingImages] = useState(false);
   const [scrapedImages, setScrapedImages] = useState<string[]>([]);
   const [showImageSelector, setShowImageSelector] = useState(false);
@@ -110,31 +111,113 @@ export function ImageSection({
     }
   };
 
+  const handleSetImageUrl = async () => {
+    if (!imageUrlInput) {
+      toast({
+        title: "エラー",
+        description: "画像URLを入力してください。",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // URLが有効な画像かチェック
+      const img = new Image();
+      img.onload = async () => {
+        try {
+          // 画像URLから画像データを取得してFileオブジェクトに変換
+          const response = await fetch(imageUrlInput);
+          const blob = await response.blob();
+          
+          // ファイル名を生成
+          const urlParts = imageUrlInput.split('/');
+          const fileName = urlParts[urlParts.length - 1] || 'image.jpg';
+          
+          const file = new File([blob], fileName, { type: blob.type });
+          handleImageChange(file);
+          setImageUrlInput("");
+          
+          toast({
+            title: "画像を設定しました",
+            description: "画像URLから画像を取得しました。",
+          });
+        } catch (error) {
+          console.error('Error fetching image:', error);
+          toast({
+            title: "エラー",
+            description: "画像の取得に失敗しました。URLを確認してください。",
+            variant: "destructive",
+          });
+        }
+      };
+      
+      img.onerror = () => {
+        toast({
+          title: "エラー",
+          description: "有効な画像URLではありません。",
+          variant: "destructive",
+        });
+      };
+      
+      img.src = imageUrlInput;
+    } catch (error) {
+      console.error('Error setting image URL:', error);
+      toast({
+        title: "エラー",
+        description: "画像の設定に失敗しました。",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <>
-      <div className="space-y-2">
-        <label htmlFor="url" className="text-sm font-medium">
-          URLから画像を取得
-        </label>
-        <div className="flex gap-2">
-          <Input
-            id="url"
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            placeholder="URLを入力してください"
-            disabled={isScrapingImages}
-          />
-          <Button
-            type="button"
-            onClick={handleScrapeImages}
-            disabled={isScrapingImages}
-          >
-            {isScrapingImages ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "取得"
-            )}
-          </Button>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label htmlFor="imageUrl" className="text-sm font-medium">
+            画像URLを直接設定
+          </label>
+          <div className="flex gap-2">
+            <Input
+              id="imageUrl"
+              value={imageUrlInput}
+              onChange={(e) => setImageUrlInput(e.target.value)}
+              placeholder="画像URLを入力してください"
+            />
+            <Button
+              type="button"
+              onClick={handleSetImageUrl}
+            >
+              設定
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="url" className="text-sm font-medium">
+            URLから画像を取得
+          </label>
+          <div className="flex gap-2">
+            <Input
+              id="url"
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              placeholder="URLを入力してください"
+              disabled={isScrapingImages}
+            />
+            <Button
+              type="button"
+              onClick={handleScrapeImages}
+              disabled={isScrapingImages}
+            >
+              {isScrapingImages ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "取得"
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
