@@ -106,15 +106,20 @@ export function useSimpleTagManage(
       console.log('[SimpleTagManage] Content name:', contentName);
       console.log('[SimpleTagManage] Item IDs:', itemIds);
 
-      // タグ更新を作成
+      // 現在のタグ値を取得
+      const currentCharacter = currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name || null;
+      const currentType = currentTags.find(tag => tag.tags?.category === 'type')?.tags?.name || null;
+      const currentSeries = currentTags.find(tag => tag.tags?.category === 'series')?.tags?.name || null;
+
+      // タグ更新を作成（変更があった場合のみ）
       const updates = [];
-      if (tagSelections.character !== null) {
+      if (tagSelections.character !== currentCharacter) {
         updates.push({ category: 'character', value: tagSelections.character });
       }
-      if (tagSelections.type !== null) {
+      if (tagSelections.type !== currentType) {
         updates.push({ category: 'type', value: tagSelections.type });
       }
-      if (tagSelections.series !== null) {
+      if (tagSelections.series !== currentSeries) {
         updates.push({ category: 'series', value: tagSelections.series });
       }
 
