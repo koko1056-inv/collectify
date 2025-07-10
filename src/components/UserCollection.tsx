@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "./ui/skeleton";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { CollectionGrid } from "./collection/CollectionGrid";
@@ -73,7 +73,7 @@ export function UserCollection({
     return filtered;
   }, [items, selectedTags, selectedContent]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
     if (active.id !== over.id) {
@@ -82,7 +82,7 @@ export function UserCollection({
       const newItems = arrayMove([...items], oldIndex, newIndex);
       queryClient.setQueryData(["user-items", effectiveUserId, selectedTags], newItems);
     }
-  };
+  }, [items, queryClient, effectiveUserId, selectedTags]);
 
   if (!effectiveUserId) {
     return <div className="text-center py-8">

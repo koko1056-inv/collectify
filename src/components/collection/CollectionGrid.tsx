@@ -1,4 +1,5 @@
 
+import React, { memo, useMemo } from "react";
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { MemoizedMyCollectionGoodsCard } from "./MyCollectionGoodsCard";
@@ -12,7 +13,7 @@ interface CollectionGridProps {
   onDragEnd: (event: DragEndEvent) => void;
 }
 
-export function CollectionGrid({
+const CollectionGrid = memo(function CollectionGrid({
   items,
   isCompact,
   isSelectionMode,
@@ -34,9 +35,12 @@ export function CollectionGrid({
     })
   );
 
-  const gridClass = isCompact
-    ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
-    : "grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1 sm:gap-4";
+  const gridClass = useMemo(() => 
+    isCompact
+      ? "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2"
+      : "grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1 sm:gap-4",
+    [isCompact]
+  );
 
   return (
     <DndContext
@@ -71,4 +75,6 @@ export function CollectionGrid({
       </SortableContext>
     </DndContext>
   );
-}
+});
+
+export { CollectionGrid };

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,15 +16,12 @@ interface SearchSuggestion {
 
 export function useSearchSuggestions(searchQuery: string) {
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
 
-  // 検索候補を取得（改善版）
+  // 検索候補を取得（最適化版）
   const { data: searchSuggestions = [], isLoading, error } = useQuery({
     queryKey: ["search-suggestions", searchQuery],
     queryFn: async () => {
       if (!searchQuery || searchQuery.length < 2) return [];
-
-      console.log('検索クエリ:', searchQuery);
 
       try {
         // グッズのタイトル検索を改善
@@ -36,11 +33,8 @@ export function useSearchSuggestions(searchQuery: string) {
           .limit(8);
 
         if (itemsError) {
-          console.error("グッズ検索エラー:", itemsError);
           throw itemsError;
         }
-
-        console.log('検索結果のグッズ:', items?.length || 0);
 
         // コンテンツ名検索
         const { data: contents, error: contentsError } = await supabase
@@ -53,8 +47,6 @@ export function useSearchSuggestions(searchQuery: string) {
         if (contentsError) {
           console.error("コンテンツ検索エラー:", contentsError);
         }
-
-        console.log('検索結果のコンテンツ:', contents?.length || 0);
 
         // 結果を統合
         const suggestions: SearchSuggestion[] = [
@@ -75,7 +67,6 @@ export function useSearchSuggestions(searchQuery: string) {
           }))
         ];
 
-        console.log('最終的な検索候補:', suggestions.length);
         return suggestions;
       } catch (error) {
         console.error("検索エラー:", error);
@@ -84,21 +75,13 @@ export function useSearchSuggestions(searchQuery: string) {
     },
     enabled: searchQuery.length >= 2,
     staleTime: 1000 * 30, // 30秒間キャッシュ
+    gcTime: 1000 * 60 * 5, // 5分間キャッシュ保持
   });
 
-  useEffect(() => {
-    if (!isLoading && !error) {
-      setSuggestions(searchSuggestions);
-      console.log('検索候補を更新:', searchSuggestions.length);
-    }
-  }, [searchSuggestions, isLoading, error]);
-
-  useEffect(() => {
-    if (error) {
-      console.error('検索候補取得エラー:', error);
-      setSuggestions([]);
-    }
-  }, [error]);
+  // メモ化された検索候補（無限更新を防ぐ）
+  const suggestions = useMemo(() => {
+    return error ? [] : searchSuggestions;
+  }, [searchSuggestions, error]);
 
   return {
     suggestions,
