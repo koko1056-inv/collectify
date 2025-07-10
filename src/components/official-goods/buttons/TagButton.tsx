@@ -74,11 +74,11 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserIt
           table: table,
           filter: `${idField}=eq.${itemId}`
         },
-        async () => {
-          console.log(`[TagButton] Real-time update detected for ${table} ${itemId}`);
+        async (payload) => {
+          console.log(`[TagButton] Real-time update detected for ${table} ${itemId}`, payload);
           
-          // クエリを再取得してリアルタイム更新を反映
-          await refetch();
+          // 即座にクエリを再取得
+          refetch();
         }
       )
       .subscribe();
@@ -86,7 +86,7 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserIt
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [itemId, isUserItem]);
+  }, [itemId, isUserItem, refetch]);
 
   return (
     <div className="flex flex-col items-center">
