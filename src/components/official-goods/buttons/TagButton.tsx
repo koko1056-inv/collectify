@@ -16,11 +16,13 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserIt
   const [realtimeCategoryCounts, setRealtimeCategoryCounts] = useState({ character: 0, type: 0, series: 0 });
 
   // カテゴリ別タグ数を取得するクエリ
-  const { data: categoryCounts = { character: 0, type: 0, series: 0 } } = useQuery({
+  const { data: categoryCounts = { character: 0, type: 0, series: 0 }, refetch } = useQuery({
     queryKey: ["item-category-tags-count", itemId, isUserItem],
     queryFn: async () => {
       const table = isUserItem ? "user_item_tags" : "item_tags";
       const idField = isUserItem ? "user_item_id" : "official_item_id";
+      
+      console.log(`[TagButton] Fetching category counts for ${itemId}`);
       
       const { data, error } = await supabase
         .from(table)
@@ -45,6 +47,7 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserIt
         else if (category === 'series') counts.series++;
       });
       
+      console.log(`[TagButton] Category counts for ${itemId}:`, counts);
       return counts;
     },
     initialData: { character: 0, type: 0, series: 0 },
@@ -72,31 +75,8 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserIt
         async () => {
           console.log(`[TagButton] Real-time update detected for ${table} ${itemId}`);
           
-          const { data, error } = await supabase
-            .from(table)
-            .select(`
-              tag_id,
-              tags:tag_id (
-                category
-              )
-            `)
-            .eq(idField, itemId);
-          
-          if (error) {
-            console.error("Error getting realtime category tag counts:", error);
-            return;
-          }
-          
-          const counts = { character: 0, type: 0, series: 0 };
-          data?.forEach(item => {
-            const category = item.tags?.category;
-            if (category === 'character') counts.character++;
-            else if (category === 'type') counts.type++;
-            else if (category === 'series') counts.series++;
-          });
-          
-          console.log(`[TagButton] Updated category counts for ${itemId}:`, counts);
-          setRealtimeCategoryCounts(counts);
+          // クエリを再取得してリアルタイム更新を反映
+          await refetch();
         }
       )
       .subscribe();

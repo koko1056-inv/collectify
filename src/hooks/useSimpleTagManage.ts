@@ -146,6 +146,8 @@ export function useSimpleTagManage(
         queryClient.invalidateQueries({ queryKey: ["current-tags"] }),
         queryClient.invalidateQueries({ queryKey: ["item-content"] }),
         queryClient.invalidateQueries({ queryKey: ["tags"] }),
+        queryClient.invalidateQueries({ queryKey: ["item-category-tags-count"] }),
+        queryClient.invalidateQueries({ queryKey: ["item-tags-count"] }),
         isUserItem 
           ? queryClient.invalidateQueries({ queryKey: ["user-items"] })
           : queryClient.invalidateQueries({ queryKey: ["official-items"] })
