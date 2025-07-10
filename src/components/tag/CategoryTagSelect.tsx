@@ -80,18 +80,24 @@ export function CategoryTagSelect({
     return "選択してください";
   };
 
-  // 現在の値を正規化する（タグ名からUUIDに変換）
+  // 現在の値を正規化する（Select コンポーネント用にUUIDに変換）
   const normalizedValue = (() => {
-    if (!value) return undefined;
+    if (!value) {
+      console.log(`[CategoryTagSelect] No value for ${category}, returning undefined`);
+      return undefined;
+    }
     
     const isUUID = value.length === 36 && value.includes('-');
     if (isUUID) {
       // 既にUUIDの場合はそのまま返す
+      console.log(`[CategoryTagSelect] Value is already UUID for ${category}: ${value}`);
       return value;
     } else {
       // タグ名の場合はUUIDに変換
       const matchingTag = tags.find(tag => tag.name === value);
-      return matchingTag?.id || undefined;
+      const result = matchingTag?.id || undefined;
+      console.log(`[CategoryTagSelect] Converting tag name "${value}" to UUID "${result}" for ${category}`);
+      return result;
     }
   })();
 
@@ -177,8 +183,12 @@ export function CategoryTagSelect({
       <div className="flex gap-2">
         <Select 
           value={normalizedValue}
-          onValueChange={handleValueChange}
+          onValueChange={(selectedValue) => {
+            console.log(`[CategoryTagSelect] Select onValueChange triggered for ${category} with: ${selectedValue}`);
+            handleValueChange(selectedValue);
+          }}
           onOpenChange={(open) => {
+            console.log(`[CategoryTagSelect] Select opened/closed for ${category}: ${open}`);
             if (open) {
               // セレクトが開かれたときに最新データを取得
               refetch();
