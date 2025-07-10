@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import { TagButton } from "../buttons/TagButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ItemOwnersModal } from "@/components/ItemOwnersModal";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +22,7 @@ export function TagsAndSocialButtons({
 }: TagsAndSocialButtonsProps) {
   const [isOwnersModalOpen, setIsOwnersModalOpen] = useState(false);
 
-  const { data: ownersCount = 0 } = useQuery({
+  const { data: ownersCount = 0, refetch: refetchOwners } = useQuery({
     queryKey: ["item-owners-count", itemId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,27 +41,34 @@ export function TagsAndSocialButtons({
     },
   });
 
-  const { data: tagCount = 0 } = useQuery({
-    queryKey: ["item-tags-count", itemId],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("item_tags")
-        .select("*", { count: 'exact', head: true })
-        .eq("official_item_id", itemId);
-      
-      if (error) {
-        console.error("Error getting tag count:", error);
-        return 0;
-      }
-      
-      return count || 0;
-    },
-  });
+  // リアルタイム更新でowners数も同期
+  useEffect(() => {
+    const channel = supabase
+      .channel(`owners-changes-${itemId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_items',
+          filter: `official_item_id=eq.${itemId}`
+        },
+        () => {
+          refetchOwners();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [itemId, refetchOwners]);
+
 
   return (
     <>
       <div className="flex justify-end gap-1 sm:gap-2">
-        <TagButton onClick={onTagManageClick} tagCount={tagCount} itemId={itemId} />
+        <TagButton onClick={onTagManageClick} itemId={itemId} />
         <div className="flex flex-col items-center">
           <Button 
             variant="outline" 

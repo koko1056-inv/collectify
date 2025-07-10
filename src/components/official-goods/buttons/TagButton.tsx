@@ -7,12 +7,11 @@ import { useQuery } from "@tanstack/react-query";
 
 interface TagButtonProps {
   onClick: (e: React.MouseEvent) => void;
-  tagCount: number;
   itemId: string;
   isUserItem?: boolean;
 }
 
-export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserItem = false }: TagButtonProps) {
+export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProps) {
   const [realtimeCategoryCounts, setRealtimeCategoryCounts] = useState({ character: 0, type: 0, series: 0 });
 
   // カテゴリ別タグ数を取得するクエリ
