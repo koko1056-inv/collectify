@@ -72,10 +72,18 @@ export function useSimpleTagManage(
     const type = currentTags.find(tag => tag.tags?.category === 'type')?.tags?.name || null;
     const series = currentTags.find(tag => tag.tags?.category === 'series')?.tags?.name || null;
     
-    console.log('[SimpleTagManage] Setting initial selections:', { character, type, series });
+    // 前回の値と比較して変更がある場合のみ更新
+    setTagSelections(prev => {
+      if (prev.character === character && prev.type === type && prev.series === series) {
+        return prev;
+      }
+      return { character, type, series };
+    });
     
-    setTagSelections({ character, type, series });
-    setContentName(currentContentName || null);
+    setContentName(prev => {
+      const newContent = currentContentName || null;
+      return prev === newContent ? prev : newContent;
+    });
   }, [isOpen, currentTags, currentContentName]);
 
   // タグ変更ハンドラ

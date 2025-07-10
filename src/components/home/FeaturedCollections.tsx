@@ -44,12 +44,13 @@ export function FeaturedCollections() {
         anime: null
       })) as OfficialItem[];
     },
+    enabled: currentTab === "today", // 必要な時だけ実行
   });
   
   const { data: trendingItems = [], isLoading: isTrendingLoading } = useQuery<OfficialItem[]>({
     queryKey: ["featured-items", "trending"],
     queryFn: async () => {
-      // コレクション追加数でソートしてトレンドを決定
+      // 軽量化：user_itemsの数だけ取得して後でソート
       const { data, error } = await supabase
         .from("official_items")
         .select(`
@@ -59,29 +60,20 @@ export function FeaturedCollections() {
               id,
               name
             )
-          ),
-          user_items (
-            id,
-            user_id
           )
         `)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(12);
 
       if (error) throw error;
       
-      // コレクション追加数でソート
-      const itemsWithCounts = data.map(item => ({
+      return data.map(item => ({
         ...item,
         artist: null,
-        anime: null,
-        collectionCount: item.user_items?.length || 0
-      }));
-      
-      return itemsWithCounts
-        .sort((a, b) => b.collectionCount - a.collectionCount)
-        .slice(0, 12) as OfficialItem[];
+        anime: null
+      })) as OfficialItem[];
     },
+    enabled: currentTab === "trending", // 必要な時だけ実行
   });
 
   return (
