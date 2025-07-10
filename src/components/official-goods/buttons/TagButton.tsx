@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Tag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -12,8 +12,6 @@ interface TagButtonProps {
 }
 
 export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProps) {
-  const [realtimeCategoryCounts, setRealtimeCategoryCounts] = useState({ character: 0, type: 0, series: 0 });
-
   // カテゴリ別タグ数を取得するクエリ
   const { data: categoryCounts = { character: 0, type: 0, series: 0 }, refetch } = useQuery({
     queryKey: ["item-category-tags-count", itemId, isUserItem],
@@ -47,19 +45,20 @@ export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProp
       });
       
       console.log(`[TagButton] Category counts for ${itemId}:`, counts);
-      console.log(`[TagButton] Final display count: ${(counts.character > 0 ? 1 : 0) + (counts.type > 0 ? 1 : 0) + (counts.series > 0 ? 1 : 0)}`);
+      const totalDisplayCount = (counts.character > 0 ? 1 : 0) + (counts.type > 0 ? 1 : 0) + (counts.series > 0 ? 1 : 0);
+      console.log(`[TagButton] Final display count: ${totalDisplayCount}`);
       return counts;
     },
     initialData: { character: 0, type: 0, series: 0 },
     enabled: !!itemId,
+    staleTime: 0, // 常に最新データを取得
+    refetchOnWindowFocus: true, // ウィンドウフォーカス時に再取得
   });
-
-  useEffect(() => {
-    setRealtimeCategoryCounts(categoryCounts);
-  }, [categoryCounts]);
 
   // リアルタイム更新の設定
   useEffect(() => {
+    if (!itemId) return;
+
     const table = isUserItem ? "user_item_tags" : "item_tags";
     const idField = isUserItem ? "user_item_id" : "official_item_id";
     
@@ -77,7 +76,7 @@ export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProp
           console.log(`[TagButton] Real-time update detected for ${table} ${itemId}`, payload);
           
           // 即座にクエリを再取得
-          refetch();
+          await refetch();
         }
       )
       .subscribe();
@@ -98,9 +97,9 @@ export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProp
         <Tag className="h-3 w-3 sm:h-4 sm:w-4" />
       </Button>
       <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 text-center">
-        {(realtimeCategoryCounts.character > 0 ? 1 : 0) + 
-         (realtimeCategoryCounts.type > 0 ? 1 : 0) + 
-         (realtimeCategoryCounts.series > 0 ? 1 : 0)}
+        {(categoryCounts.character > 0 ? 1 : 0) + 
+         (categoryCounts.type > 0 ? 1 : 0) + 
+         (categoryCounts.series > 0 ? 1 : 0)}
       </div>
     </div>
   );

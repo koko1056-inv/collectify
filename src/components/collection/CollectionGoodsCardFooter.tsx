@@ -3,6 +3,7 @@ import { CardFooter } from "@/components/ui/card";
 import { CardActions } from "./CardActions";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 interface CollectionGoodsCardFooterProps {
   id: string;
@@ -19,7 +20,7 @@ export function CollectionGoodsCardFooter({
   onDeleteClick,
   onCreatePostClick,
 }: CollectionGoodsCardFooterProps) {
-  const { data: itemTags = [] } = useQuery({
+  const { data: itemTags = [], refetch } = useQuery({
     queryKey: ["user-item-tags", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -29,7 +30,32 @@ export function CollectionGoodsCardFooter({
       if (error) throw error;
       return data;
     },
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
+
+  // リアルタイム更新を追加
+  useEffect(() => {
+    const channel = supabase
+      .channel(`user-item-tags-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_item_tags',
+          filter: `user_item_id=eq.${id}`
+        },
+        () => {
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, refetch]);
 
   return (
     <CardFooter className="px-2 py-1.5">

@@ -154,8 +154,15 @@ export function useSimpleTagManage(
         queryClient.invalidateQueries({ queryKey: ["current-tags"] }),
         queryClient.invalidateQueries({ queryKey: ["item-content"] }),
         queryClient.invalidateQueries({ queryKey: ["tags"] }),
-        queryClient.invalidateQueries({ queryKey: ["item-category-tags-count"] }),
+        // 特定のアイテムIDに対してタグ数のクエリを無効化
+        ...itemIds.map(itemId => 
+          queryClient.invalidateQueries({ queryKey: ["item-category-tags-count", itemId, isUserItem] })
+        ),
         queryClient.invalidateQueries({ queryKey: ["item-tags-count"] }),
+        // コレクションアイテムのタグクエリも無効化
+        ...itemIds.map(itemId => 
+          queryClient.invalidateQueries({ queryKey: ["user-item-tags", itemId] })
+        ),
         isUserItem 
           ? queryClient.invalidateQueries({ queryKey: ["user-items"] })
           : queryClient.invalidateQueries({ queryKey: ["official-items"] })
