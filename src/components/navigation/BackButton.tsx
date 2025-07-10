@@ -28,10 +28,10 @@ export function BackButton({ className, to }: BackButtonProps) {
   return (
     <Button
       variant="ghost"
-      className={className}
+      className={`px-4 py-2 min-w-fit whitespace-nowrap ${className || ""}`}
       onClick={handleBack}
     >
-      <ArrowLeft className="mr-2 h-4 w-4" />
+      <ArrowLeft className="mr-2 h-4 w-4 flex-shrink-0" />
       戻る
     </Button>
   );
