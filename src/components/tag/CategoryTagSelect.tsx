@@ -80,16 +80,19 @@ export function CategoryTagSelect({
     return "選択してください";
   };
 
-  // 現在の値を正規化する（UUIDからタグ名に変換）
+  // 現在の値を正規化する（タグ名からUUIDに変換）
   const normalizedValue = (() => {
     if (!value) return undefined;
     
     const isUUID = value.length === 36 && value.includes('-');
     if (isUUID) {
-      const matchingTag = tags.find(tag => tag.id === value);
-      return matchingTag?.name || undefined;
+      // 既にUUIDの場合はそのまま返す
+      return value;
+    } else {
+      // タグ名の場合はUUIDに変換
+      const matchingTag = tags.find(tag => tag.name === value);
+      return matchingTag?.id || undefined;
     }
-    return value;
   })();
 
   // 新しいタグの追加処理

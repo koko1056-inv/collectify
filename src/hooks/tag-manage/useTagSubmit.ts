@@ -18,11 +18,11 @@ export function useTagSubmit(
     currentTags: SimpleItemTag[]
   ) => {
     try {
-      console.log('[TagManage] Starting save process');
-      console.log('[TagManage] Content name:', contentName);
-      console.log('[TagManage] Pending updates:', JSON.stringify(pendingUpdates, null, 2));
-      console.log('[TagManage] Item IDs:', itemIds);
-      console.log('[TagManage] Current tags:', currentTags);
+      console.log('[useTagSubmit] Starting save process');
+      console.log('[useTagSubmit] Content name:', contentName);
+      console.log('[useTagSubmit] Pending updates:', JSON.stringify(pendingUpdates, null, 2));
+      console.log('[useTagSubmit] Item IDs:', itemIds);
+      console.log('[useTagSubmit] Current tags:', currentTags);
       
       // コンテンツ名を更新
       let contentUpdateSuccess = true;

@@ -27,8 +27,11 @@ export function useTagManage(
 
   // 保存ハンドラ
   const handleSubmit = useCallback(async () => {
+    console.log('[useTagManage] handleSubmit called with pendingUpdates:', pendingUpdates);
+    console.log('[useTagManage] handleSubmit called with contentName:', contentName);
+    console.log('[useTagManage] handleSubmit called with currentTags:', currentTags);
     await handleTagSubmit(pendingUpdates, contentName, currentTags);
-  }, [handleTagSubmit, pendingUpdates, contentName, currentTags]);
+  }, [handleTagSubmit]); // pendingUpdatesを依存配列から除去
 
   return {
     currentTags,

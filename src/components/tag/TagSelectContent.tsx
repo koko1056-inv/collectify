@@ -23,7 +23,7 @@ export function TagSelectContent({ searchQuery, setSearchQuery, filteredTags }: 
           filteredTags.map((tag) => (
             <SelectItem 
               key={tag.id} 
-              value={tag.name}
+              value={tag.id}
               className="cursor-pointer hover:bg-gray-100"
             >
               {tag.name}
