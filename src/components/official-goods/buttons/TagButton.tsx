@@ -9,18 +9,23 @@ interface TagButtonProps {
   onClick: (e: React.MouseEvent) => void;
   tagCount: number;
   itemId: string;
+  isUserItem?: boolean;
 }
 
-export function TagButton({ onClick, tagCount: initialTagCount, itemId }: TagButtonProps) {
+export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserItem = false }: TagButtonProps) {
   const [realtimeTagCount, setRealtimeTagCount] = useState(initialTagCount);
 
+  // タグ数を取得するクエリ
   const { data: currentTagCount = 0 } = useQuery({
-    queryKey: ["item-tags-count", itemId],
+    queryKey: ["item-tags-count", itemId, isUserItem],
     queryFn: async () => {
+      const table = isUserItem ? "user_item_tags" : "item_tags";
+      const idField = isUserItem ? "user_item_id" : "official_item_id";
+      
       const { count, error } = await supabase
-        .from("item_tags")
+        .from(table)
         .select("*", { count: 'exact', head: true })
-        .eq("official_item_id", itemId);
+        .eq(idField, itemId);
       
       if (error) {
         console.error("Error getting tag count:", error);
@@ -36,28 +41,35 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId }: TagBut
     setRealtimeTagCount(currentTagCount);
   }, [currentTagCount]);
 
+  // リアルタイム更新の設定
   useEffect(() => {
+    const table = isUserItem ? "user_item_tags" : "item_tags";
+    const idField = isUserItem ? "user_item_id" : "official_item_id";
+    
     const channel = supabase
-      .channel('tag-changes')
+      .channel(`tag-changes-${isUserItem ? 'user' : 'official'}-${itemId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'item_tags',
-          filter: `official_item_id=eq.${itemId}`
+          table: table,
+          filter: `${idField}=eq.${itemId}`
         },
         async () => {
+          console.log(`[TagButton] Real-time update detected for ${table} ${itemId}`);
+          
           const { count, error } = await supabase
-            .from("item_tags")
+            .from(table)
             .select("*", { count: 'exact', head: true })
-            .eq("official_item_id", itemId);
+            .eq(idField, itemId);
           
           if (error) {
             console.error("Error getting realtime tag count:", error);
             return;
           }
           
+          console.log(`[TagButton] Updated tag count for ${itemId}: ${count}`);
           setRealtimeTagCount(count || 0);
         }
       )
@@ -66,7 +78,7 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId }: TagBut
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [itemId]);
+  }, [itemId, isUserItem]);
 
   return (
     <div className="flex flex-col items-center">
