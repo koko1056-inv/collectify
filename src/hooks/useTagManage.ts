@@ -234,8 +234,17 @@ export function useTagManage(
       if (onSubmit) {
         const filteredUpdates = pendingUpdates.filter((u) => u.value !== null);
         console.log('[TagManage] Calling onSubmit with updates:', filteredUpdates);
-        await onSubmit(filteredUpdates);
-        console.log('[TagManage] onSubmit completed');
+        console.log('[TagManage] onSubmit function exists:', !!onSubmit);
+        
+        if (filteredUpdates.length > 0) {
+          console.log('[TagManage] Executing onSubmit with filtered updates');
+          await onSubmit(filteredUpdates);
+          console.log('[TagManage] onSubmit completed successfully');
+        } else {
+          console.log('[TagManage] No valid updates to submit (all values are null)');
+        }
+      } else {
+        console.log('[TagManage] onSubmit function not provided');
       }
       
       console.log('[TagManage] Save process completed successfully');
