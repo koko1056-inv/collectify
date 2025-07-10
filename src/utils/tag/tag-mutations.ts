@@ -16,25 +16,33 @@ export async function addTagToItem(
   isUserItem: boolean = false
 ): Promise<boolean> {
   try {
+    console.log(`[addTagToItem] Starting - itemId: ${itemId}, tagNameOrId: ${tagNameOrId}, isUserItem: ${isUserItem}`);
+    
     // タグ名の場合はタグIDを検索
     let tagId = tagNameOrId;
     
     // タグ名かIDかを判定（UUIDの形式かどうかで判断）
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tagNameOrId);
+    console.log(`[addTagToItem] Is UUID: ${isUuid}`);
     
     if (!isUuid) {
+      console.log(`[addTagToItem] Looking up tag ID for name: ${tagNameOrId}`);
       const foundTagId = await findTagIdByName(tagNameOrId);
       if (!foundTagId) {
-        console.error(`Tag with name "${tagNameOrId}" not found`);
+        console.error(`[addTagToItem] Tag with name "${tagNameOrId}" not found`);
         return false;
       }
       tagId = foundTagId;
+      console.log(`[addTagToItem] Found tag ID: ${tagId}`);
     }
     
     const table = isUserItem ? "user_item_tags" : "item_tags";
     const itemField = isUserItem ? "user_item_id" : "official_item_id";
     
+    console.log(`[addTagToItem] Using table: ${table}, itemField: ${itemField}`);
+    
     // 既に同じタグが付いているか確認
+    console.log(`[addTagToItem] Checking for existing tag`);
     const { data: existingTag, error: checkError } = await supabase
       .from(table)
       .select("id")
@@ -43,13 +51,13 @@ export async function addTagToItem(
       .maybeSingle();
     
     if (checkError) {
-      console.error("Error checking existing tag:", checkError);
+      console.error("[addTagToItem] Error checking existing tag:", checkError);
       return false;
     }
     
     // 既に同じタグが存在する場合は何もしない
     if (existingTag) {
-      console.log(`Tag ${tagId} already exists for item ${itemId}`);
+      console.log(`[addTagToItem] Tag ${tagId} already exists for item ${itemId}`);
       return true;
     }
     
@@ -58,18 +66,22 @@ export async function addTagToItem(
       ? { user_item_id: itemId, tag_id: tagId }
       : { official_item_id: itemId, tag_id: tagId };
     
-    const { error } = await supabase
+    console.log(`[addTagToItem] Inserting data:`, insertData);
+    
+    const { data: insertResult, error } = await supabase
       .from(table)
-      .insert(insertData);
+      .insert(insertData)
+      .select();
     
     if (error) {
-      console.error("Error adding tag to item:", error);
+      console.error("[addTagToItem] Error adding tag to item:", error);
       return false;
     }
     
+    console.log(`[addTagToItem] Successfully added tag. Insert result:`, insertResult);
     return true;
   } catch (error) {
-    console.error("Error in addTagToItem:", error);
+    console.error("[addTagToItem] Exception:", error);
     return false;
   }
 }

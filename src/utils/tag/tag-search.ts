@@ -30,20 +30,35 @@ export async function findTagIdByName(
   name: string,
   category?: string
 ): Promise<string | null> {
-  const query = supabase.from("tags").select("id").eq("name", name);
-  
-  if (category) {
-    query.eq("category", category);
-  }
-  
-  const { data, error } = await query.maybeSingle();
-  
-  if (error || !data) {
-    console.error(`Tag not found: ${name}`, error);
+  try {
+    console.log(`[findTagIdByName] Searching for tag: name="${name}", category="${category}"`);
+    
+    const query = supabase.from("tags").select("id, name, category").eq("name", name);
+    
+    if (category) {
+      query.eq("category", category);
+    }
+    
+    const { data, error } = await query.maybeSingle();
+    
+    console.log(`[findTagIdByName] Query result:`, { data, error });
+    
+    if (error) {
+      console.error(`[findTagIdByName] Database error for tag "${name}":`, error);
+      return null;
+    }
+    
+    if (!data) {
+      console.error(`[findTagIdByName] Tag not found: "${name}"`);
+      return null;
+    }
+    
+    console.log(`[findTagIdByName] Found tag ID: ${data.id} for name: ${name}`);
+    return data.id;
+  } catch (error) {
+    console.error(`[findTagIdByName] Exception while searching for tag "${name}":`, error);
     return null;
   }
-  
-  return data.id;
 }
 
 // SimpleTagかどうかをチェック（型ガード関数）
