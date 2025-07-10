@@ -31,14 +31,18 @@ export function ItemDetailsTagManageSection({
       console.log('[ItemDetailsTagManage] Item ID:', itemId);
       console.log('[ItemDetailsTagManage] Is user item:', isUserItem);
       
+      if (!updates || updates.length === 0) {
+        console.log('[ItemDetailsTagManage] No updates provided, but still proceeding');
+      }
+      
       // 現在のタグを取得
       const currentTags = queryClient.getQueryData(["current-tags", [itemId]]) as any[] || [];
       console.log('[ItemDetailsTagManage] Current tags from cache:', currentTags);
       
-      // 更新処理を実行（更新がない場合でも必ず成功メッセージを表示）
+      // 更新処理を実行
       let updateSuccess = true;
       
-      if (updates.length > 0) {
+      if (updates && updates.length > 0) {
         console.log('[ItemDetailsTagManage] Processing tag updates');
         updateSuccess = await updateTagsForMultipleItems([itemId], updates, isUserItem, currentTags);
         console.log('[ItemDetailsTagManage] Update result:', updateSuccess);
@@ -47,7 +51,7 @@ export function ItemDetailsTagManageSection({
           throw new Error("Tag update failed");
         }
       } else {
-        console.log('[ItemDetailsTagManage] No tag updates to process');
+        console.log('[ItemDetailsTagManage] No tag updates to process, but this is OK');
       }
       
       // クエリを無効化して最新データを強制取得

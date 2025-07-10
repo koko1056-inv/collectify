@@ -50,19 +50,24 @@ export function useTagSubmit(
       
       // タグ更新を実行
       if (onSubmit) {
-        const filteredUpdates = pendingUpdates.filter((u) => u.value !== null);
+        // null、undefined、空文字列をフィルタリング
+        const filteredUpdates = pendingUpdates.filter((u) => u.value !== null && u.value !== undefined && u.value !== '');
         console.log('[TagManage] Calling onSubmit with updates:', filteredUpdates);
         console.log('[TagManage] onSubmit function exists:', !!onSubmit);
+        console.log('[TagManage] All pending updates before filtering:', pendingUpdates);
         
+        // タグ更新が1つでもある場合は実行
         if (filteredUpdates.length > 0) {
           console.log('[TagManage] Executing onSubmit with filtered updates');
           await onSubmit(filteredUpdates);
           console.log('[TagManage] onSubmit completed successfully');
         } else {
-          console.log('[TagManage] No valid updates to submit (all values are null)');
+          console.log('[TagManage] No valid updates to submit (all values are null/empty)');
+          console.log('[TagManage] Raw pending updates were:', JSON.stringify(pendingUpdates, null, 2));
         }
       } else {
         console.log('[TagManage] onSubmit function not provided');
+        console.log('[TagManage] Warning: Tags will not be saved without onSubmit function!');
       }
       
       console.log('[TagManage] Save process completed successfully');
