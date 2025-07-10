@@ -48,9 +48,11 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserIt
       });
       
       console.log(`[TagButton] Category counts for ${itemId}:`, counts);
+      console.log(`[TagButton] Final display count: ${(counts.character > 0 ? 1 : 0) + (counts.type > 0 ? 1 : 0) + (counts.series > 0 ? 1 : 0)}`);
       return counts;
     },
     initialData: { character: 0, type: 0, series: 0 },
+    enabled: !!itemId,
   });
 
   useEffect(() => {
