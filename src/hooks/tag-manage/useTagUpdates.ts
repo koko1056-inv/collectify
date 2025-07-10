@@ -20,25 +20,35 @@ export function useTagUpdates(isOpen: boolean) {
   }, [isOpen]);
 
   // タグ変更ハンドラ
-  const handleTagChange = useCallback((category: string) => (value: string | null) => {
-    console.log(`[useTagUpdates] Updating tag for category: ${category} with value: ${value}`);
+  const handleTagChange = useCallback((category: string) => {
+    console.log(`[useTagUpdates] Creating handler for category: ${category}`);
     
-    setPendingUpdates((prev) => {
-      console.log(`[useTagUpdates] Previous pending updates:`, prev);
-      const existing = prev.findIndex((u) => u.category === category);
-      let newUpdates;
+    return (value: string | null) => {
+      console.log(`[useTagUpdates] =====HANDLER CALLED=====`);
+      console.log(`[useTagUpdates] Category: ${category}`);
+      console.log(`[useTagUpdates] Value: ${value}`);
+      console.log(`[useTagUpdates] Value type:`, typeof value);
       
-      if (existing !== -1) {
-        newUpdates = [...prev];
-        newUpdates[existing] = { category, value };
-        console.log(`[useTagUpdates] Updated existing category ${category}:`, newUpdates);
-      } else {
-        newUpdates = [...prev, { category, value }];
-        console.log(`[useTagUpdates] Added new category ${category}:`, newUpdates);
-      }
+      setPendingUpdates((prev) => {
+        console.log(`[useTagUpdates] Previous pending updates:`, prev);
+        const existing = prev.findIndex((u) => u.category === category);
+        let newUpdates;
+        
+        if (existing !== -1) {
+          newUpdates = [...prev];
+          newUpdates[existing] = { category, value };
+          console.log(`[useTagUpdates] Updated existing category ${category}:`, newUpdates);
+        } else {
+          newUpdates = [...prev, { category, value }];
+          console.log(`[useTagUpdates] Added new category ${category}:`, newUpdates);
+        }
+        
+        console.log(`[useTagUpdates] Final new updates:`, newUpdates);
+        return newUpdates;
+      });
       
-      return newUpdates;
-    });
+      console.log(`[useTagUpdates] =====HANDLER COMPLETE=====`);
+    };
   }, []); // 依存配列を空にして無限ループを防ぐ
 
   return { pendingUpdates, handleTagChange };

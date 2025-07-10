@@ -16,7 +16,10 @@ export async function addTagToItem(
   isUserItem: boolean = false
 ): Promise<boolean> {
   try {
-    console.log(`[addTagToItem] Starting - itemId: ${itemId}, tagNameOrId: ${tagNameOrId}, isUserItem: ${isUserItem}`);
+    console.log(`[addTagToItem] =====START=====`);
+    console.log(`[addTagToItem] itemId: ${itemId}`);
+    console.log(`[addTagToItem] tagNameOrId: ${tagNameOrId}`);
+    console.log(`[addTagToItem] isUserItem: ${isUserItem}`);
     
     // タグ名の場合はタグIDを検索
     let tagId = tagNameOrId;

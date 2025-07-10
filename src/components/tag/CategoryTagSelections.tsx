@@ -57,25 +57,44 @@ export function CategoryTagSelections({
     series: seriesValue
   });
 
+  console.log('[CategoryTagSelections] =====RENDER=====');
+  console.log('[CategoryTagSelections] onTagChange function:', !!onTagChange);
+  console.log('[CategoryTagSelections] onTagChange type:', typeof onTagChange);
+
   return (
     <div className="space-y-3 sm:space-y-4">
       <CategoryTagSelect
         category="character"
         label="キャラ・人物名"
         value={characterValue}
-        onChange={onTagChange("character")}
+        onChange={(value) => {
+          console.log('[CategoryTagSelections] Character onChange called with:', value);
+          const handler = onTagChange("character");
+          console.log('[CategoryTagSelections] Handler for character:', !!handler);
+          handler(value);
+        }}
       />
       <CategoryTagSelect
         category="type"
         label="グッズタイプ"
         value={typeValue}
-        onChange={onTagChange("type")}
+        onChange={(value) => {
+          console.log('[CategoryTagSelections] Type onChange called with:', value);
+          const handler = onTagChange("type");
+          console.log('[CategoryTagSelections] Handler for type:', !!handler);
+          handler(value);
+        }}
       />
       <CategoryTagSelect
         category="series"
         label="グッズシリーズ"
         value={seriesValue}
-        onChange={onTagChange("series")}
+        onChange={(value) => {
+          console.log('[CategoryTagSelections] Series onChange called with:', value);
+          const handler = onTagChange("series");
+          console.log('[CategoryTagSelections] Handler for series:', !!handler);
+          handler(value);
+        }}
       />
     </div>
   );

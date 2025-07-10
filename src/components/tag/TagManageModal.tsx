@@ -41,13 +41,18 @@ export function TagManageModal({
     ? `${title} (${itemIds.length}件のアイテム)` 
     : itemTitle ? `${title}: ${itemTitle}` : title;
 
-  console.log('TagManageModal render:', {
+  console.log('[TagManageModal] =====RENDER START=====');
+  console.log('[TagManageModal] Modal state:', {
     isOpen,
     itemIds: itemIds.length,
     currentTags: currentTags?.length,
     pendingUpdates: pendingUpdates?.length,
-    contentName
+    contentName,
+    onSubmit: !!onSubmit
   });
+  console.log('[TagManageModal] Current tags detail:', currentTags);
+  console.log('[TagManageModal] Pending updates detail:', pendingUpdates);
+  console.log('[TagManageModal] =====RENDER END=====');
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
