@@ -5,7 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types/tag";
 import { FilterButton } from "./tag/FilterButton";
 import { PopularTags } from "./tag/PopularTags";
-import { TagDialog } from "./tag/TagDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TagFilterProps {
   selectedTags: string[];
@@ -15,6 +18,7 @@ interface TagFilterProps {
 
 export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: tagsWithCount = [] } = useQuery({
     queryKey: ["tags-with-count"],
@@ -107,13 +111,80 @@ export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) 
         }}
       />
 
-      <TagDialog
-        open={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        initialValue={null}
-        onSelect={(tag) => tag && handleTagsSelect([tag])}
-        category="character"
-      />
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              タグを選択
+            </DialogTitle>
+          </DialogHeader>
+          <div className="p-4 pb-0">
+            <Input
+              placeholder="タグを検索..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="mb-4"
+            />
+          </div>
+          <ScrollArea className="max-h-[50vh] pr-4">
+            <div className="p-4 space-y-4">
+              {/* 人気タグ */}
+              {searchQuery === "" && popularTags.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-medium mb-2">人気タグ</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {popularTags.map((tag) => (
+                      <Button
+                        key={tag.id}
+                        variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+                        size="sm"
+                        className="text-xs h-7 px-3"
+                        onClick={() => {
+                          handleTagToggle(tag.name);
+                        }}
+                      >
+                        {tag.name}
+                        {selectedTags.includes(tag.name) && <span className="ml-1">✓</span>}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 全タグリスト */}
+              <div>
+                <h3 className="text-sm font-medium mb-2">
+                  {searchQuery ? `"${searchQuery}"の検索結果` : "すべてのタグ"}
+                </h3>
+                <div className="grid grid-cols-1 gap-1 max-h-64 overflow-y-auto">
+                  {tagsWithCount
+                    .filter(tag => 
+                      searchQuery === "" || 
+                      tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map((tag) => (
+                      <Button
+                        key={tag.id}
+                        variant={selectedTags.includes(tag.name) ? "default" : "ghost"}
+                        size="sm"
+                        className="justify-between text-left h-auto py-2 px-3"
+                        onClick={() => {
+                          handleTagToggle(tag.name);
+                        }}
+                      >
+                        <span className="truncate">{tag.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">({tag.count})</span>
+                          {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                        </div>
+                      </Button>
+                    ))}
+                </div>
+              </div>
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
