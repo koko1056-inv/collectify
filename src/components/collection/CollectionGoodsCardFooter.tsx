@@ -40,6 +40,7 @@ export function CollectionGoodsCardFooter({
         onCreatePostClick={onCreatePostClick}
         hasMemories={false}
         hasTags={itemTags.length > 0}
+        tagCount={itemTags.length}
       />
     </CardFooter>
   );

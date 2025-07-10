@@ -9,6 +9,7 @@ interface CardActionsProps {
   onCreatePostClick: () => void;
   hasMemories: boolean;
   hasTags: boolean;
+  tagCount?: number;
 }
 
 export function CardActions({
@@ -18,6 +19,7 @@ export function CardActions({
   onCreatePostClick,
   hasMemories,
   hasTags,
+  tagCount = 0,
 }: CardActionsProps) {
   return (
     <div className="flex justify-center w-full gap-1">
@@ -33,17 +35,20 @@ export function CardActions({
         <MessageSquare className={`h-4 w-4 ${hasMemories ? 'text-blue-500' : 'text-gray-400'}`} />
       </Button>
       
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={(e) => {
-          e.stopPropagation();
-          onTagManageClick();
-        }}
-        className="h-8 w-8 p-0"
-      >
-        <Tag className={`h-4 w-4 ${hasTags ? 'text-purple-500' : 'text-gray-400'}`} />
-      </Button>
+      <div className="flex flex-col items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onTagManageClick();
+          }}
+          className="h-8 w-8 p-0"
+        >
+          <Tag className={`h-4 w-4 ${hasTags ? 'text-purple-500' : 'text-gray-400'}`} />
+        </Button>
+        <span className="text-[10px] text-gray-500 mt-0.5">{tagCount}</span>
+      </div>
 
       <Button
         variant="ghost"
