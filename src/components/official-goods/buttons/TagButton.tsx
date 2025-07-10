@@ -15,45 +15,31 @@ interface TagButtonProps {
 export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserItem = false }: TagButtonProps) {
   const [realtimeTagCount, setRealtimeTagCount] = useState(initialTagCount);
 
-  // カテゴリ別のタグ数を取得するクエリ
-  const { data: categoryTagCounts = { character: 0, type: 0, series: 0 } } = useQuery({
-    queryKey: ["item-category-tags-count", itemId, isUserItem],
+  // タグ数を取得するクエリ
+  const { data: currentTagCount = 0 } = useQuery({
+    queryKey: ["item-tags-count", itemId, isUserItem],
     queryFn: async () => {
       const table = isUserItem ? "user_item_tags" : "item_tags";
       const idField = isUserItem ? "user_item_id" : "official_item_id";
       
-      // カテゴリ別にタグ数を取得
-      const { data: tags, error } = await supabase
+      const { count, error } = await supabase
         .from(table)
-        .select(`
-          tags!inner(category)
-        `)
+        .select("*", { count: 'exact', head: true })
         .eq(idField, itemId);
       
       if (error) {
-        console.error("Error getting category tag counts:", error);
-        return { character: 0, type: 0, series: 0 };
+        console.error("Error getting tag count:", error);
+        return 0;
       }
       
-      // カテゴリごとにカウント
-      const counts = { character: 0, type: 0, series: 0 };
-      tags?.forEach((item: any) => {
-        const category = item.tags?.category;
-        if (category && counts.hasOwnProperty(category)) {
-          counts[category as keyof typeof counts]++;
-        }
-      });
-      
-      return counts;
+      return count || 0;
     },
-    initialData: { character: 0, type: 0, series: 0 },
+    initialData: initialTagCount,
   });
 
-  const [realtimeCategoryCounts, setRealtimeCategoryCounts] = useState(categoryTagCounts);
-
   useEffect(() => {
-    setRealtimeCategoryCounts(categoryTagCounts);
-  }, [categoryTagCounts]);
+    setRealtimeTagCount(currentTagCount);
+  }, [currentTagCount]);
 
   // リアルタイム更新の設定
   useEffect(() => {
@@ -73,29 +59,18 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserIt
         async () => {
           console.log(`[TagButton] Real-time update detected for ${table} ${itemId}`);
           
-          // カテゴリ別タグ数を再取得
-          const { data: tags, error } = await supabase
+          const { count, error } = await supabase
             .from(table)
-            .select(`
-              tags!inner(category)
-            `)
+            .select("*", { count: 'exact', head: true })
             .eq(idField, itemId);
           
           if (error) {
-            console.error("Error getting realtime category tag counts:", error);
+            console.error("Error getting realtime tag count:", error);
             return;
           }
           
-          const counts = { character: 0, type: 0, series: 0 };
-          tags?.forEach((item: any) => {
-            const category = item.tags?.category;
-            if (category && counts.hasOwnProperty(category)) {
-              counts[category as keyof typeof counts]++;
-            }
-          });
-          
-          console.log(`[TagButton] Updated category counts for ${itemId}:`, counts);
-          setRealtimeCategoryCounts(counts);
+          console.log(`[TagButton] Updated tag count for ${itemId}: ${count}`);
+          setRealtimeTagCount(count || 0);
         }
       )
       .subscribe();
@@ -115,11 +90,7 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserIt
       >
         <Tag className="h-3 w-3 sm:h-4 sm:w-4" />
       </Button>
-      <div className="text-[9px] sm:text-[10px] text-gray-500 mt-0.5 sm:mt-1 text-center leading-tight">
-        <div>キャラ:{realtimeCategoryCounts.character}</div>
-        <div>タイプ:{realtimeCategoryCounts.type}</div>
-        <div>シリーズ:{realtimeCategoryCounts.series}</div>
-      </div>
+      <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{realtimeTagCount}</span>
     </div>
   );
 }
