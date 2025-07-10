@@ -178,8 +178,13 @@ export function CreatePostFromCollectionModal({
 
         {/* タグフィルタ（水平スクロール） */}
         {typeTags.length > 0 && <div className="mb-4">
+            <div className="text-sm font-medium mb-2">グッズタイプで絞り込む</div>
             <ScrollArea className="w-full whitespace-nowrap">
-              
+              <div className="flex space-x-2 pb-2">
+                {typeTags.map(tag => <Button key={tag.id} variant={selectedTags.includes(tag.name) ? "default" : "outline"} size="sm" onClick={() => handleTagToggle(tag.name)} className="whitespace-nowrap">
+                    {tag.name}
+                  </Button>)}
+              </div>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
           </div>}
