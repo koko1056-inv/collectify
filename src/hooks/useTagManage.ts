@@ -225,12 +225,17 @@ export function useTagManage(
         console.log('[TagManage] onSubmit completed');
       } else {
         console.log('[TagManage] No onSubmit or no updates to process');
+        // pendingUpdatesがない場合でも成功メッセージを表示
+        if (onSubmit) {
+          await onSubmit([]);
+        }
       }
       
       console.log('[TagManage] Save process completed successfully');
       onClose();
     } catch (error) {
       console.error("[TagManage] Error updating items:", error);
+      throw error; // エラーを再スローして上位で処理できるようにする
     }
   };
 
