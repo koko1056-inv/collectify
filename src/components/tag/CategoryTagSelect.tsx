@@ -143,7 +143,8 @@ export function CategoryTagSelect({
 
 
   const handleValueChange = (selectedValue: string) => {
-    console.log(`CategoryTagSelect: Received value "${selectedValue}" for category "${category}"`);
+    console.log(`[CategoryTagSelect] Received value "${selectedValue}" for category "${category}"`);
+    console.log(`[CategoryTagSelect] onChange function:`, !!onChange);
     
     // UUIDかどうか確認（36文字で-が含まれる）
     const isUUID = selectedValue.length === 36 && selectedValue.includes('-');
@@ -152,15 +153,17 @@ export function CategoryTagSelect({
       // UUIDが来た場合は対応するタグ名を見つける
       const matchingTag = tags.find(tag => tag.id === selectedValue);
       if (matchingTag) {
-        console.log(`Converting UUID ${selectedValue} to tag name: ${matchingTag.name}`);
+        console.log(`[CategoryTagSelect] Converting UUID ${selectedValue} to tag name: ${matchingTag.name}`);
+        console.log(`[CategoryTagSelect] Calling onChange with tag name: ${matchingTag.name}`);
         onChange(matchingTag.name);
       } else {
-        console.warn(`No tag found for UUID: ${selectedValue}`);
+        console.warn(`[CategoryTagSelect] No tag found for UUID: ${selectedValue}`);
         onChange(null);
       }
     } else {
       // タグ名が直接来た場合はそのまま使用
-      console.log(`Using tag name directly: ${selectedValue}`);
+      console.log(`[CategoryTagSelect] Using tag name directly: ${selectedValue}`);
+      console.log(`[CategoryTagSelect] Calling onChange with tag name: ${selectedValue}`);
       onChange(selectedValue);
     }
   };
