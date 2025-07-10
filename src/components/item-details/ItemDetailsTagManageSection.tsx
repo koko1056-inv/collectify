@@ -35,42 +35,43 @@ export function ItemDetailsTagManageSection({
       const currentTags = queryClient.getQueryData(["current-tags", [itemId]]) as any[] || [];
       console.log('[ItemDetailsTagManage] Current tags from cache:', currentTags);
       
-      // 常に成功メッセージを表示（更新がない場合でも）
-      if (updates.length === 0) {
-        console.log('[ItemDetailsTagManage] No updates to process, showing success message');
-        toast({
-          title: "保存しました",
-          description: "設定が保存されました。",
-        });
-        return;
-      }
+      // 更新処理を実行（更新がない場合でも必ず成功メッセージを表示）
+      let updateSuccess = true;
       
-      // 更新処理を実行
-      console.log('[ItemDetailsTagManage] Calling updateTagsForMultipleItems');
-      const success = await updateTagsForMultipleItems([itemId], updates, isUserItem, currentTags);
-      console.log('[ItemDetailsTagManage] Update result:', success);
-      
-      if (success) {
-        console.log('[ItemDetailsTagManage] Invalidating queries');
-        // 関連するクエリを無効化してデータを再取得
-        await queryClient.invalidateQueries({ queryKey: ["current-tags", [itemId]] });
-        await queryClient.invalidateQueries({ queryKey: ["current-tags"] });
-        if (isUserItem) {
-          await queryClient.invalidateQueries({ queryKey: ["user-items"] });
-        } else {
-          await queryClient.invalidateQueries({ queryKey: ["official-items"] });
-        }
-        await queryClient.invalidateQueries({ queryKey: ["item-tags", itemId] });
-        await queryClient.invalidateQueries({ queryKey: ["tags"] });
-        console.log('[ItemDetailsTagManage] Queries invalidated');
+      if (updates.length > 0) {
+        console.log('[ItemDetailsTagManage] Processing tag updates');
+        updateSuccess = await updateTagsForMultipleItems([itemId], updates, isUserItem, currentTags);
+        console.log('[ItemDetailsTagManage] Update result:', updateSuccess);
         
-        toast({
-          title: "保存しました",
-          description: "タグの変更が保存されました。",
-        });
+        if (!updateSuccess) {
+          throw new Error("Tag update failed");
+        }
       } else {
-        throw new Error("Tag update failed");
+        console.log('[ItemDetailsTagManage] No tag updates to process');
       }
+      
+      // クエリを無効化して最新データを強制取得
+      console.log('[ItemDetailsTagManage] Invalidating all related queries');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["current-tags"] }),
+        queryClient.invalidateQueries({ queryKey: ["item-tags"] }),
+        queryClient.invalidateQueries({ queryKey: ["tags"] }),
+        isUserItem 
+          ? queryClient.invalidateQueries({ queryKey: ["user-items"] })
+          : queryClient.invalidateQueries({ queryKey: ["official-items"] })
+      ]);
+      
+      // 確実にキャッシュからも削除
+      queryClient.removeQueries({ queryKey: ["current-tags", [itemId]] });
+      
+      console.log('[ItemDetailsTagManage] All queries invalidated');
+      
+      // 成功メッセージを表示
+      toast({
+        title: "保存しました",
+        description: "設定が保存されました。",
+      });
+      
     } catch (error) {
       console.error("[ItemDetailsTagManage] Error updating tags:", error);
       toast({
@@ -78,6 +79,7 @@ export function ItemDetailsTagManageSection({
         description: "タグの更新中にエラーが発生しました。",
         variant: "destructive",
       });
+      throw error; // エラーを再スローして上位で処理
     }
   };
 

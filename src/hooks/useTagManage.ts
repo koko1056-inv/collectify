@@ -207,28 +207,35 @@ export function useTagManage(
       console.log('[TagManage] Current tags:', currentTags);
       
       // コンテンツ名を更新
+      let contentUpdateSuccess = true;
       for (const itemId of itemIds) {
         console.log(`[TagManage] Updating content for item: ${itemId}`);
-        await setItemContent(itemId, contentName, isUserItem);
+        const success = await setItemContent(itemId, contentName, isUserItem);
+        if (!success) {
+          console.error(`[TagManage] Failed to update content for item: ${itemId}`);
+          contentUpdateSuccess = false;
+        }
       }
       
-      await queryClient.invalidateQueries({ queryKey: ["item-content"] });
-      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
-      await queryClient.invalidateQueries({ queryKey: ["items-content"] });
+      if (!contentUpdateSuccess) {
+        throw new Error("Failed to update content name");
+      }
+      
+      // コンテンツ関連のクエリを無効化
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["item-content"] }),
+        queryClient.invalidateQueries({ queryKey: ["items-content"] }),
+        isUserItem 
+          ? queryClient.invalidateQueries({ queryKey: ["user-items"] })
+          : queryClient.invalidateQueries({ queryKey: ["official-items"] })
+      ]);
       
       // タグ更新を実行
-      if (onSubmit && pendingUpdates.length > 0) {
-        console.log('[TagManage] Calling onSubmit with updates:', pendingUpdates);
+      if (onSubmit) {
         const filteredUpdates = pendingUpdates.filter((u) => u.value !== null);
-        console.log('[TagManage] Filtered updates:', filteredUpdates);
+        console.log('[TagManage] Calling onSubmit with updates:', filteredUpdates);
         await onSubmit(filteredUpdates);
         console.log('[TagManage] onSubmit completed');
-      } else {
-        console.log('[TagManage] No onSubmit or no updates to process');
-        // pendingUpdatesがない場合でも成功メッセージを表示
-        if (onSubmit) {
-          await onSubmit([]);
-        }
       }
       
       console.log('[TagManage] Save process completed successfully');
