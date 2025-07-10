@@ -116,10 +116,10 @@ export function TagButton({ onClick, tagCount: initialTagCount, itemId, isUserIt
       >
         <Tag className="h-3 w-3 sm:h-4 sm:w-4" />
       </Button>
-      <div className="text-[8px] sm:text-[10px] text-gray-500 mt-0.5 sm:mt-1 text-center leading-tight">
-        <div>キャラ:{realtimeCategoryCounts.character}</div>
-        <div>タイプ:{realtimeCategoryCounts.type}</div>
-        <div>シリーズ:{realtimeCategoryCounts.series}</div>
+      <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 text-center">
+        {(realtimeCategoryCounts.character > 0 ? 1 : 0) + 
+         (realtimeCategoryCounts.type > 0 ? 1 : 0) + 
+         (realtimeCategoryCounts.series > 0 ? 1 : 0)}
       </div>
     </div>
   );
