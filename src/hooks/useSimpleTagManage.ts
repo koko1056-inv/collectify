@@ -67,24 +67,28 @@ export function useSimpleTagManage(
       return;
     }
 
+    // 初回のみ実行するフラグ
+    if (currentTags.length === 0 && !currentContentName) return;
+
     // 現在のタグから初期値を設定
     const character = currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name || null;
     const type = currentTags.find(tag => tag.tags?.category === 'type')?.tags?.name || null;
     const series = currentTags.find(tag => tag.tags?.category === 'series')?.tags?.name || null;
     
-    // 前回の値と比較して変更がある場合のみ更新
+    // 状態更新を1回だけ実行
     setTagSelections(prev => {
-      if (prev.character === character && prev.type === type && prev.series === series) {
-        return prev;
-      }
+      const hasChanged = prev.character !== character || prev.type !== type || prev.series !== series;
+      if (!hasChanged) return prev;
       return { character, type, series };
     });
     
     setContentName(prev => {
       const newContent = currentContentName || null;
-      return prev === newContent ? prev : newContent;
+      if (prev === newContent) return prev;
+      return newContent;
     });
-  }, [isOpen, currentTags, currentContentName]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, itemIds.join(',')]); // currentTagsとcurrentContentNameを依存配列から除外して無限ループを防ぐ
 
   // タグ変更ハンドラ
   const handleTagChange = useCallback((category: keyof TagSelection, value: string | null) => {

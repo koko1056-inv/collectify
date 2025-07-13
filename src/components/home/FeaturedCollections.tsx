@@ -45,6 +45,8 @@ export function FeaturedCollections() {
       })) as OfficialItem[];
     },
     enabled: currentTab === "today", // 必要な時だけ実行
+    staleTime: 2 * 60 * 1000, // 2分間キャッシュ
+    gcTime: 5 * 60 * 1000, // 5分間保持
   });
   
   const { data: trendingItems = [], isLoading: isTrendingLoading } = useQuery<OfficialItem[]>({
@@ -74,6 +76,8 @@ export function FeaturedCollections() {
       })) as OfficialItem[];
     },
     enabled: currentTab === "trending", // 必要な時だけ実行
+    staleTime: 2 * 60 * 1000, // 2分間キャッシュ
+    gcTime: 5 * 60 * 1000, // 5分間保持
   });
 
   return (
