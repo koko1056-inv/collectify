@@ -25,6 +25,8 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
       if (error) throw error;
       return data;
     },
+    staleTime: 1 * 60 * 1000, // 1分間キャッシュ（useProfileと同じキーを使用）
+    gcTime: 5 * 60 * 1000, // 5分間保持
   });
 
   const { data: collectionCount = 0 } = useQuery({
@@ -38,6 +40,8 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
       if (error) throw error;
       return count || 0;
     },
+    staleTime: 2 * 60 * 1000, // 2分間キャッシュ
+    gcTime: 5 * 60 * 1000, // 5分間保持
   });
 
   return (

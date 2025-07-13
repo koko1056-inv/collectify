@@ -40,35 +40,17 @@ export function ProfileCard({
 
   const { profile, refetchProfile } = useProfile(effectiveUserId);
 
+  // プロフィールデータをローカル状態に設定
   useEffect(() => {
-    if (!effectiveUserId) return;
-
-    const fetchProfile = async () => {
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", effectiveUserId)
-        .single();
-
-      if (error) {
-        toast({
-          variant: "destructive",
-          title: "エラー",
-          description: "プロフィールの取得に失敗しました"
-        });
-        return;
-      }
-
+    if (profile) {
       setBio(profile.bio || "");
       setUsername_(profile.username || "");
       setUsername(profile.username || "");
       setAvatarUrl(profile.avatar_url);
       setPreviewUrl(profile.avatar_url);
       setLoading(false);
-    };
-
-    fetchProfile();
-  }, [effectiveUserId, toast, setUsername]);
+    }
+  }, [profile, setUsername]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

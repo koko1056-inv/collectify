@@ -35,7 +35,10 @@ export function ProfileFavorites({
       });
       if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!userId,
+    staleTime: 1 * 60 * 1000, // 1分間キャッシュ
+    gcTime: 5 * 60 * 1000, // 5分間保持
   });
   const handleSaveSelection = async () => {
     try {
