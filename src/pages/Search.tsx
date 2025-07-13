@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { FilterBar } from "@/components/FilterBar";
 import { SlideFilterBar } from "@/components/SlideFilterBar";
@@ -46,8 +45,7 @@ const Search = () => {
   });
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="container mx-auto px-2 pt-32 pb-24 sm:px-4 sm:pt-24 sm:pb-8">
+      <main className="container mx-auto px-2 pt-4 pb-24 sm:px-4 sm:pt-4 sm:pb-8">
         <div className={`space-y-4 sm:space-y-6 ${isMobile ? "pt-2" : ""}`}>
           {!isMobile && (
             <>

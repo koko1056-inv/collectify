@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AppLayout } from "@/components/AppLayout";
 
 // Import main pages directly for faster navigation
 import Index from "./pages/Index";
@@ -61,15 +62,17 @@ const App: React.FC = () => {
                 <Sonner />
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
-                    <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/add-item" element={<AddItem />} />
-                    <Route path="/user/:userId" element={<UserProfile />} />
-                    <Route path="/edit-profile" element={<EditProfile />} />
-                    <Route path="/posts" element={<Posts />} />
-                    <Route path="/search" element={<Search />} />
-                    <Route path="/collection" element={<Collection />} />
+                    <Route path="/" element={<AppLayout />}>
+                      <Route index element={<Index />} />
+                      <Route path="admin" element={<Admin />} />
+                      <Route path="add-item" element={<AddItem />} />
+                      <Route path="user/:userId" element={<UserProfile />} />
+                      <Route path="edit-profile" element={<EditProfile />} />
+                      <Route path="posts" element={<Posts />} />
+                      <Route path="search" element={<Search />} />
+                      <Route path="collection" element={<Collection />} />
+                    </Route>
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Suspense>
