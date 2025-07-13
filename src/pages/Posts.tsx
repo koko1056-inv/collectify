@@ -22,81 +22,67 @@ export default function Posts() {
   const isMobile = useIsMobile();
 
   return (
-      <div className="min-h-screen bg-background w-full">
-        
-        <div className="flex min-h-screen">
-          {/* デスクトップ用左サイドバー */}
-          {!isMobile && (
-            <PostsSidebar onFiltersChange={setFilters} />
-          )}
-          
-          {/* メインコンテンツ */}
-          <main className={`flex-1 ${!isMobile ? 'max-w-2xl mx-auto border-x border-border' : 'w-full'}`}>
-            {/* ヘッダー */}
-            <div className={`bg-background border-b border-border ${isMobile ? 'px-3 py-3' : 'p-4'}`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-xl font-bold">投稿</h1>
-                  <p className="text-sm text-muted-foreground">コレクションを共有しよう</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* モバイル用フィルターボタン */}
-                   {isMobile && (
-                     <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
-                       <SheetTrigger asChild>
-                         <Button variant="outline" size="sm">
-                           <Filter className="h-4 w-4 mr-2" />
-                           フィルター
-                         </Button>
-                       </SheetTrigger>
-                        <SheetContent side="left" className="w-80 p-0">
-                          <SheetHeader className="p-4 pb-2">
-                            <SheetTitle>投稿を絞り込み</SheetTitle>
-                          </SheetHeader>
-                          <div className="flex-1 overflow-y-auto px-4 pb-4">
-                            <PostsSidebar 
-                              onFiltersChange={(newFilters) => {
-                                setFilters(newFilters);
-                                // シート自動閉じを削除して手動操作にする
-                              }} 
-                            />
-                          </div>
-                       </SheetContent>
-                     </Sheet>
-                   )}
-                  
-                  <Button 
-                    onClick={() => setIsCreateModalOpen(true)} 
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    投稿
-                  </Button>
-                </div>
-              </div>
+    <div className="min-h-screen bg-background">
+      {/* メインコンテンツ */}
+      <main className="container mx-auto px-4 py-6 max-w-4xl">
+        {/* ヘッダー */}
+        <div className="bg-background border-b border-border mb-6 pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">投稿</h1>
+              <p className="text-muted-foreground">コレクションを共有しよう</p>
             </div>
-
-            {/* 投稿一覧 */}
-            <div className="pb-20">
-              <PostsGrid filters={filters} />
+            <div className="flex items-center gap-2">
+              {/* モバイル用フィルターボタン */}
+               {isMobile && (
+                 <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+                   <SheetTrigger asChild>
+                     <Button variant="outline" size="sm">
+                       <Filter className="h-4 w-4 mr-2" />
+                       フィルター
+                     </Button>
+                   </SheetTrigger>
+                    <SheetContent side="left" className="w-80 p-0">
+                      <SheetHeader className="p-4 pb-2">
+                        <SheetTitle>投稿を絞り込み</SheetTitle>
+                      </SheetHeader>
+                      <div className="flex-1 overflow-y-auto px-4 pb-4">
+                        <PostsSidebar 
+                          onFiltersChange={(newFilters) => {
+                            setFilters(newFilters);
+                          }} 
+                        />
+                      </div>
+                   </SheetContent>
+                 </Sheet>
+               )}
+              
+              <Button 
+                onClick={() => setIsCreateModalOpen(true)} 
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                投稿
+              </Button>
             </div>
-          </main>
-
-          {/* デスクトップ用右サイドバー */}
-          {!isMobile && (
-            <PostsRightSidebar />
-          )}
+          </div>
         </div>
 
-        {/* フッター */}
-        <Footer />
+        {/* 投稿一覧 */}
+        <div className="pb-20">
+          <PostsGrid filters={filters} />
+        </div>
+      </main>
 
-        {/* 投稿作成モーダル */}
-        <CreatePostFromCollectionModal 
-          isOpen={isCreateModalOpen} 
-          onClose={() => setIsCreateModalOpen(false)} 
-        />
-      </div>
+      {/* フッター */}
+      <Footer />
+
+      {/* 投稿作成モーダル */}
+      <CreatePostFromCollectionModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+      />
+    </div>
   );
 }
