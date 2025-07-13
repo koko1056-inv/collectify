@@ -161,7 +161,9 @@ export function ProfileCard({
         <ProfileHeader username={username_} onShare={onShare} isOwnProfile={isOwnProfile} userId={userId} />
       </div>
 
-      <ProfileStats userId={effectiveUserId} />
+      <div className="-mt-2">
+        <ProfileStats userId={effectiveUserId} />
+      </div>
 
       {isOwnProfile && (
         <div className="flex justify-center mb-4">
