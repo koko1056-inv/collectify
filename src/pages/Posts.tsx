@@ -6,7 +6,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Plus, TrendingUp, Users, Heart, Filter } from "lucide-react";
 import { PostsGrid } from "@/components/posts/PostsGrid";
 import { Footer } from "@/components/Footer";
+import { Navbar } from "@/components/Navbar";
 import { CreatePostFromCollectionModal } from "@/components/posts/CreatePostFromCollectionModal";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { PostsSidebar } from "@/components/posts/PostsSidebar";
 import { PostsRightSidebar } from "@/components/posts/PostsRightSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,9 +24,11 @@ export default function Posts() {
   const isMobile = useIsMobile();
 
   return (
+    <SidebarProvider>
       <div className="min-h-screen bg-background w-full">
+        <Navbar />
         
-        <div className="flex min-h-screen">
+        <div className="flex min-h-screen pt-16">
           {/* デスクトップ用左サイドバー */}
           {!isMobile && (
             <PostsSidebar onFiltersChange={setFilters} />
@@ -98,5 +102,6 @@ export default function Posts() {
           onClose={() => setIsCreateModalOpen(false)} 
         />
       </div>
+    </SidebarProvider>
   );
 }

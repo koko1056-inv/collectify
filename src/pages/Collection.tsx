@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { UserCollection } from "@/components/UserCollection";
@@ -17,7 +18,8 @@ export default function Collection() {
     data: allTags = []
   } = useTags();
   return <div className="min-h-screen bg-gray-50 pb-20">
-      <main className={`container mx-auto pt-4 transition-all duration-300 ${isMobile ? 'px-4 py-4' : 'px-4 py-4'}`}>
+      <Navbar />
+      <main className={`container mx-auto pt-20 transition-all duration-300 ${isMobile ? 'px-4 py-4' : 'px-4 py-4'}`}>
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
           
           
