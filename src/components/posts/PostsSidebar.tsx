@@ -9,6 +9,7 @@ import { Filter, Hash, Package, X } from "lucide-react";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface PostsSidebarProps {
   onFiltersChange?: (filters: {
@@ -27,82 +28,64 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
   const { data: allTags = [] } = useTags();
 
   // コンテンツ名の一覧を取得（実際の投稿から）
-  const [contentNames, setContentNames] = useState<string[]>([]);
+  const { data: contentNames = [] } = useQuery({
+    queryKey: ["posts", "content-names"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('goods_posts')
+        .select(`
+          user_items:user_item_id (
+            content_name
+          )
+        `);
 
-  useEffect(() => {
-    // 投稿から実際に使用されているコンテンツ名を取得
-    const fetchContentNames = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('goods_posts')
-          .select(`
-            user_items:user_item_id (
-              content_name
-            )
-          `);
+      if (error) throw error;
 
-        if (error) throw error;
-
-        const names = Array.from(new Set(
-          data?.map(post => post.user_items?.content_name)
-            .filter(Boolean)
-        )).slice(0, 10);
-
-        setContentNames(names);
-      } catch (error) {
-        console.error('コンテンツ名の取得に失敗:', error);
-      }
-    };
-
-    fetchContentNames();
-  }, []);
+      return Array.from(new Set(
+        data?.map(post => post.user_items?.content_name)
+          .filter(Boolean)
+      )).slice(0, 10);
+    },
+    staleTime: 3 * 60 * 1000, // 3分間キャッシュ
+    gcTime: 5 * 60 * 1000, // 5分間保持
+  });
 
   // 人気タグ（実際の使用頻度順）
-  const [popularTags, setPopularTags] = useState<any[]>([]);
+  const { data: popularTags = [] } = useQuery({
+    queryKey: ["posts", "popular-tags-detail"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_item_tags')
+        .select(`
+          tags:tag_id (
+            id,
+            name
+          )
+        `);
 
-  useEffect(() => {
-    // タグの使用頻度を取得
-    const fetchPopularTags = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('user_item_tags')
-          .select(`
-            tags:tag_id (
-              id,
-              name
-            )
-          `);
+      if (error) throw error;
 
-        if (error) throw error;
-
-        // タグの使用回数をカウント
-        const tagCounts: { [key: string]: { tag: any, count: number } } = {};
-        data?.forEach((item) => {
-          if (item.tags?.name) {
-            const key = item.tags.name;
-            if (!tagCounts[key]) {
-              tagCounts[key] = { tag: item.tags, count: 0 };
-            }
-            tagCounts[key].count++;
+      // タグの使用回数をカウント
+      const tagCounts: { [key: string]: { tag: any, count: number } } = {};
+      data?.forEach((item) => {
+        if (item.tags?.name) {
+          const key = item.tags.name;
+          if (!tagCounts[key]) {
+            tagCounts[key] = { tag: item.tags, count: 0 };
           }
-        });
+          tagCounts[key].count++;
+        }
+      });
 
-        // 使用回数順にソートして上位15個を取得
-        const sortedTags = Object.values(tagCounts)
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 15)
-          .map(item => item.tag);
-
-        setPopularTags(sortedTags);
-      } catch (error) {
-        console.error('人気タグの取得に失敗:', error);
-        // エラー時はフォールバックとして既存のタグを使用
-        setPopularTags(allTags.slice(0, 15));
-      }
-    };
-
-    fetchPopularTags();
-  }, [allTags]);
+      // 使用回数順にソートして上位15個を取得
+      return Object.values(tagCounts)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 15)
+        .map(item => item.tag);
+    },
+    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
+    gcTime: 10 * 60 * 1000, // 10分間保持
+  });
 
   const handleTagToggle = (tagName: string) => {
     const newTags = selectedTags.includes(tagName)

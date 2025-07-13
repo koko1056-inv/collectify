@@ -44,8 +44,9 @@ export function usePosts() {
         post_likes: post.post_likes || []
       })) as GoodsPost[];
     },
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    staleTime: 30 * 1000, // 30秒間はキャッシュを使用
+    gcTime: 5 * 60 * 1000, // 5分間キャッシュを保持
+    refetchOnWindowFocus: false, // ウィンドウフォーカス時の自動リフェッチを無効
   });
 
   // リアルタイム更新の設定
@@ -61,8 +62,10 @@ export function usePosts() {
         },
         () => {
           console.log("投稿データに変更を検知、リフェッチします");
-          queryClient.invalidateQueries({ queryKey: ["posts"] });
-          queryClient.refetchQueries({ queryKey: ["posts"] });
+          // 即座にリフェッチする代わりに、少し遅延を入れてバッチ処理する
+          setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: ["posts"] });
+          }, 1000);
         }
       )
       .on(
