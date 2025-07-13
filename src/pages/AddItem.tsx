@@ -8,7 +8,7 @@ export default function AddItem() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
-        <div className="mt-4">
+        <div className="mt-8">
           <BackButton className="mb-6" to="/search" />
         </div>
         <div className="max-w-xl mx-auto">
