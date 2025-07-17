@@ -139,7 +139,7 @@ export function InitialInterestSelection({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg bg-gradient-to-b from-white to-gray-50 border-0 shadow-lg">
+      <DialogContent className="max-w-lg bg-white border border-gray-300 shadow-lg">
         <DialogHeader className="pb-2">
           <DialogTitle className="text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
             興味のあるコンテンツ
