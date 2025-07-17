@@ -29,7 +29,7 @@ interface OfficialItemsListProps {
   tags?: Tag[];
 }
 
-type SortOption = "newest" | "oldest" | "wishlist" | "owners";
+type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc";
 
 export function OfficialItemsList({ 
   items,

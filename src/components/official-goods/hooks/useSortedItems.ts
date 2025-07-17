@@ -2,7 +2,7 @@ import { OfficialItem } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-type SortOption = "newest" | "oldest" | "wishlist" | "owners";
+type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc";
 
 export function useSortedItems(items: OfficialItem[], sortBy: SortOption, ownerCounts: Record<string, number>) {
   const { data: wishlistCounts = {} } = useQuery({
@@ -46,12 +46,23 @@ export function useSortedItems(items: OfficialItem[], sortBy: SortOption, ownerC
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     }
     
-    if (sortBy === "owners") {
+    if (sortBy === "owners-desc") {
       const aCount = ownerCounts[a.id] || 0;
       const bCount = ownerCounts[b.id] || 0;
       
       if (aCount !== bCount) {
-        return bCount - aCount;
+        return bCount - aCount; // 降順（多い順）
+      }
+      // If owner counts are equal, sort by newest
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }
+    
+    if (sortBy === "owners-asc") {
+      const aCount = ownerCounts[a.id] || 0;
+      const bCount = ownerCounts[b.id] || 0;
+      
+      if (aCount !== bCount) {
+        return aCount - bCount; // 昇順（少ない順）
       }
       // If owner counts are equal, sort by newest
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
