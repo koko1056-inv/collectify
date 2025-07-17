@@ -83,12 +83,24 @@ export function WishlistButton({
           filter: `official_item_id=eq.${itemId}`
         },
         () => {
-          // 変更があったらカウントを再取得
+          // 変更があったらすぐにカウントを再取得
           fetchWishlistCount();
           // 関連するクエリを無効化して再取得を促す
           queryClient.invalidateQueries({ queryKey: ["wishlist"] });
           queryClient.invalidateQueries({ queryKey: ["wishlist-count"] });
           queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] });
+          queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", itemId, user?.id] });
+        }
+      )
+      .on(
+        'broadcast',
+        { event: 'wishlist-changed' },
+        (payload) => {
+          // WishlistUsersModalからのブロードキャストを受信
+          if (payload.itemId === itemId) {
+            fetchWishlistCount();
+            queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", itemId, user?.id] });
+          }
         }
       )
       .subscribe();

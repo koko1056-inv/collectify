@@ -120,9 +120,21 @@ export function WishlistUsersModal({
       }
     },
     onSuccess: () => {
+      // 全ての関連するクエリを無効化
       queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", itemId, user?.id] });
       queryClient.invalidateQueries({ queryKey: ["wishlist-users", itemId] });
       queryClient.invalidateQueries({ queryKey: ["wishlist-count", itemId] });
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] });
+      
+      // リアルタイム更新をトリガー
+      const channel = supabase.channel('wishlist-update-trigger');
+      channel.send({
+        type: 'broadcast',
+        event: 'wishlist-changed',
+        payload: { itemId, userId: user?.id }
+      });
+      
       toast({
         title: isInWishlist ? "ウィッシュリストから削除しました" : "ウィッシュリストに追加しました",
         description: `「${itemTitle}」を${isInWishlist ? "削除" : "追加"}しました`,
