@@ -26,7 +26,17 @@ export function FeaturedCollections() {
       const { data, error } = await supabase
         .from("official_items")
         .select(`
-          *,
+          id,
+          title,
+          image,
+          price,
+          release_date,
+          created_at,
+          created_by,
+          content_name,
+          description,
+          item_type,
+          quantity,
           item_tags (
             tags (
               id,
@@ -56,7 +66,17 @@ export function FeaturedCollections() {
       const { data, error } = await supabase
         .from("official_items")
         .select(`
-          *,
+          id,
+          title,
+          image,
+          price,
+          release_date,
+          created_at,
+          created_by,
+          content_name,
+          description,
+          item_type,
+          quantity,
           item_tags (
             tags (
               id,
@@ -126,6 +146,8 @@ export function FeaturedCollections() {
                   price={item.price}
                   releaseDate={item.release_date}
                   description={item.description}
+                  createdBy={item.created_by}
+                  contentName={item.content_name}
                 />
               ))}
             </div>
@@ -156,6 +178,8 @@ export function FeaturedCollections() {
                   price={item.price}
                   releaseDate={item.release_date}
                   description={item.description}
+                  createdBy={item.created_by}
+                  contentName={item.content_name}
                 />
               ))}
             </div>

@@ -43,11 +43,6 @@ export function CreatorSection({
 
   if (isEditing) return null;
 
-  console.log("CreatorSection - createdBy:", createdBy);
-  console.log("CreatorSection - creatorProfile:", creatorProfile);
-  console.log("CreatorSection - isProfileLoading:", isProfileLoading);
-  console.log("CreatorSection - profileError:", profileError);
-
   return (
     <div className="space-y-4">
       <div className="text-sm space-y-2">
