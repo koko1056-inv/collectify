@@ -98,7 +98,9 @@ export function WishlistButton({
         (payload) => {
           // WishlistUsersModalからのブロードキャストを受信
           if (payload.itemId === itemId) {
+            // 即座にカウントを更新
             fetchWishlistCount();
+            // 必要最小限のクエリのみ無効化
             queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", itemId, user?.id] });
           }
         }

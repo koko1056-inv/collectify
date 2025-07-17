@@ -120,20 +120,18 @@ export function WishlistUsersModal({
       }
     },
     onSuccess: () => {
-      // 全ての関連するクエリを無効化
-      queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", itemId, user?.id] });
-      queryClient.invalidateQueries({ queryKey: ["wishlist-users", itemId] });
-      queryClient.invalidateQueries({ queryKey: ["wishlist-count", itemId] });
-      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
-      queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] });
-      
-      // リアルタイム更新をトリガー
+      // 即座にリアルタイム更新をトリガー（遅延を最小化）
       const channel = supabase.channel('wishlist-update-trigger');
       channel.send({
         type: 'broadcast',
         event: 'wishlist-changed',
-        payload: { itemId, userId: user?.id }
+        payload: { itemId, userId: user?.id, immediate: true }
       });
+      
+      // 必要最小限のクエリのみ無効化
+      queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", itemId, user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["wishlist-users", itemId] });
+      queryClient.invalidateQueries({ queryKey: ["wishlist-count", itemId] });
       
       toast({
         title: isInWishlist ? "ウィッシュリストから削除しました" : "ウィッシュリストに追加しました",
@@ -151,8 +149,10 @@ export function WishlistUsersModal({
   });
 
   const handleUserClick = (username: string) => {
-    navigate(`/profile/${username}`);
-    onClose();
+    if (username && username !== "unknown") {
+      navigate(`/profile/${username}`);
+      onClose();
+    }
   };
 
   const handleToggleWishlist = () => {
@@ -237,6 +237,7 @@ export function WishlistUsersModal({
                     variant="outline"
                     size="sm"
                     onClick={() => handleUserClick(wishlistItem.profiles?.username || "")}
+                    disabled={!wishlistItem.profiles?.username || wishlistItem.profiles?.username === "unknown"}
                   >
                     プロフィール
                   </Button>
