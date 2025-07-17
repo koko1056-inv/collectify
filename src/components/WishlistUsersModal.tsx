@@ -62,11 +62,14 @@ export function WishlistUsersModal({
         throw profileError;
       }
 
-      // データを結合
-      const wishlistWithProfiles = data.map(wishlistItem => ({
-        ...wishlistItem,
-        profiles: profiles.find(profile => profile.id === wishlistItem.user_id)
-      }));
+      // データを結合（user_idをプロフィール情報に追加）
+      const wishlistWithProfiles = data.map(wishlistItem => {
+        const profile = profiles.find(profile => profile.id === wishlistItem.user_id);
+        return {
+          ...wishlistItem,
+          profiles: profile
+        };
+      });
 
       return wishlistWithProfiles;
     },
@@ -148,9 +151,9 @@ export function WishlistUsersModal({
     },
   });
 
-  const handleUserClick = (username: string) => {
-    if (username && username !== "unknown") {
-      navigate(`/profile/${username}`);
+  const handleUserClick = (userId: string) => {
+    if (userId && userId !== "unknown") {
+      navigate(`/user/${userId}`);
       onClose();
     }
   };
@@ -236,8 +239,8 @@ export function WishlistUsersModal({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleUserClick(wishlistItem.profiles?.username || "")}
-                    disabled={!wishlistItem.profiles?.username || wishlistItem.profiles?.username === "unknown"}
+                    onClick={() => handleUserClick(wishlistItem.user_id)}
+                    disabled={!wishlistItem.user_id}
                   >
                     プロフィール
                   </Button>
