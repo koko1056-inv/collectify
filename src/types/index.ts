@@ -60,4 +60,5 @@ export interface Profile {
   following_count: number | null;
   is_admin: boolean | null;
   interests: string[] | null;
+  x_username: string | null;
 }

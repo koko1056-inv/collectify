@@ -29,6 +29,7 @@ export function ProfileCard({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [bio, setBio] = useState("");
+  const [xUsername, setXUsername] = useState("");
   const [username_, setUsername_] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -44,6 +45,7 @@ export function ProfileCard({
   useEffect(() => {
     if (profile) {
       setBio(profile.bio || "");
+      setXUsername(profile.x_username || "");
       setUsername_(profile.username || "");
       setUsername(profile.username || "");
       setAvatarUrl(profile.avatar_url);
@@ -60,7 +62,8 @@ export function ProfileCard({
     const { error } = await supabase
       .from("profiles")
       .update({
-        bio
+        bio,
+        x_username: xUsername
       })
       .eq("id", user.id);
 
@@ -75,6 +78,9 @@ export function ProfileCard({
       });
       return;
     }
+
+    // プロフィールデータを再取得
+    refetchProfile();
 
     toast({
       title: "更新完了",
@@ -177,8 +183,10 @@ export function ProfileCard({
       <div className="mt-4">
         <ProfileBio 
           bio={bio} 
+          xUsername={xUsername}
           isEditing={isEditing} 
           onBioChange={e => setBio(e.target.value)} 
+          onXUsernameChange={e => setXUsername(e.target.value)}
           onEdit={() => setIsEditing(true)} 
           onCancel={() => setIsEditing(false)} 
           onSubmit={handleSubmit} 
