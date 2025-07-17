@@ -46,7 +46,7 @@ export function ContentSection({
     mutationFn: async (name: string) => {
       const { data, error } = await supabase
         .from("content_names")
-        .insert([{ name, type: "other" }])
+        .insert([{ name, type: "anime" }])
         .select()
         .single();
       
