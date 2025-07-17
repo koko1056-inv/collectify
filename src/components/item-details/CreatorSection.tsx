@@ -15,19 +15,30 @@ export function CreatorSection({
   isEditing,
   createdBy,
 }: CreatorSectionProps) {
-  const { data: creatorProfile } = useQuery({
+  const { data: creatorProfile, isLoading: isProfileLoading, error: profileError } = useQuery({
     queryKey: ["creator-profile", createdBy],
     queryFn: async () => {
       if (!createdBy) return null;
+      
+      console.log("Fetching creator profile for:", createdBy);
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("username, display_name, avatar_url")
         .eq("id", createdBy)
         .maybeSingle();
-      if (error) throw error;
+      
+      console.log("Creator profile result:", { data, error });
+      
+      if (error) {
+        console.error("Error fetching creator profile:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!createdBy,
+    retry: 3,
+    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
   });
 
   if (isEditing) return null;
@@ -71,8 +82,14 @@ export function CreatorSection({
             <div className="font-medium">アイテム情報</div>
             <div className="text-gray-600">
               このアイテムは
-              {createdBy && creatorProfile ? (
-                <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
+              {createdBy ? (
+                isProfileLoading ? (
+                  <span className="font-medium"> 読み込み中... </span>
+                ) : creatorProfile ? (
+                  <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
+                ) : (
+                  <span className="font-medium"> 登録ユーザー </span>
+                )
               ) : (
                 <span className="font-medium"> 管理者 </span>
               )}
