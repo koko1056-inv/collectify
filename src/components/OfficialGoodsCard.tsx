@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { WishlistModal } from "./WishlistModal";
+import { WishlistUsersModal } from "./WishlistUsersModal";
 import { TagManageModal } from "./tag/TagManageModal";
 import { OfficialGoodsCardHeader } from "./official-goods/OfficialGoodsCardHeader";
 import { OfficialGoodsCardContent } from "./official-goods/OfficialGoodsCardContent";
@@ -47,6 +48,7 @@ export function OfficialGoodsCard({
   } = useOfficialGoodsCard({ id, title, image });
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isWishlistUsersModalOpen, setIsWishlistUsersModalOpen] = useState(false);
 
   return (
     <>
@@ -87,7 +89,7 @@ export function OfficialGoodsCard({
             }}
             onWishlistClick={(e) => {
               e.stopPropagation();
-              setIsWishlistModalOpen(true);
+              setIsWishlistUsersModalOpen(true);
             }}
             itemId={id}
             itemTitle={title}
@@ -115,6 +117,12 @@ export function OfficialGoodsCard({
       <WishlistModal
         isOpen={isWishlistModalOpen}
         onClose={() => setIsWishlistModalOpen(false)}
+        itemId={id}
+        itemTitle={title}
+      />
+      <WishlistUsersModal
+        isOpen={isWishlistUsersModalOpen}
+        onClose={() => setIsWishlistUsersModalOpen(false)}
         itemId={id}
         itemTitle={title}
       />
