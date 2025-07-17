@@ -43,6 +43,11 @@ export function CreatorSection({
 
   if (isEditing) return null;
 
+  console.log("CreatorSection - createdBy:", createdBy);
+  console.log("CreatorSection - creatorProfile:", creatorProfile);
+  console.log("CreatorSection - isProfileLoading:", isProfileLoading);
+  console.log("CreatorSection - profileError:", profileError);
+
   return (
     <div className="space-y-4">
       <div className="text-sm space-y-2">
@@ -87,6 +92,8 @@ export function CreatorSection({
                   <span className="font-medium"> 読み込み中... </span>
                 ) : creatorProfile ? (
                   <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
+                ) : profileError ? (
+                  <span className="font-medium"> 登録ユーザー（取得エラー） </span>
                 ) : (
                   <span className="font-medium"> 登録ユーザー </span>
                 )

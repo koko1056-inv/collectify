@@ -19,6 +19,8 @@ export function OfficialItemsGrid({ items }: OfficialItemsGridProps) {
           anime={item.anime}
           price={item.price}
           releaseDate={item.release_date}
+          createdBy={item.created_by}
+          contentName={item.content_name}
         />
       ))}
     </div>
