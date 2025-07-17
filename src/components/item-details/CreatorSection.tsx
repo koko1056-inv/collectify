@@ -74,10 +74,15 @@ export function CreatorSection({
               {createdBy && creatorProfile ? (
                 <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
               ) : (
-                <span className="font-medium"> 不明なユーザー </span>
+                <span className="font-medium"> 管理者 </span>
               )}
               によって登録されました。
             </div>
+            {createdBy && creatorProfile && (
+              <div className="text-green-600 font-medium mt-1">
+                登録してくれてありがとう！
+              </div>
+            )}
           </div>
         </div>
       </div>
