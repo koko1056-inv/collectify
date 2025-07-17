@@ -10,6 +10,8 @@ import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -17,12 +19,22 @@ const Search = () => {
   const [selectedContent, setSelectedContent] = useState("");
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const { profile } = useProfile(user?.id);
   const {
     data: items = []
   } = useOfficialItems();
   const {
     data: allTags = []
   } = useTags();
+
+  // ユーザーの興味のあるコンテンツをデフォルトで設定
+  useEffect(() => {
+    if (profile?.interests && profile.interests.length > 0 && !selectedContent) {
+      // 最初の興味のあるコンテンツをデフォルトで選択
+      setSelectedContent(profile.interests[0]);
+    }
+  }, [profile, selectedContent]);
 
   // URLクエリパラメータを処理
   useEffect(() => {
