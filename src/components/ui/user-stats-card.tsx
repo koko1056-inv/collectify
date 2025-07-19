@@ -5,70 +5,48 @@ import { Button } from "@/components/ui/button";
 import { useUserStats, useCalculateHistoricalPoints } from "@/hooks/useUserStats";
 import { PointsDisplay } from "./points-display";
 import { AchievementsDisplay } from "./achievements-display";
-
 interface UserStatsCardProps {
   showHistoricalButton?: boolean;
 }
-
-export function UserStatsCard({ showHistoricalButton = false }: UserStatsCardProps) {
-  const { data: stats, isLoading } = useUserStats();
+export function UserStatsCard({
+  showHistoricalButton = false
+}: UserStatsCardProps) {
+  const {
+    data: stats,
+    isLoading
+  } = useUserStats();
   const calculateHistorical = useCalculateHistoricalPoints();
-
   if (isLoading) {
-    return (
-      <Card>
+    return <Card>
         <CardHeader>
           <CardTitle className="text-lg">活動統計</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-2">
+            {Array.from({
+            length: 4
+          }).map((_, i) => <div key={i} className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-muted animate-pulse rounded" />
                 <div className="h-4 bg-muted animate-pulse rounded flex-1" />
-              </div>
-            ))}
+              </div>)}
           </div>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
   if (!stats) return null;
-
   const memberSinceDate = new Date(stats.memberSince);
-  const daysSinceMember = Math.floor(
-    (Date.now() - memberSinceDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const daysSinceMember = Math.floor((Date.now() - memberSinceDate.getTime()) / (1000 * 60 * 60 * 24));
 
   // ログイン日数×1 + グッズ追加数×5 で計算したポイント
-  const calculatedPoints = (stats.totalLoginDays * 1) + (stats.totalItemsAdded * 5);
-
-  return (
-    <Card>
+  const calculatedPoints = stats.totalLoginDays * 1 + stats.totalItemsAdded * 5;
+  return <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-lg">活動統計</CardTitle>
         <PointsDisplay size="sm" />
       </CardHeader>
       <CardContent className="space-y-4">
         {/* ポイント計算内訳を表示 */}
-        <div className="bg-muted/30 p-3 rounded-lg">
-          <div className="text-sm font-medium mb-2">ポイント計算</div>
-          <div className="space-y-1 text-xs text-muted-foreground">
-            <div className="flex justify-between">
-              <span>ログイン日数: {stats.totalLoginDays}日 × 1pt</span>
-              <span>{stats.totalLoginDays}pt</span>
-            </div>
-            <div className="flex justify-between">
-              <span>グッズ追加: {stats.totalItemsAdded}個 × 5pt</span>
-              <span>{stats.totalItemsAdded * 5}pt</span>
-            </div>
-            <div className="flex justify-between font-medium text-primary border-t pt-1">
-              <span>合計</span>
-              <span>{calculatedPoints}pt</span>
-            </div>
-          </div>
-        </div>
+        
         
         <div className="grid grid-cols-2 gap-4">
           <div className="flex items-center gap-2">
@@ -112,29 +90,9 @@ export function UserStatsCard({ showHistoricalButton = false }: UserStatsCardPro
           </div>
         </div>
         
-        <div className="space-y-2 pt-2 border-t">
-          <span className="text-sm font-medium">獲得称号</span>
-          <AchievementsDisplay maxDisplay={3} />
-        </div>
         
-        {showHistoricalButton && (
-          <div className="pt-2 border-t">
-            <Button 
-              onClick={() => calculateHistorical.mutate()}
-              disabled={calculateHistorical.isPending}
-              variant="outline"
-              size="sm"
-              className="w-full"
-            >
-              <Zap className="w-4 h-4 mr-2" />
-              {calculateHistorical.isPending ? "計算中..." : "過去の活動ポイントを計算"}
-            </Button>
-            <p className="text-xs text-muted-foreground mt-1 text-center">
-              これまでの活動履歴を元にポイントを遡って付与します
-            </p>
-          </div>
-        )}
+        
+        {showHistoricalButton}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 }
