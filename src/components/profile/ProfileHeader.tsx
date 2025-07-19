@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { ChatModal } from "@/components/chat/ChatModal";
+import { PointsDisplay } from "@/components/ui/points-display";
 
 interface ProfileHeaderProps {
   username: string;
@@ -32,9 +33,16 @@ export function ProfileHeader({ username, onShare, isOwnProfile, userId }: Profi
             <Share2 className="h-4 w-4" />
           </Button>
         </div>
-        <h1 className="text-2xl font-bold truncate text-center mx-4">
-          {username}
-        </h1>
+        <div className="flex flex-col items-center mx-4">
+          <h1 className="text-2xl font-bold truncate text-center">
+            {username}
+          </h1>
+          {isOwnProfile && (
+            <div className="mt-2">
+              <PointsDisplay size="sm" />
+            </div>
+          )}
+        </div>
         <div className="flex-1 flex justify-start gap-2">
           {!isOwnProfile && userId && (
             <Button

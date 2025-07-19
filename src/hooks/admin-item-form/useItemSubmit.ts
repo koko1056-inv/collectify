@@ -177,9 +177,52 @@ export function useItemSubmit({
         }
       }
 
+      // グッズ追加ポイントを付与
+      try {
+        // ポイント残高を取得・更新
+        const { data: userPoints } = await supabase
+          .from("user_points")
+          .select("total_points")
+          .eq("user_id", user?.id)
+          .single();
+          
+        const newTotal = (userPoints?.total_points || 0) + 5;
+        
+        // ポイント残高がない場合は新規作成
+        if (!userPoints) {
+          await supabase
+            .from("user_points")
+            .insert({ 
+              user_id: user?.id,
+              total_points: 5
+            });
+        } else {
+          await supabase
+            .from("user_points")
+            .update({ total_points: newTotal })
+            .eq("user_id", user?.id);
+        }
+        
+        // ポイント履歴に記録
+        await supabase
+          .from("point_transactions")
+          .insert({
+            user_id: user?.id,
+            points: 5,
+            transaction_type: "item_add",
+            description: "グッズ追加",
+            reference_id: itemData.id
+          });
+          
+        await queryClient.invalidateQueries({ queryKey: ["userPoints"] });
+        await queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
+      } catch (pointError) {
+        console.error("ポイント付与エラー:", pointError);
+      }
+
       toast({
         title: "アイテムを追加しました",
-        description: "あなたのおかげでグッズリストが充実しました！ありがとうございます。",
+        description: "あなたのおかげでグッズリストが充実しました！5ポイント獲得！",
       });
 
       resetForm();

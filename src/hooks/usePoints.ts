@@ -103,22 +103,39 @@ export function usePointTransactions() {
 export function useUserAchievements() {
   const { user } = useAuth();
   
-  return useQuery<UserAchievement[]>({
+  return useQuery({
     queryKey: ["userAchievements", user?.id],
     queryFn: async () => {
       if (!user?.id) throw new Error("User not authenticated");
       
-      const { data, error } = await supabase
+      // user_achievements と achievements を別々に取得してjoin
+      const { data: userAchievements, error: userError } = await supabase
         .from("user_achievements")
-        .select(`
-          *,
-          achievement:achievements(*)
-        `)
+        .select("*")
         .eq("user_id", user.id)
         .order("achieved_at", { ascending: false });
         
-      if (error) throw error;
-      return data || [];
+      if (userError) throw userError;
+      
+      if (!userAchievements || userAchievements.length === 0) {
+        return [];
+      }
+      
+      const achievementIds = userAchievements.map(ua => ua.achievement_id);
+      const { data: achievements, error: achievementError } = await supabase
+        .from("achievements")
+        .select("*")
+        .in("id", achievementIds);
+        
+      if (achievementError) throw achievementError;
+      
+      // データを結合
+      const result = userAchievements.map(ua => ({
+        ...ua,
+        achievement: achievements?.find(a => a.id === ua.achievement_id) || null
+      }));
+      
+      return result;
     },
     enabled: !!user?.id,
   });
