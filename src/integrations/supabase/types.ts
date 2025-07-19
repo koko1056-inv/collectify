@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          action_type: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          required_action_count: number | null
+          required_points: number | null
+        }
+        Insert: {
+          action_type?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          required_action_count?: number | null
+          required_points?: number | null
+        }
+        Update: {
+          action_type?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          required_action_count?: number | null
+          required_points?: number | null
+        }
+        Relationships: []
+      }
       admin_accounts: {
         Row: {
           created_at: string
@@ -676,6 +709,36 @@ export type Database = {
           },
         ]
       }
+      point_transactions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          points: number
+          reference_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points: number
+          reference_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          reference_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           comment: string
@@ -958,6 +1021,27 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achieved_at: string
+          achievement_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achieved_at?: string
+          achievement_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achieved_at?: string
+          achievement_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_item_likes: {
         Row: {
           created_at: string
@@ -1111,6 +1195,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_points: {
+        Row: {
+          created_at: string
+          id: string
+          last_login_bonus_date: string | null
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_login_bonus_date?: string | null
+          total_points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_login_bonus_date?: string | null
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       wishlists: {
         Row: {

@@ -1,0 +1,273 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+
+export interface UserPoints {
+  id: string;
+  user_id: string;
+  total_points: number;
+  last_login_bonus_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PointTransaction {
+  id: string;
+  user_id: string;
+  points: number;
+  transaction_type: string;
+  description: string | null;
+  reference_id: string | null;
+  created_at: string;
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  required_points: number | null;
+  required_action_count: number | null;
+  action_type: string | null;
+  created_at: string;
+}
+
+export interface UserAchievement {
+  id: string;
+  user_id: string;
+  achievement_id: string;
+  achieved_at: string;
+  achievement: Achievement;
+}
+
+export function useUserPoints() {
+  const { user } = useAuth();
+  
+  return useQuery<UserPoints>({
+    queryKey: ["userPoints", user?.id],
+    queryFn: async () => {
+      if (!user?.id) throw new Error("User not authenticated");
+      
+      const { data, error } = await supabase
+        .from("user_points")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+        
+      if (error) {
+        // ユーザーポイントレコードが存在しない場合は作成
+        if (error.code === 'PGRST116') {
+          const { data: newRecord, error: insertError } = await supabase
+            .from("user_points")
+            .insert({ 
+              user_id: user.id,
+              total_points: 0
+            })
+            .select()
+            .single();
+            
+          if (insertError) throw insertError;
+          return newRecord;
+        }
+        throw error;
+      }
+      
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+}
+
+export function usePointTransactions() {
+  const { user } = useAuth();
+  
+  return useQuery<PointTransaction[]>({
+    queryKey: ["pointTransactions", user?.id],
+    queryFn: async () => {
+      if (!user?.id) throw new Error("User not authenticated");
+      
+      const { data, error } = await supabase
+        .from("point_transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+        
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+}
+
+export function useUserAchievements() {
+  const { user } = useAuth();
+  
+  return useQuery<UserAchievement[]>({
+    queryKey: ["userAchievements", user?.id],
+    queryFn: async () => {
+      if (!user?.id) throw new Error("User not authenticated");
+      
+      const { data, error } = await supabase
+        .from("user_achievements")
+        .select(`
+          *,
+          achievement:achievements(*)
+        `)
+        .eq("user_id", user.id)
+        .order("achieved_at", { ascending: false });
+        
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+}
+
+export function useAwardPoints() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({
+      points,
+      transactionType,
+      description,
+      referenceId
+    }: {
+      points: number;
+      transactionType: string;
+      description?: string;
+      referenceId?: string;
+    }) => {
+      if (!user?.id) throw new Error("User not authenticated");
+      
+      // ログインボーナスの場合は1日1回の制限をチェック
+      if (transactionType === 'login_bonus') {
+        const today = new Date().toISOString().split('T')[0];
+        const { data: userPoints } = await supabase
+          .from("user_points")
+          .select("last_login_bonus_date")
+          .eq("user_id", user.id)
+          .single();
+          
+        if (userPoints?.last_login_bonus_date === today) {
+          throw new Error("今日は既にログインボーナスを受け取りました");
+        }
+      }
+      
+      // ポイント残高を更新
+      const { data: currentPoints } = await supabase
+        .from("user_points")
+        .select("total_points")
+        .eq("user_id", user.id)
+        .single();
+        
+      const newTotal = (currentPoints?.total_points || 0) + points;
+      
+      const updateData: any = { total_points: newTotal };
+      if (transactionType === 'login_bonus') {
+        updateData.last_login_bonus_date = new Date().toISOString().split('T')[0];
+      }
+      
+      await supabase
+        .from("user_points")
+        .update(updateData)
+        .eq("user_id", user.id);
+      
+      // ポイント履歴に記録
+      await supabase
+        .from("point_transactions")
+        .insert({
+          user_id: user.id,
+          points,
+          transaction_type: transactionType,
+          description,
+          reference_id: referenceId
+        });
+        
+      // 称号チェック
+      await checkAndAwardAchievements(user.id, newTotal, transactionType);
+      
+      return { points, newTotal };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["userPoints"] });
+      queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
+      queryClient.invalidateQueries({ queryKey: ["userAchievements"] });
+      
+      toast({
+        title: "ポイント獲得！",
+        description: `${data.points}ポイントを獲得しました`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "エラー",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+async function checkAndAwardAchievements(userId: string, totalPoints: number, actionType: string) {
+  // ポイント数による称号チェック
+  const { data: pointAchievements } = await supabase
+    .from("achievements")
+    .select("*")
+    .not("required_points", "is", null)
+    .lte("required_points", totalPoints);
+    
+  // アクション回数による称号チェック
+  let actionCount = 0;
+  if (actionType === 'item_add') {
+    const { count } = await supabase
+      .from("point_transactions")
+      .select("*", { count: "exact" })
+      .eq("user_id", userId)
+      .eq("transaction_type", "item_add");
+    actionCount = count || 0;
+  } else if (actionType === 'content_add') {
+    const { count } = await supabase
+      .from("point_transactions")
+      .select("*", { count: "exact" })
+      .eq("user_id", userId)
+      .eq("transaction_type", "content_add");
+    actionCount = count || 0;
+  }
+  
+  const { data: actionAchievements } = await supabase
+    .from("achievements")
+    .select("*")
+    .eq("action_type", actionType)
+    .not("required_action_count", "is", null)
+    .lte("required_action_count", actionCount);
+    
+  const allEligibleAchievements = [
+    ...(pointAchievements || []),
+    ...(actionAchievements || [])
+  ];
+  
+  // 既に獲得済みの称号を除外
+  const { data: existingAchievements } = await supabase
+    .from("user_achievements")
+    .select("achievement_id")
+    .eq("user_id", userId);
+    
+  const existingIds = existingAchievements?.map(a => a.achievement_id) || [];
+  const newAchievements = allEligibleAchievements.filter(
+    a => !existingIds.includes(a.id)
+  );
+  
+  // 新しい称号を付与
+  for (const achievement of newAchievements) {
+    await supabase
+      .from("user_achievements")
+      .insert({
+        user_id: userId,
+        achievement_id: achievement.id
+      });
+  }
+}
