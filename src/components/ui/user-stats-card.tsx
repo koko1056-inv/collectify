@@ -41,6 +41,9 @@ export function UserStatsCard({ showHistoricalButton = false }: UserStatsCardPro
     (Date.now() - memberSinceDate.getTime()) / (1000 * 60 * 60 * 24)
   );
 
+  // ログイン日数×1 + グッズ追加数×5 で計算したポイント
+  const calculatedPoints = (stats.totalLoginDays * 1) + (stats.totalItemsAdded * 5);
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -48,6 +51,25 @@ export function UserStatsCard({ showHistoricalButton = false }: UserStatsCardPro
         <PointsDisplay size="sm" />
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* ポイント計算内訳を表示 */}
+        <div className="bg-muted/30 p-3 rounded-lg">
+          <div className="text-sm font-medium mb-2">ポイント計算</div>
+          <div className="space-y-1 text-xs text-muted-foreground">
+            <div className="flex justify-between">
+              <span>ログイン日数: {stats.totalLoginDays}日 × 1pt</span>
+              <span>{stats.totalLoginDays}pt</span>
+            </div>
+            <div className="flex justify-between">
+              <span>グッズ追加: {stats.totalItemsAdded}個 × 5pt</span>
+              <span>{stats.totalItemsAdded * 5}pt</span>
+            </div>
+            <div className="flex justify-between font-medium text-primary border-t pt-1">
+              <span>合計</span>
+              <span>{calculatedPoints}pt</span>
+            </div>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-2 gap-4">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-blue-500" />

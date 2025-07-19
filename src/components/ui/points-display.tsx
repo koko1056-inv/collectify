@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useUserPoints } from "@/hooks/usePoints";
+import { useUserStats } from "@/hooks/useUserStats";
 
 interface PointsDisplayProps {
   size?: "sm" | "md" | "lg";
@@ -8,9 +8,9 @@ interface PointsDisplayProps {
 }
 
 export function PointsDisplay({ size = "md", showIcon = true }: PointsDisplayProps) {
-  const { data: userPoints, isLoading, error } = useUserPoints();
+  const { data: userStats, isLoading, error } = useUserStats();
 
-  console.log("[PointsDisplay] Component state:", { userPoints, isLoading, error });
+  console.log("[PointsDisplay] Component state:", { userStats, isLoading, error });
 
   if (isLoading) {
     console.log("[PointsDisplay] Showing loading state");
@@ -25,11 +25,21 @@ export function PointsDisplay({ size = "md", showIcon = true }: PointsDisplayPro
   }
 
   if (error) {
-    console.error("[PointsDisplay] Error loading points:", error);
+    console.error("[PointsDisplay] Error loading stats:", error);
   }
 
-  const points = userPoints?.total_points || 0;
-  console.log("[PointsDisplay] Displaying points:", points);
+  // ログイン日数×1 + グッズ追加数×5 で計算
+  const loginPoints = (userStats?.totalLoginDays || 0) * 1;
+  const itemPoints = (userStats?.totalItemsAdded || 0) * 5;
+  const totalPoints = loginPoints + itemPoints;
+  
+  console.log("[PointsDisplay] Points calculation:", {
+    loginDays: userStats?.totalLoginDays,
+    itemsAdded: userStats?.totalItemsAdded,
+    loginPoints,
+    itemPoints,
+    totalPoints
+  });
 
   return (
     <Badge 
@@ -43,7 +53,7 @@ export function PointsDisplay({ size = "md", showIcon = true }: PointsDisplayPro
         ${size === "sm" ? "w-3 h-3" : size === "lg" ? "w-5 h-5" : "w-4 h-4"}
         fill-yellow-400 text-yellow-400
       `} />}
-      <span className="font-medium">{points.toLocaleString()}</span>
+      <span className="font-medium">{totalPoints.toLocaleString()}</span>
       <span className="text-muted-foreground">pt</span>
     </Badge>
   );
