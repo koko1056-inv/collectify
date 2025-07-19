@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { FeaturedCollections } from "@/components/home/FeaturedCollections";
 import { PopularCollectors } from "@/components/profile/PopularCollectors";
 import { Profile } from "@/types";
@@ -7,6 +8,7 @@ import { AchievementsDisplay } from "@/components/ui/achievements-display";
 import { UserStatsCard } from "@/components/ui/user-stats-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { debugUserPoints } from "@/utils/debug-points";
 
 interface HomeContentProps {
   profile: Profile | undefined;
@@ -14,6 +16,14 @@ interface HomeContentProps {
 
 export function HomeContent({ profile }: HomeContentProps) {
   const { user } = useAuth();
+
+  // デバッグ用：ユーザーがログインしている場合にポイント情報を出力
+  useEffect(() => {
+    if (user?.id) {
+      console.log("[HomeContent] User logged in, debugging points for:", user.id);
+      debugUserPoints(user.id);
+    }
+  }, [user?.id]);
 
   return (
     <div className="space-y-6">

@@ -8,45 +8,54 @@ import { trackLogin, trackLogout } from '@/utils/analytics'
 // ログインボーナス処理のユーティリティ関数
 const awardLoginBonus = async (userId: string) => {
   try {
+    console.log("[AuthContext] Starting login bonus process for user:", userId);
     const today = new Date().toISOString().split('T')[0];
     
     // 今日既にログインボーナスを受け取っているかチェック
-    const { data: userPoints } = await supabase
+    const { data: userPoints, error: pointsError } = await supabase
       .from("user_points")
       .select("last_login_bonus_date, total_points")
       .eq("user_id", userId)
       .single();
       
+    console.log("[AuthContext] Current user points:", { userPoints, pointsError });
+      
     // 既に今日ログインボーナスを受け取っている場合は何もしない
     if (userPoints?.last_login_bonus_date === today) {
+      console.log("[AuthContext] User already received login bonus today");
       return;
     }
     
     // ユーザーポイントレコードがない場合は作成
     let currentPoints = userPoints?.total_points || 0;
-    if (!userPoints) {
-      await supabase
+    if (!userPoints || pointsError?.code === 'PGRST116') {
+      console.log("[AuthContext] Creating new user points record");
+      const { data: newRecord, error: insertError } = await supabase
         .from("user_points")
         .insert({ 
           user_id: userId,
           total_points: 1,
           last_login_bonus_date: today
         });
+      console.log("[AuthContext] New record insert result:", { newRecord, insertError });
       currentPoints = 1;
     } else {
       // ポイント残高とログインボーナス日時を更新
       currentPoints += 1;
-      await supabase
+      console.log("[AuthContext] Updating existing points to:", currentPoints);
+      const { error: updateError } = await supabase
         .from("user_points")
         .update({ 
           total_points: currentPoints,
           last_login_bonus_date: today
         })
         .eq("user_id", userId);
+      console.log("[AuthContext] Points update result:", updateError);
     }
     
     // ポイント履歴に記録
-    await supabase
+    console.log("[AuthContext] Creating point transaction record");
+    const { error: transactionError } = await supabase
       .from("point_transactions")
       .insert({
         user_id: userId,
@@ -54,36 +63,11 @@ const awardLoginBonus = async (userId: string) => {
         transaction_type: "login_bonus",
         description: "ログインボーナス"
       });
+    console.log("[AuthContext] Transaction insert result:", transactionError);
       
-    // 称号チェック（ビギナー称号など）
-    const { data: achievements } = await supabase
-      .from("achievements")
-      .select("*")
-      .eq("action_type", "login")
-      .lte("required_points", currentPoints);
-      
-    if (achievements && achievements.length > 0) {
-      // 既に獲得済みの称号を除外
-      const { data: existingAchievements } = await supabase
-        .from("user_achievements")
-        .select("achievement_id")
-        .eq("user_id", userId);
-        
-      const existingIds = existingAchievements?.map(a => a.achievement_id) || [];
-      const newAchievements = achievements.filter(a => !existingIds.includes(a.id));
-      
-      // 新しい称号を付与
-      for (const achievement of newAchievements) {
-        await supabase
-          .from("user_achievements")
-          .insert({
-            user_id: userId,
-            achievement_id: achievement.id
-          });
-      }
-    }
+    console.log("[AuthContext] Login bonus process completed successfully");
   } catch (error) {
-    console.error("ログインボーナス付与エラー:", error);
+    console.error("[AuthContext] ログインボーナス付与エラー:", error);
   }
 };
 

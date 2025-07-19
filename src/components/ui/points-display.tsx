@@ -8,9 +8,12 @@ interface PointsDisplayProps {
 }
 
 export function PointsDisplay({ size = "md", showIcon = true }: PointsDisplayProps) {
-  const { data: userPoints, isLoading } = useUserPoints();
+  const { data: userPoints, isLoading, error } = useUserPoints();
+
+  console.log("[PointsDisplay] Component state:", { userPoints, isLoading, error });
 
   if (isLoading) {
+    console.log("[PointsDisplay] Showing loading state");
     return (
       <div className={`flex items-center gap-1 ${
         size === "sm" ? "text-sm" : size === "lg" ? "text-lg" : "text-base"
@@ -21,7 +24,12 @@ export function PointsDisplay({ size = "md", showIcon = true }: PointsDisplayPro
     );
   }
 
+  if (error) {
+    console.error("[PointsDisplay] Error loading points:", error);
+  }
+
   const points = userPoints?.total_points || 0;
+  console.log("[PointsDisplay] Displaying points:", points);
 
   return (
     <Badge 
