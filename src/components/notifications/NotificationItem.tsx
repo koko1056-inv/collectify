@@ -77,7 +77,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   return (
     <div
       className={cn(
-        "p-3 hover:bg-muted/50 cursor-pointer transition-colors",
+        "p-3 hover:bg-muted/50 cursor-pointer transition-colors min-h-[60px]",
         !notification.is_read && "bg-blue-50/50"
       )}
       onClick={handleClick}
@@ -127,25 +127,25 @@ export function NotificationItem({ notification }: NotificationItemProps) {
             
             <div className="flex items-center gap-1">
               {!notification.is_read && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={handleMarkAsRead}
-                  title="既読にする"
-                >
-                  <Eye className="h-3 w-3" />
-                </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 touch-target"
+                onClick={handleMarkAsRead}
+                title="既読にする"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
               )}
               
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 w-6 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                className="h-8 w-8 p-0 touch-target hover:bg-destructive hover:text-destructive-foreground"
                 onClick={handleDelete}
                 title="削除"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
