@@ -147,7 +147,7 @@ export function ProfileCard({
   }
 
   return (
-    <div className={`${isMobile ? 'bg-white pt-2' : 'bg-white p-8 rounded-lg shadow'}`}>
+    <div className={`${isMobile ? 'bg-white' : 'bg-white p-8 rounded-lg shadow'}`}>
       <div className="flex flex-col items-center mb-4">
         <div className="w-24 h-24 mb-2">
           {isOwnProfile ? (
