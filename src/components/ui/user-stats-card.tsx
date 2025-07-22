@@ -40,7 +40,7 @@ export function UserStatsCard({
   // ログイン日数×1 + グッズ追加数×5 で計算したポイント
   const calculatedPoints = stats.totalLoginDays * 1 + stats.totalItemsAdded * 5;
   return <Card className="overflow-hidden bg-gradient-to-br from-background via-accent/30 to-background border-2 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] mx-2 sm:mx-0">
-      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gradient-to-r from-primary/5 to-secondary/5 pb-3 sm:pb-4 px-3 sm:px-6 pt-6 sm:pt-6 mt-4 sm:mt-0 space-y-2 sm:space-y-0">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between bg-gradient-to-r from-primary/5 to-secondary/5 pb-3 sm:pb-4 px-3 sm:px-6 pt-8 sm:pt-6 mt-6 sm:mt-0 space-y-2 sm:space-y-0">
         <CardTitle className="text-base sm:text-lg font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent flex-shrink-0">
           ✨ 活動統計
         </CardTitle>
