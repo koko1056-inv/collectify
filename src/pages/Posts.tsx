@@ -25,7 +25,7 @@ export default function Posts() {
         {/* メインコンテンツエリア */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* ヘッダー */}
-          <div className="bg-background border-b border-border sticky top-16 z-10 px-4 py-3">
+          <div className="bg-background border-b border-border sm:sticky sm:top-16 sm:z-10 px-4 py-3">
             <div className="flex items-center justify-between max-w-4xl mx-auto">
               <div>
                 <h1 className="text-xl font-bold">投稿</h1>
