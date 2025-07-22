@@ -45,7 +45,7 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
   });
 
   return (
-    <div className="w-full mt-4 mb-6">
+    <div className="w-full mb-6">
       <div className="grid grid-cols-3 gap-2 text-center mb-4">
         <div 
           className="flex flex-col cursor-pointer hover:opacity-75 transition-opacity"
