@@ -68,41 +68,43 @@ export function FilterBar({
         tags={tags}
       />
 
-      <div className="w-full">
+      <div className="w-full space-y-2">
         <Button
           variant="outline"
           onClick={() => setIsDialogOpen(true)}
           className="w-full justify-between font-normal text-xs h-8"
         >
-          <span>{getDisplayText()}</span>
-          <ChevronDown className="h-3 w-3 opacity-50" />
+          <span className="truncate">{getDisplayText()}</span>
+          <ChevronDown className="h-3 w-3 opacity-50 ml-2 flex-shrink-0" />
         </Button>
 
-        <ScrollArea className="w-full whitespace-nowrap mt-2">
-          <div className="flex gap-1.5 pb-2">
-            <Button
-              key="all"
-              variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
-              size="sm"
-              className="text-xs h-6 px-2 shrink-0"
-              onClick={() => onContentChange("all")}
-            >
-              すべて
-            </Button>
-            {popularContentNames.map((content) => (
+        <div className="relative w-full">
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex w-max gap-1.5 pb-2">
               <Button
-                key={content.id}
-                variant={selectedContent === content.name ? "default" : "outline"}
+                key="all"
+                variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
                 size="sm"
                 className="text-xs h-6 px-2 shrink-0"
-                onClick={() => onContentChange(content.name)}
+                onClick={() => onContentChange("all")}
               >
-                {content.name}
+                すべて
               </Button>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+              {popularContentNames.map((content) => (
+                <Button
+                  key={content.id}
+                  variant={selectedContent === content.name ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs h-6 px-2 shrink-0"
+                  onClick={() => onContentChange(content.name)}
+                >
+                  {content.name}
+                </Button>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="max-w-lg">
