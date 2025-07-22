@@ -5,18 +5,22 @@ import { Footer } from "@/components/Footer";
 import { FilterBar } from "@/components/FilterBar";
 import { SlideFilterBar } from "@/components/SlideFilterBar";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
+import { FriendSearch } from "@/components/search/FriendSearch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
+import { Package, Users } from "lucide-react";
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedContent, setSelectedContent] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -28,13 +32,21 @@ const Search = () => {
     data: allTags = []
   } = useTags();
 
+  // URLからタブの状態を取得
+  const currentTab = searchParams.get("tab") || "goods";
+
+  // タブ切り替え時にURLを更新
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab });
+  };
+
   // ユーザーの興味のあるコンテンツをデフォルトで設定
   useEffect(() => {
-    if (profile?.interests && profile.interests.length > 0 && !selectedContent) {
+    if (profile?.interests && profile.interests.length > 0 && !selectedContent && currentTab === "goods") {
       // 最初の興味のあるコンテンツをデフォルトで選択
       setSelectedContent(profile.interests[0]);
     }
-  }, [profile, selectedContent]);
+  }, [profile, selectedContent, currentTab]);
 
   // URLクエリパラメータを処理
   useEffect(() => {
@@ -46,9 +58,11 @@ const Search = () => {
       const targetItem = items.find(item => item.id === itemId);
       if (targetItem) {
         setSearchQuery(targetItem.title);
+        // アイテム検索の場合は自動的にグッズタブに切り替え
+        setSearchParams({ tab: "goods" });
       }
     }
-  }, [location.search, items]);
+  }, [location.search, items, setSearchParams]);
 
   const filteredItems = items.filter(item => {
     const matchesSearch = searchQuery ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) || (item.artist?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || (item.anime?.toLowerCase() || "").includes(searchQuery.toLowerCase()) : true;
@@ -56,44 +70,67 @@ const Search = () => {
     const matchesContent = !selectedContent || selectedContent === "all" || item.content_name === selectedContent;
     return matchesSearch && matchesTags && matchesContent;
   });
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="container mx-auto px-2 pt-16 pb-24 sm:px-4 sm:pt-24 sm:pb-8">
         <div className="space-y-4 sm:space-y-6">
-          {!isMobile && (
-            <>
-              <SlideFilterBar
-                selectedContent={selectedContent}
-                onContentChange={setSelectedContent}
+          {/* タブ */}
+          <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+              <TabsTrigger value="goods" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                グッズ
+              </TabsTrigger>
+              <TabsTrigger value="friends" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                フレンド
+              </TabsTrigger>
+            </TabsList>
+
+            {/* グッズ検索タブ */}
+            <TabsContent value="goods" className="space-y-4 sm:space-y-6">
+              {!isMobile && (
+                <>
+                  <SlideFilterBar
+                    selectedContent={selectedContent}
+                    onContentChange={setSelectedContent}
+                    selectedTags={selectedTags}
+                    onTagsChange={setSelectedTags}
+                    tags={allTags}
+                  />
+                  <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
+                    <FilterBar
+                      searchQuery={searchQuery}
+                      onSearchChange={setSearchQuery}
+                      selectedTags={selectedTags}
+                      onTagsChange={setSelectedTags}
+                      selectedContent={selectedContent}
+                      onContentChange={setSelectedContent}
+                      tags={allTags}
+                    />
+                  </div>
+                </>
+              )}
+
+              <OfficialItemsList
+                items={filteredItems}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
                 selectedTags={selectedTags}
                 onTagsChange={setSelectedTags}
+                selectedContent={selectedContent}
+                onContentChange={setSelectedContent}
                 tags={allTags}
               />
-              <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
-                <FilterBar
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  selectedTags={selectedTags}
-                  onTagsChange={setSelectedTags}
-                  selectedContent={selectedContent}
-                  onContentChange={setSelectedContent}
-                  tags={allTags}
-                />
-              </div>
-            </>
-          )}
+            </TabsContent>
 
-          <OfficialItemsList
-            items={filteredItems}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            selectedContent={selectedContent}
-            onContentChange={setSelectedContent}
-            tags={allTags}
-          />
+            {/* フレンド検索タブ */}
+            <TabsContent value="friends" className="space-y-4 sm:space-y-6">
+              <FriendSearch userInterests={profile?.interests || []} />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
       <Footer />
