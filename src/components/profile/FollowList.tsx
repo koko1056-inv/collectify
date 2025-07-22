@@ -174,7 +174,7 @@ export function FollowList({ userId, type }: FollowListProps) {
   }
 
   return (
-    <ScrollArea className="h-full">
+    <ScrollArea className="max-h-[60vh] overflow-y-auto">
       <div className="space-y-4 pr-4 pb-4">
         {profiles.length === 0 ? (
           <p className="text-gray-500">

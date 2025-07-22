@@ -68,7 +68,7 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
       </div>
 
       <Dialog open={showFollowingModal} onOpenChange={setShowFollowingModal}>
-        <DialogContent>
+        <DialogContent className="max-w-md max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>フォロー中</DialogTitle>
           </DialogHeader>
