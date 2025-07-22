@@ -49,7 +49,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
   });
 
   // 利用可能な興味のコンテンツ一覧
-  const { data: contentNames = [] } = useQuery({
+  const { data: contentNamesData = [] } = useQuery({
     queryKey: ["content-names"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -134,7 +134,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
             >
               すべて
             </Button>
-            {contentNames.map((content) => (
+            {contentNamesData.map((content) => (
               <Button
                 key={content}
                 variant={selectedInterest === content ? "default" : "outline"}
