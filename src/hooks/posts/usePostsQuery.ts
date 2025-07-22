@@ -10,43 +10,55 @@ export function usePosts() {
   const query = useQuery({
     queryKey: ["posts"],
     queryFn: async () => {
-      console.log("投稿を取得中...");
-      
       const { data, error } = await supabase
         .from("goods_posts")
         .select(`
-          *,
-          profiles (username, avatar_url),
-          user_items (
+          id,
+          user_id,
+          user_item_id,
+          image_url,
+          caption,
+          created_at,
+          profiles!user_id (username, avatar_url),
+          user_items!user_item_id (
             title, 
             image, 
             official_item_id, 
-            content_name,
-            user_item_tags (
-              tags (id, name)
-            )
-          ),
-          post_likes (id, user_id)
+            content_name
+          )
         `)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(50);
 
       if (error) {
-        console.error("投稿取得エラー:", error);
         throw error;
       }
       
-      console.log("取得した投稿データ:", data);
+      // 投稿のIDリストを取得してライク数を別途取得
+      const postIds = data?.map(post => post.id) || [];
+      let likesData = [];
+      
+      if (postIds.length > 0) {
+        const { data: likes, error: likesError } = await supabase
+          .from("post_likes")
+          .select("post_id, user_id")
+          .in("post_id", postIds);
+          
+        if (!likesError) {
+          likesData = likes || [];
+        }
+      }
       
       return (data || []).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
         user_items: post.user_items || { title: "Unknown", image: "", official_item_id: null },
-        post_likes: post.post_likes || []
+        post_likes: likesData.filter(like => like.post_id === post.id)
       })) as GoodsPost[];
     },
-    staleTime: 30 * 1000, // 30秒間はキャッシュを使用
-    gcTime: 5 * 60 * 1000, // 5分間キャッシュを保持
-    refetchOnWindowFocus: false, // ウィンドウフォーカス時の自動リフェッチを無効
+    staleTime: 2 * 60 * 1000, // 2分間はキャッシュを使用
+    gcTime: 10 * 60 * 1000, // 10分間キャッシュを保持
+    refetchOnWindowFocus: false,
   });
 
   // リアルタイム更新の設定
@@ -97,21 +109,40 @@ export function usePostsForItem(userItemId: string) {
       const { data, error } = await supabase
         .from("goods_posts")
         .select(`
-          *,
-          profiles (username, avatar_url),
-          user_items (title, image, official_item_id),
-          post_likes (id, user_id)
+          id,
+          user_id,
+          user_item_id,
+          image_url,
+          caption,
+          created_at,
+          profiles!user_id (username, avatar_url),
+          user_items!user_item_id (title, image, official_item_id)
         `)
         .eq("user_item_id", userItemId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      
+      const postIds = data?.map(post => post.id) || [];
+      let likesData = [];
+      
+      if (postIds.length > 0) {
+        const { data: likes } = await supabase
+          .from("post_likes")
+          .select("post_id, user_id")
+          .in("post_id", postIds);
+          
+        likesData = likes || [];
+      }
+      
       return (data || []).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
         user_items: post.user_items || { title: "Unknown", image: "", official_item_id: null },
-        post_likes: post.post_likes || []
+        post_likes: likesData.filter(like => like.post_id === post.id)
       })) as GoodsPost[];
     },
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
 }

@@ -162,6 +162,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
             src={post.image_url}
             alt="投稿画像"
             className="w-full h-auto max-h-96 object-contain bg-muted"
+            loading="lazy"
           />
         </div>
 
@@ -175,6 +176,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
               src={post.user_items?.image}
               alt={post.user_items?.title}
               className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
+              loading="lazy"
             />
             <div className="text-left flex-1 min-w-0 overflow-hidden">
               <p className="font-medium text-sm truncate">
