@@ -42,9 +42,24 @@ const Search = () => {
 
   // ユーザーの興味のあるコンテンツをデフォルトで設定
   useEffect(() => {
-    if (profile?.interests && profile.interests.length > 0 && !selectedContent && currentTab === "goods") {
+    console.log("Search page profile:", profile);
+    console.log("Search page profile.interests:", profile?.interests);
+    
+    if (profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0 && !selectedContent && currentTab === "goods") {
       // 最初の興味のあるコンテンツをデフォルトで選択
-      setSelectedContent(profile.interests[0]);
+      const firstInterestItem = profile.interests[0];
+      let firstInterest: string;
+      
+      if (typeof firstInterestItem === 'string') {
+        firstInterest = firstInterestItem;
+      } else if (firstInterestItem && typeof firstInterestItem === 'object' && 'name' in firstInterestItem) {
+        firstInterest = (firstInterestItem as any).name;
+      } else {
+        firstInterest = String(firstInterestItem);
+      }
+      
+      console.log("Setting selected content to:", firstInterest);
+      setSelectedContent(firstInterest);
     }
   }, [profile, selectedContent, currentTab]);
 
@@ -128,7 +143,17 @@ const Search = () => {
 
             {/* フレンド検索タブ */}
             <TabsContent value="friends" className="space-y-4 sm:space-y-6">
-              <FriendSearch userInterests={profile?.interests || []} />
+              <FriendSearch 
+                userInterests={
+                  Array.isArray(profile?.interests) 
+                    ? profile.interests.map(interest => 
+                        typeof interest === 'string' ? interest : 
+                        interest && typeof interest === 'object' && 'name' in interest ? 
+                        (interest as any).name : String(interest)
+                      )
+                    : []
+                } 
+              />
             </TabsContent>
           </Tabs>
         </div>
