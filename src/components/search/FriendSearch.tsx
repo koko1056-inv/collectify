@@ -57,7 +57,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
         .select("name")
         .order("name");
       if (error) throw error;
-      return data.map(item => item.name);
+      return data?.map(item => item.name) || [];
     },
   });
 
