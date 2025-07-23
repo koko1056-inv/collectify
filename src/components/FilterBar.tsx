@@ -48,7 +48,7 @@ export function FilterBar({
   });
 
   const filteredContentNames = contentNames.filter(content =>
-    content.name.toLowerCase().includes(contentSearchQuery.toLowerCase())
+    content.name && content.name.toLowerCase().includes(contentSearchQuery.toLowerCase())
   );
 
   const popularContentNames = contentNames.slice(0, 5);
