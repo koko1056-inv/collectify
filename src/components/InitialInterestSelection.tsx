@@ -134,7 +134,7 @@ export function InitialInterestSelection({
   };
 
   const filteredContents = contentNames.filter(content =>
-    content.name.toLowerCase().includes(searchQuery.toLowerCase())
+    content.name && content.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
