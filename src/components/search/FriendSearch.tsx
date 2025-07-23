@@ -18,7 +18,7 @@ interface Profile {
   display_name?: string;
   avatar_url?: string;
   bio?: string;
-  interests?: string[];
+  interests?: (string | { name: string; [key: string]: any })[];
   followers_count?: number;
   following_count?: number;
 }
@@ -80,9 +80,15 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
 
     // 興味でフィルタ
     if (selectedInterest !== "all") {
-      filtered = filtered.filter(profile => 
-        profile.interests?.includes(selectedInterest)
-      );
+      filtered = filtered.filter(profile => {
+        if (!profile.interests || !Array.isArray(profile.interests)) return false;
+        return profile.interests.some(interest => {
+          const interestName = typeof interest === 'string' ? interest : 
+                              (interest && typeof interest === 'object' && 'name' in interest) ? 
+                              interest.name : String(interest);
+          return interestName === selectedInterest;
+        });
+      });
     }
 
     return filtered;
@@ -93,9 +99,15 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
     if (userInterests.length === 0) return [];
     
     return profiles
-      .filter(profile => 
-        profile.interests?.some(interest => userInterests.includes(interest))
-      )
+      .filter(profile => {
+        if (!profile.interests || !Array.isArray(profile.interests)) return false;
+        return profile.interests.some(interest => {
+          const interestName = typeof interest === 'string' ? interest : 
+                              (interest && typeof interest === 'object' && 'name' in interest) ? 
+                              interest.name : String(interest);
+          return userInterests.includes(interestName);
+        });
+      })
       .slice(0, 5);
   }, [profiles, userInterests]);
 
