@@ -57,7 +57,13 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
         .select("name")
         .order("name");
       if (error) throw error;
-      return data?.map(item => item.name) || [];
+      console.log("Content names raw data:", data);
+      const names = data?.map(item => {
+        console.log("Processing item:", item);
+        return typeof item === 'string' ? item : item.name;
+      }) || [];
+      console.log("Processed names:", names);
+      return names;
     },
   });
 
