@@ -11,6 +11,40 @@
     --border: 0 0% 90%;
     --input: 0 0% 95%;
     --ring: 0 0% 13%;
+    
+    --primary: 0 0% 13%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 0 0% 95%;
+    --accent-foreground: 0 0% 13%;
+    --muted: 0 0% 95%;
+    --muted-foreground: 0 0% 45%;
+    
+    /* 統計項目用のセマンティックカラー */
+    --stats-login: 210 100% 60%;
+    --stats-login-bg: 210 100% 97%;
+    --stats-login-hover: 210 100% 95%;
+    
+    --stats-streak: 150 90% 50%;
+    --stats-streak-bg: 150 90% 97%;
+    --stats-streak-hover: 150 90% 95%;
+    
+    --stats-items: 45 100% 55%;
+    --stats-items-bg: 45 100% 97%;
+    --stats-items-hover: 45 100% 95%;
+    
+    --stats-content: 270 80% 60%;
+    --stats-content-bg: 270 80% 97%;
+    --stats-content-hover: 270 80% 95%;
+    
+    --stats-member: 0 0% 45%;
+    --stats-member-bg: 0 0% 97%;
+    --stats-member-hover: 0 0% 95%;
+    
+    /* グラデーション */
+    --gradient-stats: linear-gradient(135deg, hsl(var(--background)), hsl(var(--accent)));
+    --gradient-header: linear-gradient(90deg, hsl(var(--primary) / 0.05), hsl(var(--secondary) / 0.05));
   }
 
   body {
