@@ -37,10 +37,12 @@ export function CreatePostModal({
   };
 
   const handleSubmit = async () => {
-    if (!imageFile) return;
-
     try {
-      const imageUrl = await uploadImage();
+      let imageUrl = "";
+      if (imageFile) {
+        imageUrl = await uploadImage();
+      }
+      
       await createPost.mutateAsync({
         userItemId,
         caption: caption.trim() || undefined,
@@ -80,13 +82,12 @@ export function CreatePostModal({
 
           {/* 画像アップロード */}
           <div className="space-y-2">
-            <Label htmlFor="post-image">投稿画像</Label>
+            <Label htmlFor="post-image">投稿画像（任意）</Label>
             <Input
               id="post-image"
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              required
             />
             {previewUrl && (
               <div className="mt-2">
@@ -117,7 +118,7 @@ export function CreatePostModal({
             </Button>
             <Button 
               onClick={handleSubmit}
-              disabled={!imageFile || createPost.isPending}
+              disabled={(!imageFile && !caption.trim()) || createPost.isPending}
             >
               {createPost.isPending ? "投稿中..." : "投稿する"}
             </Button>
