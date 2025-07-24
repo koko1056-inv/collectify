@@ -149,17 +149,22 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
             >
               すべて
             </Button>
-            {contentNamesData.map((content) => (
-              <Button
-                key={content}
-                variant={selectedInterest === content ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedInterest(content)}
-                className="shrink-0"
-              >
-                {content}
-              </Button>
-            ))}
+            {contentNamesData.map((content, index) => {
+              const contentName = typeof content === 'string' ? content : 
+                                 (content && typeof content === 'object' && content && 'name' in content) ? 
+                                 (content as any).name : String(content);
+              return (
+                <Button
+                  key={`${contentName}-${index}`}
+                  variant={selectedInterest === contentName ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedInterest(contentName)}
+                  className="shrink-0"
+                >
+                  {contentName}
+                </Button>
+              );
+            })}
           </div>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
@@ -208,11 +213,16 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
                       {/* 興味のバッジ */}
                       {profile.interests && Array.isArray(profile.interests) && profile.interests.length > 0 && (
                         <div className="flex gap-1 mt-2 flex-wrap">
-                          {profile.interests.slice(0, 3).map((interest, index) => (
-                            <Badge key={`${interest}-${index}`} variant="secondary" className="text-xs">
-                              {typeof interest === 'string' ? interest : JSON.stringify(interest)}
-                            </Badge>
-                          ))}
+                           {profile.interests.slice(0, 3).map((interest, index) => {
+                             const interestName = typeof interest === 'string' ? interest : 
+                                                  (interest && typeof interest === 'object' && 'name' in interest) ? 
+                                                  (interest as any).name : String(interest);
+                             return (
+                               <Badge key={`${interestName}-${index}`} variant="secondary" className="text-xs">
+                                 {interestName}
+                               </Badge>
+                             );
+                           })}
                           {profile.interests.length > 3 && (
                             <Badge variant="outline" className="text-xs">
                               +{profile.interests.length - 3}
@@ -285,11 +295,16 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
                       {/* 興味のバッジ */}
                       {profile.interests && Array.isArray(profile.interests) && profile.interests.length > 0 && (
                         <div className="flex gap-1 mt-2 flex-wrap">
-                          {profile.interests.slice(0, 3).map((interest, index) => (
-                            <Badge key={`${interest}-${index}`} variant="secondary" className="text-xs">
-                              {typeof interest === 'string' ? interest : JSON.stringify(interest)}
-                            </Badge>
-                          ))}
+                           {profile.interests.slice(0, 3).map((interest, index) => {
+                             const interestName = typeof interest === 'string' ? interest : 
+                                                  (interest && typeof interest === 'object' && 'name' in interest) ? 
+                                                  (interest as any).name : String(interest);
+                             return (
+                               <Badge key={`${interestName}-${index}`} variant="secondary" className="text-xs">
+                                 {interestName}
+                               </Badge>
+                             );
+                           })}
                           {profile.interests.length > 3 && (
                             <Badge variant="outline" className="text-xs">
                               +{profile.interests.length - 3}
