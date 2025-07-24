@@ -7,7 +7,6 @@ import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { CreatePostFromCollectionModal } from "@/components/posts/CreatePostFromCollectionModal";
 import { PostsSidebar } from "@/components/posts/PostsSidebar";
-
 export default function Posts() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
@@ -16,9 +15,7 @@ export default function Posts() {
     selectedContent: "",
     searchQuery: ""
   });
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="flex min-h-[calc(100vh-4rem)] pt-16">
@@ -29,7 +26,7 @@ export default function Posts() {
             <div className="flex items-center justify-between max-w-4xl mx-auto">
               <div>
                 <h1 className="text-xl font-bold">投稿</h1>
-                <p className="text-sm text-muted-foreground">コレクションを共有しよう</p>
+                
               </div>
               <div className="flex items-center gap-2">
                 {/* フィルターボタン */}
@@ -45,20 +42,14 @@ export default function Posts() {
                       <SheetTitle>投稿を絞り込み</SheetTitle>
                     </SheetHeader>
                     <div className="flex-1 overflow-y-auto px-4 pb-4">
-                      <PostsSidebar 
-                        onFiltersChange={(newFilters) => {
-                          setFilters(newFilters);
-                        }} 
-                      />
+                      <PostsSidebar onFiltersChange={newFilters => {
+                      setFilters(newFilters);
+                    }} />
                     </div>
                   </SheetContent>
                 </Sheet>
                 
-                <Button 
-                  onClick={() => setIsCreateModalOpen(true)} 
-                  size="sm"
-                  className="bg-primary hover:bg-primary/90"
-                >
+                <Button onClick={() => setIsCreateModalOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">
                   <Plus className="h-4 w-4 mr-2" />
                   投稿
                 </Button>
@@ -81,10 +72,6 @@ export default function Posts() {
       <Footer />
 
       {/* 投稿作成モーダル */}
-      <CreatePostFromCollectionModal 
-        isOpen={isCreateModalOpen} 
-        onClose={() => setIsCreateModalOpen(false)} 
-      />
-    </div>
-  );
+      <CreatePostFromCollectionModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+    </div>;
 }
