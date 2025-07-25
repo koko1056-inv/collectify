@@ -146,19 +146,7 @@ export function Navbar() {
               <ChatButton />
               <NotificationBell />
               
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setIsTradeModalOpen(true)}
-                className="relative h-9 w-9"
-              >
-                <Repeat2 className="h-4 w-4" />
-                {pendingTradeRequests > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {pendingTradeRequests}
-                  </span>
-                )}
-              </Button>
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="icon" className="h-9 w-9">
