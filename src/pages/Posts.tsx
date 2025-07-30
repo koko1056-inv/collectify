@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Plus, Filter } from "lucide-react";
 import { PostsGrid } from "@/components/posts/PostsGrid";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
-import { CreatePostFromCollectionModal } from "@/components/posts/CreatePostFromCollectionModal";
-import { PostsSidebar } from "@/components/posts/PostsSidebar";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Lazy load heavy components
+const CreatePostFromCollectionModal = lazy(() => import("@/components/posts/CreatePostFromCollectionModal").then(module => ({ default: module.CreatePostFromCollectionModal })));
+const PostsSidebar = lazy(() => import("@/components/posts/PostsSidebar").then(module => ({ default: module.PostsSidebar })));
 export default function Posts() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
@@ -42,9 +45,17 @@ export default function Posts() {
                       <SheetTitle>投稿を絞り込み</SheetTitle>
                     </SheetHeader>
                     <div className="flex-1 overflow-y-auto px-4 pb-4">
-                      <PostsSidebar onFiltersChange={newFilters => {
-                      setFilters(newFilters);
-                    }} />
+                      <Suspense fallback={
+                        <div className="space-y-4">
+                          <Skeleton className="h-32 w-full" />
+                          <Skeleton className="h-24 w-full" />
+                          <Skeleton className="h-20 w-full" />
+                        </div>
+                      }>
+                        <PostsSidebar onFiltersChange={newFilters => {
+                          setFilters(newFilters);
+                        }} />
+                      </Suspense>
                     </div>
                   </SheetContent>
                 </Sheet>
@@ -72,6 +83,8 @@ export default function Posts() {
       <Footer />
 
       {/* 投稿作成モーダル */}
-      <CreatePostFromCollectionModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+      <Suspense fallback={null}>
+        <CreatePostFromCollectionModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+      </Suspense>
     </div>;
 }

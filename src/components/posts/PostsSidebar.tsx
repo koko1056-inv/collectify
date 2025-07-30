@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Filter, Hash, Package, X } from "lucide-react";
-import { useOfficialItems } from "@/hooks/useOfficialItems";
-import { useTags } from "@/hooks/useTags";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -24,20 +22,21 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
   const [selectedContent, setSelectedContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   
-  const { data: items = [] } = useOfficialItems();
-  const { data: allTags = [] } = useTags();
+  // 不要なhooksを削除してパフォーマンス向上
 
-  // コンテンツ名の一覧を取得（実際の投稿から）
+  // コンテンツ名の一覧を取得（キャッシュを強化）
   const { data: contentNames = [] } = useQuery({
     queryKey: ["posts", "content-names"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('goods_posts')
         .select(`
-          user_items:user_item_id (
+          user_items:user_item_id!inner (
             content_name
           )
-        `);
+        `)
+        .not('user_items.content_name', 'is', null)
+        .limit(100); // 効率化のため制限
 
       if (error) throw error;
 
@@ -46,45 +45,31 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
           .filter(Boolean)
       )).slice(0, 10);
     },
-    staleTime: 3 * 60 * 1000, // 3分間キャッシュ
-    gcTime: 5 * 60 * 1000, // 5分間保持
+    staleTime: 15 * 60 * 1000, // 15分間キャッシュ
+    gcTime: 60 * 60 * 1000, // 1時間保持
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
-  // 人気タグ（実際の使用頻度順）
+  // 人気タグ（効率化されたクエリ）
   const { data: popularTags = [] } = useQuery({
-    queryKey: ["posts", "popular-tags-detail"],
+    queryKey: ["posts", "popular-tags-optimized"],
     queryFn: async () => {
+      // シンプルなクエリに変更
       const { data, error } = await supabase
-        .from('user_item_tags')
-        .select(`
-          tags:tag_id (
-            id,
-            name
-          )
-        `);
-
+        .from('tags')
+        .select('id, name')
+        .in('category', ['type', 'character', 'series'])
+        .order('name')
+        .limit(15);
+        
       if (error) throw error;
-
-      // タグの使用回数をカウント
-      const tagCounts: { [key: string]: { tag: any, count: number } } = {};
-      data?.forEach((item) => {
-        if (item.tags?.name) {
-          const key = item.tags.name;
-          if (!tagCounts[key]) {
-            tagCounts[key] = { tag: item.tags, count: 0 };
-          }
-          tagCounts[key].count++;
-        }
-      });
-
-      // 使用回数順にソートして上位15個を取得
-      return Object.values(tagCounts)
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 15)
-        .map(item => item.tag);
+      return data || [];
     },
-    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
-    gcTime: 10 * 60 * 1000, // 10分間保持
+    staleTime: 20 * 60 * 1000, // 20分間キャッシュ
+    gcTime: 2 * 60 * 60 * 1000, // 2時間保持
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const handleTagToggle = (tagName: string) => {

@@ -12,14 +12,17 @@ export function useProfile(userId: string | undefined) {
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle(); // single()の代わりにmaybeSingle()を使用
+      
       if (error) throw error;
       if (!data) throw new Error("Profile not found");
       return data as Profile;
     },
     enabled: !!userId,
-    staleTime: 1 * 60 * 1000, // 1分間キャッシュ
-    gcTime: 5 * 60 * 1000, // 5分間保持
+    staleTime: 10 * 60 * 1000, // 10分間キャッシュ
+    gcTime: 60 * 60 * 1000, // 1時間保持
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   return {
