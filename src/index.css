@@ -45,6 +45,35 @@
     /* グラデーション */
     --gradient-stats: linear-gradient(135deg, hsl(var(--background)), hsl(var(--accent)));
     --gradient-header: linear-gradient(90deg, hsl(var(--primary) / 0.05), hsl(var(--secondary) / 0.05));
+    
+    /* Loading & Skeleton colors */
+    --skeleton: 0 0% 90%;
+    --skeleton-foreground: 0 0% 45%;
+    --loading-bg: 0 0% 98%;
+    --loading-overlay: 0 0% 98% / 0.8;
+  }
+
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 263.4 70% 50.4%;
+    
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    
+    /* Dark mode loading & skeleton */
+    --skeleton: 215 27.9% 16.9%;
+    --skeleton-foreground: 217.9 10.6% 64.9%;
+    --loading-bg: 224 71.4% 4.1%;
+    --loading-overlay: 224 71.4% 4.1% / 0.8;
   }
 
   body {

@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, TrendingUp, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonGrid } from "@/components/ui/skeleton";
 import { OfficialItem } from "@/types";
 import { 
   Carousel, 
@@ -124,15 +124,7 @@ export function FeaturedCollections() {
         
         <TabsContent value="today" className="mt-0">
           {isTodayLoading ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="space-y-1">
-                  <Skeleton className="aspect-square w-full rounded-md" />
-                  <Skeleton className="h-3 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-              ))}
-            </div>
+            <SkeletonGrid count={12} />
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
               {todayItems.map((item) => (
@@ -156,15 +148,7 @@ export function FeaturedCollections() {
         
         <TabsContent value="trending" className="mt-0">
           {isTrendingLoading ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="space-y-1">
-                  <Skeleton className="aspect-square w-full rounded-md" />
-                  <Skeleton className="h-3 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-              ))}
-            </div>
+            <SkeletonGrid count={12} />
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
               {trendingItems.map((item) => (

@@ -40,6 +40,10 @@ export default {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
+        skeleton: "hsl(var(--skeleton))",
+        "skeleton-foreground": "hsl(var(--skeleton-foreground))",
+        "loading-bg": "hsl(var(--loading-bg))",
+        "loading-overlay": "hsl(var(--loading-overlay))",
         // 統計項目用のセマンティックカラー
         stats: {
           login: "hsl(var(--stats-login))",

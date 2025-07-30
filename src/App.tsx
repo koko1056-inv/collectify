@@ -25,10 +25,18 @@ const Posts = lazy(() => import("./pages/Posts").catch(() => ({ default: () => <
 
 // Loading fallback component
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="space-y-4">
-      <Skeleton className="h-12 w-48" />
-      <Skeleton className="h-4 w-32" />
+  <div className="min-h-screen bg-loading-bg flex items-center justify-center">
+    <div className="space-y-6 text-center">
+      <div className="relative">
+        <div className="h-16 w-16 mx-auto">
+          <Skeleton className="h-full w-full rounded-full" />
+        </div>
+        <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-pulse" />
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-32 mx-auto" />
+        <Skeleton className="h-4 w-24 mx-auto" />
+      </div>
     </div>
   </div>
 );
