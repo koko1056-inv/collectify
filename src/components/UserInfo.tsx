@@ -1,34 +1,34 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export function UserInfo() {
   const { user } = useAuth();
-  const [username, setUsername] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchUsername() {
-      if (user) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('username')
-          .eq('id', user.id)
-          .single();
-        
-        if (!error && data) {
-          setUsername(data.username);
-        }
-      }
-    }
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000, // 10分間キャッシュ
+    gcTime: 30 * 60 * 1000, // 30分間保持
+  });
 
-    fetchUsername();
-  }, [user]);
-
-  if (!user || !username) return null;
+  if (!user || !profile?.username) return null;
 
   return (
     <div className="text-sm text-gray-600">
-      {username}
+      {profile.username}
     </div>
   );
 }

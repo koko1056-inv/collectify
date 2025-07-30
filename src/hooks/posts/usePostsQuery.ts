@@ -10,6 +10,7 @@ export function usePosts() {
   const query = useQuery({
     queryKey: ["posts"],
     queryFn: async () => {
+      // 単一クエリで投稿、プロファイル、ライクを一度に取得
       const { data, error } = await supabase
         .from("goods_posts")
         .select(`
@@ -19,12 +20,24 @@ export function usePosts() {
           image_url,
           caption,
           created_at,
+          updated_at,
           profiles!user_id (username, avatar_url),
           user_items!user_item_id (
             title, 
             image, 
             official_item_id, 
-            content_name
+            content_name,
+            user_item_tags (
+              tags (
+                id,
+                name,
+                category
+              )
+            )
+          ),
+          post_likes (
+            id,
+            user_id
           )
         `)
         .order("created_at", { ascending: false })
@@ -34,31 +47,20 @@ export function usePosts() {
         throw error;
       }
       
-      // 投稿のIDリストを取得してライク数を別途取得
-      const postIds = data?.map(post => post.id) || [];
-      let likesData = [];
-      
-      if (postIds.length > 0) {
-        const { data: likes, error: likesError } = await supabase
-          .from("post_likes")
-          .select("post_id, user_id")
-          .in("post_id", postIds);
-          
-        if (!likesError) {
-          likesData = likes || [];
-        }
-      }
-      
       return (data || []).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
-        user_items: post.user_items || { title: "Unknown", image: "", official_item_id: null },
-        post_likes: likesData.filter(like => like.post_id === post.id)
+        user_items: post.user_items ? {
+          ...post.user_items,
+          user_item_tags: post.user_items.user_item_tags || []
+        } : { title: "Unknown", image: "", official_item_id: null, user_item_tags: [] },
+        post_likes: post.post_likes || []
       })) as GoodsPost[];
     },
-    staleTime: 2 * 60 * 1000, // 2分間はキャッシュを使用
-    gcTime: 10 * 60 * 1000, // 10分間キャッシュを保持
+    staleTime: 5 * 60 * 1000, // 5分間はキャッシュを使用
+    gcTime: 15 * 60 * 1000, // 15分間キャッシュを保持
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // マウント時の再取得を防ぐ
   });
 
   // リアルタイム更新の設定
@@ -115,34 +117,42 @@ export function usePostsForItem(userItemId: string) {
           image_url,
           caption,
           created_at,
+          updated_at,
           profiles!user_id (username, avatar_url),
-          user_items!user_item_id (title, image, official_item_id)
+          user_items!user_item_id (
+            title, 
+            image, 
+            official_item_id,
+            user_item_tags (
+              tags (
+                id,
+                name,
+                category
+              )
+            )
+          ),
+          post_likes (
+            id,
+            user_id
+          )
         `)
         .eq("user_item_id", userItemId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       
-      const postIds = data?.map(post => post.id) || [];
-      let likesData = [];
-      
-      if (postIds.length > 0) {
-        const { data: likes } = await supabase
-          .from("post_likes")
-          .select("post_id, user_id")
-          .in("post_id", postIds);
-          
-        likesData = likes || [];
-      }
-      
       return (data || []).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
-        user_items: post.user_items || { title: "Unknown", image: "", official_item_id: null },
-        post_likes: likesData.filter(like => like.post_id === post.id)
+        user_items: post.user_items ? {
+          ...post.user_items,
+          user_item_tags: post.user_items.user_item_tags || []
+        } : { title: "Unknown", image: "", official_item_id: null, user_item_tags: [] },
+        post_likes: post.post_likes || []
       })) as GoodsPost[];
     },
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
+    gcTime: 10 * 60 * 1000, // 10分間保持
+    enabled: !!userItemId,
   });
 }

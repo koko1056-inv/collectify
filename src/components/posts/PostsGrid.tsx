@@ -54,8 +54,21 @@ export function PostsGrid({ filters }: PostsGridProps) {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-48">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-background rounded-lg border p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-skeleton-base rounded-full animate-pulse" />
+              <div className="flex-1">
+                <div className="h-4 bg-skeleton-base rounded animate-pulse mb-1" />
+                <div className="h-3 bg-skeleton-base rounded animate-pulse w-2/3" />
+              </div>
+            </div>
+            <div className="h-48 bg-skeleton-base rounded animate-pulse mb-3" />
+            <div className="h-4 bg-skeleton-base rounded animate-pulse mb-2" />
+            <div className="h-3 bg-skeleton-base rounded animate-pulse w-3/4" />
+          </div>
+        ))}
       </div>
     );
   }

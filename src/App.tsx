@@ -44,12 +44,17 @@ const LoadingFallback = () => (
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
-      retry: 1,
+      staleTime: 1000 * 60 * 10, // 10分間はキャッシュを使用
+      gcTime: 1000 * 60 * 60, // 1時間キャッシュを保持
+      retry: 2, // 2回まで再試行
       refetchOnWindowFocus: false,
+      refetchOnMount: false, // マウント時の再取得を防ぐ
+      refetchOnReconnect: true, // ネットワーク再接続時は再取得
+      networkMode: 'online', // オンライン時のみクエリ実行
     },
     mutations: {
+      retry: 1, // ミューテーションの再試行回数を制限
+      networkMode: 'online',
       onError: (error) => {
         console.error('Mutation error:', error);
       },
