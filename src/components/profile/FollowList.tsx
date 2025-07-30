@@ -68,20 +68,22 @@ export function FollowList({ userId, type }: FollowListProps) {
 
   const fetchCollectionCounts = async (profileIds: string[]) => {
     try {
-      const counts: Record<string, number> = {};
+      // 一度のクエリで全ユーザーのコレクション数を取得
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("user_id")
+        .in("user_id", profileIds);
+        
+      if (error) throw error;
       
-      // 各ユーザーのコレクション数を取得
-      const promises = profileIds.map(async (profileId) => {
-        const { count, error } = await supabase
-          .from("user_items")
-          .select("*", { count: 'exact', head: true })
-          .eq("user_id", profileId);
-          
-        if (error) throw error;
-        counts[profileId] = count || 0;
+      // ユーザーごとのコレクション数を集計
+      const counts: Record<string, number> = {};
+      profileIds.forEach(id => counts[id] = 0); // 初期化
+      
+      data?.forEach(item => {
+        counts[item.user_id] = (counts[item.user_id] || 0) + 1;
       });
       
-      await Promise.all(promises);
       setCollectionCounts(counts);
     } catch (error) {
       console.error("Error fetching collection counts:", error);

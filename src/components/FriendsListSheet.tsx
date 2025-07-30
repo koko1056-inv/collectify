@@ -61,25 +61,45 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
     const searchUsers = async () => {
       if (searchQuery.trim().length < 2) {
         setSearchResults([]);
+        setCollectionCounts({});
         return;
       }
 
       setSearching(true);
 
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("id, username, avatar_url, bio, followers_count, following_count")
-          .ilike("username", `%${searchQuery}%`)
-          .limit(10);
+        // ユーザー検索とコレクション数を並行取得
+        const [profilesResponse, collectionsResponse] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("id, username, avatar_url, bio, followers_count, following_count")
+            .ilike("username", `%${searchQuery}%`)
+            .limit(10),
+          supabase
+            .from("user_items")
+            .select("user_id")
+            .then(({ data }) => {
+              // ユーザーごとのコレクション数を集計
+              const counts: Record<string, number> = {};
+              data?.forEach(item => {
+                counts[item.user_id] = (counts[item.user_id] || 0) + 1;
+              });
+              return counts;
+            })
+        ]);
 
-        if (error) throw error;
-        setSearchResults(data || []);
+        if (profilesResponse.error) throw profilesResponse.error;
         
-        // ユーザーのコレクション数を取得
-        if (data && data.length > 0) {
-          fetchCollectionCounts(data.map(p => p.id));
-        }
+        const profiles = profilesResponse.data || [];
+        setSearchResults(profiles);
+        
+        // 検索結果のユーザーのコレクション数のみ抽出
+        const relevantCounts: Record<string, number> = {};
+        profiles.forEach(profile => {
+          relevantCounts[profile.id] = collectionsResponse[profile.id] || 0;
+        });
+        setCollectionCounts(relevantCounts);
+        
       } catch (error) {
         console.error("Error searching users:", error);
         toast({
@@ -92,7 +112,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
       }
     };
 
-    const timer = setTimeout(searchUsers, 300);
+    const timer = setTimeout(searchUsers, 500); // デバウンス時間を増加
     return () => clearTimeout(timer);
   }, [searchQuery, toast]);
 

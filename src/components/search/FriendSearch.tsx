@@ -35,19 +35,28 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
 
   console.log("FriendSearch: userInterests received:", userInterests);
 
-  // ユーザー一覧を取得
+  // ユーザー一覧を取得（遅延読み込み）
   const { data: profiles = [], isLoading } = useQuery({
-    queryKey: ["profiles", "search"],
+    queryKey: ["profiles", "search", searchQuery, selectedInterest],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("profiles")
         .select("id, username, display_name, avatar_url, bio, interests, followers_count, following_count")
-        .neq("id", user?.id || ""); // 自分は除外
+        .neq("id", user?.id || "")
+        .limit(20); // 最大20件に制限
 
+      // 検索クエリがある場合のみフィルタリング
+      if (searchQuery.trim()) {
+        const searchTerm = searchQuery.toLowerCase();
+        query = query.or(`username.ilike.%${searchTerm}%,display_name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as Profile[];
     },
-    enabled: !!user,
+    enabled: !!user && (searchQuery.trim().length >= 2 || selectedInterest !== "all"),
+    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
   });
 
   // 利用可能な興味のコンテンツ一覧
@@ -64,23 +73,13 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
     },
   });
 
-  // フィルタリングされたプロファイル
+  // フィルタリングされたプロファイル（データベースレベルでフィルタリング済み）
   const filteredProfiles = useMemo(() => {
-    let filtered = profiles;
-
-    // 検索クエリでフィルタ
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(profile => 
-        profile.username?.toLowerCase().includes(query) ||
-        profile.display_name?.toLowerCase().includes(query) ||
-        profile.bio?.toLowerCase().includes(query)
-      );
-    }
-
-    // 興味でフィルタ
+    if (!profiles) return [];
+    
+    // 興味でフィルタ（データベースクエリで検索済みなので、興味のみクライアントサイドでフィルタ）
     if (selectedInterest !== "all") {
-      filtered = filtered.filter(profile => {
+      return profiles.filter(profile => {
         if (!profile.interests || !Array.isArray(profile.interests)) return false;
         return profile.interests.some(interest => {
           const interestName = typeof interest === 'string' ? interest : 
@@ -91,8 +90,8 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
       });
     }
 
-    return filtered;
-  }, [profiles, searchQuery, selectedInterest]);
+    return profiles;
+  }, [profiles, selectedInterest]);
 
   // おすすめユーザー（共通の興味を持つユーザー）
   const recommendedProfiles = useMemo(() => {
@@ -115,10 +114,32 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
     navigate(`/user/${profileId}`);
   };
 
-  if (isLoading) {
+  if (isLoading && (searchQuery.trim().length >= 2 || selectedInterest !== "all")) {
     return (
-      <div className="flex justify-center items-center h-48">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="space-y-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="ユーザー名やプロフィールで検索..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-background rounded-lg p-4 border">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 bg-skeleton-base rounded-full animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-skeleton-base rounded animate-pulse w-1/3" />
+                  <div className="h-3 bg-skeleton-base rounded animate-pulse w-1/2" />
+                </div>
+                <div className="h-8 w-20 bg-skeleton-base rounded animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
