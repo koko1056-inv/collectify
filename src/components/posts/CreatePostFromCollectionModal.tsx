@@ -92,7 +92,7 @@ export function CreatePostFromCollectionModal({
   const typeTags = allTags.filter(tag => tag.category === 'type');
 
   // フィルタリングされたコンテンツ名
-  const filteredContentNames = contentNames.filter(content => content.name.toLowerCase().includes(contentSearchQuery.toLowerCase()));
+  const filteredContentNames = contentNames.filter(content => content.name && content.name.toLowerCase().includes(contentSearchQuery.toLowerCase()));
 
   // 人気のコンテンツ名（最初の5つ）
   const popularContentNames = contentNames.slice(0, 5);
