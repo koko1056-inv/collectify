@@ -52,60 +52,60 @@ export function UserStatsCard({
       <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-6">
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           {/* ログイン日数 */}
-          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-stats-login-bg hover:bg-stats-login-hover transition-all duration-300 group cursor-pointer border border-transparent hover:border-stats-login/20">
-            <div className="p-2 rounded-full bg-stats-login text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
+          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-card hover:bg-accent/50 transition-all duration-300 group cursor-pointer border border-border hover:border-foreground/20">
+            <div className="p-2 rounded-full bg-foreground text-background group-hover:scale-110 transition-transform duration-300 shadow-lg">
               <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-base sm:text-xl font-bold text-stats-login animate-scale-in">
+              <span className="text-base sm:text-xl font-bold text-foreground animate-scale-in">
                 {stats.totalLoginDays}
               </span>
-              <span className="text-xs font-medium text-stats-login/80">
+              <span className="text-xs font-medium text-muted-foreground">
                 ログイン日数
               </span>
             </div>
           </div>
           
           {/* 連続ログイン */}
-          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-stats-streak-bg hover:bg-stats-streak-hover transition-all duration-300 group cursor-pointer border border-transparent hover:border-stats-streak/20">
-            <div className="p-2 rounded-full bg-stats-streak text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
+          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-card hover:bg-accent/50 transition-all duration-300 group cursor-pointer border border-border hover:border-foreground/20">
+            <div className="p-2 rounded-full bg-foreground text-background group-hover:scale-110 transition-transform duration-300 shadow-lg">
               <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-base sm:text-xl font-bold text-stats-streak animate-scale-in">
+              <span className="text-base sm:text-xl font-bold text-foreground animate-scale-in">
                 {stats.currentStreak}
               </span>
-              <span className="text-xs font-medium text-stats-streak/80">
+              <span className="text-xs font-medium text-muted-foreground">
                 連続ログイン
               </span>
             </div>
           </div>
           
           {/* グッズ追加 */}
-          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-stats-items-bg hover:bg-stats-items-hover transition-all duration-300 group cursor-pointer border border-transparent hover:border-stats-items/20">
-            <div className="p-2 rounded-full bg-stats-items text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
+          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-card hover:bg-accent/50 transition-all duration-300 group cursor-pointer border border-border hover:border-foreground/20">
+            <div className="p-2 rounded-full bg-foreground text-background group-hover:scale-110 transition-transform duration-300 shadow-lg">
               <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-base sm:text-xl font-bold text-stats-items animate-scale-in">
+              <span className="text-base sm:text-xl font-bold text-foreground animate-scale-in">
                 {stats.totalItemsAdded}
               </span>
-              <span className="text-xs font-medium text-stats-items/80">
+              <span className="text-xs font-medium text-muted-foreground">
                 グッズ追加
               </span>
             </div>
           </div>
           
           {/* コンテンツ追加 */}
-          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-stats-content-bg hover:bg-stats-content-hover transition-all duration-300 group cursor-pointer border border-transparent hover:border-stats-content/20">
-            <div className="p-2 rounded-full bg-stats-content text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
+          <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-card hover:bg-accent/50 transition-all duration-300 group cursor-pointer border border-border hover:border-foreground/20">
+            <div className="p-2 rounded-full bg-foreground text-background group-hover:scale-110 transition-transform duration-300 shadow-lg">
               <Star className="w-3 h-3 sm:w-4 sm:h-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-base sm:text-xl font-bold text-stats-content animate-scale-in">
+              <span className="text-base sm:text-xl font-bold text-foreground animate-scale-in">
                 {stats.totalContentAdded}
               </span>
-              <span className="text-xs font-medium text-stats-content/80">
+              <span className="text-xs font-medium text-muted-foreground">
                 コンテンツ追加
               </span>
             </div>
@@ -113,15 +113,15 @@ export function UserStatsCard({
         </div>
         
         {/* メンバー歴 */}
-        <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-xl bg-stats-member-bg hover:bg-stats-member-hover transition-all duration-300 group cursor-pointer border border-transparent hover:border-stats-member/20">
-          <div className="p-2 rounded-full bg-stats-member text-white group-hover:scale-110 transition-transform duration-300 shadow-lg">
+        <div className="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 rounded-xl bg-card hover:bg-accent/50 transition-all duration-300 group cursor-pointer border border-border hover:border-foreground/20">
+          <div className="p-2 rounded-full bg-foreground text-background group-hover:scale-110 transition-transform duration-300 shadow-lg">
             <Award className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>          
           <div className="flex flex-col">
-            <span className="text-lg sm:text-2xl font-bold text-stats-member animate-scale-in">
+            <span className="text-lg sm:text-2xl font-bold text-foreground animate-scale-in">
               {daysSinceMember}日
             </span>
-            <span className="text-sm font-medium text-stats-member/80">
+            <span className="text-sm font-medium text-muted-foreground">
               🎉 メンバー歴
             </span>
           </div>
