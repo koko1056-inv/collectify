@@ -35,15 +35,15 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
 
   console.log("FriendSearch: userInterests received:", userInterests);
 
-  // ユーザー一覧を取得（遅延読み込み）
+  // ユーザー一覧を取得
   const { data: profiles = [], isLoading } = useQuery({
-    queryKey: ["profiles", "search", searchQuery, selectedInterest],
+    queryKey: ["profiles", "search", searchQuery],
     queryFn: async () => {
       let query = supabase
         .from("profiles")
         .select("id, username, display_name, avatar_url, bio, interests, followers_count, following_count")
         .neq("id", user?.id || "")
-        .limit(20); // 最大20件に制限
+        .limit(50); // 制限を緩和
 
       // 検索クエリがある場合のみフィルタリング
       if (searchQuery.trim()) {
@@ -55,7 +55,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
       if (error) throw error;
       return data as Profile[];
     },
-    enabled: !!user && (searchQuery.trim().length >= 2 || selectedInterest !== "all"),
+    enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5分間キャッシュ
   });
 
@@ -73,13 +73,18 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
     },
   });
 
-  // フィルタリングされたプロファイル（データベースレベルでフィルタリング済み）
+  // フィルタリングされたプロファイル
   const filteredProfiles = useMemo(() => {
     if (!profiles) return [];
     
-    // 興味でフィルタ（データベースクエリで検索済みなので、興味のみクライアントサイドでフィルタ）
+    let filtered = profiles;
+
+    // 検索クエリでフィルタ（データベースで既にフィルタリング済みなのでここでは不要）
+    // データベースレベルでフィルタリングしているため、クライアントサイドでの追加フィルタは不要
+
+    // 興味でフィルタ
     if (selectedInterest !== "all") {
-      return profiles.filter(profile => {
+      filtered = filtered.filter(profile => {
         if (!profile.interests || !Array.isArray(profile.interests)) return false;
         return profile.interests.some(interest => {
           const interestName = typeof interest === 'string' ? interest : 
@@ -90,8 +95,8 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
       });
     }
 
-    return profiles;
-  }, [profiles, selectedInterest]);
+    return filtered;
+  }, [profiles, searchQuery, selectedInterest]);
 
   // おすすめユーザー（共通の興味を持つユーザー）
   const recommendedProfiles = useMemo(() => {
@@ -114,7 +119,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
     navigate(`/user/${profileId}`);
   };
 
-  if (isLoading && (searchQuery.trim().length >= 2 || selectedInterest !== "all")) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="relative">
@@ -127,7 +132,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
           />
         </div>
         <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
+          {[...Array(5)].map((_, i) => (
             <div key={i} className="bg-background rounded-lg p-4 border">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 bg-skeleton-base rounded-full animate-pulse" />
