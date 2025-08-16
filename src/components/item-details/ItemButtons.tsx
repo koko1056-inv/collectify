@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { useSound } from "@/hooks/use-sound";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -35,13 +34,6 @@ export function ItemButtons({
     toast
   } = useToast();
   const queryClient = useQueryClient();
-  
-  // ピコン音の効果音を設定
-  const [playPiconSound] = useSound('/picon.mp3', {
-    volume: 0.5,
-    interrupt: true,
-    preload: true,
-  });
 
   // コレクションにアイテムを追加する関数
   const handleAddToCollection = async () => {
@@ -95,10 +87,6 @@ export function ItemButtons({
       await queryClient.invalidateQueries({
         queryKey: ["item-owners-count", itemId]
       });
-      
-      // 効果音を再生
-      playPiconSound();
-      
       toast({
         title: "成功",
         description: "コレクションに追加しました。"

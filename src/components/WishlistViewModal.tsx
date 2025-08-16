@@ -10,7 +10,6 @@ import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
 import { ItemDetailsModal } from "./ItemDetailsModal";
 import { useToast } from "@/hooks/use-toast";
-import { useSound } from "@/hooks/use-sound";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface EditingWishlist {
@@ -30,13 +29,6 @@ export function WishlistViewModal({
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  // ピコン音の効果音を設定
-  const [playPiconSound] = useSound('/picon.mp3', {
-    volume: 0.5,
-    interrupt: true,
-    preload: true,
-  });
   const [editingWishlist, setEditingWishlist] = useState<EditingWishlist | null>(null);
   const [selectedItem, setSelectedItem] = useState<{
     id: string;
@@ -95,9 +87,6 @@ export function WishlistViewModal({
       // Invalidate relevant queries
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
-      
-      // 効果音を再生
-      playPiconSound();
       
       toast({
         title: "成功",

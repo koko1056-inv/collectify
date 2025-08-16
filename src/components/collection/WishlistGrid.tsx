@@ -6,7 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { useSound } from "@/hooks/use-sound";
 
 interface WishlistGridProps {
   userId: string;
@@ -17,13 +16,6 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  // ピコン音の効果音を設定
-  const [playPiconSound] = useSound('/picon.mp3', {
-    volume: 0.5,
-    interrupt: true,
-    preload: true,
-  });
 
   const { data: wishlistItems = [], isLoading } = useQuery({
     queryKey: ["wishlist", userId],
@@ -79,9 +71,6 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
 
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
-
-      // 効果音を再生
-      playPiconSound();
 
       toast({
         title: "成功",
