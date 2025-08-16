@@ -27,22 +27,6 @@ export const handleAdminLogin = async (password: string) => {
 };
 
 export const handleUserLogin = async (formData: LoginFormData) => {
-  // First, check if the user exists in profiles
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('username', formData.username)
-    .maybeSingle();
-
-  if (profileError) {
-    console.error("Profile lookup error:", profileError);
-    throw new Error("プロフィールの取得に失敗しました");
-  }
-
-  if (!profile) {
-    throw new Error("ユーザー名が見つかりません");
-  }
-
   // Generate a consistent email format for the user
   const email = `${formData.username}@example.com`;
 
@@ -53,10 +37,21 @@ export const handleUserLogin = async (formData: LoginFormData) => {
 
   if (error) {
     console.error("Login error:", error);
-    if (error.message.includes("Invalid login credentials")) {
-      throw new Error("パスワードが正しくありません");
-    }
-    throw new Error("ログインに失敗しました");
+    throw new Error("ユーザー名またはパスワードが正しくありません");
+  }
+
+  // After successful login, verify the profile exists
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('username', formData.username)
+    .maybeSingle();
+
+  if (profileError || !profile) {
+    console.error("Profile verification error:", profileError);
+    // Sign out if profile doesn't exist
+    await supabase.auth.signOut();
+    throw new Error("ユーザープロフィールが見つかりません");
   }
 
   return data;
