@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useSound } from "@/hooks/use-sound";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
@@ -19,6 +20,13 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const queryClient = useQueryClient();
+  
+  // ピコン音の効果音を設定
+  const [playPiconSound] = useSound('/picon.mp3', {
+    volume: 0.5,
+    interrupt: true,
+    preload: true,
+  });
 
   const { data: isInCollection = false, refetch: refetchIsInCollection } = useQuery({
     queryKey: ["user-item-exists", id, user?.id],
@@ -110,6 +118,9 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       }
 
       trackAddToCollection(id, title, user.id);
+
+      // 効果音を再生
+      playPiconSound();
 
       await refetchIsInCollection();
       await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
