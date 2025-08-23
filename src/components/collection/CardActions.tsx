@@ -30,9 +30,13 @@ export function CardActions({
           e.stopPropagation();
           onMemoriesClick();
         }}
-        className="h-8 w-8 p-0"
+        className={`h-8 w-8 p-0 transition-colors ${
+          hasMemories 
+            ? 'bg-blue-100 hover:bg-blue-200 border border-blue-200' 
+            : 'hover:bg-gray-100'
+        }`}
       >
-        <MessageSquare className={`h-4 w-4 ${hasMemories ? 'text-blue-500' : 'text-gray-400'}`} />
+        <MessageSquare className={`h-4 w-4 ${hasMemories ? 'text-blue-600' : 'text-gray-400'}`} />
       </Button>
 
       <Button
