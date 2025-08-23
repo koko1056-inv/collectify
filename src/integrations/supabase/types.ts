@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -850,6 +850,7 @@ export type Database = {
           id: string
           interests: string[] | null
           is_admin: boolean | null
+          privacy_level: Database["public"]["Enums"]["profile_privacy"]
           themes: string[] | null
           username: string
           x_username: string | null
@@ -867,6 +868,7 @@ export type Database = {
           id: string
           interests?: string[] | null
           is_admin?: boolean | null
+          privacy_level?: Database["public"]["Enums"]["profile_privacy"]
           themes?: string[] | null
           username: string
           x_username?: string | null
@@ -884,6 +886,7 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_admin?: boolean | null
+          privacy_level?: Database["public"]["Enums"]["profile_privacy"]
           themes?: string[] | null
           username?: string
           x_username?: string | null
@@ -1314,10 +1317,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_follower: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       approval_status: "pending" | "approved" | "rejected"
+      profile_privacy: "public" | "followers" | "private"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1446,6 +1453,7 @@ export const Constants = {
   public: {
     Enums: {
       approval_status: ["pending", "approved", "rejected"],
+      profile_privacy: ["public", "followers", "private"],
     },
   },
 } as const
