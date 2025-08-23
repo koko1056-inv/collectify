@@ -12,8 +12,8 @@ interface TagButtonProps {
 }
 
 export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProps) {
-  // カテゴリ別タグ数を取得するクエリ
-  const { data: categoryCounts = { character: 0, type: 0, series: 0 }, refetch } = useQuery({
+  // カテゴリ別タグ数を取得するクエリ（改善版）
+  const { data: categoryCounts = { character: 0, type: 0, series: 0, total: 0 }, refetch } = useQuery({
     queryKey: ["item-category-tags-count", itemId, isUserItem],
     queryFn: async () => {
       const table = isUserItem ? "user_item_tags" : "item_tags";
@@ -26,6 +26,8 @@ export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProp
         .select(`
           tag_id,
           tags:tag_id (
+            id,
+            name,
             category
           )
         `)
@@ -33,36 +35,42 @@ export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProp
       
       if (error) {
         console.error("Error getting category tag counts:", error);
-        return { character: 0, type: 0, series: 0 };
+        return { character: 0, type: 0, series: 0, total: 0 };
       }
       
-      const counts = { character: 0, type: 0, series: 0 };
+      const counts = { character: 0, type: 0, series: 0, total: 0 };
+      const uniqueCategories = new Set();
+      
       data?.forEach(item => {
         const category = item.tags?.category;
-        if (category === 'character') counts.character++;
-        else if (category === 'type') counts.type++;
-        else if (category === 'series') counts.series++;
+        if (category && ['character', 'type', 'series'].includes(category)) {
+          counts[category as keyof typeof counts]++;
+          uniqueCategories.add(category);
+        }
       });
       
+      // 総数は実際のタグ数ではなく、設定されているカテゴリの数
+      counts.total = uniqueCategories.size;
+      
       console.log(`[TagButton] Category counts for ${itemId}:`, counts);
-      const totalDisplayCount = (counts.character > 0 ? 1 : 0) + (counts.type > 0 ? 1 : 0) + (counts.series > 0 ? 1 : 0);
-      console.log(`[TagButton] Final display count: ${totalDisplayCount}`);
+      console.log(`[TagButton] Unique categories: ${Array.from(uniqueCategories).join(', ')}`);
       return counts;
     },
-    initialData: { character: 0, type: 0, series: 0 },
     enabled: !!itemId,
     staleTime: 0, // 常に最新データを取得
     refetchOnWindowFocus: true, // ウィンドウフォーカス時に再取得
+    refetchOnMount: true, // マウント時に再取得
   });
 
-  // リアルタイム更新の設定
+  // リアルタイム更新の設定（強化版）
   useEffect(() => {
     if (!itemId) return;
 
     const table = isUserItem ? "user_item_tags" : "item_tags";
     const idField = isUserItem ? "user_item_id" : "official_item_id";
     
-    const channel = supabase
+    // タグ変更のリアルタイム監視
+    const tagChannel = supabase
       .channel(`tag-changes-${isUserItem ? 'user' : 'official'}-${itemId}`)
       .on(
         'postgres_changes',
@@ -73,16 +81,40 @@ export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProp
           filter: `${idField}=eq.${itemId}`
         },
         async (payload) => {
-          console.log(`[TagButton] Real-time update detected for ${table} ${itemId}`, payload);
+          console.log(`[TagButton] Tag change detected for ${table} ${itemId}`, payload);
           
-          // 即座にクエリを再取得
-          await refetch();
+          // 少し遅延してからリフェッチ（DB反映を待つ）
+          setTimeout(async () => {
+            await refetch();
+          }, 100);
+        }
+      )
+      .subscribe();
+
+    // タグテーブル自体の変更も監視
+    const tagsChannel = supabase
+      .channel(`tags-changes-${itemId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tags'
+        },
+        async (payload) => {
+          console.log(`[TagButton] Tags table change detected for ${itemId}`, payload);
+          
+          // 少し遅延してからリフェッチ
+          setTimeout(async () => {
+            await refetch();
+          }, 100);
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(tagChannel);
+      supabase.removeChannel(tagsChannel);
     };
   }, [itemId, isUserItem, refetch]);
 
@@ -97,9 +129,7 @@ export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProp
         <Tag className="h-3 w-3 sm:h-4 sm:w-4" />
       </Button>
       <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 text-center">
-        {(categoryCounts.character > 0 ? 1 : 0) + 
-         (categoryCounts.type > 0 ? 1 : 0) + 
-         (categoryCounts.series > 0 ? 1 : 0)}
+        {categoryCounts.total || 0}
       </div>
     </div>
   );
