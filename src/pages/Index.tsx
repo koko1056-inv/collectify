@@ -20,9 +20,9 @@ const Index = () => {
   const { profile, refetchProfile } = useProfile(user?.id);
   const { profile: viewedProfile } = useProfile(userId);
 
-  // ユーザーの興味関心が未設定の場合、ダイアログを表示
+  // ユーザーの興味関心がnullの場合のみダイアログを表示（初回ログイン時のみ）
   useEffect(() => {
-    if (user && profile && (!profile.interests || profile.interests.length === 0)) {
+    if (user && profile && profile.interests === null) {
       setShowInterestDialog(true);
     }
   }, [user, profile]);

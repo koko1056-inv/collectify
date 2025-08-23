@@ -109,16 +109,19 @@ export function InitialInterestSelection({
     
     setSaving(true);
     try {
+      // スキップの場合でも空配列を保存して、次回表示されないようにする
+      const interestsToSave = selectedContents.length > 0 ? selectedContents : [];
+      
       const { error } = await supabase
         .from('profiles')
-        .update({ interests: selectedContents })
+        .update({ interests: interestsToSave })
         .eq('id', user.id);
 
       if (error) throw error;
 
       toast({
-        title: "興味のあるコンテンツを保存しました",
-        description: "おすすめのアイテムが表示されます",
+        title: selectedContents.length > 0 ? "興味のあるコンテンツを保存しました" : "設定をスキップしました",
+        description: selectedContents.length > 0 ? "おすすめのアイテムが表示されます" : "後からプロフィールで設定できます",
       });
       onClose();
     } catch (error) {
