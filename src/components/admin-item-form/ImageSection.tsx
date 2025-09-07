@@ -173,59 +173,79 @@ export function ImageSection({
 
   return (
     <>
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="imageUrl" className="text-sm font-medium">
-            画像URLを直接設定
-          </label>
-          <div className="flex gap-2">
-            <Input
-              id="imageUrl"
-              value={imageUrlInput}
-              onChange={(e) => setImageUrlInput(e.target.value)}
-              placeholder="画像URLを入力してください"
-            />
-            <Button
-              type="button"
-              onClick={handleSetImageUrl}
-            >
-              設定
-            </Button>
+      <div className="space-y-6">
+        <div className="bg-gray-50 p-4 rounded-lg border">
+          <h3 className="font-semibold text-lg mb-3 text-gray-900">画像の追加方法</h3>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="imageUrl" className="text-sm font-medium text-gray-700">
+                方法1: 画像URLを直接設定
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                画像の直接URLがある場合はこちらを使用してください
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  id="imageUrl"
+                  value={imageUrlInput}
+                  onChange={(e) => setImageUrlInput(e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                />
+                <Button
+                  type="button"
+                  onClick={handleSetImageUrl}
+                >
+                  設定
+                </Button>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <div className="space-y-2">
+                <label htmlFor="url" className="text-sm font-medium text-gray-700">
+                  方法2: Webサイトから画像を取得
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  商品ページのURLを入力すると、そのページから画像を自動取得します
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    id="url"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    placeholder="https://example.com/product-page"
+                    disabled={isScrapingImages}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleScrapeImages}
+                    disabled={isScrapingImages}
+                  >
+                    {isScrapingImages ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "取得"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="url" className="text-sm font-medium">
-            URLから画像を取得
-          </label>
-          <div className="flex gap-2">
-            <Input
-              id="url"
-              value={urlInput}
-              onChange={(e) => setUrlInput(e.target.value)}
-              placeholder="URLを入力してください"
-              disabled={isScrapingImages}
-            />
-            <Button
-              type="button"
-              onClick={handleScrapeImages}
-              disabled={isScrapingImages}
-            >
-              {isScrapingImages ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "取得"
-              )}
-            </Button>
-          </div>
+        <div className="bg-gray-50 p-4 rounded-lg border">
+          <h3 className="font-semibold text-lg mb-3 text-gray-900">方法3: ファイルから画像をアップロード</h3>
+          <p className="text-xs text-gray-500 mb-3">
+            お手持ちの画像ファイルをドラッグ&ドロップまたはクリックしてアップロードできます
+          </p>
+          <ItemImageUpload
+            onImageChange={handleImageChange}
+            previewUrl={previewUrl}
+            setPreviewUrl={setPreviewUrl}
+          />
         </div>
       </div>
-
-      <ItemImageUpload
-        onImageChange={handleImageChange}
-        previewUrl={previewUrl}
-        setPreviewUrl={setPreviewUrl}
-      />
 
       <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
         <DialogContent className="max-w-3xl">
