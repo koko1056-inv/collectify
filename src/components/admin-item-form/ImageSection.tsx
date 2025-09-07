@@ -235,15 +235,27 @@ export function ImageSection({
         </div>
 
         <div className="bg-gray-50 p-4 rounded-lg border">
-          <h3 className="font-semibold text-lg mb-3 text-gray-900">方法3: ファイルから画像をアップロード</h3>
-          <p className="text-xs text-gray-500 mb-3">
-            お手持ちの画像ファイルをドラッグ&ドロップまたはクリックしてアップロードできます
-          </p>
-          <ItemImageUpload
-            onImageChange={handleImageChange}
-            previewUrl={previewUrl}
-            setPreviewUrl={setPreviewUrl}
-          />
+          <div className="space-y-2">
+            <label htmlFor="fileUpload" className="text-sm font-medium text-gray-700">
+              方法3: ファイルから画像をアップロード
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              お手持ちの画像ファイルを選択してアップロードできます
+            </p>
+            <div className="flex gap-2">
+              <Input
+                id="fileUpload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleImageChange(e.target.files[0]);
+                  }
+                }}
+                className="file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
