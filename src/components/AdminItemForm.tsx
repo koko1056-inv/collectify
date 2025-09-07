@@ -2,15 +2,20 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageSection } from "./admin-item-form/ImageSection";
 import { ItemDetailsSection } from "./admin-item-form/ItemDetailsSection";
 import { useImageUpload } from "@/hooks/admin-item-form/useImageUpload";
 import { useItemDetails } from "@/hooks/admin-item-form/useItemDetails";
 import { useItemSubmit } from "@/hooks/admin-item-form/useItemSubmit";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { Info, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function AdminItemForm() {
+  const [currentStep, setCurrentStep] = useState("step1");
+  const [step1Completed, setStep1Completed] = useState(false);
+
   const {
     imageFile,
     setImageFile,
@@ -47,6 +52,8 @@ export function AdminItemForm() {
       setPreviewUrl(null);
     }
     setSelectedTags([]);
+    setCurrentStep("step1");
+    setStep1Completed(false);
     // フォーム全体を再レンダリング
     setFormKey(prev => prev + 1);
   };
@@ -62,6 +69,23 @@ export function AdminItemForm() {
     setFormData(prevData => ({ ...prevData, ...updates }));
   };
 
+  const handleNextStep = () => {
+    if (currentStep === "step1" && (imageFile || previewUrl)) {
+      setStep1Completed(true);
+      setCurrentStep("step2");
+    }
+  };
+
+  const handleImageChange = (file: File | null) => {
+    setImageFile(file);
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  const canProceedToStep2 = imageFile || previewUrl;
+
   return (
     <Card>
       <CardHeader>
@@ -76,23 +100,71 @@ export function AdminItemForm() {
           </AlertDescription>
         </Alert>
 
-        <form key={formKey} onSubmit={handleSubmit} className="space-y-4">
-          <ImageSection
-            imageFile={imageFile}
-            setImageFile={setImageFile}
-            previewUrl={previewUrl}
-            setPreviewUrl={setPreviewUrl}
-          />
+        <Tabs value={currentStep} onValueChange={setCurrentStep} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger 
+              value="step1" 
+              className={cn(
+                "relative",
+                step1Completed && "text-green-600"
+              )}
+            >
+              {step1Completed && <Check className="w-4 h-4 mr-1" />}
+              1. 画像の追加
+            </TabsTrigger>
+            <TabsTrigger 
+              value="step2" 
+              disabled={!step1Completed}
+              className={cn(
+                !step1Completed && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              2. 詳細の追加
+            </TabsTrigger>
+          </TabsList>
 
-          <ItemDetailsSection
-            formData={formData}
-            onUpdate={handleFormUpdate}
-          />
+          <form key={formKey} onSubmit={handleSubmit} className="mt-6">
+            <TabsContent value="step1" className="space-y-4">
+              <ImageSection
+                imageFile={imageFile}
+                setImageFile={handleImageChange}
+                previewUrl={previewUrl}
+                setPreviewUrl={setPreviewUrl}
+              />
+              
+              <div className="flex justify-end">
+                <Button 
+                  type="button"
+                  onClick={handleNextStep}
+                  disabled={!canProceedToStep2}
+                  className="px-8"
+                >
+                  次へ
+                </Button>
+              </div>
+            </TabsContent>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "追加中..." : "アイテムを追加"}
-          </Button>
-        </form>
+            <TabsContent value="step2" className="space-y-4">
+              <ItemDetailsSection
+                formData={formData}
+                onUpdate={handleFormUpdate}
+              />
+
+              <div className="flex justify-between">
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCurrentStep("step1")}
+                >
+                  戻る
+                </Button>
+                <Button type="submit" disabled={loading} className="px-8">
+                  {loading ? "追加中..." : "アイテムを追加"}
+                </Button>
+              </div>
+            </TabsContent>
+          </form>
+        </Tabs>
       </CardContent>
     </Card>
   );
