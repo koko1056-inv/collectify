@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { ItemImageUpload } from "../item/ItemImageUpload";
 import { Button } from "../ui/button";
 import { Pencil } from "lucide-react";
@@ -12,7 +12,7 @@ interface CardImageProps {
   itemId?: string;
   isEditable?: boolean;
 }
-export function CardImage({
+const CardImage = memo(function CardImage({
   image,
   title,
   itemId,
@@ -84,7 +84,14 @@ export function CardImage({
     }
   };
   return <div className="aspect-square relative overflow-hidden rounded-t-lg group">
-      <img key={`${image}-${Date.now()}`} src={image} alt={title} className="w-full h-full transition-all duration-300 hover:scale-105 object-cover" />
+      <img 
+        key={`${image}-${Date.now()}`} 
+        src={image} 
+        alt={title} 
+        loading="lazy"
+        decoding="async"
+        className="w-full h-full transition-all duration-300 hover:scale-105 object-cover" 
+      />
       {isEditable}
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
@@ -94,4 +101,6 @@ export function CardImage({
         </DialogContent>
       </Dialog>
     </div>;
-}
+});
+
+export { CardImage };

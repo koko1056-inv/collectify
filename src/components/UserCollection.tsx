@@ -10,6 +10,7 @@ import { Button } from "./ui/button";
 import { Dices } from "lucide-react";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
+import { useBatchItemMemories } from "@/hooks/useBatchItemMemories";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -53,6 +54,10 @@ export function UserCollection({
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10
   });
+
+  // Batch load memories for all visible items
+  const itemIds = useMemo(() => items.map(item => item.id), [items]);
+  const { data: batchMemories = {} } = useBatchItemMemories(itemIds);
 
   // content_nameでのフィルタを追加
   const filteredItems = useMemo(() => {
@@ -116,7 +121,7 @@ export function UserCollection({
         </Button>
       </div>
       
-      <CollectionViewToggle userId={effectiveUserId} items={filteredItems} isCompact={isCompact} handleDragEnd={handleDragEnd} />
+      <CollectionViewToggle userId={effectiveUserId} items={filteredItems} isCompact={isCompact} handleDragEnd={handleDragEnd} batchMemories={batchMemories} />
 
       <RandomCollectionItemModal isOpen={isRandomModalOpen} onClose={() => setIsRandomModalOpen(false)} userId={effectiveUserId} />
     </div>;

@@ -10,6 +10,7 @@ interface CollectionViewToggleProps {
   items: any[];
   isCompact: boolean;
   handleDragEnd: (event: DragEndEvent) => void;
+  batchMemories?: Record<string, any[]>;
 }
 
 export function CollectionViewToggle({
@@ -17,6 +18,7 @@ export function CollectionViewToggle({
   items,
   isCompact,
   handleDragEnd,
+  batchMemories = {},
 }: CollectionViewToggleProps) {
   return (
     <Tabs defaultValue="grid" className="w-full">
@@ -43,6 +45,7 @@ export function CollectionViewToggle({
           selectedItems={[]}
           onSelectItem={() => {}}
           onDragEnd={handleDragEnd}
+          batchMemories={batchMemories}
         />
       </TabsContent>
 

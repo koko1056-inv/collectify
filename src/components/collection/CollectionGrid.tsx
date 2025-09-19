@@ -11,6 +11,7 @@ interface CollectionGridProps {
   selectedItems: string[];
   onSelectItem: (itemId: string) => void;
   onDragEnd: (event: DragEndEvent) => void;
+  batchMemories?: Record<string, any[]>;
 }
 
 const CollectionGrid = memo(function CollectionGrid({
@@ -20,6 +21,7 @@ const CollectionGrid = memo(function CollectionGrid({
   selectedItems,
   onSelectItem,
   onDragEnd,
+  batchMemories = {},
 }: CollectionGridProps) {
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -68,6 +70,7 @@ const CollectionGrid = memo(function CollectionGrid({
                 image={item.image}
                 quantity={item.quantity}
                 isCompact={isCompact}
+                memories={batchMemories[item.id] || []}
               />
             </div>
           ))}

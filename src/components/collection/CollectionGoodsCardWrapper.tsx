@@ -19,6 +19,7 @@ interface CollectionGoodsCardProps {
   prize?: string;
   quantity?: number;
   isCompact?: boolean;
+  memories?: any[];
 }
 
 export function CollectionGoodsCardWrapper({
@@ -30,7 +31,8 @@ export function CollectionGoodsCardWrapper({
   releaseDate,
   prize,
   quantity = 1,
-  isCompact = false
+  isCompact = false,
+  memories = []
 }: CollectionGoodsCardProps) {
   const [isItemDetailsOpen, setIsItemDetailsOpen] = useState(false);
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);

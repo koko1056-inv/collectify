@@ -13,6 +13,7 @@ interface MyCollectionGoodsCardProps {
   image: string;
   quantity?: number;
   isCompact?: boolean;
+  memories?: any[];
 }
 
 function MyCollectionGoodsCardComponent({ 
@@ -20,7 +21,8 @@ function MyCollectionGoodsCardComponent({
   title, 
   image,
   quantity,
-  isCompact 
+  isCompact,
+  memories = []
 }: MyCollectionGoodsCardProps) {
   const {
     attributes,
@@ -72,6 +74,7 @@ function MyCollectionGoodsCardComponent({
         title={title}
         image={image}
         quantity={quantity}
+        memories={memories}
       />
     </div>
   );
