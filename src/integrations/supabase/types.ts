@@ -775,6 +775,117 @@ export type Database = {
         }
         Relationships: []
       }
+      poll_options: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          official_item_id: string | null
+          poll_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          official_item_id?: string | null
+          poll_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          official_item_id?: string | null
+          poll_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_official_item_id_fkey"
+            columns: ["official_item_id"]
+            isOneToOne: false
+            referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_votes: {
+        Row: {
+          created_at: string
+          id: string
+          poll_id: string
+          poll_option_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          poll_id: string
+          poll_option_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          poll_id?: string
+          poll_option_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_poll_option_id_fkey"
+            columns: ["poll_option_id"]
+            isOneToOne: false
+            referencedRelation: "poll_options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      polls: {
+        Row: {
+          created_at: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           comment: string
@@ -1317,10 +1428,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_follower: {
-        Args: { target_user_id: string }
-        Returns: boolean
-      }
+      is_follower: { Args: { target_user_id: string }; Returns: boolean }
     }
     Enums: {
       approval_status: "pending" | "approved" | "rejected"
