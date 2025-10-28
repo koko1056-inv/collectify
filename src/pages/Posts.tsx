@@ -6,13 +6,11 @@ import { PostsGrid } from "@/components/posts/PostsGrid";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 // Lazy load heavy components
 const CreatePostFromCollectionModal = lazy(() => import("@/components/posts/CreatePostFromCollectionModal").then(module => ({ default: module.CreatePostFromCollectionModal })));
 const PostsSidebar = lazy(() => import("@/components/posts/PostsSidebar").then(module => ({ default: module.PostsSidebar })));
 export default function Posts() {
-  const { t } = useLanguage();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -30,7 +28,7 @@ export default function Posts() {
           <div className="bg-background border-b border-border sm:sticky sm:top-16 sm:z-10 px-4 py-3">
             <div className="flex items-center justify-between max-w-4xl mx-auto">
               <div>
-                <h1 className="text-xl font-bold">{t("nav.community")}</h1>
+                <h1 className="text-xl font-bold">コミュニティ</h1>
                 
               </div>
               <div className="flex items-center gap-2">
@@ -44,7 +42,7 @@ export default function Posts() {
                   </SheetTrigger>
                   <SheetContent side="left" className="w-80 p-0">
                     <SheetHeader className="p-4 pb-2">
-                      <SheetTitle>{t("nav.community")}を絞り込み</SheetTitle>
+                      <SheetTitle>コミュニティを絞り込み</SheetTitle>
                     </SheetHeader>
                     <div className="flex-1 overflow-y-auto px-4 pb-4">
                       <Suspense fallback={
@@ -64,7 +62,7 @@ export default function Posts() {
                 
                 <Button onClick={() => setIsCreateModalOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">
                   <Plus className="h-4 w-4 mr-2" />
-                  {t("nav.community")}
+                  投稿
                 </Button>
               </div>
             </div>
