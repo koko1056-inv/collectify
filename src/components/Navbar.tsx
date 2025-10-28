@@ -117,7 +117,7 @@ export function Navbar() {
               <NavigationMenuItem>
                 <Link to="/posts" className={cn(navigationMenuTriggerStyle())}>
                   <FileText className="h-4 w-4 mr-2" />
-                  投稿
+                  {t("nav.community")}
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>

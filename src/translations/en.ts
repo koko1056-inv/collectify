@@ -5,6 +5,7 @@ export const enTranslations = {
     profile: "Edit Profile",
     admin: "Admin",
     logout: "Logout",
+    community: "Community",
     search: {
       user: "Find Users"
     }

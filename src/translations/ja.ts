@@ -5,6 +5,7 @@ export const jaTranslations = {
     profile: "プロフィール編集",
     admin: "管理画面",
     logout: "ログアウト",
+    community: "コミュニティ",
     search: {
       user: "ユーザーを探す"
     }
