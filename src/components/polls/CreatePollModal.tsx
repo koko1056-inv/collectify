@@ -42,10 +42,15 @@ export function CreatePollModal({ isOpen, onClose }: CreatePollModalProps) {
       return;
     }
 
+    // 24時間後を締切時間として設定
+    const endsAt = new Date();
+    endsAt.setHours(endsAt.getHours() + 24);
+
     createPoll.mutate(
       {
         title: title.trim(),
         description: description.trim() || undefined,
+        ends_at: endsAt.toISOString(),
         options: validOptions.map((text) => ({ text })),
       },
       {
