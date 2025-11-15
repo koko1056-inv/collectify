@@ -83,10 +83,10 @@ export function useSimpleTagManage(
       return;
     }
 
-    // ローディング中または初期データがない場合は何もしない
-    if (isLoading || currentTags.length === 0) return;
+    // ローディング中は何もしない
+    if (isLoading) return;
 
-    // 現在のタグから初期値を設定
+    // 現在のタグから初期値を設定（タグが0件でも実行する）
     const character = currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name || null;
     const type = currentTags.find(tag => tag.tags?.category === 'type')?.tags?.name || null;
     const series = currentTags.find(tag => tag.tags?.category === 'series')?.tags?.name || null;
