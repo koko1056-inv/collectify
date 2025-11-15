@@ -38,19 +38,31 @@ export function TagManageModalContent({
   const queryClient = useQueryClient();
 
   const handleRemoveTag = async (tagId: string) => {
-    try {
-      for (const itemId of itemIds) {
-        await removeTagFromItem(tagId, itemId, isUserItem);
-      }
+    // 楽観的更新：UIから即座に削除
+    const queryKey = ["current-tags", itemIds] as const;
+    const previous = (queryClient.getQueryData<SimpleItemTag[]>(queryKey) || []).slice();
 
-      await queryClient.invalidateQueries({ queryKey: ["current-tags", itemIds] });
-      
+    // キャッシュから先に取り除く（即時反映）
+    queryClient.setQueryData<SimpleItemTag[]>(queryKey, (old) => {
+      const base = old ?? currentTags;
+      return (base || []).filter((t) => t.tag_id !== tagId);
+    });
+
+    try {
+      // 並列で削除して整合性ウィンドウを短縮
+      await Promise.all(itemIds.map((itemId) => removeTagFromItem(tagId, itemId, isUserItem)));
+
+      // 念のため最新化
+      await queryClient.invalidateQueries({ queryKey });
+
       toast({
         title: "タグを削除しました",
         description: "タグが正常に削除されました。",
       });
     } catch (error) {
       console.error("Error removing tag:", error);
+      // ロールバック
+      queryClient.setQueryData(queryKey, previous);
       toast({
         title: "エラー",
         description: "タグの削除中にエラーが発生しました。",
@@ -58,7 +70,6 @@ export function TagManageModalContent({
       });
     }
   };
-
   return (
     <ScrollArea className="max-h-[60vh] pr-4">
       <div className="space-y-6 py-2">
