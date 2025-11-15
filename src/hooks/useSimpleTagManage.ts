@@ -73,17 +73,18 @@ export function useSimpleTagManage(
     staleTime: 0,
   });
 
-  // 初期状態を設定
+  // 初期状態を設定（モーダルが開いた時とデータロード完了時に1回だけ）
   useEffect(() => {
     if (!isOpen) {
+      // モーダルが閉じた時はリセット
       setTagSelections({ character: null, type: null, series: null });
       setContentName(null);
       setContentId(null);
       return;
     }
 
-    // ローディング中は何もしない
-    if (isLoading) return;
+    // ローディング中または初期データがない場合は何もしない
+    if (isLoading || currentTags.length === 0) return;
 
     // 現在のタグから初期値を設定
     const character = currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name || null;
@@ -92,11 +93,27 @@ export function useSimpleTagManage(
     
     console.log('[useSimpleTagManage] Setting initial values:', { character, type, series, contentName: currentContentData?.name });
     
-    // 状態を設定
-    setTagSelections({ character, type, series });
-    setContentName(currentContentData?.name || null);
-    setContentId(currentContentData?.id || null);
-  }, [isOpen, isLoading, currentTags, currentContentData]);
+    // 値が変わった場合のみ更新（無限ループ防止）
+    setTagSelections(prev => {
+      if (prev.character === character && prev.type === type && prev.series === series) {
+        return prev;
+      }
+      return { character, type, series };
+    });
+    
+    setContentName(prev => {
+      const newName = currentContentData?.name || null;
+      if (prev === newName) return prev;
+      return newName;
+    });
+    
+    setContentId(prev => {
+      const newId = currentContentData?.id || null;
+      if (prev === newId) return prev;
+      return newId;
+    });
+    // itemIds.join(',')を使うことで配列の変更を文字列で検知
+  }, [isOpen, isLoading, itemIds.join(','), currentTags.length, currentContentData?.name, currentContentData?.id]);
 
   // タグ変更ハンドラ
   const handleTagChange = useCallback((category: keyof TagSelection, value: string | null) => {
