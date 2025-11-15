@@ -187,7 +187,10 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
 
       const { error } = await supabase
         .from("tags")
-        .update({ content_id: content.id })
+        .update({ 
+          content_id: content.id,
+          category: selectedCategory 
+        })
         .eq("id", tagId);
 
       if (error) throw error;
@@ -199,7 +202,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
       queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
       queryClient.invalidateQueries({ queryKey: ["official-items"] });
-      toast.success("タグをコンテンツに紐づけました");
+      toast.success(`タグを「${selectedContent}」の${selectedCategory === 'character' ? 'キャラクター・人物名' : 'グッズシリーズ'}に紐づけました`);
     },
     onError: (error: any) => {
       toast.error("タグの紐づけに失敗しました: " + error.message);
@@ -214,7 +217,10 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
 
       const { error } = await supabase
         .from("tags")
-        .update({ content_id: content.id })
+        .update({ 
+          content_id: content.id,
+          category: selectedCategory 
+        })
         .in("id", tagIds);
 
       if (error) throw error;
@@ -227,7 +233,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
       queryClient.invalidateQueries({ queryKey: ["official-items"] });
       setSelectedUnlinkedTags([]);
-      toast.success(`${selectedUnlinkedTags.length}件のタグをコンテンツに紐づけました`);
+      toast.success(`${selectedUnlinkedTags.length}件のタグを「${selectedContent}」の${selectedCategory === 'character' ? 'キャラクター・人物名' : 'グッズシリーズ'}に紐づけました`);
     },
     onError: (error: any) => {
       toast.error("タグの紐づけに失敗しました: " + error.message);
