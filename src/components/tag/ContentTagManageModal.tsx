@@ -217,6 +217,8 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       const content = contentNames.find(c => c.name === selectedContent);
       if (!content) throw new Error("コンテンツが見つかりません");
 
+      console.log('[linkTag] Updating tag:', { tagId, contentId: content.id, category: selectedCategory });
+
       const { error } = await supabase
         .from("tags")
         .update({ 
@@ -226,10 +228,15 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .eq("id", tagId);
 
       if (error) throw error;
+      
+      console.log('[linkTag] Successfully updated tag in database');
     },
     onSuccess: async () => {
-      // すべてのクエリを無効化して再フェッチ
+      console.log('[linkTag] Invalidating queries for:', { selectedContent, selectedCategory });
+      
+      // 現在選択中のコンテンツのクエリを特定して無効化
       await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["content-tags", selectedContent, selectedCategory], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["unlinked-tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["tags"], refetchType: "active" }),
@@ -238,9 +245,11 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "active" }),
       ]);
       
+      console.log('[linkTag] Queries invalidated, UI should update now');
       toast.success(`タグを「${selectedContent}」の${selectedCategory === 'character' ? 'キャラクター・人物名' : 'グッズシリーズ'}に紐づけました`);
     },
     onError: (error: any) => {
+      console.error('[linkTag] Error:', error);
       toast.error("タグの紐づけに失敗しました: " + error.message);
     },
   });
@@ -251,6 +260,8 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       const content = contentNames.find(c => c.name === selectedContent);
       if (!content) throw new Error("コンテンツが見つかりません");
 
+      console.log('[linkMultipleTags] Updating tags:', { tagIds, contentId: content.id, category: selectedCategory });
+
       const { error } = await supabase
         .from("tags")
         .update({ 
@@ -260,11 +271,16 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .in("id", tagIds);
 
       if (error) throw error;
+      
+      console.log('[linkMultipleTags] Successfully updated tags in database');
       return tagIds.length;
     },
     onSuccess: async (count) => {
-      // すべてのクエリを無効化して再フェッチ
+      console.log('[linkMultipleTags] Invalidating queries for:', { selectedContent, selectedCategory, count });
+      
+      // 現在選択中のコンテンツのクエリを特定して無効化
       await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["content-tags", selectedContent, selectedCategory], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["unlinked-tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["tags"], refetchType: "active" }),
@@ -275,9 +291,12 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       
       const tagCount = selectedUnlinkedTags.length;
       setSelectedUnlinkedTags([]);
+      
+      console.log('[linkMultipleTags] Queries invalidated, UI should update now');
       toast.success(`${tagCount}件のタグを「${selectedContent}」の${selectedCategory === 'character' ? 'キャラクター・人物名' : 'グッズシリーズ'}に紐づけました`);
     },
     onError: (error: any) => {
+      console.error('[linkMultipleTags] Error:', error);
       toast.error("タグの紐づけに失敗しました: " + error.message);
     },
   });
