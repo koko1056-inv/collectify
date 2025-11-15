@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 
-type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc";
+type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned";
 
 interface OfficialItemsHeaderProps {
   sortBy: SortOption;
@@ -48,6 +48,7 @@ export function OfficialItemsHeader({
             <SelectItem value="wishlist" className="cursor-pointer hover:bg-gray-100">ウィッシュリスト登録数順</SelectItem>
             <SelectItem value="owners-desc" className="cursor-pointer hover:bg-gray-100">保有者数順（多い順）</SelectItem>
             <SelectItem value="owners-asc" className="cursor-pointer hover:bg-gray-100">保有者数順（少ない順）</SelectItem>
+            <SelectItem value="not-owned" className="cursor-pointer hover:bg-gray-100">未所持</SelectItem>
           </SelectContent>
         </Select>
       </div>
