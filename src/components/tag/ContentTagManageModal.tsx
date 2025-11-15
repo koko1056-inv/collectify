@@ -511,15 +511,28 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                               className="h-4 w-4 cursor-pointer"
                             />
                             <span className="flex-1 text-sm">{tag.name}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => linkTagMutation.mutate(tag.id)}
-                              disabled={linkTagMutation.isPending}
-                              className="h-6 w-6"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => linkTagMutation.mutate(tag.id)}
+                                disabled={linkTagMutation.isPending}
+                                className="h-6 w-6"
+                                title="紐づける"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => deleteTagMutation.mutate(tag.id)}
+                                disabled={deleteTagMutation.isPending}
+                                className="h-6 w-6"
+                                title="削除"
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>
