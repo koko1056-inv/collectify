@@ -185,20 +185,68 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .delete()
         .eq("id", tagId);
       if (error) throw error;
+      return tagId;
     },
-    onSuccess: async (_data, tagId) => {
-      // 楽観的にキャッシュから削除
+    onMutate: async (tagId) => {
+      // 進行中のクエリをキャンセル
+      await queryClient.cancelQueries({ queryKey: ["content-tags"] });
+      await queryClient.cancelQueries({ queryKey: ["unlinked-tags"] });
+      await queryClient.cancelQueries({ queryKey: ["tags"] });
+      await queryClient.cancelQueries({ queryKey: ["tags-by-category"] });
+      await queryClient.cancelQueries({ queryKey: ["tags-with-count"] });
+
+      // 現在のキャッシュを保存（ロールバック用）
       const content = contentNames.find(c => c.name === selectedContent);
       const contentId = content?.id;
-      queryClient.setQueryData<any[]>(["content-tags", selectedContent, selectedCategory], (old) => old ? old.filter(t => t.id !== tagId) : old);
-      queryClient.setQueryData<any[]>(["unlinked-tags"], (old) => old ? old.filter(t => t.id !== tagId) : old);
-      if (contentId) {
-        queryClient.setQueryData<any[]>(["tags-by-category", selectedCategory, contentId], (old) => old ? old.filter(t => t.id !== tagId) : old);
-      }
-      queryClient.setQueryData<any[]>(["tags-with-count", selectedContent], (old) => old ? old.filter(t => t.id !== tagId) : old);
-      queryClient.setQueryData<any[]>(["tags"], (old) => old ? old.filter(t => t.id !== tagId) : old);
+      const previousContentTags = queryClient.getQueryData(["content-tags", selectedContent, selectedCategory]);
+      const previousUnlinkedTags = queryClient.getQueryData(["unlinked-tags"]);
+      const previousTags = queryClient.getQueryData(["tags"]);
+      const previousTagsByCategory = contentId ? queryClient.getQueryData(["tags-by-category", selectedCategory, contentId]) : null;
+      const previousTagsWithCount = queryClient.getQueryData(["tags-with-count", selectedContent]);
 
-      // すべてのタグ関連のクエリを無効化して即時再取得
+      // UIから即座に削除（楽観的更新）
+      queryClient.setQueryData<any[]>(["content-tags", selectedContent, selectedCategory], (old) => 
+        old ? old.filter(t => t.id !== tagId) : old
+      );
+      queryClient.setQueryData<any[]>(["unlinked-tags"], (old) => 
+        old ? old.filter(t => t.id !== tagId) : old
+      );
+      queryClient.setQueryData<any[]>(["tags"], (old) => 
+        old ? old.filter(t => t.id !== tagId) : old
+      );
+      if (contentId) {
+        queryClient.setQueryData<any[]>(["tags-by-category", selectedCategory, contentId], (old) => 
+          old ? old.filter(t => t.id !== tagId) : old
+        );
+      }
+      queryClient.setQueryData<any[]>(["tags-with-count", selectedContent], (old) => 
+        old ? old.filter(t => t.id !== tagId) : old
+      );
+
+      // ロールバック用データを返す
+      return { previousContentTags, previousUnlinkedTags, previousTags, previousTagsByCategory, previousTagsWithCount, contentId };
+    },
+    onError: (_err, _tagId, context) => {
+      // エラー時は元に戻す
+      if (context?.previousContentTags) {
+        queryClient.setQueryData(["content-tags", selectedContent, selectedCategory], context.previousContentTags);
+      }
+      if (context?.previousUnlinkedTags) {
+        queryClient.setQueryData(["unlinked-tags"], context.previousUnlinkedTags);
+      }
+      if (context?.previousTags) {
+        queryClient.setQueryData(["tags"], context.previousTags);
+      }
+      if (context?.contentId && context?.previousTagsByCategory) {
+        queryClient.setQueryData(["tags-by-category", selectedCategory, context.contentId], context.previousTagsByCategory);
+      }
+      if (context?.previousTagsWithCount) {
+        queryClient.setQueryData(["tags-with-count", selectedContent], context.previousTagsWithCount);
+      }
+      toast.error("タグの削除に失敗しました");
+    },
+    onSuccess: async () => {
+      // バックグラウンドでクエリを無効化して最新データを取得
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["unlinked-tags"], refetchType: "active" }),
@@ -208,9 +256,6 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "active" }),
       ]);
       toast.success("タグを削除しました");
-    },
-    onError: (error: any) => {
-      toast.error("タグの削除に失敗しました: " + error.message);
     },
   });
 
@@ -244,22 +289,58 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .delete()
         .in("id", tagIds);
       if (error) throw error;
-      return tagIds.length;
+      return tagIds;
     },
-    onSuccess: async (_count, tagIds) => {
-      // 楽観的にキャッシュから削除
+    onMutate: async (tagIds) => {
+      // 進行中のクエリをキャンセル
+      await queryClient.cancelQueries({ queryKey: ["content-tags"] });
+      await queryClient.cancelQueries({ queryKey: ["unlinked-tags"] });
+      await queryClient.cancelQueries({ queryKey: ["tags"] });
+      await queryClient.cancelQueries({ queryKey: ["tags-by-category"] });
+      await queryClient.cancelQueries({ queryKey: ["tags-with-count"] });
+
+      // 現在のキャッシュを保存
       const content = contentNames.find(c => c.name === selectedContent);
       const contentId = content?.id;
-      const filterOut = (old?: any[]) => old ? old.filter(t => !tagIds.includes(t.id)) : old;
-      queryClient.setQueryData<any[]>(["content-tags", selectedContent, selectedCategory], filterOut);
-      queryClient.setQueryData<any[]>(["unlinked-tags"], filterOut);
-      if (contentId) {
-        queryClient.setQueryData<any[]>(["tags-by-category", selectedCategory, contentId], filterOut);
-      }
-      queryClient.setQueryData<any[]>(["tags-with-count", selectedContent], filterOut);
-      queryClient.setQueryData<any[]>(["tags"], filterOut);
+      const previousContentTags = queryClient.getQueryData(["content-tags", selectedContent, selectedCategory]);
+      const previousUnlinkedTags = queryClient.getQueryData(["unlinked-tags"]);
+      const previousTags = queryClient.getQueryData(["tags"]);
+      const previousTagsByCategory = contentId ? queryClient.getQueryData(["tags-by-category", selectedCategory, contentId]) : null;
+      const previousTagsWithCount = queryClient.getQueryData(["tags-with-count", selectedContent]);
 
-      // すべてのクエリを無効化して再フェッチ
+      // UIから即座に削除
+      const filterOut = (old?: any[]) => old ? old.filter(t => !tagIds.includes(t.id)) : old;
+      queryClient.setQueryData(["content-tags", selectedContent, selectedCategory], filterOut);
+      queryClient.setQueryData(["unlinked-tags"], filterOut);
+      queryClient.setQueryData(["tags"], filterOut);
+      if (contentId) {
+        queryClient.setQueryData(["tags-by-category", selectedCategory, contentId], filterOut);
+      }
+      queryClient.setQueryData(["tags-with-count", selectedContent], filterOut);
+
+      return { previousContentTags, previousUnlinkedTags, previousTags, previousTagsByCategory, previousTagsWithCount, contentId };
+    },
+    onError: (_err, _tagIds, context) => {
+      // エラー時は元に戻す
+      if (context?.previousContentTags) {
+        queryClient.setQueryData(["content-tags", selectedContent, selectedCategory], context.previousContentTags);
+      }
+      if (context?.previousUnlinkedTags) {
+        queryClient.setQueryData(["unlinked-tags"], context.previousUnlinkedTags);
+      }
+      if (context?.previousTags) {
+        queryClient.setQueryData(["tags"], context.previousTags);
+      }
+      if (context?.contentId && context?.previousTagsByCategory) {
+        queryClient.setQueryData(["tags-by-category", selectedCategory, context.contentId], context.previousTagsByCategory);
+      }
+      if (context?.previousTagsWithCount) {
+        queryClient.setQueryData(["tags-with-count", selectedContent], context.previousTagsWithCount);
+      }
+      toast.error("タグの一括削除に失敗しました");
+    },
+    onSuccess: async (tagIds) => {
+      // バックグラウンドでクエリを無効化
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["unlinked-tags"], refetchType: "active" }),
@@ -269,12 +350,9 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "active" }),
       ]);
       
-      const tagCount = selectedUnlinkedTags.length;
+      const tagCount = tagIds.length;
       setSelectedUnlinkedTags([]);
       toast.success(`${tagCount}件のタグを削除しました`);
-    },
-    onError: (error: any) => {
-      toast.error("タグの一括削除に失敗しました: " + error.message);
     },
   });
 
