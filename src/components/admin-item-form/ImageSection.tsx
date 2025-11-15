@@ -174,18 +174,26 @@ export function ImageSection({
   return (
     <>
       <div className="space-y-4">
-        <div className="bg-gray-50 p-4 rounded-lg border">
-          <h3 className="font-semibold text-lg mb-3 text-gray-900">画像の追加方法</h3>
+        <div className="bg-gray-50 p-6 rounded-lg border">
+          <h3 className="font-semibold text-lg mb-4 text-gray-900">画像の追加方法</h3>
           
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="imageUrl" className="text-sm font-medium text-gray-700">
-                方法1: 画像URLを直接設定
-              </label>
-              <p className="text-xs text-gray-500 mb-2">
-                画像の直接URLがある場合はこちらを使用してください
-              </p>
-              <div className="flex gap-2">
+          <div className="space-y-6">
+            {/* 方法1 */}
+            <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
+                  1
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="imageUrl" className="text-base font-semibold text-gray-900 block mb-1">
+                    画像URLを直接設定
+                  </label>
+                  <p className="text-sm text-gray-600">
+                    画像の直接URLがある場合はこちらを使用してください
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2 ml-11">
                 <Input
                   id="imageUrl"
                   value={imageUrlInput}
@@ -201,58 +209,70 @@ export function ImageSection({
               </div>
             </div>
 
-            <div className="border-t pt-4">
-              <div className="space-y-2">
-                <label htmlFor="fileUpload" className="text-sm font-medium text-gray-700">
-                  方法2: ファイルから画像をアップロード
-                </label>
-                <p className="text-xs text-gray-500 mb-2">
-                  お手持ちの画像ファイルを選択してアップロードできます
-                </p>
-                <div className="flex gap-2">
-                  <Input
-                    id="fileUpload"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        handleImageChange(e.target.files[0]);
-                      }
-                    }}
-                    className="file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
-                  />
+            {/* 方法2 */}
+            <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
+                  2
                 </div>
+                <div className="flex-1">
+                  <label htmlFor="fileUpload" className="text-base font-semibold text-gray-900 block mb-1">
+                    ファイルから画像をアップロード
+                  </label>
+                  <p className="text-sm text-gray-600">
+                    お手持ちの画像ファイルを選択してアップロードできます
+                  </p>
+                </div>
+              </div>
+              <div className="ml-11">
+                <Input
+                  id="fileUpload"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleImageChange(e.target.files[0]);
+                    }
+                  }}
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                />
               </div>
             </div>
 
-            <div className="border-t pt-4">
-              <div className="space-y-2">
-                <label htmlFor="url" className="text-sm font-medium text-gray-700">
-                  方法3: Webサイトから画像を取得
-                </label>
-                <p className="text-xs text-gray-500 mb-2">
-                  商品ページのURLを入力すると、そのページから画像を自動取得します
-                </p>
-                <div className="flex gap-2">
-                  <Input
-                    id="url"
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="https://example.com/product-page"
-                    disabled={isScrapingImages}
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleScrapeImages}
-                    disabled={isScrapingImages}
-                  >
-                    {isScrapingImages ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "取得"
-                    )}
-                  </Button>
+            {/* 方法3 */}
+            <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
+              <div className="flex items-start gap-3 mb-3">
+                <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
+                  3
                 </div>
+                <div className="flex-1">
+                  <label htmlFor="url" className="text-base font-semibold text-gray-900 block mb-1">
+                    Webサイトから画像を取得
+                  </label>
+                  <p className="text-sm text-gray-600">
+                    商品ページのURLを入力すると、そのページから画像を自動取得します
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2 ml-11">
+                <Input
+                  id="url"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://example.com/product-page"
+                  disabled={isScrapingImages}
+                />
+                <Button
+                  type="button"
+                  onClick={handleScrapeImages}
+                  disabled={isScrapingImages}
+                >
+                  {isScrapingImages ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "取得"
+                  )}
+                </Button>
               </div>
             </div>
           </div>
