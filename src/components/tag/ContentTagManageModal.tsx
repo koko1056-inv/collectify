@@ -79,8 +79,12 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       return data;
     },
     onSuccess: () => {
+      // すべてのタグ関連のクエリを無効化
       queryClient.invalidateQueries({ queryKey: ["content-tags"] });
       queryClient.invalidateQueries({ queryKey: ["tags"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
+      queryClient.invalidateQueries({ queryKey: ["official-items"] });
       setNewTagName("");
       toast.success("タグを追加しました");
     },
@@ -100,8 +104,12 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       if (error) throw error;
     },
     onSuccess: () => {
+      // すべてのタグ関連のクエリを無効化
       queryClient.invalidateQueries({ queryKey: ["content-tags"] });
       queryClient.invalidateQueries({ queryKey: ["tags"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
+      queryClient.invalidateQueries({ queryKey: ["official-items"] });
       toast.success("タグを削除しました");
     },
     onError: (error: any) => {
