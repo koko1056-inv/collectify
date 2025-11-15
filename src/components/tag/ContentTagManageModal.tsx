@@ -196,13 +196,17 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["content-tags"] });
-      queryClient.invalidateQueries({ queryKey: ["unlinked-tags"] });
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
-      queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
-      queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
-      queryClient.invalidateQueries({ queryKey: ["official-items"] });
+    onSuccess: async () => {
+      // すべてのクエリを無効化して再フェッチ
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["unlinked-tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags-by-category"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags-with-count"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "active" }),
+      ]);
+      
       toast.success(`タグを「${selectedContent}」の${selectedCategory === 'character' ? 'キャラクター・人物名' : 'グッズシリーズ'}に紐づけました`);
     },
     onError: (error: any) => {
@@ -225,16 +229,22 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .in("id", tagIds);
 
       if (error) throw error;
+      return tagIds.length;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["content-tags"] });
-      queryClient.invalidateQueries({ queryKey: ["unlinked-tags"] });
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
-      queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
-      queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
-      queryClient.invalidateQueries({ queryKey: ["official-items"] });
+    onSuccess: async (count) => {
+      // すべてのクエリを無効化して再フェッチ
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["unlinked-tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags-by-category"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags-with-count"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "active" }),
+      ]);
+      
+      const tagCount = selectedUnlinkedTags.length;
       setSelectedUnlinkedTags([]);
-      toast.success(`${selectedUnlinkedTags.length}件のタグを「${selectedContent}」の${selectedCategory === 'character' ? 'キャラクター・人物名' : 'グッズシリーズ'}に紐づけました`);
+      toast.success(`${tagCount}件のタグを「${selectedContent}」の${selectedCategory === 'character' ? 'キャラクター・人物名' : 'グッズシリーズ'}に紐づけました`);
     },
     onError: (error: any) => {
       toast.error("タグの紐づけに失敗しました: " + error.message);
