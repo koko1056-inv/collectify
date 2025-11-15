@@ -465,46 +465,54 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         </div>
 
         {/* コンテンツに紐づいていないタグ */}
-        {selectedContent && unlinkedTags.length > 0 && (
-          <div className="space-y-2 pt-4 border-t">
+        {selectedContent && (
+          <div className="space-y-2 pt-4 border-t mt-4">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">
-                未紐づけタグ（{selectedUnlinkedTags.length}/{unlinkedTags.length}選択中）
+              <Label className="text-lg font-semibold">
+                未紐づけタグ {unlinkedTags.length > 0 && `（${selectedUnlinkedTags.length}/${unlinkedTags.length}選択中）`}
               </Label>
-              <Button
-                size="sm"
-                onClick={handleLinkSelectedTags}
-                disabled={selectedUnlinkedTags.length === 0 || linkMultipleTagsMutation.isPending}
-              >
-                選択したタグを「{selectedContent}」に紐づけ
-              </Button>
+              {selectedUnlinkedTags.length > 0 && (
+                <Button
+                  size="sm"
+                  onClick={handleLinkSelectedTags}
+                  disabled={linkMultipleTagsMutation.isPending}
+                >
+                  選択したタグを「{selectedContent}」に紐づけ
+                </Button>
+              )}
             </div>
             <ScrollArea className="h-48 border rounded-md p-2">
-              <div className="space-y-2">
-                {unlinkedTags.map((tag) => (
-                  <div
-                    key={tag.id}
-                    className="flex items-center gap-2 p-2 bg-muted/50 rounded hover:bg-accent transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedUnlinkedTags.includes(tag.id)}
-                      onChange={() => handleToggleUnlinkedTag(tag.id)}
-                      className="h-4 w-4 cursor-pointer"
-                    />
-                    <span className="flex-1 text-sm">{tag.name}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => linkTagMutation.mutate(tag.id)}
-                      disabled={linkTagMutation.isPending}
-                      className="h-6 w-6"
+              {unlinkedTags.length === 0 ? (
+                <div className="text-center text-muted-foreground py-8">
+                  このカテゴリーには未紐づけのタグはありません
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {unlinkedTags.map((tag) => (
+                    <div
+                      key={tag.id}
+                      className="flex items-center gap-2 p-2 bg-muted/50 rounded hover:bg-accent transition-colors"
                     >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+                      <input
+                        type="checkbox"
+                        checked={selectedUnlinkedTags.includes(tag.id)}
+                        onChange={() => handleToggleUnlinkedTag(tag.id)}
+                        className="h-4 w-4 cursor-pointer"
+                      />
+                      <span className="flex-1 text-sm">{tag.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => linkTagMutation.mutate(tag.id)}
+                        disabled={linkTagMutation.isPending}
+                        className="h-6 w-6"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </ScrollArea>
           </div>
         )}
