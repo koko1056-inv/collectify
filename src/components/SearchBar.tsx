@@ -13,6 +13,7 @@ interface SearchBarProps {
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
   tags: Tag[];
+  selectedContent?: string;
 }
 
 interface SearchSuggestion {

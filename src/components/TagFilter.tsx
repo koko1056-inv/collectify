@@ -14,24 +14,41 @@ interface TagFilterProps {
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
   tags: Tag[];
+  selectedContent?: string;
 }
 
-export function TagFilter({ selectedTags, onTagsChange, tags }: TagFilterProps) {
+export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: tagsWithCount = [] } = useQuery({
-    queryKey: ["tags-with-count"],
+    queryKey: ["tags-with-count", selectedContent],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('tags')
         .select(`
           *,
           item_tags (
             tag_id
-          )
+          ),
+          content_names!tags_content_id_fkey(id, name)
         `);
 
+      if (selectedContent && selectedContent !== "all") {
+        // コンテンツ名からコンテンツIDを取得
+        const { data: contentData } = await supabase
+          .from("content_names")
+          .select("id")
+          .eq("name", selectedContent)
+          .single();
+        
+        if (contentData) {
+          // キャラクターとシリーズはコンテンツIDでフィルタリング、タイプはcontent_idがnull
+          query = query.or(`content_id.eq.${contentData.id},and(category.eq.type,content_id.is.null)`);
+        }
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
 
       // タグの出現回数をカウントするマップを作成
