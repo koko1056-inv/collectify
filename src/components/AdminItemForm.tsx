@@ -9,7 +9,7 @@ import { useImageUpload } from "@/hooks/admin-item-form/useImageUpload";
 import { useItemDetails } from "@/hooks/admin-item-form/useItemDetails";
 import { useItemSubmit } from "@/hooks/admin-item-form/useItemSubmit";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Info, Check } from "lucide-react";
+import { Info, Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AdminItemForm() {
@@ -101,7 +101,7 @@ export function AdminItemForm() {
         </Alert>
 
         <Tabs value={currentStep} onValueChange={setCurrentStep} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2">
             <TabsTrigger 
               value="step1" 
               className={cn(
@@ -117,6 +117,12 @@ export function AdminItemForm() {
               </span>
               <span>画像の追加</span>
             </TabsTrigger>
+            
+            <ChevronRight className={cn(
+              "w-5 h-5 flex-shrink-0",
+              step1Completed ? "text-primary" : "text-muted-foreground"
+            )} />
+            
             <TabsTrigger 
               value="step2" 
               disabled={!step1Completed}
