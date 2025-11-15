@@ -15,6 +15,8 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { Package, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,12 +27,37 @@ const Search = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { profile } = useProfile(user?.id);
+  const queryClient = useQueryClient();
   const {
     data: items = []
   } = useOfficialItems();
   const {
     data: allTags = []
   } = useTags(selectedContent);
+
+  // Supabase Realtimeでofficial_itemsの変更を監視
+  useEffect(() => {
+    const channel = supabase
+      .channel('official-items-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETEすべてを監視
+          schema: 'public',
+          table: 'official_items'
+        },
+        (payload) => {
+          console.log('[Search] official_items changed:', payload);
+          // official-itemsクエリを無効化して再フェッチ
+          queryClient.invalidateQueries({ queryKey: ['official-items'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // URLからタブの状態を取得
   const currentTab = searchParams.get("tab") || "goods";
