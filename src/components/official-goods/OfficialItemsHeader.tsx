@@ -1,8 +1,9 @@
-
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, Tags } from "lucide-react";
+import { ContentTagManageModal } from "@/components/tag/ContentTagManageModal";
 
 type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned";
 
@@ -20,6 +21,7 @@ export function OfficialItemsHeader({
   onFilterClick
 }: OfficialItemsHeaderProps) {
   const navigate = useNavigate();
+  const [isTagManageOpen, setIsTagManageOpen] = useState(false);
   
   return (
     <div className="flex justify-between items-center mb-4 px-2">
@@ -52,9 +54,25 @@ export function OfficialItemsHeader({
           </SelectContent>
         </Select>
       </div>
-      <Button onClick={() => navigate("/add-item")} size="sm" className="bg-gray-900 hover:bg-gray-800 text-sm px-[14px]">
-        グッズを追加
-      </Button>
+      <div className="flex gap-2">
+        <Button 
+          onClick={() => setIsTagManageOpen(true)} 
+          size="sm" 
+          variant="outline"
+          className="text-sm px-3"
+        >
+          <Tags className="h-4 w-4 mr-1" />
+          タグを管理
+        </Button>
+        <Button onClick={() => navigate("/add-item")} size="sm" className="bg-gray-900 hover:bg-gray-800 text-sm px-[14px]">
+          グッズを追加
+        </Button>
+      </div>
+
+      <ContentTagManageModal 
+        isOpen={isTagManageOpen}
+        onClose={() => setIsTagManageOpen(false)}
+      />
     </div>
   );
 }
