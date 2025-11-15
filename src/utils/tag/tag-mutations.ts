@@ -142,22 +142,22 @@ export async function updateTagsForMultipleItems(
 ): Promise<boolean> {
   try {
     if (itemIds.length === 0) {
-      console.log('No items to update');
+      console.log('[updateTagsForMultipleItems] No items to update');
       return true;
     }
     
     if (updates.length === 0) {
-      console.log('No tag updates to apply');
+      console.log('[updateTagsForMultipleItems] No tag updates to apply');
       return true;
     }
     
-    console.log('Starting tag updates for items:', { itemIds, updates, currentTags });
+    console.log('[updateTagsForMultipleItems] Starting updates:', { itemIds, updates });
     
     let allSuccess = true;
     
     // 各アイテムに対して各更新を適用
     for (const itemId of itemIds) {
-      console.log(`Processing item: ${itemId}`);
+      console.log(`[updateTagsForMultipleItems] Processing item: ${itemId}`);
       
       // アイテムのcontent_idを取得
       const table = isUserItem ? 'user_items' : 'official_items';
@@ -177,49 +177,67 @@ export async function updateTagsForMultipleItems(
         contentId = contentData?.id || null;
       }
       
-      console.log(`Item ${itemId} content_id: ${contentId}`);
+      console.log(`[updateTagsForMultipleItems] Item ${itemId} content_id: ${contentId}`);
       
       for (const update of updates) {
-        console.log(`Processing update for category ${update.category} with value: ${update.value}`);
+        console.log(`[updateTagsForMultipleItems] Processing category: ${update.category}, value: ${update.value}`);
         
         try {
-          // 同じカテゴリの既存タグを削除
-          const existingTagsInCategory = currentTags.filter(
-            tag => tag.tags?.category === update.category
-          );
+          // CRITICAL: 同じカテゴリの既存タグをすべて削除（currentTagsではなく、DBから直接取得して削除）
+          const itemTagTable = isUserItem ? 'user_item_tags' : 'item_tags';
+          const itemIdField = isUserItem ? 'user_item_id' : 'official_item_id';
           
-          console.log(`Found ${existingTagsInCategory.length} existing tags in category ${update.category}`);
+          // まず、このアイテムの現在のタグを取得
+          const { data: existingItemTags } = await supabase
+            .from(itemTagTable)
+            .select(`id, tag_id, tags(id, name, category)`)
+            .eq(itemIdField, itemId);
           
-          for (const existingTag of existingTagsInCategory) {
-            const removeSuccess = await removeTagFromItem(existingTag.tag_id, itemId, isUserItem);
-            console.log(`Removed existing tag ${existingTag.tag_id} from item ${itemId}: ${removeSuccess}`);
-            if (!removeSuccess) {
-              console.error(`Failed to remove tag ${existingTag.tag_id} from item ${itemId}`);
+          console.log(`[updateTagsForMultipleItems] Existing tags for item ${itemId}:`, existingItemTags);
+          
+          // 同じカテゴリのタグをすべて削除
+          if (existingItemTags) {
+            const tagsToDelete = existingItemTags.filter(
+              (itemTag: any) => itemTag.tags?.category === update.category
+            );
+            
+            console.log(`[updateTagsForMultipleItems] Found ${tagsToDelete.length} tags to delete in category ${update.category}`);
+            
+            for (const tagToDelete of tagsToDelete) {
+              console.log(`[updateTagsForMultipleItems] Deleting tag: ${tagToDelete.tags?.name} (${tagToDelete.tag_id})`);
+              const removeSuccess = await removeTagFromItem(tagToDelete.tag_id, itemId, isUserItem);
+              if (!removeSuccess) {
+                console.error(`[updateTagsForMultipleItems] Failed to remove tag ${tagToDelete.tag_id}`);
+              } else {
+                console.log(`[updateTagsForMultipleItems] Successfully removed tag ${tagToDelete.tag_id}`);
+              }
             }
           }
           
           // 新しいタグを追加（値がある場合のみ）
           if (update.value) {
+            console.log(`[updateTagsForMultipleItems] Adding new tag: ${update.value}`);
             const addSuccess = await addTagToItem(itemId, update.value, isUserItem, update.category, contentId);
-            console.log(`Added tag ${update.value} to item ${itemId}: ${addSuccess}`);
             if (!addSuccess) {
-              console.error(`Failed to add tag ${update.value} to item ${itemId}`);
+              console.error(`[updateTagsForMultipleItems] Failed to add tag ${update.value}`);
               allSuccess = false;
+            } else {
+              console.log(`[updateTagsForMultipleItems] Successfully added tag ${update.value}`);
             }
           } else {
-            console.log(`No value provided for category ${update.category}, skipping tag addition`);
+            console.log(`[updateTagsForMultipleItems] No value for category ${update.category}, only deletion performed`);
           }
         } catch (updateError) {
-          console.error(`Error processing update for item ${itemId}, category ${update.category}:`, updateError);
+          console.error(`[updateTagsForMultipleItems] Error processing update for item ${itemId}, category ${update.category}:`, updateError);
           allSuccess = false;
         }
       }
     }
     
-    console.log(`Tag update process completed. Success: ${allSuccess}`);
+    console.log(`[updateTagsForMultipleItems] Completed. Success: ${allSuccess}`);
     return allSuccess;
   } catch (error) {
-    console.error("Error updating tags for multiple items:", error);
+    console.error("[updateTagsForMultipleItems] Exception:", error);
     return false;
   }
 }
