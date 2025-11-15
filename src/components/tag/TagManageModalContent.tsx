@@ -38,8 +38,12 @@ export function TagManageModalContent({
   const queryClient = useQueryClient();
 
   const handleRemoveTag = async (tagId: string) => {
-    // 楽観的更新：UIから即座に削除
+    // 楽観的更新：UIから即座に削除 + フェッチの競合を回避
     const queryKey = ["current-tags", itemIds] as const;
+
+    // 進行中のクエリをキャンセル（古い結果での上書き防止）
+    await queryClient.cancelQueries({ queryKey });
+
     const previous = (queryClient.getQueryData<SimpleItemTag[]>(queryKey) || []).slice();
 
     // キャッシュから先に取り除く（即時反映）

@@ -72,15 +72,23 @@ export function TagInput({
   });
 
   const handleRemoveTag = async (tagToRemove: string) => {
+    // 事前に現在の選択を保存（ロールバック用）
+    let prevSelected: string[] = [...selectedTags];
+    // キャッシュのロールバック用
+    let prevCache: any[] | undefined;
+
     try {
       const tagToDelete = existingTags.find(tag => tag.name === tagToRemove);
       
       if (tagToDelete && itemIds.length > 0) {
-        // 先にローカル選択状態とキャッシュを更新（楽観的更新）
+        // 楽観的にローカル選択状態を更新
         onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
 
         const qk = ["current-tags", itemIds] as const;
-        const prev = (queryClient.getQueryData(qk) as any[] | undefined) || [];
+        // 古い結果での上書きを防止
+        await queryClient.cancelQueries({ queryKey: qk });
+
+        prevCache = (queryClient.getQueryData(qk) as any[] | undefined) || [];
         queryClient.setQueryData(qk, (old: any[] | undefined) => {
           const base = old ?? [];
           return base.filter((t: any) => t?.tag_id !== tagToDelete.id);
@@ -108,6 +116,12 @@ export function TagInput({
       }
     } catch (error) {
       console.error("Error removing tag:", error);
+      // キャッシュと選択のロールバック
+      const qk = ["current-tags", itemIds] as const;
+      if (prevCache) {
+        queryClient.setQueryData(qk, prevCache);
+      }
+      onTagsChange(prevSelected);
       toast({
         title: "エラー",
         description: "タグの削除に失敗しました。",
