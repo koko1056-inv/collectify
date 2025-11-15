@@ -13,13 +13,17 @@ import { TagUpdate } from "@/types/tag";
 export async function addTagToItem(
   itemId: string,
   tagNameOrId: string,
-  isUserItem: boolean = false
+  isUserItem: boolean = false,
+  category?: string,
+  contentId?: string | null
 ): Promise<boolean> {
   try {
     console.log(`[addTagToItem] =====START=====`);
     console.log(`[addTagToItem] itemId: ${itemId}`);
     console.log(`[addTagToItem] tagNameOrId: ${tagNameOrId}`);
     console.log(`[addTagToItem] isUserItem: ${isUserItem}`);
+    console.log(`[addTagToItem] category: ${category}`);
+    console.log(`[addTagToItem] contentId: ${contentId}`);
     
     // タグ名の場合はタグIDを検索
     let tagId = tagNameOrId;
@@ -30,7 +34,7 @@ export async function addTagToItem(
     
     if (!isUuid) {
       console.log(`[addTagToItem] Looking up tag ID for name: ${tagNameOrId}`);
-      const foundTagId = await findTagIdByName(tagNameOrId);
+      const foundTagId = await findTagIdByName(tagNameOrId, category, contentId);
       if (!foundTagId) {
         console.error(`[addTagToItem] Tag with name "${tagNameOrId}" not found`);
         return false;
@@ -155,6 +159,26 @@ export async function updateTagsForMultipleItems(
     for (const itemId of itemIds) {
       console.log(`Processing item: ${itemId}`);
       
+      // アイテムのcontent_idを取得
+      const table = isUserItem ? 'user_items' : 'official_items';
+      const { data: itemData } = await supabase
+        .from(table)
+        .select('content_name')
+        .eq('id', itemId)
+        .single();
+      
+      let contentId: string | null = null;
+      if (itemData?.content_name) {
+        const { data: contentData } = await supabase
+          .from('content_names')
+          .select('id')
+          .eq('name', itemData.content_name)
+          .single();
+        contentId = contentData?.id || null;
+      }
+      
+      console.log(`Item ${itemId} content_id: ${contentId}`);
+      
       for (const update of updates) {
         console.log(`Processing update for category ${update.category} with value: ${update.value}`);
         
@@ -176,7 +200,7 @@ export async function updateTagsForMultipleItems(
           
           // 新しいタグを追加（値がある場合のみ）
           if (update.value) {
-            const addSuccess = await addTagToItem(itemId, update.value, isUserItem);
+            const addSuccess = await addTagToItem(itemId, update.value, isUserItem, update.category, contentId);
             console.log(`Added tag ${update.value} to item ${itemId}: ${addSuccess}`);
             if (!addSuccess) {
               console.error(`Failed to add tag ${update.value} to item ${itemId}`);

@@ -28,15 +28,24 @@ export async function getTagsByCategory(
 // タグ名からタグIDを検索
 export async function findTagIdByName(
   name: string,
-  category?: string
+  category?: string,
+  contentId?: string | null
 ): Promise<string | null> {
   try {
-    console.log(`[findTagIdByName] Searching for tag: name="${name}", category="${category}"`);
+    console.log(`[findTagIdByName] Searching for tag: name="${name}", category="${category}", contentId="${contentId}"`);
     
-    const query = supabase.from("tags").select("id, name, category").eq("name", name);
+    const query = supabase.from("tags").select("id, name, category, content_id").eq("name", name);
     
     if (category) {
       query.eq("category", category);
+    }
+    
+    // キャラクターとシリーズの場合、content_idでフィルタリング
+    if ((category === "character" || category === "series") && contentId) {
+      query.eq("content_id", contentId);
+    } else if (category === "type") {
+      // タイプは全コンテンツ共通（content_idがnull）
+      query.is("content_id", null);
     }
     
     const { data, error } = await query.maybeSingle();
