@@ -161,40 +161,32 @@ export function useSimpleTagManage(
         }
       }
 
-      // クエリを無効化（強化版）
-      const invalidationPromises = [
-        queryClient.invalidateQueries({ queryKey: ["current-tags"] }),
-        queryClient.invalidateQueries({ queryKey: ["item-content"] }),
-        queryClient.invalidateQueries({ queryKey: ["tags"] }),
-        queryClient.invalidateQueries({ queryKey: ["item-tags-count"] }),
-        // 関連するすべてのアイテムのタグクエリを無効化
-        ...itemIds.flatMap(itemId => [
-          queryClient.invalidateQueries({ queryKey: ["item-category-tags-count", itemId, isUserItem] }),
-          queryClient.invalidateQueries({ queryKey: ["item-category-tags-count", itemId, !isUserItem] }),
-          queryClient.invalidateQueries({ queryKey: ["user-item-tags", itemId] }),
-          queryClient.invalidateQueries({ queryKey: ["current-tags", [itemId]] }),
-          queryClient.invalidateQueries({ queryKey: ["item-content", [itemId]] }),
-        ]),
-        // アイテム一覧のクエリも無効化
-        isUserItem 
-          ? queryClient.invalidateQueries({ queryKey: ["user-items"] })
-          : queryClient.invalidateQueries({ queryKey: ["official-items"] }),
-        // 全体のタグ関連クエリも無効化
-        queryClient.invalidateQueries({ queryKey: ["item-tags"] }),
-        queryClient.invalidateQueries({ queryKey: ["tag-counts"] }),
-      ];
-
-      await Promise.all(invalidationPromises);
+      // すべての関連クエリを無効化
+      await queryClient.invalidateQueries({ queryKey: ["current-tags"] });
+      await queryClient.invalidateQueries({ queryKey: ["item-content"] });
+      await queryClient.invalidateQueries({ queryKey: ["tags"] });
+      await queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
+      await queryClient.invalidateQueries({ queryKey: ["item-tags"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-item-tags"] });
+      await queryClient.invalidateQueries({ queryKey: ["item-category-tags-count"] });
       
-      // 追加で強制リフェッチも実行
-      setTimeout(() => {
-        itemIds.forEach(itemId => {
-          queryClient.refetchQueries({ 
-            queryKey: ["item-category-tags-count", itemId, isUserItem],
-            exact: true 
-          });
-        });
-      }, 200);
+      if (isUserItem) {
+        await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      } else {
+        await queryClient.invalidateQueries({ queryKey: ["official-items"] });
+      }
+
+      // 明示的にデータを再フェッチして、最新の状態を取得
+      await Promise.all([
+        queryClient.refetchQueries({ 
+          queryKey: ["current-tags", itemIds],
+          exact: true 
+        }),
+        queryClient.refetchQueries({ 
+          queryKey: ["item-content", itemIds],
+          exact: true 
+        })
+      ]);
 
       console.log('[SimpleTagManage] Save completed successfully');
       
