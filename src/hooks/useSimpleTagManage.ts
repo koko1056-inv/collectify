@@ -38,6 +38,8 @@ export function useSimpleTagManage(
       return await getTagsForItem(itemIds[0], isUserItem);
     },
     enabled: isOpen && itemIds.length > 0,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   // コンテンツ名とIDを取得
@@ -67,6 +69,8 @@ export function useSimpleTagManage(
       return contentData ? { name: contentData.name, id: contentData.id } : null;
     },
     enabled: isOpen && itemIds.length > 0,
+    refetchOnMount: 'always',
+    staleTime: 0,
   });
 
   // 初期状態を設定
@@ -78,34 +82,21 @@ export function useSimpleTagManage(
       return;
     }
 
-    // 初回のみ実行するフラグ
-    if (currentTags.length === 0 && !currentContentData) return;
+    // ローディング中は何もしない
+    if (isLoading) return;
 
     // 現在のタグから初期値を設定
     const character = currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name || null;
     const type = currentTags.find(tag => tag.tags?.category === 'type')?.tags?.name || null;
     const series = currentTags.find(tag => tag.tags?.category === 'series')?.tags?.name || null;
     
-    // 状態更新を1回だけ実行
-    setTagSelections(prev => {
-      const hasChanged = prev.character !== character || prev.type !== type || prev.series !== series;
-      if (!hasChanged) return prev;
-      return { character, type, series };
-    });
+    console.log('[useSimpleTagManage] Setting initial values:', { character, type, series, contentName: currentContentData?.name });
     
-    setContentName(prev => {
-      const newContent = currentContentData?.name || null;
-      if (prev === newContent) return prev;
-      return newContent;
-    });
-
-    setContentId(prev => {
-      const newId = currentContentData?.id || null;
-      if (prev === newId) return prev;
-      return newId;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, itemIds.join(',')]); // currentTagsとcurrentContentDataを依存配列から除外して無限ループを防ぐ
+    // 状態を設定
+    setTagSelections({ character, type, series });
+    setContentName(currentContentData?.name || null);
+    setContentId(currentContentData?.id || null);
+  }, [isOpen, isLoading, currentTags, currentContentData]);
 
   // タグ変更ハンドラ
   const handleTagChange = useCallback((category: keyof TagSelection, value: string | null) => {
