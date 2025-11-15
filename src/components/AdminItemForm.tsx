@@ -105,21 +105,33 @@ export function AdminItemForm() {
             <TabsTrigger 
               value="step1" 
               className={cn(
-                "relative",
+                "relative flex items-center justify-center gap-2",
                 step1Completed && "text-green-600"
               )}
             >
-              {step1Completed && <Check className="w-4 h-4 mr-1" />}
-              1. 画像の追加
+              <span className={cn(
+                "flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold",
+                step1Completed ? "bg-green-600 text-white" : "bg-primary text-primary-foreground"
+              )}>
+                {step1Completed ? <Check className="w-4 h-4" /> : "1"}
+              </span>
+              <span>画像の追加</span>
             </TabsTrigger>
             <TabsTrigger 
               value="step2" 
               disabled={!step1Completed}
               className={cn(
+                "relative flex items-center justify-center gap-2",
                 !step1Completed && "opacity-50 cursor-not-allowed"
               )}
             >
-              2. 詳細の追加
+              <span className={cn(
+                "flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold",
+                step1Completed ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              )}>
+                2
+              </span>
+              <span>詳細の追加</span>
             </TabsTrigger>
           </TabsList>
 
