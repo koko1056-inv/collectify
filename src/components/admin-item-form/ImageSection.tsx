@@ -182,7 +182,7 @@ export function ImageSection({
             <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
               <div className="flex items-start gap-3 mb-3">
                 <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
-                  1
+                  A
                 </div>
                 <div className="flex-1">
                   <label htmlFor="imageUrl" className="text-base font-semibold text-gray-900 block mb-1">
@@ -213,7 +213,7 @@ export function ImageSection({
             <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
               <div className="flex items-start gap-3 mb-3">
                 <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
-                  2
+                  B
                 </div>
                 <div className="flex-1">
                   <label htmlFor="fileUpload" className="text-base font-semibold text-gray-900 block mb-1">
@@ -243,7 +243,7 @@ export function ImageSection({
             <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
               <div className="flex items-start gap-3 mb-3">
                 <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
-                  3
+                  C
                 </div>
                 <div className="flex-1">
                   <label htmlFor="url" className="text-base font-semibold text-gray-900 block mb-1">
