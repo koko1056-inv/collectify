@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Check, X, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -19,6 +19,8 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
   const [selectedContent, setSelectedContent] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<"character" | "series">("character");
   const [newTagName, setNewTagName] = useState("");
+  const [editingTagId, setEditingTagId] = useState<string | null>(null);
+  const [editingTagName, setEditingTagName] = useState("");
   const queryClient = useQueryClient();
 
   // Supabase Realtimeでtagsとitem_tagsの変更を監視
@@ -158,6 +160,32 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
     },
   });
 
+  // タグ更新
+  const updateTagMutation = useMutation({
+    mutationFn: async ({ tagId, newName }: { tagId: string; newName: string }) => {
+      const { error } = await supabase
+        .from("tags")
+        .update({ name: newName })
+        .eq("id", tagId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      // すべてのタグ関連のクエリを無効化
+      queryClient.invalidateQueries({ queryKey: ["content-tags"] });
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
+      queryClient.invalidateQueries({ queryKey: ["official-items"] });
+      setEditingTagId(null);
+      setEditingTagName("");
+      toast.success("タグを更新しました");
+    },
+    onError: (error: any) => {
+      toast.error("タグの更新に失敗しました: " + error.message);
+    },
+  });
+
   const handleAddTag = () => {
     if (!newTagName.trim()) {
       toast.error("タグ名を入力してください");
@@ -170,6 +198,25 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
     }
 
     addTagMutation.mutate(newTagName.trim());
+  };
+
+  const handleStartEdit = (tagId: string, tagName: string) => {
+    setEditingTagId(tagId);
+    setEditingTagName(tagName);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTagId(null);
+    setEditingTagName("");
+  };
+
+  const handleSaveEdit = (tagId: string) => {
+    if (!editingTagName.trim()) {
+      toast.error("タグ名を入力してください");
+      return;
+    }
+
+    updateTagMutation.mutate({ tagId, newName: editingTagName.trim() });
   };
 
   const categoryLabel = selectedCategory === "character" ? "キャラクター・人物名" : "グッズシリーズ";
@@ -259,17 +306,64 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                       {tags.map((tag) => (
                         <div
                           key={tag.id}
-                          className="flex items-center justify-between p-2 border rounded hover:bg-accent"
+                          className="flex items-center justify-between gap-2 p-2 border rounded hover:bg-accent"
                         >
-                          <span>{tag.name}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteTagMutation.mutate(tag.id)}
-                            disabled={deleteTagMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          {editingTagId === tag.id ? (
+                            <>
+                              <Input
+                                value={editingTagName}
+                                onChange={(e) => setEditingTagName(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleSaveEdit(tag.id);
+                                  } else if (e.key === "Escape") {
+                                    handleCancelEdit();
+                                  }
+                                }}
+                                className="flex-1"
+                                autoFocus
+                              />
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleSaveEdit(tag.id)}
+                                  disabled={updateTagMutation.isPending}
+                                >
+                                  <Check className="h-4 w-4 text-green-600" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={handleCancelEdit}
+                                  disabled={updateTagMutation.isPending}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <span className="flex-1">{tag.name}</span>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleStartEdit(tag.id, tag.name)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => deleteTagMutation.mutate(tag.id)}
+                                  disabled={deleteTagMutation.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </>
+                          )}
                         </div>
                       ))}
                     </div>
