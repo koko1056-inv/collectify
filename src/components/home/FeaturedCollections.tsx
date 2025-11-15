@@ -1,8 +1,8 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, TrendingUp, ChevronRight } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SkeletonGrid } from "@/components/ui/skeleton";
 import { OfficialItem } from "@/types";
@@ -19,6 +19,31 @@ import { OfficialGoodsCard } from "@/components/OfficialGoodsCard";
 export function FeaturedCollections() {
   const [currentTab, setCurrentTab] = useState<string>("today");
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
+
+  // Supabase Realtimeでofficial_itemsの変更を監視
+  useEffect(() => {
+    const channel = supabase
+      .channel('featured-items-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETEすべてを監視
+          schema: 'public',
+          table: 'official_items'
+        },
+        (payload) => {
+          console.log('[FeaturedCollections] official_items changed:', payload);
+          // featured-itemsクエリを無効化して再フェッチ
+          queryClient.invalidateQueries({ queryKey: ['featured-items'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
   
   const { data: todayItems = [], isLoading: isTodayLoading } = useQuery<OfficialItem[]>({
     queryKey: ["featured-items", "today"],
