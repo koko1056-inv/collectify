@@ -58,18 +58,27 @@ export function useItemSubmit({
     return true;
   };
 
-  const createOrGetTag = async (name: string, category: string | null = null) => {
+  const createOrGetTag = async (name: string, category: string | null = null, contentId: string | null = null) => {
     if (!name) return null;
     
-    console.log(`Creating/getting tag: "${name}" with category: "${category}"`);
+    console.log(`Creating/getting tag: "${name}" with category: "${category}", contentId: "${contentId}"`);
 
-    // 既存のタグを検索
-    const { data: existingTag, error: searchError } = await supabase
+    // 既存のタグを検索（character/seriesはcontent_idも考慮）
+    let query = supabase
       .from("tags")
-      .select("id, name, category")
+      .select("id, name, category, content_id")
       .eq("name", name)
-      .eq("category", category)
-      .maybeSingle();
+      .eq("category", category);
+
+    // character/seriesカテゴリの場合はcontent_idでフィルタリング
+    if ((category === 'character' || category === 'series') && contentId) {
+      query = query.eq("content_id", contentId);
+    } else if (category === 'type') {
+      // typeカテゴリはcontent_idがnullのもののみ
+      query = query.is("content_id", null);
+    }
+
+    const { data: existingTag, error: searchError } = await query.maybeSingle();
 
     if (searchError) {
       console.error("Error searching for tag:", searchError);
@@ -82,10 +91,17 @@ export function useItemSubmit({
     }
 
     // タグが存在しない場合は新規作成
-    console.log(`Creating new tag: "${name}" with category: "${category}"`);
+    console.log(`Creating new tag: "${name}" with category: "${category}", content_id: "${contentId}"`);
+    
+    // character/seriesはcontent_idを付与、typeはnull
+    const insertData: any = { name, category };
+    if ((category === 'character' || category === 'series') && contentId) {
+      insertData.content_id = contentId;
+    }
+    
     const { data: newTag, error: createError } = await supabase
       .from("tags")
-      .insert([{ name, category }])
+      .insert([insertData])
       .select()
       .single();
 
@@ -135,11 +151,24 @@ export function useItemSubmit({
 
       console.log("Created item:", itemData);
 
+      // content_nameからcontent_idを取得
+      let contentId: string | null = null;
+      if (formData.content_name) {
+        const { data: contentData } = await supabase
+          .from("content_names")
+          .select("id")
+          .eq("name", formData.content_name)
+          .maybeSingle();
+        
+        contentId = contentData?.id || null;
+        console.log(`Content ID for "${formData.content_name}": ${contentId}`);
+      }
+
       // カテゴリータグの処理（必須3種類）
       const categoryTags = [
-        { name: characterTag, category: 'character' },
-        { name: typeTag, category: 'type' },
-        { name: seriesTag, category: 'series' }
+        { name: characterTag, category: 'character', needsContentId: true },
+        { name: typeTag, category: 'type', needsContentId: false },
+        { name: seriesTag, category: 'series', needsContentId: true }
       ];
 
       console.log("Processing category tags:", categoryTags);
@@ -152,10 +181,12 @@ export function useItemSubmit({
             continue;
           }
           
-          const tagId = await createOrGetTag(tag.name, tag.category);
+          // character/seriesの場合はcontentIdを渡す
+          const tagContentId = tag.needsContentId ? contentId : null;
+          const tagId = await createOrGetTag(tag.name, tag.category, tagContentId);
           if (tagId) {
             await addTagToItem(itemData.id, tagId, false);
-            console.log(`Added ${tag.category} tag: ${tag.name}`);
+            console.log(`Added ${tag.category} tag: ${tag.name} (content_id: ${tagContentId})`);
           }
         } catch (error) {
           console.error(`Error processing category tag ${tag.name}:`, error);
