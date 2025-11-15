@@ -66,6 +66,7 @@ export function FilterBar({
         selectedTags={selectedTags}
         onTagsChange={onTagsChange}
         tags={tags}
+        selectedContent={selectedContent}
       />
 
       <div className="w-full space-y-2">

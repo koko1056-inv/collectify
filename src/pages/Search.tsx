@@ -30,7 +30,7 @@ const Search = () => {
   } = useOfficialItems();
   const {
     data: allTags = []
-  } = useTags();
+  } = useTags(selectedContent);
 
   // URLからタブの状態を取得
   const currentTab = searchParams.get("tab") || "goods";
