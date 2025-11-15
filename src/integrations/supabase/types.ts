@@ -1082,6 +1082,7 @@ export type Database = {
       tags: {
         Row: {
           category: string | null
+          content_id: string | null
           created_at: string
           id: string
           is_category: boolean | null
@@ -1089,6 +1090,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          content_id?: string | null
           created_at?: string
           id?: string
           is_category?: boolean | null
@@ -1096,12 +1098,21 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          content_id?: string | null
           created_at?: string
           id?: string
           is_category?: boolean | null
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tags_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_names"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trade_requests: {
         Row: {
