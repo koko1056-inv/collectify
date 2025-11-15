@@ -163,7 +163,6 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .from("item_tags")
         .delete()
         .eq("tag_id", tagId);
-      
       if (itemTagsError) throw itemTagsError;
 
       // 関連するuser_item_tagsを削除
@@ -171,25 +170,32 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .from("user_item_tags")
         .delete()
         .eq("tag_id", tagId);
-      
       if (userItemTagsError) throw userItemTagsError;
+
+      // 関連するoriginal_item_tagsを削除
+      const { error: originalItemTagsError } = await supabase
+        .from("original_item_tags")
+        .delete()
+        .eq("tag_id", tagId);
+      if (originalItemTagsError) throw originalItemTagsError;
 
       // タグ本体を削除
       const { error } = await supabase
         .from("tags")
         .delete()
         .eq("id", tagId);
-
       if (error) throw error;
     },
-    onSuccess: () => {
-      // すべてのタグ関連のクエリを無効化
-      queryClient.invalidateQueries({ queryKey: ["content-tags"] });
-      queryClient.invalidateQueries({ queryKey: ["unlinked-tags"] });
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
-      queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
-      queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
-      queryClient.invalidateQueries({ queryKey: ["official-items"] });
+    onSuccess: async () => {
+      // すべてのタグ関連のクエリを無効化して即時再取得
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["unlinked-tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags-by-category"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags-with-count"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "active" }),
+      ]);
       toast.success("タグを削除しました");
     },
     onError: (error: any) => {
@@ -205,7 +211,6 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .from("item_tags")
         .delete()
         .in("tag_id", tagIds);
-      
       if (itemTagsError) throw itemTagsError;
 
       // 関連するuser_item_tagsを削除
@@ -213,15 +218,20 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .from("user_item_tags")
         .delete()
         .in("tag_id", tagIds);
-      
       if (userItemTagsError) throw userItemTagsError;
+
+      // 関連するoriginal_item_tagsを削除
+      const { error: originalItemTagsError } = await supabase
+        .from("original_item_tags")
+        .delete()
+        .in("tag_id", tagIds);
+      if (originalItemTagsError) throw originalItemTagsError;
 
       // タグ本体を削除
       const { error } = await supabase
         .from("tags")
         .delete()
         .in("id", tagIds);
-
       if (error) throw error;
       return tagIds.length;
     },
