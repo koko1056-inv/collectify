@@ -158,6 +158,23 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
   // タグ削除
   const deleteTagMutation = useMutation({
     mutationFn: async (tagId: string) => {
+      // 関連するitem_tagsを削除
+      const { error: itemTagsError } = await supabase
+        .from("item_tags")
+        .delete()
+        .eq("tag_id", tagId);
+      
+      if (itemTagsError) throw itemTagsError;
+
+      // 関連するuser_item_tagsを削除
+      const { error: userItemTagsError } = await supabase
+        .from("user_item_tags")
+        .delete()
+        .eq("tag_id", tagId);
+      
+      if (userItemTagsError) throw userItemTagsError;
+
+      // タグ本体を削除
       const { error } = await supabase
         .from("tags")
         .delete()
@@ -183,6 +200,23 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
   // タグを一括削除
   const deleteMultipleTagsMutation = useMutation({
     mutationFn: async (tagIds: string[]) => {
+      // 関連するitem_tagsを削除
+      const { error: itemTagsError } = await supabase
+        .from("item_tags")
+        .delete()
+        .in("tag_id", tagIds);
+      
+      if (itemTagsError) throw itemTagsError;
+
+      // 関連するuser_item_tagsを削除
+      const { error: userItemTagsError } = await supabase
+        .from("user_item_tags")
+        .delete()
+        .in("tag_id", tagIds);
+      
+      if (userItemTagsError) throw userItemTagsError;
+
+      // タグ本体を削除
       const { error } = await supabase
         .from("tags")
         .delete()
