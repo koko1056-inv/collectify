@@ -40,6 +40,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
           console.log('[ContentTagManageModal] tags changed:', payload);
           // タグ関連のクエリを無効化して再フェッチ
           queryClient.invalidateQueries({ queryKey: ["content-tags"] });
+          queryClient.invalidateQueries({ queryKey: ["unlinked-tags"] });
           queryClient.invalidateQueries({ queryKey: ["tags"] });
           queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
           queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
@@ -56,6 +57,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
           console.log('[ContentTagManageModal] item_tags changed:', payload);
           // アイテムタグの変更も反映
           queryClient.invalidateQueries({ queryKey: ["content-tags"] });
+          queryClient.invalidateQueries({ queryKey: ["unlinked-tags"] });
           queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
         }
       )
@@ -102,14 +104,13 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
     enabled: !!selectedContent,
   });
 
-  // コンテンツに紐づいていないタグを取得
+  // コンテンツに紐づいていないタグを全て取得
   const { data: unlinkedTags = [] } = useQuery({
-    queryKey: ["unlinked-tags", selectedCategory],
+    queryKey: ["unlinked-tags"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tags")
         .select("*")
-        .eq("category", selectedCategory)
         .is("content_id", null)
         .order("name");
       
