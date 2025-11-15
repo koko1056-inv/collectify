@@ -180,6 +180,37 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
     },
   });
 
+  // タグを一括削除
+  const deleteMultipleTagsMutation = useMutation({
+    mutationFn: async (tagIds: string[]) => {
+      const { error } = await supabase
+        .from("tags")
+        .delete()
+        .in("id", tagIds);
+
+      if (error) throw error;
+      return tagIds.length;
+    },
+    onSuccess: async (count) => {
+      // すべてのクエリを無効化して再フェッチ
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["unlinked-tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags-by-category"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["tags-with-count"], refetchType: "active" }),
+        queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "active" }),
+      ]);
+      
+      const tagCount = selectedUnlinkedTags.length;
+      setSelectedUnlinkedTags([]);
+      toast.success(`${tagCount}件のタグを削除しました`);
+    },
+    onError: (error: any) => {
+      toast.error("タグの一括削除に失敗しました: " + error.message);
+    },
+  });
+
   // タグをコンテンツに紐づける
   const linkTagMutation = useMutation({
     mutationFn: async (tagId: string) => {
@@ -324,6 +355,17 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       return;
     }
     linkMultipleTagsMutation.mutate(selectedUnlinkedTags);
+  };
+
+  const handleDeleteSelectedTags = () => {
+    if (selectedUnlinkedTags.length === 0) {
+      toast.error("削除するタグを選択してください");
+      return;
+    }
+    if (!confirm(`選択した${selectedUnlinkedTags.length}件のタグを削除してもよろしいですか？`)) {
+      return;
+    }
+    deleteMultipleTagsMutation.mutate(selectedUnlinkedTags);
   };
 
   const categoryLabel = selectedCategory === "character" ? "キャラクター・人物名" : "グッズシリーズ";
@@ -483,13 +525,24 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                       未紐づけタグ {unlinkedTags.length > 0 && `（${selectedUnlinkedTags.length}/${unlinkedTags.length}選択中）`}
                     </Label>
                     {selectedUnlinkedTags.length > 0 && (
-                      <Button
-                        size="sm"
-                        onClick={handleLinkSelectedTags}
-                        disabled={linkMultipleTagsMutation.isPending}
-                      >
-                        選択したタグを「{selectedContent}」に紐づけ
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleDeleteSelectedTags}
+                          disabled={deleteMultipleTagsMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          選択したタグを削除
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={handleLinkSelectedTags}
+                          disabled={linkMultipleTagsMutation.isPending}
+                        >
+                          選択したタグを「{selectedContent}」に紐づけ
+                        </Button>
+                      </div>
                     )}
                   </div>
                   <ScrollArea className="h-[150px] border rounded-md p-2">
