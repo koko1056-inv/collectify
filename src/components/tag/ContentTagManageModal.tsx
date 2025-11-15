@@ -313,7 +313,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             タグ管理 - コンテンツ別
@@ -387,7 +387,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                   <Label>
                     {selectedContent}の{categoryLabel}一覧 ({tags.length}件)
                   </Label>
-                  <ScrollArea className="h-[300px] border rounded-md p-4">
+                  <ScrollArea className="h-[200px] border rounded-md p-4">
                     {tags.length === 0 ? (
                       <div className="text-center text-muted-foreground py-8">
                         まだ{categoryLabel}が登録されていません
@@ -477,7 +477,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                     </Button>
                   )}
                 </div>
-                <ScrollArea className="h-48 border rounded-md p-2">
+                <ScrollArea className="h-[200px] border rounded-md p-2">
                   {unlinkedTags.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       このカテゴリーには未紐づけのタグはありません
