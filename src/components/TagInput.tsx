@@ -76,21 +76,30 @@ export function TagInput({
       const tagToDelete = existingTags.find(tag => tag.name === tagToRemove);
       
       if (tagToDelete && itemIds.length > 0) {
+        // 先にローカル選択状態とキャッシュを更新（楽観的更新）
         onTagsChange(selectedTags.filter(tag => tag !== tagToRemove));
 
-        for (const itemId of itemIds) {
-          const { error } = await supabase
-            .from("user_item_tags")
-            .delete()
-            .eq("tag_id", tagToDelete.id)
-            .eq("user_item_id", itemId);
-
-          if (error) throw error;
-        }
-
-        await queryClient.invalidateQueries({ 
-          queryKey: ["user-previous-tags", category]
+        const qk = ["current-tags", itemIds] as const;
+        const prev = (queryClient.getQueryData(qk) as any[] | undefined) || [];
+        queryClient.setQueryData(qk, (old: any[] | undefined) => {
+          const base = old ?? [];
+          return base.filter((t: any) => t?.tag_id !== tagToDelete.id);
         });
+
+        // サーバー削除（並列）
+        const { error: batchError } = await supabase
+          .from("user_item_tags")
+          .delete()
+          .in("user_item_id", itemIds)
+          .eq("tag_id", tagToDelete.id);
+
+        if (batchError) throw batchError;
+
+        // 関連クエリを再取得
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: qk }),
+          queryClient.invalidateQueries({ queryKey: ["user-previous-tags", category] }),
+        ]);
 
         toast({
           title: "タグを削除しました",
