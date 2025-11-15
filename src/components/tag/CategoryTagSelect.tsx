@@ -14,6 +14,8 @@ interface CategoryTagSelectProps {
   label: string;
   value: string | null;
   onChange: (value: string | null) => void;
+  contentId?: string | null;
+  disabled?: boolean;
 }
 
 export function CategoryTagSelect({
@@ -21,6 +23,8 @@ export function CategoryTagSelect({
   label,
   value,
   onChange,
+  contentId,
+  disabled = false,
 }: CategoryTagSelectProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -35,13 +39,22 @@ export function CategoryTagSelect({
   }, [value]);
 
   const { data: tags = [], refetch } = useQuery({
-    queryKey: ["tags-by-category", category],
+    queryKey: ["tags-by-category", category, contentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("tags")
         .select("*")
-        .eq("category", category)
-        .order("name");
+        .eq("category", category);
+      
+      // キャラクターとシリーズの場合、コンテンツIDでフィルタリング
+      if ((category === "character" || category === "series") && contentId) {
+        query = query.eq("content_id", contentId);
+      } else if (category === "type") {
+        // タイプは全てのコンテンツで共通（content_idがnull）
+        query = query.is("content_id", null);
+      }
+      
+      const { data, error } = await query.order("name");
       
       if (error) {
         console.error(`Error fetching tags for category ${category}:`, error);
@@ -50,7 +63,7 @@ export function CategoryTagSelect({
       
       return data || [];
     },
-    staleTime: 60000, // 1分間キャッシュを保持
+    staleTime: 60000,
   });
 
   // 検索クエリに基づいてタグをフィルタリング
@@ -127,9 +140,20 @@ export function CategoryTagSelect({
         return;
       }
 
+      // タグデータを準備
+      const tagData: any = {
+        name: trimmedName,
+        category
+      };
+      
+      // キャラクターとシリーズの場合、content_idを設定
+      if ((category === "character" || category === "series") && contentId) {
+        tagData.content_id = contentId;
+      }
+
       const { data: newTag, error } = await supabase
         .from("tags")
-        .insert([{ name: trimmedName, category }])
+        .insert([tagData])
         .select()
         .single();
 
@@ -141,7 +165,7 @@ export function CategoryTagSelect({
       console.log(`Successfully added new tag:`, newTag);
       
       // キャッシュを更新
-      queryClient.invalidateQueries({ queryKey: ["tags-by-category", category] });
+      queryClient.invalidateQueries({ queryKey: ["tags-by-category", category, contentId] });
       
       // 新しいタグの名前を設定
       onChange(newTag.name);
@@ -196,8 +220,9 @@ export function CategoryTagSelect({
               setSearchQuery("");
             }
           }}
+          disabled={disabled}
         >
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full bg-white" disabled={disabled}>
             <SelectValue placeholder={getPlaceholderText()} />
           </SelectTrigger>
           <SelectContent className="bg-white w-full max-h-60 overflow-hidden" side="bottom">
@@ -213,6 +238,7 @@ export function CategoryTagSelect({
           variant="outline"
           size="icon"
           onClick={() => setIsDialogOpen(true)}
+          disabled={disabled}
         >
           <Plus className="h-4 w-4" />
         </Button>
@@ -222,6 +248,7 @@ export function CategoryTagSelect({
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         category={category}
+        contentId={contentId}
         onTagAdded={(tagName) => {
           handleAddNewTag(tagName);
           setIsDialogOpen(false);

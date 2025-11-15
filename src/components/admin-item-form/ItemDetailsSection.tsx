@@ -41,6 +41,7 @@ export function ItemDetailsSection({ formData, onUpdate }: ItemDetailsSectionPro
         characterTag={formData.characterTag}
         typeTag={formData.typeTag}
         seriesTag={formData.seriesTag}
+        contentName={formData.content_name}
         onTagChange={(category, value) => {
           const update = {};
           update[`${category}Tag`] = value;

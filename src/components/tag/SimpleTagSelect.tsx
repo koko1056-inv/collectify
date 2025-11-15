@@ -12,6 +12,7 @@ interface SimpleTagSelectProps {
   label: string;
   value: string | null;
   onChange: (value: string | null) => void;
+  contentId?: string | null; // コンテンツIDを追加（キャラクターとシリーズ用）
 }
 
 export function SimpleTagSelect({
@@ -19,18 +20,28 @@ export function SimpleTagSelect({
   label,
   value,
   onChange,
+  contentId,
 }: SimpleTagSelectProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: tags = [] } = useQuery({
-    queryKey: ["tags-by-category", category],
+    queryKey: ["tags-by-category", category, contentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("tags")
         .select("*")
-        .eq("category", category)
-        .order("name");
+        .eq("category", category);
+      
+      // キャラクターとシリーズの場合、コンテンツIDでフィルタリング
+      if ((category === "character" || category === "series") && contentId) {
+        query = query.eq("content_id", contentId);
+      } else if (category === "type") {
+        // タイプは全てのコンテンツで共通（content_idがnull）
+        query = query.is("content_id", null);
+      }
+      
+      const { data, error } = await query.order("name");
       
       if (error) {
         console.error(`Error fetching tags for category ${category}:`, error);
@@ -71,9 +82,20 @@ export function SimpleTagSelect({
         return;
       }
 
+      // タグデータを準備
+      const tagData: any = { 
+        name: trimmedName, 
+        category 
+      };
+      
+      // キャラクターとシリーズの場合、content_idを設定
+      if ((category === "character" || category === "series") && contentId) {
+        tagData.content_id = contentId;
+      }
+
       const { data: newTag, error } = await supabase
         .from("tags")
-        .insert([{ name: trimmedName, category }])
+        .insert([tagData])
         .select()
         .single();
 
@@ -83,7 +105,7 @@ export function SimpleTagSelect({
       }
 
       // キャッシュを更新
-      queryClient.invalidateQueries({ queryKey: ["tags-by-category", category] });
+      queryClient.invalidateQueries({ queryKey: ["tags-by-category", category, contentId] });
       
       // 新しいタグを設定
       onChange(newTag.name);
@@ -129,6 +151,7 @@ export function SimpleTagSelect({
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         category={category}
+        contentId={contentId}
         onTagAdded={(tagName) => {
           handleAddNewTag(tagName);
           setIsDialogOpen(false);

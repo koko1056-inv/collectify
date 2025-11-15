@@ -11,9 +11,10 @@ interface AddTagDialogProps {
   onClose: () => void;
   category: string;
   onTagAdded: (tagName: string) => void;
+  contentId?: string | null; // コンテンツIDを追加
 }
 
-export function AddTagDialog({ isOpen, onClose, category, onTagAdded }: AddTagDialogProps) {
+export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId }: AddTagDialogProps) {
   const [newTagName, setNewTagName] = useState("");
   const { toast } = useToast();
 
@@ -70,12 +71,20 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded }: AddTagDi
         return;
       }
       
+      // タグデータを準備
+      const tagData: any = {
+        name: trimmedName,
+        category: category,
+      };
+      
+      // キャラクターとシリーズの場合、content_idを設定
+      if ((category === "character" || category === "series") && contentId) {
+        tagData.content_id = contentId;
+      }
+      
       const { data: newTag, error } = await supabase
         .from("tags")
-        .insert([{
-          name: trimmedName,
-          category: category,
-        }])
+        .insert([tagData])
         .select()
         .single();
 
