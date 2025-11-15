@@ -186,7 +186,18 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .eq("id", tagId);
       if (error) throw error;
     },
-    onSuccess: async () => {
+    onSuccess: async (_data, tagId) => {
+      // 楽観的にキャッシュから削除
+      const content = contentNames.find(c => c.name === selectedContent);
+      const contentId = content?.id;
+      queryClient.setQueryData<any[]>(["content-tags", selectedContent, selectedCategory], (old) => old ? old.filter(t => t.id !== tagId) : old);
+      queryClient.setQueryData<any[]>(["unlinked-tags"], (old) => old ? old.filter(t => t.id !== tagId) : old);
+      if (contentId) {
+        queryClient.setQueryData<any[]>(["tags-by-category", selectedCategory, contentId], (old) => old ? old.filter(t => t.id !== tagId) : old);
+      }
+      queryClient.setQueryData<any[]>(["tags-with-count", selectedContent], (old) => old ? old.filter(t => t.id !== tagId) : old);
+      queryClient.setQueryData<any[]>(["tags"], (old) => old ? old.filter(t => t.id !== tagId) : old);
+
       // すべてのタグ関連のクエリを無効化して即時再取得
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
@@ -235,7 +246,19 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       if (error) throw error;
       return tagIds.length;
     },
-    onSuccess: async (count) => {
+    onSuccess: async (_count, tagIds) => {
+      // 楽観的にキャッシュから削除
+      const content = contentNames.find(c => c.name === selectedContent);
+      const contentId = content?.id;
+      const filterOut = (old?: any[]) => old ? old.filter(t => !tagIds.includes(t.id)) : old;
+      queryClient.setQueryData<any[]>(["content-tags", selectedContent, selectedCategory], filterOut);
+      queryClient.setQueryData<any[]>(["unlinked-tags"], filterOut);
+      if (contentId) {
+        queryClient.setQueryData<any[]>(["tags-by-category", selectedCategory, contentId], filterOut);
+      }
+      queryClient.setQueryData<any[]>(["tags-with-count", selectedContent], filterOut);
+      queryClient.setQueryData<any[]>(["tags"], filterOut);
+
       // すべてのクエリを無効化して再フェッチ
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
