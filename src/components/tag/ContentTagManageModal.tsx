@@ -100,6 +100,22 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
     enabled: !!selectedContent,
   });
 
+  // コンテンツに紐づいていないタグを取得
+  const { data: unlinkedTags = [] } = useQuery({
+    queryKey: ["unlinked-tags", selectedCategory],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("*")
+        .eq("category", selectedCategory)
+        .is("content_id", null)
+        .order("name");
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // タグ追加
   const addTagMutation = useMutation({
     mutationFn: async (tagName: string) => {
@@ -149,6 +165,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
     onSuccess: () => {
       // すべてのタグ関連のクエリを無効化
       queryClient.invalidateQueries({ queryKey: ["content-tags"] });
+      queryClient.invalidateQueries({ queryKey: ["unlinked-tags"] });
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
       queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
@@ -157,6 +174,33 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
     },
     onError: (error: any) => {
       toast.error("タグの削除に失敗しました: " + error.message);
+    },
+  });
+
+  // タグをコンテンツに紐づける
+  const linkTagMutation = useMutation({
+    mutationFn: async (tagId: string) => {
+      const content = contentNames.find(c => c.name === selectedContent);
+      if (!content) throw new Error("コンテンツが見つかりません");
+
+      const { error } = await supabase
+        .from("tags")
+        .update({ content_id: content.id })
+        .eq("id", tagId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["content-tags"] });
+      queryClient.invalidateQueries({ queryKey: ["unlinked-tags"] });
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
+      queryClient.invalidateQueries({ queryKey: ["official-items"] });
+      toast.success("タグをコンテンツに紐づけました");
+    },
+    onError: (error: any) => {
+      toast.error("タグの紐づけに失敗しました: " + error.message);
     },
   });
 
@@ -373,6 +417,27 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
             </>
           )}
         </div>
+
+        {/* コンテンツに紐づいていないタグ */}
+        {selectedContent && unlinkedTags.length > 0 && (
+          <div className="space-y-2 pt-4 border-t">
+            <Label className="text-sm font-medium">未紐づけタグ（クリックで「{selectedContent}」に紐づけ）</Label>
+            <ScrollArea className="h-48 border rounded-md p-2">
+              <div className="space-y-2">
+                {unlinkedTags.map((tag) => (
+                  <div
+                    key={tag.id}
+                    className="flex items-center justify-between p-2 bg-muted/50 rounded hover:bg-accent cursor-pointer transition-colors"
+                    onClick={() => linkTagMutation.mutate(tag.id)}
+                  >
+                    <span className="text-sm">{tag.name}</span>
+                    <Plus className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        )}
 
         <div className="flex justify-end">
           <Button variant="outline" onClick={onClose}>
