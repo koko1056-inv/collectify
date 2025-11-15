@@ -25,6 +25,7 @@ export function TagManageModal({
   const {
     tagSelections,
     contentName,
+    contentId,
     isLoading,
     isSubmitting,
     handleTagChange,
@@ -52,11 +53,28 @@ export function TagManageModal({
               <div className="space-y-4">
                 <h4 className="text-sm font-medium">タグ設定</h4>
                 
-                <SimpleTagSelect category="character" label="キャラ・人物名" value={tagSelections.character} onChange={value => handleTagChange('character', value)} />
+                <SimpleTagSelect 
+                  category="character" 
+                  label="キャラ・人物名" 
+                  value={tagSelections.character} 
+                  onChange={value => handleTagChange('character', value)}
+                  contentId={contentId}
+                />
                 
-                <SimpleTagSelect category="type" label="グッズタイプ" value={tagSelections.type} onChange={value => handleTagChange('type', value)} />
+                <SimpleTagSelect 
+                  category="type" 
+                  label="グッズタイプ" 
+                  value={tagSelections.type} 
+                  onChange={value => handleTagChange('type', value)}
+                />
                 
-                <SimpleTagSelect category="series" label="グッズシリーズ" value={tagSelections.series} onChange={value => handleTagChange('series', value)} />
+                <SimpleTagSelect 
+                  category="series" 
+                  label="グッズシリーズ" 
+                  value={tagSelections.series} 
+                  onChange={value => handleTagChange('series', value)}
+                  contentId={contentId}
+                />
               </div>
             </div>
           </ScrollArea>}

@@ -24,6 +24,7 @@ export function useSimpleTagManage(
     series: null
   });
   const [contentName, setContentName] = useState<string | null>(null);
+  const [contentId, setContentId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const queryClient = useQueryClient();
@@ -39,8 +40,8 @@ export function useSimpleTagManage(
     enabled: isOpen && itemIds.length > 0,
   });
 
-  // コンテンツ名を取得
-  const { data: currentContentName } = useQuery({
+  // コンテンツ名とIDを取得
+  const { data: currentContentData } = useQuery({
     queryKey: ["item-content", itemIds],
     queryFn: async () => {
       if (itemIds.length === 0) return null;
@@ -48,13 +49,22 @@ export function useSimpleTagManage(
       // Supabaseクライアントを直接使用
       const { supabase } = await import('@/integrations/supabase/client');
       const table = isUserItem ? 'user_items' : 'official_items';
-      const { data } = await supabase
+      const { data: itemData } = await supabase
         .from(table)
         .select('content_name')
         .eq('id', itemIds[0])
         .single();
       
-      return data?.content_name || null;
+      if (!itemData?.content_name) return null;
+
+      // コンテンツ名からコンテンツIDを取得
+      const { data: contentData } = await supabase
+        .from('content_names')
+        .select('id, name')
+        .eq('name', itemData.content_name)
+        .single();
+      
+      return contentData ? { name: contentData.name, id: contentData.id } : null;
     },
     enabled: isOpen && itemIds.length > 0,
   });
@@ -64,11 +74,12 @@ export function useSimpleTagManage(
     if (!isOpen) {
       setTagSelections({ character: null, type: null, series: null });
       setContentName(null);
+      setContentId(null);
       return;
     }
 
     // 初回のみ実行するフラグ
-    if (currentTags.length === 0 && !currentContentName) return;
+    if (currentTags.length === 0 && !currentContentData) return;
 
     // 現在のタグから初期値を設定
     const character = currentTags.find(tag => tag.tags?.category === 'character')?.tags?.name || null;
@@ -83,12 +94,18 @@ export function useSimpleTagManage(
     });
     
     setContentName(prev => {
-      const newContent = currentContentName || null;
+      const newContent = currentContentData?.name || null;
       if (prev === newContent) return prev;
       return newContent;
     });
+
+    setContentId(prev => {
+      const newId = currentContentData?.id || null;
+      if (prev === newId) return prev;
+      return newId;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, itemIds.join(',')]); // currentTagsとcurrentContentNameを依存配列から除外して無限ループを防ぐ
+  }, [isOpen, itemIds.join(',')]); // currentTagsとcurrentContentDataを依存配列から除外して無限ループを防ぐ
 
   // タグ変更ハンドラ
   const handleTagChange = useCallback((category: keyof TagSelection, value: string | null) => {
@@ -211,6 +228,7 @@ export function useSimpleTagManage(
   return {
     tagSelections,
     contentName,
+    contentId,
     isLoading,
     isSubmitting,
     handleTagChange,
