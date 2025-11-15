@@ -53,9 +53,15 @@ export function TagManageModalContent({
     });
 
     try {
-      // 並列で削除して整合性ウィンドウを短縮
-      await Promise.all(itemIds.map((itemId) => removeTagFromItem(tagId, itemId, isUserItem)));
+      // 並列で削除して整合性ウィンドウを短縮し、結果をチェック
+      const results = await Promise.all(
+        itemIds.map((itemId) => removeTagFromItem(tagId, itemId, isUserItem))
+      );
 
+      // 1つでも失敗したらロールバック
+      if (results.some((ok) => !ok)) {
+        throw new Error("One or more tag deletions failed");
+      }
       // 念のため最新化
       await queryClient.invalidateQueries({ queryKey });
 
