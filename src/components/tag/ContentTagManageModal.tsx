@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Trash2, Check, X, Pencil } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -21,6 +22,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
   const [newTagName, setNewTagName] = useState("");
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [editingTagName, setEditingTagName] = useState("");
+  const [selectedUnlinkedTags, setSelectedUnlinkedTags] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
   // Supabase Realtimeでtagsとitem_tagsの変更を監視
@@ -204,6 +206,34 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
     },
   });
 
+  // タグを一括でコンテンツに紐づける
+  const linkMultipleTagsMutation = useMutation({
+    mutationFn: async (tagIds: string[]) => {
+      const content = contentNames.find(c => c.name === selectedContent);
+      if (!content) throw new Error("コンテンツが見つかりません");
+
+      const { error } = await supabase
+        .from("tags")
+        .update({ content_id: content.id })
+        .in("id", tagIds);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["content-tags"] });
+      queryClient.invalidateQueries({ queryKey: ["unlinked-tags"] });
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
+      queryClient.invalidateQueries({ queryKey: ["official-items"] });
+      setSelectedUnlinkedTags([]);
+      toast.success(`${selectedUnlinkedTags.length}件のタグをコンテンツに紐づけました`);
+    },
+    onError: (error: any) => {
+      toast.error("タグの紐づけに失敗しました: " + error.message);
+    },
+  });
+
   // タグ更新
   const updateTagMutation = useMutation({
     mutationFn: async ({ tagId, newName }: { tagId: string; newName: string }) => {
@@ -261,6 +291,22 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
     }
 
     updateTagMutation.mutate({ tagId, newName: editingTagName.trim() });
+  };
+
+  const handleToggleUnlinkedTag = (tagId: string) => {
+    setSelectedUnlinkedTags(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
+  const handleLinkSelectedTags = () => {
+    if (selectedUnlinkedTags.length === 0) {
+      toast.error("タグを選択してください");
+      return;
+    }
+    linkMultipleTagsMutation.mutate(selectedUnlinkedTags);
   };
 
   const categoryLabel = selectedCategory === "character" ? "キャラクター・人物名" : "グッズシリーズ";
@@ -421,17 +467,41 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         {/* コンテンツに紐づいていないタグ */}
         {selectedContent && unlinkedTags.length > 0 && (
           <div className="space-y-2 pt-4 border-t">
-            <Label className="text-sm font-medium">未紐づけタグ（クリックで「{selectedContent}」に紐づけ）</Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">
+                未紐づけタグ（{selectedUnlinkedTags.length}/{unlinkedTags.length}選択中）
+              </Label>
+              <Button
+                size="sm"
+                onClick={handleLinkSelectedTags}
+                disabled={selectedUnlinkedTags.length === 0 || linkMultipleTagsMutation.isPending}
+              >
+                選択したタグを「{selectedContent}」に紐づけ
+              </Button>
+            </div>
             <ScrollArea className="h-48 border rounded-md p-2">
               <div className="space-y-2">
                 {unlinkedTags.map((tag) => (
                   <div
                     key={tag.id}
-                    className="flex items-center justify-between p-2 bg-muted/50 rounded hover:bg-accent cursor-pointer transition-colors"
-                    onClick={() => linkTagMutation.mutate(tag.id)}
+                    className="flex items-center gap-2 p-2 bg-muted/50 rounded hover:bg-accent transition-colors"
                   >
-                    <span className="text-sm">{tag.name}</span>
-                    <Plus className="h-4 w-4 text-muted-foreground" />
+                    <input
+                      type="checkbox"
+                      checked={selectedUnlinkedTags.includes(tag.id)}
+                      onChange={() => handleToggleUnlinkedTag(tag.id)}
+                      className="h-4 w-4 cursor-pointer"
+                    />
+                    <span className="flex-1 text-sm">{tag.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => linkTagMutation.mutate(tag.id)}
+                      disabled={linkTagMutation.isPending}
+                      className="h-6 w-6"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
               </div>
