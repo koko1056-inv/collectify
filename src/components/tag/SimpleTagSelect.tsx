@@ -104,8 +104,11 @@ export function SimpleTagSelect({
         throw error;
       }
 
-      // キャッシュを更新
+      // すべての関連キャッシュを更新
       queryClient.invalidateQueries({ queryKey: ["tags-by-category", category, contentId] });
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
+      queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
+      queryClient.invalidateQueries({ queryKey: ["official-items"] });
       
       // 新しいタグを設定
       onChange(newTag.name);
