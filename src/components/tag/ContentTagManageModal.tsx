@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -313,14 +313,15 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto flex flex-col" >
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             タグ管理 - コンテンツ別
           </DialogTitle>
+          <DialogDescription className="sr-only">タグ管理モーダル。コンテンツごとのタグ編集と未紐づけタグの紐づけを行います。</DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 pr-4">
+        <div className="flex-1 pr-4 overflow-y-auto">
           <div className="space-y-4">
             {/* コンテンツ選択 */}
             <div className="space-y-2">
@@ -511,7 +512,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
               </>
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         <div className="flex justify-end pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
