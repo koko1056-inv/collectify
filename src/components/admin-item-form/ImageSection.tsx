@@ -224,7 +224,7 @@ export function ImageSection({
                   </p>
                 </div>
               </div>
-              <div className="ml-11">
+              <div className="ml-11 -mt-1">
                 <Input
                   id="fileUpload"
                   type="file"
