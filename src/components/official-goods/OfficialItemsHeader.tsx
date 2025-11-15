@@ -31,12 +31,7 @@ export function OfficialItemsHeader({
           </p>
         </div>
         
-        <Button variant="outline" size="sm" onClick={onFilterClick} className="flex items-center gap-1 mr-1 px-[9px] border border-gray-300">
-          <Search className="h-4 w-4" />
-          <span className="hidden sm:inline">探す</span>
-        </Button>
-        
-        <Select 
+        <Select
           value={sortBy} 
           onValueChange={(value) => onSortChange(value as SortOption)}
           defaultValue="newest"
