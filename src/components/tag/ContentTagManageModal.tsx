@@ -313,211 +313,209 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             タグ管理 - コンテンツ別
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* コンテンツ選択 */}
-          <div className="space-y-2">
-            <Label>コンテンツを選択</Label>
-            <Select value={selectedContent} onValueChange={setSelectedContent}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="コンテンツを選択してください" />
-              </SelectTrigger>
-              <SelectContent>
-                {contentNames.map((content) => (
-                  <SelectItem key={content.id} value={content.name}>
-                    {content.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <ScrollArea className="flex-1 pr-4">
+          <div className="space-y-4">
+            {/* コンテンツ選択 */}
+            <div className="space-y-2">
+              <Label>コンテンツを選択</Label>
+              <Select value={selectedContent} onValueChange={setSelectedContent}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="コンテンツを選択してください" />
+                </SelectTrigger>
+                <SelectContent>
+                  {contentNames.map((content) => (
+                    <SelectItem key={content.id} value={content.name}>
+                      {content.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* カテゴリ選択 */}
-          <div className="space-y-2">
-            <Label>タグの種類</Label>
-            <Select 
-              value={selectedCategory} 
-              onValueChange={(value) => setSelectedCategory(value as "character" | "series")}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="character">キャラクター・人物名</SelectItem>
-                <SelectItem value="series">グッズシリーズ</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            {/* カテゴリ選択 */}
+            <div className="space-y-2">
+              <Label>タグの種類</Label>
+              <Select 
+                value={selectedCategory} 
+                onValueChange={(value) => setSelectedCategory(value as "character" | "series")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="character">キャラクター・人物名</SelectItem>
+                  <SelectItem value="series">グッズシリーズ</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {selectedContent && (
-            <>
-              {/* 新しいタグを追加 */}
-              <div className="space-y-2">
-                <Label>新しい{categoryLabel}を追加</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder={`${categoryLabel}名を入力`}
-                    value={newTagName}
-                    onChange={(e) => setNewTagName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleAddTag();
-                      }
-                    }}
-                  />
-                  <Button 
-                    onClick={handleAddTag}
-                    disabled={addTagMutation.isPending}
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    追加
-                  </Button>
+            {selectedContent && (
+              <>
+                {/* 新しいタグを追加 */}
+                <div className="space-y-2">
+                  <Label>新しい{categoryLabel}を追加</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder={`${categoryLabel}名を入力`}
+                      value={newTagName}
+                      onChange={(e) => setNewTagName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleAddTag();
+                        }
+                      }}
+                    />
+                    <Button 
+                      onClick={handleAddTag}
+                      disabled={addTagMutation.isPending}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      追加
+                    </Button>
+                  </div>
                 </div>
-              </div>
 
-              {/* タグ一覧 */}
-              <div className="space-y-2">
-                <Label>
-                  {selectedContent}の{categoryLabel}一覧 ({tags.length}件)
-                </Label>
-                <ScrollArea className="h-[300px] border rounded-md p-4">
-                  {tags.length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8">
-                      まだ{categoryLabel}が登録されていません
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {tags.map((tag) => (
-                        <div
-                          key={tag.id}
-                          className="flex items-center justify-between gap-2 p-2 border rounded hover:bg-accent"
-                        >
-                          {editingTagId === tag.id ? (
-                            <>
-                              <Input
-                                value={editingTagName}
-                                onChange={(e) => setEditingTagName(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    handleSaveEdit(tag.id);
-                                  } else if (e.key === "Escape") {
-                                    handleCancelEdit();
-                                  }
-                                }}
-                                className="flex-1"
-                                autoFocus
-                              />
-                              <div className="flex gap-1">
+                {/* タグ一覧 */}
+                <div className="space-y-2">
+                  <Label>
+                    {selectedContent}の{categoryLabel}一覧 ({tags.length}件)
+                  </Label>
+                  <ScrollArea className="h-[300px] border rounded-md p-4">
+                    {tags.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        まだ{categoryLabel}が登録されていません
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {tags.map((tag) => (
+                          <div
+                            key={tag.id}
+                            className="flex items-center gap-2 p-2 bg-muted/50 rounded hover:bg-muted transition-colors"
+                          >
+                            {editingTagId === tag.id ? (
+                              <>
+                                <Input
+                                  value={editingTagName}
+                                  onChange={(e) => setEditingTagName(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      handleSaveEdit(tag.id);
+                                    } else if (e.key === "Escape") {
+                                      handleCancelEdit();
+                                    }
+                                  }}
+                                  className="flex-1"
+                                  autoFocus
+                                />
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleSaveEdit(tag.id)}
-                                  disabled={updateTagMutation.isPending}
                                 >
-                                  <Check className="h-4 w-4 text-green-600" />
+                                  <Check className="h-4 w-4 text-primary" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={handleCancelEdit}
-                                  disabled={updateTagMutation.isPending}
                                 >
                                   <X className="h-4 w-4" />
                                 </Button>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <span className="flex-1">{tag.name}</span>
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleStartEdit(tag.id, tag.name)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => deleteTagMutation.mutate(tag.id)}
-                                  disabled={deleteTagMutation.isPending}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
-                            </>
-                          )}
+                              </>
+                            ) : (
+                              <>
+                                <span className="flex-1">{tag.name}</span>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleStartEdit(tag.id, tag.name)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => deleteTagMutation.mutate(tag.id)}
+                                    disabled={deleteTagMutation.isPending}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+              </>
+            )}
+
+            {/* コンテンツに紐づいていないタグ */}
+            {selectedContent && (
+              <div className="space-y-2 pt-4 border-t mt-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-lg font-semibold">
+                    未紐づけタグ {unlinkedTags.length > 0 && `（${selectedUnlinkedTags.length}/${unlinkedTags.length}選択中）`}
+                  </Label>
+                  {selectedUnlinkedTags.length > 0 && (
+                    <Button
+                      size="sm"
+                      onClick={handleLinkSelectedTags}
+                      disabled={linkMultipleTagsMutation.isPending}
+                    >
+                      選択したタグを「{selectedContent}」に紐づけ
+                    </Button>
+                  )}
+                </div>
+                <ScrollArea className="h-48 border rounded-md p-2">
+                  {unlinkedTags.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      このカテゴリーには未紐づけのタグはありません
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {unlinkedTags.map((tag) => (
+                        <div
+                          key={tag.id}
+                          className="flex items-center gap-2 p-2 bg-muted/50 rounded hover:bg-accent transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedUnlinkedTags.includes(tag.id)}
+                            onChange={() => handleToggleUnlinkedTag(tag.id)}
+                            className="h-4 w-4 cursor-pointer"
+                          />
+                          <span className="flex-1 text-sm">{tag.name}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => linkTagMutation.mutate(tag.id)}
+                            disabled={linkTagMutation.isPending}
+                            className="h-6 w-6"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
                         </div>
                       ))}
                     </div>
                   )}
                 </ScrollArea>
               </div>
-            </>
-          )}
-        </div>
-
-        {/* コンテンツに紐づいていないタグ */}
-        {selectedContent && (
-          <div className="space-y-2 pt-4 border-t mt-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-lg font-semibold">
-                未紐づけタグ {unlinkedTags.length > 0 && `（${selectedUnlinkedTags.length}/${unlinkedTags.length}選択中）`}
-              </Label>
-              {selectedUnlinkedTags.length > 0 && (
-                <Button
-                  size="sm"
-                  onClick={handleLinkSelectedTags}
-                  disabled={linkMultipleTagsMutation.isPending}
-                >
-                  選択したタグを「{selectedContent}」に紐づけ
-                </Button>
-              )}
-            </div>
-            <ScrollArea className="h-48 border rounded-md p-2">
-              {unlinkedTags.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
-                  このカテゴリーには未紐づけのタグはありません
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {unlinkedTags.map((tag) => (
-                    <div
-                      key={tag.id}
-                      className="flex items-center gap-2 p-2 bg-muted/50 rounded hover:bg-accent transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedUnlinkedTags.includes(tag.id)}
-                        onChange={() => handleToggleUnlinkedTag(tag.id)}
-                        className="h-4 w-4 cursor-pointer"
-                      />
-                      <span className="flex-1 text-sm">{tag.name}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => linkTagMutation.mutate(tag.id)}
-                        disabled={linkTagMutation.isPending}
-                        className="h-6 w-6"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
+            )}
           </div>
-        )}
+        </ScrollArea>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
             閉じる
           </Button>
