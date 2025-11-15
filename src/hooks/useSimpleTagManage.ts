@@ -127,9 +127,27 @@ export function useSimpleTagManage(
   }, []);
 
   // コンテンツ名変更ハンドラ
-  const handleContentChange = useCallback((newContentName: string | null) => {
+  const handleContentChange = useCallback(async (newContentName: string | null) => {
     console.log(`[SimpleTagManage] Content name changed: ${newContentName}`);
     setContentName(newContentName);
+
+    try {
+      // 新しいコンテンツ名から即時にcontentIdを解決して反映
+      if (newContentName) {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { data: content } = await supabase
+          .from('content_names')
+          .select('id')
+          .eq('name', newContentName)
+          .maybeSingle();
+        setContentId(content?.id || null);
+      } else {
+        setContentId(null);
+      }
+    } catch (e) {
+      console.error('[SimpleTagManage] Failed to resolve contentId from name:', e);
+      setContentId(null);
+    }
   }, []);
 
   // 保存ハンドラ
