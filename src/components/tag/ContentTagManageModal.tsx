@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,47 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
   const [selectedCategory, setSelectedCategory] = useState<"character" | "series">("character");
   const [newTagName, setNewTagName] = useState("");
   const queryClient = useQueryClient();
+
+  // Supabase Realtimeでtagsとitem_tagsの変更を監視
+  useEffect(() => {
+    const tagsChannel = supabase
+      .channel('content-tags-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETEすべてを監視
+          schema: 'public',
+          table: 'tags'
+        },
+        (payload) => {
+          console.log('[ContentTagManageModal] tags changed:', payload);
+          // タグ関連のクエリを無効化して再フェッチ
+          queryClient.invalidateQueries({ queryKey: ["content-tags"] });
+          queryClient.invalidateQueries({ queryKey: ["tags"] });
+          queryClient.invalidateQueries({ queryKey: ["tags-by-category"] });
+          queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'item_tags'
+        },
+        (payload) => {
+          console.log('[ContentTagManageModal] item_tags changed:', payload);
+          // アイテムタグの変更も反映
+          queryClient.invalidateQueries({ queryKey: ["content-tags"] });
+          queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(tagsChannel);
+    };
+  }, [queryClient]);
 
   // コンテンツ一覧を取得
   const { data: contentNames = [] } = useQuery({
