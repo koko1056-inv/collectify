@@ -5,7 +5,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Poll } from "@/types/polls";
 import { useVotePoll } from "@/hooks/polls/usePollMutations";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Clock } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { ja } from "date-fns/locale";
 
 interface PollCardProps {
   poll: Poll;
@@ -66,12 +68,24 @@ export function PollCard({ poll }: PollCardProps) {
               {poll.profiles?.username?.[0]?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex-1">
             <p className="font-semibold text-sm">{poll.profiles?.username}</p>
             <p className="text-xs text-muted-foreground">
               {new Date(poll.created_at).toLocaleDateString("ja-JP")}
             </p>
           </div>
+          {poll.ends_at && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {isExpired ? (
+                <span className="text-destructive font-semibold">投票終了</span>
+              ) : (
+                <span>
+                  残り{formatDistanceToNow(new Date(poll.ends_at), { locale: ja })}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <h3 className="text-lg font-bold">{poll.title}</h3>
         {poll.description && (
@@ -112,7 +126,6 @@ export function PollCard({ poll }: PollCardProps) {
         
         <div className="text-xs text-muted-foreground text-center pt-2">
           合計 {totalVotes} 票
-          {isExpired && " • 投票終了"}
         </div>
       </CardContent>
     </Card>
