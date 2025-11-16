@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useSoundEffect } from "@/hooks/useSoundEffect";
 
 interface WishlistUsersModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function WishlistUsersModal({
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { playWishlistSound } = useSoundEffect();
 
   const { data: wishlistUsers = [], isLoading } = useQuery({
     queryKey: ["wishlist-users", itemId],
@@ -123,6 +125,11 @@ export function WishlistUsersModal({
       }
     },
     onSuccess: () => {
+      // ウィッシュリストに追加した時のみ効果音を再生
+      if (!isInWishlist) {
+        playWishlistSound();
+      }
+
       // 即座にリアルタイム更新をトリガー（遅延を最小化）
       const channel = supabase.channel('wishlist-update-trigger');
       channel.send({
