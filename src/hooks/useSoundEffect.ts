@@ -1,10 +1,13 @@
 import { useCallback } from 'react';
 
-// バイブレーション用のヘルパー関数
-const vibrate = (pattern: number | number[]) => {
-  if ('vibrate' in navigator) {
-    navigator.vibrate(pattern);
-  }
+// バイブレーション用のヘルパー関数（成功可否を返す）
+const vibrate = (pattern: number | number[]): boolean => {
+  try {
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator && typeof navigator.vibrate === 'function') {
+      return !!navigator.vibrate(pattern);
+    }
+  } catch {}
+  return false;
 };
 
 export const useSoundEffect = () => {
@@ -89,10 +92,24 @@ export const useSoundEffect = () => {
     }
   }, []);
 
-  // 汎用的なタップフィードバック（音なし・振動のみ）
-  const playTapFeedback = useCallback(() => {
-    vibrate(20);
-  }, []);
+// 汎用的なタップフィードバック（iOS等の非対応端末には極小クリック音で代替）
+const playTapFeedback = useCallback(() => {
+  const didVibrate = vibrate(20);
+  if (didVibrate) return;
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(200, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.05);
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.05);
+  } catch {}
+}, []);
 
   return { playSuccessSound, playWishlistSound, playLikeSound, playTapFeedback };
 };
