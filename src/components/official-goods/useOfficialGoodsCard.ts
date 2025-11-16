@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { trackAddToCollection } from "@/utils/analytics";
 import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
+import { useSoundEffect } from "@/hooks/useSoundEffect";
 
 interface UseOfficialGoodsCardProps {
   id: string;
@@ -19,6 +20,7 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { playSuccessSound } = useSoundEffect();
 
   const { data: isInCollection = false, refetch: refetchIsInCollection } = useQuery({
     queryKey: ["user-item-exists", id, user?.id],
@@ -114,6 +116,9 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       await refetchIsInCollection();
       await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
+
+      // 効果音を再生
+      playSuccessSound();
 
       toast({
         title: "成功",
