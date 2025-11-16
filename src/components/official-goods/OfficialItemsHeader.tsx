@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Tags } from "lucide-react";
+import { Tags, PlusCircle } from "lucide-react";
 import { ContentTagManageModal } from "@/components/tag/ContentTagManageModal";
 
 type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned";
@@ -24,11 +24,11 @@ export function OfficialItemsHeader({
   const [isTagManageOpen, setIsTagManageOpen] = useState(false);
   
   return (
-    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4 px-2">
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        <div className="flex flex-col">
-          <h1 className="text-sm sm:text-2xl font-bold animate-fade-in text-gray-900">グッズ</h1>
-          <p className="text-[10px] sm:text-xs text-gray-500">
+    <div className="flex justify-between items-center gap-2 mb-4 px-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+        <div className="flex flex-col min-w-0">
+          <h1 className="text-xs sm:text-2xl font-bold animate-fade-in text-gray-900 truncate">グッズ</h1>
+          <p className="text-[9px] sm:text-xs text-gray-500 whitespace-nowrap">
             全{totalItems}件
           </p>
         </div>
@@ -38,7 +38,7 @@ export function OfficialItemsHeader({
           onValueChange={(value) => onSortChange(value as SortOption)}
           defaultValue="newest"
         >
-          <SelectTrigger className="w-[100px] sm:w-[150px] h-9 bg-white border border-gray-300 rounded-md focus:ring-0 focus:ring-offset-0 cursor-pointer">
+          <SelectTrigger className="w-[80px] sm:w-[150px] h-7 sm:h-9 text-[10px] sm:text-sm bg-white border border-gray-300 rounded-md focus:ring-0 focus:ring-offset-0 cursor-pointer">
             <SelectValue placeholder="並び順" />
           </SelectTrigger>
           <SelectContent 
@@ -54,19 +54,23 @@ export function OfficialItemsHeader({
           </SelectContent>
         </Select>
       </div>
-      <div className="flex gap-2 shrink-0">
+      <div className="flex gap-1 sm:gap-2 shrink-0">
         <Button 
           onClick={() => setIsTagManageOpen(true)} 
-          size="sm" 
+          size="icon" 
           variant="outline"
-          className="text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9"
+          className="h-7 w-7 sm:h-9 sm:w-auto sm:px-3"
         >
-          <Tags className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+          <Tags className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
           <span className="hidden sm:inline">タグを管理</span>
-          <span className="sm:hidden">タグ</span>
         </Button>
-        <Button onClick={() => navigate("/add-item")} size="sm" className="bg-gray-900 hover:bg-gray-800 text-xs sm:text-sm px-2 sm:px-[14px] h-8 sm:h-9 whitespace-nowrap">
-          グッズを追加
+        <Button 
+          onClick={() => navigate("/add-item")} 
+          size="icon"
+          className="bg-gray-900 hover:bg-gray-800 h-7 w-7 sm:h-9 sm:w-auto sm:px-[14px]"
+        >
+          <PlusCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
+          <span className="hidden sm:inline">グッズを追加</span>
         </Button>
       </div>
 
