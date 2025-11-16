@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PostComment } from "@/types/posts";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function usePostComments(postId: string) {
   const queryClient = useQueryClient();
@@ -82,11 +83,11 @@ export function usePostComments(postId: string) {
 export function useAddComment() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ postId, comment }: { postId: string; comment: string }) => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("ログインが必要です");
+      if (!user) throw new Error("ログインが必要です");
 
       console.log("コメントを追加中:", { postId, comment });
 
@@ -95,7 +96,7 @@ export function useAddComment() {
         .from("post_comments")
         .insert({
           post_id: postId,
-          user_id: userData.user.id,
+          user_id: user.id,
           comment,
         })
         .select()
@@ -110,7 +111,7 @@ export function useAddComment() {
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("username, avatar_url")
-        .eq("id", userData.user.id)
+        .eq("id", user.id)
         .single();
 
       if (profileError) {
