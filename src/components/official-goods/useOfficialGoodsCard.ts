@@ -16,11 +16,11 @@ interface UseOfficialGoodsCardProps {
 export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardProps) {
   const { toast } = useToast();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const { playSuccessSound, playTapFeedback } = useSoundEffect();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { playSuccessSound } = useSoundEffect();
 
   const { data: isInCollection = false, refetch: refetchIsInCollection } = useQuery({
     queryKey: ["user-item-exists", id, user?.id],
@@ -86,9 +86,6 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
   }, [id, user?.id, queryClient, refetchIsInCollection]);
 
   const handleAddToCollection = async () => {
-    // タップ直後のフィードバック（ユーザー操作の文脈内で実行）
-    try { playTapFeedback(); } catch {}
-
     if (!user) {
       toast({
         title: "エラー",

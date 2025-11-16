@@ -32,7 +32,7 @@ export function WishlistModal({
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { playWishlistSound, playTapFeedback } = useSoundEffect();
+  const { playWishlistSound } = useSoundEffect();
 
   useEffect(() => {
     if (existingNote) {
@@ -43,9 +43,6 @@ export function WishlistModal({
   }, [existingNote, isOpen]);
 
   const handleSave = async () => {
-    // タップ時の即時フィードバック
-    try { playTapFeedback(); } catch {}
-
     if (!user) {
       toast({
         title: "ログインが必要です",

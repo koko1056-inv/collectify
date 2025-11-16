@@ -27,7 +27,7 @@ export function WishlistUsersModal({
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { playWishlistSound, playTapFeedback } = useSoundEffect();
+  const { playWishlistSound } = useSoundEffect();
 
   const { data: wishlistUsers = [], isLoading } = useQuery({
     queryKey: ["wishlist-users", itemId],
@@ -166,9 +166,6 @@ export function WishlistUsersModal({
   };
 
   const handleToggleWishlist = () => {
-    // タップ時の即時フィードバック
-    try { playTapFeedback(); } catch {}
-
     if (!user) {
       toast({
         title: "ログインが必要です",

@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSoundEffect } from "@/hooks/useSoundEffect";
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
@@ -71,7 +70,6 @@ export function useCreatePost() {
 export function useToggleLike() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { playLikeSound } = useSoundEffect();
 
   return useMutation({
     mutationFn: async ({ postId, isLiked }: { postId: string; isLiked: boolean }) => {
@@ -92,9 +90,6 @@ export function useToggleLike() {
             user_id: user.id,
           });
         if (error) throw error;
-        
-        // いいね追加時に効果音と振動を再生
-        playLikeSound();
       }
     },
     onSuccess: () => {
