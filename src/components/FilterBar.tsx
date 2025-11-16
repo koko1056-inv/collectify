@@ -158,32 +158,12 @@ export function FilterBar({
         </Dialog>
       </div>
 
-      {!isMobile && (
-        <TagFilter
-          selectedTags={selectedTags}
-          onTagsChange={onTagsChange}
-          tags={tags}
-          selectedContent={selectedContent}
-        />
-      )}
-      
-      {isMobile && (
-        <div className="w-full">
-          <Button
-            variant="outline"
-            onClick={() => {
-              const tagSection = document.getElementById('mobile-tag-filter');
-              if (tagSection) {
-                tagSection.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            className="w-full justify-between font-normal text-xs h-8"
-          >
-            <span className="truncate">タグから選択</span>
-            <ChevronDown className="h-3 w-3 opacity-50 ml-2 flex-shrink-0" />
-          </Button>
-        </div>
-      )}
+      <TagFilter
+        selectedTags={selectedTags}
+        onTagsChange={onTagsChange}
+        tags={tags}
+        selectedContent={selectedContent}
+      />
     </div>
   );
 }
