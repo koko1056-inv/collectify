@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface TagFilterProps {
   selectedTags: string[];
@@ -20,6 +21,7 @@ interface TagFilterProps {
 export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }: TagFilterProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("all");
 
   const { data: tagsWithCount = [] } = useQuery({
     queryKey: ["tags-with-count", selectedContent],
@@ -78,6 +80,19 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
   };
 
   const popularTags = tagsWithCount.slice(0, 5);
+
+  // カテゴリ別にタグを分類
+  const characterTags = tagsWithCount.filter(tag => tag.category === 'character');
+  const seriesTags = tagsWithCount.filter(tag => tag.category === 'series');
+  const typeTags = tagsWithCount.filter(tag => tag.category === 'type');
+
+  // 検索フィルタリング
+  const filterTagsBySearch = (tagsList: typeof tagsWithCount) => {
+    if (!searchQuery) return tagsList;
+    return tagsList.filter(tag => 
+      tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
 
   // 有効なタグのみをフィルタリング
   useEffect(() => {
@@ -143,63 +158,141 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
               className="mb-4"
             />
           </div>
-          <ScrollArea className="max-h-[50vh] pr-4">
-            <div className="p-4 space-y-4">
-              {/* 人気タグ */}
-              {searchQuery === "" && popularTags.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-medium mb-2">人気タグ</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {popularTags.map((tag) => (
-                      <Button
-                        key={tag.id}
-                        variant={selectedTags.includes(tag.name) ? "default" : "outline"}
-                        size="sm"
-                        className="text-xs h-7 px-3"
-                        onClick={() => {
-                          handleTagToggle(tag.name);
-                        }}
-                      >
-                        {tag.name}
-                        {selectedTags.includes(tag.name) && <span className="ml-1">✓</span>}
-                      </Button>
-                    ))}
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all">すべて</TabsTrigger>
+              <TabsTrigger value="character">キャラ・人物</TabsTrigger>
+              <TabsTrigger value="series">シリーズ</TabsTrigger>
+              <TabsTrigger value="type">タイプ</TabsTrigger>
+            </TabsList>
+
+            <ScrollArea className="max-h-[50vh] mt-4">
+              <TabsContent value="all" className="mt-0 px-4">
+                <div className="space-y-4">
+                  {/* 人気タグ */}
+                  {searchQuery === "" && popularTags.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-medium mb-2">人気タグ</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {popularTags.map((tag) => (
+                          <Button
+                            key={tag.id}
+                            variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+                            size="sm"
+                            className="text-xs h-7 px-3"
+                            onClick={() => handleTagToggle(tag.name)}
+                          >
+                            {tag.name}
+                            {selectedTags.includes(tag.name) && <span className="ml-1">✓</span>}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 全タグリスト */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-2">
+                      {searchQuery ? `"${searchQuery}"の検索結果` : "すべてのタグ"}
+                    </h3>
+                    <div className="grid grid-cols-1 gap-1">
+                      {filterTagsBySearch(tagsWithCount).map((tag) => (
+                        <Button
+                          key={tag.id}
+                          variant={selectedTags.includes(tag.name) ? "default" : "ghost"}
+                          size="sm"
+                          className="justify-between text-left h-auto py-2 px-3"
+                          onClick={() => handleTagToggle(tag.name)}
+                        >
+                          <span className="truncate">{tag.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">({tag.count})</span>
+                            {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              )}
+              </TabsContent>
 
-              {/* 全タグリスト */}
-              <div>
-                <h3 className="text-sm font-medium mb-2">
-                  {searchQuery ? `"${searchQuery}"の検索結果` : "すべてのタグ"}
-                </h3>
-                <div className="grid grid-cols-1 gap-1 max-h-64 overflow-y-auto">
-                  {tagsWithCount
-                    .filter(tag => 
-                      searchQuery === "" || 
-                      tag.name.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map((tag) => (
-                      <Button
-                        key={tag.id}
-                        variant={selectedTags.includes(tag.name) ? "default" : "ghost"}
-                        size="sm"
-                        className="justify-between text-left h-auto py-2 px-3"
-                        onClick={() => {
-                          handleTagToggle(tag.name);
-                        }}
-                      >
-                        <span className="truncate">{tag.name}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">({tag.count})</span>
-                          {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
-                        </div>
-                      </Button>
-                    ))}
+              <TabsContent value="character" className="mt-0 px-4">
+                <div className="grid grid-cols-1 gap-1">
+                  {filterTagsBySearch(characterTags).map((tag) => (
+                    <Button
+                      key={tag.id}
+                      variant={selectedTags.includes(tag.name) ? "default" : "ghost"}
+                      size="sm"
+                      className="justify-between text-left h-auto py-2 px-3"
+                      onClick={() => handleTagToggle(tag.name)}
+                    >
+                      <span className="truncate">{tag.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">({tag.count})</span>
+                        {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                      </div>
+                    </Button>
+                  ))}
+                  {filterTagsBySearch(characterTags).length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      {searchQuery ? "該当するタグがありません" : "タグがありません"}
+                    </p>
+                  )}
                 </div>
-              </div>
-            </div>
-          </ScrollArea>
+              </TabsContent>
+
+              <TabsContent value="series" className="mt-0 px-4">
+                <div className="grid grid-cols-1 gap-1">
+                  {filterTagsBySearch(seriesTags).map((tag) => (
+                    <Button
+                      key={tag.id}
+                      variant={selectedTags.includes(tag.name) ? "default" : "ghost"}
+                      size="sm"
+                      className="justify-between text-left h-auto py-2 px-3"
+                      onClick={() => handleTagToggle(tag.name)}
+                    >
+                      <span className="truncate">{tag.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">({tag.count})</span>
+                        {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                      </div>
+                    </Button>
+                  ))}
+                  {filterTagsBySearch(seriesTags).length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      {searchQuery ? "該当するタグがありません" : "タグがありません"}
+                    </p>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="type" className="mt-0 px-4">
+                <div className="grid grid-cols-1 gap-1">
+                  {filterTagsBySearch(typeTags).map((tag) => (
+                    <Button
+                      key={tag.id}
+                      variant={selectedTags.includes(tag.name) ? "default" : "ghost"}
+                      size="sm"
+                      className="justify-between text-left h-auto py-2 px-3"
+                      onClick={() => handleTagToggle(tag.name)}
+                    >
+                      <span className="truncate">{tag.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">({tag.count})</span>
+                        {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                      </div>
+                    </Button>
+                  ))}
+                  {filterTagsBySearch(typeTags).length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      {searchQuery ? "該当するタグがありません" : "タグがありません"}
+                    </p>
+                  )}
+                </div>
+              </TabsContent>
+            </ScrollArea>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </div>
