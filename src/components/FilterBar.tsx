@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import { Tag } from "@/types";
 import { TagFilter } from "./TagFilter";
 import { SearchBar } from "./SearchBar";
@@ -22,7 +22,7 @@ interface FilterBarProps {
   tags: Tag[];
 }
 
-export function FilterBar({
+export const FilterBar = memo(function FilterBar({
   searchQuery,
   onSearchChange,
   selectedTags,
@@ -47,16 +47,19 @@ export function FilterBar({
     },
   });
 
-  const filteredContentNames = contentNames.filter(content =>
-    content.name && content.name.toLowerCase().includes(contentSearchQuery.toLowerCase())
+  const filteredContentNames = useMemo(() => 
+    contentNames.filter(content =>
+      content.name && content.name.toLowerCase().includes(contentSearchQuery.toLowerCase())
+    ),
+    [contentNames, contentSearchQuery]
   );
 
-  const popularContentNames = contentNames.slice(0, 5);
+  const popularContentNames = useMemo(() => contentNames.slice(0, 5), [contentNames]);
 
-  const getDisplayText = () => {
+  const getDisplayText = useCallback(() => {
     if (!selectedContent || selectedContent === "all") return "コンテンツで絞り込む";
     return selectedContent;
-  };
+  }, [selectedContent]);
 
   return (
     <div className="space-y-3 w-full">
@@ -166,4 +169,4 @@ export function FilterBar({
       />
     </div>
   );
-}
+});
