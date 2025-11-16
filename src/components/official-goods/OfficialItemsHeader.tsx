@@ -14,7 +14,7 @@ interface OfficialItemsHeaderProps {
   onFilterClick?: () => void;
 }
 
-function OfficialItemsHeaderComponent({
+export const OfficialItemsHeader = memo(function OfficialItemsHeader({
   sortBy,
   onSortChange,
   totalItems = 0,
@@ -87,6 +87,4 @@ function OfficialItemsHeaderComponent({
       />
     </div>
   );
-}
-
-export const OfficialItemsHeader = memo(OfficialItemsHeaderComponent);
+});

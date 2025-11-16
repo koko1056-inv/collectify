@@ -1,5 +1,5 @@
 
-import { useState, useCallback, memo } from "react";
+import { useState } from "react";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
 import { useItemDetails } from "@/hooks/useItemDetails";
 import { SearchInput } from "@/components/search/SearchInput";
@@ -27,7 +27,7 @@ interface SearchSuggestion {
   content_name?: string;
 }
 
-export const SearchBar = memo(function SearchBar({
+export function SearchBar({
   searchQuery,
   onSearchChange,
 }: SearchBarProps) {
@@ -37,14 +37,14 @@ export const SearchBar = memo(function SearchBar({
   const { suggestions, showSuggestions, setShowSuggestions, isLoading, error } = useSearchSuggestions(searchQuery);
   const { data: itemDetails } = useItemDetails(selectedItemId || "", !!selectedItemId);
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     console.log('検索入力変更:', value);
     onSearchChange(value);
     setShowSuggestions(value.length >= 2);
-  }, [onSearchChange]);
+  };
 
-  const handleSuggestionClick = useCallback((suggestion: SearchSuggestion) => {
+  const handleSuggestionClick = (suggestion: SearchSuggestion) => {
     console.log('候補クリック:', suggestion);
     onSearchChange(suggestion.title);
     setShowSuggestions(false);
@@ -54,29 +54,27 @@ export const SearchBar = memo(function SearchBar({
       setSelectedItemId(suggestion.id);
       setIsItemDetailsOpen(true);
     }
-  }, [onSearchChange]);
+  };
 
-  const handleInputFocus = useCallback(() => {
+  const handleInputFocus = () => {
     if (searchQuery.length >= 2) {
       setShowSuggestions(true);
     }
-  }, [searchQuery.length]);
+  };
 
-  const handleInputBlur = useCallback(() => {
+  const handleInputBlur = () => {
     // 少し遅延を入れてクリックイベントを処理できるようにする
     setTimeout(() => setShowSuggestions(false), 200);
-  }, []);
+  };
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === 'Escape') {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
       setShowSuggestions(false);
     }
-  }, []);
-
-  const handleModalClose = useCallback(() => {
-    setIsItemDetailsOpen(false);
-    setSelectedItemId(null);
-  }, []);
+    if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
+  };
 
   return (
     <>
@@ -102,7 +100,10 @@ export const SearchBar = memo(function SearchBar({
       {itemDetails && (
         <ItemDetailsModal
           isOpen={isItemDetailsOpen}
-          onClose={handleModalClose}
+          onClose={() => {
+            setIsItemDetailsOpen(false);
+            setSelectedItemId(null);
+          }}
           itemId={itemDetails.id}
           title={itemDetails.title}
           image={itemDetails.image || ""}
@@ -114,4 +115,4 @@ export const SearchBar = memo(function SearchBar({
       )}
     </>
   );
-});
+}
