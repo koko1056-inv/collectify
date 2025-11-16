@@ -140,7 +140,7 @@ const Search = () => {
                 onTagsChange={setSelectedTags}
                 tags={allTags}
               />
-              <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
+              <div className="z-10 bg-gray-50 pb-2">
                 <FilterBar
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
