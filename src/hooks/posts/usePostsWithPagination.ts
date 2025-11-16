@@ -29,7 +29,9 @@ export function usePostsWithPagination() {
             image, 
             official_item_id, 
             content_name
-          )
+          ),
+          post_likes (id, user_id),
+          post_comments (id)
         `)
         .order("created_at", { ascending: false })
         .range(from, to);
@@ -38,26 +40,12 @@ export function usePostsWithPagination() {
         throw error;
       }
 
-      // 投稿のIDリストを取得してライク数を別途取得
-      const postIds = data?.map(post => post.id) || [];
-      let likesData = [];
-      
-      if (postIds.length > 0) {
-        const { data: likes, error: likesError } = await supabase
-          .from("post_likes")
-          .select("post_id, user_id")
-          .in("post_id", postIds);
-          
-        if (!likesError) {
-          likesData = likes || [];
-        }
-      }
-
       const posts = (data || []).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
         user_items: post.user_items || { title: "Unknown", image: "", official_item_id: null },
-        post_likes: likesData.filter(like => like.post_id === post.id)
+        post_likes: post.post_likes || [],
+        post_comments: post.post_comments || []
       })) as GoodsPost[];
 
       return {
