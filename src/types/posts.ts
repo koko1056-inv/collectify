@@ -27,6 +27,9 @@ export interface GoodsPost {
     id: string;
     user_id: string;
   }>;
+  post_comments?: Array<{
+    id: string;
+  }>;
   _count?: {
     post_likes: number;
     post_comments: number;

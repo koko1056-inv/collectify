@@ -34,6 +34,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
   
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
+  const commentsCount = post.post_comments?.length || 0;
   const isOwner = user?.id === post.user_id;
 
   const handleLike = () => {
@@ -200,7 +201,9 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
             className="flex items-center gap-2 text-muted-foreground hover:text-primary h-9"
           >
             <MessageCircle className="h-5 w-5" />
-            <span className="text-sm">コメント</span>
+            {commentsCount > 0 && (
+              <span className="text-sm">{commentsCount}</span>
+            )}
           </Button>
 
           <Button
