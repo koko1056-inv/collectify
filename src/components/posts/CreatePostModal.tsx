@@ -28,6 +28,7 @@ export function CreatePostModal({
 }: CreatePostModalProps) {
   const [caption, setCaption] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEditingGoodsImage, setIsEditingGoodsImage] = useState(false);
   const createPost = useCreatePost();
   const { imageFile, setImageFile, previewUrl, setPreviewUrl, uploadImage } = useImageUpload();
   const { editImage, isEditing } = useImageEdit();
@@ -42,10 +43,11 @@ export function CreatePostModal({
   };
 
   const handleImageEdit = async (prompt: string) => {
-    if (!previewUrl) return;
+    const targetUrl = isEditingGoodsImage ? userItemImage : previewUrl;
+    if (!targetUrl) return;
     
     try {
-      const editedImageBase64 = await editImage(previewUrl, prompt);
+      const editedImageBase64 = await editImage(targetUrl, prompt);
       
       // Base64をBlobに変換
       const base64Response = await fetch(editedImageBase64);
@@ -55,9 +57,15 @@ export function CreatePostModal({
       setImageFile(file);
       setPreviewUrl(editedImageBase64);
       setIsEditDialogOpen(false);
+      setIsEditingGoodsImage(false);
     } catch (error) {
       console.error("画像編集エラー:", error);
     }
+  };
+
+  const handleEditGoodsImage = () => {
+    setIsEditingGoodsImage(true);
+    setIsEditDialogOpen(true);
   };
 
   const handleSubmit = async () => {
@@ -92,16 +100,28 @@ export function CreatePostModal({
         
         <div className="space-y-4">
           {/* グッズ情報 */}
-          <div className="flex items-center bg-gray-50 rounded-lg p-3">
-            <img
-              src={userItemImage}
-              alt={userItemTitle}
-              className="w-12 h-12 object-cover rounded"
-            />
-            <div className="ml-3">
-              <p className="font-medium text-sm">{userItemTitle}</p>
-              <p className="text-xs text-gray-500">このグッズの投稿</p>
+          <div className="space-y-2">
+            <div className="flex items-center bg-gray-50 rounded-lg p-3">
+              <img
+                src={userItemImage}
+                alt={userItemTitle}
+                className="w-12 h-12 object-cover rounded"
+              />
+              <div className="ml-3 flex-1">
+                <p className="font-medium text-sm">{userItemTitle}</p>
+                <p className="text-xs text-gray-500">このグッズの投稿</p>
+              </div>
             </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleEditGoodsImage}
+              className="w-full"
+            >
+              <Wand2 className="mr-2 h-4 w-4" />
+              グッズをAIで加工
+            </Button>
           </div>
 
           {/* 画像アップロード */}
@@ -160,15 +180,16 @@ export function CreatePostModal({
         </div>
       </DialogContent>
       
-      {previewUrl && (
-        <ImageEditDialog
-          isOpen={isEditDialogOpen}
-          onClose={() => setIsEditDialogOpen(false)}
-          imageUrl={previewUrl}
-          onEditComplete={handleImageEdit}
-          isEditing={isEditing}
-        />
-      )}
+      <ImageEditDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false);
+          setIsEditingGoodsImage(false);
+        }}
+        imageUrl={isEditingGoodsImage ? userItemImage : (previewUrl || "")}
+        onEditComplete={handleImageEdit}
+        isEditing={isEditing}
+      />
     </Dialog>
   );
 }
