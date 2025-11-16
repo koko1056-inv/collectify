@@ -5,6 +5,7 @@ import { useItemDetails } from "@/hooks/useItemDetails";
 import { SearchInput } from "@/components/search/SearchInput";
 import { SearchSuggestions } from "@/components/search/SearchSuggestions";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
+import { ProgressiveTooltip } from "@/components/onboarding/ProgressiveTooltip";
 import { Tag } from "@/types";
 
 interface SearchBarProps {
@@ -79,13 +80,20 @@ export function SearchBar({
   return (
     <>
       <div className="max-w-xl mx-auto mb-4 relative">
-        <SearchInput
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchChange}
-          onFocus={handleInputFocus}
-          onBlur={handleInputBlur}
-          onKeyDown={handleKeyDown}
-        />
+        <ProgressiveTooltip
+          id="search"
+          title="グッズを検索しよう"
+          description="作品名やキャラクター名で検索できます。キーワードを入力してみましょう！"
+          position="bottom"
+        >
+          <SearchInput
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            onFocus={handleInputFocus}
+            onBlur={handleInputBlur}
+            onKeyDown={handleKeyDown}
+          />
+        </ProgressiveTooltip>
 
         <SearchSuggestions
           suggestions={suggestions}

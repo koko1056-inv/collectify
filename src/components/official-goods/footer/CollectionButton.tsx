@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { ProgressiveTooltip } from "@/components/onboarding/ProgressiveTooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -84,13 +85,20 @@ export function CollectionButton({
   }, [itemId, user, queryClient, refetchIsInCollection]);
 
   return (
-    <Button 
-      variant={isInCollection ? "secondary" : "default"}
-      className={`w-full text-[10px] sm:text-sm h-7 sm:h-9 ${isInCollection ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-gray-900 hover:bg-gray-800'}`}
-      onClick={onAddToCollection}
-      disabled={isInCollection}
+    <ProgressiveTooltip
+      id="collection"
+      title="コレクションに追加"
+      description="ハートボタンでグッズをあなたのコレクションに追加できます！"
+      position="top"
     >
-      {isInCollection ? "追加済み" : "コレクションに追加"}
-    </Button>
+      <Button 
+        variant={isInCollection ? "secondary" : "default"}
+        className={`w-full text-[10px] sm:text-sm h-7 sm:h-9 ${isInCollection ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-gray-900 hover:bg-gray-800'}`}
+        onClick={onAddToCollection}
+        disabled={isInCollection}
+      >
+        {isInCollection ? "追加済み" : "コレクションに追加"}
+      </Button>
+    </ProgressiveTooltip>
   );
 }

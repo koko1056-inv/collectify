@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -69,7 +70,8 @@ const App: React.FC = () => {
         <LanguageProvider>
           <BrowserRouter>
             <AuthProvider>
-              <TooltipProvider>
+              <OnboardingProvider>
+                <TooltipProvider>
                 <Toaster />
                 <Sonner />
                 <Suspense fallback={<LoadingFallback />}>
@@ -87,6 +89,7 @@ const App: React.FC = () => {
                   </Routes>
                 </Suspense>
               </TooltipProvider>
+              </OnboardingProvider>
             </AuthProvider>
           </BrowserRouter>
         </LanguageProvider>

@@ -5,6 +5,8 @@ import { Footer } from "@/components/Footer";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { InitialInterestSelection } from "@/components/InitialInterestSelection";
+import { OnboardingWalkthrough } from "@/components/onboarding/OnboardingWalkthrough";
+import { useOnboardingWalkthrough } from "@/hooks/useOnboardingWalkthrough";
 import { HomeContent } from "@/components/home/HomeContent";
 import { UserProfileCollection } from "@/components/home/UserProfileCollection";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -16,6 +18,7 @@ const Index = () => {
   const [searchParams] = useSearchParams();
   const userId = searchParams.get("userId");
   const isMobile = useIsMobile();
+  const { showWalkthrough, setShowWalkthrough } = useOnboardingWalkthrough();
   
   const { profile, refetchProfile } = useProfile(user?.id);
   const { profile: viewedProfile } = useProfile(userId);
@@ -48,16 +51,21 @@ const Index = () => {
           ) : (
             <HomeContent profile={profile} />
           )}
-
-          {user && (
-            <InitialInterestSelection
-              isOpen={showInterestDialog}
-              onClose={handleInterestDialogClose}
-            />
-          )}
         </div>
       </main>
       <Footer />
+      
+      <OnboardingWalkthrough
+        open={showWalkthrough}
+        onClose={() => setShowWalkthrough(false)}
+      />
+      
+      {user && (
+        <InitialInterestSelection
+          isOpen={showInterestDialog}
+          onClose={handleInterestDialogClose}
+        />
+      )}
     </div>
   );
 };
