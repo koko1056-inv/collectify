@@ -133,28 +133,24 @@ const Search = () => {
 
             {/* グッズ検索タブ */}
             <TabsContent value="goods" className="space-y-4 sm:space-y-6">
-              {!isMobile && (
-                <>
-                  <SlideFilterBar
-                    selectedContent={selectedContent}
-                    onContentChange={setSelectedContent}
-                    selectedTags={selectedTags}
-                    onTagsChange={setSelectedTags}
-                    tags={allTags}
-                  />
-                  <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
-                    <FilterBar
-                      searchQuery={searchQuery}
-                      onSearchChange={setSearchQuery}
-                      selectedTags={selectedTags}
-                      onTagsChange={setSelectedTags}
-                      selectedContent={selectedContent}
-                      onContentChange={setSelectedContent}
-                      tags={allTags}
-                    />
-                  </div>
-                </>
-              )}
+              <SlideFilterBar
+                selectedContent={selectedContent}
+                onContentChange={setSelectedContent}
+                selectedTags={selectedTags}
+                onTagsChange={setSelectedTags}
+                tags={allTags}
+              />
+              <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
+                <FilterBar
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  selectedTags={selectedTags}
+                  onTagsChange={setSelectedTags}
+                  selectedContent={selectedContent}
+                  onContentChange={setSelectedContent}
+                  tags={allTags}
+                />
+              </div>
 
               <OfficialItemsList
                 items={filteredItems}
