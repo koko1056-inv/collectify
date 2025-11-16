@@ -12,7 +12,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileInterests } from "./ProfileInterests";
 import { useProfile } from "@/hooks/useProfile";
-import { UserStatsCard } from "@/components/ui/user-stats-card";
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -202,13 +201,6 @@ export function ProfileCard({
             currentInterests={profile?.interests || []} 
             onUpdate={refetchProfile}
           />
-        </div>
-      )}
-
-      {/* 統計情報セクションを追加（自分のプロフィールのみ） */}
-      {isOwnProfile && (
-        <div className="mt-6">
-          <UserStatsCard showHistoricalButton={false} />
         </div>
       )}
 
