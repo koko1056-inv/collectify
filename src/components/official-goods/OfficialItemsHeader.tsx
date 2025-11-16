@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,7 +14,7 @@ interface OfficialItemsHeaderProps {
   onFilterClick?: () => void;
 }
 
-export function OfficialItemsHeader({
+export const OfficialItemsHeader = memo(function OfficialItemsHeader({
   sortBy,
   onSortChange,
   totalItems = 0,
@@ -22,6 +22,13 @@ export function OfficialItemsHeader({
 }: OfficialItemsHeaderProps) {
   const navigate = useNavigate();
   const [isTagManageOpen, setIsTagManageOpen] = useState(false);
+  
+  const handleTagManageOpen = useCallback(() => setIsTagManageOpen(true), []);
+  const handleTagManageClose = useCallback(() => setIsTagManageOpen(false), []);
+  const handleAddItem = useCallback(() => navigate("/add-item"), [navigate]);
+  const handleSortChange = useCallback((value: string) => {
+    onSortChange(value as SortOption);
+  }, [onSortChange]);
   
   return (
     <div className="flex justify-between items-center gap-2 mb-4 px-2">
@@ -35,7 +42,7 @@ export function OfficialItemsHeader({
         
         <Select
           value={sortBy} 
-          onValueChange={(value) => onSortChange(value as SortOption)}
+          onValueChange={handleSortChange}
           defaultValue="newest"
         >
           <SelectTrigger className="w-[80px] sm:w-[150px] h-7 sm:h-9 text-[10px] sm:text-sm bg-white border border-gray-300 rounded-md focus:ring-0 focus:ring-offset-0 cursor-pointer">
@@ -56,7 +63,7 @@ export function OfficialItemsHeader({
       </div>
       <div className="flex gap-1 sm:gap-2 shrink-0">
         <Button 
-          onClick={() => setIsTagManageOpen(true)} 
+          onClick={handleTagManageOpen} 
           size="sm" 
           variant="outline"
           className="h-7 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
@@ -65,7 +72,7 @@ export function OfficialItemsHeader({
           <span className="whitespace-nowrap">タグ管理</span>
         </Button>
         <Button 
-          onClick={() => navigate("/add-item")} 
+          onClick={handleAddItem} 
           size="sm"
           className="bg-gray-900 hover:bg-gray-800 h-7 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
         >
@@ -76,8 +83,8 @@ export function OfficialItemsHeader({
 
       <ContentTagManageModal 
         isOpen={isTagManageOpen}
-        onClose={() => setIsTagManageOpen(false)}
+        onClose={handleTagManageClose}
       />
     </div>
   );
-}
+});
