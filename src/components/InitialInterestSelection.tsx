@@ -51,13 +51,17 @@ const getDefaultIcon = (contentName: string): any => {
 };
 
 interface InitialInterestSelectionProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  onComplete?: () => void;
+  standalone?: boolean;
 }
 
 export function InitialInterestSelection({
-  isOpen,
+  isOpen = true,
   onClose,
+  onComplete,
+  standalone = false,
 }: InitialInterestSelectionProps) {
   const [selectedContents, setSelectedContents] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -123,7 +127,12 @@ export function InitialInterestSelection({
         title: selectedContents.length > 0 ? "興味のあるコンテンツを保存しました" : "設定をスキップしました",
         description: selectedContents.length > 0 ? "おすすめのアイテムが表示されます" : "後からプロフィールで設定できます",
       });
-      onClose();
+      
+      if (onComplete) {
+        onComplete();
+      } else if (onClose) {
+        onClose();
+      }
     } catch (error) {
       console.error('Error saving interests:', error);
       toast({
@@ -139,6 +148,72 @@ export function InitialInterestSelection({
   const filteredContents = contentNames.filter(content =>
     content.name && content.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (standalone) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center text-gray-600 mb-4 text-sm">
+          好みに合わせたグッズを表示するために、興味のあるコンテンツを選んでください
+        </div>
+        
+        <div className="relative">
+          <Input
+            placeholder="コンテンツを検索..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="mb-4 pl-10 bg-white border border-gray-200 rounded-full focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+          />
+          <div className="absolute top-3 left-3 text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </div>
+        </div>
+        
+        <ScrollArea className="h-[40vh]">
+          <div className="grid grid-cols-2 gap-3">
+            {filteredContents.map((content) => {
+              const IconComponent = content.icon_name && ICON_MAP[content.icon_name] 
+                ? ICON_MAP[content.icon_name] 
+                : getDefaultIcon(content.name);
+                
+              const isSelected = selectedContents.includes(content.name);
+              
+              return (
+                <Button
+                  key={content.id}
+                  variant={isSelected ? "default" : "outline"}
+                  className={cn(
+                    "h-auto min-h-[5rem] px-4 py-6 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-xl shadow-sm",
+                    isSelected 
+                      ? "bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white animate-scale-in"
+                      : "bg-white hover:bg-gray-50 border-gray-200 hover:border-purple-300 hover:shadow"
+                  )}
+                  onClick={() => handleContentToggle(content.name)}
+                >
+                  <IconComponent className={cn(
+                    "h-6 w-6",
+                    isSelected ? "text-white" : "text-purple-500"
+                  )} />
+                  <span className="text-sm font-medium break-words text-center w-full line-clamp-2">
+                    {content.name}
+                  </span>
+                </Button>
+              );
+            })}
+          </div>
+        </ScrollArea>
+        
+        <div className="flex justify-center mt-4">
+          <Button 
+            onClick={handleConfirm} 
+            className="w-full max-w-xs bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium py-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200"
+            disabled={saving}
+          >
+            {saving ? "保存中..." : selectedContents.length > 0 ? "次へ" : "スキップする"}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -168,7 +243,6 @@ export function InitialInterestSelection({
         <ScrollArea className="h-[50vh] pr-4">
           <div className="grid grid-cols-2 gap-3 p-4">
             {filteredContents.map((content) => {
-              // アイコンを取得（カスタムアイコンまたはデフォルト）
               const IconComponent = content.icon_name && ICON_MAP[content.icon_name] 
                 ? ICON_MAP[content.icon_name] 
                 : getDefaultIcon(content.name);
