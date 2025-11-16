@@ -174,35 +174,37 @@ export function ImageSection({
   return (
     <>
       <div className="space-y-4">
-        <div className="bg-gray-50 p-6 rounded-lg border">
-          <h3 className="font-semibold text-lg mb-4 text-gray-900">画像の追加方法</h3>
+        <div className="bg-gray-50 p-3 sm:p-6 rounded-lg border">
+          <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4 text-gray-900">画像の追加方法</h3>
           
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* 方法1 */}
-            <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
+            <div className="bg-white p-3 sm:p-4 rounded-lg border-2 border-gray-200">
+              <div className="flex items-start gap-2 sm:gap-3 mb-3">
+                <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
                   A
                 </div>
-                <div className="flex-1">
-                  <label htmlFor="imageUrl" className="text-base font-semibold text-gray-900 block mb-1">
+                <div className="flex-1 min-w-0">
+                  <label htmlFor="imageUrl" className="text-sm sm:text-base font-semibold text-gray-900 block mb-1">
                     画像URLを直接設定
                   </label>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600 break-words">
                     画像の直接URLがある場合はこちらを使用してください
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2 ml-11">
+              <div className="flex flex-col sm:flex-row gap-2 sm:ml-11">
                 <Input
                   id="imageUrl"
                   value={imageUrlInput}
                   onChange={(e) => setImageUrlInput(e.target.value)}
-                  placeholder="https://example.com/image.jpg"
+                  placeholder="https://exar..."
+                  className="text-sm"
                 />
                 <Button
                   type="button"
                   onClick={handleSetImageUrl}
+                  className="sm:flex-shrink-0 text-sm px-4"
                 >
                   設定
                 </Button>
@@ -210,21 +212,21 @@ export function ImageSection({
             </div>
 
             {/* 方法2 */}
-            <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
+            <div className="bg-white p-3 sm:p-4 rounded-lg border-2 border-gray-200">
+              <div className="flex items-start gap-2 sm:gap-3 mb-3">
+                <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
                   B
                 </div>
-                <div className="flex-1">
-                  <label htmlFor="fileUpload" className="text-base font-semibold text-gray-900 block mb-1">
+                <div className="flex-1 min-w-0">
+                  <label htmlFor="fileUpload" className="text-sm sm:text-base font-semibold text-gray-900 block mb-1">
                     ファイルから画像をアップロード
                   </label>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600 break-words">
                     お手持ちの画像ファイルを選択してアップロードできます
                   </p>
                 </div>
               </div>
-              <div className="ml-11 -mt-1">
+              <div className="sm:ml-11">
                 <Input
                   id="fileUpload"
                   type="file"
@@ -234,38 +236,40 @@ export function ImageSection({
                       handleImageChange(e.target.files[0]);
                     }
                   }}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                  className="file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4 file:rounded-md file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer text-sm"
                 />
               </div>
             </div>
 
             {/* 方法3 */}
-            <div className="bg-white p-4 rounded-lg border-2 border-gray-200">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
+            <div className="bg-white p-3 sm:p-4 rounded-lg border-2 border-gray-200">
+              <div className="flex items-start gap-2 sm:gap-3 mb-3">
+                <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
                   C
                 </div>
-                <div className="flex-1">
-                  <label htmlFor="url" className="text-base font-semibold text-gray-900 block mb-1">
+                <div className="flex-1 min-w-0">
+                  <label htmlFor="url" className="text-sm sm:text-base font-semibold text-gray-900 block mb-1">
                     Webサイトから画像を取得
                   </label>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs sm:text-sm text-gray-600 break-words">
                     商品ページのURLを入力すると、そのページから画像を自動取得します
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2 ml-11">
+              <div className="flex flex-col sm:flex-row gap-2 sm:ml-11">
                 <Input
                   id="url"
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="https://example.com/product-page"
+                  placeholder="https://exar..."
                   disabled={isScrapingImages}
+                  className="text-sm"
                 />
                 <Button
                   type="button"
                   onClick={handleScrapeImages}
                   disabled={isScrapingImages}
+                  className="sm:flex-shrink-0 text-sm px-4"
                 >
                   {isScrapingImages ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
