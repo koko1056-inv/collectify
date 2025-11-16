@@ -1,4 +1,4 @@
-import { useEffect, useState, ReactNode } from 'react';
+import { useEffect, useState, ReactNode, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from '@/contexts/OnboardingContext';
@@ -11,7 +11,11 @@ interface ProgressiveTooltipProps {
   children: ReactNode;
   position?: 'top' | 'bottom' | 'left' | 'right';
   delay?: number;
+  showOnce?: boolean; // 最初の要素だけに表示
 }
+
+// グローバルに表示中のツールチップを追跡
+const activeTooltips = new Set<string>();
 
 export function ProgressiveTooltip({
   id,
@@ -20,26 +24,46 @@ export function ProgressiveTooltip({
   children,
   position = 'bottom',
   delay = 500,
+  showOnce = true,
 }: ProgressiveTooltipProps) {
   const { shouldShowTooltip, markTooltipShown } = useOnboarding();
   const [isVisible, setIsVisible] = useState(false);
+  const elementRef = useRef<HTMLDivElement>(null);
+  const instanceId = useRef(`${id}-${Math.random()}`);
 
   useEffect(() => {
     if (shouldShowTooltip(id)) {
+      // showOnceがtrueの場合、すでに表示されているツールチップがあれば表示しない
+      if (showOnce && activeTooltips.has(id)) {
+        return;
+      }
+
       const timer = setTimeout(() => {
         setIsVisible(true);
+        if (showOnce) {
+          activeTooltips.add(id);
+        }
       }, delay);
-      return () => clearTimeout(timer);
+
+      return () => {
+        clearTimeout(timer);
+        if (showOnce) {
+          activeTooltips.delete(id);
+        }
+      };
     }
-  }, [id, delay, shouldShowTooltip]);
+  }, [id, delay, shouldShowTooltip, showOnce]);
 
   const handleDismiss = () => {
     setIsVisible(false);
     markTooltipShown(id);
+    if (showOnce) {
+      activeTooltips.delete(id);
+    }
   };
 
   if (!isVisible) {
-    return <>{children}</>;
+    return <div ref={elementRef}>{children}</div>;
   }
 
   const positionClasses = {
@@ -57,27 +81,35 @@ export function ProgressiveTooltip({
   };
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block" ref={elementRef}>
       {children}
       <div
         className={cn(
-          'absolute z-50 w-64 sm:w-80',
-          positionClasses[position]
+          'fixed sm:absolute z-[9999] w-[calc(100vw-2rem)] max-w-[320px] sm:w-80 sm:max-w-none',
+          'left-1/2 -translate-x-1/2',
+          position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2',
+          'sm:left-auto sm:translate-x-0',
+          positionClasses[position].replace('left-1/2 -translate-x-1/2', '')
         )}
+        style={{
+          position: window.innerWidth < 640 ? 'fixed' : 'absolute',
+          left: window.innerWidth < 640 ? '50%' : undefined,
+          transform: window.innerWidth < 640 ? 'translateX(-50%)' : undefined,
+        }}
       >
-        <div className="bg-primary text-primary-foreground rounded-lg shadow-lg p-4 space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="bg-primary text-primary-foreground rounded-lg shadow-xl p-4 space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-sm">{title}</h3>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleDismiss}
-              className="h-5 w-5 p-0 text-primary-foreground hover:bg-primary-foreground/20"
+              className="h-5 w-5 p-0 text-primary-foreground hover:bg-primary-foreground/20 flex-shrink-0"
             >
               <X className="h-3 w-3" />
             </Button>
           </div>
-          <p className="text-xs text-primary-foreground/90">{description}</p>
+          <p className="text-xs text-primary-foreground/90 leading-relaxed">{description}</p>
           <Button
             size="sm"
             variant="secondary"
@@ -89,7 +121,7 @@ export function ProgressiveTooltip({
         </div>
         <div
           className={cn(
-            'absolute w-0 h-0 border-8',
+            'hidden sm:block absolute w-0 h-0 border-8',
             arrowClasses[position]
           )}
         />
