@@ -57,20 +57,20 @@ export function OfficialItemsHeader({
       <div className="flex gap-1 sm:gap-2 shrink-0">
         <Button 
           onClick={() => setIsTagManageOpen(true)} 
-          size="icon" 
+          size="sm" 
           variant="outline"
-          className="h-7 w-7 sm:h-9 sm:w-auto sm:px-3"
+          className="h-7 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
         >
-          <Tags className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
-          <span className="hidden sm:inline">タグを管理</span>
+          <Tags className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+          <span className="whitespace-nowrap">タグ管理</span>
         </Button>
         <Button 
           onClick={() => navigate("/add-item")} 
-          size="icon"
-          className="bg-gray-900 hover:bg-gray-800 h-7 w-7 sm:h-9 sm:w-auto sm:px-[14px]"
+          size="sm"
+          className="bg-gray-900 hover:bg-gray-800 h-7 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
         >
-          <PlusCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
-          <span className="hidden sm:inline">グッズを追加</span>
+          <PlusCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
+          <span className="whitespace-nowrap">追加</span>
         </Button>
       </div>
 
