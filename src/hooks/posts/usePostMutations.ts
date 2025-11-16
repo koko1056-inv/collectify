@@ -2,10 +2,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ userItemId, caption, imageUrl }: { 
@@ -13,15 +15,14 @@ export function useCreatePost() {
       caption?: string; 
       imageUrl: string; 
     }) => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("ログインが必要です");
+      if (!user) throw new Error("ログインが必要です");
 
       console.log("投稿を作成中...", { userItemId, caption, imageUrl });
 
       const { data, error } = await supabase
         .from("goods_posts")
         .insert({
-          user_id: userData.user.id,
+          user_id: user.id,
           user_item_id: userItemId,
           caption,
           image_url: imageUrl,
@@ -68,25 +69,25 @@ export function useCreatePost() {
 
 export function useToggleLike() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ postId, isLiked }: { postId: string; isLiked: boolean }) => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("ログインが必要です");
+      if (!user) throw new Error("ログインが必要です");
 
       if (isLiked) {
         const { error } = await supabase
           .from("post_likes")
           .delete()
           .eq("post_id", postId)
-          .eq("user_id", userData.user.id);
+          .eq("user_id", user.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("post_likes")
           .insert({
             post_id: postId,
-            user_id: userData.user.id,
+            user_id: user.id,
           });
         if (error) throw error;
       }
