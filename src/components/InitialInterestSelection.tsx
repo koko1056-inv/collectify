@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { ContentInfo } from "@/utils/tag/types";
+import { useOnboarding } from "@/contexts/OnboardingContext";
 import { 
   BookOpen, Gamepad2, Music, Film, Tv, Heart, Star, Zap, 
   Award, Users, Boxes, PenTool, Palette, BookMarked, Pin
@@ -68,6 +69,7 @@ export function InitialInterestSelection({
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
+  const { completeWalkthrough } = useOnboarding();
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
@@ -122,6 +124,9 @@ export function InitialInterestSelection({
         .eq('id', user.id);
 
       if (error) throw error;
+
+      // オンボーディングを完了としてマーク
+      completeWalkthrough();
 
       toast({
         title: selectedContents.length > 0 ? "興味のあるコンテンツを保存しました" : "設定をスキップしました",
