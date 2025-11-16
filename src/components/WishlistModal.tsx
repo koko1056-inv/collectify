@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSoundEffect } from "@/hooks/useSoundEffect";
 
 interface WishlistModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export function WishlistModal({
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { playWishlistSound } = useSoundEffect();
 
   useEffect(() => {
     if (existingNote) {
@@ -100,6 +102,9 @@ export function WishlistModal({
             ]);
 
           if (insertError) throw insertError;
+
+          // 効果音を再生
+          playWishlistSound();
 
           toast({
             title: "ウィッシュリストに追加しました",
