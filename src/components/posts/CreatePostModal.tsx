@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreatePost } from "@/hooks/posts";
 import { useImageUpload } from "@/hooks/admin-item-form/useImageUpload";
+import { useImageEdit } from "@/hooks/posts/useImageEdit";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ImageEditDialog } from "./ImageEditDialog";
+import { Wand2 } from "lucide-react";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -24,8 +27,10 @@ export function CreatePostModal({
   userItemImage,
 }: CreatePostModalProps) {
   const [caption, setCaption] = useState("");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const createPost = useCreatePost();
   const { imageFile, setImageFile, previewUrl, setPreviewUrl, uploadImage } = useImageUpload();
+  const { editImage, isEditing } = useImageEdit();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,6 +38,25 @@ export function CreatePostModal({
       setImageFile(file);
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+    }
+  };
+
+  const handleImageEdit = async (prompt: string) => {
+    if (!previewUrl) return;
+    
+    try {
+      const editedImageBase64 = await editImage(previewUrl, prompt);
+      
+      // Base64をBlobに変換
+      const base64Response = await fetch(editedImageBase64);
+      const blob = await base64Response.blob();
+      const file = new File([blob], "edited-image.png", { type: "image/png" });
+      
+      setImageFile(file);
+      setPreviewUrl(editedImageBase64);
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error("画像編集エラー:", error);
     }
   };
 
@@ -90,12 +114,22 @@ export function CreatePostModal({
               onChange={handleFileChange}
             />
             {previewUrl && (
-              <div className="mt-2">
+              <div className="mt-2 space-y-2">
                 <img
                   src={previewUrl}
                   alt="プレビュー"
                   className="w-full h-48 object-cover rounded-lg"
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditDialogOpen(true)}
+                  className="w-full"
+                >
+                  <Wand2 className="mr-2 h-4 w-4" />
+                  AI で画像を編集
+                </Button>
               </div>
             )}
           </div>
@@ -125,6 +159,16 @@ export function CreatePostModal({
           </div>
         </div>
       </DialogContent>
+      
+      {previewUrl && (
+        <ImageEditDialog
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          imageUrl={previewUrl}
+          onEditComplete={handleImageEdit}
+          isEditing={isEditing}
+        />
+      )}
     </Dialog>
   );
 }
