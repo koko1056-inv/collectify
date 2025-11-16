@@ -162,6 +162,7 @@ export function FilterBar({
         selectedTags={selectedTags}
         onTagsChange={onTagsChange}
         tags={tags}
+        selectedContent={selectedContent}
       />
     </div>
   );
