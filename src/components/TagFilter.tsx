@@ -26,48 +26,113 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
   const { data: tagsWithCount = [] } = useQuery({
     queryKey: ["tags-with-count", selectedContent],
     queryFn: async () => {
-      let query = supabase
-        .from('tags')
-        .select(`
-          *,
-          item_tags (
-            tag_id
-          ),
-          content_names!tags_content_id_fkey(id, name)
-        `);
-
+      // コンテンツが選択されている場合、そのコンテンツのアイテムに付けられているタグのみを取得
       if (selectedContent && selectedContent !== "all") {
-        // コンテンツ名からコンテンツIDを取得
-        const { data: contentData } = await supabase
-          .from("content_names")
-          .select("id")
-          .eq("name", selectedContent)
-          .single();
+        // 1. 選択されたコンテンツのofficial_itemsを取得
+        const { data: items, error: itemsError } = await supabase
+          .from('official_items')
+          .select('id')
+          .eq('content_name', selectedContent);
+
+        if (itemsError) throw itemsError;
         
-        if (contentData) {
-          // キャラクターとシリーズはコンテンツIDでフィルタリング、タイプはcontent_idがnull
-          query = query.or(`content_id.eq.${contentData.id},and(category.eq.type,content_id.is.null)`);
+        if (!items || items.length === 0) {
+          return [];
         }
-      }
 
-      const { data, error } = await query;
-      if (error) throw error;
+        const itemIds = items.map(item => item.id);
 
-      // タグの出現回数をカウントするマップを作成
-      const tagCounts: Record<string, Tag & { count: number }> = {};
-      
-      for (const tag of data) {
-        if (!tagCounts[tag.id]) {
-          tagCounts[tag.id] = {
-            ...tag,
-            count: 0
-          };
+        // 2. それらのアイテムに付けられているタグを取得
+        const { data: itemTags, error: itemTagsError } = await supabase
+          .from('item_tags')
+          .select(`
+            tag_id,
+            tags:tag_id (
+              id,
+              name,
+              category,
+              content_id,
+              created_at
+            )
+          `)
+          .in('official_item_id', itemIds);
+
+        if (itemTagsError) throw itemTagsError;
+
+        // 3. タグのカウントを計算
+        const tagCounts: Record<string, Tag & { count: number }> = {};
+        
+        for (const itemTag of itemTags) {
+          if (itemTag.tags) {
+            const tag = itemTag.tags as any;
+            if (!tagCounts[tag.id]) {
+              tagCounts[tag.id] = {
+                id: tag.id,
+                name: tag.name,
+                category: tag.category,
+                count: 0,
+                created_at: tag.created_at
+              };
+            }
+            tagCounts[tag.id].count++;
+          }
         }
-        tagCounts[tag.id].count++;
-      }
 
-      // 出現回数に基づいてソート
-      return Object.values(tagCounts).sort((a, b) => b.count - a.count);
+        // グッズタイプはコンテンツに関係なく表示
+        const { data: typeTags, error: typeTagsError } = await supabase
+          .from('tags')
+          .select('*')
+          .eq('category', 'type');
+
+        if (!typeTagsError && typeTags) {
+          for (const tag of typeTags) {
+            if (!tagCounts[tag.id]) {
+              tagCounts[tag.id] = {
+                ...tag,
+                count: 0
+              };
+            }
+          }
+        }
+
+        return Object.values(tagCounts).sort((a, b) => b.count - a.count);
+      } else {
+        // コンテンツが選択されていない場合は全てのタグを取得
+        const { data: itemTags, error } = await supabase
+          .from('item_tags')
+          .select(`
+            tag_id,
+            tags:tag_id (
+              id,
+              name,
+              category,
+              content_id,
+              created_at
+            )
+          `);
+
+        if (error) throw error;
+
+        const tagCounts: Record<string, Tag & { count: number }> = {};
+        
+        for (const itemTag of itemTags) {
+          if (itemTag.tags) {
+            const tag = itemTag.tags as any;
+            if (!tagCounts[tag.id]) {
+              tagCounts[tag.id] = {
+                id: tag.id,
+                name: tag.name,
+                category: tag.category,
+                count: 0,
+                created_at: tag.created_at
+              };
+            }
+            tagCounts[tag.id].count++;
+          }
+        }
+
+        return Object.values(tagCounts).sort((a, b) => b.count - a.count);
+      }
     },
     staleTime: 0,
     refetchOnWindowFocus: true,
