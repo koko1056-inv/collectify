@@ -11,8 +11,12 @@ import { Navbar } from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Lazy load heavy components
-const CreatePostFromCollectionModal = lazy(() => import("@/components/posts/CreatePostFromCollectionModal").then(module => ({ default: module.CreatePostFromCollectionModal })));
-const PostsSidebar = lazy(() => import("@/components/posts/PostsSidebar").then(module => ({ default: module.PostsSidebar })));
+const CreatePostFromCollectionModal = lazy(() => import("@/components/posts/CreatePostFromCollectionModal").then(module => ({
+  default: module.CreatePostFromCollectionModal
+})));
+const PostsSidebar = lazy(() => import("@/components/posts/PostsSidebar").then(module => ({
+  default: module.PostsSidebar
+})));
 export default function Posts() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreatePollModalOpen, setIsCreatePollModalOpen] = useState(false);
@@ -33,13 +37,12 @@ export default function Posts() {
           <div className="bg-background border-b border-border sm:sticky sm:top-16 sm:z-10 px-4 py-3">
             <div className="flex items-center justify-between max-w-4xl mx-auto">
               <div>
-                <h1 className="text-xl font-bold">コミュニティ</h1>
+                <h1 className="font-bold text-base">コミュニティ</h1>
                 
               </div>
               <div className="flex items-center gap-2">
                 {/* フィルターボタン */}
-                {activeTab === "posts" && (
-                  <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+                {activeTab === "posts" && <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
                     <SheetTrigger asChild>
                       <Button variant="outline" size="sm">
                         <Filter className="h-4 w-4 mr-2" />
@@ -51,35 +54,28 @@ export default function Posts() {
                         <SheetTitle>コミュニティを絞り込み</SheetTitle>
                       </SheetHeader>
                       <div className="flex-1 overflow-y-auto px-4 pb-4">
-                        <Suspense fallback={
-                          <div className="space-y-4">
+                        <Suspense fallback={<div className="space-y-4">
                             <Skeleton className="h-32 w-full" />
                             <Skeleton className="h-24 w-full" />
                             <Skeleton className="h-20 w-full" />
-                          </div>
-                        }>
+                          </div>}>
                           <PostsSidebar onFiltersChange={newFilters => {
-                            setFilters(newFilters);
-                          }} />
+                        setFilters(newFilters);
+                      }} />
                         </Suspense>
                       </div>
                     </SheetContent>
-                  </Sheet>
-                )}
+                  </Sheet>}
                 
-                {activeTab === "posts" && (
-                  <Button onClick={() => setIsCreateModalOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">
+                {activeTab === "posts" && <Button onClick={() => setIsCreateModalOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">
                     <Plus className="h-4 w-4 mr-2" />
                     投稿
-                  </Button>
-                )}
+                  </Button>}
                 
-                {activeTab === "polls" && (
-                  <Button onClick={() => setIsCreatePollModalOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">
+                {activeTab === "polls" && <Button onClick={() => setIsCreatePollModalOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">
                     <Plus className="h-4 w-4 mr-2" />
                     投票
-                  </Button>
-                )}
+                  </Button>}
               </div>
             </div>
           </div>
