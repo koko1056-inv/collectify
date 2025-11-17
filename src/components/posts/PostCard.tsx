@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Share, Trash2, MoreHorizontal, Copy, Check } from "lucide-react";
+import { Heart, MessageCircle, Share, Trash2, MoreHorizontal } from "lucide-react";
 import { GoodsPost } from "@/types/posts";
 import { useToggleLike, useDeletePost } from "@/hooks/posts";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { DeletePostDialog } from "./DeletePostDialog";
+import { ShareModal } from "@/components/ShareModal";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -30,7 +31,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
   const toggleLike = useToggleLike();
   const deletePost = useDeletePost();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   
   const isLiked = post.post_likes?.some(like => like.user_id === user?.id) || false;
   const likesCount = post.post_likes?.length || 0;
@@ -58,47 +59,8 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
     });
   };
 
-  const handleShare = async () => {
-    const shareData = {
-      title: `${post.profiles?.username}さんの投稿`,
-      text: post.caption || `${post.user_items?.title}の投稿`,
-      url: window.location.href
-    };
-
-    try {
-      // Web Share API が利用可能で、かつHTTPS環境の場合のみ使用
-      if (navigator.share && window.location.protocol === 'https:') {
-        await navigator.share(shareData);
-        return;
-      }
-    } catch (error) {
-      console.log("Web Share API failed, falling back to clipboard:", error);
-    }
-
-    // フォールバック: クリップボードにコピー
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setIsCopied(true);
-      toast.success("リンクをクリップボードにコピーしました");
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (clipboardError) {
-      console.error("クリップボードのコピーに失敗しました:", clipboardError);
-      // 最後のフォールバック: テキスト選択
-      const textArea = document.createElement('textarea');
-      textArea.value = window.location.href;
-      document.body.appendChild(textArea);
-      textArea.select();
-      try {
-        document.execCommand('copy');
-        toast.success("リンクをクリップボードにコピーしました");
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      } catch (fallbackError) {
-        toast.error("シェア機能をご利用いただけません");
-      } finally {
-        document.body.removeChild(textArea);
-      }
-    }
+  const handleShare = () => {
+    setIsShareModalOpen(true);
   };
 
   return (
@@ -230,11 +192,7 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
             onClick={handleShare}
             className="flex items-center gap-2 text-muted-foreground hover:text-primary h-9"
           >
-            {isCopied ? (
-              <Check className="h-5 w-5" />
-            ) : (
-              <Share className="h-5 w-5" />
-            )}
+            <Share className="h-5 w-5" />
             <span className="text-sm">シェア</span>
           </Button>
         </div>
@@ -245,6 +203,14 @@ export function PostCard({ post, onCommentClick }: PostCardProps) {
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDeletePost}
         isDeleting={deletePost.isPending}
+      />
+      
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={`${post.profiles?.username}さんの投稿`}
+        url={window.location.href}
+        image={post.image_url}
       />
     </>
   );
