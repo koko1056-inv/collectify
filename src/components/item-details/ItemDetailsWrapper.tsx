@@ -5,9 +5,10 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Tag } from "@/utils/tag";
 import { TagList } from "@/components/collection/TagList";
 import { TagManageModal } from "@/components/tag/TagManageModal";
+import { ShareModal } from "@/components/ShareModal";
 import { ModalHeader } from "./ModalHeader";
 import { Button } from "@/components/ui/button";
-import { BookMarked, Link2, Loader2, X } from "lucide-react";
+import { BookMarked, Link2, Loader2, X, Share } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { isUUID } from "@/utils/tag/tag-core";
@@ -42,6 +43,7 @@ export function ItemDetailsWrapper({
   setIsTagModalOpen,
 }: ItemDetailsWrapperProps) {
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -344,13 +346,17 @@ export function ItemDetailsWrapper({
           <TagList tags={itemTags} />
         </div>
         <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={handleAddToWishlist}>
               <BookMarked className="h-4 w-4 mr-2" />
               ウィッシュリストに追加
             </Button>
             <Button size="sm" onClick={handleAddToCollection}>
               コレクションに追加
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setIsShareModalOpen(true)}>
+              <Share className="h-4 w-4 mr-2" />
+              シェア
             </Button>
           </div>
         </div>
@@ -360,6 +366,13 @@ export function ItemDetailsWrapper({
         onClose={() => setIsTagManageModalOpen(false)}
         itemIds={[itemId]}
         itemTitle={itemTitle}
+      />
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        title={itemDetails?.title || itemTitle || "アイテム"}
+        url={window.location.href}
+        image={itemDetails?.image || itemImage || ""}
       />
     </>
   );
