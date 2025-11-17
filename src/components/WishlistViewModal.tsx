@@ -31,10 +31,6 @@ export function WishlistViewModal({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingWishlist, setEditingWishlist] = useState<EditingWishlist | null>(null);
-  const [shareItem, setShareItem] = useState<{
-    title: string;
-    image: string;
-  } | null>(null);
   const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{
     id: string;
@@ -188,15 +184,6 @@ export function WishlistViewModal({
                     }}>
                             <CheckCircle className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => {
-                      e.stopPropagation();
-                      setShareItem({
-                        title: item.official_items.title,
-                        image: item.official_items.image
-                      });
-                    }}>
-                            <Share className="h-3 w-3" />
-                          </Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600" onClick={e => {
                       e.stopPropagation();
                       handleRemoveFromWishlist(item.id);
@@ -215,8 +202,6 @@ export function WishlistViewModal({
       {editingWishlist && <WishlistModal isOpen={!!editingWishlist} onClose={() => setEditingWishlist(null)} itemId={editingWishlist.officialItemId} itemTitle={editingWishlist.title} existingNote={editingWishlist.note || ""} wishlistId={editingWishlist.id} isEditing={true} />}
 
       {selectedItem && <ItemDetailsModal isOpen={!!selectedItem} onClose={() => setSelectedItem(null)} title={selectedItem.title} image={selectedItem.image} price={selectedItem.price} releaseDate={selectedItem.releaseDate} description={selectedItem.description} itemId={selectedItem.id} />}
-      
-      {shareItem && <ShareModal isOpen={!!shareItem} onClose={() => setShareItem(null)} title={shareItem.title} url={window.location.href} image={shareItem.image} />}
       
       {isShareListOpen && <ShareModal isOpen={isShareListOpen} onClose={() => setIsShareListOpen(false)} title="ウィッシュリスト" url={window.location.href} image={wishlistItems?.[0]?.official_items?.image || ""} />}
     </>;
