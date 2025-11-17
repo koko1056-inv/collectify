@@ -35,6 +35,7 @@ export function WishlistViewModal({
     title: string;
     image: string;
   } | null>(null);
+  const [isShareListOpen, setIsShareListOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{
     id: string;
     title: string;
@@ -131,7 +132,18 @@ export function WishlistViewModal({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>ウィッシュリスト</DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>ウィッシュリスト</DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsShareListOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <Share className="h-4 w-4" />
+                リストを共有
+              </Button>
+            </div>
           </DialogHeader>
           <ScrollArea className="h-[calc(80vh-8rem)]">
             <div className="space-y-2 pr-4">
@@ -205,5 +217,7 @@ export function WishlistViewModal({
       {selectedItem && <ItemDetailsModal isOpen={!!selectedItem} onClose={() => setSelectedItem(null)} title={selectedItem.title} image={selectedItem.image} price={selectedItem.price} releaseDate={selectedItem.releaseDate} description={selectedItem.description} itemId={selectedItem.id} />}
       
       {shareItem && <ShareModal isOpen={!!shareItem} onClose={() => setShareItem(null)} title={shareItem.title} url={window.location.href} image={shareItem.image} />}
+      
+      {isShareListOpen && <ShareModal isOpen={isShareListOpen} onClose={() => setIsShareListOpen(false)} title="ウィッシュリスト" url={window.location.href} image={wishlistItems?.[0]?.official_items?.image || ""} />}
     </>;
 }
