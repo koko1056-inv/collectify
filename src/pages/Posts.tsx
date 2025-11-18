@@ -37,7 +37,7 @@ export default function Posts() {
           <div className="bg-background border-b border-border sm:sticky sm:top-16 sm:z-10 px-4 py-3">
             <div className="flex items-center justify-between max-w-4xl mx-auto">
               <div>
-                <h1 className="font-bold text-base">コミュニティ</h1>
+                <h1 className="font-bold text-xl">コミュニティ</h1>
                 
               </div>
               <div className="flex items-center gap-2">
