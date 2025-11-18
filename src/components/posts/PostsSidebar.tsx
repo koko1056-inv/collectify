@@ -24,24 +24,23 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
   
   // 不要なhooksを削除してパフォーマンス向上
 
-  // コンテンツ名の一覧を取得（キャッシュを強化）
-  const { data: contentNames = [] } = useQuery({
+  // コンテンツ名の一覧を取得(キャッシュを強化)
+  const { data: contentNames = [], isLoading: isLoadingContent } = useQuery({
     queryKey: ["posts", "content-names"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('goods_posts')
-        .select(`
-          user_items:user_item_id!inner (
-            content_name
-          )
-        `)
-        .not('user_items.content_name', 'is', null)
-        .limit(100); // 効率化のため制限
+        .from('user_items')
+        .select('content_name')
+        .not('content_name', 'is', null)
+        .limit(100);
 
-      if (error) throw error;
+      if (error) {
+        console.error('コンテンツ名の取得エラー:', error);
+        throw error;
+      }
 
       return Array.from(new Set(
-        data?.map(post => post.user_items?.content_name)
+        data?.map(item => item.content_name)
           .filter(Boolean)
       )).slice(0, 10);
     },
@@ -206,7 +205,11 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 max-h-48 overflow-y-auto">
-            {contentNames.length > 0 ? (
+            {isLoadingContent ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                コンテンツを読み込み中...
+              </p>
+            ) : contentNames.length > 0 ? (
               contentNames.map((content) => (
                 <Button
                   key={content}
@@ -220,7 +223,7 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
               ))
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                コンテンツを読み込み中...
+                コンテンツがありません
               </p>
             )}
           </div>
