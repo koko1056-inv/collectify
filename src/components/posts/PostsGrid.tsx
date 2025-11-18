@@ -1,7 +1,8 @@
 import { usePostsWithPagination } from "@/hooks/posts/usePostsWithPagination";
 import { PostCard } from "./PostCard";
 import { useState, useMemo, useRef, useEffect } from "react";
-import { CommentsModal } from "./CommentsModal";
+import { PostDetailModal } from "./PostDetailModal";
+import { GoodsPost } from "@/types/posts";
 
 interface PostsGridProps {
   filters?: {
@@ -13,7 +14,7 @@ interface PostsGridProps {
 
 export function PostsGrid({ filters }: PostsGridProps) {
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostsWithPagination();
-  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<GoodsPost | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
 
   // 無限スクロールの実装
@@ -77,19 +78,19 @@ export function PostsGrid({ filters }: PostsGridProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-background rounded-lg border p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-skeleton-base rounded-full animate-pulse" />
-              <div className="flex-1">
-                <div className="h-4 bg-skeleton-base rounded animate-pulse mb-1" />
-                <div className="h-3 bg-skeleton-base rounded animate-pulse w-2/3" />
-              </div>
+      <div 
+        className="w-full"
+        style={{
+          columnCount: 'auto',
+          columnWidth: '250px',
+          columnGap: '16px',
+        }}
+      >
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="break-inside-avoid mb-4">
+            <div className="rounded-lg border overflow-hidden">
+              <div className="w-full h-64 bg-skeleton-base animate-pulse" />
             </div>
-            <div className="h-48 bg-skeleton-base rounded animate-pulse mb-3" />
-            <div className="h-4 bg-skeleton-base rounded animate-pulse mb-2" />
-            <div className="h-3 bg-skeleton-base rounded animate-pulse w-3/4" />
           </div>
         ))}
       </div>
@@ -116,9 +117,10 @@ export function PostsGrid({ filters }: PostsGridProps) {
   if (!filteredPosts || filteredPosts.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">検索条件に一致する投稿が見つかりません</p>
-        <p className="text-sm text-muted-foreground mt-2">
-          別のキーワードで検索してみてください
+        <p className="text-muted-foreground">
+          {filters?.searchQuery || filters?.selectedContent || filters?.selectedTags?.length
+            ? "条件に一致する投稿が見つかりませんでした"
+            : "まだ投稿がありません"}
         </p>
       </div>
     );
@@ -126,45 +128,52 @@ export function PostsGrid({ filters }: PostsGridProps) {
 
   return (
     <>
-      <div className="divide-y divide-border">
+      {/* Pinterestスタイルのマソンリーレイアウト */}
+      <div 
+        className="w-full"
+        style={{
+          columnCount: 'auto',
+          columnWidth: '250px',
+          columnGap: '16px',
+        }}
+      >
         {filteredPosts.map((post) => (
-          <div key={post.id} className="hover:bg-muted/30 transition-colors">
-            <PostCard
-              post={post}
-              onCommentClick={() => setSelectedPostId(post.id)}
-            />
-          </div>
+          <PostCard
+            key={post.id}
+            post={post}
+            onClick={() => setSelectedPost(post)}
+          />
         ))}
       </div>
-
-      {/* 無限スクロールのトリガー要素 */}
-      <div ref={observerTarget} className="h-4" />
-
+      
+      {/* 無限スクロールのトリガー */}
+      <div ref={observerTarget} className="h-20" />
+      
       {/* 次のページを読み込み中 */}
       {isFetchingNextPage && (
-        <div className="space-y-4 mt-4">
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="bg-background rounded-lg border p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-skeleton rounded-full animate-pulse" />
-                <div className="flex-1">
-                  <div className="h-4 bg-skeleton rounded animate-pulse mb-1" />
-                  <div className="h-3 bg-skeleton rounded animate-pulse w-2/3" />
-                </div>
+        <div 
+          className="w-full mt-4"
+          style={{
+            columnCount: 'auto',
+            columnWidth: '250px',
+            columnGap: '16px',
+          }}
+        >
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="break-inside-avoid mb-4">
+              <div className="rounded-lg border overflow-hidden">
+                <div className="w-full h-64 bg-skeleton-base animate-pulse" />
               </div>
-              <div className="h-48 bg-skeleton rounded animate-pulse mb-3" />
             </div>
           ))}
         </div>
       )}
 
-      {selectedPostId && (
-        <CommentsModal
-          postId={selectedPostId}
-          isOpen={!!selectedPostId}
-          onClose={() => setSelectedPostId(null)}
-        />
-      )}
+      <PostDetailModal
+        post={selectedPost}
+        isOpen={!!selectedPost}
+        onClose={() => setSelectedPost(null)}
+      />
     </>
   );
 }
