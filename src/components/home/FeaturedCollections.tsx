@@ -151,7 +151,7 @@ export function FeaturedCollections() {
           {isTodayLoading ? (
             <SkeletonGrid count={12} />
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
               {todayItems.map((item) => (
                 <OfficialGoodsCard
                   key={item.id}
@@ -175,7 +175,7 @@ export function FeaturedCollections() {
           {isTrendingLoading ? (
             <SkeletonGrid count={12} />
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1">
               {trendingItems.map((item) => (
                 <OfficialGoodsCard
                   key={item.id}
