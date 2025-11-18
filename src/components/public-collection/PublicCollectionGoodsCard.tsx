@@ -28,7 +28,7 @@ export function PublicCollectionGoodsCard({
           className="aspect-square"
         />
       </UICardHeader>
-      <UICardContent className="p-4 space-y-2">
+      <UICardContent className="p-3 space-y-1">
         <h3 className="text-sm font-medium text-gray-900 truncate">{title}</h3>
         <CollectionGoodsCardContent
           id={id}
