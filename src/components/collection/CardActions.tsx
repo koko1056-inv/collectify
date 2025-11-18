@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Tag, Trash2, Camera } from "lucide-react";
+import { MessageSquare, Tag, Trash2, Plus } from "lucide-react";
 
 interface CardActionsProps {
   onMemoriesClick: () => void;
@@ -48,7 +48,7 @@ export function CardActions({
         }}
         className="h-8 w-8 p-0"
       >
-        <Camera className="h-4 w-4 text-green-500" />
+        <Plus className="h-4 w-4 text-green-500" />
       </Button>
       
       <Button
