@@ -9,7 +9,7 @@ interface PostCardProps {
 export function PostCard({ post, onClick }: PostCardProps) {
   return (
     <div 
-      className="group cursor-pointer break-inside-avoid mb-4"
+      className="group cursor-pointer break-inside-avoid mb-2"
       onClick={onClick}
     >
       <div className="relative overflow-hidden rounded-lg bg-background border hover:shadow-lg transition-all duration-300">
