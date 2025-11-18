@@ -27,19 +27,18 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     queryFn: async () => {
       if (!user) return false;
       
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from("user_items")
-        .select("id")
+        .select("*", { count: 'exact', head: true })
         .eq("user_id", user.id)
-        .eq("official_item_id", id)
-        .maybeSingle();
+        .eq("official_item_id", id);
       
       if (error) {
         console.error("Error checking if item exists in collection:", error);
         return false;
       }
       
-      return !!data;
+      return (count || 0) > 0;
     },
     enabled: !!user,
   });
@@ -96,6 +95,22 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     }
 
     try {
+      // 既にコレクションに存在するか確認
+      const { count } = await supabase
+        .from("user_items")
+        .select("*", { count: 'exact', head: true })
+        .eq("user_id", user.id)
+        .eq("official_item_id", id);
+
+      if (count && count > 0) {
+        toast({
+          title: "既に追加済み",
+          description: "このアイテムは既にコレクションに追加されています。",
+        });
+        await refetchIsInCollection();
+        return;
+      }
+
       const { data, error } = await supabase.from("user_items").insert({
         title,
         image,
