@@ -41,7 +41,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="container mx-auto px-2 py-4 pt-0 pb-24 sm:px-4 sm:py-8 sm:pt-20 sm:pb-8">
+      <main className="container mx-auto px-1 py-4 pt-0 pb-24 sm:px-2 sm:py-8 sm:pt-20 sm:pb-8">
         <div className={`space-y-4 sm:space-y-6 ${isMobile ? "pt-2" : ""}`}>
           {showUserCollection ? (
             <UserProfileCollection 
