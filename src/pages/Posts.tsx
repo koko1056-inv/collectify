@@ -38,8 +38,8 @@ export default function Posts() {
 
           {/* メインコンテンツ */}
           <main className="flex-1 overflow-auto">
-            <div className="px-4 py-4">
-              <div className="max-w-4xl mx-auto">
+            <div className="px-1 sm:px-2 py-4">
+              <div className="max-w-6xl mx-auto">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="w-full mb-4">
                     <TabsTrigger value="posts" className="flex-1">投稿</TabsTrigger>
