@@ -41,34 +41,6 @@ export default function Posts() {
                 
               </div>
               <div className="flex items-center gap-2">
-                {/* フィルターボタン */}
-                {activeTab === "posts" && <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
-                    <SheetTrigger asChild>
-                      
-                    </SheetTrigger>
-                    <SheetContent side="left" className="w-80 p-0">
-                      <SheetHeader className="p-4 pb-2">
-                        <SheetTitle>コミュニティを絞り込み</SheetTitle>
-                      </SheetHeader>
-                      <div className="flex-1 overflow-y-auto px-4 pb-4">
-                        <Suspense fallback={<div className="space-y-4">
-                            <Skeleton className="h-32 w-full" />
-                            <Skeleton className="h-24 w-full" />
-                            <Skeleton className="h-20 w-full" />
-                          </div>}>
-                          <PostsSidebar onFiltersChange={newFilters => {
-                        setFilters(newFilters);
-                      }} />
-                        </Suspense>
-                      </div>
-                    </SheetContent>
-                  </Sheet>}
-                
-                {activeTab === "posts" && <Button onClick={() => setIsCreateModalOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">
-                    <Plus className="h-4 w-4 mr-2" />
-                    投稿
-                  </Button>}
-                
                 {activeTab === "polls" && <Button onClick={() => setIsCreatePollModalOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">
                     <Plus className="h-4 w-4 mr-2" />
                     投票
@@ -103,6 +75,17 @@ export default function Posts() {
 
       {/* フッター */}
       <Footer />
+
+      {/* フローティングアクションボタン（投稿用） */}
+      {activeTab === "posts" && (
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
+          aria-label="新規投稿"
+        >
+          <Plus className="h-6 w-6 text-primary-foreground" />
+        </button>
+      )}
 
       {/* 投稿作成モーダル */}
       <Suspense fallback={null}>
