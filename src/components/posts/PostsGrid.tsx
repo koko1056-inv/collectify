@@ -81,8 +81,7 @@ export function PostsGrid({ filters }: PostsGridProps) {
       <div 
         className="w-full"
         style={{
-          columnCount: 'auto',
-          columnWidth: '250px',
+          columnCount: 2,
           columnGap: '16px',
         }}
       >
@@ -128,12 +127,11 @@ export function PostsGrid({ filters }: PostsGridProps) {
 
   return (
     <>
-      {/* Pinterestスタイルのマソンリーレイアウト */}
+      {/* 2列固定のマソンリーレイアウト */}
       <div 
         className="w-full"
         style={{
-          columnCount: 'auto',
-          columnWidth: '250px',
+          columnCount: 2,
           columnGap: '16px',
         }}
       >
@@ -154,8 +152,7 @@ export function PostsGrid({ filters }: PostsGridProps) {
         <div 
           className="w-full mt-4"
           style={{
-            columnCount: 'auto',
-            columnWidth: '250px',
+            columnCount: 2,
             columnGap: '16px',
           }}
         >
