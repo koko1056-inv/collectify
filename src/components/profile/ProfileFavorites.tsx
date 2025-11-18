@@ -84,7 +84,7 @@ export function ProfileFavorites({
       </div>
       {userItems.length === 0 ? <div className="text-center py-4 text-gray-500">
           まだコレクションがありません
-        </div> : <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
+        </div> : <div className="grid grid-cols-3 gap-1 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
           {userItems.map(item => <PublicCollectionGoodsCard key={item.id} id={item.id} title={item.title} image={item.image} userId={userId} />)}
         </div>}
     </div>;
