@@ -14,8 +14,8 @@ export function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className={`container mx-auto ${isMobile ? 'pt-20 pb-20 px-0' : 'pt-28 pb-8 px-4'}`}>
-        <div className={`${isMobile ? 'min-h-screen' : 'max-w-3xl mx-auto'} space-y-6`}>
+      <main className={`container mx-auto ${isMobile ? 'pt-16 pb-20 px-0' : 'pt-20 pb-8 px-4'}`}>
+        <div className={`${isMobile ? 'min-h-screen' : 'max-w-3xl mx-auto'} space-y-4`}>
           <ProfileCard 
             onShare={() => setIsShareModalOpen(true)}
             setUsername={setUsername}
