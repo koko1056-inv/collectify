@@ -82,11 +82,11 @@ export function PostsGrid({ filters }: PostsGridProps) {
         className="w-full"
         style={{
           columnCount: 2,
-          columnGap: '16px',
+          columnGap: '8px',
         }}
       >
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="break-inside-avoid mb-4">
+          <div key={i} className="break-inside-avoid mb-2">
             <div className="rounded-lg border overflow-hidden">
               <div className="w-full h-64 bg-skeleton-base animate-pulse" />
             </div>
@@ -132,7 +132,7 @@ export function PostsGrid({ filters }: PostsGridProps) {
         className="w-full"
         style={{
           columnCount: 2,
-          columnGap: '16px',
+          columnGap: '8px',
         }}
       >
         {filteredPosts.map((post) => (
@@ -153,11 +153,11 @@ export function PostsGrid({ filters }: PostsGridProps) {
           className="w-full mt-4"
           style={{
             columnCount: 2,
-            columnGap: '16px',
+            columnGap: '8px',
           }}
         >
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="break-inside-avoid mb-4">
+            <div key={i} className="break-inside-avoid mb-2">
               <div className="rounded-lg border overflow-hidden">
                 <div className="w-full h-64 bg-skeleton-base animate-pulse" />
               </div>
