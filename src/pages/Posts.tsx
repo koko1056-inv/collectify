@@ -34,20 +34,7 @@ export default function Posts() {
         {/* メインコンテンツエリア */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* ヘッダー */}
-          <div className="bg-background border-b border-border sm:sticky sm:top-16 sm:z-10 px-4 py-3">
-            <div className="flex items-center justify-between max-w-4xl mx-auto">
-              <div>
-                <h1 className="font-bold text-xl">コミュニティ</h1>
-                
-              </div>
-              <div className="flex items-center gap-2">
-                {activeTab === "polls" && <Button onClick={() => setIsCreatePollModalOpen(true)} size="sm" className="bg-primary hover:bg-primary/90">
-                    <Plus className="h-4 w-4 mr-2" />
-                    投票
-                  </Button>}
-              </div>
-            </div>
-          </div>
+          
 
           {/* メインコンテンツ */}
           <main className="flex-1 overflow-auto">
@@ -77,15 +64,9 @@ export default function Posts() {
       <Footer />
 
       {/* フローティングアクションボタン（投稿用） */}
-      {activeTab === "posts" && (
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
-          aria-label="新規投稿"
-        >
+      {activeTab === "posts" && <button onClick={() => setIsCreateModalOpen(true)} className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95" aria-label="新規投稿">
           <Plus className="h-6 w-6 text-primary-foreground" />
-        </button>
-      )}
+        </button>}
 
       {/* 投稿作成モーダル */}
       <Suspense fallback={null}>
