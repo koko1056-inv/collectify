@@ -121,6 +121,7 @@ export function ProfileCard({
       }
 
       setAvatarUrl(publicUrl);
+      setPreviewUrl(publicUrl);
       toast({
         title: "画像アップロード完了",
         description: "プロフィール画像を更新しました"
