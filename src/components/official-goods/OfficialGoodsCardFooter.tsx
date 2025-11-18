@@ -26,7 +26,7 @@ export function OfficialGoodsCardFooter({
   itemImage,
 }: OfficialGoodsCardFooterProps) {
   return (
-    <CardFooter className="p-1 sm:p-4 pt-0 flex flex-col gap-1 sm:gap-2">
+    <CardFooter className="p-2 sm:p-4 pt-0 flex flex-col gap-1 sm:gap-2">
       <div className="flex justify-end gap-1 sm:gap-2">
         <TagsAndSocialButtons
           itemId={itemId}
