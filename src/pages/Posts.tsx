@@ -44,10 +44,7 @@ export default function Posts() {
                 {/* フィルターボタン */}
                 {activeTab === "posts" && <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
                     <SheetTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <Filter className="h-4 w-4 mr-2" />
-                        フィルター
-                      </Button>
+                      
                     </SheetTrigger>
                     <SheetContent side="left" className="w-80 p-0">
                       <SheetHeader className="p-4 pb-2">
