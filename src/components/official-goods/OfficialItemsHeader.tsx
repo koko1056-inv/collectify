@@ -45,7 +45,7 @@ export const OfficialItemsHeader = memo(function OfficialItemsHeader({
           onValueChange={handleSortChange}
           defaultValue="newest"
         >
-          <SelectTrigger className="w-[80px] sm:w-[150px] h-7 sm:h-9 text-[10px] sm:text-sm bg-white border border-gray-300 rounded-md focus:ring-0 focus:ring-offset-0 cursor-pointer">
+          <SelectTrigger className="w-[100px] sm:w-[180px] h-7 sm:h-9 text-[10px] sm:text-sm bg-white border border-gray-300 rounded-md focus:ring-0 focus:ring-offset-0 cursor-pointer">
             <SelectValue placeholder="並び順" />
           </SelectTrigger>
           <SelectContent 
