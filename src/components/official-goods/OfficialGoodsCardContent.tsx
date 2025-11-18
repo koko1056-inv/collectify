@@ -13,8 +13,8 @@ export function OfficialGoodsCardContent({
   itemId
 }: OfficialGoodsCardContentProps) {
   return (
-    <CardContent className="p-1 sm:p-3 overflow-hidden">
-      <CardTitle className="text-[10px] sm:text-xs mb-1 line-clamp-2 text-gray-900">{title}</CardTitle>
+    <CardContent className="p-2 sm:p-4 overflow-hidden">
+      <CardTitle className="text-xs sm:text-sm mb-2 line-clamp-2 text-gray-900">{title}</CardTitle>
     </CardContent>
   );
 }
