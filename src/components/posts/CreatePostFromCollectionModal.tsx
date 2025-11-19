@@ -8,10 +8,11 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CreatePostModal } from "./CreatePostModal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, X, ChevronDown } from "lucide-react";
+import { Search, Filter, X, ChevronDown, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTags } from "@/hooks/useTags";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useNavigate } from "react-router-dom";
 interface CreatePostFromCollectionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,6 +26,7 @@ export function CreatePostFromCollectionModal({
   const {
     user
   } = useAuth();
+  const navigate = useNavigate();
   const [selectedItem, setSelectedItem] = useState<{
     id: string;
     title: string;
@@ -163,8 +165,20 @@ export function CreatePostFromCollectionModal({
   }
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] overflow-hidden flex flex-col">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <DialogTitle className="text-xl font-bold">投稿するグッズを選択</DialogTitle>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              onClose();
+              navigate('/add-item');
+            }}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            グッズ追加
+          </Button>
         </DialogHeader>
         
         {/* 検索バー */}
