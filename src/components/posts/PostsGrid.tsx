@@ -3,6 +3,7 @@ import { PostCard } from "./PostCard";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { PostDetailModal } from "./PostDetailModal";
 import { GoodsPost } from "@/types/posts";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface PostsGridProps {
   filters?: {
@@ -16,6 +17,7 @@ export function PostsGrid({ filters }: PostsGridProps) {
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostsWithPagination();
   const [selectedPost, setSelectedPost] = useState<GoodsPost | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   // 無限スクロールの実装
   useEffect(() => {
@@ -81,7 +83,7 @@ export function PostsGrid({ filters }: PostsGridProps) {
       <div 
         className="w-full"
         style={{
-          columnCount: 2,
+          columnCount: isMobile ? 2 : 4,
           columnGap: '8px',
         }}
       >
@@ -131,7 +133,7 @@ export function PostsGrid({ filters }: PostsGridProps) {
       <div 
         className="w-full"
         style={{
-          columnCount: 2,
+          columnCount: isMobile ? 2 : 4,
           columnGap: '8px',
         }}
       >
@@ -152,7 +154,7 @@ export function PostsGrid({ filters }: PostsGridProps) {
         <div 
           className="w-full mt-4"
           style={{
-            columnCount: 2,
+            columnCount: isMobile ? 2 : 4,
             columnGap: '8px',
           }}
         >
