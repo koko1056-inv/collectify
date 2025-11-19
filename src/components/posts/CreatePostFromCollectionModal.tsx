@@ -166,7 +166,7 @@ export function CreatePostFromCollectionModal({
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] overflow-hidden flex flex-col">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <DialogTitle className="text-xl font-bold">投稿するグッズを選択</DialogTitle>
+          <DialogTitle className="text-lg font-bold">投稿するグッズを選択</DialogTitle>
           <Button 
             variant="outline" 
             size="sm"
