@@ -14,7 +14,7 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
   const [showFollowersModal, setShowFollowersModal] = useState(false);
 
   const { data: profile } = useQuery({
-    queryKey: ["profile", userId],
+    queryKey: ["profile-stats", userId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -25,8 +25,10 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
       if (error) throw error;
       return data;
     },
-    staleTime: 1 * 60 * 1000, // 1分間キャッシュ（useProfileと同じキーを使用）
+    staleTime: 30 * 1000, // 30秒間キャッシュ
     gcTime: 5 * 60 * 1000, // 5分間保持
+    refetchOnMount: true, // マウント時に再取得
+    refetchOnWindowFocus: true, // フォーカス時に再取得
   });
 
   const { data: collectionCount = 0 } = useQuery({
