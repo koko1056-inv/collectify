@@ -174,7 +174,7 @@ export function ImageSection({
   return (
     <>
       <div className="space-y-4">
-        <div className="bg-gray-50 p-3 sm:p-6 rounded-lg border">
+        <div className="bg-gray-50 p-1 sm:p-6 rounded-lg border">
           <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4 text-gray-900">画像の追加方法</h3>
           
           <div className="space-y-4 sm:space-y-6">
