@@ -44,17 +44,6 @@ export function Footer() {
             </Link>
 
             <Link
-              to="/collection"
-              className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-xs",
-                isActive("/collection") ? "text-primary" : "text-gray-500"
-              )}
-            >
-              <Package className={cn("h-6 w-6 mb-1", isActive("/collection") ? "text-primary" : "text-gray-400")} />
-              <span>{t("footer.collection")}</span>
-            </Link>
-
-            <Link
               to="/posts"
               className={cn(
                 "flex flex-col items-center justify-center w-1/5 text-xs",
@@ -63,6 +52,17 @@ export function Footer() {
             >
               <Image className={cn("h-6 w-6 mb-1", isActive("/posts") ? "text-primary" : "text-gray-400")} />
               <span>投稿</span>
+            </Link>
+
+            <Link
+              to="/collection"
+              className={cn(
+                "flex flex-col items-center justify-center w-1/5 text-xs",
+                isActive("/collection") ? "text-primary" : "text-gray-500"
+              )}
+            >
+              <Package className={cn("h-6 w-6 mb-1", isActive("/collection") ? "text-primary" : "text-gray-400")} />
+              <span>{t("footer.collection")}</span>
             </Link>
 
             <Link
