@@ -51,7 +51,7 @@ export function Footer() {
               )}
             >
               <Image className={cn("h-6 w-6 mb-1", isActive("/posts") ? "text-primary" : "text-gray-400")} />
-              <span>投稿</span>
+              <span>コミュニティ</span>
             </Link>
 
             <Link
