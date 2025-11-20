@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageUrl } = await req.json();
+    const { imageUrl, sourceUrl } = await req.json();
     
     if (!imageUrl) {
       throw new Error('画像URLが必要です');
@@ -23,6 +23,51 @@ serve(async (req) => {
     }
 
     console.log('Analyzing image:', imageUrl);
+    console.log('Source URL:', sourceUrl);
+
+    // URLからページ情報を取得（ある場合）
+    let pageContext = '';
+    if (sourceUrl && (sourceUrl.startsWith('http://') || sourceUrl.startsWith('https://'))) {
+      try {
+        const pageResponse = await fetch(sourceUrl);
+        if (pageResponse.ok) {
+          const html = await pageResponse.text();
+          
+          // タイトルとメタ情報を抽出
+          const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+          const descMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i);
+          const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']+)["']/i);
+          const ogDescMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i);
+          
+          const pageTitle = titleMatch?.[1] || ogTitleMatch?.[1] || '';
+          const pageDesc = descMatch?.[1] || ogDescMatch?.[1] || '';
+          
+          // 本文からテキストを抽出（簡易版）
+          const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+          let bodyText = '';
+          if (bodyMatch) {
+            bodyText = bodyMatch[1]
+              .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+              .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+              .replace(/<[^>]+>/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim()
+              .substring(0, 1000); // 最初の1000文字のみ
+          }
+          
+          pageContext = `
+ページURL: ${sourceUrl}
+ページタイトル: ${pageTitle}
+ページ説明: ${pageDesc}
+ページ内容の一部: ${bodyText}
+`;
+          console.log('Page context extracted:', pageContext.substring(0, 200));
+        }
+      } catch (error) {
+        console.error('Error fetching page:', error);
+        // ページ取得に失敗しても処理は続行
+      }
+    }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -38,14 +83,18 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: `この画像はアニメグッズやキャラクターグッズの商品画像です。画像を分析して以下の情報を推測してください：
+                text: `この画像はアニメグッズやキャラクターグッズの商品画像です。${pageContext ? '\n\nまた、この商品が掲載されているページの情報も提供します：\n' + pageContext + '\n' : ''}
+
+画像${pageContext ? 'とページ情報' : ''}を分析して以下の情報を推測してください：
 
 1. 商品タイトル（具体的な商品名）
 2. 商品説明（簡潔な説明）
-3. 推定価格（日本円で、一般的な相場から推測）
+3. 推定価格（日本円で、一般的な相場から推測${pageContext ? '。ページに価格情報があればそれを優先' : ''}）
 4. カテゴリ（例：フィギュア、ぬいぐるみ、アクリルスタンド、缶バッジ、キーホルダー、タペストリー、クリアファイル、Tシャツ、その他）
-5. 作品名・コンテンツ名（もし分かれば）
+5. 作品名・コンテンツ名（${pageContext ? 'ページタイトルやURLから作品名を特定してください。' : ''}もし分かれば）
 6. キャラクター名（もし分かれば）
+
+${pageContext ? '**重要**: ページ情報から作品名やシリーズ名を積極的に推測してください。アニメ、ゲーム、漫画などの作品名がURLやページタイトルに含まれている可能性があります。\n' : ''}
 
 JSON形式で以下のように回答してください：
 {

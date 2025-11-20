@@ -82,8 +82,14 @@ export function ImageSection({
         });
       }
 
+      // URLの情報も送信（元のページURLがある場合）
+      const requestBody: any = { imageUrl };
+      if (imageUrlInput || urlInput) {
+        requestBody.sourceUrl = imageUrlInput || urlInput;
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-item-image', {
-        body: { imageUrl }
+        body: requestBody
       });
 
       if (error) throw error;
@@ -92,7 +98,7 @@ export function ImageSection({
         onAnalysisComplete(data);
         toast({
           title: "分析完了",
-          description: "AIが画像を分析してフォームに自動入力しました。",
+          description: "AIが画像とURLを分析してフォームに自動入力しました。",
         });
       }
     } catch (error) {
