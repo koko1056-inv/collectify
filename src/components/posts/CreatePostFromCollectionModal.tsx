@@ -228,7 +228,7 @@ export function CreatePostFromCollectionModal({
         
         
         <div className="flex-1 overflow-y-auto">
-          {isLoading ? <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 p-2">
+          {isLoading ? <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 p-2">
               {[...Array(21)].map((_, i) => <div key={i} className="flex flex-col space-y-3">
                   <Skeleton className="w-full h-32 rounded" />
                   <div className="space-y-2">
@@ -236,7 +236,7 @@ export function CreatePostFromCollectionModal({
                     <Skeleton className="h-3 w-3/4" />
                   </div>
                 </div>)}
-            </div> : filteredAndSortedItems.length > 0 ? <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4 p-2">
+            </div> : filteredAndSortedItems.length > 0 ? <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 p-2">
               {filteredAndSortedItems.map(item => <Button key={item.id} variant="outline" onClick={() => handleItemSelect(item)} className="flex flex-col items-center p-3 h-auto space-y-2 hover:shadow-md transition-shadow min-h-[180px]">
                   <img src={item.image} alt={item.title} className="w-full h-24 md:h-28 lg:h-32 object-cover rounded flex-shrink-0" />
                   <div className="text-left w-full flex-1 flex flex-col justify-between">
