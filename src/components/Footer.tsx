@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, Package, Image, User } from "lucide-react";
+import { Home, Search, Package, Users, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
@@ -50,7 +50,7 @@ export function Footer() {
                 isActive("/posts") ? "text-primary" : "text-gray-500"
               )}
             >
-              <Image className={cn("h-6 w-6 mb-1", isActive("/posts") ? "text-primary" : "text-gray-400")} />
+              <Users className={cn("h-6 w-6 mb-1", isActive("/posts") ? "text-primary" : "text-gray-400")} />
               <span>コミュニティ</span>
             </Link>
 
