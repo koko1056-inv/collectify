@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ItemImageUpload } from "../item/ItemImageUpload";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -15,11 +15,21 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+export interface AnalysisResult {
+  title: string;
+  description: string;
+  price: string;
+  category: string;
+  contentName: string;
+  characterName: string;
+}
+
 interface ImageSectionProps {
   imageFile: File | null;
   setImageFile: (file: File | null) => void;
   previewUrl: string | null;
   setPreviewUrl: (url: string | null) => void;
+  onAnalysisComplete?: (result: AnalysisResult) => void;
 }
 
 export function ImageSection({
@@ -27,10 +37,12 @@ export function ImageSection({
   setImageFile,
   previewUrl,
   setPreviewUrl,
+  onAnalysisComplete,
 }: ImageSectionProps) {
   const [urlInput, setUrlInput] = useState("");
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [isScrapingImages, setIsScrapingImages] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [scrapedImages, setScrapedImages] = useState<string[]>([]);
   const [showImageSelector, setShowImageSelector] = useState(false);
   const { toast } = useToast();
@@ -40,6 +52,58 @@ export function ImageSection({
     if (file) {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+    }
+  };
+
+  const handleAnalyzeImage = async () => {
+    if (!previewUrl) {
+      toast({
+        title: "エラー",
+        description: "画像を選択してください。",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      // 画像URLをbase64に変換して送信
+      let imageUrl = previewUrl;
+      
+      // ローカルのBlobURLの場合はbase64に変換
+      if (previewUrl.startsWith('blob:')) {
+        const response = await fetch(previewUrl);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        
+        imageUrl = await new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      const { data, error } = await supabase.functions.invoke('analyze-item-image', {
+        body: { imageUrl }
+      });
+
+      if (error) throw error;
+
+      if (data && onAnalysisComplete) {
+        onAnalysisComplete(data);
+        toast({
+          title: "分析完了",
+          description: "AIが画像を分析してフォームに自動入力しました。",
+        });
+      }
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      toast({
+        title: "エラー",
+        description: "画像の分析に失敗しました。もう一度お試しください。",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -285,7 +349,28 @@ export function ImageSection({
         {/* 画像プレビュー */}
         {previewUrl && (
           <div className="bg-white p-4 rounded-lg border">
-            <h3 className="font-semibold text-lg mb-3 text-gray-900">画像プレビュー</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-lg text-gray-900">画像プレビュー</h3>
+              <Button
+                type="button"
+                onClick={handleAnalyzeImage}
+                disabled={isAnalyzing}
+                variant="default"
+                size="sm"
+                className="gap-2"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    分析中...
+                  </>
+                ) : (
+                  <>
+                    ✨ AIで自動記入
+                  </>
+                )}
+              </Button>
+            </div>
             <div className="relative max-w-md mx-auto">
               <img
                 src={previewUrl}
