@@ -24,7 +24,7 @@ export function Footer() {
             <Link
               to="/"
               className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-xs",
+                "flex flex-col items-center justify-center w-1/5 text-[10px]",
                 isActive("/") ? "text-primary" : "text-gray-500"
               )}
             >
@@ -35,7 +35,7 @@ export function Footer() {
             <Link
               to="/search"
               className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-xs",
+                "flex flex-col items-center justify-center w-1/5 text-[10px]",
                 isActive("/search") ? "text-primary" : "text-gray-500"
               )}
             >
@@ -46,7 +46,7 @@ export function Footer() {
             <Link
               to="/posts"
               className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-xs",
+                "flex flex-col items-center justify-center w-1/5 text-[10px]",
                 isActive("/posts") ? "text-primary" : "text-gray-500"
               )}
             >
@@ -57,7 +57,7 @@ export function Footer() {
             <Link
               to="/collection"
               className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-xs",
+                "flex flex-col items-center justify-center w-1/5 text-[10px]",
                 isActive("/collection") ? "text-primary" : "text-gray-500"
               )}
             >
@@ -68,7 +68,7 @@ export function Footer() {
             <Link
               to="/edit-profile"
               className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-xs",
+                "flex flex-col items-center justify-center w-1/5 text-[10px]",
                 isActive("/edit-profile") ? "text-primary" : "text-gray-500"
               )}
             >
