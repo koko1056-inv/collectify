@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ImageSection } from "./admin-item-form/ImageSection";
+import { ImageSection, type AnalysisResult } from "./admin-item-form/ImageSection";
 import { ItemDetailsSection } from "./admin-item-form/ItemDetailsSection";
 import { useImageUpload } from "@/hooks/admin-item-form/useImageUpload";
 import { useItemDetails } from "@/hooks/admin-item-form/useItemDetails";
@@ -148,6 +148,18 @@ export function AdminItemForm() {
                 setImageFile={handleImageChange}
                 previewUrl={previewUrl}
                 setPreviewUrl={setPreviewUrl}
+                onAnalysisComplete={(result) => {
+                  // AI分析結果をフォームに自動入力
+                  const updates: any = {};
+                  
+                  if (result.title) updates.title = result.title;
+                  if (result.description) updates.description = result.description;
+                  if (result.price) updates.price = result.price;
+                  if (result.category) updates.category = result.category;
+                  if (result.contentName) updates.content_name = result.contentName;
+                  
+                  handleFormUpdate(updates);
+                }}
               />
               
               <div className="flex justify-end">
