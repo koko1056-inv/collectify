@@ -30,7 +30,7 @@ export function ProfileImageUpload({
   const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
   const { toast } = useToast();
 
-  // 最近使ったアバターを取得
+  // ゼロから生成したアバター（着せ替えではないもの）を取得
   useEffect(() => {
     const fetchRecentAvatars = async () => {
       if (!userId) return;
@@ -38,13 +38,16 @@ export function ProfileImageUpload({
       try {
         const { data } = await supabase
           .from("avatar_gallery")
-          .select("id, image_url")
+          .select("id, image_url, item_ids")
           .eq("user_id", userId)
-          .order("created_at", { ascending: false })
-          .limit(6); // 最新6つを取得
+          .order("created_at", { ascending: false });
 
         if (data) {
-          setRecentAvatars(data);
+          // item_idsがnullまたは空配列のもの（ゼロから生成したアバター）のみをフィルタリング
+          const pureAvatars = data
+            .filter(avatar => !avatar.item_ids || avatar.item_ids.length === 0)
+            .slice(0, 6);
+          setRecentAvatars(pureAvatars);
         }
       } catch (error) {
         console.error("Error fetching recent avatars:", error);
@@ -89,16 +92,18 @@ export function ProfileImageUpload({
       // 画像をアップロード
       await onImageChange(file);
       
-      // アバターリストを再取得
+      // アバターリストを再取得（ゼロから生成したもののみ）
       const { data } = await supabase
         .from("avatar_gallery")
-        .select("id, image_url")
+        .select("id, image_url, item_ids")
         .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(6);
+        .order("created_at", { ascending: false });
       
       if (data) {
-        setRecentAvatars(data);
+        const pureAvatars = data
+          .filter(avatar => !avatar.item_ids || avatar.item_ids.length === 0)
+          .slice(0, 6);
+        setRecentAvatars(pureAvatars);
       }
       
       toast({
@@ -175,10 +180,10 @@ export function ProfileImageUpload({
         </PopoverTrigger>
         <PopoverContent className="w-72 p-3 bg-background border shadow-lg z-50">
           <div className="flex flex-col gap-3">
-            {/* 最近使ったアバター */}
+            {/* ゼロから生成したアバター */}
             {recentAvatars.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground font-medium px-1">最近使ったアバター</p>
+                <p className="text-xs text-muted-foreground font-medium px-1">AIで生成したアバター</p>
                 <div className="grid grid-cols-3 gap-2">
                   {recentAvatars.map((avatar) => (
                     <button
