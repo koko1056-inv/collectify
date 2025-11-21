@@ -122,8 +122,9 @@
 }
 
 .logo-text {
-  @apply font-sans text-xl font-bold tracking-tight;
-  letter-spacing: -0.02em;
+  font-family: 'Righteous', sans-serif;
+  @apply text-2xl font-bold;
+  letter-spacing: 0.05em;
 }
 
 .no-scrollbar {
