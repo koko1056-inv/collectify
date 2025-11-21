@@ -228,7 +228,8 @@ export function AvatarDressUpModal({ isOpen, onClose, userId }: AvatarDressUpMod
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">{items.map(item => (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {items.map(item => (
                   <div
                     key={item.id}
                     className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
