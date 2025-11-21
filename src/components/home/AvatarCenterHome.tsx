@@ -125,7 +125,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl" />
         
         {/* アバター中心エリア */}
-        <div className="relative w-64 h-64 sm:w-80 sm:h-80 mb-8">
+        <div className="relative w-80 h-80 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] mb-8">
           {/* 中央の円形背景 */}
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
           
@@ -137,7 +137,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
               title="ギャラリーを開く"
             >
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
-              <Avatar className="w-32 h-32 sm:w-40 sm:h-40 border-4 border-background shadow-2xl relative z-10 group-hover:scale-105 transition-transform">
+              <Avatar className="w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 border-4 border-background shadow-2xl relative z-10 group-hover:scale-105 transition-transform">
                 <AvatarImage src={currentAvatarUrl || profile?.avatar_url || undefined} />
                 <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                   {profile?.username?.[0]?.toUpperCase() || "?"}
@@ -156,10 +156,10 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
               <Button
                 onClick={btn.onClick}
                 size="lg"
-                className={`rounded-full w-16 h-16 sm:w-20 sm:h-20 shadow-lg hover:scale-110 transition-all duration-300 bg-gradient-to-br ${btn.color} border-2 border-background group`}
+                className={`rounded-full w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 shadow-lg hover:scale-110 transition-all duration-300 bg-gradient-to-br ${btn.color} border-2 border-background group`}
               >
                 <div className="flex flex-col items-center gap-1">
-                  <btn.icon className="w-6 h-6 sm:w-8 sm:h-8" />
+                  <btn.icon className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12" />
                 </div>
               </Button>
               <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
