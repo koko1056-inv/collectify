@@ -30,6 +30,8 @@ export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: Avata
   }, [isOpen]);
 
   const fetchUserItems = async () => {
+    if (!userId) return;
+    
     setLoading(true);
     try {
       const { data, error } = await supabase

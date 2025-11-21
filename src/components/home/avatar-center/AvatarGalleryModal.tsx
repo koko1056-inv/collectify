@@ -42,6 +42,8 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
   }, [isOpen]);
 
   const fetchAvatars = async () => {
+    if (!userId) return;
+    
     setLoading(true);
     try {
       const { data, error } = await supabase
