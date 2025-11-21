@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Dices, BarChart3, Shirt, ChevronDown } from "lucide-react";
+import { Dices, BarChart3, Shirt, ChevronDown, Image } from "lucide-react";
 import { Profile } from "@/types";
 import { AvatarGenerationModal } from "@/components/profile/AvatarGenerationModal";
 import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
 import { CollectionAnalyticsModal } from "./avatar-center/CollectionAnalyticsModal";
 import { AvatarDressUpModal } from "./avatar-center/AvatarDressUpModal";
+import { AvatarGalleryModal } from "./avatar-center/AvatarGalleryModal";
 
 interface AvatarCenterHomeProps {
   profile: Profile;
@@ -18,6 +19,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const [showRandomPickup, setShowRandomPickup] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showDressUp, setShowDressUp] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
 
   // アバターがない場合は自動的にモーダルを開く
   useEffect(() => {
@@ -63,14 +65,22 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           
           {/* アバター */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative">
+            <div 
+              className="relative cursor-pointer group"
+              onClick={() => setShowGallery(true)}
+              title="ギャラリーを開く"
+            >
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
-              <Avatar className="w-32 h-32 sm:w-40 sm:h-40 border-4 border-background shadow-2xl relative z-10">
+              <Avatar className="w-32 h-32 sm:w-40 sm:h-40 border-4 border-background shadow-2xl relative z-10 group-hover:scale-105 transition-transform">
                 <AvatarImage src={profile?.avatar_url || undefined} />
                 <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                   {profile?.username?.[0]?.toUpperCase() || "?"}
                 </AvatarFallback>
               </Avatar>
+              {/* ギャラリーアイコン */}
+              <div className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                <Image className="w-4 h-4" />
+              </div>
             </div>
           </div>
 
@@ -126,6 +136,13 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         onClose={() => setShowDressUp(false)}
         userId={profile?.id}
         avatarUrl={profile?.avatar_url}
+      />
+
+      <AvatarGalleryModal
+        isOpen={showGallery}
+        onClose={() => setShowGallery(false)}
+        userId={profile?.id}
+        currentAvatarUrl={profile?.avatar_url}
       />
     </>
   );

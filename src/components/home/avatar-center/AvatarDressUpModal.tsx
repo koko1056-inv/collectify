@@ -90,6 +90,29 @@ export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: Avata
       if (error) throw error;
 
       if (data?.editedImageUrl) {
+        // ギャラリーに保存
+        const selectedItemsData = items.filter(item => selectedItems.includes(item.id));
+        const { error: galleryError } = await supabase
+          .from("avatar_gallery")
+          .insert({
+            user_id: userId,
+            image_url: data.editedImageUrl,
+            prompt: `グッズ着せ替え: ${selectedItemsData.map(item => item.title).join(", ")}`,
+            item_ids: selectedItems,
+            is_current: true
+          });
+
+        if (galleryError) {
+          console.error("Error saving to gallery:", galleryError);
+        }
+
+        // 他のアバターの is_current を false に
+        await supabase
+          .from("avatar_gallery")
+          .update({ is_current: false })
+          .neq("image_url", data.editedImageUrl)
+          .eq("user_id", userId);
+
         // 編集された画像をプロフィールに保存
         const { error: updateError } = await supabase
           .from("profiles")
@@ -100,7 +123,7 @@ export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: Avata
 
         toast({
           title: "アバターを更新しました！",
-          description: "グッズを装着したアバターが生成されました",
+          description: "グッズを装着したアバターが生成され、ギャラリーに保存されました",
         });
         
         onClose();
