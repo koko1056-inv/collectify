@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
   const [selectedContent, setSelectedContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [itemSearchQuery, setItemSearchQuery] = useState("");
 
   // 投稿されているグッズ一覧を取得
   const { data: postedItems = [], isLoading: isLoadingItems } = useQuery({
@@ -166,6 +167,16 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
 
   const hasActiveFilters = selectedTags.length > 0 || selectedContent || searchQuery || selectedItemIds.length > 0;
 
+  // グッズの検索フィルタリング
+  const filteredItems = useMemo(() => {
+    if (!itemSearchQuery) return postedItems;
+    const query = itemSearchQuery.toLowerCase();
+    return postedItems.filter((item: any) => 
+      item.title?.toLowerCase().includes(query) || 
+      item.content_name?.toLowerCase().includes(query)
+    );
+  }, [postedItems, itemSearchQuery]);
+
   return (
     <div className="w-full space-y-4 p-4">
       {/* 検索 */}
@@ -210,15 +221,25 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
             グッズで絞り込み
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          <div className="space-y-2">
+            <Label htmlFor="item-search">グッズを検索</Label>
+            <Input
+              id="item-search"
+              placeholder="グッズ名で検索..."
+              value={itemSearchQuery}
+              onChange={(e) => setItemSearchQuery(e.target.value)}
+              className="h-9"
+            />
+          </div>
           <ScrollArea className="h-64">
             <div className="space-y-2 pr-4">
               {isLoadingItems ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
                   グッズを読み込み中...
                 </p>
-              ) : postedItems.length > 0 ? (
-                postedItems.map((item: any) => (
+              ) : filteredItems.length > 0 ? (
+                filteredItems.map((item: any) => (
                   <div
                     key={item.id}
                     onClick={() => handleItemToggle(item.id)}
@@ -245,7 +266,7 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  グッズがありません
+                  {itemSearchQuery ? "検索結果がありません" : "グッズがありません"}
                 </p>
               )}
             </div>
