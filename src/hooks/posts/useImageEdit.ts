@@ -6,11 +6,11 @@ export function useImageEdit() {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
-  const editImage = async (imageUrl: string, prompt: string): Promise<string> => {
+  const editImage = async (imageUrl: string, prompt: string, avatarUrl?: string): Promise<string> => {
     setIsEditing(true);
     try {
       const { data, error } = await supabase.functions.invoke('edit-image', {
-        body: { imageUrl, prompt }
+        body: { imageUrl, prompt, avatarUrl }
       });
 
       if (error) {

@@ -42,12 +42,12 @@ export function CreatePostModal({
     }
   };
 
-  const handleImageEdit = async (prompt: string) => {
+  const handleImageEdit = async (prompt: string, avatarUrl?: string) => {
     const targetUrl = isEditingGoodsImage ? userItemImage : previewUrl;
     if (!targetUrl) return;
     
     try {
-      const editedImageBase64 = await editImage(targetUrl, prompt);
+      const editedImageBase64 = await editImage(targetUrl, prompt, avatarUrl);
       
       // Base64をBlobに変換
       const base64Response = await fetch(editedImageBase64);
