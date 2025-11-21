@@ -96,9 +96,8 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
       });
 
       fetchAvatars();
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // モーダルを閉じて親コンポーネントに更新を通知
+      onClose();
     } catch (error) {
       console.error("Error selecting avatar:", error);
       toast({
