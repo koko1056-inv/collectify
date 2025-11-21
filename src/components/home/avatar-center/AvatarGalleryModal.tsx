@@ -177,7 +177,7 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
                   <div
                     key={avatar.id}
                     className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
-                      avatar.image_url === currentAvatarUrl || avatar.is_current
+                      avatar.image_url === currentAvatarUrl
                         ? "border-primary shadow-lg"
                         : "border-border hover:border-primary/50"
                     }`}
@@ -191,7 +191,7 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
                     </div>
 
                     {/* 現在使用中のバッジ */}
-                    {(avatar.image_url === currentAvatarUrl || avatar.is_current) && (
+                    {avatar.image_url === currentAvatarUrl && (
                       <div className="absolute top-2 left-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                         <Check className="w-3 h-3" />
                         使用中
@@ -203,7 +203,7 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
                       <Button
                         size="sm"
                         onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
-                        disabled={avatar.image_url === currentAvatarUrl || avatar.is_current}
+                        disabled={avatar.image_url === currentAvatarUrl}
                       >
                         <Check className="w-4 h-4 mr-1" />
                         選択
