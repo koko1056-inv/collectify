@@ -65,6 +65,44 @@ export type Database = {
         }
         Relationships: []
       }
+      avatar_gallery: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          is_current: boolean | null
+          item_ids: string[] | null
+          prompt: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          is_current?: boolean | null
+          item_ids?: string[] | null
+          prompt?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_current?: boolean | null
+          item_ids?: string[] | null
+          prompt?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avatar_gallery_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_likes: {
         Row: {
           collection_owner_id: string
