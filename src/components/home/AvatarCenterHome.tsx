@@ -122,7 +122,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl" />
         
         {/* アバター */}
-        <div className="relative mb-8">
+        <div className="relative mb-8 mt-16 sm:mt-0">
           <div 
             className="relative cursor-pointer group"
             onClick={() => setShowGallery(true)}
