@@ -99,25 +99,25 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       icon: Image,
       label: "アバターギャラリー",
       onClick: () => setShowGallery(true),
-      color: "from-green-500 to-emerald-500"
+      color: "from-gray-800 to-gray-900"
     },
     {
       icon: Dices,
       label: "ランダムピックアップ",
       onClick: () => setShowRandomPickup(true),
-      color: "from-purple-500 to-pink-500"
+      color: "from-gray-700 to-gray-800"
     },
     {
       icon: Shirt,
       label: "グッズ着せ替え",
       onClick: () => setShowDressUp(true),
-      color: "from-blue-500 to-cyan-500"
+      color: "from-gray-600 to-gray-700"
     },
     {
       icon: BarChart3,
       label: "コレクション分析",
       onClick: () => setShowAnalytics(true),
-      color: "from-orange-500 to-red-500"
+      color: "from-gray-500 to-gray-600"
     }
   ];
 
