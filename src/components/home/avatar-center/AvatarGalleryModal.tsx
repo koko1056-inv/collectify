@@ -53,7 +53,12 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setAvatars(data || []);
+      
+      // 着せ替えで生成されたアバターのみを表示（item_idsが存在し、要素がある）
+      const dressUpAvatars = (data || []).filter(avatar => 
+        avatar.item_ids && avatar.item_ids.length > 0
+      );
+      setAvatars(dressUpAvatars);
     } catch (error) {
       console.error("Error fetching avatars:", error);
       toast({
