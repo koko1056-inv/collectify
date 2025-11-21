@@ -27,14 +27,36 @@ export default function Posts() {
     selectedContent: "",
     searchQuery: ""
   });
+  const handleFiltersChange = (newFilters: { selectedTags: string[]; selectedContent: string; searchQuery: string }) => {
+    setFilters(newFilters);
+  };
+
   return <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="flex min-h-[calc(100vh-4rem)] pt-16">
+        {/* サイドバー（デスクトップ） */}
+        <aside className="hidden lg:block w-64 border-r border-border overflow-y-auto">
+          <Suspense fallback={<Skeleton className="w-full h-96" />}>
+            <PostsSidebar onFiltersChange={handleFiltersChange} />
+          </Suspense>
+        </aside>
+
         {/* メインコンテンツエリア */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* ヘッダー */}
-          
+          <div className="border-b border-border px-4 py-3 flex items-center justify-between lg:hidden">
+            <h1 className="text-lg font-semibold">投稿</h1>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsFilterSheetOpen(true)}
+              className="gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              フィルター
+            </Button>
+          </div>
 
           {/* メインコンテンツ */}
           <main className="flex-1 overflow-auto">
@@ -59,6 +81,23 @@ export default function Posts() {
           </main>
         </div>
       </div>
+
+      {/* フィルターシート（モバイル） */}
+      <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
+        <SheetContent side="left" className="w-80 p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>フィルター</SheetTitle>
+          </SheetHeader>
+          <div className="overflow-y-auto h-[calc(100vh-5rem)]">
+            <Suspense fallback={<Skeleton className="w-full h-96" />}>
+              <PostsSidebar onFiltersChange={(newFilters) => {
+                handleFiltersChange(newFilters);
+                setIsFilterSheetOpen(false);
+              }} />
+            </Suspense>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* フッター */}
       <Footer />
