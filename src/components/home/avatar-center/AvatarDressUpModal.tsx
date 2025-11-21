@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Shirt, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface AvatarDressUpModalProps {
   isOpen: boolean;
@@ -20,46 +22,47 @@ export function AvatarDressUpModal({ isOpen, onClose, userId }: AvatarDressUpMod
   const [customPrompt, setCustomPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
+  const [availableAvatars, setAvailableAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
+  const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
       fetchUserItems();
-      fetchCurrentAvatar();
+      fetchAvailableAvatars();
     } else {
       // モーダルを閉じたときに選択状態とプロンプトをリセット
       setSelectedItems([]);
       setCustomPrompt("");
+      setSelectedAvatarUrl("");
     }
   }, [isOpen]);
 
-  const fetchCurrentAvatar = async () => {
+  const fetchAvailableAvatars = async () => {
     if (!userId) return;
 
-    // まずギャラリーから is_current=true のアバターを取得
-    const { data: galleryData } = await supabase
-      .from("avatar_gallery")
-      .select("image_url")
-      .eq("user_id", userId)
-      .eq("is_current", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+    try {
+      // AI生成アバター（item_idsがnullまたは空配列）を取得
+      const { data: galleryData } = await supabase
+        .from("avatar_gallery")
+        .select("id, image_url, item_ids")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
-    if (galleryData?.image_url) {
-      setCurrentAvatarUrl(galleryData.image_url);
-    } else {
-      // ギャラリーになければプロフィールから取得
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("avatar_url")
-        .eq("id", userId)
-        .single();
+      if (galleryData) {
+        const pureAvatars = galleryData.filter(
+          avatar => !avatar.item_ids || avatar.item_ids.length === 0
+        ).slice(0, 3); // 最大3つ
 
-      if (profileData?.avatar_url) {
-        setCurrentAvatarUrl(profileData.avatar_url);
+        setAvailableAvatars(pureAvatars);
+        
+        // 最初のアバターをデフォルトで選択
+        if (pureAvatars.length > 0 && !selectedAvatarUrl) {
+          setSelectedAvatarUrl(pureAvatars[0].image_url);
+        }
       }
+    } catch (error) {
+      console.error("Error fetching avatars:", error);
     }
   };
 
@@ -105,10 +108,10 @@ export function AvatarDressUpModal({ isOpen, onClose, userId }: AvatarDressUpMod
       return;
     }
 
-    if (!currentAvatarUrl) {
+    if (!selectedAvatarUrl) {
       toast({
-        title: "アバターが必要です",
-        description: "先にアバターを生成してください",
+        title: "アバターを選択してください",
+        description: "ベースとなるアバターを選択してください",
       });
       return;
     }
@@ -126,7 +129,7 @@ export function AvatarDressUpModal({ isOpen, onClose, userId }: AvatarDressUpMod
       
       const { data, error } = await supabase.functions.invoke("edit-image", {
         body: {
-          imageUrl: currentAvatarUrl,
+          imageUrl: selectedAvatarUrl,
           prompt: fullPrompt,
           itemImages: selectedItemsData.map(item => item.image)
         }
@@ -200,6 +203,47 @@ export function AvatarDressUpModal({ isOpen, onClose, userId }: AvatarDressUpMod
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* アバター選択セクション */}
+          {availableAvatars.length > 0 && (
+            <div className="space-y-3 p-4 bg-muted/30 rounded-lg border">
+              <Label className="text-sm font-medium">ベースアバターを選択</Label>
+              <RadioGroup value={selectedAvatarUrl} onValueChange={setSelectedAvatarUrl}>
+                <div className="flex gap-3">
+                  {availableAvatars.map((avatar) => (
+                    <label
+                      key={avatar.id}
+                      className={`relative cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                        selectedAvatarUrl === avatar.image_url
+                          ? "border-primary shadow-lg scale-105"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <Avatar className="w-24 h-24">
+                        <AvatarImage src={avatar.image_url} className="object-cover" />
+                        <AvatarFallback>?</AvatarFallback>
+                      </Avatar>
+                      <RadioGroupItem
+                        value={avatar.image_url}
+                        className="absolute top-2 right-2 bg-background"
+                      />
+                    </label>
+                  ))}
+                </div>
+              </RadioGroup>
+              <p className="text-xs text-muted-foreground">
+                プロフィールで生成したAIアバターから選択できます
+              </p>
+            </div>
+          )}
+
+          {availableAvatars.length === 0 && (
+            <div className="p-4 bg-muted/30 rounded-lg border">
+              <p className="text-sm text-muted-foreground text-center">
+                プロフィールページでAIアバターを生成してください
+              </p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="custom-prompt">カスタムプロンプト（オプション）</Label>
             <Textarea
