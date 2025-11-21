@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Upload, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface AvatarGenerationModalProps {
   isOpen: boolean;
@@ -24,15 +25,43 @@ const EXAMPLE_PROMPTS = [
 export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: AvatarGenerationModalProps) {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setUploadedImage(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setUploadedImage(null);
+    setPreviewUrl(null);
+  };
+
+  const convertImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleGenerate = async () => {
-    if (!prompt.trim()) {
+    if (!prompt.trim() && !uploadedImage) {
       toast({
         variant: "destructive",
         title: "エラー",
-        description: "アバターの説明を入力してください",
+        description: "アバターの説明または写真を入力してください",
       });
       return;
     }
@@ -40,8 +69,16 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
     setIsGenerating(true);
 
     try {
+      let imageBase64: string | undefined;
+      if (uploadedImage) {
+        imageBase64 = await convertImageToBase64(uploadedImage);
+      }
+
       const { data, error } = await supabase.functions.invoke("generate-avatar", {
-        body: { prompt: prompt.trim() },
+        body: { 
+          prompt: prompt.trim() || "この写真を3Dアニメーションスタイルのキャラクターに変換してください",
+          imageUrl: imageBase64 
+        },
       });
 
       if (error) throw error;
@@ -86,6 +123,8 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
         title: "アバター生成完了",
         description: "AIアバターが生成されました",
       });
+      setPrompt("");
+      handleRemoveImage();
       onClose();
     } catch (error: any) {
       console.error("Avatar generation error:", error);
@@ -118,14 +157,51 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="prompt">アバターの説明</Label>
+            <Label>自分の写真をアップロード（オプション）</Label>
+            {previewUrl ? (
+              <div className="relative">
+                <img 
+                  src={previewUrl} 
+                  alt="Preview" 
+                  className="w-full h-48 object-cover rounded-lg border-2 border-border"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2"
+                  onClick={handleRemoveImage}
+                  disabled={isGenerating}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                <span className="text-sm text-muted-foreground">クリックして写真を選択</span>
+                <span className="text-xs text-muted-foreground mt-1">3Dキャラクターに変換されます</span>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={isGenerating}
+                />
+              </label>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="prompt">追加の指示（オプション）</Label>
             <Textarea
               id="prompt"
-              placeholder="例：若い女性、明るい笑顔、ピンクの髪、カジュアルな服装"
+              placeholder="例：青い髪にしてください、眼鏡をかけてください..."
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              rows={4}
+              rows={3}
               className="resize-none"
+              disabled={isGenerating}
             />
           </div>
 
@@ -157,7 +233,7 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
             </Button>
             <Button
               onClick={handleGenerate}
-              disabled={isGenerating || !prompt.trim()}
+              disabled={isGenerating || (!prompt.trim() && !uploadedImage)}
             >
               {isGenerating ? (
                 <>
