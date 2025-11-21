@@ -1,8 +1,9 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { memo } from "react";
 
-export function UserInfo() {
+export const UserInfo = memo(function UserInfo() {
   const { user } = useAuth();
 
   const { data: profile } = useQuery({
@@ -20,7 +21,7 @@ export function UserInfo() {
       return data;
     },
     enabled: !!user?.id,
-    staleTime: 10 * 60 * 1000, // 10分間キャッシュ
+    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
     gcTime: 30 * 60 * 1000, // 30分間保持
   });
 
@@ -31,4 +32,4 @@ export function UserInfo() {
       {profile.username}
     </div>
   );
-}
+});

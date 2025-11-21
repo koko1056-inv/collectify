@@ -10,6 +10,7 @@ export function usePostsWithPagination() {
 
   const query = useInfiniteQuery({
     queryKey: ["posts", "paginated"],
+    initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
       const from = pageParam * POSTS_PER_PAGE;
       const to = from + POSTS_PER_PAGE - 1;
@@ -54,9 +55,8 @@ export function usePostsWithPagination() {
       };
     },
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    initialPageParam: 0,
-    staleTime: 2 * 60 * 1000, // 2分間はキャッシュを使用
-    gcTime: 10 * 60 * 1000, // 10分間キャッシュを保持
+    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
+    gcTime: 30 * 60 * 1000, // 30分間保持
     refetchOnWindowFocus: false,
   });
 
