@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Collection from "./pages/Collection";
+import Posts from "./pages/Posts";
 
 // Lazy load only rarely used pages
 const Login = lazy(() => import("./pages/Login").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -22,7 +23,6 @@ const Admin = lazy(() => import("./pages/Admin").catch(() => ({ default: () => <
 const AddItem = lazy(() => import("./pages/AddItem").catch(() => ({ default: () => <div>Error loading page</div> })));
 const UserProfile = lazy(() => import("./pages/UserProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 const EditProfile = lazy(() => import("./pages/EditProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
-const Posts = lazy(() => import("./pages/Posts").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // Loading fallback component
 const LoadingFallback = () => (

@@ -1,6 +1,6 @@
 import { usePostsWithPagination } from "@/hooks/posts/usePostsWithPagination";
 import { PostCard } from "./PostCard";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, memo } from "react";
 import { PostDetailModal } from "./PostDetailModal";
 import { GoodsPost } from "@/types/posts";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -15,7 +15,7 @@ interface PostsGridProps {
   sortBy?: "newest" | "popular" | "likes";
 }
 
-export function PostsGrid({ filters, sortBy = "newest" }: PostsGridProps) {
+export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest" }: PostsGridProps) {
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostsWithPagination();
   const [selectedPost, setSelectedPost] = useState<GoodsPost | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -211,4 +211,4 @@ export function PostsGrid({ filters, sortBy = "newest" }: PostsGridProps) {
       />
     </>
   );
-}
+});
