@@ -12,26 +12,56 @@ interface AvatarDressUpModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
-  avatarUrl: string | null;
 }
 
-export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: AvatarDressUpModalProps) {
+export function AvatarDressUpModal({ isOpen, onClose, userId }: AvatarDressUpModalProps) {
   const [items, setItems] = useState<any[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [customPrompt, setCustomPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
       fetchUserItems();
+      fetchCurrentAvatar();
     } else {
       // モーダルを閉じたときに選択状態とプロンプトをリセット
       setSelectedItems([]);
       setCustomPrompt("");
     }
   }, [isOpen]);
+
+  const fetchCurrentAvatar = async () => {
+    if (!userId) return;
+
+    // まずギャラリーから is_current=true のアバターを取得
+    const { data: galleryData } = await supabase
+      .from("avatar_gallery")
+      .select("image_url")
+      .eq("user_id", userId)
+      .eq("is_current", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (galleryData?.image_url) {
+      setCurrentAvatarUrl(galleryData.image_url);
+    } else {
+      // ギャラリーになければプロフィールから取得
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", userId)
+        .single();
+
+      if (profileData?.avatar_url) {
+        setCurrentAvatarUrl(profileData.avatar_url);
+      }
+    }
+  };
 
   const fetchUserItems = async () => {
     if (!userId) return;
@@ -75,7 +105,7 @@ export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: Avata
       return;
     }
 
-    if (!avatarUrl) {
+    if (!currentAvatarUrl) {
       toast({
         title: "アバターが必要です",
         description: "先にアバターを生成してください",
@@ -96,7 +126,7 @@ export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: Avata
       
       const { data, error } = await supabase.functions.invoke("edit-image", {
         body: {
-          imageUrl: avatarUrl,
+          imageUrl: currentAvatarUrl,
           prompt: fullPrompt,
           itemImages: selectedItemsData.map(item => item.image)
         }
