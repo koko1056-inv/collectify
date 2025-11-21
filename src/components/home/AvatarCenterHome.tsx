@@ -27,21 +27,33 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const fetchCurrentAvatar = async () => {
     if (!profile?.id) return;
 
-    // まずギャラリーから is_current=true のアバターを取得
-    const { data: galleryData } = await supabase
-      .from("avatar_gallery")
-      .select("image_url")
-      .eq("user_id", profile.id)
-      .eq("is_current", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+    try {
+      // まずギャラリーから is_current=true のアバターを取得
+      const { data: galleryData, error: galleryError } = await supabase
+        .from("avatar_gallery")
+        .select("image_url")
+        .eq("user_id", profile.id)
+        .eq("is_current", true)
+        .order("created_at", { ascending: false })
+        .limit(1);
 
-    if (galleryData?.image_url) {
-      setCurrentAvatarUrl(galleryData.image_url);
-    } else if (profile.avatar_url) {
+      if (!galleryError && galleryData && galleryData.length > 0) {
+        setCurrentAvatarUrl(galleryData[0].image_url);
+        return;
+      }
+
       // ギャラリーになければプロフィールから取得
-      setCurrentAvatarUrl(profile.avatar_url);
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", profile.id)
+        .single();
+
+      if (profileData?.avatar_url) {
+        setCurrentAvatarUrl(profileData.avatar_url);
+      }
+    } catch (error) {
+      console.error("Error fetching current avatar:", error);
     }
   };
 
