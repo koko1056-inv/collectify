@@ -129,7 +129,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
             title="ギャラリーを開く"
           >
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
-            <Avatar className="w-56 h-56 sm:w-64 sm:h-64 lg:w-80 lg:h-80 border-4 border-background shadow-2xl relative z-10 group-hover:scale-105 transition-transform">
+            <Avatar className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-background shadow-2xl relative z-10 group-hover:scale-105 transition-transform">
               <AvatarImage src={currentAvatarUrl || profile?.avatar_url || undefined} />
               <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                 {profile?.username?.[0]?.toUpperCase() || "?"}
