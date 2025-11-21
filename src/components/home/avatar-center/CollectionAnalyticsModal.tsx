@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BarChart3, Package, TrendingUp, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -116,6 +116,9 @@ export function CollectionAnalyticsModal({ isOpen, onClose, userId }: Collection
             <BarChart3 className="w-5 h-5" />
             コレクション分析
           </DialogTitle>
+          <DialogDescription>
+            コレクションの統計情報を表示します
+          </DialogDescription>
         </DialogHeader>
 
         {loading ? (
