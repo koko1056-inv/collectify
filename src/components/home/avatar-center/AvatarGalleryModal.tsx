@@ -145,16 +145,16 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ImageIcon className="w-5 h-5" />
-              アバターギャラリー
+              着せ替えギャラリー
             </DialogTitle>
             <DialogDescription>
-              過去に生成したアバターを表示・選択できます
+              過去に生成した着せ替えアバターを表示・選択できます
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              過去に生成したアバターから選択できます
+              過去に生成した着せ替えアバターから選択できます
             </p>
 
             {loading ? (
