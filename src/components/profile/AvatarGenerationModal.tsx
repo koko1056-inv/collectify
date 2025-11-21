@@ -129,6 +129,16 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
             .update({ is_current: false })
             .neq("image_url", data.imageUrl)
             .eq("user_id", user.id);
+
+          // プロフィールのavatar_urlも更新
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .update({ avatar_url: data.imageUrl })
+            .eq("id", user.id);
+
+          if (profileError) {
+            console.error("Error updating profile avatar:", profileError);
+          }
         } catch (galleryError) {
           console.error("Avatar gallery update error:", galleryError);
         }

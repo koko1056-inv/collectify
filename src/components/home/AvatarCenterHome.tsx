@@ -35,7 +35,8 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     console.log("[AvatarCenterHome] Fetching current avatar for user:", profile.id);
 
     try {
-      // ギャラリーから着せ替えで生成されたアバター（item_idsがある）で is_current=true のものを取得
+      // ギャラリーから着せ替えで生成されたアバター（item_idsがある）または
+      // AI生成アバター（item_idsがnullまたは空）で is_current=true のものを取得
       const { data: galleryData, error: galleryError } = await supabase
         .from("avatar_gallery")
         .select("image_url, is_current, item_ids")
@@ -47,7 +48,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       console.log("[AvatarCenterHome] Gallery error:", galleryError);
 
       if (!galleryError && galleryData && galleryData.length > 0) {
-        // 着せ替えで生成されたアバターのみをフィルタリング
+        // 着せ替えで生成されたアバターを優先
         const dressUpAvatar = galleryData.find(avatar => 
           avatar.item_ids && avatar.item_ids.length > 0
         );
@@ -57,10 +58,28 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           setCurrentAvatarUrl(dressUpAvatar.image_url);
           return;
         }
+
+        // 着せ替えがない場合、AI生成アバターを使用
+        const aiAvatar = galleryData.find(avatar => 
+          !avatar.item_ids || avatar.item_ids.length === 0
+        );
+
+        if (aiAvatar) {
+          console.log("[AvatarCenterHome] Found AI avatar:", aiAvatar.image_url);
+          setCurrentAvatarUrl(aiAvatar.image_url);
+          return;
+        }
       }
 
-      // 着せ替えアバターがない場合は null
-      console.log("[AvatarCenterHome] No dress-up avatar found");
+      // ギャラリーになければプロフィールのavatar_urlを確認
+      if (profile.avatar_url) {
+        console.log("[AvatarCenterHome] Using profile avatar_url:", profile.avatar_url);
+        setCurrentAvatarUrl(profile.avatar_url);
+        return;
+      }
+
+      // どれもない場合は null
+      console.log("[AvatarCenterHome] No avatar found");
       setCurrentAvatarUrl(null);
     } catch (error) {
       console.error("[AvatarCenterHome] Error fetching current avatar:", error);
