@@ -9,6 +9,7 @@ import { CollectionAnalyticsModal } from "./avatar-center/CollectionAnalyticsMod
 import { AvatarDressUpModal } from "./avatar-center/AvatarDressUpModal";
 import { AvatarGalleryModal } from "./avatar-center/AvatarGalleryModal";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface AvatarCenterHomeProps {
   profile: Profile;
@@ -22,6 +23,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const [showDressUp, setShowDressUp] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
+  const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
 
   // 最新のアバターを取得（ギャラリーまたはプロフィールから）
   const fetchCurrentAvatar = async () => {
@@ -57,10 +59,73 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     }
   };
 
+  // 最近使ったアバターを取得
+  const fetchRecentAvatars = async () => {
+    if (!profile?.id) return;
+
+    try {
+      const { data } = await supabase
+        .from("avatar_gallery")
+        .select("id, image_url")
+        .eq("user_id", profile.id)
+        .order("created_at", { ascending: false })
+        .limit(4); // 現在のものを含めて4つ取得
+
+      if (data) {
+        // 現在のアバター以外の最新3つを表示
+        const filtered = data.filter(avatar => avatar.image_url !== currentAvatarUrl).slice(0, 3);
+        setRecentAvatars(filtered);
+      }
+    } catch (error) {
+      console.error("Error fetching recent avatars:", error);
+    }
+  };
+
+  // アバターをクイック切り替え
+  const handleQuickSwitch = async (avatarUrl: string, avatarId: string) => {
+    if (!profile?.id) return;
+
+    try {
+      // すべてのアバターの is_current を false に設定
+      await supabase
+        .from("avatar_gallery")
+        .update({ is_current: false })
+        .eq("user_id", profile.id);
+
+      // 選択したアバターを is_current = true に設定
+      await supabase
+        .from("avatar_gallery")
+        .update({ is_current: true })
+        .eq("id", avatarId);
+
+      // プロフィールの avatar_url を更新
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: avatarUrl })
+        .eq("id", profile.id);
+
+      toast.success("アバターを切り替えました");
+      
+      // 現在のアバターと最近のアバターを再取得
+      await fetchCurrentAvatar();
+      await fetchRecentAvatars();
+    } catch (error) {
+      console.error("Error switching avatar:", error);
+      toast.error("アバターの切り替えに失敗しました");
+    }
+  };
+
   // 初回ロード時とプロフィールID変更時にアバターを取得
   useEffect(() => {
     fetchCurrentAvatar();
   }, [profile?.id]);
+
+  // 現在のアバターが変更されたら最近のアバターを再取得
+  useEffect(() => {
+    if (currentAvatarUrl) {
+      fetchRecentAvatars();
+    }
+  }, [currentAvatarUrl, profile?.id]);
 
   // リアルタイムでアバター更新を監視
   useEffect(() => {
@@ -140,10 +205,13 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl" />
         
         {/* アバター */}
-        <div className="relative mb-8 mt-16 sm:mt-0">
+        <div className="relative mb-4 mt-16 sm:mt-0">
           <div className="relative">
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
-            <Avatar className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-background shadow-2xl relative z-10 transition-transform">
+            <Avatar 
+              className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-background shadow-2xl relative z-10 transition-transform hover:scale-105 cursor-pointer"
+              onClick={() => setShowGallery(true)}
+            >
               <AvatarImage src={currentAvatarUrl || profile?.avatar_url || undefined} />
               <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                 {profile?.username?.[0]?.toUpperCase() || "?"}
@@ -151,6 +219,27 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
             </Avatar>
           </div>
         </div>
+
+        {/* クイックアクセス - 最近使ったアバター */}
+        {recentAvatars.length > 0 && (
+          <div className="flex gap-3 mb-6">
+            {recentAvatars.map((avatar) => (
+              <button
+                key={avatar.id}
+                onClick={() => handleQuickSwitch(avatar.image_url, avatar.id)}
+                className="relative group"
+              >
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Avatar className="w-16 h-16 sm:w-20 sm:h-20 border-2 border-background shadow-lg hover:scale-110 transition-all duration-300 relative z-10 cursor-pointer">
+                  <AvatarImage src={avatar.image_url} />
+                  <AvatarFallback className="text-sm bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+                    {profile?.username?.[0]?.toUpperCase() || "?"}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* 機能ボタン */}
         <div className="grid grid-cols-2 sm:flex gap-4 sm:gap-6 mb-8 max-w-md w-full px-4">
