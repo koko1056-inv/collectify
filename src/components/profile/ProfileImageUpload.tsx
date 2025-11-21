@@ -1,7 +1,8 @@
 
 import React, { useState } from "react";
-import { UploadCloud, Sparkles } from "lucide-react";
+import { UploadCloud, Sparkles, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AvatarGenerationModal } from "./AvatarGenerationModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,7 @@ export function ProfileImageUpload({
 }: ProfileImageUploadProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const { toast } = useToast();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,7 +33,18 @@ export function ProfileImageUpload({
       const objectUrl = URL.createObjectURL(file);
       setPreviewUrl(objectUrl);
       await onImageChange(file);
+      setIsPopoverOpen(false);
     }
+  };
+
+  const handleFileSelectClick = () => {
+    document.getElementById('profile-image-upload')?.click();
+    setIsPopoverOpen(false);
+  };
+
+  const handleAIGenerateClick = () => {
+    setIsGenerateModalOpen(true);
+    setIsPopoverOpen(false);
   };
 
   const handleAvatarGenerated = async (imageUrl: string) => {
@@ -65,44 +78,56 @@ export function ProfileImageUpload({
 
   return (
     <>
-      <div className="space-y-2">
-        <div
-          className={`relative rounded-full overflow-hidden ${className || ''}`}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-        >
-          <img
-            src={previewUrl || "/placeholder.svg"}
-            alt="Profile"
-            className="w-24 h-24 object-cover rounded-full"
-          />
-          <label
-            htmlFor="profile-image-upload"
-            className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity ${
-              isHovering ? "opacity-100" : "opacity-0"
-            } cursor-pointer`}
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+        <PopoverTrigger asChild>
+          <div
+            className={`relative rounded-full overflow-hidden cursor-pointer ${className || ''}`}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
           >
-            <UploadCloud className="text-white w-8 h-8" />
-          </label>
-          <input
-            id="profile-image-upload"
-            type="file"
-            onChange={handleFileChange}
-            className="hidden"
-            accept="image/*"
-          />
-        </div>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsGenerateModalOpen(true)}
-          className="w-full"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          AIで生成
-        </Button>
-      </div>
+            <img
+              src={previewUrl || "/placeholder.svg"}
+              alt="Profile"
+              className="w-24 h-24 object-cover rounded-full"
+            />
+            <div
+              className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity ${
+                isHovering ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <ImageIcon className="text-white w-8 h-8" />
+            </div>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-2 bg-background border shadow-lg z-50">
+          <div className="flex flex-col gap-1">
+            <Button
+              variant="ghost"
+              className="justify-start h-auto py-3 px-3"
+              onClick={handleFileSelectClick}
+            >
+              <UploadCloud className="w-4 h-4 mr-3" />
+              <span className="text-sm">ファイルを選択</span>
+            </Button>
+            <Button
+              variant="ghost"
+              className="justify-start h-auto py-3 px-3"
+              onClick={handleAIGenerateClick}
+            >
+              <Sparkles className="w-4 h-4 mr-3" />
+              <span className="text-sm">AIでアバター生成</span>
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      <input
+        id="profile-image-upload"
+        type="file"
+        onChange={handleFileChange}
+        className="hidden"
+        accept="image/*"
+      />
 
       <AvatarGenerationModal
         isOpen={isGenerateModalOpen}
