@@ -26,6 +26,10 @@ export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: Avata
   useEffect(() => {
     if (isOpen) {
       fetchUserItems();
+    } else {
+      // モーダルを閉じたときに選択状態とプロンプトをリセット
+      setSelectedItems([]);
+      setCustomPrompt("");
     }
   }, [isOpen]);
 
