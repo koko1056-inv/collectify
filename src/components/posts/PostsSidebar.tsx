@@ -1,19 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Filter, Hash, Package, X } from "lucide-react";
+import { Filter, Hash, Package, X, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface PostsSidebarProps {
   onFiltersChange?: (filters: {
     selectedTags: string[];
     selectedContent: string;
     searchQuery: string;
+    selectedItemIds: string[];
   }) => void;
 }
 
@@ -21,10 +22,42 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedContent, setSelectedContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // 不要なhooksを削除してパフォーマンス向上
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
-  // コンテンツ名の一覧を取得(キャッシュを強化)
+  // 投稿されているグッズ一覧を取得
+  const { data: postedItems = [], isLoading: isLoadingItems } = useQuery({
+    queryKey: ["posts", "posted-items"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('goods_posts')
+        .select(`
+          user_item_id,
+          user_items!inner(
+            id,
+            title,
+            image,
+            content_name
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // 重複を削除してユニークなグッズのみ取得
+      const uniqueItems = new Map();
+      data?.forEach(post => {
+        if (post.user_items && !uniqueItems.has(post.user_items.id)) {
+          uniqueItems.set(post.user_items.id, post.user_items);
+        }
+      });
+      
+      return Array.from(uniqueItems.values()).slice(0, 20);
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+  });
+
+  // コンテンツ名の一覧を取得
   const { data: contentNames = [], isLoading: isLoadingContent } = useQuery({
     queryKey: ["posts", "content-names"],
     queryFn: async () => {
@@ -34,27 +67,21 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
         .not('content_name', 'is', null)
         .limit(100);
 
-      if (error) {
-        console.error('コンテンツ名の取得エラー:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       return Array.from(new Set(
         data?.map(item => item.content_name)
           .filter(Boolean)
       )).slice(0, 10);
     },
-    staleTime: 15 * 60 * 1000, // 15分間キャッシュ
-    gcTime: 60 * 60 * 1000, // 1時間保持
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    staleTime: 15 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
   });
 
-  // 人気タグ（効率化されたクエリ）
+  // 人気タグ
   const { data: popularTags = [] } = useQuery({
     queryKey: ["posts", "popular-tags-optimized"],
     queryFn: async () => {
-      // シンプルなクエリに変更
       const { data, error } = await supabase
         .from('tags')
         .select('id, name')
@@ -65,11 +92,32 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
       if (error) throw error;
       return data || [];
     },
-    staleTime: 20 * 60 * 1000, // 20分間キャッシュ
-    gcTime: 2 * 60 * 60 * 1000, // 2時間保持
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    staleTime: 20 * 60 * 1000,
+    gcTime: 2 * 60 * 60 * 1000,
   });
+
+  const notifyFiltersChange = (updates: Partial<{
+    selectedTags: string[];
+    selectedContent: string;
+    searchQuery: string;
+    selectedItemIds: string[];
+  }>) => {
+    onFiltersChange?.({
+      selectedTags: updates.selectedTags ?? selectedTags,
+      selectedContent: updates.selectedContent ?? selectedContent,
+      searchQuery: updates.searchQuery ?? searchQuery,
+      selectedItemIds: updates.selectedItemIds ?? selectedItemIds,
+    });
+  };
+
+  const handleItemToggle = (itemId: string) => {
+    const newItems = selectedItemIds.includes(itemId)
+      ? selectedItemIds.filter(id => id !== itemId)
+      : [...selectedItemIds, itemId];
+    
+    setSelectedItemIds(newItems);
+    notifyFiltersChange({ selectedItemIds: newItems });
+  };
 
   const handleTagToggle = (tagName: string) => {
     const newTags = selectedTags.includes(tagName)
@@ -77,125 +125,135 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
       : [...selectedTags, tagName];
     
     setSelectedTags(newTags);
-    onFiltersChange?.({
-      selectedTags: newTags,
-      selectedContent,
-      searchQuery
-    });
+    notifyFiltersChange({ selectedTags: newTags });
   };
 
   const handleContentSelect = (content: string) => {
     const newContent = selectedContent === content ? "" : content;
     setSelectedContent(newContent);
-    onFiltersChange?.({
-      selectedTags,
-      selectedContent: newContent,
-      searchQuery
-    });
+    notifyFiltersChange({ selectedContent: newContent });
   };
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
-    onFiltersChange?.({
-      selectedTags,
-      selectedContent,
-      searchQuery: query
-    });
+    notifyFiltersChange({ searchQuery: query });
   };
 
   const clearAllFilters = () => {
     setSelectedTags([]);
     setSelectedContent("");
     setSearchQuery("");
+    setSelectedItemIds([]);
     onFiltersChange?.({
       selectedTags: [],
       selectedContent: "",
-      searchQuery: ""
+      searchQuery: "",
+      selectedItemIds: [],
     });
   };
 
-  const hasActiveFilters = selectedTags.length > 0 || selectedContent || searchQuery;
+  const removeTag = (tagName: string) => {
+    const newTags = selectedTags.filter(t => t !== tagName);
+    setSelectedTags(newTags);
+    notifyFiltersChange({ selectedTags: newTags });
+  };
+
+  const removeItem = (itemId: string) => {
+    const newItems = selectedItemIds.filter(id => id !== itemId);
+    setSelectedItemIds(newItems);
+    notifyFiltersChange({ selectedItemIds: newItems });
+  };
+
+  const hasActiveFilters = selectedTags.length > 0 || selectedContent || searchQuery || selectedItemIds.length > 0;
 
   return (
-    <div className="w-full space-y-4 p-0 md:p-4 md:border-r md:border-border md:w-72">
-      <div className="md:hidden block">
-        <div className="w-full space-y-4">
-          {/* 検索 */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                投稿を絞り込み
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="search-mobile">キーワード検索</Label>
-                <Input
-                  id="search-mobile"
-                  placeholder="投稿を検索..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="h-9 bg-background border-input"
-                  autoComplete="off"
-                  autoFocus={false}
-                />
-              </div>
+    <div className="w-full space-y-4 p-4">
+      {/* 検索 */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            投稿を絞り込み
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="search">キーワード検索</Label>
+            <Input
+              id="search"
+              placeholder="投稿を検索..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="h-9"
+            />
+          </div>
 
-              {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearAllFilters}
-                  className="w-full"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  フィルターをクリア
-                </Button>
+          {hasActiveFilters && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearAllFilters}
+              className="w-full"
+            >
+              <X className="h-4 w-4 mr-2" />
+              すべてクリア
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* グッズで絞り込み */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShoppingBag className="h-4 w-4" />
+            グッズで絞り込み
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-64">
+            <div className="space-y-2 pr-4">
+              {isLoadingItems ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  グッズを読み込み中...
+                </p>
+              ) : postedItems.length > 0 ? (
+                postedItems.map((item: any) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleItemToggle(item.id)}
+                    className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                      selectedItemIds.includes(item.id)
+                        ? 'bg-primary/10 border-2 border-primary'
+                        : 'bg-secondary/50 hover:bg-secondary'
+                    }`}
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-12 h-12 object-cover rounded"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{item.title}</p>
+                      {item.content_name && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {item.content_name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  グッズがありません
+                </p>
               )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* デスクトップ用（既存） */}
-      <div className="hidden md:block">
-        {/* 検索 */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              投稿を絞り込み
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="search">キーワード検索</Label>
-              <Input
-                id="search"
-                placeholder="投稿を検索..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="h-9"
-              />
             </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
 
-            {hasActiveFilters && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearAllFilters}
-                className="w-full"
-              >
-                <X className="h-4 w-4 mr-2" />
-                フィルターをクリア
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* コンテンツ名で絞り込み（共通） */}
+      {/* コンテンツ名で絞り込み */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -207,7 +265,7 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {isLoadingContent ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                コンテンツを読み込み中...
+                作品を読み込み中...
               </p>
             ) : contentNames.length > 0 ? (
               contentNames.map((content) => (
@@ -223,14 +281,14 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
               ))
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                コンテンツがありません
+                作品がありません
               </p>
             )}
           </div>
         </CardContent>
       </Card>
 
-      {/* タグで絞り込み（共通） */}
+      {/* タグで絞り込み */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
@@ -262,42 +320,106 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
         </CardContent>
       </Card>
 
-      {/* 選択中のフィルター */}
+      {/* アクティブフィルター */}
       {hasActiveFilters && (
-        <Card>
+        <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">選択中のフィルター</CardTitle>
+            <CardTitle className="text-base flex items-center justify-between">
+              <span>適用中のフィルター</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="h-7 text-xs"
+              >
+                すべてクリア
+              </Button>
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {searchQuery && (
               <div>
-                <Label className="text-xs text-muted-foreground">キーワード</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className="text-xs">
-                    {searchQuery}
-                  </Badge>
+                <Label className="text-xs text-muted-foreground mb-1">キーワード</Label>
+                <Badge variant="outline" className="text-xs">
+                  {searchQuery}
+                </Badge>
+              </div>
+            )}
+
+            {selectedItemIds.length > 0 && (
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1">
+                  グッズ ({selectedItemIds.length})
+                </Label>
+                <div className="flex flex-wrap gap-1">
+                  {selectedItemIds.map((itemId) => {
+                    const item = postedItems.find((i: any) => i.id === itemId);
+                    return (
+                      <Badge
+                        key={itemId}
+                        variant="secondary"
+                        className="text-xs gap-1 pr-1"
+                      >
+                        <span className="truncate max-w-[120px]">
+                          {item?.title || itemId}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeItem(itemId);
+                          }}
+                          className="ml-1 hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
             {selectedContent && (
               <div>
-                <Label className="text-xs text-muted-foreground">作品</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className="text-xs">
-                    {selectedContent}
-                  </Badge>
-                </div>
+                <Label className="text-xs text-muted-foreground mb-1">作品</Label>
+                <Badge variant="outline" className="text-xs gap-1 pr-1">
+                  {selectedContent}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedContent("");
+                      notifyFiltersChange({ selectedContent: "" });
+                    }}
+                    className="ml-1 hover:text-destructive"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
               </div>
             )}
 
             {selectedTags.length > 0 && (
               <div>
-                <Label className="text-xs text-muted-foreground">タグ</Label>
-                <div className="flex flex-wrap gap-1 mt-1">
+                <Label className="text-xs text-muted-foreground mb-1">
+                  タグ ({selectedTags.length})
+                </Label>
+                <div className="flex flex-wrap gap-1">
                   {selectedTags.map((tag) => (
-                    <Badge key={tag} variant="outline" className="text-xs">
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="text-xs gap-1 pr-1"
+                    >
                       #{tag}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeTag(tag);
+                        }}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   ))}
                 </div>

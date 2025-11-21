@@ -10,6 +10,7 @@ interface PostsGridProps {
     selectedTags: string[];
     selectedContent: string;
     searchQuery: string;
+    selectedItemIds: string[];
   };
 }
 
@@ -57,6 +58,13 @@ export function PostsGrid({ filters }: PostsGridProps) {
         const usernameMatch = post.profiles?.username?.toLowerCase().includes(query);
         return titleMatch || captionMatch || usernameMatch;
       });
+    }
+
+    // グッズで絞り込み（優先）
+    if (filters?.selectedItemIds && filters.selectedItemIds.length > 0) {
+      filtered = filtered.filter((post) => 
+        filters.selectedItemIds.includes(post.user_item_id)
+      );
     }
 
     // 作品で絞り込み
@@ -119,7 +127,7 @@ export function PostsGrid({ filters }: PostsGridProps) {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">
-          {filters?.searchQuery || filters?.selectedContent || filters?.selectedTags?.length
+          {filters?.searchQuery || filters?.selectedContent || filters?.selectedTags?.length || filters?.selectedItemIds?.length
             ? "条件に一致する投稿が見つかりませんでした"
             : "まだ投稿がありません"}
         </p>
