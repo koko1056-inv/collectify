@@ -130,10 +130,17 @@ export function TradeCard({
       <div className="flex items-center justify-center gap-3 py-2">
         <div className="flex flex-col items-center">
           <Avatar className="h-12 w-12">
-            <AvatarImage 
-              src={trade.sender.avatar_url || '/placeholder.svg'} 
-              alt={trade.sender.id === user?.id ? 'Your avatar' : trade.sender.username} 
-            />
+            {trade.sender.id === user?.id ? (
+              <AvatarImage 
+                src={user.user_metadata?.avatar_url || '/placeholder.svg'} 
+                alt="Your avatar" 
+              />
+            ) : (
+              <AvatarImage 
+                src={trade.sender.avatar_url || '/placeholder.svg'} 
+                alt={trade.sender.username} 
+              />
+            )}
             <AvatarFallback>{trade.sender.username?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span className="text-xs mt-1">{trade.sender.id === user?.id ? 'あなた' : trade.sender.username}</span>
@@ -143,10 +150,17 @@ export function TradeCard({
         
         <div className="flex flex-col items-center">
           <Avatar className="h-12 w-12">
-            <AvatarImage 
-              src={trade.receiver?.avatar_url || '/placeholder.svg'}
-              alt={trade.receiver?.id === user?.id ? 'Your avatar' : (trade.receiver?.username || 'Receiver')} 
-            />
+            {trade.receiver?.id === user?.id ? (
+              <AvatarImage 
+                src={user.user_metadata?.avatar_url || '/placeholder.svg'}
+                alt="Your avatar" 
+              />
+            ) : (
+              <AvatarImage 
+                src={trade.receiver?.avatar_url || '/placeholder.svg'} 
+                alt={trade.receiver?.username || 'Receiver'} 
+              />
+            )}
             <AvatarFallback>{trade.receiver?.username?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
           </Avatar>
           <span className="text-xs mt-1">{trade.receiver?.id === user?.id ? 'あなた' : trade.receiver?.username || '未定'}</span>
