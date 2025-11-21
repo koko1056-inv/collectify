@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Sparkles, Upload, X } from "lucide-react";
+import { Loader2, Sparkles, Upload, X, Wand2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 
 interface AvatarGenerationModalProps {
   isOpen: boolean;
@@ -27,6 +28,8 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [generationStep, setGenerationStep] = useState<string>("");
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -67,13 +70,22 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
     }
 
     setIsGenerating(true);
+    setProgress(0);
+    setGenerationStep("準備中...");
 
     try {
+      // ステップ1: 画像変換
+      setProgress(20);
+      setGenerationStep("画像を処理中...");
       let imageBase64: string | undefined;
       if (uploadedImage) {
         imageBase64 = await convertImageToBase64(uploadedImage);
       }
 
+      // ステップ2: AI生成開始
+      setProgress(40);
+      setGenerationStep("AIアバターを生成中...");
+      
       const { data, error } = await supabase.functions.invoke("generate-avatar", {
         body: { 
           prompt: prompt.trim() || "この写真を3Dアニメーションスタイルのキャラクターに変換してください",
@@ -90,6 +102,10 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
       if (!data.imageUrl) {
         throw new Error("画像URLが取得できませんでした");
       }
+
+      // ステップ3: 保存中
+      setProgress(70);
+      setGenerationStep("アバターを保存中...");
 
       // ギャラリーに保存（可能な場合）
       if (user?.id) {
@@ -118,6 +134,10 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
         }
       }
 
+      // ステップ4: 完了
+      setProgress(100);
+      setGenerationStep("完了！");
+
       onAvatarGenerated(data.imageUrl);
       toast({
         title: "アバター生成完了",
@@ -135,6 +155,8 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
       });
     } finally {
       setIsGenerating(false);
+      setProgress(0);
+      setGenerationStep("");
     }
   };
 
@@ -154,6 +176,24 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
             あなたの理想のアバターを説明してください。AIが3D風のアバター画像を生成します。
           </DialogDescription>
         </DialogHeader>
+
+        {isGenerating && (
+          <div className="space-y-4 py-6 px-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/20 animate-fade-in">
+            <div className="flex items-center justify-center gap-3">
+              <Wand2 className="w-6 h-6 text-primary animate-pulse" />
+              <p className="text-lg font-medium text-primary">{generationStep}</p>
+            </div>
+            <Progress value={progress} className="h-2" />
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+            <p className="text-center text-sm text-muted-foreground">
+              高品質な3Dアバターを生成しています...
+            </p>
+          </div>
+        )}
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
@@ -234,6 +274,7 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
             <Button
               onClick={handleGenerate}
               disabled={isGenerating || (!prompt.trim() && !uploadedImage)}
+              className="relative overflow-hidden group"
             >
               {isGenerating ? (
                 <>
@@ -242,7 +283,7 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-4 w-4" />
+                  <Sparkles className="mr-2 h-4 w-4 group-hover:animate-pulse" />
                   生成
                 </>
               )}
