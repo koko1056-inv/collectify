@@ -1,11 +1,13 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UploadCloud, Sparkles, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { AvatarGenerationModal } from "./AvatarGenerationModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { toast as sonnerToast } from "sonner";
 
 interface ProfileImageUploadProps {
   onImageChange: (file: File | null) => Promise<void>;
@@ -25,7 +27,32 @@ export function ProfileImageUpload({
   const [isHovering, setIsHovering] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
   const { toast } = useToast();
+
+  // 最近使ったアバターを取得
+  useEffect(() => {
+    const fetchRecentAvatars = async () => {
+      if (!userId) return;
+
+      try {
+        const { data } = await supabase
+          .from("avatar_gallery")
+          .select("id, image_url")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(6); // 最新6つを取得
+
+        if (data) {
+          setRecentAvatars(data);
+        }
+      } catch (error) {
+        console.error("Error fetching recent avatars:", error);
+      }
+    };
+
+    fetchRecentAvatars();
+  }, [userId]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -62,6 +89,18 @@ export function ProfileImageUpload({
       // 画像をアップロード
       await onImageChange(file);
       
+      // アバターリストを再取得
+      const { data } = await supabase
+        .from("avatar_gallery")
+        .select("id, image_url")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(6);
+      
+      if (data) {
+        setRecentAvatars(data);
+      }
+      
       toast({
         title: "アバター設定完了",
         description: "AIで生成したアバターをプロフィールに設定しました",
@@ -73,6 +112,41 @@ export function ProfileImageUpload({
         title: "エラー",
         description: "アバターの設定に失敗しました",
       });
+    }
+  };
+
+  const handleSelectAvatar = async (avatarUrl: string, avatarId: string) => {
+    try {
+      // base64画像をBlobに変換
+      const response = await fetch(avatarUrl);
+      const blob = await response.blob();
+      
+      // BlobをFileに変換
+      const file = new File([blob], "selected-avatar.png", { type: "image/png" });
+      
+      // プレビューを更新
+      setPreviewUrl(avatarUrl);
+      
+      // 画像をアップロード
+      await onImageChange(file);
+
+      // すべてのアバターの is_current を false に設定
+      await supabase
+        .from("avatar_gallery")
+        .update({ is_current: false })
+        .eq("user_id", userId);
+
+      // 選択したアバターを is_current = true に設定
+      await supabase
+        .from("avatar_gallery")
+        .update({ is_current: true })
+        .eq("id", avatarId);
+      
+      setIsPopoverOpen(false);
+      sonnerToast.success("アバターを切り替えました");
+    } catch (error) {
+      console.error("Error selecting avatar:", error);
+      sonnerToast.error("アバターの切り替えに失敗しました");
     }
   };
 
@@ -99,24 +173,56 @@ export function ProfileImageUpload({
             </div>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-56 p-2 bg-background border shadow-lg z-50">
-          <div className="flex flex-col gap-1">
-            <Button
-              variant="ghost"
-              className="justify-start h-auto py-3 px-3"
-              onClick={handleFileSelectClick}
-            >
-              <UploadCloud className="w-4 h-4 mr-3" />
-              <span className="text-sm">ファイルを選択</span>
-            </Button>
-            <Button
-              variant="ghost"
-              className="justify-start h-auto py-3 px-3"
-              onClick={handleAIGenerateClick}
-            >
-              <Sparkles className="w-4 h-4 mr-3" />
-              <span className="text-sm">AIでアバター生成</span>
-            </Button>
+        <PopoverContent className="w-72 p-3 bg-background border shadow-lg z-50">
+          <div className="flex flex-col gap-3">
+            {/* 最近使ったアバター */}
+            {recentAvatars.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground font-medium px-1">最近使ったアバター</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {recentAvatars.map((avatar) => (
+                    <button
+                      key={avatar.id}
+                      onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
+                      className="relative group"
+                    >
+                      <Avatar className="w-full aspect-square border-2 border-border hover:border-primary transition-all duration-200 hover:scale-105">
+                        <AvatarImage src={avatar.image_url} className="object-cover" />
+                        <AvatarFallback>?</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center">
+                        <ImageIcon className="w-4 h-4 text-white" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* 区切り線 */}
+            {recentAvatars.length > 0 && (
+              <div className="border-t border-border" />
+            )}
+            
+            {/* アクション */}
+            <div className="flex flex-col gap-1">
+              <Button
+                variant="ghost"
+                className="justify-start h-auto py-3 px-3"
+                onClick={handleFileSelectClick}
+              >
+                <UploadCloud className="w-4 h-4 mr-3" />
+                <span className="text-sm">ファイルを選択</span>
+              </Button>
+              <Button
+                variant="ghost"
+                className="justify-start h-auto py-3 px-3"
+                onClick={handleAIGenerateClick}
+              >
+                <Sparkles className="w-4 h-4 mr-3" />
+                <span className="text-sm">AIでアバター生成</span>
+              </Button>
+            </div>
           </div>
         </PopoverContent>
       </Popover>
