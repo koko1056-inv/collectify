@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, User } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImageEditDialogProps {
   isOpen: boolean;
   onClose: () => void;
   imageUrl: string;
-  onEditComplete: (editedImageUrl: string) => void;
+  onEditComplete: (prompt: string, avatarUrl?: string) => void;
   isEditing: boolean;
 }
 
@@ -21,11 +24,36 @@ export function ImageEditDialog({
   isEditing,
 }: ImageEditDialogProps) {
   const [editPrompt, setEditPrompt] = useState("");
+  const [useAvatar, setUseAvatar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user && isOpen) {
+      loadUserAvatar();
+    }
+  }, [user, isOpen]);
+
+  const loadUserAvatar = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    if (!error && data?.avatar_url) {
+      setAvatarUrl(data.avatar_url);
+    }
+  };
 
   const handleEdit = () => {
     if (editPrompt.trim()) {
-      onEditComplete(editPrompt.trim());
+      const prompt = editPrompt.trim();
+      onEditComplete(prompt, useAvatar && avatarUrl ? avatarUrl : undefined);
       setEditPrompt("");
+      setUseAvatar(false);
     }
   };
 
@@ -45,11 +73,36 @@ export function ImageEditDialog({
             />
           </div>
 
+          {avatarUrl && (
+            <div className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
+              <Checkbox 
+                id="use-avatar" 
+                checked={useAvatar}
+                onCheckedChange={(checked) => setUseAvatar(checked as boolean)}
+                disabled={isEditing}
+              />
+              <div className="flex items-center gap-2 flex-1">
+                <User className="w-4 h-4 text-muted-foreground" />
+                <Label 
+                  htmlFor="use-avatar" 
+                  className="text-sm font-normal cursor-pointer flex-1"
+                >
+                  アバターを素材として使用する
+                </Label>
+                <img 
+                  src={avatarUrl} 
+                  alt="Avatar" 
+                  className="w-10 h-10 rounded-full object-cover border-2 border-background"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="edit-prompt">編集内容を入力</Label>
             <Input
               id="edit-prompt"
-              placeholder="例: 背景を青空にして、明るくして"
+              placeholder="例: アバターを左上に配置して、背景を青空にして"
               value={editPrompt}
               onChange={(e) => setEditPrompt(e.target.value)}
               disabled={isEditing}

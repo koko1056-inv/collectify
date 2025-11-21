@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { imageUrl, prompt } = await req.json();
+    const { imageUrl, prompt, avatarUrl } = await req.json();
     
     if (!imageUrl || !prompt) {
       throw new Error('imageUrl and prompt are required');
@@ -24,6 +24,33 @@ Deno.serve(async (req) => {
     }
 
     console.log('Editing image with prompt:', prompt);
+    console.log('Avatar URL provided:', !!avatarUrl);
+
+    // コンテンツ配列を構築（プロンプト + メイン画像 + オプションでアバター）
+    const content: any[] = [
+      {
+        type: "text",
+        text: avatarUrl 
+          ? `${prompt}\n\n追加の素材として2枚目の画像（アバター）を使用して編集してください。`
+          : prompt
+      },
+      {
+        type: "image_url",
+        image_url: {
+          url: imageUrl
+        }
+      }
+    ];
+
+    // アバターURLがある場合は追加
+    if (avatarUrl) {
+      content.push({
+        type: "image_url",
+        image_url: {
+          url: avatarUrl
+        }
+      });
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -36,18 +63,7 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: [
-              {
-                type: "text",
-                text: prompt
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: imageUrl
-                }
-              }
-            ]
+            content
           }
         ],
         modalities: ["image", "text"]
