@@ -7,44 +7,49 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 13%;
-    --border: 0 0% 90%;
-    --input: 0 0% 95%;
-    --ring: 0 0% 13%;
+    --foreground: 0 0% 9%;
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
+    --ring: 0 0% 9%;
     
-    --primary: 0 0% 13%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 100%;
-    --accent: 0 0% 95%;
-    --accent-foreground: 0 0% 13%;
-    --muted: 0 0% 95%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
     
-    /* 統計項目用のセマンティックカラー */
-    --stats-login: 210 100% 60%;
-    --stats-login-bg: 210 100% 97%;
-    --stats-login-hover: 210 100% 95%;
+    /* 統計項目用のモノクロカラー */
+    --stats-login: 0 0% 20%;
+    --stats-login-bg: 0 0% 97%;
+    --stats-login-hover: 0 0% 94%;
     
-    --stats-streak: 150 90% 50%;
-    --stats-streak-bg: 150 90% 97%;
-    --stats-streak-hover: 150 90% 95%;
+    --stats-streak: 0 0% 30%;
+    --stats-streak-bg: 0 0% 96%;
+    --stats-streak-hover: 0 0% 93%;
     
-    --stats-items: 45 100% 55%;
-    --stats-items-bg: 45 100% 97%;
-    --stats-items-hover: 45 100% 95%;
+    --stats-items: 0 0% 25%;
+    --stats-items-bg: 0 0% 97%;
+    --stats-items-hover: 0 0% 94%;
     
-    --stats-content: 270 80% 60%;
-    --stats-content-bg: 270 80% 97%;
-    --stats-content-hover: 270 80% 95%;
+    --stats-content: 0 0% 35%;
+    --stats-content-bg: 0 0% 96%;
+    --stats-content-hover: 0 0% 93%;
     
-    --stats-member: 0 0% 45%;
+    --stats-member: 0 0% 40%;
     --stats-member-bg: 0 0% 97%;
-    --stats-member-hover: 0 0% 95%;
+    --stats-member-hover: 0 0% 94%;
     
-    /* グラデーション */
-    --gradient-stats: linear-gradient(135deg, hsl(var(--background)), hsl(var(--accent)));
-    --gradient-header: linear-gradient(90deg, hsl(var(--primary) / 0.05), hsl(var(--secondary) / 0.05));
+    /* モダンなグラデーション */
+    --gradient-stats: linear-gradient(135deg, hsl(0 0% 98%), hsl(0 0% 94%));
+    --gradient-header: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 98%));
+    
+    /* シャドウ */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1);
     
     /* Loading & Skeleton colors */
     --skeleton: 0 0% 90%;
@@ -54,26 +59,47 @@
   }
 
   .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 263.4 70% 50.4%;
+    --background: 0 0% 9%;
+    --foreground: 0 0% 98%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 0 0% 83%;
     
-    --primary: 263.4 70% 50.4%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
+    
+    /* 統計項目用のモノクロカラー（ダークモード） */
+    --stats-login: 0 0% 80%;
+    --stats-login-bg: 0 0% 15%;
+    --stats-login-hover: 0 0% 18%;
+    
+    --stats-streak: 0 0% 70%;
+    --stats-streak-bg: 0 0% 14%;
+    --stats-streak-hover: 0 0% 17%;
+    
+    --stats-items: 0 0% 75%;
+    --stats-items-bg: 0 0% 15%;
+    --stats-items-hover: 0 0% 18%;
+    
+    --stats-content: 0 0% 65%;
+    --stats-content-bg: 0 0% 14%;
+    --stats-content-hover: 0 0% 17%;
+    
+    --stats-member: 0 0% 60%;
+    --stats-member-bg: 0 0% 15%;
+    --stats-member-hover: 0 0% 18%;
     
     /* Dark mode loading & skeleton */
-    --skeleton: 215 27.9% 16.9%;
-    --skeleton-foreground: 217.9 10.6% 64.9%;
-    --loading-bg: 224 71.4% 4.1%;
-    --loading-overlay: 224 71.4% 4.1% / 0.8;
+    --skeleton: 0 0% 18%;
+    --skeleton-foreground: 0 0% 64%;
+    --loading-bg: 0 0% 9%;
+    --loading-overlay: 0 0% 9% / 0.8;
   }
 
   body {
@@ -87,7 +113,12 @@
 }
 
 .card-shadow {
-  @apply shadow-sm hover:shadow-md transition-shadow duration-300;
+  box-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.card-shadow:hover {
+  box-shadow: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -2px hsl(0 0% 0% / 0.1);
 }
 
 .logo-text {
