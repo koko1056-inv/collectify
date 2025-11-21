@@ -192,13 +192,6 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     };
   }, [profile?.id]);
 
-  // アバターがない場合は自動的にモーダルを開く
-  useEffect(() => {
-    if (!currentAvatarUrl && !profile?.avatar_url) {
-      setShowAvatarModal(true);
-    }
-  }, [currentAvatarUrl, profile?.avatar_url]);
-
   const buttons = [
     {
       icon: Image,
