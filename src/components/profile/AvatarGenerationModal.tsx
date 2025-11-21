@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Sparkles } from "lucide-react";
 
 interface AvatarGenerationModalProps {
@@ -24,6 +25,7 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -50,6 +52,33 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
 
       if (!data.imageUrl) {
         throw new Error("画像URLが取得できませんでした");
+      }
+
+      // ギャラリーに保存（可能な場合）
+      if (user?.id) {
+        try {
+          const { error: galleryError } = await supabase
+            .from("avatar_gallery")
+            .insert({
+              user_id: user.id,
+              image_url: data.imageUrl,
+              prompt: prompt.trim(),
+              is_current: true,
+            });
+
+          if (galleryError) {
+            console.error("Error saving avatar to gallery:", galleryError);
+          }
+
+          // 他のアバターの is_current を false に更新
+          await supabase
+            .from("avatar_gallery")
+            .update({ is_current: false })
+            .neq("image_url", data.imageUrl)
+            .eq("user_id", user.id);
+        } catch (galleryError) {
+          console.error("Avatar gallery update error:", galleryError);
+        }
       }
 
       onAvatarGenerated(data.imageUrl);
