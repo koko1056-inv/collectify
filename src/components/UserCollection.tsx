@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "./ui/skeleton";
-import { useState, useMemo, useCallback, memo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { CollectionGrid } from "./collection/CollectionGrid";
@@ -19,7 +19,7 @@ interface UserCollectionProps {
   onContentChange?: (content: string) => void;
 }
 
-function UserCollectionComponent({
+export function UserCollection({
   selectedTags,
   userId,
   selectedContent,
@@ -146,5 +146,3 @@ function UserCollectionComponent({
     </div>
   );
 }
-
-export const UserCollection = memo(UserCollectionComponent);

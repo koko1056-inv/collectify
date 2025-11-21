@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Tag } from "@/types";
 import { TagFilter } from "./TagFilter";
 import { SearchBar } from "./SearchBar";
@@ -21,7 +21,7 @@ interface FilterBarProps {
   tags: Tag[];
 }
 
-function FilterBarComponent({
+export function FilterBar({
   searchQuery,
   onSearchChange,
   selectedTags,
@@ -175,5 +175,3 @@ function FilterBarComponent({
     </div>
   );
 }
-
-export const FilterBar = memo(FilterBarComponent);
