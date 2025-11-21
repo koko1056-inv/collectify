@@ -24,14 +24,14 @@ Deno.serve(async (req) => {
     }
 
     console.log('Editing image with prompt:', prompt);
-    console.log('Avatar URL provided:', !!avatarUrl);
+    console.log('Image URL provided:', !!imageUrl);
     console.log('Item images count:', itemImages?.length || 0);
 
-    // コンテンツ配列を構築（プロンプト + メイン画像 + グッズ画像 + オプションでアバター）
+    // コンテンツ配列を構築（プロンプト + アバター画像 + グッズ画像）
     const content: any[] = [
       {
         type: "text",
-        text: prompt
+        text: `${prompt}\n\n重要: 提供された最初の画像（アバター）をベースに、その後の画像のグッズを合成してください。アバターの特徴や背景は保持しながら、グッズを自然に装着させてください。`
       },
       {
         type: "image_url",
@@ -52,16 +52,6 @@ Deno.serve(async (req) => {
           }
         });
       }
-    }
-
-    // アバターURLがある場合は追加
-    if (avatarUrl) {
-      content.push({
-        type: "image_url",
-        image_url: {
-          url: avatarUrl
-        }
-      });
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
