@@ -35,43 +35,36 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     console.log("[AvatarCenterHome] Fetching current avatar for user:", profile.id);
 
     try {
-      // まずギャラリーから is_current=true のアバターを取得
+      // ギャラリーから着せ替えで生成されたアバター（item_idsがある）で is_current=true のものを取得
       const { data: galleryData, error: galleryError } = await supabase
         .from("avatar_gallery")
         .select("image_url, is_current, item_ids")
         .eq("user_id", profile.id)
         .eq("is_current", true)
-        .order("created_at", { ascending: false })
-        .limit(1);
+        .order("created_at", { ascending: false });
 
       console.log("[AvatarCenterHome] Gallery data:", galleryData);
       console.log("[AvatarCenterHome] Gallery error:", galleryError);
 
       if (!galleryError && galleryData && galleryData.length > 0) {
-        console.log("[AvatarCenterHome] Found current avatar in gallery:", galleryData[0].image_url);
-        setCurrentAvatarUrl(galleryData[0].image_url);
-        return;
+        // 着せ替えで生成されたアバターのみをフィルタリング
+        const dressUpAvatar = galleryData.find(avatar => 
+          avatar.item_ids && avatar.item_ids.length > 0
+        );
+        
+        if (dressUpAvatar) {
+          console.log("[AvatarCenterHome] Found dress-up avatar:", dressUpAvatar.image_url);
+          setCurrentAvatarUrl(dressUpAvatar.image_url);
+          return;
+        }
       }
 
-      // ギャラリーになければプロフィールから取得
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("avatar_url")
-        .eq("id", profile.id)
-        .single();
-
-      console.log("[AvatarCenterHome] Profile data:", profileData);
-      console.log("[AvatarCenterHome] Profile error:", profileError);
-
-      if (profileData?.avatar_url) {
-        console.log("[AvatarCenterHome] Found avatar in profile:", profileData.avatar_url);
-        setCurrentAvatarUrl(profileData.avatar_url);
-      } else {
-        console.log("[AvatarCenterHome] No avatar found anywhere");
-        setCurrentAvatarUrl(null);
-      }
+      // 着せ替えアバターがない場合は null
+      console.log("[AvatarCenterHome] No dress-up avatar found");
+      setCurrentAvatarUrl(null);
     } catch (error) {
       console.error("[AvatarCenterHome] Error fetching current avatar:", error);
+      setCurrentAvatarUrl(null);
     }
   };
 
