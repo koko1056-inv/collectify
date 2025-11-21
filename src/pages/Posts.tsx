@@ -25,9 +25,10 @@ export default function Posts() {
   const [filters, setFilters] = useState({
     selectedTags: [] as string[],
     selectedContent: "",
-    searchQuery: ""
+    searchQuery: "",
+    selectedItemIds: [] as string[]
   });
-  const handleFiltersChange = (newFilters: { selectedTags: string[]; selectedContent: string; searchQuery: string }) => {
+  const handleFiltersChange = (newFilters: { selectedTags: string[]; selectedContent: string; searchQuery: string; selectedItemIds: string[] }) => {
     setFilters(newFilters);
   };
 
