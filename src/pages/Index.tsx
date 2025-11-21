@@ -9,8 +9,10 @@ import { OnboardingWalkthrough } from "@/components/onboarding/OnboardingWalkthr
 import { useOnboardingWalkthrough } from "@/hooks/useOnboardingWalkthrough";
 import { HomeContent } from "@/components/home/HomeContent";
 import { UserProfileCollection } from "@/components/home/UserProfileCollection";
+import { AvatarCenterHome } from "@/components/home/AvatarCenterHome";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProfile } from "@/hooks/useProfile";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [showInterestDialog, setShowInterestDialog] = useState(false);
@@ -37,6 +39,21 @@ const Index = () => {
 
   // ユーザーのコレクションを表示するか、ホームページを表示するか
   const showUserCollection = !!userId && !!viewedProfile;
+  // 自分のプロフィールでログイン中の場合はアバター中心のホームを表示
+  const showAvatarCenterHome = user && profile && !userId;
+
+  const handleAvatarGenerated = async (url: string) => {
+    if (!user?.id) return;
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: url })
+      .eq("id", user.id);
+    
+    if (!error) {
+      refetchProfile();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -48,6 +65,14 @@ const Index = () => {
               viewedProfile={viewedProfile} 
               userId={userId} 
             />
+          ) : showAvatarCenterHome ? (
+            <>
+              <AvatarCenterHome 
+                profile={profile} 
+                onAvatarGenerated={handleAvatarGenerated}
+              />
+              <HomeContent profile={profile} />
+            </>
           ) : (
             <HomeContent profile={profile} />
           )}
