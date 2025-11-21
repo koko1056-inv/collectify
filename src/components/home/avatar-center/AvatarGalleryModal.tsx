@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, Check, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -144,6 +144,9 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
               <ImageIcon className="w-5 h-5" />
               アバターギャラリー
             </DialogTitle>
+            <DialogDescription>
+              過去に生成したアバターを表示・選択できます
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
