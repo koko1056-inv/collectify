@@ -5,6 +5,8 @@ import { Shirt, Save, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface AvatarDressUpModalProps {
   isOpen: boolean;
@@ -16,6 +18,7 @@ interface AvatarDressUpModalProps {
 export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: AvatarDressUpModalProps) {
   const [items, setItems] = useState<any[]>([]);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [customPrompt, setCustomPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const { toast } = useToast();
@@ -79,10 +82,17 @@ export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: Avata
     try {
       const selectedItemsData = items.filter(item => selectedItems.includes(item.id));
       
+      // プロンプトを構築
+      const basePrompt = customPrompt.trim() 
+        ? customPrompt 
+        : `アバターに以下のグッズを装着してください：${selectedItemsData.map(item => item.title).join(", ")}`;
+      
+      const fullPrompt = `${basePrompt}\n\n提供された画像を参考に、自然で調和した見た目になるように編集してください。グッズの特徴や色、デザインを忠実に反映させてください。`;
+      
       const { data, error } = await supabase.functions.invoke("edit-image", {
         body: {
           imageUrl: avatarUrl,
-          prompt: `アバターに以下のグッズを装着してください：${selectedItemsData.map(item => item.title).join(", ")}。自然で調和した見た目になるようにしてください。`,
+          prompt: fullPrompt,
           itemImages: selectedItemsData.map(item => item.image)
         }
       });
@@ -152,8 +162,22 @@ export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: Avata
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="custom-prompt">カスタムプロンプト（オプション）</Label>
+            <Textarea
+              id="custom-prompt"
+              placeholder="例：カジュアルな雰囲気で、Tシャツとバッグを自然に身につけているイメージ"
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              className="min-h-[80px]"
+            />
+            <p className="text-xs text-muted-foreground">
+              空欄の場合は、選択したグッズを自動的に装着するプロンプトが使用されます
+            </p>
+          </div>
+
           <p className="text-sm text-muted-foreground">
-            アバターに装着するグッズを選択してください（複数選択可）
+            アバターに装着するグッズを選択してください（複数選択可、最大3つまで推奨）
           </p>
 
           {loading ? (
