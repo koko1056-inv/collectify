@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { imageUrl, prompt, avatarUrl } = await req.json();
+    const { imageUrl, prompt, avatarUrl, itemImages } = await req.json();
     
     if (!imageUrl || !prompt) {
       throw new Error('imageUrl and prompt are required');
@@ -25,14 +25,13 @@ Deno.serve(async (req) => {
 
     console.log('Editing image with prompt:', prompt);
     console.log('Avatar URL provided:', !!avatarUrl);
+    console.log('Item images count:', itemImages?.length || 0);
 
-    // コンテンツ配列を構築（プロンプト + メイン画像 + オプションでアバター）
+    // コンテンツ配列を構築（プロンプト + メイン画像 + グッズ画像 + オプションでアバター）
     const content: any[] = [
       {
         type: "text",
-        text: avatarUrl 
-          ? `${prompt}\n\n追加の素材として2枚目の画像（アバター）を使用して編集してください。`
-          : prompt
+        text: prompt
       },
       {
         type: "image_url",
@@ -41,6 +40,19 @@ Deno.serve(async (req) => {
         }
       }
     ];
+
+    // グッズ画像を追加（最大3枚まで）
+    if (itemImages && Array.isArray(itemImages) && itemImages.length > 0) {
+      const imagesToAdd = itemImages.slice(0, 3);
+      for (const itemImageUrl of imagesToAdd) {
+        content.push({
+          type: "image_url",
+          image_url: {
+            url: itemImageUrl
+          }
+        });
+      }
+    }
 
     // アバターURLがある場合は追加
     if (avatarUrl) {
