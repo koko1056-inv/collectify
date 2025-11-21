@@ -129,12 +129,6 @@ export function ProfileImageUpload({
           .slice(0, 3);
         setRecentAvatars(pureAvatars);
       }
-
-      // プロフィールのavatar_urlも更新
-      await supabase
-        .from("profiles")
-        .update({ avatar_url: imageUrl })
-        .eq("id", userId);
       
       toast({
         title: "アバター設定完了",
@@ -176,12 +170,6 @@ export function ProfileImageUpload({
         .from("avatar_gallery")
         .update({ is_current: true })
         .eq("id", avatarId);
-
-      // プロフィールのavatar_urlも更新
-      await supabase
-        .from("profiles")
-        .update({ avatar_url: avatarUrl })
-        .eq("id", userId);
       
       setIsPopoverOpen(false);
       sonnerToast.success("アバターを切り替えました");
