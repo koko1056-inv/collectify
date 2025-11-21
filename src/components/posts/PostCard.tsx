@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToggleLike } from "@/hooks/posts";
 import { useState, memo } from "react";
 import { CommentsModal } from "./CommentsModal";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 interface PostCardProps {
   post: GoodsPost;
@@ -43,10 +44,11 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
       >
         <div className="relative overflow-hidden rounded-lg bg-background border hover:shadow-lg transition-all duration-300">
           {/* 画像 */}
-          <img
+          <LazyImage
             src={post.image_url}
             alt={post.caption || "投稿画像"}
             className="w-full h-auto object-cover"
+            skeletonClassName="aspect-square"
           />
           
           {/* ホバー時のオーバーレイ */}
