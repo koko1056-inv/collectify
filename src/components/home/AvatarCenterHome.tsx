@@ -193,7 +193,6 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           fetchCurrentAvatar();
         }}
         userId={profile?.id}
-        avatarUrl={currentAvatarUrl || profile?.avatar_url}
       />
 
       <AvatarGalleryModal
