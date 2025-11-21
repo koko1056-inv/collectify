@@ -6,12 +6,15 @@ import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { LazyImage } from "../ui/lazy-image";
+
 interface CardImageProps {
   image: string;
   title: string;
   itemId?: string;
   isEditable?: boolean;
 }
+
 const CardImage = memo(function CardImage({
   image,
   title,
@@ -84,13 +87,12 @@ const CardImage = memo(function CardImage({
     }
   };
   return <div className="aspect-square relative overflow-hidden rounded-t-lg group">
-      <img 
+      <LazyImage 
         key={`${image}-${Date.now()}`} 
         src={image} 
         alt={title} 
-        loading="lazy"
-        decoding="async"
-        className="w-full h-full transition-all duration-300 hover:scale-105 object-cover" 
+        className="w-full h-full transition-all duration-300 hover:scale-105 object-cover"
+        skeletonClassName="aspect-square"
       />
       {isEditable}
 

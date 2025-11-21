@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ProfileInterests } from "./ProfileInterests";
 import { useProfile } from "@/hooks/useProfile";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -160,10 +161,11 @@ export const ProfileCard = memo(function ProfileCard({
               userId={effectiveUserId} 
             />
           ) : (
-            <img 
+            <LazyImage 
               src={avatarUrl || "/placeholder.svg"} 
               alt={username_} 
               className="w-24 h-24 rounded-full object-cover" 
+              skeletonClassName="w-24 h-24 rounded-full"
             />
           )}
         </div>
