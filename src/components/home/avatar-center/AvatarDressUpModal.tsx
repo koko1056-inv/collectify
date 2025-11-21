@@ -120,12 +120,12 @@ export function AvatarDressUpModal({ isOpen, onClose, userId }: AvatarDressUpMod
     try {
       const selectedItemsData = items.filter(item => selectedItems.includes(item.id));
       
-      // プロンプトを構築
+      // プロンプトを構築（ベースアバターの保持を明示）
       const basePrompt = customPrompt.trim() 
         ? customPrompt 
-        : `アバターに以下のグッズを装着してください：${selectedItemsData.map(item => item.title).join(", ")}`;
+        : `選択されたベースアバターの顔、髪型、表情、背景などの特徴をそのまま保持しながら、以下のグッズを自然に装着してください：${selectedItemsData.map(item => item.title).join(", ")}`;
       
-      const fullPrompt = `${basePrompt}\n\n提供された画像を参考に、自然で調和した見た目になるように編集してください。グッズの特徴や色、デザインを忠実に反映させてください。`;
+      const fullPrompt = `${basePrompt}\n\n重要：最初の画像（ベースアバター）の人物の特徴（顔立ち、髪型、表情、ポーズ、背景）は一切変更せず、そのまま保持してください。グッズのみを追加で装着・合成してください。グッズの特徴や色、デザインを忠実に反映させ、自然で調和した見た目になるように編集してください。`;
       
       const { data, error } = await supabase.functions.invoke("edit-image", {
         body: {
