@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,7 +18,7 @@ const CreatePostFromCollectionModal = lazy(() => import("@/components/posts/Crea
 const PostsSidebar = lazy(() => import("@/components/posts/PostsSidebar").then(module => ({
   default: module.PostsSidebar
 })));
-export default function Posts() {
+const Posts = memo(function Posts() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreatePollModalOpen, setIsCreatePollModalOpen] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
@@ -30,9 +30,10 @@ export default function Posts() {
     selectedItemIds: [] as string[]
   });
   const [sortBy, setSortBy] = useState<"newest" | "popular" | "likes">("newest");
-  const handleFiltersChange = (newFilters: { selectedTags: string[]; selectedContent: string; searchQuery: string; selectedItemIds: string[] }) => {
+  
+  const handleFiltersChange = useCallback((newFilters: { selectedTags: string[]; selectedContent: string; searchQuery: string; selectedItemIds: string[] }) => {
     setFilters(newFilters);
-  };
+  }, []);
 
   return <div className="min-h-screen bg-background">
       <Navbar />
@@ -130,4 +131,6 @@ export default function Posts() {
       {/* 投票作成モーダル */}
       <CreatePollModal isOpen={isCreatePollModalOpen} onClose={() => setIsCreatePollModalOpen(false)} />
     </div>;
-}
+});
+
+export default Posts;

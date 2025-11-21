@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,7 @@ interface PostsSidebarProps {
   }) => void;
 }
 
-export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
+export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedContent, setSelectedContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -97,7 +97,7 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
     gcTime: 2 * 60 * 60 * 1000,
   });
 
-  const notifyFiltersChange = (updates: Partial<{
+  const notifyFiltersChange = useCallback((updates: Partial<{
     selectedTags: string[];
     selectedContent: string;
     searchQuery: string;
@@ -109,7 +109,7 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
       searchQuery: updates.searchQuery ?? searchQuery,
       selectedItemIds: updates.selectedItemIds ?? selectedItemIds,
     });
-  };
+  }, [selectedTags, selectedContent, searchQuery, selectedItemIds, onFiltersChange]);
 
   const handleItemToggle = (itemId: string) => {
     const newItems = selectedItemIds.includes(itemId)
@@ -451,4 +451,4 @@ export function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
       )}
     </div>
   );
-}
+});

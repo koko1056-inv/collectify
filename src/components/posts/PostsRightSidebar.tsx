@@ -4,13 +4,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TrendingUp, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { memo } from "react";
 
 interface PopularTag {
   name: string;
   count: number;
 }
 
-export function PostsRightSidebar() {
+export const PostsRightSidebar = memo(function PostsRightSidebar() {
   // 人気タグの取得
   const { data: popularTags = [] } = useQuery({
     queryKey: ["posts", "popular-tags"],
@@ -137,4 +138,4 @@ export function PostsRightSidebar() {
       </Card>
     </aside>
   );
-}
+});
