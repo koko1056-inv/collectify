@@ -27,35 +27,51 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
   // 最新のアバターを取得（ギャラリーまたはプロフィールから）
   const fetchCurrentAvatar = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) {
+      console.log("[AvatarCenterHome] No profile ID");
+      return;
+    }
+
+    console.log("[AvatarCenterHome] Fetching current avatar for user:", profile.id);
 
     try {
       // まずギャラリーから is_current=true のアバターを取得
       const { data: galleryData, error: galleryError } = await supabase
         .from("avatar_gallery")
-        .select("image_url")
+        .select("image_url, is_current, item_ids")
         .eq("user_id", profile.id)
         .eq("is_current", true)
         .order("created_at", { ascending: false })
         .limit(1);
 
+      console.log("[AvatarCenterHome] Gallery data:", galleryData);
+      console.log("[AvatarCenterHome] Gallery error:", galleryError);
+
       if (!galleryError && galleryData && galleryData.length > 0) {
+        console.log("[AvatarCenterHome] Found current avatar in gallery:", galleryData[0].image_url);
         setCurrentAvatarUrl(galleryData[0].image_url);
         return;
       }
 
       // ギャラリーになければプロフィールから取得
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("avatar_url")
         .eq("id", profile.id)
         .single();
 
+      console.log("[AvatarCenterHome] Profile data:", profileData);
+      console.log("[AvatarCenterHome] Profile error:", profileError);
+
       if (profileData?.avatar_url) {
+        console.log("[AvatarCenterHome] Found avatar in profile:", profileData.avatar_url);
         setCurrentAvatarUrl(profileData.avatar_url);
+      } else {
+        console.log("[AvatarCenterHome] No avatar found anywhere");
+        setCurrentAvatarUrl(null);
       }
     } catch (error) {
-      console.error("Error fetching current avatar:", error);
+      console.error("[AvatarCenterHome] Error fetching current avatar:", error);
     }
   };
 
