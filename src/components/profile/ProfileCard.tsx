@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ProfileHeader } from "./ProfileHeader";
-import { ProfileStats } from "./ProfileStats";
+import { ProfileStats } from "./ProfileStatsOptimized";
 import { ProfileBio } from "./ProfileBio";
 import { ProfileFavorites } from "./ProfileFavorites";
 import { ProfileImageUpload } from "./ProfileImageUpload";
@@ -19,7 +19,7 @@ interface ProfileCardProps {
   userId?: string;
 }
 
-export function ProfileCard({
+export const ProfileCard = memo(function ProfileCard({
   onShare,
   setUsername,
   userId
@@ -219,4 +219,4 @@ export function ProfileCard({
       </div>
     </div>
   );
-}
+});

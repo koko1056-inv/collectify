@@ -12,17 +12,17 @@ export function useProfile(userId: string | undefined) {
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .maybeSingle(); // single()の代わりにmaybeSingle()を使用
+        .maybeSingle();
       
       if (error) throw error;
       if (!data) throw new Error("Profile not found");
       return data as Profile;
     },
     enabled: !!userId,
-    staleTime: 30 * 1000, // 30秒間キャッシュ
-    gcTime: 60 * 60 * 1000, // 1時間保持
-    refetchOnMount: true, // マウント時に再取得
-    refetchOnWindowFocus: true, // フォーカス時に再取得
+    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
+    gcTime: 30 * 60 * 1000, // 30分間保持
+    refetchOnMount: false, // マウント時は再取得しない
+    refetchOnWindowFocus: false, // フォーカス時は再取得しない
   });
 
   return {

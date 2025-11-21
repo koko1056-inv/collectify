@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Heart, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToggleLike } from "@/hooks/posts";
-import { useState } from "react";
+import { useState, memo } from "react";
 import { CommentsModal } from "./CommentsModal";
 
 interface PostCardProps {
@@ -11,7 +11,7 @@ interface PostCardProps {
   onClick: () => void;
 }
 
-export function PostCard({ post, onClick }: PostCardProps) {
+export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps) {
   const { user } = useAuth();
   const toggleLike = useToggleLike();
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
@@ -103,4 +103,4 @@ export function PostCard({ post, onClick }: PostCardProps) {
       />
     </>
   );
-}
+});
