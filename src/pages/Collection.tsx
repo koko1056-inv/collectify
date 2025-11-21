@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from "react";
+import { useState, useCallback } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -7,7 +7,7 @@ import { useTags } from "@/hooks/useTags";
 import { useAuth } from "@/contexts/AuthContext";
 import { FilterBar } from "@/components/FilterBar";
 
-function Collection() {
+export default function Collection() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -55,5 +55,3 @@ function Collection() {
     </div>
   );
 }
-
-export default memo(Collection);
