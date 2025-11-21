@@ -96,6 +96,12 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
   const buttons = [
     {
+      icon: Image,
+      label: "アバターギャラリー",
+      onClick: () => setShowGallery(true),
+      color: "from-green-500 to-emerald-500"
+    },
+    {
       icon: Dices,
       label: "ランダムピックアップ",
       onClick: () => setShowRandomPickup(true),
@@ -123,29 +129,21 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         
         {/* アバター */}
         <div className="relative mb-8 mt-16 sm:mt-0">
-          <div 
-            className="relative cursor-pointer group"
-            onClick={() => setShowGallery(true)}
-            title="ギャラリーを開く"
-          >
+          <div className="relative">
             <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
-            <Avatar className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-background shadow-2xl relative z-10 group-hover:scale-105 transition-transform">
+            <Avatar className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-background shadow-2xl relative z-10 transition-transform">
               <AvatarImage src={currentAvatarUrl || profile?.avatar_url || undefined} />
               <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                 {profile?.username?.[0]?.toUpperCase() || "?"}
               </AvatarFallback>
             </Avatar>
-            {/* ギャラリーアイコン */}
-            <div className="absolute bottom-2 right-2 bg-primary text-primary-foreground rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
-              <Image className="w-5 h-5" />
-            </div>
           </div>
         </div>
 
         {/* 機能ボタン */}
-        <div className="flex gap-4 sm:gap-6 mb-8">
+        <div className="grid grid-cols-2 sm:flex gap-4 sm:gap-6 mb-8 max-w-md w-full px-4">
           {buttons.map((btn, index) => (
-            <div key={index} className="relative group">
+            <div key={index} className="relative group flex flex-col items-center">
               <Button
                 onClick={btn.onClick}
                 size="lg"
@@ -153,7 +151,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
               >
                 <btn.icon className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
               </Button>
-              <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="mt-2 sm:absolute sm:top-full sm:mt-2 sm:left-1/2 sm:-translate-x-1/2 whitespace-nowrap sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 <span className="text-xs sm:text-sm font-medium bg-background/90 px-3 py-1 rounded-full shadow-lg">
                   {btn.label}
                 </span>
