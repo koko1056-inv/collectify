@@ -11,11 +11,11 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json();
+    const { prompt, imageUrl } = await req.json();
 
-    if (!prompt) {
+    if (!prompt && !imageUrl) {
       return new Response(
-        JSON.stringify({ error: "プロンプトが必要です" }),
+        JSON.stringify({ error: "プロンプトまたは画像が必要です" }),
         { 
           status: 400, 
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
@@ -29,12 +29,38 @@ serve(async (req) => {
     }
 
     // 3D風のアバター生成用のプロンプトを構築
-    const enhancedPrompt = `Create a 3D-style avatar portrait with the following characteristics: ${prompt}. 
-    The avatar should be a high-quality 3D render with smooth textures, professional lighting, 
-    centered composition, neutral background, suitable for a profile picture. 
-    Style: Modern 3D character design, Pixar/Disney quality rendering.`;
+    let enhancedPrompt = prompt;
+    if (imageUrl) {
+      enhancedPrompt = `${prompt || "Transform this photo into a 3D animated character"}. 
+      Create a high-quality 3D render with smooth textures, professional lighting, 
+      centered composition, neutral background, suitable for a profile picture. 
+      Style: Modern 3D character design, Pixar/Disney quality rendering.`;
+    } else {
+      enhancedPrompt = `Create a 3D-style avatar portrait with the following characteristics: ${prompt}. 
+      The avatar should be a high-quality 3D render with smooth textures, professional lighting, 
+      centered composition, neutral background, suitable for a profile picture. 
+      Style: Modern 3D character design, Pixar/Disney quality rendering.`;
+    }
 
     console.log("Generating avatar with prompt:", enhancedPrompt);
+
+    // メッセージコンテンツを構築
+    const messageContent: any[] = [
+      {
+        type: "text",
+        text: enhancedPrompt,
+      }
+    ];
+
+    // 画像がある場合は追加
+    if (imageUrl) {
+      messageContent.push({
+        type: "image_url",
+        image_url: {
+          url: imageUrl
+        }
+      });
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -47,7 +73,7 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: enhancedPrompt,
+            content: messageContent,
           },
         ],
         modalities: ["image", "text"],
