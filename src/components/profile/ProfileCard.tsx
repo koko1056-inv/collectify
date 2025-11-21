@@ -120,6 +120,8 @@ export const ProfileCard = memo(function ProfileCard({
         throw updateError;
       }
 
+      await refetchProfile();
+
       setAvatarUrl(publicUrl);
       setPreviewUrl(publicUrl);
       toast({
