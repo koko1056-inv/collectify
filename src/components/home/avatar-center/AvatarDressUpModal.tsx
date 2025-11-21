@@ -42,8 +42,7 @@ export function AvatarDressUpModal({ isOpen, onClose, userId, avatarUrl }: Avata
         .from("user_items")
         .select("id, title, image")
         .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(20);
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setItems(data || []);
