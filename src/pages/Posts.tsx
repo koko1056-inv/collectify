@@ -2,6 +2,7 @@ import { useState, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Filter } from "lucide-react";
 import { PostsGrid } from "@/components/posts/PostsGrid";
 import { PollsGrid } from "@/components/polls/PollsGrid";
@@ -28,6 +29,7 @@ export default function Posts() {
     searchQuery: "",
     selectedItemIds: [] as string[]
   });
+  const [sortBy, setSortBy] = useState<"newest" | "popular" | "likes">("newest");
   const handleFiltersChange = (newFilters: { selectedTags: string[]; selectedContent: string; searchQuery: string; selectedItemIds: string[] }) => {
     setFilters(newFilters);
   };
@@ -70,7 +72,19 @@ export default function Posts() {
                   </TabsList>
                   
                   <TabsContent value="posts">
-                    <PostsGrid filters={filters} />
+                    <div className="mb-4 flex justify-end">
+                      <Select value={sortBy} onValueChange={(value: "newest" | "popular" | "likes") => setSortBy(value)}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="newest">新着順</SelectItem>
+                          <SelectItem value="popular">人気順</SelectItem>
+                          <SelectItem value="likes">いいね順</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <PostsGrid filters={filters} sortBy={sortBy} />
                   </TabsContent>
                   
                   <TabsContent value="polls">

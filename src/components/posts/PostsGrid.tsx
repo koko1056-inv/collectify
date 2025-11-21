@@ -12,9 +12,10 @@ interface PostsGridProps {
     searchQuery: string;
     selectedItemIds: string[];
   };
+  sortBy?: "newest" | "popular" | "likes";
 }
 
-export function PostsGrid({ filters }: PostsGridProps) {
+export function PostsGrid({ filters, sortBy = "newest" }: PostsGridProps) {
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostsWithPagination();
   const [selectedPost, setSelectedPost] = useState<GoodsPost | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -86,6 +87,33 @@ export function PostsGrid({ filters }: PostsGridProps) {
     return filtered;
   }, [posts, filters]);
 
+  // ソートされた投稿
+  const sortedPosts = useMemo(() => {
+    if (!filteredPosts) return filteredPosts;
+
+    const sorted = [...filteredPosts];
+
+    if (sortBy === "newest") {
+      sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else if (sortBy === "popular") {
+      // 人気順: コメント数 + いいね数の合計
+      sorted.sort((a, b) => {
+        const aScore = (a.post_comments?.length || 0) + (a.post_likes?.length || 0);
+        const bScore = (b.post_comments?.length || 0) + (b.post_likes?.length || 0);
+        return bScore - aScore;
+      });
+    } else if (sortBy === "likes") {
+      // いいね順
+      sorted.sort((a, b) => {
+        const aLikes = a.post_likes?.length || 0;
+        const bLikes = b.post_likes?.length || 0;
+        return bLikes - aLikes;
+      });
+    }
+
+    return sorted;
+  }, [filteredPosts, sortBy]);
+
   if (isLoading) {
     return (
       <div 
@@ -123,7 +151,7 @@ export function PostsGrid({ filters }: PostsGridProps) {
     );
   }
 
-  if (!filteredPosts || filteredPosts.length === 0) {
+  if (!sortedPosts || sortedPosts.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">
@@ -145,7 +173,7 @@ export function PostsGrid({ filters }: PostsGridProps) {
           columnGap: '8px',
         }}
       >
-        {filteredPosts.map((post) => (
+        {sortedPosts.map((post) => (
           <PostCard
             key={post.id}
             post={post}
