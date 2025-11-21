@@ -19,6 +19,8 @@ export function RandomPickupModal({ isOpen, onClose, userId }: RandomPickupModal
   const { toast } = useToast();
 
   const fetchRandomItem = async () => {
+    if (!userId) return;
+    
     setLoading(true);
     try {
       const { data, error } = await supabase

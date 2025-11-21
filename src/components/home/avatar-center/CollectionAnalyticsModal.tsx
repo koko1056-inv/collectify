@@ -30,6 +30,8 @@ export function CollectionAnalyticsModal({ isOpen, onClose, userId }: Collection
   }, [isOpen]);
 
   const fetchAnalytics = async () => {
+    if (!userId) return;
+    
     setLoading(true);
     try {
       // コレクションアイテムを取得
