@@ -68,14 +68,6 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
 
   const handleSelectAvatar = async (avatarUrl: string, avatarId: string) => {
     try {
-      // プロフィールのアバターURLを更新
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: avatarUrl })
-        .eq("id", userId);
-
-      if (profileError) throw profileError;
-
       // すべてのアバターの is_current を false に
       await supabase
         .from("avatar_gallery")
@@ -90,14 +82,26 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
 
       if (galleryError) throw galleryError;
 
+      // プロフィールのアバターURLを更新
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: avatarUrl })
+        .eq("id", userId);
+
+      if (profileError) throw profileError;
+
       toast({
         title: "アバターを変更しました",
         description: "プロフィールのアバターが更新されました",
       });
 
-      fetchAvatars();
-      // モーダルを閉じて親コンポーネントに更新を通知
-      onClose();
+      // データの更新を確実に完了させてから画面を更新
+      await fetchAvatars();
+      
+      // 少し待ってから閉じることで、親コンポーネントが確実に最新データを取得できるようにする
+      setTimeout(() => {
+        onClose();
+      }, 300);
     } catch (error) {
       console.error("Error selecting avatar:", error);
       toast({
