@@ -2,17 +2,16 @@ import { useState, useEffect, memo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ProfileHeader } from "./ProfileHeader";
 import { ProfileStats } from "./ProfileStatsOptimized";
-import { ProfileBio } from "./ProfileBio";
-import { ProfileFavorites } from "./ProfileFavorites";
-import { ProfileImageUpload } from "./ProfileImageUpload";
-import { ProfileWishlist } from "./ProfileWishlist";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ProfileInterests } from "./ProfileInterests";
 import { useProfile } from "@/hooks/useProfile";
-import { LazyImage } from "@/components/ui/lazy-image";
+import { ProfileImageSection } from "./ProfileImageSection";
+import { ProfileEditButton } from "./ProfileEditButton";
+import { ProfileBioSection } from "./ProfileBioSection";
+import { ProfileInterestsSection } from "./ProfileInterestsSection";
+import { ProfileFavoritesSection } from "./ProfileFavoritesSection";
+import { ProfileWishlistSection } from "./ProfileWishlistSection";
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -151,76 +150,52 @@ export const ProfileCard = memo(function ProfileCard({
 
   return (
     <div className={`${isMobile ? 'bg-white min-h-screen p-4' : 'bg-white p-8 rounded-lg shadow'}`}>
-      <div className="flex flex-col items-center mb-4">
-        <div className="w-24 h-24 mb-2">
-          {isOwnProfile ? (
-            <ProfileImageUpload 
-              onImageChange={handleImageChange} 
-              previewUrl={previewUrl} 
-              setPreviewUrl={setPreviewUrl} 
-              userId={effectiveUserId} 
-            />
-          ) : (
-            <LazyImage 
-              src={avatarUrl || "/placeholder.svg"} 
-              alt={username_} 
-              className="w-24 h-24 rounded-full object-cover" 
-              skeletonClassName="w-24 h-24 rounded-full"
-            />
-          )}
-        </div>
-        <ProfileHeader username={username_} onShare={onShare} isOwnProfile={isOwnProfile} userId={userId} />
-      </div>
+      <ProfileImageSection
+        isOwnProfile={isOwnProfile}
+        userId={effectiveUserId}
+        avatarUrl={avatarUrl}
+        username={username_}
+        previewUrl={previewUrl}
+        onImageChange={handleImageChange}
+        onShare={onShare}
+        setPreviewUrl={setPreviewUrl}
+      />
 
       <ProfileStats userId={effectiveUserId} />
 
       {isOwnProfile && (
-        <div className="flex justify-center mb-4">
-          <button 
-            onClick={() => setIsEditing(true)} 
-            className="text-center py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-sm font-bold"
-          >
-            プロフィールを編集
-          </button>
-        </div>
+        <ProfileEditButton onClick={() => setIsEditing(true)} />
       )}
 
-      <div className="mt-4">
-        <ProfileBio 
-          bio={bio} 
-          xUsername={xUsername}
-          isEditing={isEditing} 
-          onBioChange={e => setBio(e.target.value)} 
-          onXUsernameChange={e => setXUsername(e.target.value)}
-          onEdit={() => setIsEditing(true)} 
-          onCancel={() => setIsEditing(false)} 
-          onSubmit={handleSubmit} 
-          saving={saving} 
-          isOwnProfile={isOwnProfile} 
-        />
-      </div>
+      <ProfileBioSection
+        bio={bio}
+        xUsername={xUsername}
+        isEditing={isEditing}
+        isOwnProfile={isOwnProfile}
+        saving={saving}
+        onBioChange={(e) => setBio(e.target.value)}
+        onXUsernameChange={(e) => setXUsername(e.target.value)}
+        onEdit={() => setIsEditing(true)}
+        onCancel={() => setIsEditing(false)}
+        onSubmit={handleSubmit}
+      />
 
       {isOwnProfile && (
-        <div className="mt-6">
-          <ProfileInterests 
-            currentInterests={profile?.interests || []} 
-            onUpdate={refetchProfile}
-          />
-        </div>
+        <ProfileInterestsSection
+          currentInterests={profile?.interests || []}
+          onUpdate={refetchProfile}
+        />
       )}
 
-      <div className="mt-6">
-        <ProfileFavorites 
-          userId={effectiveUserId} 
-          isEditing={isFavoritesEditing} 
-          onEditComplete={() => setIsFavoritesEditing(false)} 
-        />
-      </div>
+      <ProfileFavoritesSection
+        userId={effectiveUserId}
+        isEditing={isFavoritesEditing}
+        onEditComplete={() => setIsFavoritesEditing(false)}
+      />
 
-      {/* ウィッシュリストセクションを追加 */}
-      <div className="mt-8">
-        {effectiveUserId && <ProfileWishlist userId={effectiveUserId} />}
-      </div>
+      {effectiveUserId && (
+        <ProfileWishlistSection userId={effectiveUserId} />
+      )}
     </div>
   );
 });
