@@ -46,7 +46,7 @@ export function ProfileImageUpload({
           // item_idsがnullまたは空配列のもの（ゼロから生成したアバター）のみをフィルタリング
           const pureAvatars = data
             .filter(avatar => !avatar.item_ids || avatar.item_ids.length === 0)
-            .slice(0, 6);
+            .slice(0, 3); // 最大3つ
           setRecentAvatars(pureAvatars);
         }
       } catch (error) {
@@ -92,6 +92,30 @@ export function ProfileImageUpload({
       // 画像をアップロード
       await onImageChange(file);
       
+      // 既存のAI生成アバター（item_idsがnullまたは空配列）を取得
+      const { data: existingAvatars } = await supabase
+        .from("avatar_gallery")
+        .select("id, item_ids, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (existingAvatars) {
+        const pureAvatars = existingAvatars.filter(
+          avatar => !avatar.item_ids || avatar.item_ids.length === 0
+        );
+
+        // 3つを超える場合は古いものを削除
+        if (pureAvatars.length > 3) {
+          const toDelete = pureAvatars.slice(3); // 4つ目以降を削除対象に
+          for (const avatar of toDelete) {
+            await supabase
+              .from("avatar_gallery")
+              .delete()
+              .eq("id", avatar.id);
+          }
+        }
+      }
+      
       // アバターリストを再取得（ゼロから生成したもののみ）
       const { data } = await supabase
         .from("avatar_gallery")
@@ -102,7 +126,7 @@ export function ProfileImageUpload({
       if (data) {
         const pureAvatars = data
           .filter(avatar => !avatar.item_ids || avatar.item_ids.length === 0)
-          .slice(0, 6);
+          .slice(0, 3);
         setRecentAvatars(pureAvatars);
       }
       
@@ -183,7 +207,9 @@ export function ProfileImageUpload({
             {/* ゼロから生成したアバター */}
             {recentAvatars.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground font-medium px-1">AIで生成したアバター</p>
+                <p className="text-xs text-muted-foreground font-medium px-1">
+                  AIで生成したアバター ({recentAvatars.length}/3)
+                </p>
                 <div className="grid grid-cols-3 gap-2">
                   {recentAvatars.map((avatar) => (
                     <button
