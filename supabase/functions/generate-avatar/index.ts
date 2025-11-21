@@ -108,14 +108,14 @@ serve(async (req) => {
     const data = await response.json();
     console.log("AI response received");
 
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const generatedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
-    if (!imageUrl) {
+    if (!generatedImageUrl) {
       throw new Error("画像の生成に失敗しました");
     }
 
     return new Response(
-      JSON.stringify({ imageUrl }),
+      JSON.stringify({ imageUrl: generatedImageUrl }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
       }
