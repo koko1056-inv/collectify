@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Dices, BarChart3, Shirt, ChevronDown, Image, User, Sparkles, ArrowRight } from "lucide-react";
+import { Dices, BarChart3, Shirt, ChevronDown, Image, User } from "lucide-react";
 import { Profile } from "@/types";
 import { AvatarGenerationModal } from "@/components/profile/AvatarGenerationModal";
 import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
@@ -10,7 +10,6 @@ import { AvatarDressUpModal } from "./avatar-center/AvatarDressUpModal";
 import { AvatarGalleryModal } from "./avatar-center/AvatarGalleryModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface AvatarCenterHomeProps {
   profile: Profile;
@@ -239,75 +238,15 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
               </Avatar>
             </div>
           ) : (
-            <div className="relative max-w-2xl mx-auto w-full">
-              {/* ウェルカムガイド */}
-              <Card className="border-2 border-primary/20 shadow-xl">
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center mb-4">
-                    <Sparkles className="w-10 h-10 text-primary" />
-                  </div>
-                  <CardTitle className="text-2xl">アバター生成へようこそ！</CardTitle>
-                  <CardDescription className="text-base mt-2">
-                    あなた専用のAIアバターを作成して、コレクションをもっと楽しみましょう
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* ステップガイド */}
-                  <div className="space-y-4">
-                    <div className="flex gap-4 items-start p-4 bg-muted/30 rounded-lg border border-border hover:border-primary/50 transition-colors">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
-                        1
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-1">プロフィールでAIアバターを生成</h3>
-                        <p className="text-sm text-muted-foreground">
-                          まずはプロフィールページに移動して、AIアバター生成機能を使ってベースとなるアバターを作成しましょう。
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4 items-start p-4 bg-muted/30 rounded-lg border border-border">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/70 text-primary-foreground flex items-center justify-center font-bold">
-                        2
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-1">グッズを着せ替え</h3>
-                        <p className="text-sm text-muted-foreground">
-                          アバターが完成したら、所持しているグッズを選んで着せ替えることができます。
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4 items-start p-4 bg-muted/30 rounded-lg border border-border">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/50 text-primary-foreground flex items-center justify-center font-bold">
-                        3
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-1">コレクションを楽しむ</h3>
-                        <p className="text-sm text-muted-foreground">
-                          ランダムピックアップや分析機能で、あなたのコレクションをもっと楽しみましょう！
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* アクションボタン */}
-                  <div className="flex flex-col gap-3 pt-4">
-                    <Button
-                      onClick={() => window.location.href = '/edit-profile'}
-                      size="lg"
-                      className="w-full group"
-                    >
-                      <Sparkles className="w-5 h-5 mr-2" />
-                      プロフィールでアバターを生成
-                      <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                    <p className="text-xs text-center text-muted-foreground">
-                      ※ アバター生成には数秒かかる場合があります
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-muted/10 to-muted/5 blur-xl" />
+              <div className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-dashed border-muted-foreground/20 rounded-full flex items-center justify-center relative z-10 bg-muted/5">
+                <div className="text-center">
+                  <User className="w-20 h-20 mx-auto text-muted-foreground/30 mb-4" />
+                  <p className="text-muted-foreground/70 text-lg font-medium">着せ替えアバターを生成してください</p>
+                  <p className="text-muted-foreground/50 text-sm mt-2">グッズ着せ替えから作成できます</p>
+                </div>
+              </div>
             </div>
           )}
         </div>
