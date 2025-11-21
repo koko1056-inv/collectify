@@ -8,6 +8,7 @@ import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
 import { CollectionAnalyticsModal } from "./avatar-center/CollectionAnalyticsModal";
 import { AvatarDressUpModal } from "./avatar-center/AvatarDressUpModal";
 import { AvatarGalleryModal } from "./avatar-center/AvatarGalleryModal";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AvatarCenterHomeProps {
   profile: Profile;
@@ -20,13 +21,78 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showDressUp, setShowDressUp] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
+
+  // 最新のアバターを取得（ギャラリーまたはプロフィールから）
+  const fetchCurrentAvatar = async () => {
+    if (!profile?.id) return;
+
+    // まずギャラリーから is_current=true のアバターを取得
+    const { data: galleryData } = await supabase
+      .from("avatar_gallery")
+      .select("image_url")
+      .eq("user_id", profile.id)
+      .eq("is_current", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (galleryData?.image_url) {
+      setCurrentAvatarUrl(galleryData.image_url);
+    } else if (profile.avatar_url) {
+      // ギャラリーになければプロフィールから取得
+      setCurrentAvatarUrl(profile.avatar_url);
+    }
+  };
+
+  // 初回ロード時とプロフィールID変更時にアバターを取得
+  useEffect(() => {
+    fetchCurrentAvatar();
+  }, [profile?.id]);
+
+  // リアルタイムでアバター更新を監視
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const channel = supabase
+      .channel('avatar-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'avatar_gallery',
+          filter: `user_id=eq.${profile.id}`
+        },
+        () => {
+          fetchCurrentAvatar();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${profile.id}`
+        },
+        () => {
+          fetchCurrentAvatar();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.id]);
 
   // アバターがない場合は自動的にモーダルを開く
   useEffect(() => {
-    if (!profile?.avatar_url) {
+    if (!currentAvatarUrl && !profile?.avatar_url) {
       setShowAvatarModal(true);
     }
-  }, [profile?.avatar_url]);
+  }, [currentAvatarUrl, profile?.avatar_url]);
 
   const buttons = [
     {
@@ -72,7 +138,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
             >
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
               <Avatar className="w-32 h-32 sm:w-40 sm:h-40 border-4 border-background shadow-2xl relative z-10 group-hover:scale-105 transition-transform">
-                <AvatarImage src={profile?.avatar_url || undefined} />
+                <AvatarImage src={currentAvatarUrl || profile?.avatar_url || undefined} />
                 <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
                   {profile?.username?.[0]?.toUpperCase() || "?"}
                 </AvatarFallback>
@@ -133,16 +199,22 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
       <AvatarDressUpModal
         isOpen={showDressUp}
-        onClose={() => setShowDressUp(false)}
+        onClose={() => {
+          setShowDressUp(false);
+          fetchCurrentAvatar();
+        }}
         userId={profile?.id}
-        avatarUrl={profile?.avatar_url}
+        avatarUrl={currentAvatarUrl || profile?.avatar_url}
       />
 
       <AvatarGalleryModal
         isOpen={showGallery}
-        onClose={() => setShowGallery(false)}
+        onClose={() => {
+          setShowGallery(false);
+          fetchCurrentAvatar();
+        }}
         userId={profile?.id}
-        currentAvatarUrl={profile?.avatar_url}
+        currentAvatarUrl={currentAvatarUrl || profile?.avatar_url}
       />
     </>
   );
