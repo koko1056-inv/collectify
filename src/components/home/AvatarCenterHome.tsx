@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Dices, BarChart3, Shirt, ChevronDown, Image } from "lucide-react";
+import { Dices, BarChart3, Shirt, ChevronDown, Image, User } from "lucide-react";
 import { Profile } from "@/types";
 import { AvatarGenerationModal } from "@/components/profile/AvatarGenerationModal";
 import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
@@ -215,18 +215,28 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         
         {/* アバター */}
         <div className="relative mb-4 mt-16 sm:mt-0">
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
-            <Avatar 
-              className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-background shadow-2xl relative z-10 transition-transform hover:scale-105 cursor-pointer"
-              onClick={() => setShowGallery(true)}
-            >
-              <AvatarImage src={currentAvatarUrl || profile?.avatar_url || undefined} />
-              <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
-                {profile?.username?.[0]?.toUpperCase() || "?"}
-              </AvatarFallback>
-            </Avatar>
-          </div>
+          {currentAvatarUrl ? (
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
+              <Avatar 
+                className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-background shadow-2xl relative z-10 transition-transform hover:scale-105 cursor-pointer"
+                onClick={() => setShowGallery(true)}
+              >
+                <AvatarImage src={currentAvatarUrl} />
+              </Avatar>
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-muted/10 to-muted/5 blur-xl" />
+              <div className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-dashed border-muted-foreground/20 rounded-full flex items-center justify-center relative z-10 bg-muted/5">
+                <div className="text-center">
+                  <User className="w-20 h-20 mx-auto text-muted-foreground/30 mb-4" />
+                  <p className="text-muted-foreground/70 text-lg font-medium">着せ替えアバターを生成してください</p>
+                  <p className="text-muted-foreground/50 text-sm mt-2">グッズ着せ替えから作成できます</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* クイックアクセス - 最近使ったアバター */}
