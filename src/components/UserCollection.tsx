@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "./ui/skeleton";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { CollectionGrid } from "./collection/CollectionGrid";
@@ -19,7 +19,7 @@ interface UserCollectionProps {
   onContentChange?: (content: string) => void;
 }
 
-export function UserCollection({
+function UserCollectionComponent({
   selectedTags,
   userId,
   selectedContent,
@@ -30,6 +30,14 @@ export function UserCollection({
   const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
+
+  const handleRandomModalOpen = useCallback(() => {
+    setIsRandomModalOpen(true);
+  }, []);
+
+  const handleRandomModalClose = useCallback(() => {
+    setIsRandomModalOpen(false);
+  }, []);
 
   const { data: items = [], isLoading: isItemsLoading } = useQuery({
     queryKey: ["user-items", effectiveUserId, selectedTags],
@@ -113,16 +121,30 @@ export function UserCollection({
         <p className="text-gray-500">選択されたタグやコンテンツに一致するアイテムがありません。</p>
       </div>;
   }
-  return <div className="space-y-4 my-0 mx-0 px-0 py-px">
+  return (
+    <div className="space-y-4 my-0 mx-0 px-0 py-px">
       <div className="flex justify-center mb-4">
-        <Button onClick={() => setIsRandomModalOpen(true)} variant="outline" className="gap-2">
+        <Button onClick={handleRandomModalOpen} variant="outline" className="gap-2">
           <Dices className="h-4 w-4" />
           今日のコレクション
         </Button>
       </div>
       
-      <CollectionViewToggle userId={effectiveUserId} items={filteredItems} isCompact={isCompact} handleDragEnd={handleDragEnd} batchMemories={batchMemories} />
+      <CollectionViewToggle 
+        userId={effectiveUserId} 
+        items={filteredItems} 
+        isCompact={isCompact} 
+        handleDragEnd={handleDragEnd} 
+        batchMemories={batchMemories} 
+      />
 
-      <RandomCollectionItemModal isOpen={isRandomModalOpen} onClose={() => setIsRandomModalOpen(false)} userId={effectiveUserId} />
-    </div>;
+      <RandomCollectionItemModal 
+        isOpen={isRandomModalOpen} 
+        onClose={handleRandomModalClose} 
+        userId={effectiveUserId} 
+      />
+    </div>
+  );
 }
+
+export const UserCollection = memo(UserCollectionComponent);

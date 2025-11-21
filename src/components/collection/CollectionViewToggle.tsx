@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { memo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollectionGrid } from "./CollectionGrid";
 import { DragEndEvent } from "@dnd-kit/core";
@@ -13,7 +12,7 @@ interface CollectionViewToggleProps {
   batchMemories?: Record<string, any[]>;
 }
 
-export function CollectionViewToggle({
+function CollectionViewToggleComponent({
   userId,
   items,
   isCompact,
@@ -55,3 +54,5 @@ export function CollectionViewToggle({
     </Tabs>
   );
 }
+
+export const CollectionViewToggle = memo(CollectionViewToggleComponent);

@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useCallback, memo, useMemo } from "react";
 import { Tag } from "@/types";
 import { TagFilter } from "./TagFilter";
 import { SearchBar } from "./SearchBar";
@@ -22,7 +21,7 @@ interface FilterBarProps {
   tags: Tag[];
 }
 
-export function FilterBar({
+function FilterBarComponent({
   searchQuery,
   onSearchChange,
   selectedTags,
@@ -34,6 +33,19 @@ export function FilterBar({
   const [contentSearchQuery, setContentSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  const handleContentSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setContentSearchQuery(e.target.value);
+  }, []);
+
+  const handleDialogOpenChange = useCallback((open: boolean) => {
+    setIsDialogOpen(open);
+  }, []);
+
+  const handleContentSelect = useCallback((content: string) => {
+    onContentChange(content);
+    setIsDialogOpen(false);
+  }, [onContentChange]);
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
@@ -47,16 +59,18 @@ export function FilterBar({
     },
   });
 
-  const filteredContentNames = contentNames.filter(content =>
-    content.name && content.name.toLowerCase().includes(contentSearchQuery.toLowerCase())
+  const filteredContentNames = useMemo(() => 
+    contentNames.filter(content =>
+      content.name && content.name.toLowerCase().includes(contentSearchQuery.toLowerCase())
+    ), [contentNames, contentSearchQuery]
   );
 
-  const popularContentNames = contentNames.slice(0, 5);
+  const popularContentNames = useMemo(() => contentNames.slice(0, 5), [contentNames]);
 
-  const getDisplayText = () => {
+  const displayText = useMemo(() => {
     if (!selectedContent || selectedContent === "all") return "コンテンツで絞り込む";
     return selectedContent;
-  };
+  }, [selectedContent]);
 
   return (
     <div className="space-y-3 w-full">
@@ -72,10 +86,10 @@ export function FilterBar({
       <div className="w-full space-y-2">
         <Button
           variant="outline"
-          onClick={() => setIsDialogOpen(true)}
+          onClick={handleDialogOpenChange.bind(null, true)}
           className="w-full justify-between font-normal text-xs h-8"
         >
-          <span className="truncate">{getDisplayText()}</span>
+          <span className="truncate">{displayText}</span>
           <ChevronDown className="h-3 w-3 opacity-50 ml-2 flex-shrink-0" />
         </Button>
 
@@ -97,7 +111,7 @@ export function FilterBar({
                   variant={selectedContent === content.name ? "default" : "outline"}
                   size="sm"
                   className="text-xs h-6 px-2 shrink-0"
-                  onClick={() => onContentChange(content.name)}
+                  onClick={handleContentSelect.bind(null, content.name)}
                 >
                   {content.name}
                 </Button>
@@ -107,7 +121,7 @@ export function FilterBar({
           </ScrollArea>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
@@ -118,7 +132,7 @@ export function FilterBar({
               <Input
                 placeholder="コンテンツを検索..."
                 value={contentSearchQuery}
-                onChange={(e) => setContentSearchQuery(e.target.value)}
+                onChange={handleContentSearchChange}
                 className="mb-4"
               />
             </div>
@@ -129,10 +143,7 @@ export function FilterBar({
                     key="all"
                     variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
                     className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
-                    onClick={() => {
-                      onContentChange("all");
-                      setIsDialogOpen(false);
-                    }}
+                    onClick={handleContentSelect.bind(null, "all")}
                   >
                     <span className="text-base">すべて</span>
                   </Button>
@@ -142,10 +153,7 @@ export function FilterBar({
                     key={content.id}
                     variant={selectedContent === content.name ? "default" : "outline"}
                     className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
-                    onClick={() => {
-                      onContentChange(content.name);
-                      setIsDialogOpen(false);
-                    }}
+                    onClick={handleContentSelect.bind(null, content.name)}
                   >
                     <span className="text-xs break-words text-center w-full line-clamp-2">
                       {content.name}
@@ -167,3 +175,5 @@ export function FilterBar({
     </div>
   );
 }
+
+export const FilterBar = memo(FilterBarComponent);
