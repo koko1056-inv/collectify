@@ -174,7 +174,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const buttons = [
     {
       icon: Image,
-      label: "アバターギャラリー",
+      label: "着せ替えギャラリー",
       onClick: () => setShowGallery(true),
       color: "from-gray-800 to-gray-900"
     },
