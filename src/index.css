@@ -122,7 +122,8 @@
 }
 
 .logo-text {
-  @apply font-['Righteous'] text-xl tracking-wider;
+  @apply font-sans text-xl font-bold tracking-tight;
+  letter-spacing: -0.02em;
 }
 
 .no-scrollbar {
