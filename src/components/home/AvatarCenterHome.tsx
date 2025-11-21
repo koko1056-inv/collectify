@@ -99,21 +99,18 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       icon: Dices,
       label: "ランダムピックアップ",
       onClick: () => setShowRandomPickup(true),
-      position: "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2",
       color: "from-purple-500 to-pink-500"
     },
     {
       icon: Shirt,
       label: "グッズ着せ替え",
       onClick: () => setShowDressUp(true),
-      position: "top-1/2 right-0 translate-x-1/2 -translate-y-1/2",
       color: "from-blue-500 to-cyan-500"
     },
     {
       icon: BarChart3,
       label: "コレクション分析",
       onClick: () => setShowAnalytics(true),
-      position: "top-1/2 left-0 -translate-x-1/2 -translate-y-1/2",
       color: "from-orange-500 to-red-500"
     }
   ];
@@ -124,43 +121,37 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         {/* 背景のグラデーション */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl" />
         
-        {/* アバター中心エリア */}
-        <div className="relative w-72 h-72 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] mb-8">
-          {/* 中央の円形背景 */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 animate-pulse" />
-          
-          {/* アバター */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div 
-              className="relative cursor-pointer group"
-              onClick={() => setShowGallery(true)}
-              title="ギャラリーを開く"
-            >
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
-              <Avatar className="w-40 h-40 sm:w-56 sm:h-56 lg:w-64 lg:h-64 border-4 border-background shadow-2xl relative z-10 group-hover:scale-105 transition-transform">
-                <AvatarImage src={currentAvatarUrl || profile?.avatar_url || undefined} />
-                <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
-                  {profile?.username?.[0]?.toUpperCase() || "?"}
-                </AvatarFallback>
-              </Avatar>
-              {/* ギャラリーアイコン */}
-              <div className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
-                <Image className="w-4 h-4" />
-              </div>
+        {/* アバター */}
+        <div className="relative mb-8">
+          <div 
+            className="relative cursor-pointer group"
+            onClick={() => setShowGallery(true)}
+            title="ギャラリーを開く"
+          >
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
+            <Avatar className="w-48 h-48 sm:w-64 sm:h-64 lg:w-80 lg:h-80 border-4 border-background shadow-2xl relative z-10 group-hover:scale-105 transition-transform">
+              <AvatarImage src={currentAvatarUrl || profile?.avatar_url || undefined} />
+              <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+                {profile?.username?.[0]?.toUpperCase() || "?"}
+              </AvatarFallback>
+            </Avatar>
+            {/* ギャラリーアイコン */}
+            <div className="absolute bottom-2 right-2 bg-primary text-primary-foreground rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+              <Image className="w-5 h-5" />
             </div>
           </div>
+        </div>
 
-          {/* 機能ボタン */}
+        {/* 機能ボタン */}
+        <div className="flex gap-4 sm:gap-6 mb-8">
           {buttons.map((btn, index) => (
-            <div key={index} className={`absolute ${btn.position} z-20`}>
+            <div key={index} className="relative group">
               <Button
                 onClick={btn.onClick}
                 size="lg"
-                className={`rounded-full w-16 h-16 sm:w-24 sm:h-24 lg:w-28 lg:h-28 shadow-lg hover:scale-110 transition-all duration-300 bg-gradient-to-br ${btn.color} border-2 border-background group`}
+                className={`rounded-full w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 shadow-lg hover:scale-110 transition-all duration-300 bg-gradient-to-br ${btn.color} border-2 border-background`}
               >
-                <div className="flex flex-col items-center gap-1">
-                  <btn.icon className="w-6 h-6 sm:w-10 sm:h-10 lg:w-12 lg:h-12" />
-                </div>
+                <btn.icon className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
               </Button>
               <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
                 <span className="text-xs sm:text-sm font-medium bg-background/90 px-3 py-1 rounded-full shadow-lg">
