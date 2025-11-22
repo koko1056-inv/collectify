@@ -2,6 +2,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { GoodsPost } from "@/types/posts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Heart, MessageCircle, Share, Trash2, MoreHorizontal, X } from "lucide-react";
 import { useToggleLike, useDeletePost } from "@/hooks/posts";
 import { useAuth } from "@/contexts/AuthContext";
@@ -125,7 +126,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
               </div>
 
               {/* キャプション */}
-              <div className="flex-1 overflow-y-auto p-4">
+              <ScrollArea className="flex-1 p-4">
                 {post.caption && (
                   <p className="text-sm mb-4">{post.caption}</p>
                 )}
@@ -151,7 +152,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     </div>
                   </div>
                 )}
-              </div>
+              </ScrollArea>
 
               {/* アクションボタン */}
               <div className="border-t p-4 space-y-3">
