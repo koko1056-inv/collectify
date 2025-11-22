@@ -3,8 +3,9 @@ import { GoodsPost } from "@/types/posts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Share, Trash2, MoreHorizontal, X } from "lucide-react";
-import { useToggleLike, useDeletePost } from "@/hooks/posts";
+import { useToggleLike, useDeletePost, usePostComments, useAddComment } from "@/hooks/posts";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -12,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { DeletePostDialog } from "./DeletePostDialog";
 import { ShareModal } from "@/components/ShareModal";
-import { CommentsModal } from "./CommentsModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +33,9 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
   const deletePost = useDeletePost();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const { data: comments, isLoading: commentsLoading } = usePostComments(post?.id || "");
+  const addComment = useAddComment();
 
   if (!post) return null;
 
@@ -62,6 +64,18 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
         onClose();
       }
     });
+  };
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim() || !post) return;
+
+    try {
+      await addComment.mutateAsync({ postId: post.id, comment: newComment.trim() });
+      setNewComment("");
+    } catch (error) {
+      console.error("コメントの追加に失敗しました:", error);
+    }
   };
 
   return (
@@ -125,9 +139,9 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                 )}
               </div>
 
-              {/* キャプション */}
+              {/* キャプションとコメント */}
               <ScrollArea className="flex-1">
-                <div className="p-4">
+                <div className="p-4 space-y-4">
                   {post.caption && (
                     <p className="text-sm mb-4">{post.caption}</p>
                   )}
@@ -153,10 +167,51 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                       </div>
                     </div>
                   )}
+
+                  {/* コメント一覧 */}
+                  <div className="border-t pt-4">
+                    <h3 className="text-sm font-semibold mb-3">コメント</h3>
+                    {commentsLoading ? (
+                      <div className="text-center py-4 text-sm text-muted-foreground">読み込み中...</div>
+                    ) : comments && comments.length > 0 ? (
+                      <div className="space-y-4">
+                        {comments.map((comment) => (
+                          <div key={comment.id} className="flex items-start space-x-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={comment.profiles?.avatar_url} />
+                              <AvatarFallback>
+                                {comment.profiles?.username?.charAt(0).toUpperCase() || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="bg-muted rounded-lg p-3">
+                                <p className="text-sm font-semibold">
+                                  {comment.profiles?.username || 'Unknown User'}
+                                </p>
+                                <p className="text-sm mt-1">
+                                  {comment.comment}
+                                </p>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {formatDistanceToNow(new Date(comment.created_at), {
+                                  addSuffix: true,
+                                  locale: ja,
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4 text-sm text-muted-foreground">
+                        まだコメントがありません
+                      </div>
+                    )}
+                  </div>
                 </div>
               </ScrollArea>
 
-              {/* アクションボタン */}
+              {/* アクションボタンとコメント入力 */}
               <div className="border-t p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <Button
@@ -168,11 +223,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
                     <span className="ml-1 text-sm">{likesCount}</span>
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsCommentsModalOpen(true)}
-                  >
+                  <Button variant="ghost" size="sm">
                     <MessageCircle className="h-5 w-5" />
                     <span className="ml-1 text-sm">{commentsCount}</span>
                   </Button>
@@ -180,6 +231,24 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     <Share className="h-5 w-5" />
                   </Button>
                 </div>
+                
+                {/* コメント入力フォーム */}
+                <form onSubmit={handleCommentSubmit} className="flex gap-2">
+                  <Input
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="コメントを追加..."
+                    className="flex-1"
+                    disabled={addComment.isPending}
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={!newComment.trim() || addComment.isPending}
+                  >
+                    {addComment.isPending ? "送信中..." : "送信"}
+                  </Button>
+                </form>
               </div>
             </div>
           </div>
@@ -200,14 +269,6 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
         title="投稿を共有"
         image={post.image_url}
       />
-
-      {isCommentsModalOpen && (
-        <CommentsModal
-          postId={post.id}
-          isOpen={isCommentsModalOpen}
-          onClose={() => setIsCommentsModalOpen(false)}
-        />
-      )}
     </>
   );
 }
