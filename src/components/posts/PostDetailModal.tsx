@@ -67,7 +67,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-5xl h-[90vh] p-0 overflow-hidden">
+        <DialogContent className="w-full sm:max-w-5xl max-h-[90vh] p-0 overflow-y-auto">
           <div className="flex flex-col md:flex-row h-full">
             {/* 左側: 画像 */}
             <div className="flex-1 bg-black flex items-center justify-center relative">
