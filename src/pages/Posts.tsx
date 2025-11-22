@@ -50,8 +50,8 @@ const Posts = memo(function Posts() {
         <div className="flex-1 flex flex-col min-w-0">
           {/* メインコンテンツ */}
           <main className="flex-1 overflow-auto">
-            <div className="px-1 sm:px-2 py-4">
-              <div className="max-w-6xl mx-auto">
+            <div className="py-4">
+              <div className="max-w-6xl mx-auto px-4">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="w-full mb-4">
                     <TabsTrigger value="posts" className="flex-1">投稿</TabsTrigger>
@@ -59,18 +59,18 @@ const Posts = memo(function Posts() {
                   </TabsList>
                   
                   <TabsContent value="posts">
-                    <div className="mb-4 flex items-center justify-end gap-2">
+                    <div className="mb-4 flex items-center justify-between gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setIsFilterSheetOpen(true)}
-                        className="gap-2 lg:hidden"
+                        className="gap-2 lg:hidden flex-shrink-0"
                       >
                         <Filter className="h-4 w-4" />
                         フィルター
                       </Button>
                       <Select value={sortBy} onValueChange={(value: "newest" | "popular" | "likes") => setSortBy(value)}>
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-[140px] sm:w-[180px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
