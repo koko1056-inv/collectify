@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
 
 interface OnboardingState {
   hasCompletedWalkthrough: boolean;
@@ -20,7 +21,7 @@ interface OnboardingContextType {
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'collectify_onboarding_state';
+const STORAGE_KEY_PREFIX = 'collectify_onboarding_state';
 
 const defaultState: OnboardingState = {
   hasCompletedWalkthrough: false,
@@ -33,21 +34,38 @@ const defaultState: OnboardingState = {
 };
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
-  const [onboardingState, setOnboardingState] = useState<OnboardingState>(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return defaultState;
+  const { user } = useAuth();
+  const [onboardingState, setOnboardingState] = useState<OnboardingState>(defaultState);
+
+  // ユーザーIDに基づいてストレージキーを生成
+  const getStorageKey = () => {
+    return user?.id ? `${STORAGE_KEY_PREFIX}_${user.id}` : STORAGE_KEY_PREFIX;
+  };
+
+  // ユーザーが変わったときにオンボーディング状態をロード
+  useEffect(() => {
+    if (user) {
+      const storageKey = getStorageKey();
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          setOnboardingState(JSON.parse(stored));
+        } catch {
+          setOnboardingState(defaultState);
+        }
+      } else {
+        setOnboardingState(defaultState);
       }
     }
-    return defaultState;
-  });
+  }, [user?.id]);
 
+  // オンボーディング状態が変わったときに保存
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(onboardingState));
-  }, [onboardingState]);
+    if (user) {
+      const storageKey = getStorageKey();
+      localStorage.setItem(storageKey, JSON.stringify(onboardingState));
+    }
+  }, [onboardingState, user?.id]);
 
   const completeWalkthrough = () => {
     setOnboardingState(prev => ({
@@ -72,7 +90,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const resetOnboarding = () => {
     setOnboardingState(defaultState);
-    localStorage.removeItem(STORAGE_KEY);
+    if (user) {
+      const storageKey = getStorageKey();
+      localStorage.removeItem(storageKey);
+    }
   };
 
   return (
