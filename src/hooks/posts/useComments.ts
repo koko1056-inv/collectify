@@ -14,7 +14,7 @@ export function usePostComments(postId: string) {
     queryFn: async () => {
       console.log("コメントを取得中:", postId);
       
-      // コメントを取得
+      // コメントを取得（parent_comment_idを含む）
       const { data: commentsData, error: commentsError } = await supabase
         .from("post_comments")
         .select("*")
@@ -46,9 +46,17 @@ export function usePostComments(postId: string) {
         })
       );
       
-      console.log("取得したコメントデータ:", commentsWithProfiles);
+      // コメントをスレッド形式に整形
+      const threadedComments: PostComment[] = commentsWithProfiles
+        .filter(c => !c.parent_comment_id)
+        .map(parent => ({
+          ...parent,
+          replies: commentsWithProfiles.filter(c => c.parent_comment_id === parent.id)
+        }));
       
-      return commentsWithProfiles as PostComment[];
+      console.log("取得したコメントデータ:", threadedComments);
+      
+      return threadedComments;
     },
   });
 
@@ -86,7 +94,7 @@ export function useAddComment() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ postId, comment }: { postId: string; comment: string }) => {
+    mutationFn: async ({ postId, comment, parentCommentId }: { postId: string; comment: string; parentCommentId?: string }) => {
       if (!user) throw new Error("ログインが必要です");
 
       console.log("コメントを追加中:", { postId, comment });
@@ -98,6 +106,7 @@ export function useAddComment() {
           post_id: postId,
           user_id: user.id,
           comment,
+          parent_comment_id: parentCommentId || null,
         })
         .select()
         .single();

@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Share, Trash2, MoreHorizontal, X } from "lucide-react";
+import { Heart, MessageCircle, Share, Trash2, MoreHorizontal, X, XCircle } from "lucide-react";
 import { useToggleLike, useDeletePost, usePostComments, useAddComment } from "@/hooks/posts";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { DeletePostDialog } from "./DeletePostDialog";
 import { ShareModal } from "@/components/ShareModal";
+import { CommentItem } from "./CommentItem";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +35,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [replyTo, setReplyTo] = useState<{ id: string; username: string } | null>(null);
   const { data: comments, isLoading: commentsLoading } = usePostComments(post?.id || "");
   const addComment = useAddComment();
 
@@ -71,11 +73,24 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
     if (!newComment.trim() || !post) return;
 
     try {
-      await addComment.mutateAsync({ postId: post.id, comment: newComment.trim() });
+      await addComment.mutateAsync({ 
+        postId: post.id, 
+        comment: newComment.trim(),
+        parentCommentId: replyTo?.id 
+      });
       setNewComment("");
+      setReplyTo(null);
     } catch (error) {
       console.error("コメントの追加に失敗しました:", error);
     }
+  };
+
+  const handleReply = (commentId: string, username: string) => {
+    setReplyTo({ id: commentId, username });
+  };
+
+  const cancelReply = () => {
+    setReplyTo(null);
   };
 
   return (
@@ -176,30 +191,11 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     ) : comments && comments.length > 0 ? (
                       <div className="space-y-4">
                         {comments.map((comment) => (
-                          <div key={comment.id} className="flex items-start space-x-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={comment.profiles?.avatar_url} />
-                              <AvatarFallback>
-                                {comment.profiles?.username?.charAt(0).toUpperCase() || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="bg-muted rounded-lg p-3">
-                                <p className="text-sm font-semibold">
-                                  {comment.profiles?.username || 'Unknown User'}
-                                </p>
-                                <p className="text-sm mt-1">
-                                  {comment.comment}
-                                </p>
-                              </div>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {formatDistanceToNow(new Date(comment.created_at), {
-                                  addSuffix: true,
-                                  locale: ja,
-                                })}
-                              </p>
-                            </div>
-                          </div>
+                          <CommentItem
+                            key={comment.id}
+                            comment={comment}
+                            onReply={handleReply}
+                          />
                         ))}
                       </div>
                     ) : (
@@ -232,12 +228,29 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                   </Button>
                 </div>
                 
+                {/* 返信先表示 */}
+                {replyTo && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-md">
+                    <span className="text-sm text-muted-foreground flex-1">
+                      {replyTo.username}に返信中
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0"
+                      onClick={cancelReply}
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                
                 {/* コメント入力フォーム */}
                 <form onSubmit={handleCommentSubmit} className="flex gap-2">
                   <Input
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="コメントを追加..."
+                    placeholder={replyTo ? `${replyTo.username}に返信...` : "コメントを追加..."}
                     className="flex-1"
                     disabled={addComment.isPending}
                   />

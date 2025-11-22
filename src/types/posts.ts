@@ -49,8 +49,10 @@ export interface PostComment {
   user_id: string;
   comment: string;
   created_at: string;
+  parent_comment_id?: string | null;
   profiles?: {
     username: string;
     avatar_url?: string;
   };
+  replies?: PostComment[];
 }
