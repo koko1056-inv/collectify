@@ -67,7 +67,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-5xl max-h-[90vh] p-0 overflow-hidden">
+        <DialogContent className="max-w-5xl h-[90vh] p-0 overflow-hidden">
           <div className="flex flex-col md:flex-row h-full">
             {/* 左側: 画像 */}
             <div className="flex-1 bg-black flex items-center justify-center relative">
@@ -126,32 +126,34 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
               </div>
 
               {/* キャプション */}
-              <ScrollArea className="flex-1 p-4">
-                {post.caption && (
-                  <p className="text-sm mb-4">{post.caption}</p>
-                )}
+              <ScrollArea className="flex-1">
+                <div className="p-4">
+                  {post.caption && (
+                    <p className="text-sm mb-4">{post.caption}</p>
+                  )}
 
-                {/* アイテム情報 */}
-                {post.user_items && (
-                  <div 
-                    className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={handleItemClick}
-                  >
-                    {post.user_items.image && (
-                      <img
-                        src={post.user_items.image}
-                        alt={post.user_items.title}
-                        className="h-12 w-12 object-cover rounded"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{post.user_items.title}</p>
-                      {post.user_items.content_name && (
-                        <p className="text-xs text-muted-foreground">{post.user_items.content_name}</p>
+                  {/* アイテム情報 */}
+                  {post.user_items && (
+                    <div 
+                      className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={handleItemClick}
+                    >
+                      {post.user_items.image && (
+                        <img
+                          src={post.user_items.image}
+                          alt={post.user_items.title}
+                          className="h-12 w-12 object-cover rounded"
+                        />
                       )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{post.user_items.title}</p>
+                        {post.user_items.content_name && (
+                          <p className="text-xs text-muted-foreground">{post.user_items.content_name}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </ScrollArea>
 
               {/* アクションボタン */}
