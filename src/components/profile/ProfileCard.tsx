@@ -92,32 +92,69 @@ export const ProfileCard = memo(function ProfileCard({
     if (!file || !user || !isOwnProfile) return;
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split(".").pop();
       const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError } = await supabase
         .storage
-        .from('profile_images')
+        .from("profile_images")
         .upload(filePath, file);
 
       if (uploadError) {
         throw uploadError;
       }
 
-      const { data: { publicUrl } } = supabase
+      const {
+        data: { publicUrl },
+      } = supabase
         .storage
-        .from('profile_images')
+        .from("profile_images")
         .getPublicUrl(filePath);
 
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
-          avatar_url: publicUrl
+          avatar_url: publicUrl,
         })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (updateError) {
         throw updateError;
+      }
+
+      // アバターセンター用のギャラリー情報も同期
+      try {
+        // 既存の現在アバターがあれば画像URLを更新、なければ新規作成
+        const { data: currentAvatar } = await supabase
+          .from("avatar_gallery")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("is_current", true)
+          .maybeSingle();
+
+        if (currentAvatar) {
+          await supabase
+            .from("avatar_gallery")
+            .update({ image_url: publicUrl })
+            .eq("id", currentAvatar.id);
+        } else {
+          // 念のため他のアバターをすべて非アクティブ化
+          await supabase
+            .from("avatar_gallery")
+            .update({ is_current: false })
+            .eq("user_id", user.id);
+
+          await supabase.from("avatar_gallery").insert({
+            user_id: user.id,
+            image_url: publicUrl,
+            is_current: true,
+            item_ids: null,
+            prompt: "プロフィール画像",
+          });
+        }
+      } catch (galleryError) {
+        console.error("Error syncing avatar_gallery:", galleryError);
+        // ギャラリー同期失敗時もプロフィール更新は成功しているので続行
       }
 
       await refetchProfile();
@@ -126,15 +163,15 @@ export const ProfileCard = memo(function ProfileCard({
       setPreviewUrl(publicUrl);
       toast({
         title: "画像アップロード完了",
-        description: "プロフィール画像を更新しました"
+        description: "プロフィール画像を更新しました",
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "エラー",
-        description: "画像のアップロードに失敗しました"
+        description: "画像のアップロードに失敗しました",
       });
-      console.error('Error uploading image:', error);
+      console.error("Error uploading image:", error);
     }
   };
 
