@@ -73,7 +73,7 @@ export function ProfileImageUpload({
             }
           }
 
-          setRecentAvatars(pureAvatars.slice(0, 3));
+          setRecentAvatars(pureAvatars.slice(0, 10));
         }
       } catch (error) {
         console.error("Error fetching recent avatars:", error);
@@ -131,9 +131,9 @@ export function ProfileImageUpload({
                     avatar.prompt !== "プロフィール画像"
         );
 
-        // 3つを超える場合は古いものを削除（新しいアバターが追加されているので、3つまで残す）
-        if (pureAvatars.length > 3) {
-          const toDelete = pureAvatars.slice(3); // 4つ目以降を削除対象に
+        // 10個を超える場合は古いものを削除（新しいアバターが追加されているので、10個まで残す）
+        if (pureAvatars.length > 10) {
+          const toDelete = pureAvatars.slice(10); // 11個目以降を削除対象に
           for (const avatar of toDelete) {
             await supabase
               .from("avatar_gallery")
@@ -165,7 +165,7 @@ export function ProfileImageUpload({
           }
         }
 
-        setRecentAvatars(pureAvatars.slice(0, 3));
+        setRecentAvatars(pureAvatars.slice(0, 10));
       }
       
       toast({
@@ -254,7 +254,7 @@ export function ProfileImageUpload({
           }
         }
 
-        setRecentAvatars(pureAvatars.slice(0, 3));
+        setRecentAvatars(pureAvatars.slice(0, 10));
       }
       
       sonnerToast.success("アバターを削除しました");
@@ -296,9 +296,9 @@ export function ProfileImageUpload({
             {recentAvatars.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs text-muted-foreground font-medium px-1">
-                  AIで生成したアバター ({recentAvatars.length}/3)
+                  AIで生成したアバター ({recentAvatars.length}/10)
                 </p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   {recentAvatars.map((avatar) => (
                     <div
                       key={avatar.id}
