@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Upload, Sparkles, Home, Box, Store as StoreIcon, Frame } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Loader2, Upload, Sparkles, Home, Box, Store as StoreIcon, Frame, Plus, X } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface GoodsDisplayModalProps {
   isOpen: boolean;
@@ -24,34 +27,41 @@ interface UserItem {
 interface BackgroundPreset {
   id: string;
   name: string;
-  icon: any;
-  prompt: string;
+  icon?: any;
+  prompt?: string;
+  image_url?: string;
+  user_id?: string;
+  category: string;
 }
 
-const BACKGROUND_PRESETS: BackgroundPreset[] = [
+const DEFAULT_PRESETS: BackgroundPreset[] = [
   {
     id: "shelf",
     name: "棚",
     icon: Box,
-    prompt: "木製の棚が並ぶ清潔で明るい展示スペース。シンプルで洗練されたデザイン。自然光が差し込む雰囲気。"
+    prompt: "木製の棚が並ぶ清潔で明るい展示スペース。シンプルで洗練されたデザイン。自然光が差し込む雰囲気。",
+    category: "shelf"
   },
   {
     id: "room",
     name: "部屋",
     icon: Home,
-    prompt: "おしゃれな部屋のインテリア。壁には装飾があり、床は木目調。温かみのある照明。コレクションルームのような雰囲気。"
+    prompt: "おしゃれな部屋のインテリア。壁には装飾があり、床は木目調。温かみのある照明。コレクションルームのような雰囲気。",
+    category: "room"
   },
   {
     id: "showcase",
     name: "ショーケース",
     icon: StoreIcon,
-    prompt: "ガラスのショーケースが並ぶ高級感のある展示スペース。スポットライトが当たる雰囲気。美術館やギャラリーのような空間。"
+    prompt: "ガラスのショーケースが並ぶ高級感のある展示スペース。スポットライトが当たる雰囲気。美術館やギャラリーのような空間。",
+    category: "showcase"
   },
   {
     id: "display",
     name: "展示台",
     icon: Frame,
-    prompt: "白い展示台が配置された広々としたギャラリースペース。ミニマルでモダンなデザイン。美しく整理された展示環境。"
+    prompt: "白い展示台が配置された広々としたギャラリースペース。ミニマルでモダンなデザイン。美しく整理された展示環境。",
+    category: "display"
   }
 ];
 
@@ -63,6 +73,13 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
   const [isGeneratingBackground, setIsGeneratingBackground] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [uploadPresetName, setUploadPresetName] = useState("");
+  const [uploadPresetCategory, setUploadPresetCategory] = useState("shelf");
+  const [uploadPresetFile, setUploadPresetFile] = useState<File | null>(null);
+  const [uploadPresetPreview, setUploadPresetPreview] = useState<string | null>(null);
+  
+  const queryClient = useQueryClient();
 
   // ユーザーのアイテムを取得
   const { data: userItems = [], isLoading: isLoadingItems } = useQuery({
@@ -82,6 +99,70 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
     enabled: isOpen && !!userId,
   });
 
+  // ユーザーアップロードの背景プリセットを取得
+  const { data: userPresets = [] } = useQuery({
+    queryKey: ["background-presets"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("background_presets")
+        .select("*")
+        .eq("is_public", true)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as BackgroundPreset[];
+    },
+    enabled: isOpen,
+  });
+
+  // 背景プリセットをアップロード
+  const uploadPresetMutation = useMutation({
+    mutationFn: async () => {
+      if (!uploadPresetFile || !userId) throw new Error("ファイルが選択されていません");
+
+      // 画像をStorageにアップロード
+      const fileExt = uploadPresetFile.name.split('.').pop();
+      const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('kuji_images')
+        .upload(filePath, uploadPresetFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('kuji_images')
+        .getPublicUrl(filePath);
+
+      // データベースに保存
+      const { error: dbError } = await supabase
+        .from("background_presets")
+        .insert({
+          user_id: userId,
+          name: uploadPresetName,
+          image_url: publicUrl,
+          category: uploadPresetCategory,
+          is_public: true
+        });
+
+      if (dbError) throw dbError;
+
+      return publicUrl;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["background-presets"] });
+      toast.success("背景プリセットを追加しました");
+      setShowUploadDialog(false);
+      setUploadPresetName("");
+      setUploadPresetFile(null);
+      setUploadPresetPreview(null);
+    },
+    onError: (error) => {
+      console.error("Error uploading preset:", error);
+      toast.error("背景プリセットの追加に失敗しました");
+    }
+  });
+
   const handleItemToggle = (item: UserItem) => {
     setSelectedItems(prev => {
       const isSelected = prev.some(i => i.id === item.id);
@@ -97,6 +178,14 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
   };
 
   const handlePresetSelect = async (preset: BackgroundPreset) => {
+    // ユーザーアップロードのプリセットの場合は直接画像を使用
+    if (preset.image_url) {
+      setBackgroundImage(preset.image_url);
+      setSelectedPreset(preset.id);
+      return;
+    }
+
+    // デフォルトプリセットの場合はAI生成
     setIsGeneratingBackground(true);
     setSelectedPreset(preset.id);
 
@@ -135,6 +224,23 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
     const reader = new FileReader();
     reader.onload = (e) => {
       setBackgroundImage(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUploadPresetFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error("画像ファイルを選択してください");
+      return;
+    }
+
+    setUploadPresetFile(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setUploadPresetPreview(e.target?.result as string);
     };
     reader.readAsDataURL(file);
   };
@@ -203,178 +309,311 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
     setSelectedPreset(null);
   };
 
+  // カテゴリごとにプリセットをグループ化
+  const presetsByCategory = {
+    shelf: [...DEFAULT_PRESETS.filter(p => p.category === "shelf"), ...userPresets.filter(p => p.category === "shelf")],
+    room: [...DEFAULT_PRESETS.filter(p => p.category === "room"), ...userPresets.filter(p => p.category === "room")],
+    showcase: [...DEFAULT_PRESETS.filter(p => p.category === "showcase"), ...userPresets.filter(p => p.category === "showcase")],
+    display: [...DEFAULT_PRESETS.filter(p => p.category === "display"), ...userPresets.filter(p => p.category === "display")]
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            グッズ展示場
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              グッズ展示場
+            </DialogTitle>
+          </DialogHeader>
 
-        {generatedImage ? (
-          <ScrollArea className="flex-1 px-1">
-            <div className="space-y-4 pb-4">
-              <div className="relative rounded-lg overflow-hidden border">
-                <img 
-                  src={generatedImage} 
-                  alt="Generated display" 
-                  className="w-full h-auto"
-                />
+          {generatedImage ? (
+            <ScrollArea className="flex-1 px-1">
+              <div className="space-y-4 pb-4">
+                <div className="relative rounded-lg overflow-hidden border">
+                  <img 
+                    src={generatedImage} 
+                    alt="Generated display" 
+                    className="w-full h-auto"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleDownload} className="flex-1">
+                    ダウンロード
+                  </Button>
+                  <Button onClick={handleReset} variant="outline" className="flex-1">
+                    最初から作り直す
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button onClick={handleDownload} className="flex-1">
-                  ダウンロード
-                </Button>
-                <Button onClick={handleReset} variant="outline" className="flex-1">
-                  最初から作り直す
-                </Button>
-              </div>
-            </div>
-          </ScrollArea>
-        ) : (
-          <ScrollArea className="flex-1 px-1">
-            <div className="space-y-6 pb-4">
-              {/* 背景画像選択 */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">背景画像</label>
-                {backgroundImage ? (
-                  <div className="relative border rounded-lg overflow-hidden">
-                    <img 
-                      src={backgroundImage} 
-                      alt="Background" 
-                      className="w-full h-48 object-cover"
-                    />
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="absolute top-2 right-2"
-                      onClick={() => {
-                        setBackgroundImage(null);
-                        setBackgroundFile(null);
-                        setSelectedPreset(null);
-                      }}
-                    >
-                      削除
-                    </Button>
-                  </div>
-                ) : (
-                  <Tabs defaultValue="preset" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="preset">プリセット</TabsTrigger>
-                      <TabsTrigger value="upload">カスタム</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="preset" className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
-                        {BACKGROUND_PRESETS.map((preset) => (
-                          <Button
-                            key={preset.id}
-                            variant="outline"
-                            className="h-auto flex-col gap-2 p-4"
-                            onClick={() => handlePresetSelect(preset)}
-                            disabled={isGeneratingBackground}
-                          >
-                            <preset.icon className="w-8 h-8" />
-                            <span className="text-sm font-medium">{preset.name}</span>
-                          </Button>
-                        ))}
-                      </div>
-                      {isGeneratingBackground && (
-                        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-4">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          背景画像を生成中...
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="upload">
-                      <div className="border-2 border-dashed rounded-lg p-8">
-                        <label className="flex flex-col items-center gap-2 cursor-pointer">
-                          <Upload className="w-8 h-8 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">
-                            クリックして背景画像をアップロード
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleBackgroundUpload}
-                          />
-                        </label>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                )}
-              </div>
-
-              {/* グッズ選択 */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  展示するグッズを選択 ({selectedItems.length}/5)
-                </label>
-                <ScrollArea className="h-[240px] border rounded-lg p-4">
-                  {isLoadingItems ? (
-                    <div className="flex justify-center p-8">
-                      <Loader2 className="w-6 h-6 animate-spin" />
+            </ScrollArea>
+          ) : (
+            <ScrollArea className="flex-1 px-1">
+              <div className="space-y-6 pb-4">
+                {/* 背景画像選択 */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">背景画像</label>
+                  {backgroundImage ? (
+                    <div className="relative border rounded-lg overflow-hidden">
+                      <img 
+                        src={backgroundImage} 
+                        alt="Background" 
+                        className="w-full h-48 object-cover"
+                      />
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                          setBackgroundImage(null);
+                          setBackgroundFile(null);
+                          setSelectedPreset(null);
+                        }}
+                      >
+                        削除
+                      </Button>
                     </div>
-                  ) : userItems.length === 0 ? (
-                    <p className="text-center text-muted-foreground p-8">
-                      コレクションにグッズがありません
-                    </p>
                   ) : (
-                    <div className="grid grid-cols-3 gap-3">
-                      {userItems.map((item) => {
-                        const isSelected = selectedItems.some(i => i.id === item.id);
-                        return (
-                          <div
-                            key={item.id}
-                            className={`relative border rounded-lg p-2 cursor-pointer transition-all ${
-                              isSelected ? 'border-primary ring-2 ring-primary' : 'border-border'
-                            }`}
-                            onClick={() => handleItemToggle(item)}
+                    <Tabs defaultValue="preset" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="preset">プリセット</TabsTrigger>
+                        <TabsTrigger value="upload">カスタム</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="preset" className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm text-muted-foreground">
+                            既存のプリセットまたは他のユーザーの背景を選択
+                          </p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setShowUploadDialog(true)}
                           >
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="w-full aspect-square object-cover rounded mb-2"
-                            />
-                            <p className="text-xs truncate">{item.title}</p>
-                            <Checkbox
-                              checked={isSelected}
-                              className="absolute top-2 right-2"
-                              onClick={(e) => e.stopPropagation()}
-                            />
+                            <Plus className="w-4 h-4 mr-1" />
+                            背景を追加
+                          </Button>
+                        </div>
+                        
+                        {Object.entries(presetsByCategory).map(([category, presets]) => (
+                          presets.length > 0 && (
+                            <div key={category} className="space-y-2">
+                              <h4 className="text-sm font-medium capitalize">{category}</h4>
+                              <div className="grid grid-cols-2 gap-3">
+                                {presets.map((preset) => (
+                                  <Button
+                                    key={preset.id}
+                                    variant="outline"
+                                    className="h-auto flex-col gap-2 p-2 relative"
+                                    onClick={() => handlePresetSelect(preset)}
+                                    disabled={isGeneratingBackground}
+                                  >
+                                    {preset.image_url ? (
+                                      <img 
+                                        src={preset.image_url} 
+                                        alt={preset.name}
+                                        className="w-full h-20 object-cover rounded"
+                                      />
+                                    ) : preset.icon ? (
+                                      <preset.icon className="w-8 h-8" />
+                                    ) : null}
+                                    <span className="text-sm font-medium">{preset.name}</span>
+                                    {preset.user_id && (
+                                      <span className="text-xs text-muted-foreground">ユーザー投稿</span>
+                                    )}
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        ))}
+                        
+                        {isGeneratingBackground && (
+                          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-4">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            背景画像を生成中...
                           </div>
-                        );
-                      })}
-                    </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="upload">
+                        <div className="border-2 border-dashed rounded-lg p-8">
+                          <label className="flex flex-col items-center gap-2 cursor-pointer">
+                            <Upload className="w-8 h-8 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              クリックして背景画像をアップロード
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleBackgroundUpload}
+                            />
+                          </label>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
                   )}
-                </ScrollArea>
-              </div>
+                </div>
 
-              <Button
-                onClick={handleGenerate}
-                disabled={isGenerating || selectedItems.length === 0 || !backgroundImage}
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    生成中...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    グッズ展示場を生成
-                  </>
-                )}
-              </Button>
+                {/* グッズ選択 */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    展示するグッズを選択 ({selectedItems.length}/5)
+                  </label>
+                  <ScrollArea className="h-[240px] border rounded-lg p-4">
+                    {isLoadingItems ? (
+                      <div className="flex justify-center p-8">
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      </div>
+                    ) : userItems.length === 0 ? (
+                      <p className="text-center text-muted-foreground p-8">
+                        コレクションにグッズがありません
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-3">
+                        {userItems.map((item) => {
+                          const isSelected = selectedItems.some(i => i.id === item.id);
+                          return (
+                            <div
+                              key={item.id}
+                              className={`relative border rounded-lg p-2 cursor-pointer transition-all ${
+                                isSelected ? 'border-primary ring-2 ring-primary' : 'border-border'
+                              }`}
+                              onClick={() => handleItemToggle(item)}
+                            >
+                              <img
+                                src={item.image}
+                                alt={item.title}
+                                className="w-full aspect-square object-cover rounded mb-2"
+                              />
+                              <p className="text-xs truncate">{item.title}</p>
+                              <Checkbox
+                                checked={isSelected}
+                                className="absolute top-2 right-2"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+
+                <Button
+                  onClick={handleGenerate}
+                  disabled={isGenerating || selectedItems.length === 0 || !backgroundImage}
+                  className="w-full"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      生成中...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      グッズ展示場を生成
+                    </>
+                  )}
+                </Button>
+              </div>
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 背景プリセットアップロードダイアログ */}
+      <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>背景プリセットを追加</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="preset-name">プリセット名</Label>
+              <Input
+                id="preset-name"
+                value={uploadPresetName}
+                onChange={(e) => setUploadPresetName(e.target.value)}
+                placeholder="例: マイ棚"
+              />
             </div>
-          </ScrollArea>
-        )}
-      </DialogContent>
-    </Dialog>
+
+            <div className="space-y-2">
+              <Label htmlFor="preset-category">カテゴリ</Label>
+              <Select value={uploadPresetCategory} onValueChange={setUploadPresetCategory}>
+                <SelectTrigger id="preset-category">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="shelf">棚</SelectItem>
+                  <SelectItem value="room">部屋</SelectItem>
+                  <SelectItem value="showcase">ショーケース</SelectItem>
+                  <SelectItem value="display">展示台</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>背景画像</Label>
+              {uploadPresetPreview ? (
+                <div className="relative border rounded-lg overflow-hidden">
+                  <img 
+                    src={uploadPresetPreview} 
+                    alt="Preview" 
+                    className="w-full h-48 object-cover"
+                  />
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="absolute top-2 right-2"
+                    onClick={() => {
+                      setUploadPresetFile(null);
+                      setUploadPresetPreview(null);
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed rounded-lg p-8">
+                  <label className="flex flex-col items-center gap-2 cursor-pointer">
+                    <Upload className="w-8 h-8 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      クリックして画像をアップロード
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleUploadPresetFileChange}
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+
+            <Button
+              onClick={() => uploadPresetMutation.mutate()}
+              disabled={!uploadPresetName || !uploadPresetFile || uploadPresetMutation.isPending}
+              className="w-full"
+            >
+              {uploadPresetMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  アップロード中...
+                </>
+              ) : (
+                "背景プリセットを追加"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

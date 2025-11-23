@@ -103,6 +103,36 @@ export type Database = {
           },
         ]
       }
+      background_presets: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          image_url: string
+          is_public: boolean
+          name: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          image_url: string
+          is_public?: boolean
+          name: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_public?: boolean
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       collection_likes: {
         Row: {
           collection_owner_id: string
