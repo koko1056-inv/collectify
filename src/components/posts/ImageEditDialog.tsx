@@ -24,36 +24,37 @@ export function ImageEditDialog({
   isEditing,
 }: ImageEditDialogProps) {
   const [editPrompt, setEditPrompt] = useState("");
-  const [useAvatar, setUseAvatar] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
+  const [avatars, setAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
   const { user } = useAuth();
 
   useEffect(() => {
     if (user && isOpen) {
-      loadUserAvatar();
+      loadUserAvatars();
     }
   }, [user, isOpen]);
 
-  const loadUserAvatar = async () => {
+  const loadUserAvatars = async () => {
     if (!user) return;
     
     const { data, error } = await supabase
-      .from("profiles")
-      .select("avatar_url")
-      .eq("id", user.id)
-      .single();
+      .from("avatar_gallery")
+      .select("id, image_url")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(6);
 
-    if (!error && data?.avatar_url) {
-      setAvatarUrl(data.avatar_url);
+    if (!error && data) {
+      setAvatars(data);
     }
   };
 
   const handleEdit = () => {
     if (editPrompt.trim()) {
       const prompt = editPrompt.trim();
-      onEditComplete(prompt, useAvatar && avatarUrl ? avatarUrl : undefined);
+      onEditComplete(prompt, selectedAvatarUrl || undefined);
       setEditPrompt("");
-      setUseAvatar(false);
+      setSelectedAvatarUrl(null);
     }
   };
 
@@ -73,27 +74,41 @@ export function ImageEditDialog({
             />
           </div>
 
-          {avatarUrl && (
-            <div className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
-              <Checkbox 
-                id="use-avatar" 
-                checked={useAvatar}
-                onCheckedChange={(checked) => setUseAvatar(checked as boolean)}
-                disabled={isEditing}
-              />
-              <div className="flex items-center gap-2 flex-1">
-                <User className="w-4 h-4 text-muted-foreground" />
-                <Label 
-                  htmlFor="use-avatar" 
-                  className="text-sm font-normal cursor-pointer flex-1"
-                >
-                  アバターを素材として使用する
-                </Label>
-                <img 
-                  src={avatarUrl} 
-                  alt="Avatar" 
-                  className="w-10 h-10 rounded-full object-cover border-2 border-background"
-                />
+          {avatars.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm flex items-center gap-2">
+                <User className="w-4 h-4" />
+                ベースアバターを選択（任意）
+              </Label>
+              <div className="grid grid-cols-3 gap-2">
+                {avatars.map((avatar) => (
+                  <button
+                    key={avatar.id}
+                    type="button"
+                    onClick={() => setSelectedAvatarUrl(
+                      selectedAvatarUrl === avatar.image_url ? null : avatar.image_url
+                    )}
+                    disabled={isEditing}
+                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                      selectedAvatarUrl === avatar.image_url
+                        ? 'border-primary ring-2 ring-primary/20'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <img
+                      src={avatar.image_url}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                    {selectedAvatarUrl === avatar.image_url && (
+                      <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                          ✓
+                        </div>
+                      </div>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
           )}
