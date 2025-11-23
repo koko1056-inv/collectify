@@ -241,13 +241,20 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
       if (data?.imageUrl) {
         setBackgroundImage(data.imageUrl);
         
-        // AI生成した背景画像をプリセットとして保存
+        // AI生成した背景画像をプリセットとして自動保存
         if (userId) {
+          const timestamp = new Date().toLocaleString('ja-JP', { 
+            month: '2-digit', 
+            day: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }).replace(/\//g, '-').replace(/:/g, '');
+          
           const { error: saveError } = await supabase
             .from("background_presets")
             .insert({
               user_id: userId,
-              name: `AI生成 - ${preset.name}`,
+              name: `AI生成 - ${preset.name} (${timestamp})`,
               image_url: data.imageUrl,
               category: preset.category,
               is_public: true
@@ -257,6 +264,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
             console.error("Error saving generated background:", saveError);
           } else {
             queryClient.invalidateQueries({ queryKey: ["background-presets"] });
+            toast.success("背景プリセットとして保存しました");
           }
         }
         
