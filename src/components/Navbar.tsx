@@ -81,10 +81,13 @@ export function Navbar() {
   };
   return <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-sm">
       {/* モバイル版のロゴ (sm未満でのみ表示) */}
-      <div className="flex sm:hidden justify-center items-center h-12 bg-white border-b">
+      <div className="flex sm:hidden justify-between items-center h-12 bg-white border-b px-4">
+        <div className="w-8" /> {/* Left spacer for balance */}
         <Link to="/" className="logo-text text-xl font-bold">
           Collectify
         </Link>
+        {user && <NotificationBell className="sm:hidden" />}
+        {!user && <div className="w-8" />} {/* Right spacer when not logged in */}
       </div>
       
       {/* デスクトップ版のナビゲーション */}
