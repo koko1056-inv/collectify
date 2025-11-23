@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { useTags } from "@/hooks/useTags";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
+import { SelectionModeControls } from "@/components/collection/SelectionModeControls";
+import { useCreatePost } from "@/hooks/posts";
 interface CreatePostFromCollectionModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,11 +29,14 @@ export function CreatePostFromCollectionModal({
     user
   } = useAuth();
   const navigate = useNavigate();
+  const createPost = useCreatePost();
   const [selectedItem, setSelectedItem] = useState<{
     id: string;
     title: string;
     image: string;
   } | null>(null);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [filterBy, setFilterBy] = useState<FilterOption>("all");
@@ -130,10 +135,64 @@ export function CreatePostFromCollectionModal({
     title: string;
     image: string;
   }) => {
-    setSelectedItem(item);
+    if (isSelectionMode) {
+      // 選択モードの場合はチェックボックスのトグル
+      handleItemToggle(item.id);
+    } else {
+      // 通常モードの場合は単一選択
+      setSelectedItem(item);
+    }
   };
+
+  const handleItemToggle = (itemId: string) => {
+    setSelectedItemIds(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItemIds.length === filteredAndSortedItems.length) {
+      setSelectedItemIds([]);
+    } else {
+      setSelectedItemIds(filteredAndSortedItems.map(item => item.id));
+    }
+  };
+
+  const handleConfirmSelection = async () => {
+    if (selectedItemIds.length === 0) return;
+
+    try {
+      // 選択されたアイテムを取得
+      const selectedItems = userItems?.filter(item => selectedItemIds.includes(item.id)) || [];
+      
+      // 各アイテムに対して投稿を作成
+      for (const item of selectedItems) {
+        await createPost.mutateAsync({
+          userItemId: item.id,
+          imageUrl: item.image,
+        });
+      }
+
+      // リセット
+      setSelectedItemIds([]);
+      setIsSelectionMode(false);
+      handleClosePostModal();
+    } catch (error) {
+      console.error("投稿の作成に失敗しました:", error);
+    }
+  };
+
+  const handleCancelSelection = () => {
+    setSelectedItemIds([]);
+    setIsSelectionMode(false);
+  };
+
   const handleClosePostModal = () => {
     setSelectedItem(null);
+    setSelectedItemIds([]);
+    setIsSelectionMode(false);
     setSearchQuery("");
     setSelectedContentNames([]);
     setSelectedTags([]);
@@ -167,19 +226,44 @@ export function CreatePostFromCollectionModal({
       <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] overflow-hidden flex flex-col">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <DialogTitle className="text-lg font-bold">投稿するグッズを選択</DialogTitle>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              onClose();
-              navigate('/add-item');
-            }}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            グッズ追加
-          </Button>
+          <div className="flex items-center gap-2">
+            {!isSelectionMode && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsSelectionMode(true)}
+                >
+                  複数選択
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    onClose();
+                    navigate('/add-item');
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  グッズ追加
+                </Button>
+              </>
+            )}
+          </div>
         </DialogHeader>
+
+        {isSelectionMode && (
+          <div className="pb-3 border-b">
+            <SelectionModeControls
+              selectedItems={selectedItemIds}
+              totalItems={filteredAndSortedItems.length}
+              onSelectAll={handleSelectAll}
+              onConfirm={handleConfirmSelection}
+              onCancel={handleCancelSelection}
+            />
+          </div>
+        )}
         
         {/* 検索バー */}
         <div className="relative mb-4">
@@ -237,14 +321,31 @@ export function CreatePostFromCollectionModal({
                   </div>
                 </div>)}
             </div> : filteredAndSortedItems.length > 0 ? <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 p-2">
-              {filteredAndSortedItems.map(item => <Button key={item.id} variant="outline" onClick={() => handleItemSelect(item)} className="flex flex-col items-center p-3 h-auto space-y-2 hover:shadow-md transition-shadow min-h-[180px]">
-                  <img src={item.image} alt={item.title} className="w-full h-24 md:h-28 lg:h-32 object-cover rounded flex-shrink-0" />
-                  <div className="text-left w-full flex-1 flex flex-col justify-between">
-                    <div className="font-medium text-xs line-clamp-2 leading-tight">{item.title}</div>
-                    {item.content_name && <div className="text-xs text-gray-500 mt-1 line-clamp-1">{item.content_name}</div>}
-                    {item.user_item_tags && item.user_item_tags.length > 0}
-                  </div>
-                </Button>)}
+              {filteredAndSortedItems.map(item => (
+                <div key={item.id} className="relative">
+                  {isSelectionMode && (
+                    <div className="absolute top-2 left-2 z-10">
+                      <Checkbox
+                        checked={selectedItemIds.includes(item.id)}
+                        onCheckedChange={() => handleItemToggle(item.id)}
+                        className="bg-background border-2"
+                      />
+                    </div>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleItemSelect(item)} 
+                    className="flex flex-col items-center p-3 h-auto space-y-2 hover:shadow-md transition-shadow min-h-[180px] w-full"
+                  >
+                    <img src={item.image} alt={item.title} className="w-full h-24 md:h-28 lg:h-32 object-cover rounded flex-shrink-0" />
+                    <div className="text-left w-full flex-1 flex flex-col justify-between">
+                      <div className="font-medium text-xs line-clamp-2 leading-tight">{item.title}</div>
+                      {item.content_name && <div className="text-xs text-gray-500 mt-1 line-clamp-1">{item.content_name}</div>}
+                      {item.user_item_tags && item.user_item_tags.length > 0}
+                    </div>
+                  </Button>
+                </div>
+              ))}
             </div> : searchQuery || selectedContentNames.length > 0 || selectedTags.length > 0 ? <div className="text-center py-16">
               <p className="text-gray-500 text-lg">検索条件に一致するグッズが見つかりません</p>
               <p className="text-sm text-gray-400 mt-2">
