@@ -44,11 +44,11 @@ export function ImageEditDialog({
       .order("created_at", { ascending: false });
 
     if (!error && data) {
-      // 着せ替えで生成されたアバターのみを表示（item_idsが存在し、要素がある）
-      const dressUpAvatars = data.filter(avatar => 
-        avatar.item_ids && avatar.item_ids.length > 0
+      // ベースアバターのみを表示（item_idsが存在しないもの）
+      const baseAvatars = data.filter(avatar => 
+        !avatar.item_ids || avatar.item_ids.length === 0
       ).slice(0, 6);
-      setAvatars(dressUpAvatars);
+      setAvatars(baseAvatars);
     }
   };
 
