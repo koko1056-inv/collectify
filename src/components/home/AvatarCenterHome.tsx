@@ -37,6 +37,23 @@ interface AvatarCenterHomeProps {
 }
 
 export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHomeProps) {
+  console.log("[AvatarCenterHome] Received profile:", { 
+    profile, 
+    hasId: !!profile?.id, 
+    id: profile?.id,
+    keys: profile ? Object.keys(profile) : [] 
+  });
+
+  // プロフィールが存在しない場合の早期リターン
+  if (!profile) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">プロフィールを読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showRandomPickup, setShowRandomPickup] = useState(false);
   const [showGoodsDisplay, setShowGoodsDisplay] = useState(false);
