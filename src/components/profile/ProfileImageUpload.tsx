@@ -307,20 +307,20 @@ export function ProfileImageUpload({
                         <AvatarImage src={avatar.image_url} className="object-cover" />
                         <AvatarFallback>?</AvatarFallback>
                       </Avatar>
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center gap-2">
+                      <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
-                          className="p-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors"
+                          className="p-2.5 bg-background text-foreground rounded-full hover:bg-background/90 transition-colors shadow-lg"
                           title="選択"
                         >
-                          <Check className="w-4 h-4" />
+                          <Check className="w-5 h-5" />
                         </button>
                         <button
                           onClick={(e) => handleDeleteClick(avatar.id, e)}
-                          className="p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
+                          className="p-2.5 bg-background text-foreground rounded-full hover:bg-background/90 transition-colors shadow-lg"
                           title="削除"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5 text-destructive" />
                         </button>
                       </div>
                     </div>
