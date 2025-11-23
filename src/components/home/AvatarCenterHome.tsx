@@ -52,19 +52,6 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const [avatarToEdit, setAvatarToEdit] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // profileがない場合はローディング表示
-  if (!profile) {
-    return (
-      <div className="min-h-[80vh] flex flex-col items-center justify-center relative px-4 sm:px-8">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl" />
-        <div className="text-center relative z-10">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">プロフィールを読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
-
   // 最新のアバターを取得（プロフィールとギャラリーを並行取得）
   const fetchCurrentAvatar = async () => {
     if (!profile?.id) {
