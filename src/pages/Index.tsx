@@ -39,8 +39,8 @@ const Index = () => {
 
   // ユーザーのコレクションを表示するか、ホームページを表示するか
   const showUserCollection = !!userId && !!viewedProfile;
-  // 自分のプロフィールでログイン中の場合はアバター中心のホームを表示
-  const showAvatarCenterHome = user && profile && profile.id && !userId;
+  // ホーム画面（userIdがない）では常にアバター中心のレイアウトを表示
+  const showAvatarCenterHome = !userId;
 
   console.log("[Index] visibility flags", {
     routeUserId: userId,
@@ -64,8 +64,8 @@ const Index = () => {
     }
   };
 
-  // ローディング中の表示
-  if (isLoadingProfile && user) {
+  // 他ユーザーのプロフィールを見ているときのローディング表示のみ
+  if (userId && isLoadingViewedProfile) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
