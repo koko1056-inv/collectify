@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface GoodsDisplayModalProps {
   isOpen: boolean;
@@ -80,6 +81,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
   const [uploadPresetPreview, setUploadPresetPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState<string>("");
   
   const queryClient = useQueryClient();
 
@@ -198,6 +200,10 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
   };
 
   const handlePresetSelect = async (preset: BackgroundPreset) => {
+    // 選択状態をリセット
+    setSelectedItems([]);
+    setCustomPrompt("");
+    
     // ユーザーアップロードのプリセットの場合は直接画像を使用
     if (preset.image_url) {
       setBackgroundImage(preset.image_url);
@@ -302,7 +308,8 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
       // グッズ画像のURLを収集
       const itemImages = selectedItems.map(item => item.image);
 
-      const prompt = `この背景画像に、選択されたグッズ（${selectedItems.map(i => i.title).join('、')}）を自然に配置して、魅力的な展示場の画像を生成してください。グッズは重ならないように配置し、全体的にバランスの取れた構図にしてください。`;
+      const defaultPrompt = `この背景画像に、選択されたグッズ（${selectedItems.map(i => i.title).join('、')}）を自然に配置して、魅力的な展示場の画像を生成してください。グッズは重ならないように配置し、全体的にバランスの取れた構図にしてください。`;
+      const prompt = customPrompt.trim() || defaultPrompt;
 
       const { data, error } = await supabase.functions.invoke('edit-image', {
         body: {
@@ -603,6 +610,19 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
                     </Tabs>
                   )}
                 </div>
+
+                {/* カスタムプロンプト */}
+                {backgroundImage && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">生成プロンプト（オプション）</label>
+                    <Textarea
+                      value={customPrompt}
+                      onChange={(e) => setCustomPrompt(e.target.value)}
+                      placeholder="生成する画像の説明を入力してください。空白の場合はデフォルトプロンプトが使用されます。"
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                )}
 
                 {/* グッズ選択 */}
                 <div className="space-y-2">
