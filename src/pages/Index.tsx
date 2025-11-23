@@ -42,6 +42,15 @@ const Index = () => {
   // 自分のプロフィールでログイン中の場合はアバター中心のホームを表示
   const showAvatarCenterHome = user && profile && profile.id && !userId;
 
+  console.log("[Index] visibility flags", {
+    routeUserId: userId,
+    hasUser: !!user,
+    hasProfile: !!profile,
+    profileId: profile?.id,
+    showUserCollection,
+    showAvatarCenterHome,
+  });
+
   const handleAvatarGenerated = async (url: string) => {
     if (!user?.id) return;
     
