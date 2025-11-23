@@ -533,7 +533,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
                                 <Button
                                   key={preset.id}
                                   variant="outline"
-                                  className="h-auto flex-col gap-2 p-2 relative"
+                                  className="h-auto p-2 relative"
                                   onClick={() => handleSelectPreset(preset)}
                                   disabled={isGeneratingBackground}
                                 >
@@ -546,10 +546,6 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
                                   ) : preset.icon ? (
                                     <preset.icon className="w-12 h-12" />
                                   ) : null}
-                                  <span className="text-sm font-medium">{preset.name}</span>
-                                  {preset.user_id && (
-                                    <span className="text-xs text-muted-foreground">ユーザー投稿</span>
-                                  )}
                                 </Button>
                               ))}
                             </div>
