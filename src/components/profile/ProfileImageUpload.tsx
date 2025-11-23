@@ -183,9 +183,17 @@ export function ProfileImageUpload({
 
   const handleSelectAvatar = async (avatarUrl: string, avatarId: string) => {
     try {
-      // プレビューを更新
-      setPreviewUrl(avatarUrl);
-      
+      // 1. まずprofiles.avatar_urlを更新（これが最も重要）
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: avatarUrl })
+        .eq("id", userId);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      // 2. avatar_galleryの同期（統一処理）
       // すべてのアバターの is_current を false に設定
       await supabase
         .from("avatar_gallery")
@@ -198,16 +206,8 @@ export function ProfileImageUpload({
         .update({ is_current: true })
         .eq("id", avatarId);
 
-      // プロフィールの avatar_url を更新
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: avatarUrl })
-        .eq("id", userId);
-
-      if (profileError) {
-        throw profileError;
-      }
-      
+      // 3. UIを更新
+      setPreviewUrl(avatarUrl);
       setIsPopoverOpen(false);
       sonnerToast.success("アバターを切り替えました");
     } catch (error) {
