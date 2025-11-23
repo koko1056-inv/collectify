@@ -114,25 +114,22 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         .from("avatar_gallery")
         .select("id, image_url, item_ids, prompt, name")
         .eq("user_id", profile.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(30); // 最新30件まで表示
 
       if (data) {
-        // ゼロから生成したアバターのみをフィルタリング
+        // 重複URLを除外してすべてのアバターを表示
         const seen = new Set<string>();
-        const pureAvatars = [] as Array<{ id: string; image_url: string; name: string | null }>;
+        const allAvatars = [] as Array<{ id: string; image_url: string; name: string | null }>;
 
         for (const avatar of data) {
-          if (
-            (!avatar.item_ids || avatar.item_ids.length === 0) &&
-            avatar.prompt !== "プロフィール画像" &&
-            !seen.has(avatar.image_url)
-          ) {
+          if (!seen.has(avatar.image_url)) {
             seen.add(avatar.image_url);
-            pureAvatars.push({ id: avatar.id, image_url: avatar.image_url, name: avatar.name });
+            allAvatars.push({ id: avatar.id, image_url: avatar.image_url, name: avatar.name });
           }
         }
 
-        setRecentAvatars(pureAvatars.slice(0, 10));
+        setRecentAvatars(allAvatars);
       }
     } catch (error) {
       console.error("Error fetching recent avatars:", error);
@@ -274,30 +271,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
       if (updateError) throw updateError;
 
-      // 2. avatar_galleryの同期 - 古いAI生成アバターを削除（10個まで保持）
-      const { data: existingAvatars } = await supabase
-        .from("avatar_gallery")
-        .select("id, item_ids, prompt, created_at")
-        .eq("user_id", profile.id)
-        .order("created_at", { ascending: false });
-
-      if (existingAvatars) {
-        const pureAvatars = existingAvatars.filter(
-          avatar => (!avatar.item_ids || avatar.item_ids.length === 0) && 
-                    avatar.prompt !== "プロフィール画像"
-        );
-
-        if (pureAvatars.length > 10) {
-          const toDelete = pureAvatars.slice(10);
-          for (const avatar of toDelete) {
-            await supabase
-              .from("avatar_gallery")
-              .delete()
-              .eq("id", avatar.id);
-          }
-        }
-      }
-
+      // 2. avatar_galleryに新しいアバターを追加（削除はしない）
       setCurrentAvatarUrl(publicUrl);
       toast.success("AIで生成したアバターを設定しました");
       onAvatarGenerated(publicUrl);
