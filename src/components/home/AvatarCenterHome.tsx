@@ -26,7 +26,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
   const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
 
-  // 最新のアバターを取得（ギャラリーまたはプロフィールから）
+  // 最新のアバターを取得（プロフィールを最優先）
   const fetchCurrentAvatar = async () => {
     if (!profile?.id) {
       console.log("[AvatarCenterHome] No profile ID");
@@ -36,46 +36,28 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     console.log("[AvatarCenterHome] Fetching current avatar for user:", profile.id);
 
     try {
-      // ギャラリーから着せ替えで生成されたアバター（item_idsがある）または
-      // AI生成アバター（item_idsがnullまたは空）で is_current=true のものを取得
-      const { data: galleryData, error: galleryError } = await supabase
-        .from("avatar_gallery")
-        .select("image_url, is_current, item_ids")
-        .eq("user_id", profile.id)
-        .eq("is_current", true)
-        .order("created_at", { ascending: false });
-
-      console.log("[AvatarCenterHome] Gallery data:", galleryData);
-      console.log("[AvatarCenterHome] Gallery error:", galleryError);
-
-      if (!galleryError && galleryData && galleryData.length > 0) {
-        // 着せ替えで生成されたアバターを優先
-        const dressUpAvatar = galleryData.find(avatar => 
-          avatar.item_ids && avatar.item_ids.length > 0
-        );
-        
-        if (dressUpAvatar) {
-          console.log("[AvatarCenterHome] Found dress-up avatar:", dressUpAvatar.image_url);
-          setCurrentAvatarUrl(dressUpAvatar.image_url);
-          return;
-        }
-
-        // 着せ替えがない場合、AI生成アバターを使用
-        const aiAvatar = galleryData.find(avatar => 
-          !avatar.item_ids || avatar.item_ids.length === 0
-        );
-
-        if (aiAvatar) {
-          console.log("[AvatarCenterHome] Found AI avatar:", aiAvatar.image_url);
-          setCurrentAvatarUrl(aiAvatar.image_url);
-          return;
-        }
-      }
-
-      // ギャラリーになければプロフィールのavatar_urlを確認
+      // まずプロフィールのavatar_urlをチェック（これが常に最新であるべき）
       if (profile.avatar_url) {
         console.log("[AvatarCenterHome] Using profile avatar_url:", profile.avatar_url);
         setCurrentAvatarUrl(profile.avatar_url);
+        return;
+      }
+
+      // プロフィールにない場合のみ、ギャラリーから is_current=true の最新のものを取得
+      const { data: galleryData, error: galleryError } = await supabase
+        .from("avatar_gallery")
+        .select("image_url")
+        .eq("user_id", profile.id)
+        .eq("is_current", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      console.log("[AvatarCenterHome] Gallery data:", galleryData);
+
+      if (!galleryError && galleryData?.image_url) {
+        console.log("[AvatarCenterHome] Found gallery avatar:", galleryData.image_url);
+        setCurrentAvatarUrl(galleryData.image_url);
         return;
       }
 
