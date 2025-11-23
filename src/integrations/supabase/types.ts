@@ -995,6 +995,42 @@ export type Database = {
           },
         ]
       }
+      post_items: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_item_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_items_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "goods_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_items_user_item_id_fkey"
+            columns: ["user_item_id"]
+            isOneToOne: false
+            referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_likes: {
         Row: {
           created_at: string

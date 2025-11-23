@@ -60,9 +60,7 @@ export function CollectionGoodsCardModals({
       <CreatePostModal
         isOpen={isCreatePostModalOpen}
         onClose={() => setIsCreatePostModalOpen(false)}
-        userItemId={id}
-        userItemTitle={title}
-        userItemImage={image}
+        selectedItems={[{ id, title, image }]}
       />
     </>
   );
