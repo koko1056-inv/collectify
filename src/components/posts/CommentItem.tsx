@@ -3,7 +3,10 @@ import { Button } from "@/components/ui/button";
 import { PostComment } from "@/types/posts";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, Heart } from "lucide-react";
+import { useToggleCommentLike } from "@/hooks/posts";
+import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 
 interface CommentItemProps {
   comment: PostComment;
@@ -12,6 +15,16 @@ interface CommentItemProps {
 }
 
 export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
+  const { user } = useAuth();
+  const toggleLike = useToggleCommentLike();
+  
+  const isLiked = comment.comment_likes?.some(like => like.user_id === user?.id) || false;
+  const likesCount = comment.comment_likes?.length || 0;
+
+  const handleLike = () => {
+    if (!user) return;
+    toggleLike.mutate({ commentId: comment.id, isLiked });
+  };
   return (
     <div className={`${level > 0 ? "ml-8 mt-2" : ""}`}>
       <div className="flex items-start space-x-3">
@@ -30,7 +43,7 @@ export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
               {comment.comment}
             </p>
           </div>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-3 mt-1">
             <p className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(comment.created_at), {
                 addSuffix: true,
@@ -48,6 +61,19 @@ export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
                 返信
               </Button>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-auto p-0 text-xs flex items-center gap-1",
+                isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-foreground"
+              )}
+              onClick={handleLike}
+              disabled={!user || toggleLike.isPending}
+            >
+              <Heart className={cn("h-3 w-3", isLiked && "fill-current")} />
+              {likesCount > 0 && <span>{likesCount}</span>}
+            </Button>
           </div>
         </div>
       </div>

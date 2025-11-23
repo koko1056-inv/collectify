@@ -6,6 +6,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface CommentLike {
+  id: string;
+  user_id: string;
+}
+
 export function usePostComments(postId: string) {
   const queryClient = useQueryClient();
 
@@ -26,7 +31,7 @@ export function usePostComments(postId: string) {
         throw commentsError;
       }
 
-      // 各コメントに対してプロフィール情報を取得
+      // 各コメントに対してプロフィール情報といいね情報を取得
       const commentsWithProfiles = await Promise.all(
         (commentsData || []).map(async (comment) => {
           const { data: profileData, error: profileError } = await supabase
@@ -39,9 +44,20 @@ export function usePostComments(postId: string) {
             console.error("プロフィール取得エラー:", profileError);
           }
 
+          // いいね情報を取得
+          const { data: likesData, error: likesError } = await supabase
+            .from("comment_likes")
+            .select("id, user_id")
+            .eq("comment_id", comment.id);
+
+          if (likesError) {
+            console.error("いいね取得エラー:", likesError);
+          }
+
           return {
             ...comment,
-            profiles: profileData || { username: "Unknown User", avatar_url: null }
+            profiles: profileData || { username: "Unknown User", avatar_url: null },
+            comment_likes: likesData || []
           };
         })
       );
@@ -153,6 +169,51 @@ export function useAddComment() {
       toast({
         title: "エラー",
         description: "コメントの追加に失敗しました。",
+        variant: "destructive",
+      });
+    },
+  });
+}
+
+export function useToggleCommentLike() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ commentId, isLiked }: { commentId: string; isLiked: boolean }) => {
+      if (!user) throw new Error("ログインが必要です");
+
+      if (isLiked) {
+        // いいねを削除
+        const { error } = await supabase
+          .from("comment_likes")
+          .delete()
+          .eq("comment_id", commentId)
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+      } else {
+        // いいねを追加
+        const { error } = await supabase
+          .from("comment_likes")
+          .insert({
+            comment_id: commentId,
+            user_id: user.id,
+          });
+
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, variables) => {
+      // コメントクエリを無効化して再取得
+      queryClient.invalidateQueries({ queryKey: ["comments"] });
+    },
+    onError: (error) => {
+      console.error("いいね操作エラー:", error);
+      toast({
+        title: "エラー",
+        description: "いいね操作に失敗しました。",
         variant: "destructive",
       });
     },

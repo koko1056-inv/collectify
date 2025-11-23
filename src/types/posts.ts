@@ -55,4 +55,8 @@ export interface PostComment {
     avatar_url?: string;
   };
   replies?: PostComment[];
+  comment_likes?: Array<{
+    id: string;
+    user_id: string;
+  }>;
 }
