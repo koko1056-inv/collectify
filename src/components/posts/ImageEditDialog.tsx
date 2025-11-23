@@ -39,13 +39,16 @@ export function ImageEditDialog({
     
     const { data, error } = await supabase
       .from("avatar_gallery")
-      .select("id, image_url")
+      .select("id, image_url, item_ids")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(6);
+      .order("created_at", { ascending: false });
 
     if (!error && data) {
-      setAvatars(data);
+      // 着せ替えで生成されたアバターのみを表示（item_idsが存在し、要素がある）
+      const dressUpAvatars = data.filter(avatar => 
+        avatar.item_ids && avatar.item_ids.length > 0
+      ).slice(0, 6);
+      setAvatars(dressUpAvatars);
     }
   };
 
