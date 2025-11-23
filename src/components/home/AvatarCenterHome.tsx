@@ -62,37 +62,25 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     console.log("[AvatarCenterHome] Fetching current avatar for user:", profile.id);
 
     try {
-      // プロフィールとギャラリーを並行して取得
-      const [profileAvatarUrl, galleryResult] = await Promise.all([
-        // プロフィールのavatar_url（既にprofileオブジェクトにある）
-        Promise.resolve(profile.avatar_url),
-        // ギャラリーから is_current=true の最新データ
-        supabase
-          .from("avatar_gallery")
-          .select("image_url")
-          .eq("user_id", profile.id)
-          .eq("is_current", true)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle()
-      ]);
-
-      const galleryAvatarUrl = galleryResult.data?.image_url;
-
-      console.log("[AvatarCenterHome] Profile avatar_url:", profileAvatarUrl);
-      console.log("[AvatarCenterHome] Gallery avatar_url:", galleryAvatarUrl);
-
-      // プロフィールのavatar_urlを最優先（これが正式な現在のアバター）
-      if (profileAvatarUrl) {
+      // 1. プロフィールのavatar_urlを最優先
+      if (profile.avatar_url) {
         console.log("[AvatarCenterHome] Using profile avatar_url");
-        setCurrentAvatarUrl(profileAvatarUrl);
+        setCurrentAvatarUrl(profile.avatar_url);
         return;
       }
 
-      // プロフィールにない場合はギャラリーをフォールバック
-      if (galleryAvatarUrl) {
-        console.log("[AvatarCenterHome] Using gallery avatar_url as fallback");
-        setCurrentAvatarUrl(galleryAvatarUrl);
+      // 2. avatar_galleryから最新のアバターを取得（is_currentに関わらず）
+      const { data: latestAvatar } = await supabase
+        .from("avatar_gallery")
+        .select("image_url")
+        .eq("user_id", profile.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (latestAvatar?.image_url) {
+        console.log("[AvatarCenterHome] Using latest gallery avatar as fallback");
+        setCurrentAvatarUrl(latestAvatar.image_url);
         return;
       }
 
@@ -164,6 +152,9 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       setCurrentAvatarUrl(avatarUrl);
       setIsAvatarPopoverOpen(false);
       toast.success("アバターを切り替えました");
+      
+      // 親コンポーネントに通知
+      onAvatarGenerated(avatarUrl);
       
       // 再取得
       await fetchCurrentAvatar();
