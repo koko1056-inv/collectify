@@ -31,7 +31,6 @@ export const ProfileCard = memo(function ProfileCard({
   const [bio, setBio] = useState("");
   const [xUsername, setXUsername] = useState("");
   const [username_, setUsername_] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isFavoritesEditing, setIsFavoritesEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -48,8 +47,7 @@ export const ProfileCard = memo(function ProfileCard({
       setXUsername(profile.x_username || "");
       setUsername_(profile.username || "");
       setUsername(profile.username || "");
-      setAvatarUrl(profile.avatar_url);
-      setPreviewUrl(profile.avatar_url);
+      setPreviewUrl(profile.avatar_url || null);
       setLoading(false);
     }
   }, [profile, setUsername]);
@@ -159,7 +157,6 @@ export const ProfileCard = memo(function ProfileCard({
 
       await refetchProfile();
 
-      setAvatarUrl(publicUrl);
       setPreviewUrl(publicUrl);
       toast({
         title: "画像アップロード完了",
@@ -190,7 +187,7 @@ export const ProfileCard = memo(function ProfileCard({
       <ProfileImageSection
         isOwnProfile={isOwnProfile}
         userId={effectiveUserId}
-        avatarUrl={avatarUrl}
+        avatarUrl={profile?.avatar_url || null}
         username={username_}
         previewUrl={previewUrl}
         onImageChange={handleImageChange}
