@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "./notifications/NotificationBell";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useProfile } from "@/hooks/useProfile";
 export function Navbar() {
   const {
     user
@@ -26,6 +28,8 @@ export function Navbar() {
   const {
     t
   } = useLanguage();
+  const navigate = useNavigate();
+  const { profile } = useProfile(user?.id);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
@@ -86,7 +90,22 @@ export function Navbar() {
         <Link to="/" className="logo-text text-xl font-bold">
           Collectify
         </Link>
-        {user && <NotificationBell className="sm:hidden" />}
+        {user && (
+          <div className="flex items-center gap-2">
+            <NotificationBell className="sm:hidden" />
+            <button
+              onClick={() => navigate("/edit-profile")}
+              className="flex items-center justify-center"
+            >
+              <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
+                <AvatarImage src={profile?.avatar_url || undefined} />
+                <AvatarFallback className="bg-muted">
+                  <User className="w-4 h-4" />
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          </div>
+        )}
         {!user && <div className="w-8" />} {/* Right spacer when not logged in */}
       </div>
       
@@ -160,6 +179,27 @@ export function Navbar() {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>グッズを追加</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => navigate("/edit-profile")}
+                      className="flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
+                    >
+                      <Avatar className="w-9 h-9 border-2 border-border hover:border-primary transition-colors">
+                        <AvatarImage src={profile?.avatar_url || undefined} />
+                        <AvatarFallback className="bg-muted">
+                          <User className="w-4 h-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>プロフィール</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
