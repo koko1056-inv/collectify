@@ -43,14 +43,30 @@ export const ProfileCard = memo(function ProfileCard({
   // プロフィールデータをローカル状態に設定
   useEffect(() => {
     if (profile) {
+      console.log("[ProfileCard] Profile data updated:", {
+        id: profile.id,
+        username: profile.username,
+        avatar_url: profile.avatar_url
+      });
       setBio(profile.bio || "");
       setXUsername(profile.x_username || "");
       setUsername_(profile.username || "");
       setUsername(profile.username || "");
-      setPreviewUrl(profile.avatar_url || null);
+      // 初回ロード時もアバターURLを設定
+      if (profile.avatar_url) {
+        setPreviewUrl(profile.avatar_url);
+      }
       setLoading(false);
     }
   }, [profile, setUsername]);
+
+  // アバターURLが変更されたときにプレビューURLを更新
+  useEffect(() => {
+    if (profile?.avatar_url) {
+      console.log("[ProfileCard] Avatar URL changed to:", profile.avatar_url);
+      setPreviewUrl(profile.avatar_url);
+    }
+  }, [profile?.avatar_url]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
