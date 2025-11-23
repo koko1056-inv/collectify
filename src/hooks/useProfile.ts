@@ -19,10 +19,10 @@ export function useProfile(userId: string | undefined) {
       return data as Profile;
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5分間キャッシュ
+    staleTime: 1 * 60 * 1000, // 1分間キャッシュ
     gcTime: 30 * 60 * 1000, // 30分間保持
-    refetchOnMount: false, // マウント時は再取得しない
-    refetchOnWindowFocus: false, // フォーカス時は再取得しない
+    refetchOnMount: true, // マウント時に再取得
+    refetchOnWindowFocus: true, // フォーカス時に再取得
   });
 
   return {
