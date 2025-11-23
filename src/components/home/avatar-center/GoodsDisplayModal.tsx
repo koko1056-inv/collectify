@@ -78,6 +78,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
   const [uploadPresetCategory, setUploadPresetCategory] = useState("shelf");
   const [uploadPresetFile, setUploadPresetFile] = useState<File | null>(null);
   const [uploadPresetPreview, setUploadPresetPreview] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   const queryClient = useQueryClient();
 
@@ -307,6 +308,20 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
     setBackgroundFile(null);
     setGeneratedImage(null);
     setSelectedPreset(null);
+    setSelectedCategory(null);
+  };
+
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  const handleBackToCategories = () => {
+    setSelectedCategory(null);
+  };
+
+  const handleSelectPreset = async (preset: BackgroundPreset) => {
+    await handlePresetSelect(preset);
+    setSelectedCategory(null);
   };
 
   // カテゴリごとにプリセットをグループ化
@@ -382,57 +397,85 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
                       </TabsList>
                       
                       <TabsContent value="preset" className="space-y-3">
-                        <div className="flex justify-between items-center">
-                          <p className="text-sm text-muted-foreground">
-                            既存のプリセットまたは他のユーザーの背景を選択
-                          </p>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setShowUploadDialog(true)}
-                          >
-                            <Plus className="w-4 h-4 mr-1" />
-                            背景を追加
-                          </Button>
-                        </div>
-                        
-                        {Object.entries(presetsByCategory).map(([category, presets]) => (
-                          presets.length > 0 && (
-                            <div key={category} className="space-y-2">
-                              <h4 className="text-sm font-medium capitalize">{category}</h4>
-                              <div className="grid grid-cols-2 gap-3">
-                                {presets.map((preset) => (
-                                  <Button
-                                    key={preset.id}
-                                    variant="outline"
-                                    className="h-auto flex-col gap-2 p-2 relative"
-                                    onClick={() => handlePresetSelect(preset)}
-                                    disabled={isGeneratingBackground}
-                                  >
-                                    {preset.image_url ? (
-                                      <img 
-                                        src={preset.image_url} 
-                                        alt={preset.name}
-                                        className="w-full h-20 object-cover rounded"
-                                      />
-                                    ) : preset.icon ? (
-                                      <preset.icon className="w-8 h-8" />
-                                    ) : null}
-                                    <span className="text-sm font-medium">{preset.name}</span>
-                                    {preset.user_id && (
-                                      <span className="text-xs text-muted-foreground">ユーザー投稿</span>
-                                    )}
-                                  </Button>
-                                ))}
-                              </div>
+                        {selectedCategory ? (
+                          // カテゴリ詳細画面
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleBackToCategories}
+                              >
+                                ← カテゴリ一覧に戻る
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setUploadPresetCategory(selectedCategory);
+                                  setShowUploadDialog(true);
+                                }}
+                              >
+                                <Plus className="w-4 h-4 mr-1" />
+                                背景を追加
+                              </Button>
                             </div>
-                          )
-                        ))}
-                        
-                        {isGeneratingBackground && (
-                          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-4">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            背景画像を生成中...
+
+                            <div className="grid grid-cols-2 gap-3">
+                              {presetsByCategory[selectedCategory as keyof typeof presetsByCategory]?.map((preset) => (
+                                <Button
+                                  key={preset.id}
+                                  variant="outline"
+                                  className="h-auto flex-col gap-2 p-2 relative"
+                                  onClick={() => handleSelectPreset(preset)}
+                                  disabled={isGeneratingBackground}
+                                >
+                                  {preset.image_url ? (
+                                    <img 
+                                      src={preset.image_url} 
+                                      alt={preset.name}
+                                      className="w-full h-32 object-cover rounded"
+                                    />
+                                  ) : preset.icon ? (
+                                    <preset.icon className="w-12 h-12" />
+                                  ) : null}
+                                  <span className="text-sm font-medium">{preset.name}</span>
+                                  {preset.user_id && (
+                                    <span className="text-xs text-muted-foreground">ユーザー投稿</span>
+                                  )}
+                                </Button>
+                              ))}
+                            </div>
+
+                            {isGeneratingBackground && (
+                              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-4">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                背景画像を生成中...
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          // カテゴリ選択画面
+                          <div className="space-y-3">
+                            <p className="text-sm text-muted-foreground">
+                              カテゴリを選択して背景画像を管理
+                            </p>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                              {DEFAULT_PRESETS.map((preset) => (
+                                <Button
+                                  key={preset.id}
+                                  variant="outline"
+                                  className="h-auto flex-col gap-2 p-4"
+                                  onClick={() => handleCategoryClick(preset.category)}
+                                >
+                                  {preset.icon && <preset.icon className="w-8 h-8" />}
+                                  <span className="text-sm font-medium">{preset.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {presetsByCategory[preset.category as keyof typeof presetsByCategory]?.length || 0}件
+                                  </span>
+                                </Button>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </TabsContent>
