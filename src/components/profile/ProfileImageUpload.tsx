@@ -8,6 +8,16 @@ import { AvatarGenerationModal } from "./AvatarGenerationModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProfileImageUploadProps {
   onImageChange: (file: File | null) => Promise<void>;
@@ -30,6 +40,8 @@ export function ProfileImageUpload({
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [avatarToDelete, setAvatarToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   // ゼロから生成したアバター（着せ替えではないもの）を取得
@@ -204,14 +216,20 @@ export function ProfileImageUpload({
     }
   };
 
-  const handleDeleteAvatar = async (avatarId: string, e: React.MouseEvent) => {
+  const handleDeleteClick = (avatarId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    setAvatarToDelete(avatarId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!avatarToDelete) return;
     
     try {
       await supabase
         .from("avatar_gallery")
         .delete()
-        .eq("id", avatarId);
+        .eq("id", avatarToDelete);
       
       // アバターリストを再取得
       const { data } = await supabase
@@ -242,6 +260,9 @@ export function ProfileImageUpload({
     } catch (error) {
       console.error("Error deleting avatar:", error);
       sonnerToast.error("アバターの削除に失敗しました");
+    } finally {
+      setDeleteDialogOpen(false);
+      setAvatarToDelete(null);
     }
   };
 
@@ -295,7 +316,7 @@ export function ProfileImageUpload({
                           <Check className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={(e) => handleDeleteAvatar(avatar.id, e)}
+                          onClick={(e) => handleDeleteClick(avatar.id, e)}
                           className="p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
                           title="削除"
                         >
@@ -349,6 +370,23 @@ export function ProfileImageUpload({
         onClose={() => setIsGenerateModalOpen(false)}
         onAvatarGenerated={handleAvatarGenerated}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>アバターを削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              この操作は取り消せません。本当にこのアバターを削除してもよろしいですか？
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              削除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
