@@ -26,7 +26,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
   const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
 
-  // 最新のアバターを取得（プロフィールを最優先）
+  // 最新のアバターを取得（プロフィールとギャラリーを並行取得）
   const fetchCurrentAvatar = async () => {
     if (!profile?.id) {
       console.log("[AvatarCenterHome] No profile ID");
@@ -36,32 +36,41 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     console.log("[AvatarCenterHome] Fetching current avatar for user:", profile.id);
 
     try {
-      // まずプロフィールのavatar_urlをチェック（これが常に最新であるべき）
-      if (profile.avatar_url) {
-        console.log("[AvatarCenterHome] Using profile avatar_url:", profile.avatar_url);
-        setCurrentAvatarUrl(profile.avatar_url);
+      // プロフィールとギャラリーを並行して取得
+      const [profileAvatarUrl, galleryResult] = await Promise.all([
+        // プロフィールのavatar_url（既にprofileオブジェクトにある）
+        Promise.resolve(profile.avatar_url),
+        // ギャラリーから is_current=true の最新データ
+        supabase
+          .from("avatar_gallery")
+          .select("image_url")
+          .eq("user_id", profile.id)
+          .eq("is_current", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      ]);
+
+      const galleryAvatarUrl = galleryResult.data?.image_url;
+
+      console.log("[AvatarCenterHome] Profile avatar_url:", profileAvatarUrl);
+      console.log("[AvatarCenterHome] Gallery avatar_url:", galleryAvatarUrl);
+
+      // プロフィールのavatar_urlを最優先（これが正式な現在のアバター）
+      if (profileAvatarUrl) {
+        console.log("[AvatarCenterHome] Using profile avatar_url");
+        setCurrentAvatarUrl(profileAvatarUrl);
         return;
       }
 
-      // プロフィールにない場合のみ、ギャラリーから is_current=true の最新のものを取得
-      const { data: galleryData, error: galleryError } = await supabase
-        .from("avatar_gallery")
-        .select("image_url")
-        .eq("user_id", profile.id)
-        .eq("is_current", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      console.log("[AvatarCenterHome] Gallery data:", galleryData);
-
-      if (!galleryError && galleryData?.image_url) {
-        console.log("[AvatarCenterHome] Found gallery avatar:", galleryData.image_url);
-        setCurrentAvatarUrl(galleryData.image_url);
+      // プロフィールにない場合はギャラリーをフォールバック
+      if (galleryAvatarUrl) {
+        console.log("[AvatarCenterHome] Using gallery avatar_url as fallback");
+        setCurrentAvatarUrl(galleryAvatarUrl);
         return;
       }
 
-      // どれもない場合は null
+      // どちらもない場合は null
       console.log("[AvatarCenterHome] No avatar found");
       setCurrentAvatarUrl(null);
     } catch (error) {
