@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, Upload, Sparkles, Home, Box, Store as StoreIcon, Frame, Plus, X } from "lucide-react";
@@ -17,6 +17,7 @@ interface GoodsDisplayModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId?: string;
+  initialShowGallery?: boolean;
 }
 
 interface UserItem {
@@ -66,7 +67,7 @@ const DEFAULT_PRESETS: BackgroundPreset[] = [
   }
 ];
 
-export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModalProps) {
+export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery = false }: GoodsDisplayModalProps) {
   const [selectedItems, setSelectedItems] = useState<UserItem[]>([]);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
@@ -80,10 +81,17 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
   const [uploadPresetFile, setUploadPresetFile] = useState<File | null>(null);
   const [uploadPresetPreview, setUploadPresetPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [showGallery, setShowGallery] = useState(false);
+  const [showGallery, setShowGallery] = useState(initialShowGallery);
   const [customPrompt, setCustomPrompt] = useState<string>("");
   
   const queryClient = useQueryClient();
+
+  // initialShowGalleryが変更されたらshowGalleryを更新
+  useEffect(() => {
+    if (isOpen) {
+      setShowGallery(initialShowGallery);
+    }
+  }, [isOpen, initialShowGallery]);
 
   // ユーザーのアイテムを取得
   const { data: userItems = [], isLoading: isLoadingItems } = useQuery({
