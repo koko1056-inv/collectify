@@ -79,6 +79,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
   const [uploadPresetFile, setUploadPresetFile] = useState<File | null>(null);
   const [uploadPresetPreview, setUploadPresetPreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [showGallery, setShowGallery] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -114,6 +115,24 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
       return data as BackgroundPreset[];
     },
     enabled: isOpen,
+  });
+
+  // 展示場ギャラリーを取得
+  const { data: displayGallery = [] } = useQuery({
+    queryKey: ["display-gallery", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      
+      const { data, error } = await supabase
+        .from("display_gallery")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: isOpen && !!userId,
   });
 
   // 背景プリセットをアップロード
@@ -199,6 +218,26 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
 
       if (data?.imageUrl) {
         setBackgroundImage(data.imageUrl);
+        
+        // AI生成した背景画像をプリセットとして保存
+        if (userId) {
+          const { error: saveError } = await supabase
+            .from("background_presets")
+            .insert({
+              user_id: userId,
+              name: `AI生成 - ${preset.name}`,
+              image_url: data.imageUrl,
+              category: preset.category,
+              is_public: true
+            });
+
+          if (saveError) {
+            console.error("Error saving generated background:", saveError);
+          } else {
+            queryClient.invalidateQueries({ queryKey: ["background-presets"] });
+          }
+        }
+        
         toast.success("背景画像を生成しました");
       } else {
         throw new Error("背景画像の生成に失敗しました");
@@ -277,6 +316,25 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
 
       if (data?.editedImageUrl) {
         setGeneratedImage(data.editedImageUrl);
+        
+        // 展示場画像をギャラリーに保存
+        if (userId) {
+          const { error: galleryError } = await supabase
+            .from("display_gallery")
+            .insert({
+              user_id: userId,
+              image_url: data.editedImageUrl,
+              item_ids: selectedItems.map(item => item.id),
+              background_preset_id: selectedPreset
+            });
+
+          if (galleryError) {
+            console.error("Error saving to gallery:", galleryError);
+          } else {
+            queryClient.invalidateQueries({ queryKey: ["display-gallery", userId] });
+          }
+        }
+        
         toast.success("グッズ展示場の画像を生成しました！");
       } else {
         throw new Error("画像の生成に失敗しました");
@@ -341,6 +399,15 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
               <Sparkles className="w-5 h-5" />
               グッズ展示場
             </DialogTitle>
+            {!generatedImage && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowGallery(!showGallery)}
+              >
+                {showGallery ? "作成画面に戻る" : "ギャラリーを見る"}
+              </Button>
+            )}
           </DialogHeader>
 
           {generatedImage ? (
@@ -361,6 +428,47 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
                     最初から作り直す
                   </Button>
                 </div>
+              </div>
+            </ScrollArea>
+          ) : showGallery ? (
+            <ScrollArea className="flex-1 px-1">
+              <div className="space-y-4 pb-4">
+                <h3 className="text-lg font-semibold">展示場ギャラリー</h3>
+                {displayGallery.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    まだ展示場を作成していません
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    {displayGallery.map((item) => (
+                      <div key={item.id} className="relative border rounded-lg overflow-hidden">
+                        <img 
+                          src={item.image_url} 
+                          alt="Display" 
+                          className="w-full h-auto"
+                        />
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="absolute top-2 right-2"
+                          onClick={async () => {
+                            const { error } = await supabase
+                              .from("display_gallery")
+                              .delete()
+                              .eq("id", item.id);
+                            
+                            if (!error) {
+                              queryClient.invalidateQueries({ queryKey: ["display-gallery", userId] });
+                              toast.success("削除しました");
+                            }
+                          }}
+                        >
+                          削除
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </ScrollArea>
           ) : (
