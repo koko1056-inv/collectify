@@ -572,20 +572,40 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
                             </p>
                             
                             <div className="grid grid-cols-2 gap-3">
-                              {DEFAULT_PRESETS.map((preset) => (
-                                <Button
-                                  key={preset.id}
-                                  variant="outline"
-                                  className="h-auto flex-col gap-2 p-4"
-                                  onClick={() => handleCategoryClick(preset.category)}
-                                >
-                                  {preset.icon && <preset.icon className="w-8 h-8" />}
-                                  <span className="text-sm font-medium">{preset.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {presetsByCategory[preset.category as keyof typeof presetsByCategory]?.length || 0}件
-                                  </span>
-                                </Button>
-                              ))}
+                              {DEFAULT_PRESETS.map((preset) => {
+                                const categoryPresets = presetsByCategory[preset.category as keyof typeof presetsByCategory] || [];
+                                const latestGeneratedImage = categoryPresets.find(p => p.image_url)?.image_url;
+                                
+                                return (
+                                  <Button
+                                    key={preset.id}
+                                    variant="outline"
+                                    className="h-auto flex-col gap-2 p-2 relative overflow-hidden"
+                                    onClick={() => handleCategoryClick(preset.category)}
+                                  >
+                                    {latestGeneratedImage ? (
+                                      <div className="w-full aspect-video relative rounded overflow-hidden">
+                                        <img 
+                                          src={latestGeneratedImage} 
+                                          alt={preset.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                          {preset.icon && <preset.icon className="w-8 h-8 text-white" />}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="w-full aspect-video flex items-center justify-center bg-muted rounded">
+                                        {preset.icon && <preset.icon className="w-8 h-8" />}
+                                      </div>
+                                    )}
+                                    <span className="text-sm font-medium">{preset.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {categoryPresets.length}件
+                                    </span>
+                                  </Button>
+                                );
+                              })}
                             </div>
                           </div>
                         )}
