@@ -37,6 +37,12 @@ export function CreatePostFromCollectionModal({
   } | null>(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [selectedItemsQueue, setSelectedItemsQueue] = useState<Array<{
+    id: string;
+    title: string;
+    image: string;
+  }>>([]);
+  const [currentItemIndex, setCurrentItemIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [filterBy, setFilterBy] = useState<FilterOption>("all");
@@ -160,28 +166,19 @@ export function CreatePostFromCollectionModal({
     }
   };
 
-  const handleConfirmSelection = async () => {
+  const handleConfirmSelection = () => {
     if (selectedItemIds.length === 0) return;
 
-    try {
-      // 選択されたアイテムを取得
-      const selectedItems = userItems?.filter(item => selectedItemIds.includes(item.id)) || [];
-      
-      // 各アイテムに対して投稿を作成
-      for (const item of selectedItems) {
-        await createPost.mutateAsync({
-          userItemId: item.id,
-          imageUrl: item.image,
-        });
-      }
-
-      // リセット
-      setSelectedItemIds([]);
-      setIsSelectionMode(false);
-      handleClosePostModal();
-    } catch (error) {
-      console.error("投稿の作成に失敗しました:", error);
-    }
+    // 選択されたアイテムの情報を取得してキューに追加
+    const selectedItems = userItems?.filter(item => selectedItemIds.includes(item.id)).map(item => ({
+      id: item.id,
+      title: item.title,
+      image: item.image
+    })) || [];
+    
+    setSelectedItemsQueue(selectedItems);
+    setCurrentItemIndex(0);
+    setSelectedItem(selectedItems[0]);
   };
 
   const handleCancelSelection = () => {
@@ -189,9 +186,34 @@ export function CreatePostFromCollectionModal({
     setIsSelectionMode(false);
   };
 
+  const handlePostModalClose = () => {
+    // 次のアイテムがある場合は次を表示
+    if (selectedItemsQueue.length > 0 && currentItemIndex < selectedItemsQueue.length - 1) {
+      const nextIndex = currentItemIndex + 1;
+      setCurrentItemIndex(nextIndex);
+      setSelectedItem(selectedItemsQueue[nextIndex]);
+    } else {
+      // すべて完了したらリセット
+      setSelectedItem(null);
+      setSelectedItemIds([]);
+      setSelectedItemsQueue([]);
+      setCurrentItemIndex(0);
+      setIsSelectionMode(false);
+      setSearchQuery("");
+      setSelectedContentNames([]);
+      setSelectedTags([]);
+      setSortBy("newest");
+      setFilterBy("all");
+      setShowFilters(false);
+      onClose();
+    }
+  };
+
   const handleClosePostModal = () => {
     setSelectedItem(null);
     setSelectedItemIds([]);
+    setSelectedItemsQueue([]);
+    setCurrentItemIndex(0);
     setIsSelectionMode(false);
     setSearchQuery("");
     setSelectedContentNames([]);
@@ -220,7 +242,16 @@ export function CreatePostFromCollectionModal({
     return `${selectedContentNames.length}個のコンテンツ`;
   };
   if (selectedItem) {
-    return <CreatePostModal isOpen={true} onClose={handleClosePostModal} userItemId={selectedItem.id} userItemTitle={selectedItem.title} userItemImage={selectedItem.image} />;
+    return <CreatePostModal 
+      isOpen={true} 
+      onClose={handlePostModalClose} 
+      userItemId={selectedItem.id} 
+      userItemTitle={selectedItem.title} 
+      userItemImage={selectedItem.image}
+      remainingCount={selectedItemsQueue.length > 0 ? selectedItemsQueue.length - currentItemIndex - 1 : 0}
+      currentIndex={selectedItemsQueue.length > 0 ? currentItemIndex + 1 : 1}
+      totalCount={selectedItemsQueue.length > 0 ? selectedItemsQueue.length : 1}
+    />;
   }
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] overflow-hidden flex flex-col">
