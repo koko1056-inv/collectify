@@ -22,6 +22,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const [showGoodsDisplay, setShowGoodsDisplay] = useState(false);
   const [showDressUp, setShowDressUp] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [showGoodsGallery, setShowGoodsGallery] = useState(false);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
   const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
 
@@ -200,21 +201,21 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       color: "from-gray-800 to-gray-900"
     },
     {
+      icon: Store,
+      label: "グッズギャラリー",
+      onClick: () => setShowGoodsGallery(true),
+      color: "from-gray-700 to-gray-800"
+    },
+    {
       icon: Dices,
       label: "ランダムピックアップ",
       onClick: () => setShowRandomPickup(true),
-      color: "from-gray-700 to-gray-800"
+      color: "from-gray-600 to-gray-700"
     },
     {
       icon: Shirt,
       label: "グッズ着せ替え",
       onClick: () => setShowDressUp(true),
-      color: "from-gray-600 to-gray-700"
-    },
-    {
-      icon: Store,
-      label: "グッズ展示場",
-      onClick: () => setShowGoodsDisplay(true),
       color: "from-gray-500 to-gray-600"
     }
   ];
@@ -316,6 +317,13 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         isOpen={showGoodsDisplay}
         onClose={() => setShowGoodsDisplay(false)}
         userId={profile?.id}
+      />
+
+      <GoodsDisplayModal
+        isOpen={showGoodsGallery}
+        onClose={() => setShowGoodsGallery(false)}
+        userId={profile?.id}
+        initialShowGallery={true}
       />
 
       <AvatarDressUpModal
