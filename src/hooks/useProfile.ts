@@ -8,15 +8,39 @@ export function useProfile(userId: string | undefined) {
     queryKey: ["profile", userId],
     queryFn: async () => {
       if (!userId) throw new Error("User ID not provided");
-      const { data, error } = await supabase
+      
+      // プロフィールを取得
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .maybeSingle();
       
-      if (error) throw error;
-      if (!data) throw new Error("Profile not found");
-      return data as Profile;
+      if (profileError) throw profileError;
+      if (!profileData) throw new Error("Profile not found");
+      
+      // is_current=trueのアバターを取得
+      const { data: currentAvatar } = await supabase
+        .from("avatar_gallery")
+        .select("image_url")
+        .eq("user_id", userId)
+        .eq("is_current", true)
+        .maybeSingle();
+      
+      // is_currentのアバターがあり、プロフィールのavatar_urlと異なる場合は同期
+      if (currentAvatar && currentAvatar.image_url !== profileData.avatar_url) {
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({ avatar_url: currentAvatar.image_url })
+          .eq("id", userId);
+        
+        if (!updateError) {
+          // 同期した新しいURLをプロフィールに反映
+          profileData.avatar_url = currentAvatar.image_url;
+        }
+      }
+      
+      return profileData as Profile;
     },
     enabled: !!userId,
     staleTime: 1 * 60 * 1000, // 1分間キャッシュ
