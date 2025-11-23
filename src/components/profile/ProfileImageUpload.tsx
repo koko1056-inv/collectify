@@ -45,11 +45,19 @@ export function ProfileImageUpload({
           .order("created_at", { ascending: false });
 
         if (data) {
-          // item_idsがnullまたは空配列のもの（ゼロから生成したアバター）のみをフィルタリング
-          const pureAvatars = data
-            .filter(avatar => !avatar.item_ids || avatar.item_ids.length === 0)
-            .slice(0, 3); // 最大3つ
-          setRecentAvatars(pureAvatars);
+          // item_idsがnullまたは空配列のもの（ゼロから生成したアバター）のみをフィルタリングし、
+          // 同じ画像URLは1つだけ表示する
+          const seen = new Set<string>();
+          const pureAvatars = [] as Array<{ id: string; image_url: string }>;
+
+          for (const avatar of data) {
+            if ((!avatar.item_ids || avatar.item_ids.length === 0) && !seen.has(avatar.image_url)) {
+              seen.add(avatar.image_url);
+              pureAvatars.push({ id: avatar.id, image_url: avatar.image_url });
+            }
+          }
+
+          setRecentAvatars(pureAvatars.slice(0, 3));
         }
       } catch (error) {
         console.error("Error fetching recent avatars:", error);
@@ -126,10 +134,17 @@ export function ProfileImageUpload({
         .order("created_at", { ascending: false });
       
       if (data) {
-        const pureAvatars = data
-          .filter(avatar => !avatar.item_ids || avatar.item_ids.length === 0)
-          .slice(0, 3);
-        setRecentAvatars(pureAvatars);
+        const seen = new Set<string>();
+        const pureAvatars = [] as Array<{ id: string; image_url: string }>;
+
+        for (const avatar of data) {
+          if ((!avatar.item_ids || avatar.item_ids.length === 0) && !seen.has(avatar.image_url)) {
+            seen.add(avatar.image_url);
+            pureAvatars.push({ id: avatar.id, image_url: avatar.image_url });
+          }
+        }
+
+        setRecentAvatars(pureAvatars.slice(0, 3));
       }
       
       toast({
