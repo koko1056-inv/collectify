@@ -10,27 +10,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageEditDialog } from "./ImageEditDialog";
 import { Wand2 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
-  userItemId: string;
-  userItemTitle: string;
-  userItemImage: string;
-  remainingCount?: number;
-  currentIndex?: number;
-  totalCount?: number;
+  selectedItems: Array<{
+    id: string;
+    title: string;
+    image: string;
+  }>;
 }
 
 export function CreatePostModal({
   isOpen,
   onClose,
-  userItemId,
-  userItemTitle,
-  userItemImage,
-  remainingCount = 0,
-  currentIndex = 1,
-  totalCount = 1,
+  selectedItems,
 }: CreatePostModalProps) {
   const [caption, setCaption] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -49,13 +44,15 @@ export function CreatePostModal({
   };
 
   const handleImageEdit = async (prompt: string, avatarUrl?: string) => {
-    const targetUrl = isEditingGoodsImage ? userItemImage : previewUrl;
-    if (!targetUrl) return;
+    if (!previewUrl && selectedItems.length === 0) return;
     
     try {
-      const editedImageBase64 = await editImage(targetUrl, prompt, avatarUrl);
+      const editedImageBase64 = await editImage(
+        previewUrl || selectedItems[0].image, 
+        prompt, 
+        avatarUrl
+      );
       
-      // Base64をBlobに変換
       const base64Response = await fetch(editedImageBase64);
       const blob = await base64Response.blob();
       const file = new File([blob], "edited-image.png", { type: "image/png" });
@@ -63,15 +60,9 @@ export function CreatePostModal({
       setImageFile(file);
       setPreviewUrl(editedImageBase64);
       setIsEditDialogOpen(false);
-      setIsEditingGoodsImage(false);
     } catch (error) {
       console.error("画像編集エラー:", error);
     }
-  };
-
-  const handleEditGoodsImage = () => {
-    setIsEditingGoodsImage(true);
-    setIsEditDialogOpen(true);
   };
 
   const handleSubmit = async () => {
@@ -81,13 +72,13 @@ export function CreatePostModal({
         imageUrl = await uploadImage();
       }
       
+      // 最初のアイテムのIDを使用(後で複数対応に変更)
       await createPost.mutateAsync({
-        userItemId,
+        userItemId: selectedItems[0].id,
         caption: caption.trim() || undefined,
         imageUrl,
       });
       
-      // リセット
       setCaption("");
       setImageFile(null);
       setPreviewUrl(null);
@@ -101,39 +92,38 @@ export function CreatePostModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            新しい投稿を作成
-            {totalCount > 1 && (
-              <span className="ml-2 text-sm text-muted-foreground">
-                ({currentIndex} / {totalCount})
-              </span>
-            )}
-          </DialogTitle>
+          <DialogTitle>新しい投稿を作成</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* グッズ情報 */}
+          {/* グッズ情報 - 複数表示 */}
           <div className="space-y-2">
-            <div className="flex items-center bg-gray-50 rounded-lg p-3">
-              <img
-                src={userItemImage}
-                alt={userItemTitle}
-                className="w-12 h-12 object-cover rounded"
-              />
-              <div className="ml-3 flex-1">
-                <p className="font-medium text-sm">{userItemTitle}</p>
-                <p className="text-xs text-gray-500">このグッズの投稿</p>
+            <Label className="text-sm font-medium">投稿するグッズ ({selectedItems.length}個)</Label>
+            <ScrollArea className="h-32 w-full rounded-md border p-3">
+              <div className="flex flex-wrap gap-2">
+                {selectedItems.map((item) => (
+                  <div key={item.id} className="flex items-center bg-muted rounded-lg p-2 min-w-0">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-10 h-10 object-cover rounded flex-shrink-0"
+                    />
+                    <div className="ml-2 min-w-0 flex-1">
+                      <p className="font-medium text-xs line-clamp-1">{item.title}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            </ScrollArea>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={handleEditGoodsImage}
+              onClick={() => setIsEditDialogOpen(true)}
               className="w-full"
             >
               <Wand2 className="mr-2 h-4 w-4" />
-              グッズをAIで加工
+              AIで投稿画像を生成
             </Button>
           </div>
 
@@ -181,13 +171,13 @@ export function CreatePostModal({
 
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={onClose}>
-              {remainingCount > 0 ? "スキップ" : "キャンセル"}
+              キャンセル
             </Button>
             <Button 
               onClick={handleSubmit}
               disabled={(!imageFile && !caption.trim()) || createPost.isPending}
             >
-              {createPost.isPending ? "投稿中..." : remainingCount > 0 ? `投稿して次へ (残り${remainingCount}件)` : "投稿する"}
+              {createPost.isPending ? "投稿中..." : "投稿する"}
             </Button>
           </div>
         </div>
@@ -195,11 +185,8 @@ export function CreatePostModal({
       
       <ImageEditDialog
         isOpen={isEditDialogOpen}
-        onClose={() => {
-          setIsEditDialogOpen(false);
-          setIsEditingGoodsImage(false);
-        }}
-        imageUrl={isEditingGoodsImage ? userItemImage : (previewUrl || "")}
+        onClose={() => setIsEditDialogOpen(false)}
+        imageUrl={previewUrl || selectedItems[0]?.image || ""}
         onEditComplete={handleImageEdit}
         isEditing={isEditing}
       />
