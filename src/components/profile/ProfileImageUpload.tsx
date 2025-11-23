@@ -183,19 +183,9 @@ export function ProfileImageUpload({
 
   const handleSelectAvatar = async (avatarUrl: string, avatarId: string) => {
     try {
-      // base64画像をBlobに変換
-      const response = await fetch(avatarUrl);
-      const blob = await response.blob();
-      
-      // BlobをFileに変換
-      const file = new File([blob], "selected-avatar.png", { type: "image/png" });
-      
       // プレビューを更新
       setPreviewUrl(avatarUrl);
       
-      // 画像をアップロード
-      await onImageChange(file);
-
       // すべてのアバターの is_current を false に設定
       await supabase
         .from("avatar_gallery")
@@ -207,6 +197,16 @@ export function ProfileImageUpload({
         .from("avatar_gallery")
         .update({ is_current: true })
         .eq("id", avatarId);
+
+      // プロフィールの avatar_url を更新
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: avatarUrl })
+        .eq("id", userId);
+
+      if (profileError) {
+        throw profileError;
+      }
       
       setIsPopoverOpen(false);
       sonnerToast.success("アバターを切り替えました");

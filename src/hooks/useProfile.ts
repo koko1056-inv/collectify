@@ -27,8 +27,8 @@ export function useProfile(userId: string | undefined) {
         .eq("is_current", true)
         .maybeSingle();
       
-      // is_currentのアバターがあり、プロフィールのavatar_urlと異なる場合は同期
-      if (currentAvatar && currentAvatar.image_url !== profileData.avatar_url) {
+      // is_currentのアバターがあり、プロフィール側にまだavatar_urlがない場合のみ同期
+      if (currentAvatar && !profileData.avatar_url) {
         const { error: updateError } = await supabase
           .from("profiles")
           .update({ avatar_url: currentAvatar.image_url })
