@@ -115,19 +115,20 @@ export function ProfileImageUpload({
       // プレビューを更新
       setPreviewUrl(imageUrl);
       
-      // 画像をアップロード
+      // 画像をアップロード（完了を待つ）
       await onImageChange(file);
       
-      // 既存のAI生成アバター（item_idsがnullまたは空配列）を取得
+      // アップロード完了後、既存のAI生成アバター（item_idsがnullまたは空配列）を取得
       const { data: existingAvatars } = await supabase
         .from("avatar_gallery")
-        .select("id, item_ids, created_at")
+        .select("id, item_ids, prompt, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (existingAvatars) {
         const pureAvatars = existingAvatars.filter(
-          avatar => !avatar.item_ids || avatar.item_ids.length === 0
+          avatar => (!avatar.item_ids || avatar.item_ids.length === 0) && 
+                    avatar.prompt !== "プロフィール画像"
         );
 
         // 3つを超える場合は古いものを削除
