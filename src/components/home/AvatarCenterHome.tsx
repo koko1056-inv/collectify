@@ -3,6 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Dices, Store, Shirt, ChevronDown, Image, User, UploadCloud, Sparkles, Check, Trash2, Edit2, Search } from "lucide-react";
 import { Profile } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
 import { AvatarGenerationModal } from "@/components/profile/AvatarGenerationModal";
 import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
 import { GoodsDisplayModal } from "./avatar-center/GoodsDisplayModal";
@@ -54,6 +55,9 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       </div>
     );
   }
+
+  const { user } = useAuth();
+  const userId = user?.id;
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showRandomPickup, setShowRandomPickup] = useState(false);
   const [showGoodsDisplay, setShowGoodsDisplay] = useState(false);
@@ -71,16 +75,16 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
   // 最新のアバターを取得（プロフィールとギャラリーを並行取得）
   const fetchCurrentAvatar = async () => {
-    if (!profile?.id) {
-      console.log("[AvatarCenterHome] No profile ID, profile:", profile);
+    if (!userId) {
+      console.log("[AvatarCenterHome] No user ID. profile:", profile);
       return;
     }
 
-    console.log("[AvatarCenterHome] Fetching current avatar for user:", profile.id);
+    console.log("[AvatarCenterHome] Fetching current avatar for user:", userId);
 
     try {
       // 1. プロフィールのavatar_urlを最優先
-      if (profile.avatar_url) {
+      if (profile?.avatar_url) {
         console.log("[AvatarCenterHome] Using profile avatar_url");
         setCurrentAvatarUrl(profile.avatar_url);
         return;
@@ -90,7 +94,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       const { data: latestAvatar } = await supabase
         .from("avatar_gallery")
         .select("image_url")
-        .eq("user_id", profile.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -112,13 +116,13 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
   // すべてのアバターを取得（ポップオーバー用）
   const fetchRecentAvatars = async () => {
-    if (!profile?.id) return;
+    if (!userId) return;
 
     try {
       const { data } = await supabase
         .from("avatar_gallery")
         .select("id, image_url, item_ids, prompt, name")
-        .eq("user_id", profile.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(30); // 最新30件まで表示
 
@@ -143,14 +147,14 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
   // アバターを選択
   const handleSelectAvatar = async (avatarUrl: string, avatarId: string) => {
-    if (!profile?.id) return;
+    if (!userId) return;
 
     try {
       // 1. まずprofiles.avatar_urlを更新（最優先）
       const { error: profileError } = await supabase
         .from("profiles")
         .update({ avatar_url: avatarUrl })
-        .eq("id", profile.id);
+        .eq("id", userId);
 
       if (profileError) throw profileError;
 
@@ -158,7 +162,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       await supabase
         .from("avatar_gallery")
         .update({ is_current: false })
-        .eq("user_id", profile.id);
+        .eq("user_id", userId);
 
       await supabase
         .from("avatar_gallery")
@@ -184,12 +188,12 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
   // ファイルアップロード
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !profile?.id) return;
+    if (!e.target.files || !e.target.files[0] || !userId) return;
 
     const file = e.target.files[0];
     try {
       const fileExt = file.name.split(".").pop();
-      const filePath = `${profile.id}/${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("profile_images")
@@ -205,7 +209,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: publicUrl })
-        .eq("id", profile.id);
+        .eq("id", userId);
 
       if (updateError) throw updateError;
 
@@ -213,12 +217,12 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       await supabase
         .from("avatar_gallery")
         .update({ is_current: false })
-        .eq("user_id", profile.id);
+        .eq("user_id", userId);
 
       const { data: existingProfileAvatar } = await supabase
         .from("avatar_gallery")
         .select("id")
-        .eq("user_id", profile.id)
+        .eq("user_id", userId)
         .eq("prompt", "プロフィール画像")
         .maybeSingle();
 
@@ -229,7 +233,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           .eq("id", existingProfileAvatar.id);
       } else {
         await supabase.from("avatar_gallery").insert({
-          user_id: profile.id,
+          user_id: userId,
           image_url: publicUrl,
           is_current: true,
           item_ids: null,
@@ -251,7 +255,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
   // AI生成したアバターを設定
   const handleAvatarGenerated = async (imageUrl: string) => {
-    if (!profile?.id) return;
+    if (!userId) return;
 
     try {
       const response = await fetch(imageUrl);
@@ -259,7 +263,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       const file = new File([blob], "ai-avatar.png", { type: "image/png" });
       
       const fileExt = file.name.split(".").pop();
-      const filePath = `${profile.id}/${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("profile_images")
@@ -275,7 +279,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ avatar_url: publicUrl })
-        .eq("id", profile.id);
+        .eq("id", userId);
 
       if (updateError) throw updateError;
 
@@ -359,15 +363,15 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     return avatar.name?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  // 初回ロード時とプロフィールID変更時にアバターを取得
+  // 初回ロード時とユーザーID変更時にアバターを取得
   useEffect(() => {
     fetchCurrentAvatar();
     fetchRecentAvatars();
-  }, [profile?.id]);
+  }, [userId]);
 
   // リアルタイムでアバター更新を監視
   useEffect(() => {
-    if (!profile?.id) return;
+    if (!userId) return;
 
     const channel = supabase
       .channel('avatar-changes')
@@ -377,7 +381,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           event: '*',
           schema: 'public',
           table: 'avatar_gallery',
-          filter: `user_id=eq.${profile.id}`
+          filter: `user_id=eq.${userId}`
         },
         () => {
           fetchCurrentAvatar();
@@ -389,7 +393,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           event: 'UPDATE',
           schema: 'public',
           table: 'profiles',
-          filter: `id=eq.${profile.id}`
+          filter: `id=eq.${userId}`
         },
         () => {
           fetchCurrentAvatar();
@@ -400,7 +404,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profile?.id]);
+  }, [userId]);
 
   const buttons = [
     {
@@ -651,19 +655,19 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       <RandomPickupModal
         isOpen={showRandomPickup}
         onClose={() => setShowRandomPickup(false)}
-        userId={profile?.id}
+        userId={userId}
       />
 
       <GoodsDisplayModal
         isOpen={showGoodsDisplay}
         onClose={() => setShowGoodsDisplay(false)}
-        userId={profile?.id}
+        userId={userId}
       />
 
       <GoodsDisplayModal
         isOpen={showGoodsGallery}
         onClose={() => setShowGoodsGallery(false)}
-        userId={profile?.id}
+        userId={userId}
         initialShowGallery={true}
       />
 
@@ -673,7 +677,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           setShowDressUp(false);
           fetchCurrentAvatar();
         }}
-        userId={profile?.id}
+        userId={userId}
       />
 
       <AvatarGalleryModal
@@ -682,7 +686,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           setShowGallery(false);
           fetchCurrentAvatar();
         }}
-        userId={profile?.id}
+        userId={userId}
         currentAvatarUrl={currentAvatarUrl || profile?.avatar_url}
       />
     </>
