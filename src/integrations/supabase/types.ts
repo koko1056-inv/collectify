@@ -239,6 +239,48 @@ export type Database = {
           },
         ]
       }
+      display_gallery: {
+        Row: {
+          background_preset_id: string | null
+          created_at: string
+          id: string
+          image_url: string
+          item_ids: string[] | null
+          user_id: string
+        }
+        Insert: {
+          background_preset_id?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          item_ids?: string[] | null
+          user_id: string
+        }
+        Update: {
+          background_preset_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          item_ids?: string[] | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "display_gallery_background_preset_id_fkey"
+            columns: ["background_preset_id"]
+            isOneToOne: false
+            referencedRelation: "background_presets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "display_gallery_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_participants: {
         Row: {
           created_at: string
