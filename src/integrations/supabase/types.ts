@@ -72,6 +72,7 @@ export type Database = {
           image_url: string
           is_current: boolean | null
           item_ids: string[] | null
+          name: string | null
           prompt: string | null
           user_id: string
         }
@@ -81,6 +82,7 @@ export type Database = {
           image_url: string
           is_current?: boolean | null
           item_ids?: string[] | null
+          name?: string | null
           prompt?: string | null
           user_id: string
         }
@@ -90,6 +92,7 @@ export type Database = {
           image_url?: string
           is_current?: boolean | null
           item_ids?: string[] | null
+          name?: string | null
           prompt?: string | null
           user_id?: string
         }
