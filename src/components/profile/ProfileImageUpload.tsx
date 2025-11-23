@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { UploadCloud, Sparkles, Image as ImageIcon } from "lucide-react";
+import { UploadCloud, Sparkles, Image as ImageIcon, Check, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -204,6 +204,47 @@ export function ProfileImageUpload({
     }
   };
 
+  const handleDeleteAvatar = async (avatarId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      await supabase
+        .from("avatar_gallery")
+        .delete()
+        .eq("id", avatarId);
+      
+      // アバターリストを再取得
+      const { data } = await supabase
+        .from("avatar_gallery")
+        .select("id, image_url, item_ids, prompt")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+      
+      if (data) {
+        const seen = new Set<string>();
+        const pureAvatars = [] as Array<{ id: string; image_url: string }>;
+
+        for (const avatar of data) {
+          if (
+            (!avatar.item_ids || avatar.item_ids.length === 0) &&
+            avatar.prompt !== "プロフィール画像" &&
+            !seen.has(avatar.image_url)
+          ) {
+            seen.add(avatar.image_url);
+            pureAvatars.push({ id: avatar.id, image_url: avatar.image_url });
+          }
+        }
+
+        setRecentAvatars(pureAvatars.slice(0, 3));
+      }
+      
+      sonnerToast.success("アバターを削除しました");
+    } catch (error) {
+      console.error("Error deleting avatar:", error);
+      sonnerToast.error("アバターの削除に失敗しました");
+    }
+  };
+
   return (
     <>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
@@ -237,19 +278,31 @@ export function ProfileImageUpload({
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   {recentAvatars.map((avatar) => (
-                    <button
+                    <div
                       key={avatar.id}
-                      onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
                       className="relative group"
                     >
-                      <Avatar className="w-full aspect-square border-2 border-border hover:border-primary transition-all duration-200 hover:scale-105">
+                      <Avatar className="w-full aspect-square border-2 border-border group-hover:border-primary transition-all duration-200">
                         <AvatarImage src={avatar.image_url} className="object-cover" />
                         <AvatarFallback>?</AvatarFallback>
                       </Avatar>
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center">
-                        <ImageIcon className="w-4 h-4 text-white" />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
+                          className="p-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors"
+                          title="選択"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteAvatar(avatar.id, e)}
+                          className="p-2 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors"
+                          title="削除"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </div>
