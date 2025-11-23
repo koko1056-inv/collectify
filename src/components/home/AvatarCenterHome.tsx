@@ -29,7 +29,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   // 最新のアバターを取得（プロフィールとギャラリーを並行取得）
   const fetchCurrentAvatar = async () => {
     if (!profile?.id) {
-      console.log("[AvatarCenterHome] No profile ID");
+      console.log("[AvatarCenterHome] No profile ID, profile:", profile);
       return;
     }
 
