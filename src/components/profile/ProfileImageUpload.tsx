@@ -40,7 +40,7 @@ export function ProfileImageUpload({
       try {
         const { data } = await supabase
           .from("avatar_gallery")
-          .select("id, image_url, item_ids")
+          .select("id, image_url, item_ids, prompt")
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
 
@@ -51,7 +51,11 @@ export function ProfileImageUpload({
           const pureAvatars = [] as Array<{ id: string; image_url: string }>;
 
           for (const avatar of data) {
-            if ((!avatar.item_ids || avatar.item_ids.length === 0) && !seen.has(avatar.image_url)) {
+            if (
+              (!avatar.item_ids || avatar.item_ids.length === 0) &&
+              avatar.prompt !== "プロフィール画像" &&
+              !seen.has(avatar.image_url)
+            ) {
               seen.add(avatar.image_url);
               pureAvatars.push({ id: avatar.id, image_url: avatar.image_url });
             }
@@ -129,7 +133,7 @@ export function ProfileImageUpload({
       // アバターリストを再取得（ゼロから生成したもののみ）
       const { data } = await supabase
         .from("avatar_gallery")
-        .select("id, image_url, item_ids")
+        .select("id, image_url, item_ids, prompt")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
       
@@ -138,7 +142,11 @@ export function ProfileImageUpload({
         const pureAvatars = [] as Array<{ id: string; image_url: string }>;
 
         for (const avatar of data) {
-          if ((!avatar.item_ids || avatar.item_ids.length === 0) && !seen.has(avatar.image_url)) {
+          if (
+            (!avatar.item_ids || avatar.item_ids.length === 0) &&
+            avatar.prompt !== "プロフィール画像" &&
+            !seen.has(avatar.image_url)
+          ) {
             seen.add(avatar.image_url);
             pureAvatars.push({ id: avatar.id, image_url: avatar.image_url });
           }
