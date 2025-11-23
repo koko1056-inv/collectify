@@ -17,6 +17,9 @@ interface CreatePostModalProps {
   userItemId: string;
   userItemTitle: string;
   userItemImage: string;
+  remainingCount?: number;
+  currentIndex?: number;
+  totalCount?: number;
 }
 
 export function CreatePostModal({
@@ -25,6 +28,9 @@ export function CreatePostModal({
   userItemId,
   userItemTitle,
   userItemImage,
+  remainingCount = 0,
+  currentIndex = 1,
+  totalCount = 1,
 }: CreatePostModalProps) {
   const [caption, setCaption] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -95,7 +101,14 @@ export function CreatePostModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>新しい投稿を作成</DialogTitle>
+          <DialogTitle>
+            新しい投稿を作成
+            {totalCount > 1 && (
+              <span className="ml-2 text-sm text-muted-foreground">
+                ({currentIndex} / {totalCount})
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
@@ -168,13 +181,13 @@ export function CreatePostModal({
 
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={onClose}>
-              キャンセル
+              {remainingCount > 0 ? "スキップ" : "キャンセル"}
             </Button>
             <Button 
               onClick={handleSubmit}
               disabled={(!imageFile && !caption.trim()) || createPost.isPending}
             >
-              {createPost.isPending ? "投稿中..." : "投稿する"}
+              {createPost.isPending ? "投稿中..." : remainingCount > 0 ? `投稿して次へ (残り${remainingCount}件)` : "投稿する"}
             </Button>
           </div>
         </div>
