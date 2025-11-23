@@ -109,6 +109,7 @@ export const ProfileCard = memo(function ProfileCard({
         .from("profile_images")
         .getPublicUrl(filePath);
 
+      // 1. まずprofiles.avatar_urlを更新（これが最も重要）
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
@@ -120,28 +121,33 @@ export const ProfileCard = memo(function ProfileCard({
         throw updateError;
       }
 
-      // アバターセンター用のギャラリー情報も同期
+      // 2. avatar_galleryの同期（統一処理）
       try {
-        // 既存の現在アバターがあれば画像URLを更新、なければ新規作成
-        const { data: currentAvatar } = await supabase
+        // すべてのアバターをis_current=falseに設定
+        await supabase
+          .from("avatar_gallery")
+          .update({ is_current: false })
+          .eq("user_id", user.id);
+
+        // 既存のプロフィール画像エントリを探す
+        const { data: existingProfileAvatar } = await supabase
           .from("avatar_gallery")
           .select("id")
           .eq("user_id", user.id)
-          .eq("is_current", true)
+          .eq("prompt", "プロフィール画像")
           .maybeSingle();
 
-        if (currentAvatar) {
+        if (existingProfileAvatar) {
+          // 既存エントリを更新
           await supabase
             .from("avatar_gallery")
-            .update({ image_url: publicUrl })
-            .eq("id", currentAvatar.id);
+            .update({ 
+              image_url: publicUrl,
+              is_current: true 
+            })
+            .eq("id", existingProfileAvatar.id);
         } else {
-          // 念のため他のアバターをすべて非アクティブ化
-          await supabase
-            .from("avatar_gallery")
-            .update({ is_current: false })
-            .eq("user_id", user.id);
-
+          // 新規エントリを作成
           await supabase.from("avatar_gallery").insert({
             user_id: user.id,
             image_url: publicUrl,
