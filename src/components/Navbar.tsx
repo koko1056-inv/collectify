@@ -147,7 +147,7 @@ export function Navbar() {
               </Button>
               
               <ChatButton />
-              <NotificationBell />
+              <NotificationBell className="hidden sm:block" />
               
               <TooltipProvider>
                 <Tooltip>
