@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { UploadCloud, Sparkles, Image as ImageIcon, Trash2 } from "lucide-react";
+import { UploadCloud, Sparkles, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -8,16 +8,6 @@ import { AvatarGenerationModal } from "./AvatarGenerationModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface ProfileImageUploadProps {
   onImageChange: (file: File | null) => Promise<void>;
@@ -40,7 +30,6 @@ export function ProfileImageUpload({
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
   // ゼロから生成したアバター（着せ替えではないもの）を取得
@@ -215,49 +204,6 @@ export function ProfileImageUpload({
     }
   };
 
-  const handleDeleteAvatar = async (avatarId: string) => {
-    try {
-      const { error } = await supabase
-        .from("avatar_gallery")
-        .delete()
-        .eq("id", avatarId);
-
-      if (error) throw error;
-
-      sonnerToast.success("アバターを削除しました");
-      
-      // アバター一覧を再取得
-      const { data } = await supabase
-        .from("avatar_gallery")
-        .select("id, image_url, item_ids, prompt")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-      
-      if (data) {
-        const seen = new Set<string>();
-        const pureAvatars = [] as Array<{ id: string; image_url: string }>;
-
-        for (const avatar of data) {
-          if (
-            (!avatar.item_ids || avatar.item_ids.length === 0) &&
-            avatar.prompt !== "プロフィール画像" &&
-            !seen.has(avatar.image_url)
-          ) {
-            seen.add(avatar.image_url);
-            pureAvatars.push({ id: avatar.id, image_url: avatar.image_url });
-          }
-        }
-
-        setRecentAvatars(pureAvatars.slice(0, 3));
-      }
-      
-      setDeleteId(null);
-    } catch (error) {
-      console.error("Error deleting avatar:", error);
-      sonnerToast.error("アバターの削除に失敗しました");
-    }
-  };
-
   return (
     <>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
@@ -291,35 +237,19 @@ export function ProfileImageUpload({
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   {recentAvatars.map((avatar) => (
-                    <div
+                    <button
                       key={avatar.id}
+                      onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
                       className="relative group"
                     >
-                      <button
-                        onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
-                        className="w-full"
-                      >
-                        <Avatar className="w-full aspect-square border-2 border-border hover:border-primary transition-all duration-200 hover:scale-105">
-                          <AvatarImage src={avatar.image_url} className="object-cover" />
-                          <AvatarFallback>?</AvatarFallback>
-                        </Avatar>
-                      </button>
-                      
-                      {/* ホバー時のオーバーレイと削除ボタン */}
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center">
-                        <Button
-                          size="icon"
-                          variant="destructive"
-                          className="w-8 h-8"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteId(avatar.id);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <Avatar className="w-full aspect-square border-2 border-border hover:border-primary transition-all duration-200 hover:scale-105">
+                        <AvatarImage src={avatar.image_url} className="object-cover" />
+                        <AvatarFallback>?</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center">
+                        <ImageIcon className="w-4 h-4 text-white" />
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -366,27 +296,6 @@ export function ProfileImageUpload({
         onClose={() => setIsGenerateModalOpen(false)}
         onAvatarGenerated={handleAvatarGenerated}
       />
-
-      {/* 削除確認ダイアログ */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>アバターを削除しますか？</AlertDialogTitle>
-            <AlertDialogDescription>
-              この操作は取り消せません。アバターが削除されます。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteId && handleDeleteAvatar(deleteId)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              削除
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
