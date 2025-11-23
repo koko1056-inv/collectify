@@ -47,6 +47,7 @@ const Index = () => {
     hasUser: !!user,
     hasProfile: !!profile,
     profileId: profile?.id,
+    profileObject: profile,
     showUserCollection,
     showAvatarCenterHome,
   });
