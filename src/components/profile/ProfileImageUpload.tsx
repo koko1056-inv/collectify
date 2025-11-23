@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { UploadCloud, Sparkles, Image as ImageIcon, Check, Trash2 } from "lucide-react";
+import { UploadCloud, Sparkles, Image as ImageIcon, Check, Trash2, Edit2, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -8,6 +8,7 @@ import { AvatarGenerationModal } from "./AvatarGenerationModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +19,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ProfileImageUploadProps {
   onImageChange: (file: File | null) => Promise<void>;
@@ -39,9 +48,12 @@ export function ProfileImageUpload({
   const [isHovering, setIsHovering] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
+  const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string; name: string | null }>>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [avatarToDelete, setAvatarToDelete] = useState<string | null>(null);
+  const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
+  const [avatarToEdit, setAvatarToEdit] = useState<{ id: string; name: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
 
   // ゼロから生成したアバター（着せ替えではないもの）を取得
@@ -52,7 +64,7 @@ export function ProfileImageUpload({
       try {
         const { data } = await supabase
           .from("avatar_gallery")
-          .select("id, image_url, item_ids, prompt")
+          .select("id, image_url, item_ids, prompt, name")
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
 
@@ -60,7 +72,7 @@ export function ProfileImageUpload({
           // item_idsがnullまたは空配列のもの（ゼロから生成したアバター）のみをフィルタリングし、
           // 同じ画像URLは1つだけ表示する
           const seen = new Set<string>();
-          const pureAvatars = [] as Array<{ id: string; image_url: string }>;
+          const pureAvatars = [] as Array<{ id: string; image_url: string; name: string | null }>;
 
           for (const avatar of data) {
             if (
@@ -69,7 +81,7 @@ export function ProfileImageUpload({
               !seen.has(avatar.image_url)
             ) {
               seen.add(avatar.image_url);
-              pureAvatars.push({ id: avatar.id, image_url: avatar.image_url });
+              pureAvatars.push({ id: avatar.id, image_url: avatar.image_url, name: avatar.name });
             }
           }
 
@@ -146,13 +158,13 @@ export function ProfileImageUpload({
       // アバターリストを再取得（ゼロから生成したもののみ）
       const { data } = await supabase
         .from("avatar_gallery")
-        .select("id, image_url, item_ids, prompt")
+        .select("id, image_url, item_ids, prompt, name")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
       
       if (data) {
         const seen = new Set<string>();
-        const pureAvatars = [] as Array<{ id: string; image_url: string }>;
+        const pureAvatars = [] as Array<{ id: string; image_url: string; name: string | null }>;
 
         for (const avatar of data) {
           if (
@@ -161,7 +173,7 @@ export function ProfileImageUpload({
             !seen.has(avatar.image_url)
           ) {
             seen.add(avatar.image_url);
-            pureAvatars.push({ id: avatar.id, image_url: avatar.image_url });
+            pureAvatars.push({ id: avatar.id, image_url: avatar.image_url, name: avatar.name });
           }
         }
 
@@ -235,13 +247,13 @@ export function ProfileImageUpload({
       // アバターリストを再取得
       const { data } = await supabase
         .from("avatar_gallery")
-        .select("id, image_url, item_ids, prompt")
+        .select("id, image_url, item_ids, prompt, name")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
       
       if (data) {
         const seen = new Set<string>();
-        const pureAvatars = [] as Array<{ id: string; image_url: string }>;
+        const pureAvatars = [] as Array<{ id: string; image_url: string; name: string | null }>;
 
         for (const avatar of data) {
           if (
@@ -250,7 +262,7 @@ export function ProfileImageUpload({
             !seen.has(avatar.image_url)
           ) {
             seen.add(avatar.image_url);
-            pureAvatars.push({ id: avatar.id, image_url: avatar.image_url });
+            pureAvatars.push({ id: avatar.id, image_url: avatar.image_url, name: avatar.name });
           }
         }
 
@@ -266,6 +278,46 @@ export function ProfileImageUpload({
       setAvatarToDelete(null);
     }
   };
+
+  const handleEditNameClick = (avatar: { id: string; name: string | null }, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setAvatarToEdit({ id: avatar.id, name: avatar.name || "" });
+    setEditNameDialogOpen(true);
+  };
+
+  const handleConfirmNameEdit = async () => {
+    if (!avatarToEdit) return;
+    
+    try {
+      await supabase
+        .from("avatar_gallery")
+        .update({ name: avatarToEdit.name })
+        .eq("id", avatarToEdit.id);
+      
+      // ローカル状態を更新
+      setRecentAvatars(prev => 
+        prev.map(avatar => 
+          avatar.id === avatarToEdit.id 
+            ? { ...avatar, name: avatarToEdit.name } 
+            : avatar
+        )
+      );
+      
+      sonnerToast.success("アバター名を更新しました");
+    } catch (error) {
+      console.error("Error updating avatar name:", error);
+      sonnerToast.error("アバター名の更新に失敗しました");
+    } finally {
+      setEditNameDialogOpen(false);
+      setAvatarToEdit(null);
+    }
+  };
+
+  // 検索フィルタリング
+  const filteredAvatars = recentAvatars.filter(avatar => {
+    if (!searchQuery) return true;
+    return avatar.name?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   return (
     <>
@@ -290,43 +342,75 @@ export function ProfileImageUpload({
             </div>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-72 p-3 bg-background border shadow-lg z-50">
+        <PopoverContent className="w-80 p-3 bg-background border shadow-lg z-50">
           <div className="flex flex-col gap-3">
             {/* ゼロから生成したアバター */}
             {recentAvatars.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground font-medium px-1">
-                  AIで生成したアバター ({recentAvatars.length}/10)
-                </p>
-                <div className="grid grid-cols-5 gap-2">
-                  {recentAvatars.map((avatar) => (
+                <div className="flex items-center justify-between px-1">
+                  <p className="text-xs text-muted-foreground font-medium">
+                    AIで生成したアバター ({filteredAvatars.length}/{recentAvatars.length})
+                  </p>
+                </div>
+                
+                {/* 検索バー */}
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="アバター名で検索..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 h-8 text-sm"
+                  />
+                </div>
+
+                <div className="grid grid-cols-5 gap-2 max-h-[300px] overflow-y-auto">
+                  {filteredAvatars.map((avatar) => (
                     <div
                       key={avatar.id}
-                      className="relative group"
+                      className="relative group flex flex-col items-center"
                     >
                       <Avatar className="w-full aspect-square border-2 border-border group-hover:border-primary transition-all duration-200">
                         <AvatarImage src={avatar.image_url} className="object-cover" />
                         <AvatarFallback>?</AvatarFallback>
                       </Avatar>
-                      <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center gap-2">
+                      {avatar.name && (
+                        <p className="text-[10px] text-muted-foreground truncate w-full text-center mt-1">
+                          {avatar.name}
+                        </p>
+                      )}
+                      <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center gap-1">
                         <button
                           onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
-                          className="p-2.5 bg-background text-foreground rounded-full hover:bg-background/90 transition-colors shadow-lg"
+                          className="p-1.5 bg-background text-foreground rounded-full hover:bg-background/90 transition-colors shadow-lg"
                           title="選択"
                         >
-                          <Check className="w-5 h-5" />
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => handleEditNameClick(avatar, e)}
+                          className="p-1.5 bg-background text-foreground rounded-full hover:bg-background/90 transition-colors shadow-lg"
+                          title="名前を編集"
+                        >
+                          <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={(e) => handleDeleteClick(avatar.id, e)}
-                          className="p-2.5 bg-background text-foreground rounded-full hover:bg-background/90 transition-colors shadow-lg"
+                          className="p-1.5 bg-background text-foreground rounded-full hover:bg-background/90 transition-colors shadow-lg"
                           title="削除"
                         >
-                          <Trash2 className="w-5 h-5 text-destructive" />
+                          <Trash2 className="w-4 h-4 text-destructive" />
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
+                
+                {filteredAvatars.length === 0 && searchQuery && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    「{searchQuery}」に一致するアバターが見つかりません
+                  </p>
+                )}
               </div>
             )}
             
@@ -388,6 +472,33 @@ export function ProfileImageUpload({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={editNameDialogOpen} onOpenChange={setEditNameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>アバター名を編集</DialogTitle>
+            <DialogDescription>
+              このアバターの名前を変更できます
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="アバター名を入力..."
+              value={avatarToEdit?.name || ""}
+              onChange={(e) => setAvatarToEdit(prev => prev ? { ...prev, name: e.target.value } : null)}
+              maxLength={50}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditNameDialogOpen(false)}>
+              キャンセル
+            </Button>
+            <Button onClick={handleConfirmNameEdit}>
+              保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
