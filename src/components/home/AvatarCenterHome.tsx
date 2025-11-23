@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Dices, BarChart3, Shirt, ChevronDown, Image, User } from "lucide-react";
+import { Dices, Store, Shirt, ChevronDown, Image, User } from "lucide-react";
 import { Profile } from "@/types";
 import { AvatarGenerationModal } from "@/components/profile/AvatarGenerationModal";
 import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
-import { CollectionAnalyticsModal } from "./avatar-center/CollectionAnalyticsModal";
+import { GoodsDisplayModal } from "./avatar-center/GoodsDisplayModal";
 import { AvatarDressUpModal } from "./avatar-center/AvatarDressUpModal";
 import { AvatarGalleryModal } from "./avatar-center/AvatarGalleryModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +19,7 @@ interface AvatarCenterHomeProps {
 export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHomeProps) {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showRandomPickup, setShowRandomPickup] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showGoodsDisplay, setShowGoodsDisplay] = useState(false);
   const [showDressUp, setShowDressUp] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
@@ -212,9 +212,9 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       color: "from-gray-600 to-gray-700"
     },
     {
-      icon: BarChart3,
-      label: "コレクション分析",
-      onClick: () => setShowAnalytics(true),
+      icon: Store,
+      label: "グッズ展示場",
+      onClick: () => setShowGoodsDisplay(true),
       color: "from-gray-500 to-gray-600"
     }
   ];
@@ -312,9 +312,9 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         userId={profile?.id}
       />
 
-      <CollectionAnalyticsModal
-        isOpen={showAnalytics}
-        onClose={() => setShowAnalytics(false)}
+      <GoodsDisplayModal
+        isOpen={showGoodsDisplay}
+        onClose={() => setShowGoodsDisplay(false)}
         userId={profile?.id}
       />
 
