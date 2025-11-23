@@ -205,7 +205,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
@@ -214,161 +214,165 @@ export function GoodsDisplayModal({ isOpen, onClose, userId }: GoodsDisplayModal
         </DialogHeader>
 
         {generatedImage ? (
-          <div className="space-y-4">
-            <div className="relative rounded-lg overflow-hidden border">
-              <img 
-                src={generatedImage} 
-                alt="Generated display" 
-                className="w-full h-auto"
-              />
+          <ScrollArea className="flex-1 px-1">
+            <div className="space-y-4 pb-4">
+              <div className="relative rounded-lg overflow-hidden border">
+                <img 
+                  src={generatedImage} 
+                  alt="Generated display" 
+                  className="w-full h-auto"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleDownload} className="flex-1">
+                  ダウンロード
+                </Button>
+                <Button onClick={handleReset} variant="outline" className="flex-1">
+                  最初から作り直す
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={handleDownload} className="flex-1">
-                ダウンロード
-              </Button>
-              <Button onClick={handleReset} variant="outline" className="flex-1">
-                最初から作り直す
-              </Button>
-            </div>
-          </div>
+          </ScrollArea>
         ) : (
-          <div className="space-y-6">
-            {/* 背景画像選択 */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">背景画像</label>
-              {backgroundImage ? (
-                <div className="relative border rounded-lg overflow-hidden">
-                  <img 
-                    src={backgroundImage} 
-                    alt="Background" 
-                    className="w-full h-48 object-cover"
-                  />
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="absolute top-2 right-2"
-                    onClick={() => {
-                      setBackgroundImage(null);
-                      setBackgroundFile(null);
-                      setSelectedPreset(null);
-                    }}
-                  >
-                    削除
-                  </Button>
-                </div>
-              ) : (
-                <Tabs defaultValue="preset" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="preset">プリセット</TabsTrigger>
-                    <TabsTrigger value="upload">カスタム</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="preset" className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      {BACKGROUND_PRESETS.map((preset) => (
-                        <Button
-                          key={preset.id}
-                          variant="outline"
-                          className="h-auto flex-col gap-2 p-4"
-                          onClick={() => handlePresetSelect(preset)}
-                          disabled={isGeneratingBackground}
-                        >
-                          <preset.icon className="w-8 h-8" />
-                          <span className="text-sm font-medium">{preset.name}</span>
-                        </Button>
-                      ))}
-                    </div>
-                    {isGeneratingBackground && (
-                      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-4">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        背景画像を生成中...
-                      </div>
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="upload">
-                    <div className="border-2 border-dashed rounded-lg p-8">
-                      <label className="flex flex-col items-center gap-2 cursor-pointer">
-                        <Upload className="w-8 h-8 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
-                          クリックして背景画像をアップロード
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleBackgroundUpload}
-                        />
-                      </label>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              )}
-            </div>
-
-            {/* グッズ選択 */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                展示するグッズを選択 ({selectedItems.length}/5)
-              </label>
-              <ScrollArea className="h-[300px] border rounded-lg p-4">
-                {isLoadingItems ? (
-                  <div className="flex justify-center p-8">
-                    <Loader2 className="w-6 h-6 animate-spin" />
+          <ScrollArea className="flex-1 px-1">
+            <div className="space-y-6 pb-4">
+              {/* 背景画像選択 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">背景画像</label>
+                {backgroundImage ? (
+                  <div className="relative border rounded-lg overflow-hidden">
+                    <img 
+                      src={backgroundImage} 
+                      alt="Background" 
+                      className="w-full h-48 object-cover"
+                    />
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="absolute top-2 right-2"
+                      onClick={() => {
+                        setBackgroundImage(null);
+                        setBackgroundFile(null);
+                        setSelectedPreset(null);
+                      }}
+                    >
+                      削除
+                    </Button>
                   </div>
-                ) : userItems.length === 0 ? (
-                  <p className="text-center text-muted-foreground p-8">
-                    コレクションにグッズがありません
-                  </p>
                 ) : (
-                  <div className="grid grid-cols-3 gap-3">
-                    {userItems.map((item) => {
-                      const isSelected = selectedItems.some(i => i.id === item.id);
-                      return (
-                        <div
-                          key={item.id}
-                          className={`relative border rounded-lg p-2 cursor-pointer transition-all ${
-                            isSelected ? 'border-primary ring-2 ring-primary' : 'border-border'
-                          }`}
-                          onClick={() => handleItemToggle(item)}
-                        >
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-full aspect-square object-cover rounded mb-2"
-                          />
-                          <p className="text-xs truncate">{item.title}</p>
-                          <Checkbox
-                            checked={isSelected}
-                            className="absolute top-2 right-2"
-                            onClick={(e) => e.stopPropagation()}
-                          />
+                  <Tabs defaultValue="preset" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="preset">プリセット</TabsTrigger>
+                      <TabsTrigger value="upload">カスタム</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="preset" className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        {BACKGROUND_PRESETS.map((preset) => (
+                          <Button
+                            key={preset.id}
+                            variant="outline"
+                            className="h-auto flex-col gap-2 p-4"
+                            onClick={() => handlePresetSelect(preset)}
+                            disabled={isGeneratingBackground}
+                          >
+                            <preset.icon className="w-8 h-8" />
+                            <span className="text-sm font-medium">{preset.name}</span>
+                          </Button>
+                        ))}
+                      </div>
+                      {isGeneratingBackground && (
+                        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-4">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          背景画像を生成中...
                         </div>
-                      );
-                    })}
-                  </div>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="upload">
+                      <div className="border-2 border-dashed rounded-lg p-8">
+                        <label className="flex flex-col items-center gap-2 cursor-pointer">
+                          <Upload className="w-8 h-8 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            クリックして背景画像をアップロード
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleBackgroundUpload}
+                          />
+                        </label>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 )}
-              </ScrollArea>
-            </div>
+              </div>
 
-            <Button
-              onClick={handleGenerate}
-              disabled={isGenerating || selectedItems.length === 0 || !backgroundImage}
-              className="w-full"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  生成中...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  グッズ展示場を生成
-                </>
-              )}
-            </Button>
-          </div>
+              {/* グッズ選択 */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  展示するグッズを選択 ({selectedItems.length}/5)
+                </label>
+                <ScrollArea className="h-[240px] border rounded-lg p-4">
+                  {isLoadingItems ? (
+                    <div className="flex justify-center p-8">
+                      <Loader2 className="w-6 h-6 animate-spin" />
+                    </div>
+                  ) : userItems.length === 0 ? (
+                    <p className="text-center text-muted-foreground p-8">
+                      コレクションにグッズがありません
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-3">
+                      {userItems.map((item) => {
+                        const isSelected = selectedItems.some(i => i.id === item.id);
+                        return (
+                          <div
+                            key={item.id}
+                            className={`relative border rounded-lg p-2 cursor-pointer transition-all ${
+                              isSelected ? 'border-primary ring-2 ring-primary' : 'border-border'
+                            }`}
+                            onClick={() => handleItemToggle(item)}
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-full aspect-square object-cover rounded mb-2"
+                            />
+                            <p className="text-xs truncate">{item.title}</p>
+                            <Checkbox
+                              checked={isSelected}
+                              className="absolute top-2 right-2"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+
+              <Button
+                onClick={handleGenerate}
+                disabled={isGenerating || selectedItems.length === 0 || !backgroundImage}
+                className="w-full"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    生成中...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    グッズ展示場を生成
+                  </>
+                )}
+              </Button>
+            </div>
+          </ScrollArea>
         )}
       </DialogContent>
     </Dialog>
