@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types";
 
 export function useProfile(userId: string | undefined) {
-  const { data, refetch } = useQuery<Profile>({
+  const { data, refetch, isLoading, error } = useQuery<Profile>({
     queryKey: ["profile", userId],
     queryFn: async () => {
       if (!userId) throw new Error("User ID not provided");
@@ -51,6 +51,8 @@ export function useProfile(userId: string | undefined) {
 
   return {
     profile: data,
-    refetchProfile: refetch
+    refetchProfile: refetch,
+    isLoading,
+    error
   };
 }

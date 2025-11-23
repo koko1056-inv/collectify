@@ -22,8 +22,8 @@ const Index = () => {
   const isMobile = useIsMobile();
   const { showWalkthrough, setShowWalkthrough } = useOnboardingWalkthrough();
   
-  const { profile, refetchProfile } = useProfile(user?.id);
-  const { profile: viewedProfile } = useProfile(userId);
+  const { profile, refetchProfile, isLoading: isLoadingProfile } = useProfile(user?.id);
+  const { profile: viewedProfile, isLoading: isLoadingViewedProfile } = useProfile(userId);
 
   // ユーザーの興味関心がnullの場合のみダイアログを表示（初回ログイン時のみ）
   useEffect(() => {
@@ -40,7 +40,7 @@ const Index = () => {
   // ユーザーのコレクションを表示するか、ホームページを表示するか
   const showUserCollection = !!userId && !!viewedProfile;
   // 自分のプロフィールでログイン中の場合はアバター中心のホームを表示
-  const showAvatarCenterHome = user && profile && !userId;
+  const showAvatarCenterHome = user && profile && profile.id && !userId;
 
   const handleAvatarGenerated = async (url: string) => {
     if (!user?.id) return;
@@ -54,6 +54,24 @@ const Index = () => {
       refetchProfile();
     }
   };
+
+  // ローディング中の表示
+  if (isLoadingProfile && user) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <main className="container mx-auto px-1 py-4 pt-0 pb-24 sm:px-2 sm:py-8 sm:pt-20 sm:pb-8">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">読み込み中...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
