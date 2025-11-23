@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Upload, Sparkles, Home, Box, Store as StoreIcon, Frame, Plus, X } from "lucide-react";
+import { Loader2, Upload, Sparkles, Home, Box, Store as StoreIcon, Frame, Plus, X, Save, Eye } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -83,6 +83,9 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showGallery, setShowGallery] = useState(initialShowGallery);
   const [customPrompt, setCustomPrompt] = useState<string>("");
+  const [galleryTitle, setGalleryTitle] = useState<string>("");
+  const [galleryDescription, setGalleryDescription] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -127,22 +130,27 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
     enabled: isOpen,
   });
 
-  // 展示場ギャラリーを取得
+  // 展示場ギャラリーを取得（全ユーザーの公開ギャラリー）
   const { data: displayGallery = [] } = useQuery({
-    queryKey: ["display-gallery", userId],
+    queryKey: ["display-gallery-all"],
     queryFn: async () => {
-      if (!userId) return [];
-      
       const { data, error } = await supabase
         .from("display_gallery")
-        .select("*")
-        .eq("user_id", userId)
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            display_name,
+            avatar_url
+          )
+        `)
+        .eq("is_public", true)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
     },
-    enabled: isOpen && !!userId,
+    enabled: isOpen && showGallery,
   });
 
   // 背景プリセットをアップロード
@@ -331,25 +339,6 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
 
       if (data?.editedImageUrl) {
         setGeneratedImage(data.editedImageUrl);
-        
-        // 展示場画像をギャラリーに保存
-        if (userId) {
-          const { error: galleryError } = await supabase
-            .from("display_gallery")
-            .insert({
-              user_id: userId,
-              image_url: data.editedImageUrl,
-              item_ids: selectedItems.map(item => item.id),
-              background_preset_id: selectedPreset
-            });
-
-          if (galleryError) {
-            console.error("Error saving to gallery:", galleryError);
-          } else {
-            queryClient.invalidateQueries({ queryKey: ["display-gallery", userId] });
-          }
-        }
-        
         toast.success("グッズ展示場の画像を生成しました！");
       } else {
         throw new Error("画像の生成に失敗しました");
@@ -382,6 +371,47 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
     setGeneratedImage(null);
     setSelectedPreset(null);
     setSelectedCategory(null);
+    setGalleryTitle("");
+    setGalleryDescription("");
+  };
+
+  const handleSaveGallery = async () => {
+    if (!generatedImage) {
+      toast.error("保存する画像がありません");
+      return;
+    }
+
+    if (!galleryTitle.trim()) {
+      toast.error("タイトルを入力してください");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('display_gallery')
+        .insert({
+          user_id: userId,
+          image_url: generatedImage,
+          item_ids: selectedItems.map(item => item.id),
+          background_preset_id: selectedPreset,
+          title: galleryTitle,
+          description: galleryDescription,
+          is_public: true
+        });
+
+      if (error) throw error;
+
+      toast.success("ギャラリーを保存しました！");
+      setGalleryTitle("");
+      setGalleryDescription("");
+      queryClient.invalidateQueries({ queryKey: ['display-gallery-all'] });
+    } catch (error) {
+      console.error('Error saving gallery:', error);
+      toast.error("ギャラリーの保存に失敗しました");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCategoryClick = (category: string) => {
@@ -435,8 +465,49 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
                     className="w-full h-auto"
                   />
                 </div>
+                
+                <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+                  <h3 className="font-semibold">ギャラリーに保存</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="gallery-title">タイトル</Label>
+                    <Input
+                      id="gallery-title"
+                      value={galleryTitle}
+                      onChange={(e) => setGalleryTitle(e.target.value)}
+                      placeholder="展示のタイトルを入力"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gallery-description">説明（任意）</Label>
+                    <Textarea
+                      id="gallery-description"
+                      value={galleryDescription}
+                      onChange={(e) => setGalleryDescription(e.target.value)}
+                      placeholder="展示の説明を入力"
+                      rows={3}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSaveGallery}
+                    disabled={isSaving || !galleryTitle.trim()}
+                    className="w-full"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        保存中...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        ギャラリーを保存
+                      </>
+                    )}
+                  </Button>
+                </div>
+
                 <div className="flex gap-2">
-                  <Button onClick={handleDownload} className="flex-1">
+                  <Button onClick={handleDownload} variant="outline" className="flex-1">
                     ダウンロード
                   </Button>
                   <Button onClick={handleReset} variant="outline" className="flex-1">
@@ -448,38 +519,69 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
           ) : showGallery ? (
             <ScrollArea className="flex-1 px-1">
               <div className="space-y-4 pb-4">
-                <h3 className="text-lg font-semibold">展示場ギャラリー</h3>
+                <h3 className="text-lg font-semibold">みんなの展示場ギャラリー</h3>
                 {displayGallery.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    まだ展示場を作成していません
-                  </p>
+                  <div className="text-center text-muted-foreground py-12">
+                    <Frame className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p>保存された展示はまだありません</p>
+                  </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4">
-                    {displayGallery.map((item) => (
-                      <div key={item.id} className="relative border rounded-lg overflow-hidden">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {displayGallery.map((gallery: any) => (
+                      <div key={gallery.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                         <img 
-                          src={item.image_url} 
-                          alt="Display" 
-                          className="w-full h-auto"
+                          src={gallery.image_url} 
+                          alt={gallery.title || "Gallery"} 
+                          className="w-full h-64 object-cover cursor-pointer"
+                          onClick={() => window.open(gallery.image_url, '_blank')}
                         />
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="absolute top-2 right-2"
-                          onClick={async () => {
-                            const { error } = await supabase
-                              .from("display_gallery")
-                              .delete()
-                              .eq("id", item.id);
-                            
-                            if (!error) {
-                              queryClient.invalidateQueries({ queryKey: ["display-gallery", userId] });
-                              toast.success("削除しました");
-                            }
-                          }}
-                        >
-                          削除
-                        </Button>
+                        <div className="p-4 space-y-2">
+                          <h4 className="font-semibold text-base line-clamp-1">{gallery.title}</h4>
+                          {gallery.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {gallery.description}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between pt-2">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              {gallery.profiles && (
+                                <>
+                                  {gallery.profiles.avatar_url && (
+                                    <img 
+                                      src={gallery.profiles.avatar_url} 
+                                      alt={gallery.profiles.display_name || gallery.profiles.username}
+                                      className="w-5 h-5 rounded-full"
+                                    />
+                                  )}
+                                  <span>{gallery.profiles.display_name || gallery.profiles.username}</span>
+                                </>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(gallery.created_at).toLocaleDateString('ja-JP')}
+                            </span>
+                          </div>
+                          {gallery.user_id === userId && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="w-full mt-2"
+                              onClick={async () => {
+                                const { error } = await supabase
+                                  .from("display_gallery")
+                                  .delete()
+                                  .eq("id", gallery.id);
+                                
+                                if (!error) {
+                                  queryClient.invalidateQueries({ queryKey: ["display-gallery-all"] });
+                                  toast.success("削除しました");
+                                }
+                              }}
+                            >
+                              削除
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

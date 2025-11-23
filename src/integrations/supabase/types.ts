@@ -243,25 +243,34 @@ export type Database = {
         Row: {
           background_preset_id: string | null
           created_at: string
+          description: string | null
           id: string
           image_url: string
+          is_public: boolean | null
           item_ids: string[] | null
+          title: string | null
           user_id: string
         }
         Insert: {
           background_preset_id?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           image_url: string
+          is_public?: boolean | null
           item_ids?: string[] | null
+          title?: string | null
           user_id: string
         }
         Update: {
           background_preset_id?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           image_url?: string
+          is_public?: boolean | null
           item_ids?: string[] | null
+          title?: string | null
           user_id?: string
         }
         Relationships: [
