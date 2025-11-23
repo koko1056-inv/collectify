@@ -53,16 +53,10 @@ const Index = () => {
   });
 
   const handleAvatarGenerated = async (url: string) => {
-    if (!user?.id) return;
-    
-    const { error } = await supabase
-      .from("profiles")
-      .update({ avatar_url: url })
-      .eq("id", user.id);
-    
-    if (!error) {
-      refetchProfile();
-    }
+    // AvatarCenterHomeで既にprofiles.avatar_urlを更新しているので
+    // ここではプロフィールを再取得するだけ
+    console.log("[Index] Avatar generated, refetching profile");
+    await refetchProfile();
   };
 
   // 他ユーザーのプロフィールを見ているときのローディング表示のみ
