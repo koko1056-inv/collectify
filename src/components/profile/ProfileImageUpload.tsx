@@ -118,7 +118,7 @@ export function ProfileImageUpload({
       // 画像をアップロード（完了を待つ）
       await onImageChange(file);
       
-      // アップロード完了後、既存のAI生成アバター（item_idsがnullまたは空配列）を取得
+      // アップロード完了後、既存のAI生成アバター（item_idsがnullまたは空配列、かつプロフィール画像でないもの）を取得
       const { data: existingAvatars } = await supabase
         .from("avatar_gallery")
         .select("id, item_ids, prompt, created_at")
@@ -131,7 +131,7 @@ export function ProfileImageUpload({
                     avatar.prompt !== "プロフィール画像"
         );
 
-        // 3つを超える場合は古いものを削除
+        // 3つを超える場合は古いものを削除（新しいアバターが追加されているので、3つまで残す）
         if (pureAvatars.length > 3) {
           const toDelete = pureAvatars.slice(3); // 4つ目以降を削除対象に
           for (const avatar of toDelete) {
