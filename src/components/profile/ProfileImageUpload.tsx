@@ -14,6 +14,7 @@ interface ProfileImageUploadProps {
   previewUrl: string | null;
   setPreviewUrl: React.Dispatch<React.SetStateAction<string | null>>;
   userId: string;
+  avatarUrl?: string | null;
   className?: string;
 }
 
@@ -22,6 +23,7 @@ export function ProfileImageUpload({
   previewUrl,
   setPreviewUrl,
   userId,
+  avatarUrl,
   className
 }: ProfileImageUploadProps) {
   const [isHovering, setIsHovering] = useState(false);
@@ -189,7 +191,7 @@ export function ProfileImageUpload({
             onMouseLeave={() => setIsHovering(false)}
           >
             <img
-              src={previewUrl || "/placeholder.svg"}
+              src={previewUrl || avatarUrl || "/placeholder.svg"}
               alt="Profile"
               className="w-24 h-24 object-cover rounded-full"
             />

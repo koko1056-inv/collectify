@@ -33,6 +33,7 @@ export const ProfileImageSection = memo(function ProfileImageSection({
             previewUrl={previewUrl}
             setPreviewUrl={setPreviewUrl}
             userId={userId}
+            avatarUrl={avatarUrl}
           />
         ) : (
           <LazyImage
