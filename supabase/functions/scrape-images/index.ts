@@ -22,61 +22,49 @@ serve(async (req) => {
       )
     }
 
-    // Fetch the webpage content
-    const response = await fetch(url)
-    const html = await response.text()
+    // Fetch the webpage content with timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
+    
+    const response = await fetch(url, { signal: controller.signal })
+    clearTimeout(timeoutId)
+    
+    let html = await response.text()
+    
+    // Limit HTML size to prevent memory issues (first 1MB)
+    if (html.length > 1000000) {
+      html = html.substring(0, 1000000)
+    }
 
-    // Extract images with their metadata
     interface ImageData {
       url: string;
       title: string | null;
     }
     
-    // より高度なHTMLパーシングで商品名を抽出
     const imageData: ImageData[] = []
+    const seenUrls = new Set<string>()
     
-    // 画像を含む商品コンテナを探す（一般的なパターン）
-    const productPatterns = [
-      /<(?:div|li|article)[^>]*class="[^"]*(?:product|item|goods)[^"]*"[^>]*>[\s\S]*?<img[^>]+src="([^"]+)"[^>]*>[\s\S]*?<[^>]*>([^<]+)<\/[^>]+>[\s\S]*?<\/(?:div|li|article)>/gi,
-      /<(?:div|li)[^>]*>[\s\S]*?<img[^>]+src="([^"]+)"[^>]*>[\s\S]*?<(?:h[1-6]|p|span|div)[^>]*class="[^"]*(?:name|title)[^"]*"[^>]*>([^<]+)</gi,
-      /<img[^>]+src="([^"]+)"[^>]*alt="([^"]+)"/gi,
-    ]
+    // Simple img tag extraction with alt/title attributes
+    const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi
+    const matches = html.match(imgRegex) || []
     
-    // 各パターンを試す
-    for (const pattern of productPatterns) {
-      const matches = [...html.matchAll(pattern)]
-      for (const match of matches) {
-        let imgUrl = match[1]
-        let title = match[2]?.trim() || null
-        
-        // Handle relative URLs
-        if (imgUrl.startsWith('//')) {
-          imgUrl = 'https:' + imgUrl
-        } else if (imgUrl.startsWith('/')) {
-          const urlObj = new URL(url)
-          imgUrl = urlObj.origin + imgUrl
-        } else if (!imgUrl.startsWith('http')) {
-          const urlObj = new URL(url)
-          imgUrl = urlObj.origin + '/' + imgUrl
-        }
-        
-        // 重複チェック
-        const exists = imageData.find(item => item.url === imgUrl)
-        if (!exists && imgUrl.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
-          imageData.push({ url: imgUrl, title })
-        }
-      }
-    }
+    // Limit to first 100 images to prevent resource exhaustion
+    const limitedMatches = matches.slice(0, 100)
     
-    // パターンマッチングで取得できなかった場合、個別に画像とその周辺のテキストを抽出
-    if (imageData.length === 0) {
-      const imgRegex = /<img[^>]*src="([^"]+)"[^>]*>/gi
-      const imgMatches = [...html.matchAll(imgRegex)]
+    for (const imgTag of limitedMatches) {
+      // Extract src
+      const srcMatch = imgTag.match(/src=["']([^"']+)["']/)
+      if (!srcMatch) continue
       
-      for (const match of imgMatches) {
-        let imgUrl = match[1]
-        
-        // Handle relative URLs
+      let imgUrl = srcMatch[1]
+      
+      // Skip data URLs and non-image files
+      if (imgUrl.startsWith('data:') || !imgUrl.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
+        continue
+      }
+      
+      // Handle relative URLs
+      try {
         if (imgUrl.startsWith('//')) {
           imgUrl = 'https:' + imgUrl
         } else if (imgUrl.startsWith('/')) {
@@ -86,46 +74,24 @@ serve(async (req) => {
           const urlObj = new URL(url)
           imgUrl = urlObj.origin + '/' + imgUrl
         }
-        
-        if (!imgUrl.match(/\.(jpg|jpeg|png|gif|webp)/i)) continue
-        
-        // 画像タグのalt属性から取得
-        const altMatch = match[0].match(/alt="([^"]+)"/i)
-        const titleMatch = match[0].match(/title="([^"]+)"/i)
-        let title = altMatch?.[1] || titleMatch?.[1] || null
-        
-        // alt/titleがない場合、画像の前後のテキストを探す
-        if (!title) {
-          const imgIndex = html.indexOf(match[0])
-          const contextRange = 300
-          const contextStart = Math.max(0, imgIndex - contextRange)
-          const contextEnd = Math.min(html.length, imgIndex + match[0].length + contextRange)
-          const context = html.slice(contextStart, contextEnd)
-          
-          // 商品名らしいテキストを抽出（タグに囲まれたテキスト）
-          const textPatterns = [
-            /<(?:h[1-6]|p|span|div)[^>]*class="[^"]*(?:name|title|product)[^"]*"[^>]*>([^<]{3,50})</i,
-            /<(?:h[1-6])[^>]*>([^<]{3,50})</i,
-          ]
-          
-          for (const textPattern of textPatterns) {
-            const textMatch = context.match(textPattern)
-            if (textMatch && textMatch[1]) {
-              title = textMatch[1].trim()
-              break
-            }
-          }
-        }
-        
-        imageData.push({ url: imgUrl, title })
+      } catch (e) {
+        console.error('Invalid URL:', imgUrl)
+        continue
       }
+      
+      // Skip duplicates
+      if (seenUrls.has(imgUrl)) continue
+      seenUrls.add(imgUrl)
+      
+      // Extract title from alt or title attribute
+      const altMatch = imgTag.match(/alt=["']([^"']+)["']/)
+      const titleMatch = imgTag.match(/title=["']([^"']+)["']/)
+      const title = altMatch?.[1] || titleMatch?.[1] || null
+      
+      imageData.push({ url: imgUrl, title })
     }
     
-    // Filter out duplicates and invalid URLs
-    const uniqueImageData = imageData.filter((data, index, self) => 
-      data.url.match(/\.(jpg|jpeg|png|gif|webp)/i) &&
-      self.findIndex(d => d.url === data.url) === index
-    )
+    console.log(`Found ${imageData.length} unique images`)
 
     // First, clear existing entries for this source URL
     const supabase = createClient(
@@ -143,8 +109,8 @@ serve(async (req) => {
     }
 
     // Then insert new entries
-    if (uniqueImageData.length > 0) {
-      const scrapedImages = uniqueImageData.map(data => ({
+    if (imageData.length > 0) {
+      const scrapedImages = imageData.map(data => ({
         url: data.url,
         source_url: url,
         title: data.title
@@ -165,7 +131,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        images: uniqueImageData.map(data => ({
+        images: imageData.map(data => ({
           url: data.url,
           title: data.title
         }))
