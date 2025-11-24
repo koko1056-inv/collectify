@@ -26,11 +26,23 @@ serve(async (req) => {
     const response = await fetch(url)
     const html = await response.text()
 
-    // Extract image URLs using regex
-    const imgRegex = /<img[^>]+src="([^">]+)"/g
+    // Extract images with their metadata
+    const imgRegex = /<img[^>]*>/gi
     const matches = [...html.matchAll(imgRegex)]
-    const imageUrls = matches.map(match => {
-      let imgUrl = match[1]
+    
+    interface ImageData {
+      url: string;
+      title: string | null;
+      price: string | null;
+    }
+    
+    const imageData: ImageData[] = matches.map(match => {
+      const imgTag = match[0]
+      
+      // Extract image URL
+      const srcMatch = imgTag.match(/src=["']([^"']+)["']/i)
+      let imgUrl = srcMatch ? srcMatch[1] : ''
+      
       // Handle relative URLs
       if (imgUrl.startsWith('//')) {
         imgUrl = 'https:' + imgUrl
@@ -41,12 +53,44 @@ serve(async (req) => {
         const urlObj = new URL(url)
         imgUrl = urlObj.origin + '/' + imgUrl
       }
-      return imgUrl
+      
+      // Extract title from alt or title attribute
+      const altMatch = imgTag.match(/alt=["']([^"']+)["']/i)
+      const titleMatch = imgTag.match(/title=["']([^"']+)["']/i)
+      const title = altMatch?.[1] || titleMatch?.[1] || null
+      
+      // Try to extract price from nearby text
+      // Look for common price patterns near the image tag
+      const imgIndex = html.indexOf(match[0])
+      const contextRange = 500 // characters before and after image tag
+      const contextStart = Math.max(0, imgIndex - contextRange)
+      const contextEnd = Math.min(html.length, imgIndex + match[0].length + contextRange)
+      const context = html.slice(contextStart, contextEnd)
+      
+      // Extract price patterns: ¥1,000, $10.00, etc.
+      const pricePatterns = [
+        /[¥￥]\s?[\d,]+(?:\.\d+)?(?:\s?\([^)]+\))?/,
+        /[\d,]+\s?円(?:\s?\([^)]+\))?/,
+        /\$\s?[\d,]+(?:\.\d+)?/,
+        /価格[：:]\s?[¥￥\$]?\s?[\d,]+/
+      ]
+      
+      let price = null
+      for (const pattern of pricePatterns) {
+        const match = context.match(pattern)
+        if (match) {
+          price = match[0].trim()
+          break
+        }
+      }
+      
+      return { url: imgUrl, title, price }
     })
 
     // Filter out duplicates and invalid URLs
-    const uniqueImageUrls = [...new Set(imageUrls)].filter(url => 
-      url.match(/\.(jpg|jpeg|png|gif|webp)/i)
+    const uniqueImageData = imageData.filter((data, index, self) => 
+      data.url.match(/\.(jpg|jpeg|png|gif|webp)/i) &&
+      self.findIndex(d => d.url === data.url) === index
     )
 
     // First, clear existing entries for this source URL
@@ -65,10 +109,12 @@ serve(async (req) => {
     }
 
     // Then insert new entries
-    if (uniqueImageUrls.length > 0) {
-      const scrapedImages = uniqueImageUrls.map(imageUrl => ({
-        url: imageUrl,
-        source_url: url
+    if (uniqueImageData.length > 0) {
+      const scrapedImages = uniqueImageData.map(data => ({
+        url: data.url,
+        source_url: url,
+        title: data.title,
+        price: data.price
       }))
 
       const { error: insertError } = await supabase
@@ -85,7 +131,13 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ images: uniqueImageUrls }),
+      JSON.stringify({ 
+        images: uniqueImageData.map(data => ({
+          url: data.url,
+          title: data.title,
+          price: data.price
+        }))
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
