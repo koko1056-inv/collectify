@@ -121,11 +121,6 @@ serve(async (req) => {
       }
     }
     
-    // 重複を除外
-    const uniqueImageData = imageData.filter((data, index, self) => 
-      self.findIndex(d => d.url === data.url) === index
-    )
-
     // Filter out duplicates and invalid URLs
     const uniqueImageData = imageData.filter((data, index, self) => 
       data.url.match(/\.(jpg|jpeg|png|gif|webp)/i) &&
