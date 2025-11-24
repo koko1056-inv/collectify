@@ -46,7 +46,6 @@ export function ImageSection({
   const [scrapedImages, setScrapedImages] = useState<Array<{
     url: string;
     title: string | null;
-    price: string | null;
   }>>([]);
   const [showImageSelector, setShowImageSelector] = useState(false);
   const { toast } = useToast();
@@ -159,7 +158,7 @@ export function ImageSection({
     }
   };
 
-  const handleSelectScrapedImage = async (imageData: { url: string; title: string | null; price: string | null }) => {
+  const handleSelectScrapedImage = async (imageData: { url: string; title: string | null }) => {
     try {
       const { data: { imageBlob }, error } = await supabase.functions.invoke('proxy-image', {
         body: { url: imageData.url }
@@ -173,22 +172,20 @@ export function ImageSection({
       const file = new File([blob], 'scraped-image.jpg', { type: 'image/jpeg' });
       handleImageChange(file);
       
-      // 商品名と価格が取得できた場合は自動入力
-      if (onAnalysisComplete) {
-        const analysisResult: Partial<AnalysisResult> = {};
-        if (imageData.title) {
-          analysisResult.title = imageData.title;
-        }
-        if (imageData.price) {
-          analysisResult.price = imageData.price;
-        }
-        if (Object.keys(analysisResult).length > 0) {
-          onAnalysisComplete(analysisResult as AnalysisResult);
-          toast({
-            title: "情報を自動入力",
-            description: "商品名と価格をフォームに入力しました。",
-          });
-        }
+      // 商品名が取得できた場合は自動入力
+      if (onAnalysisComplete && imageData.title) {
+        onAnalysisComplete({
+          title: imageData.title,
+          description: "",
+          price: "",
+          category: "",
+          contentName: "",
+          characterName: ""
+        });
+        toast({
+          title: "商品名を自動入力",
+          description: "商品名をフォームに入力しました。",
+        });
       }
       
       setShowImageSelector(false);
@@ -447,18 +444,11 @@ export function ImageSection({
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  {(imageData.title || imageData.price) && (
-                    <div className="p-2 space-y-1">
-                      {imageData.title && (
-                        <p className="text-xs font-medium line-clamp-2 text-gray-900">
-                          {imageData.title}
-                        </p>
-                      )}
-                      {imageData.price && (
-                        <p className="text-xs text-gray-600">
-                          {imageData.price}
-                        </p>
-                      )}
+                  {imageData.title && (
+                    <div className="p-2">
+                      <p className="text-xs font-medium line-clamp-2 text-gray-900">
+                        {imageData.title}
+                      </p>
                     </div>
                   )}
                 </div>
