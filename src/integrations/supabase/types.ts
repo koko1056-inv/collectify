@@ -1259,19 +1259,25 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          price: string | null
           source_url: string
+          title: string | null
           url: string
         }
         Insert: {
           created_at?: string
           id?: string
+          price?: string | null
           source_url: string
+          title?: string | null
           url: string
         }
         Update: {
           created_at?: string
           id?: string
+          price?: string | null
           source_url?: string
+          title?: string | null
           url?: string
         }
         Relationships: []

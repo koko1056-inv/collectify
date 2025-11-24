@@ -43,7 +43,11 @@ export function ImageSection({
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [isScrapingImages, setIsScrapingImages] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [scrapedImages, setScrapedImages] = useState<string[]>([]);
+  const [scrapedImages, setScrapedImages] = useState<Array<{
+    url: string;
+    title: string | null;
+    price: string | null;
+  }>>([]);
   const [showImageSelector, setShowImageSelector] = useState(false);
   const { toast } = useToast();
 
@@ -155,10 +159,10 @@ export function ImageSection({
     }
   };
 
-  const handleSelectScrapedImage = async (imageUrl: string) => {
+  const handleSelectScrapedImage = async (imageData: { url: string; title: string | null; price: string | null }) => {
     try {
       const { data: { imageBlob }, error } = await supabase.functions.invoke('proxy-image', {
-        body: { url: imageUrl }
+        body: { url: imageData.url }
       });
 
       if (error) throw error;
@@ -168,6 +172,25 @@ export function ImageSection({
       
       const file = new File([blob], 'scraped-image.jpg', { type: 'image/jpeg' });
       handleImageChange(file);
+      
+      // 商品名と価格が取得できた場合は自動入力
+      if (onAnalysisComplete) {
+        const analysisResult: Partial<AnalysisResult> = {};
+        if (imageData.title) {
+          analysisResult.title = imageData.title;
+        }
+        if (imageData.price) {
+          analysisResult.price = imageData.price;
+        }
+        if (Object.keys(analysisResult).length > 0) {
+          onAnalysisComplete(analysisResult as AnalysisResult);
+          toast({
+            title: "情報を自動入力",
+            description: "商品名と価格をフォームに入力しました。",
+          });
+        }
+      }
+      
       setShowImageSelector(false);
       setUrlInput("");
       setScrapedImages([]);
@@ -411,17 +434,33 @@ export function ImageSection({
           </DialogHeader>
           <ScrollArea className="h-[60vh]">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
-              {scrapedImages.map((imageUrl, index) => (
+              {scrapedImages.map((imageData, index) => (
                 <div
                   key={index}
-                  className="aspect-square relative overflow-hidden rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => handleSelectScrapedImage(imageUrl)}
+                  className="relative overflow-hidden rounded-lg border cursor-pointer hover:opacity-80 transition-opacity bg-white"
+                  onClick={() => handleSelectScrapedImage(imageData)}
                 >
-                  <img
-                    src={imageUrl}
-                    alt={`Scraped image ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="aspect-square relative overflow-hidden">
+                    <img
+                      src={imageData.url}
+                      alt={imageData.title || `Scraped image ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  {(imageData.title || imageData.price) && (
+                    <div className="p-2 space-y-1">
+                      {imageData.title && (
+                        <p className="text-xs font-medium line-clamp-2 text-gray-900">
+                          {imageData.title}
+                        </p>
+                      )}
+                      {imageData.price && (
+                        <p className="text-xs text-gray-600">
+                          {imageData.price}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
