@@ -27,65 +27,104 @@ serve(async (req) => {
     const html = await response.text()
 
     // Extract images with their metadata
-    const imgRegex = /<img[^>]*>/gi
-    const matches = [...html.matchAll(imgRegex)]
-    
     interface ImageData {
       url: string;
       title: string | null;
-      price: string | null;
     }
     
-    const imageData: ImageData[] = matches.map(match => {
-      const imgTag = match[0]
-      
-      // Extract image URL
-      const srcMatch = imgTag.match(/src=["']([^"']+)["']/i)
-      let imgUrl = srcMatch ? srcMatch[1] : ''
-      
-      // Handle relative URLs
-      if (imgUrl.startsWith('//')) {
-        imgUrl = 'https:' + imgUrl
-      } else if (imgUrl.startsWith('/')) {
-        const urlObj = new URL(url)
-        imgUrl = urlObj.origin + imgUrl
-      } else if (!imgUrl.startsWith('http')) {
-        const urlObj = new URL(url)
-        imgUrl = urlObj.origin + '/' + imgUrl
-      }
-      
-      // Extract title from alt or title attribute
-      const altMatch = imgTag.match(/alt=["']([^"']+)["']/i)
-      const titleMatch = imgTag.match(/title=["']([^"']+)["']/i)
-      const title = altMatch?.[1] || titleMatch?.[1] || null
-      
-      // Try to extract price from nearby text
-      // Look for common price patterns near the image tag
-      const imgIndex = html.indexOf(match[0])
-      const contextRange = 500 // characters before and after image tag
-      const contextStart = Math.max(0, imgIndex - contextRange)
-      const contextEnd = Math.min(html.length, imgIndex + match[0].length + contextRange)
-      const context = html.slice(contextStart, contextEnd)
-      
-      // Extract price patterns: ¥1,000, $10.00, etc.
-      const pricePatterns = [
-        /[¥￥]\s?[\d,]+(?:\.\d+)?(?:\s?\([^)]+\))?/,
-        /[\d,]+\s?円(?:\s?\([^)]+\))?/,
-        /\$\s?[\d,]+(?:\.\d+)?/,
-        /価格[：:]\s?[¥￥\$]?\s?[\d,]+/
-      ]
-      
-      let price = null
-      for (const pattern of pricePatterns) {
-        const match = context.match(pattern)
-        if (match) {
-          price = match[0].trim()
-          break
+    // より高度なHTMLパーシングで商品名を抽出
+    const imageData: ImageData[] = []
+    
+    // 画像を含む商品コンテナを探す（一般的なパターン）
+    const productPatterns = [
+      /<(?:div|li|article)[^>]*class="[^"]*(?:product|item|goods)[^"]*"[^>]*>[\s\S]*?<img[^>]+src="([^"]+)"[^>]*>[\s\S]*?<[^>]*>([^<]+)<\/[^>]+>[\s\S]*?<\/(?:div|li|article)>/gi,
+      /<(?:div|li)[^>]*>[\s\S]*?<img[^>]+src="([^"]+)"[^>]*>[\s\S]*?<(?:h[1-6]|p|span|div)[^>]*class="[^"]*(?:name|title)[^"]*"[^>]*>([^<]+)</gi,
+      /<img[^>]+src="([^"]+)"[^>]*alt="([^"]+)"/gi,
+    ]
+    
+    // 各パターンを試す
+    for (const pattern of productPatterns) {
+      const matches = [...html.matchAll(pattern)]
+      for (const match of matches) {
+        let imgUrl = match[1]
+        let title = match[2]?.trim() || null
+        
+        // Handle relative URLs
+        if (imgUrl.startsWith('//')) {
+          imgUrl = 'https:' + imgUrl
+        } else if (imgUrl.startsWith('/')) {
+          const urlObj = new URL(url)
+          imgUrl = urlObj.origin + imgUrl
+        } else if (!imgUrl.startsWith('http')) {
+          const urlObj = new URL(url)
+          imgUrl = urlObj.origin + '/' + imgUrl
+        }
+        
+        // 重複チェック
+        const exists = imageData.find(item => item.url === imgUrl)
+        if (!exists && imgUrl.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
+          imageData.push({ url: imgUrl, title })
         }
       }
+    }
+    
+    // パターンマッチングで取得できなかった場合、個別に画像とその周辺のテキストを抽出
+    if (imageData.length === 0) {
+      const imgRegex = /<img[^>]*src="([^"]+)"[^>]*>/gi
+      const imgMatches = [...html.matchAll(imgRegex)]
       
-      return { url: imgUrl, title, price }
-    })
+      for (const match of imgMatches) {
+        let imgUrl = match[1]
+        
+        // Handle relative URLs
+        if (imgUrl.startsWith('//')) {
+          imgUrl = 'https:' + imgUrl
+        } else if (imgUrl.startsWith('/')) {
+          const urlObj = new URL(url)
+          imgUrl = urlObj.origin + imgUrl
+        } else if (!imgUrl.startsWith('http')) {
+          const urlObj = new URL(url)
+          imgUrl = urlObj.origin + '/' + imgUrl
+        }
+        
+        if (!imgUrl.match(/\.(jpg|jpeg|png|gif|webp)/i)) continue
+        
+        // 画像タグのalt属性から取得
+        const altMatch = match[0].match(/alt="([^"]+)"/i)
+        const titleMatch = match[0].match(/title="([^"]+)"/i)
+        let title = altMatch?.[1] || titleMatch?.[1] || null
+        
+        // alt/titleがない場合、画像の前後のテキストを探す
+        if (!title) {
+          const imgIndex = html.indexOf(match[0])
+          const contextRange = 300
+          const contextStart = Math.max(0, imgIndex - contextRange)
+          const contextEnd = Math.min(html.length, imgIndex + match[0].length + contextRange)
+          const context = html.slice(contextStart, contextEnd)
+          
+          // 商品名らしいテキストを抽出（タグに囲まれたテキスト）
+          const textPatterns = [
+            /<(?:h[1-6]|p|span|div)[^>]*class="[^"]*(?:name|title|product)[^"]*"[^>]*>([^<]{3,50})</i,
+            /<(?:h[1-6])[^>]*>([^<]{3,50})</i,
+          ]
+          
+          for (const textPattern of textPatterns) {
+            const textMatch = context.match(textPattern)
+            if (textMatch && textMatch[1]) {
+              title = textMatch[1].trim()
+              break
+            }
+          }
+        }
+        
+        imageData.push({ url: imgUrl, title })
+      }
+    }
+    
+    // 重複を除外
+    const uniqueImageData = imageData.filter((data, index, self) => 
+      self.findIndex(d => d.url === data.url) === index
+    )
 
     // Filter out duplicates and invalid URLs
     const uniqueImageData = imageData.filter((data, index, self) => 
@@ -113,8 +152,7 @@ serve(async (req) => {
       const scrapedImages = uniqueImageData.map(data => ({
         url: data.url,
         source_url: url,
-        title: data.title,
-        price: data.price
+        title: data.title
       }))
 
       const { error: insertError } = await supabase
@@ -134,8 +172,7 @@ serve(async (req) => {
       JSON.stringify({ 
         images: uniqueImageData.map(data => ({
           url: data.url,
-          title: data.title,
-          price: data.price
+          title: data.title
         }))
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
