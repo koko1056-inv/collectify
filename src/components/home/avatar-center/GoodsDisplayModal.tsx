@@ -530,16 +530,17 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5" />
               グッズ展示場
             </DialogTitle>
           </DialogHeader>
 
+          <div className="flex-1 overflow-hidden px-6 pb-6">
           {generatedImage ? (
-            <ScrollArea className="flex-1 overflow-auto">
+            <div className="h-full overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' as any }}>
               <div className="space-y-4 pb-4 pr-4">
                 <div className="relative rounded-lg overflow-hidden border">
                   <img 
@@ -624,9 +625,9 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
                   </Button>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
           ) : (
-            <Tabs defaultValue={showGallery ? "gallery" : "create"} className="flex-1 flex flex-col">
+            <Tabs defaultValue={showGallery ? "gallery" : "create"} className="h-full flex flex-col">
               <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-white border border-gray-200 rounded-full mb-4">
                 <TabsTrigger
                   value="create"
@@ -644,7 +645,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="gallery" className="flex-1 mt-0 overflow-auto">
+              <TabsContent value="gallery" className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' as any }}>
                 <div className="space-y-4 pb-4 pr-2">
                   <h3 className="text-lg font-semibold">みんなの展示場ギャラリー</h3>
                   {displayGallery.length === 0 ? (
@@ -716,7 +717,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
                 </div>
               </TabsContent>
 
-              <TabsContent value="create" className="flex-1 mt-0 overflow-auto">
+              <TabsContent value="create" className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' as any }}>
                 <div className="space-y-6 pb-4 pr-2">
                 {/* 背景画像選択 */}
                 <div className="space-y-2">
@@ -927,6 +928,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
               </TabsContent>
             </Tabs>
           )}
+          </div>
         </DialogContent>
       </Dialog>
 

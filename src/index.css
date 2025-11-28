@@ -105,6 +105,13 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    touch-action: pan-y;
+  }
+  
+  * {
+    -webkit-overflow-scrolling: touch;
   }
 }
 
