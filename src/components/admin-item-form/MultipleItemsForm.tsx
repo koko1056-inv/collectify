@@ -138,9 +138,8 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
 
                 {/* タグセクション */}
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="h-1 w-1 rounded-full bg-primary" />
-                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">分類タグ</h4>
+                  <div className="mb-3">
+                    <h4 className="text-base font-semibold text-foreground">分類タグ</h4>
                   </div>
                   
                   <TagsSection 
