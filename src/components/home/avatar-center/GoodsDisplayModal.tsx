@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Upload, Sparkles, Home, Box, Store as StoreIcon, Frame, Plus, X, Save, Eye } from "lucide-react";
+import { Loader2, Upload, Sparkles, Home, Box, Store as StoreIcon, Frame, Plus, X, Save, Eye, Share2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -12,6 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface GoodsDisplayModalProps {
   isOpen: boolean;
@@ -435,6 +441,84 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
     setSelectedCategory(null);
   };
 
+  const handleShareToTwitter = async () => {
+    if (!generatedImage) return;
+
+    try {
+      const tweetText = galleryTitle 
+        ? `${galleryTitle}\n\n#グッズ展示場 #コレクション`
+        : "グッズ展示場を作成しました！ #グッズ展示場 #コレクション";
+
+      // 画像をStorageにアップロード
+      const response = await fetch(generatedImage);
+      const blob = await response.blob();
+      const file = new File([blob], `display-${Date.now()}.png`, { type: 'image/png' });
+      
+      const fileExt = 'png';
+      const filePath = `${userId}/share/${crypto.randomUUID()}.${fileExt}`;
+      
+      const { error: uploadError, data } = await supabase.storage
+        .from('kuji_images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('kuji_images')
+        .getPublicUrl(filePath);
+
+      // Twitter投稿用のEdge Functionを呼び出し
+      const { data: tweetData, error: tweetError } = await supabase.functions.invoke('post-to-twitter', {
+        body: { 
+          text: tweetText,
+          imageUrl: publicUrl
+        }
+      });
+
+      if (tweetError) throw tweetError;
+
+      toast.success("Xに投稿しました！");
+    } catch (error) {
+      console.error("Error sharing to Twitter:", error);
+      toast.error("Xへの投稿に失敗しました");
+    }
+  };
+
+  const handleShareToFacebook = () => {
+    if (!generatedImage) return;
+
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+    toast.success("Facebookシェア画面を開きました");
+  };
+
+  const handleShareNative = async () => {
+    if (!generatedImage) return;
+
+    try {
+      // Web Share APIを使用
+      const response = await fetch(generatedImage);
+      const blob = await response.blob();
+      const file = new File([blob], 'display.png', { type: 'image/png' });
+
+      if (navigator.share) {
+        await navigator.share({
+          title: galleryTitle || 'グッズ展示場',
+          text: galleryDescription || 'グッズ展示場を作成しました！',
+          files: [file]
+        });
+        toast.success("シェアしました");
+      } else {
+        toast.error("このブラウザではシェア機能がサポートされていません");
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        console.error("Error sharing:", error);
+        toast.error("シェアに失敗しました");
+      }
+    }
+  };
+
   // カテゴリごとにプリセットをグループ化
   const presetsByCategory = {
     shelf: [...DEFAULT_PRESETS.filter(p => p.category === "shelf"), ...userPresets.filter(p => p.category === "shelf")],
@@ -509,6 +593,32 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
                   <Button onClick={handleDownload} variant="outline" className="flex-1">
                     ダウンロード
                   </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="flex-1">
+                        <Share2 className="w-4 h-4 mr-2" />
+                        シェア
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleShareToTwitter}>
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        X (Twitter)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleShareToFacebook}>
+                        <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                        Facebook
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleShareNative}>
+                        <Share2 className="w-4 h-4 mr-2" />
+                        その他
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                   <Button onClick={handleReset} variant="outline" className="flex-1">
                     最初から作り直す
                   </Button>
