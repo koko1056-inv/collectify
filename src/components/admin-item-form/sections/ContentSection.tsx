@@ -111,54 +111,52 @@ export function ContentSection({
   return (
     <div className="space-y-2">
       <Label>コンテンツ</Label>
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-        {isAddingNewContent ? (
-          <div className="flex gap-2">
-            <Input
-              value={newContentName}
-              onChange={(e) => setNewContentName(e.target.value)}
-              placeholder="新しいコンテンツ名"
-            />
-            <Button 
-              onClick={handleAddNewContent}
-              disabled={addContentMutation.isPending}
-            >
-              {addContentMutation.isPending ? "追加中..." : "追加"}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsAddingNewContent(false);
-                setNewContentName("");
-              }}
-            >
-              キャンセル
-            </Button>
-          </div>
-        ) : (
-          <Select
-            value={contentName || "none"}
-            onValueChange={handleContentChange}
+      {isAddingNewContent ? (
+        <div className="flex gap-2">
+          <Input
+            value={newContentName}
+            onChange={(e) => setNewContentName(e.target.value)}
+            placeholder="新しいコンテンツ名"
+          />
+          <Button 
+            onClick={handleAddNewContent}
+            disabled={addContentMutation.isPending}
           >
-            <SelectTrigger className="w-full bg-white">
-              <SelectValue placeholder="コンテンツを選択" />
-            </SelectTrigger>
-            <SelectContent className="bg-white">
-              <SelectItem value="none" className="hover:bg-gray-100">選択なし</SelectItem>
-              {contentNames.map((content) => (
-                <SelectItem 
-                  key={content.id} 
-                  value={content.name}
-                  className="hover:bg-gray-100"
-                >
-                  {content.name}
-                </SelectItem>
-              ))}
-              <SelectItem value="other" className="hover:bg-gray-100">その他（新規追加）</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-      </div>
+            {addContentMutation.isPending ? "追加中..." : "追加"}
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setIsAddingNewContent(false);
+              setNewContentName("");
+            }}
+          >
+            キャンセル
+          </Button>
+        </div>
+      ) : (
+        <Select
+          value={contentName || "none"}
+          onValueChange={handleContentChange}
+        >
+          <SelectTrigger className="w-full bg-white">
+            <SelectValue placeholder="コンテンツを選択" />
+          </SelectTrigger>
+          <SelectContent className="bg-white">
+            <SelectItem value="none" className="hover:bg-gray-100">選択なし</SelectItem>
+            {contentNames.map((content) => (
+              <SelectItem 
+                key={content.id} 
+                value={content.name}
+                className="hover:bg-gray-100"
+              >
+                {content.name}
+              </SelectItem>
+            ))}
+            <SelectItem value="other" className="hover:bg-gray-100">その他（新規追加）</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 }
