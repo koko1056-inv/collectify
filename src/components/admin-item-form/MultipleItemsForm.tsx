@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
+import { TitleSection } from "./sections/TitleSection";
+import { ContentSection } from "./sections/ContentSection";
+import { ItemTypeSection } from "./sections/ItemTypeSection";
+import { TagsSection } from "./sections/TagsSection";
 
 interface ImageData {
   url: string;
@@ -16,8 +19,13 @@ interface ItemFormData {
   imageUrl: string;
   title: string;
   description: string;
+  category: string;
+  content_name: string | null;
+  characterTag?: string | null;
+  typeTag?: string | null;
+  seriesTag?: string | null;
   price: string;
-  content_name: string;
+  item_type: string;
 }
 
 interface MultipleItemsFormProps {
@@ -32,8 +40,13 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
       imageUrl: img.url,
       title: img.title || "",
       description: "",
+      category: "",
+      content_name: null,
+      characterTag: null,
+      typeTag: null,
+      seriesTag: null,
       price: "",
-      content_name: "",
+      item_type: "official",
     }))
   );
   const [loading, setLoading] = useState(false);
@@ -91,53 +104,28 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="p-4 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor={`title-${index}`}>
-                    タイトル <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id={`title-${index}`}
-                    value={item.title}
-                    onChange={(e) => updateItem(index, "title", e.target.value)}
-                    placeholder="タイトルを追加する"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`description-${index}`}>説明</Label>
-                  <Textarea
-                    id={`description-${index}`}
-                    value={item.description}
-                    onChange={(e) => updateItem(index, "description", e.target.value)}
-                    placeholder="説明を追加する"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`price-${index}`}>
-                    価格 <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id={`price-${index}`}
-                    value={item.price}
-                    onChange={(e) => updateItem(index, "price", e.target.value)}
-                    placeholder="1,000円"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`content-${index}`}>コンテンツ名</Label>
-                  <Input
-                    id={`content-${index}`}
-                    value={item.content_name}
-                    onChange={(e) => updateItem(index, "content_name", e.target.value)}
-                    placeholder="作品名・シリーズ名"
-                  />
-                </div>
+              <div className="p-4 space-y-6">
+                <TitleSection 
+                  title={item.title}
+                  onChange={(e) => updateItem(index, "title", e.target.value)}
+                />
+                <ContentSection 
+                  contentName={item.content_name}
+                  onChange={(e) => updateItem(index, "content_name", e.target.value)}
+                />
+                <ItemTypeSection 
+                  itemType={item.item_type}
+                  onChange={(e) => updateItem(index, "item_type", e.target.value)}
+                />
+                <TagsSection 
+                  characterTag={item.characterTag}
+                  typeTag={item.typeTag}
+                  seriesTag={item.seriesTag}
+                  contentName={item.content_name}
+                  onTagChange={(category, value) => {
+                    updateItem(index, `${category}Tag` as keyof ItemFormData, value);
+                  }}
+                />
               </div>
             </Card>
           ))}
