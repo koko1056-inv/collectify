@@ -530,7 +530,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5" />
@@ -539,8 +539,8 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
           </DialogHeader>
 
           {generatedImage ? (
-            <ScrollArea className="flex-1 px-1">
-              <div className="space-y-4 pb-4">
+            <ScrollArea className="flex-1 overflow-auto">
+              <div className="space-y-4 pb-4 pr-4">
                 <div className="relative rounded-lg overflow-hidden border">
                   <img 
                     src={generatedImage} 
