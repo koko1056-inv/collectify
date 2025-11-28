@@ -442,7 +442,7 @@ export function ImageSection({
       <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>アイデアをグッズに変える</DialogTitle>
+            <DialogTitle>グッズを選択</DialogTitle>
             <DialogDescription>
               最大10件の画像を選択できます (選択中: {selectedImages.size}/10)
             </DialogDescription>
