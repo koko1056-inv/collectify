@@ -236,7 +236,7 @@ export function AdminItemForm() {
                           .getPublicUrl(filePath);
 
                         // アイテムを登録
-                        const { error: insertError } = await supabase
+                        const { data: newItem, error: insertError } = await supabase
                           .from('official_items')
                           .insert({
                             title: item.title,
@@ -246,10 +246,30 @@ export function AdminItemForm() {
                             content_name: item.content_name || null,
                             created_by: user.id,
                             release_date: new Date().toISOString(),
-                            item_type: 'official',
-                          });
+                            item_type: item.item_type || 'official',
+                          })
+                          .select()
+                          .single();
 
                         if (insertError) throw insertError;
+
+                        // タグを追加
+                        if (newItem) {
+                          const tagIds: string[] = [];
+                          if (item.characterTag) tagIds.push(item.characterTag);
+                          if (item.typeTag) tagIds.push(item.typeTag);
+                          if (item.seriesTag) tagIds.push(item.seriesTag);
+
+                          if (tagIds.length > 0) {
+                            const tagInserts = tagIds.map(tagId => ({
+                              official_item_id: newItem.id,
+                              tag_id: tagId,
+                            }));
+
+                            await supabase.from('item_tags').insert(tagInserts);
+                          }
+                        }
+
                         successCount++;
                       } catch (error) {
                         console.error('Error creating item:', error);
