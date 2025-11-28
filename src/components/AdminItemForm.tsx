@@ -91,7 +91,7 @@ export function AdminItemForm() {
       <CardHeader>
         <CardTitle>新規アイテムの追加</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0 sm:px-6">
         <Alert className="mb-4 bg-blue-50 border-blue-100">
           <Info className="h-4 w-4 text-blue-500" />
           <AlertDescription className="text-blue-700 text-sm">
