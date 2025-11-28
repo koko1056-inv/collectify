@@ -216,7 +216,7 @@ export function CreatePostFromCollectionModal({
   return <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] overflow-hidden flex flex-col">
         <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <DialogTitle className="text-lg font-bold">グッズを選択</DialogTitle>
+          <DialogTitle className="text-base font-bold">グッズを選択</DialogTitle>
           <div className="flex items-center gap-2">
             {!isSelectionMode && (
               <>
