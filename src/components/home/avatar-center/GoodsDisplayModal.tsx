@@ -809,17 +809,17 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
                               カテゴリを選択して背景画像を管理
                             </p>
                             
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-2">
                               {DEFAULT_PRESETS.map((preset) => (
                                 <Button
                                   key={preset.id}
                                   variant="outline"
-                                  className="h-auto flex-col gap-2 p-4"
+                                  className="h-auto flex-col gap-1.5 p-3"
                                   onClick={() => handleCategoryClick(preset.category)}
                                 >
-                                  {preset.icon && <preset.icon className="w-8 h-8" />}
-                                  <span className="text-sm font-medium">{preset.name}</span>
-                                  <span className="text-xs text-muted-foreground">
+                                  {preset.icon && <preset.icon className="w-6 h-6" />}
+                                  <span className="text-xs font-medium">{preset.name}</span>
+                                  <span className="text-[10px] text-muted-foreground">
                                     {presetsByCategory[preset.category as keyof typeof presetsByCategory]?.length || 0}件
                                   </span>
                                 </Button>
