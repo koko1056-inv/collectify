@@ -11,10 +11,12 @@ import { useItemSubmit } from "@/hooks/admin-item-form/useItemSubmit";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info, Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export function AdminItemForm() {
   const [currentStep, setCurrentStep] = useState("step1");
   const [step1Completed, setStep1Completed] = useState(false);
+  const { toast } = useToast();
 
   const {
     imageFile,
@@ -159,6 +161,18 @@ export function AdminItemForm() {
                   if (result.contentName) updates.content_name = result.contentName;
                   
                   handleFormUpdate(updates);
+                  
+                  // 複数画像が選択された場合の処理
+                  if (result.selectedImages && result.selectedImages.length > 0) {
+                    // ステップ2に進むが、複数画像モードであることを示す
+                    setStep1Completed(true);
+                    setCurrentStep("step2");
+                    
+                    toast({
+                      title: "画像を選択しました",
+                      description: `${result.selectedImages.length}件の画像が選択されました。各グッズの詳細を入力してください。`,
+                    });
+                  }
                 }}
               />
               

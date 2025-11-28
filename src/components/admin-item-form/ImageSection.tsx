@@ -22,6 +22,10 @@ export interface AnalysisResult {
   category: string;
   contentName: string;
   characterName: string;
+  selectedImages?: Array<{
+    url: string;
+    title: string | null;
+  }>;
 }
 
 interface ImageSectionProps {
@@ -47,6 +51,7 @@ export function ImageSection({
     url: string;
     title: string | null;
   }>>([]);
+  const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [showImageSelector, setShowImageSelector] = useState(false);
   const { toast } = useToast();
 
@@ -158,47 +163,60 @@ export function ImageSection({
     }
   };
 
-  const handleSelectScrapedImage = async (imageData: { url: string; title: string | null }) => {
-    try {
-      const { data: { imageBlob }, error } = await supabase.functions.invoke('proxy-image', {
-        body: { url: imageData.url }
-      });
-
-      if (error) throw error;
-
-      const response = await fetch(`data:image/jpeg;base64,${imageBlob}`);
-      const blob = await response.blob();
-      
-      const file = new File([blob], 'scraped-image.jpg', { type: 'image/jpeg' });
-      handleImageChange(file);
-      
-      // 商品名が取得できた場合は自動入力
-      if (onAnalysisComplete && imageData.title) {
-        onAnalysisComplete({
-          title: imageData.title,
-          description: "",
-          price: "",
-          category: "",
-          contentName: "",
-          characterName: ""
-        });
-        toast({
-          title: "商品名を自動入力",
-          description: "商品名をフォームに入力しました。",
-        });
+  const toggleImageSelection = (imageUrl: string) => {
+    setSelectedImages(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(imageUrl)) {
+        newSet.delete(imageUrl);
+      } else {
+        if (newSet.size >= 10) {
+          toast({
+            title: "選択上限",
+            description: "最大10件まで選択できます。",
+            variant: "destructive",
+          });
+          return prev;
+        }
+        newSet.add(imageUrl);
       }
-      
-      setShowImageSelector(false);
-      setUrlInput("");
-      setScrapedImages([]);
-    } catch (error) {
-      console.error('Error selecting image:', error);
+      return newSet;
+    });
+  };
+
+  const handleConfirmSelection = () => {
+    if (selectedImages.size === 0) {
       toast({
         title: "エラー",
-        description: "この画像は取得できません。別の画像を選択してください。",
+        description: "少なくとも1つの画像を選択してください。",
         variant: "destructive",
       });
+      return;
     }
+
+    const selectedImagesData = scrapedImages.filter(img => selectedImages.has(img.url));
+    
+    // 親コンポーネントに選択した画像を渡す
+    if (onAnalysisComplete) {
+      onAnalysisComplete({
+        title: "",
+        description: "",
+        price: "",
+        category: "",
+        contentName: "",
+        characterName: "",
+        selectedImages: selectedImagesData
+      });
+    }
+    
+    toast({
+      title: "画像を選択しました",
+      description: `${selectedImages.size}件の画像を選択しました。`,
+    });
+    
+    setShowImageSelector(false);
+    setUrlInput("");
+    setScrapedImages([]);
+    setSelectedImages(new Set());
   };
 
   const handleSetImageUrl = async () => {
@@ -342,7 +360,7 @@ export function ImageSection({
                     Webサイトから画像を取得
                   </label>
                   <p className="text-xs sm:text-sm text-gray-600 break-words">
-                    商品ページのURLを入力すると、そのページから画像を自動取得します
+                    商品ページのURLを入力すると、そのページから画像を自動取得します。複数選択して一括登録できます。
                   </p>
                 </div>
               </div>
@@ -422,39 +440,89 @@ export function ImageSection({
       </div>
 
       <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>画像を選択</DialogTitle>
+            <DialogTitle>アイデアをウェブサイトから保存</DialogTitle>
             <DialogDescription>
-              スクレイピングされた画像から選択してください
+              最大10件の画像を選択できます (選択中: {selectedImages.size}/10)
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="h-[60vh]">
+          <ScrollArea className="h-[65vh]">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4">
-              {scrapedImages.map((imageData, index) => (
-                <div
-                  key={index}
-                  className="relative overflow-hidden rounded-lg border cursor-pointer hover:opacity-80 transition-opacity bg-white"
-                  onClick={() => handleSelectScrapedImage(imageData)}
-                >
-                  <div className="aspect-square relative overflow-hidden">
-                    <img
-                      src={imageData.url}
-                      alt={imageData.title || `Scraped image ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  {imageData.title && (
-                    <div className="p-2">
-                      <p className="text-xs font-medium line-clamp-2 text-gray-900">
-                        {imageData.title}
-                      </p>
+              {scrapedImages.map((imageData, index) => {
+                const isSelected = selectedImages.has(imageData.url);
+                return (
+                  <div
+                    key={index}
+                    className="relative overflow-hidden rounded-lg border-2 cursor-pointer transition-all bg-white"
+                    style={{
+                      borderColor: isSelected ? '#3b82f6' : '#e5e7eb',
+                      transform: isSelected ? 'scale(0.98)' : 'scale(1)',
+                    }}
+                    onClick={() => toggleImageSelection(imageData.url)}
+                  >
+                    <div className="aspect-square relative overflow-hidden">
+                      <img
+                        src={imageData.url}
+                        alt={imageData.title || `Image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {/* 選択インジケーター */}
+                      <div className="absolute bottom-2 right-2">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                            isSelected
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-white/80 text-gray-400 border-2 border-gray-300'
+                          }`}
+                        >
+                          {isSelected && (
+                            <svg
+                              className="w-5 h-5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {imageData.title && (
+                      <div className="p-2">
+                        <p className="text-xs font-medium line-clamp-2 text-gray-900">
+                          {imageData.title}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </ScrollArea>
+          <div className="flex justify-between items-center pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowImageSelector(false);
+                setSelectedImages(new Set());
+              }}
+            >
+              キャンセル
+            </Button>
+            <Button
+              onClick={handleConfirmSelection}
+              disabled={selectedImages.size === 0}
+            >
+              {selectedImages.size}件を選択
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>
