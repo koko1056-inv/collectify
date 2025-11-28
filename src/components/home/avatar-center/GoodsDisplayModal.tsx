@@ -867,7 +867,7 @@ export function GoodsDisplayModal({ isOpen, onClose, userId, initialShowGallery 
                   <label className="text-sm font-medium">
                     展示するグッズを選択 ({selectedItems.length}/5)
                   </label>
-                  <ScrollArea className="h-[240px] border rounded-lg p-4">
+                  <ScrollArea className="h-[400px] border rounded-lg p-4">
                     {isLoadingItems ? (
                       <div className="flex justify-center p-8">
                         <Loader2 className="w-6 h-6 animate-spin" />
