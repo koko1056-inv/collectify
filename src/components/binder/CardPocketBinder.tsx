@@ -3,6 +3,7 @@ import { BinderPage } from "@/types/binder";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CardPocketSlot } from "./CardPocketSlot";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CardPocketBinderProps {
   page: BinderPage;
@@ -12,11 +13,17 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
   const { getBinderItems, updateItem, addItem } = useBinder();
   const itemsQuery = getBinderItems(page.id);
   const items = itemsQuery.data || [];
+  const isMobile = useIsMobile();
 
   // レイアウト設定（デフォルトは3x3のポケット）
   const cols = page.layout_config?.cols || 3;
   const rows = page.layout_config?.rows || 3;
   const totalPockets = cols * rows;
+
+  // モバイルとデスクトップで異なるサイズ
+  const binderWidth = isMobile ? "100%" : "800px";
+  const binderHeight = isMobile ? "auto" : "1100px";
+  const binderMaxWidth = isMobile ? "calc(100vw - 16px)" : "800px";
 
   // 各アイテムの実際のデータを取得
   const { data: itemsWithData = [] } = useQuery({
@@ -71,10 +78,11 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
 
   return (
     <div
-      className="relative bg-white shadow-2xl rounded-lg overflow-hidden"
+      className="relative bg-white shadow-2xl rounded-lg overflow-hidden mx-auto"
         style={{
-          width: "800px",
-          height: "1100px",
+          width: binderWidth,
+          maxWidth: binderMaxWidth,
+          minHeight: binderHeight,
           backgroundColor: page.background_color || "#ffffff",
           backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
           backgroundSize: "cover",
@@ -82,22 +90,23 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
         }}
       >
       {/* バインダーの穴（左側） */}
-      <div className="absolute left-4 top-0 bottom-0 flex flex-col justify-around py-12">
-        {[...Array(6)].map((_, i) => (
+      <div className={`absolute ${isMobile ? "left-2" : "left-4"} top-0 bottom-0 flex flex-col justify-around ${isMobile ? "py-4" : "py-12"}`}>
+        {[...Array(isMobile ? 4 : 6)].map((_, i) => (
           <div
             key={i}
-            className="w-8 h-8 rounded-full bg-gray-300 border-4 border-gray-400 shadow-inner"
+            className={`${isMobile ? "w-5 h-5 border-2" : "w-8 h-8 border-4"} rounded-full bg-gray-300 border-gray-400 shadow-inner`}
           />
         ))}
       </div>
 
         {/* カードポケットグリッド */}
-        <div className="pl-20 pr-8 py-12 h-full">
+        <div className={`${isMobile ? "pl-10 pr-2 py-4" : "pl-20 pr-8 py-12"} h-full`}>
           <div
-            className="grid gap-4 h-full"
+            className={`grid ${isMobile ? "gap-2" : "gap-4"} h-full`}
             style={{
               gridTemplateColumns: `repeat(${cols}, 1fr)`,
               gridTemplateRows: `repeat(${rows}, 1fr)`,
+              minHeight: isMobile ? `${rows * 180}px` : "auto",
             }}
           >
             {pockets.map(({ index, item }) => (
@@ -112,7 +121,7 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
         </div>
 
       {/* ページタイプ表示 */}
-      <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-xs font-medium">
+      <div className={`absolute ${isMobile ? "top-2 right-2 px-2 py-0.5" : "top-4 right-4 px-3 py-1"} bg-white/90 rounded-full text-xs font-medium`}>
         カードポケット型 ({cols}×{rows})
         </div>
       </div>
