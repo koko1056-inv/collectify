@@ -35,27 +35,15 @@ export default function Collection() {
       <Navbar />
       <main className={`container mx-auto pt-20 transition-all duration-300 ${isMobile ? 'px-1 py-4' : 'px-2 py-4'}`}>
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
-          <div className="flex items-center gap-2 justify-between">
-            <div className="flex-1">
-              <FilterBar 
-                searchQuery={searchQuery} 
-                onSearchChange={handleSearchChange} 
-                selectedTags={selectedTags} 
-                onTagsChange={handleTagsChange} 
-                selectedContent={selectedContent} 
-                onContentChange={handleContentChange} 
-                tags={allTags} 
-              />
-            </div>
-            <Button
-              onClick={() => navigate("/binder")}
-              className="gap-2 shrink-0"
-              size={isMobile ? "sm" : "default"}
-            >
-              <BookOpen className="w-4 h-4" />
-              {!isMobile && "バインダー"}
-            </Button>
-          </div>
+          <FilterBar 
+            searchQuery={searchQuery} 
+            onSearchChange={handleSearchChange} 
+            selectedTags={selectedTags} 
+            onTagsChange={handleTagsChange} 
+            selectedContent={selectedContent} 
+            onContentChange={handleContentChange} 
+            tags={allTags} 
+          />
           
           <div className="transition-all duration-200">
             <UserCollection 
@@ -67,6 +55,18 @@ export default function Collection() {
           </div>
         </div>
       </main>
+      
+      {/* モバイル用のフローティングバインダーボタン */}
+      {isMobile && (
+        <Button
+          onClick={() => navigate("/binder")}
+          className="fixed bottom-20 right-4 z-40 shadow-lg rounded-full w-14 h-14 p-0"
+          size="icon"
+        >
+          <BookOpen className="w-6 h-6" />
+        </Button>
+      )}
+      
       <Footer />
     </div>
   );
