@@ -115,12 +115,12 @@ export function StickerPalette({ pageId }: StickerPaletteProps) {
         <div className="flex-1 overflow-y-auto">
           {categories.map((category) => (
             <TabsContent key={category} value={category} className="m-0 p-4">
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
                 {stickersByCategory[category]?.map((sticker) => (
                   <Button
                     key={sticker.id}
                     variant="outline"
-                    className="h-20 p-2 hover:bg-primary/10 hover:border-primary transition-all"
+                    className="h-16 md:h-20 p-2 hover:bg-primary/10 hover:border-primary transition-all"
                     onClick={() => handleAddSticker(sticker)}
                     title={sticker.name}
                   >
@@ -131,7 +131,7 @@ export function StickerPalette({ pageId }: StickerPaletteProps) {
                         dangerouslySetInnerHTML={{ __html: sticker.svg_data }}
                       />
                     ) : sticker.image_url ? (
-                      <div className="w-full h-full flex items-center justify-center text-4xl">
+                      <div className="w-full h-full flex items-center justify-center text-2xl md:text-4xl">
                         {sticker.image_url}
                       </div>
                     ) : null}
