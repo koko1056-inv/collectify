@@ -28,6 +28,7 @@ export function BinderToolbar({ activeTool, onToolChange }: BinderToolbarProps) 
                 variant={activeTool === tool.value ? "default" : "ghost"}
                 size="icon"
                 onClick={() => onToolChange(tool.value)}
+                className="touch-manipulation w-12 h-12 md:w-10 md:h-10"
               >
                 <tool.icon className="w-5 h-5" />
               </Button>
