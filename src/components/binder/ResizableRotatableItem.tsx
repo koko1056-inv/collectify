@@ -55,8 +55,10 @@ export function ResizableRotatableItem({
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
+  const [resizeDirection, setResizeDirection] = useState('');
   const dragStartPos = useRef({ x: 0, y: 0 });
   const resizeStartSize = useRef({ width: 0, height: 0 });
+  const resizeStartPos = useRef({ x: 0, y: 0 });
   const rotateStartAngle = useRef(0);
   const elementRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -118,10 +120,12 @@ export function ResizableRotatableItem({
   };
 
   // リサイズ開始
-  const handleResizeStart = (e: React.MouseEvent, corner: string) => {
+  const handleResizeStart = (e: React.MouseEvent, direction: string) => {
     e.stopPropagation();
     setIsResizing(true);
+    setResizeDirection(direction);
     resizeStartSize.current = { ...size };
+    resizeStartPos.current = { ...position };
     dragStartPos.current = { x: e.clientX, y: e.clientY };
   };
 
@@ -153,10 +157,43 @@ export function ResizableRotatableItem({
         const deltaY = e.clientY - dragStartPos.current.y;
         const aspectRatio = resizeStartSize.current.width / resizeStartSize.current.height;
         
-        let newWidth = Math.max(50, resizeStartSize.current.width + deltaX);
-        let newHeight = newWidth / aspectRatio;
+        let newWidth = resizeStartSize.current.width;
+        let newHeight = resizeStartSize.current.height;
+        let newX = resizeStartPos.current.x;
+        let newY = resizeStartPos.current.y;
+        
+        // 8方向リサイズ
+        if (resizeDirection.includes('e')) {
+          newWidth = Math.max(50, resizeStartSize.current.width + deltaX);
+        } else if (resizeDirection.includes('w')) {
+          newWidth = Math.max(50, resizeStartSize.current.width - deltaX);
+          newX = resizeStartPos.current.x + (resizeStartSize.current.width - newWidth);
+        }
+        
+        if (resizeDirection.includes('s')) {
+          newHeight = Math.max(50, resizeStartSize.current.height + deltaY);
+        } else if (resizeDirection.includes('n')) {
+          newHeight = Math.max(50, resizeStartSize.current.height - deltaY);
+          newY = resizeStartPos.current.y + (resizeStartSize.current.height - newHeight);
+        }
+        
+        // コーナーハンドルの場合はアスペクト比を維持
+        if (resizeDirection.length === 2) {
+          if (resizeDirection === 'se' || resizeDirection === 'nw') {
+            newHeight = newWidth / aspectRatio;
+            if (resizeDirection === 'nw') {
+              newY = resizeStartPos.current.y + (resizeStartSize.current.height - newHeight);
+            }
+          } else if (resizeDirection === 'ne' || resizeDirection === 'sw') {
+            newHeight = newWidth / aspectRatio;
+            if (resizeDirection === 'ne') {
+              newY = resizeStartPos.current.y + (resizeStartSize.current.height - newHeight);
+            }
+          }
+        }
         
         setSize({ width: newWidth, height: newHeight });
+        setPosition({ x: newX, y: newY });
       } else if (isRotating && elementRef.current) {
         const rect = elementRef.current.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
@@ -214,7 +251,7 @@ export function ResizableRotatableItem({
         document.removeEventListener("touchend", handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, isRotating, position, size, rotation, onUpdate, longPressTimer]);
+  }, [isDragging, isResizing, isRotating, position, size, rotation, onUpdate, longPressTimer, resizeDirection]);
 
   const handleQuickRotate = () => {
     const newRotation = (rotation + 90) % 360;
@@ -347,18 +384,55 @@ export function ResizableRotatableItem({
 
             {/* リサイズハンドル（4隅） */}
             <div
-              className="absolute -bottom-2 -right-2 w-4 h-4 bg-primary rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform"
+              className="absolute -top-2 -left-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              onMouseDown={(e) => handleResizeStart(e, "nw")}
+              title="サイズ変更"
+            />
+            <div
+              className="absolute -top-2 -right-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-nesw-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              onMouseDown={(e) => handleResizeStart(e, "ne")}
+              title="サイズ変更"
+            />
+            <div
+              className="absolute -bottom-2 -left-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-nesw-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              onMouseDown={(e) => handleResizeStart(e, "sw")}
+              title="サイズ変更"
+            />
+            <div
+              className="absolute -bottom-2 -right-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform shadow-lg"
               onMouseDown={(e) => handleResizeStart(e, "se")}
+              title="サイズ変更"
+            />
+            
+            {/* リサイズハンドル（4辺） */}
+            <div
+              className="absolute -top-2 left-1/2 -translate-x-1/2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-ns-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              onMouseDown={(e) => handleResizeStart(e, "n")}
+              title="サイズ変更"
+            />
+            <div
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-ns-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              onMouseDown={(e) => handleResizeStart(e, "s")}
+              title="サイズ変更"
+            />
+            <div
+              className="absolute top-1/2 -translate-y-1/2 -left-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-ew-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              onMouseDown={(e) => handleResizeStart(e, "w")}
+              title="サイズ変更"
+            />
+            <div
+              className="absolute top-1/2 -translate-y-1/2 -right-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-ew-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              onMouseDown={(e) => handleResizeStart(e, "e")}
               title="サイズ変更"
             />
             
             {/* 回転ハンドル */}
             <div
-              className="absolute -top-8 left-1/2 -translate-x-1/2 w-6 h-6 bg-blue-500 rounded-full cursor-grab rotate-handle hover:scale-125 transition-transform flex items-center justify-center"
+              className="absolute -top-10 left-1/2 -translate-x-1/2 w-8 h-8 bg-accent border-2 border-background rounded-full cursor-grab active:cursor-grabbing rotate-handle hover:scale-110 transition-transform shadow-lg flex items-center justify-center"
               onMouseDown={handleRotateStart}
               title="回転"
             >
-              <RotateCw className="w-3 h-3 text-white" />
+              <RotateCw className="w-4 h-4 text-accent-foreground" />
             </div>
           </>
         )}
