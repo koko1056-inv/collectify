@@ -20,7 +20,7 @@ export function BinderToolbar({ activeTool, onToolChange }: BinderToolbarProps) 
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col gap-2 p-2">
+      <div className="flex md:flex-col gap-1 md:gap-2 p-2 justify-center w-full">
         {tools.map((tool) => (
           <Tooltip key={tool.value}>
             <TooltipTrigger asChild>
@@ -28,7 +28,7 @@ export function BinderToolbar({ activeTool, onToolChange }: BinderToolbarProps) 
                 variant={activeTool === tool.value ? "default" : "ghost"}
                 size="icon"
                 onClick={() => onToolChange(tool.value)}
-                className="touch-manipulation w-12 h-12 md:w-10 md:h-10"
+                className="touch-manipulation w-12 h-12 md:w-10 md:h-10 flex-shrink-0"
               >
                 <tool.icon className="w-5 h-5" />
               </Button>

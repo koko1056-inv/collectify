@@ -116,24 +116,6 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
         {/* ヘッダー */}
         <div className="bg-white border-b p-3 md:p-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
-            {isMobile && (
-              <Sheet open={showMobileToolbar} onOpenChange={setShowMobileToolbar}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="shrink-0">
-                    <Menu className="w-5 h-5" />
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[280px] p-0">
-                  <div className="p-4 border-b">
-                    <h3 className="font-semibold">ツール</h3>
-                  </div>
-                  <BinderToolbar
-                    activeTool={activeTool}
-                    onToolChange={handleToolChange}
-                  />
-                </SheetContent>
-              </Sheet>
-            )}
             <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -172,7 +154,7 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
           )}
 
           {/* キャンバス */}
-          <div className="flex-1 overflow-auto p-2 md:p-8">
+          <div className="flex-1 overflow-auto p-2 md:p-8 pb-20 md:pb-8">
             <BinderCanvas
               pageId={pageId}
               activeTool={activeTool}
@@ -226,20 +208,16 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
           )}
         </div>
 
-        {/* Mobile FAB for opening sidebar */}
-        {isMobile && activeTool !== "select" && !showSidebar && (
-          <Button
-            onClick={() => setShowSidebar(true)}
-            className="fixed right-4 bottom-4 z-10 shadow-lg rounded-full w-14 h-14"
-          >
-            <span className="text-xs">
-              {activeTool === "item" && "📦"}
-              {activeTool === "sticker" && "✨"}
-              {activeTool === "frame" && "🖼️"}
-              {activeTool === "text" && "T"}
-              {activeTool === "background" && "🎨"}
-            </span>
-          </Button>
+        {/* モバイルツールバー（下部固定） */}
+        {isMobile && (
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40">
+            <div className="flex justify-around items-center p-2">
+              <BinderToolbar
+                activeTool={activeTool}
+                onToolChange={handleToolChange}
+              />
+            </div>
+          </div>
         )}
       </div>
     </DndContext>
