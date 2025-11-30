@@ -136,6 +136,159 @@ export type Database = {
         }
         Relationships: []
       }
+      binder_decorations: {
+        Row: {
+          binder_page_id: string
+          content: string | null
+          created_at: string
+          decoration_type: string
+          height: number | null
+          id: string
+          position_x: number
+          position_y: number
+          rotation: number
+          style_config: Json | null
+          width: number | null
+          z_index: number
+        }
+        Insert: {
+          binder_page_id: string
+          content?: string | null
+          created_at?: string
+          decoration_type: string
+          height?: number | null
+          id?: string
+          position_x?: number
+          position_y?: number
+          rotation?: number
+          style_config?: Json | null
+          width?: number | null
+          z_index?: number
+        }
+        Update: {
+          binder_page_id?: string
+          content?: string | null
+          created_at?: string
+          decoration_type?: string
+          height?: number | null
+          id?: string
+          position_x?: number
+          position_y?: number
+          rotation?: number
+          style_config?: Json | null
+          width?: number | null
+          z_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "binder_decorations_binder_page_id_fkey"
+            columns: ["binder_page_id"]
+            isOneToOne: false
+            referencedRelation: "binder_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      binder_items: {
+        Row: {
+          binder_page_id: string
+          created_at: string
+          custom_image_url: string | null
+          height: number
+          id: string
+          official_item_id: string | null
+          position_x: number
+          position_y: number
+          rotation: number
+          user_item_id: string | null
+          width: number
+          z_index: number
+        }
+        Insert: {
+          binder_page_id: string
+          created_at?: string
+          custom_image_url?: string | null
+          height?: number
+          id?: string
+          official_item_id?: string | null
+          position_x?: number
+          position_y?: number
+          rotation?: number
+          user_item_id?: string | null
+          width?: number
+          z_index?: number
+        }
+        Update: {
+          binder_page_id?: string
+          created_at?: string
+          custom_image_url?: string | null
+          height?: number
+          id?: string
+          official_item_id?: string | null
+          position_x?: number
+          position_y?: number
+          rotation?: number
+          user_item_id?: string | null
+          width?: number
+          z_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "binder_items_binder_page_id_fkey"
+            columns: ["binder_page_id"]
+            isOneToOne: false
+            referencedRelation: "binder_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "binder_items_official_item_id_fkey"
+            columns: ["official_item_id"]
+            isOneToOne: false
+            referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "binder_items_user_item_id_fkey"
+            columns: ["user_item_id"]
+            isOneToOne: false
+            referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      binder_pages: {
+        Row: {
+          background_color: string | null
+          background_image: string | null
+          created_at: string
+          id: string
+          page_order: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          background_color?: string | null
+          background_image?: string | null
+          created_at?: string
+          id?: string
+          page_order?: number
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          background_color?: string | null
+          background_image?: string | null
+          created_at?: string
+          id?: string
+          page_order?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       collection_likes: {
         Row: {
           collection_owner_id: string
