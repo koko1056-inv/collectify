@@ -13,9 +13,18 @@ interface BinderCanvasProps {
   activeTool: DecorationTool;
   selectedFrame: FramePreset | null;
   pageDirection?: "left" | "right";
+  selectedItemIds?: string[];
+  onSelectionChange?: (ids: string[]) => void;
 }
 
-export function BinderCanvas({ pageId, activeTool, selectedFrame, pageDirection = "right" }: BinderCanvasProps) {
+export function BinderCanvas({ 
+  pageId, 
+  activeTool, 
+  selectedFrame, 
+  pageDirection = "right",
+  selectedItemIds = [],
+  onSelectionChange
+}: BinderCanvasProps) {
   const { binderPages, getBinderItems, getBinderDecorations, updateItem, deleteItem, updateDecoration, deleteDecoration, addItem } = useBinder();
   const queryClient = useQueryClient();
   const page = (binderPages as any[]).find((p) => p.id === pageId);
@@ -23,8 +32,27 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame, pageDirection 
   const decorationsQuery = getBinderDecorations(pageId);
   const items = itemsQuery.data || [];
   const decorations = decorationsQuery.data || [];
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const isMobile = useIsMobile();
+
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onSelectionChange?.([]);
+    }
+  };
+
+  const handleItemSelect = (itemId: string, event?: React.MouseEvent) => {
+    if (event?.shiftKey || event?.ctrlKey || event?.metaKey) {
+      // 複数選択
+      if (selectedItemIds.includes(itemId)) {
+        onSelectionChange?.(selectedItemIds.filter(id => id !== itemId));
+      } else {
+        onSelectionChange?.([...selectedItemIds, itemId]);
+      }
+    } else {
+      // 単一選択
+      onSelectionChange?.([itemId]);
+    }
+  };
 
   // リアルタイムアップデートを設定
   useEffect(() => {
@@ -148,7 +176,7 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame, pageDirection 
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
-        onClick={() => setSelectedItemId(null)}
+        onClick={handleCanvasClick}
       >
           {/* グリッド（ガイド用） */}
           <div
@@ -165,7 +193,7 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame, pageDirection 
           {/* アイテムレンダリングエリア */}
           <div className="absolute inset-0 p-4 md:p-8">
             {itemsWithData.map((item: any) => {
-              const frameStyle = selectedFrame && selectedItemId === item.id ? {
+              const frameStyle = selectedFrame && selectedItemIds.includes(item.id) ? {
                 border: selectedFrame.border_style,
                 borderRadius: `${selectedFrame.corner_radius}px`,
                 boxShadow: selectedFrame.shadow_style || "none",
@@ -182,8 +210,8 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame, pageDirection 
                   initialHeight={item.height}
                   initialRotation={item.rotation}
                   zIndex={item.z_index}
-                  isSelected={selectedItemId === item.id}
-                  onSelect={() => setSelectedItemId(item.id)}
+                  isSelected={selectedItemIds.includes(item.id)}
+                  onSelect={(e) => handleItemSelect(item.id, e)}
                   onUpdate={(updates) =>
                     updateItem.mutate({ id: item.id, updates })
                   }
@@ -255,8 +283,8 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame, pageDirection 
                 initialHeight={decoration.height || 60}
                 initialRotation={decoration.rotation}
                 zIndex={decoration.z_index}
-                isSelected={selectedItemId === decoration.id}
-                onSelect={() => setSelectedItemId(decoration.id)}
+                isSelected={selectedItemIds.includes(decoration.id)}
+                onSelect={(e) => handleItemSelect(decoration.id, e)}
                 onUpdate={(updates) =>
                   updateDecoration.mutate({ id: decoration.id, updates })
                 }

@@ -17,7 +17,7 @@ interface ResizableRotatableItemProps {
   initialRotation: number;
   zIndex: number;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect: (e?: React.MouseEvent) => void;
   onUpdate: (updates: {
     position_x: number;
     position_y: number;
@@ -73,7 +73,7 @@ export function ResizableRotatableItem({
     if ((e.target as HTMLElement).closest('.control-button, .resize-handle, .rotate-handle')) return;
     
     e.stopPropagation();
-    onSelect();
+    onSelect(e);
     
     if (isMobile) {
       // モバイルではコントロールパネルを表示
@@ -93,7 +93,7 @@ export function ResizableRotatableItem({
     if ((e.target as HTMLElement).closest('.control-button, .resize-handle, .rotate-handle')) return;
     
     e.stopPropagation();
-    onSelect();
+    onSelect(e as any);
     
     if (isMobile) {
       setShowMobileControls(true);
