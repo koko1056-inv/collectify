@@ -5,7 +5,7 @@ import { ResizableRotatableItem } from "./ResizableRotatableItem";
 import { CardPocketBinder } from "./CardPocketBinder";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DndContext, DragEndEvent, useDroppable } from "@dnd-kit/core";
+import { useDroppable } from "@dnd-kit/core";
 
 interface BinderCanvasProps {
   pageId: string;
@@ -71,33 +71,6 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
     },
   });
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over) return;
-
-    // コレクションアイテムをキャンバスにドロップ
-    if (active.data.current?.type === "collection-item" && over.id === "binder-canvas") {
-      const { itemType, item } = active.data.current;
-      
-      // ドロップ位置を計算（キャンバス中央付近に配置）
-      const dropX = 300;
-      const dropY = 300;
-
-      await addItem.mutateAsync({
-        binder_page_id: pageId,
-        user_item_id: itemType === "user" ? item.id : null,
-        official_item_id: itemType === "official" ? item.id : null,
-        custom_image_url: null,
-        position_x: dropX,
-        position_y: dropY,
-        width: 150,
-        height: 200,
-        rotation: 0,
-        z_index: items.length + 1,
-      });
-    }
-  };
 
   if (!page) {
     return null;
@@ -110,8 +83,7 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
 
   // フリーレイアウト型
   return (
-    <DndContext onDragEnd={handleDragEnd}>
-      <div className="flex items-center justify-center min-h-full">
+    <div className="flex items-center justify-center min-h-full">
         <div
           ref={setNodeRef}
           className={`relative bg-white shadow-2xl rounded-lg overflow-hidden transition-all ${
@@ -273,6 +245,5 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
           )}
         </div>
       </div>
-    </DndContext>
   );
 }

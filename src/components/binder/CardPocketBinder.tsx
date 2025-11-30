@@ -2,7 +2,6 @@ import { useBinder } from "@/hooks/useBinder";
 import { BinderPage } from "@/types/binder";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { DndContext, DragEndEvent, useDraggable } from "@dnd-kit/core";
 import { CardPocketSlot } from "./CardPocketSlot";
 
 interface CardPocketBinderProps {
@@ -69,46 +68,10 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
     return { index, item };
   });
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over) return;
-
-    const targetSlotIndex = parseInt(over.id.toString().replace("slot-", ""));
-
-    // コレクションアイテムをポケットにドロップ
-    if (active.data.current?.type === "collection-item") {
-      const { itemType, item } = active.data.current;
-      
-      await addItem.mutateAsync({
-        binder_page_id: page.id,
-        user_item_id: itemType === "user" ? item.id : null,
-        official_item_id: itemType === "official" ? item.id : null,
-        custom_image_url: null,
-        position_x: 0,
-        position_y: 0,
-        width: 100,
-        height: 140,
-        rotation: 0,
-        z_index: targetSlotIndex,
-      });
-    }
-    // ポケット間でアイテムを移動
-    else if (active.data.current?.type === "pocket-item") {
-      const activeItem = items.find(i => i.id === active.id);
-      if (activeItem) {
-        await updateItem.mutateAsync({
-          id: activeItem.id,
-          updates: { z_index: targetSlotIndex },
-        });
-      }
-    }
-  };
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
-      <div
-        className="relative bg-white shadow-2xl rounded-lg overflow-hidden"
+    <div
+      className="relative bg-white shadow-2xl rounded-lg overflow-hidden"
         style={{
           width: "800px",
           height: "1100px",
@@ -151,8 +114,7 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
       {/* ページタイプ表示 */}
       <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-xs font-medium">
         カードポケット型 ({cols}×{rows})
+        </div>
       </div>
-      </div>
-    </DndContext>
   );
 }

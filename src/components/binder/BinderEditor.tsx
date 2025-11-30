@@ -12,6 +12,7 @@ import { TextTool } from "./TextTool";
 import { BackgroundTool } from "./BackgroundTool";
 import { DecorationTool, FramePreset } from "@/types/binder";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { DndContext, DragEndEvent } from "@dnd-kit/core";
 
 interface BinderEditorProps {
   pageId: string;
@@ -19,13 +20,57 @@ interface BinderEditorProps {
 }
 
 export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
-  const { binderPages, updatePage } = useBinder();
+  const { binderPages, updatePage, addItem } = useBinder();
   const page = (binderPages as any[]).find((p) => p.id === pageId);
   const [activeTool, setActiveTool] = useState<DecorationTool>("select");
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedFrame, setSelectedFrame] = useState<FramePreset | null>(null);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
   const [isSaving, setIsSaving] = useState(false);
+
+  // ドラッグ&ドロップハンドラー
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    // コレクションアイテムをキャンバスまたはポケットにドロップ
+    if (active.data.current?.type === "collection-item") {
+      const { itemType, item } = active.data.current;
+      
+      // キャンバスへのドロップ
+      if (over.id === "binder-canvas") {
+        addItem.mutate({
+          binder_page_id: pageId,
+          user_item_id: itemType === "user" ? item.id : null,
+          official_item_id: itemType === "official" ? item.id : null,
+          custom_image_url: null,
+          position_x: 300,
+          position_y: 300,
+          width: 150,
+          height: 200,
+          rotation: 0,
+          z_index: Date.now(),
+        });
+      }
+      // カードポケットへのドロップ
+      else if (over.id.toString().startsWith("slot-")) {
+        const slotIndex = parseInt(over.id.toString().replace("slot-", ""));
+        addItem.mutate({
+          binder_page_id: pageId,
+          user_item_id: itemType === "user" ? item.id : null,
+          official_item_id: itemType === "official" ? item.id : null,
+          custom_image_url: null,
+          position_x: 0,
+          position_y: 0,
+          width: 100,
+          height: 140,
+          rotation: 0,
+          z_index: slotIndex,
+        });
+      }
+    }
+  };
 
   // 自動保存（ページの変更を監視）
   useAutoSave({
@@ -59,9 +104,10 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
-      {/* ヘッダー */}
-      <div className="bg-white border-b p-4 flex items-center justify-between">
+    <DndContext onDragEnd={handleDragEnd}>
+      <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
+        {/* ヘッダー */}
+        <div className="bg-white border-b p-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={onClose}>
             <ArrowLeft className="w-5 h-5" />
@@ -123,5 +169,6 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
         )}
       </div>
     </div>
+    </DndContext>
   );
 }
