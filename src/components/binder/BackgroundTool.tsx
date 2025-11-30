@@ -26,7 +26,6 @@ export function BackgroundTool({ pageId }: BackgroundToolProps) {
   }, [page?.background_color]);
 
   const handleColorChange = async (newColor: string) => {
-    console.log('[BackgroundTool] Changing color to:', newColor, 'for pageId:', pageId);
     setColor(newColor);
     if (page) {
       try {
@@ -34,7 +33,6 @@ export function BackgroundTool({ pageId }: BackgroundToolProps) {
           id: pageId,
           updates: { background_color: newColor },
         });
-        console.log('[BackgroundTool] Color updated successfully');
         toast({
           title: "背景色を更新しました",
         });
@@ -46,8 +44,6 @@ export function BackgroundTool({ pageId }: BackgroundToolProps) {
           variant: "destructive",
         });
       }
-    } else {
-      console.error('[BackgroundTool] Page not found:', pageId);
     }
   };
 
