@@ -44,24 +44,22 @@ serve(async (req) => {
     const imageData: ImageData[] = []
     const seenUrls = new Set<string>()
     
-    // Simple img tag extraction with alt/title attributes
-    const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi
-    const matches = html.match(imgRegex) || []
+    // Helper function to check if URL is likely an image
+    const isLikelyImageUrl = (url: string): boolean => {
+      if (url.startsWith('data:')) return false
+      // Check for common image extensions or image-related patterns
+      return url.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp|ico)/i) !== null ||
+             url.includes('/image/') ||
+             url.includes('/img/') ||
+             url.includes('/photo/') ||
+             url.includes('image') ||
+             url.match(/\?.*format=(jpg|jpeg|png|webp|gif)/i) !== null
+    }
     
-    // Limit to first 100 images to prevent resource exhaustion
-    const limitedMatches = matches.slice(0, 100)
-    
-    for (const imgTag of limitedMatches) {
-      // Extract src
-      const srcMatch = imgTag.match(/src=["']([^"']+)["']/)
-      if (!srcMatch) continue
-      
-      let imgUrl = srcMatch[1]
-      
-      // Skip data URLs and non-image files
-      if (imgUrl.startsWith('data:') || !imgUrl.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
-        continue
-      }
+    // Helper function to add image URL
+    const addImageUrl = (imgUrl: string, title: string | null = null) => {
+      // Skip data URLs
+      if (imgUrl.startsWith('data:')) return
       
       // Handle relative URLs
       try {
@@ -76,21 +74,70 @@ serve(async (req) => {
         }
       } catch (e) {
         console.error('Invalid URL:', imgUrl)
-        continue
+        return
       }
       
       // Skip duplicates
-      if (seenUrls.has(imgUrl)) continue
-      seenUrls.add(imgUrl)
+      if (seenUrls.has(imgUrl)) return
+      
+      // Only add if it's likely an image URL
+      if (isLikelyImageUrl(imgUrl)) {
+        seenUrls.add(imgUrl)
+        imageData.push({ url: imgUrl, title })
+      }
+    }
+    
+    // 1. Extract from img tags (src attribute)
+    const imgSrcRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi
+    let match
+    while ((match = imgSrcRegex.exec(html)) !== null) {
+      const imgTag = match[0]
+      const imgUrl = match[1]
       
       // Extract title from alt or title attribute
       const altMatch = imgTag.match(/alt=["']([^"']+)["']/)
       const titleMatch = imgTag.match(/title=["']([^"']+)["']/)
       const title = altMatch?.[1] || titleMatch?.[1] || null
       
-      imageData.push({ url: imgUrl, title })
+      addImageUrl(imgUrl, title)
     }
     
+    // 2. Extract from img tags (data-src attribute for lazy loading)
+    const imgDataSrcRegex = /<img[^>]+data-src=["']([^"']+)["'][^>]*>/gi
+    while ((match = imgDataSrcRegex.exec(html)) !== null) {
+      const imgTag = match[0]
+      const imgUrl = match[1]
+      
+      const altMatch = imgTag.match(/alt=["']([^"']+)["']/)
+      const titleMatch = imgTag.match(/title=["']([^"']+)["']/)
+      const title = altMatch?.[1] || titleMatch?.[1] || null
+      
+      addImageUrl(imgUrl, title)
+    }
+    
+    // 3. Extract from srcset attribute
+    const srcsetRegex = /srcset=["']([^"']+)["']/gi
+    while ((match = srcsetRegex.exec(html)) !== null) {
+      const srcsetValue = match[1]
+      // Parse srcset format: "url1 1x, url2 2x" or "url1 100w, url2 200w"
+      const urls = srcsetValue.split(',').map(s => s.trim().split(/\s+/)[0])
+      urls.forEach(imgUrl => addImageUrl(imgUrl))
+    }
+    
+    // 4. Extract from picture/source elements
+    const pictureSourceRegex = /<source[^>]+srcset=["']([^"']+)["'][^>]*>/gi
+    while ((match = pictureSourceRegex.exec(html)) !== null) {
+      const srcsetValue = match[1]
+      const urls = srcsetValue.split(',').map(s => s.trim().split(/\s+/)[0])
+      urls.forEach(imgUrl => addImageUrl(imgUrl))
+    }
+    
+    // 5. Extract from CSS background-image in style attributes
+    const bgImageRegex = /style=["'][^"']*background-image:\s*url\(["']?([^"')]+)["']?\)/gi
+    while ((match = bgImageRegex.exec(html)) !== null) {
+      addImageUrl(match[1])
+    }
+      
     console.log(`Found ${imageData.length} unique images`)
 
     // First, clear existing entries for this source URL
