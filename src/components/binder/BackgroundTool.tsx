@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -14,17 +14,40 @@ interface BackgroundToolProps {
 export function BackgroundTool({ pageId }: BackgroundToolProps) {
   const { updatePage, binderPages } = useBinder();
   const { toast } = useToast();
-  const [color, setColor] = useState("#ffffff");
-  const [isUploading, setIsUploading] = useState(false);
   const page = binderPages.find((p) => p.id === pageId);
+  const [color, setColor] = useState(page?.background_color || "#ffffff");
+  const [isUploading, setIsUploading] = useState(false);
+
+  // ページの背景色が変更されたらstateを更新
+  useEffect(() => {
+    if (page?.background_color) {
+      setColor(page.background_color);
+    }
+  }, [page?.background_color]);
 
   const handleColorChange = async (newColor: string) => {
+    console.log('[BackgroundTool] Changing color to:', newColor, 'for pageId:', pageId);
     setColor(newColor);
     if (page) {
-      await updatePage.mutateAsync({
-        id: pageId,
-        updates: { background_color: newColor },
-      });
+      try {
+        await updatePage.mutateAsync({
+          id: pageId,
+          updates: { background_color: newColor },
+        });
+        console.log('[BackgroundTool] Color updated successfully');
+        toast({
+          title: "背景色を更新しました",
+        });
+      } catch (error) {
+        console.error('[BackgroundTool] Failed to update color:', error);
+        toast({
+          title: "エラー",
+          description: "背景色の更新に失敗しました",
+          variant: "destructive",
+        });
+      }
+    } else {
+      console.error('[BackgroundTool] Page not found:', pageId);
     }
   };
 

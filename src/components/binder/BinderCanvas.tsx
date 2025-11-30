@@ -33,6 +33,16 @@ export function BinderCanvas({
   const items = itemsQuery.data || [];
   const decorations = decorationsQuery.data || [];
   const isMobile = useIsMobile();
+  
+  // デバッグ用：ページデータと背景色をログ出力
+  useEffect(() => {
+    console.log('[BinderCanvas] Page data:', {
+      pageId,
+      hasPage: !!page,
+      backgroundColor: page?.background_color,
+      backgroundImage: page?.background_image
+    });
+  }, [pageId, page?.background_color, page?.background_image]);
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
