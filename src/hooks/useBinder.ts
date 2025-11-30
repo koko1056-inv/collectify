@@ -63,7 +63,7 @@ export function useBinder() {
 
   // 新しいバインダーページを作成
   const createPage = useMutation({
-    mutationFn: async (title: string) => {
+    mutationFn: async (params: { title: string; binderType?: string; layoutConfig?: any }) => {
       const maxOrder = binderPages.length > 0 
         ? Math.max(...binderPages.map(p => p.page_order))
         : -1;
@@ -72,8 +72,10 @@ export function useBinder() {
         .from("binder_pages")
         .insert({
           user_id: user!.id,
-          title,
+          title: params.title,
           page_order: maxOrder + 1,
+          binder_type: params.binderType || 'free_layout',
+          layout_config: params.layoutConfig || {},
         })
         .select()
         .single();
