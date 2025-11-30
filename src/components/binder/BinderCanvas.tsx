@@ -91,9 +91,9 @@ export function BinderCanvas({
   }, [pageId, queryClient]);
 
   // モバイルの縦長サイズに統一
-  const binderWidth = isMobile ? "100%" : "600px";
+  const binderWidth = "600px";
   const binderHeight = "auto";
-  const binderMaxWidth = isMobile ? "calc(100vw - 16px)" : "600px";
+  const binderMaxWidth = "600px";
   const binderMinHeight = "900px";
 
   const flipAnimationClass =
