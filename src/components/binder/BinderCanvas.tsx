@@ -90,10 +90,10 @@ export function BinderCanvas({
     };
   }, [pageId, queryClient]);
 
-  // モバイルの縦長サイズに統一
-  const binderWidth = "600px";
+  // モバイルは画面いっぱい、デスクトップは固定サイズ
+  const binderWidth = isMobile ? "100vw" : "600px";
   const binderHeight = "auto";
-  const binderMaxWidth = "600px";
+  const binderMaxWidth = isMobile ? "100vw" : "600px";
   const binderMinHeight = "900px";
 
   const flipAnimationClass =
@@ -175,8 +175,6 @@ export function BinderCanvas({
           backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          transform: isMobile ? "scale(0.75)" : "none",
-          transformOrigin: "top center",
         }}
         onClick={handleCanvasClick}
       >
