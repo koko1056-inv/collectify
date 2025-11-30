@@ -9,13 +9,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { useBinder } from "@/hooks/useBinder";
 
 interface BinderItemPaletteProps {
   pageId: string;
   onClose: () => void;
+  targetSlotIndex?: number | null;
 }
 
-function DraggableItemCard({ item, type }: { item: any; type: "user" | "official" }) {
+function DraggableItemCard({ 
+  item, 
+  type,
+  onClick 
+}: { 
+  item: any; 
+  type: "user" | "official";
+  onClick?: () => void;
+}) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `draggable-${type}-${item.id}`,
     data: { type: "collection-item", itemType: type, item },
@@ -26,11 +36,19 @@ function DraggableItemCard({ item, type }: { item: any; type: "user" | "official
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      e.stopPropagation();
+      onClick();
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className="relative aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all cursor-grab active:cursor-grabbing group"
+      onClick={handleClick}
       {...listeners}
       {...attributes}
     >
@@ -52,9 +70,29 @@ function DraggableItemCard({ item, type }: { item: any; type: "user" | "official
   );
 }
 
-export function BinderItemPalette({ pageId, onClose }: BinderItemPaletteProps) {
+export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderItemPaletteProps) {
   const { user } = useAuth();
+  const { addItem } = useBinder();
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleItemClick = async (item: any, type: "user" | "official") => {
+    if (targetSlotIndex !== null && targetSlotIndex !== undefined) {
+      // ポケットに直接追加
+      await addItem.mutateAsync({
+        binder_page_id: pageId,
+        user_item_id: type === "user" ? item.id : null,
+        official_item_id: type === "official" ? item.id : null,
+        custom_image_url: null,
+        position_x: 0,
+        position_y: 0,
+        width: 100,
+        height: 140,
+        rotation: 0,
+        z_index: targetSlotIndex,
+      });
+      onClose();
+    }
+  };
 
   // ユーザーのコレクションアイテムを取得
   const { data: userItems = [] } = useQuery({
@@ -100,7 +138,9 @@ export function BinderItemPalette({ pageId, onClose }: BinderItemPaletteProps) {
         <div>
           <h3 className="font-semibold">アイテムを追加</h3>
           <p className="text-xs text-muted-foreground mt-1">
-            ドラッグ&ドロップで配置
+            {targetSlotIndex !== null && targetSlotIndex !== undefined 
+              ? "アイテムをタップして選択" 
+              : "ドラッグ&ドロップで配置"}
           </p>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -130,7 +170,15 @@ export function BinderItemPalette({ pageId, onClose }: BinderItemPaletteProps) {
           <ScrollArea className="h-full">
             <div className="grid grid-cols-2 gap-3 p-4">
               {filteredUserItems.map((item) => (
-                <DraggableItemCard key={item.id} item={item} type="user" />
+                <DraggableItemCard 
+                  key={item.id} 
+                  item={item} 
+                  type="user"
+                  onClick={targetSlotIndex !== null && targetSlotIndex !== undefined 
+                    ? () => handleItemClick(item, "user")
+                    : undefined
+                  }
+                />
               ))}
               {filteredUserItems.length === 0 && (
                 <div className="col-span-2 text-center text-muted-foreground py-8">
@@ -145,7 +193,15 @@ export function BinderItemPalette({ pageId, onClose }: BinderItemPaletteProps) {
           <ScrollArea className="h-full">
             <div className="grid grid-cols-2 gap-3 p-4">
               {filteredOfficialItems.map((item) => (
-                <DraggableItemCard key={item.id} item={item} type="official" />
+                <DraggableItemCard 
+                  key={item.id} 
+                  item={item} 
+                  type="official"
+                  onClick={targetSlotIndex !== null && targetSlotIndex !== undefined 
+                    ? () => handleItemClick(item, "official")
+                    : undefined
+                  }
+                />
               ))}
               {filteredOfficialItems.length === 0 && (
                 <div className="col-span-2 text-center text-muted-foreground py-8">
