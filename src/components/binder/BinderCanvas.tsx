@@ -34,24 +34,6 @@ export function BinderCanvas({
   const decorations = decorationsQuery.data || [];
   const isMobile = useIsMobile();
 
-  // モバイルでのスケール比率を計算（デスクトップの600pxを基準）
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    if (isMobile) {
-      const updateScale = () => {
-        const screenWidth = window.innerWidth;
-        const baseWidth = 600; // デスクトップの基準幅
-        setScale(screenWidth / baseWidth);
-      };
-      
-      updateScale();
-      window.addEventListener('resize', updateScale);
-      return () => window.removeEventListener('resize', updateScale);
-    } else {
-      setScale(1);
-    }
-  }, [isMobile]);
 
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -109,11 +91,11 @@ export function BinderCanvas({
     };
   }, [pageId, queryClient]);
 
-  // モバイルは画面いっぱい（ただし600px基準でスケール）、デスクトップは固定サイズ、縦横比は2:3で統一
-  const binderWidth = "600px";
+  // モバイルは画面いっぱい、デスクトップは固定サイズ、縦横比は2:3で統一
+  const binderWidth = isMobile ? "100vw" : "600px";
   const binderHeight = "auto";
-  const binderMaxWidth = "600px";
-  const binderMinHeight = "900px"; // 2:3の比率を維持
+  const binderMaxWidth = isMobile ? "100vw" : "600px";
+  const binderMinHeight = isMobile ? "150vw" : "900px"; // 2:3の比率を維持
 
   const flipAnimationClass =
     pageDirection === "right" ? "animate-page-flip-right" : "animate-page-flip-left";
@@ -195,8 +177,6 @@ export function BinderCanvas({
           backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          transform: isMobile ? `scale(${scale})` : "none",
-          transformOrigin: "top left",
         }}
         onClick={handleCanvasClick}
       >
