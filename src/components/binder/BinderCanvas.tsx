@@ -90,11 +90,11 @@ export function BinderCanvas({
     };
   }, [pageId, queryClient]);
 
-  // モバイルは画面いっぱい、デスクトップは固定サイズ
+  // モバイルは画面いっぱい、デスクトップは固定サイズ、縦横比は2:3で統一
   const binderWidth = isMobile ? "100vw" : "600px";
   const binderHeight = "auto";
   const binderMaxWidth = isMobile ? "100vw" : "600px";
-  const binderMinHeight = "900px";
+  const binderMinHeight = isMobile ? "150vw" : "900px"; // 2:3の比率を維持
 
   const flipAnimationClass =
     pageDirection === "right" ? "animate-page-flip-right" : "animate-page-flip-left";
@@ -171,6 +171,7 @@ export function BinderCanvas({
           maxWidth: binderMaxWidth,
           minHeight: binderMinHeight,
           height: binderHeight,
+          aspectRatio: "2/3", // 縦横比を2:3に固定
           backgroundColor: page.background_color || "#ffffff",
           backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
           backgroundSize: "cover",
