@@ -21,12 +21,14 @@ function DraggableItemCard({
   item, 
   type,
   onClick,
-  isSelected 
+  isSelected,
+  onConfirm
 }: { 
   item: any; 
   type: "user" | "official";
   onClick?: () => void;
   isSelected?: boolean;
+  onConfirm?: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `draggable-${type}-${item.id}`,
@@ -67,9 +69,25 @@ function DraggableItemCard({
           <p className="text-white text-xs font-medium truncate">{item.title}</p>
         </div>
       </div>
-      <div className="absolute top-2 right-2 bg-white/90 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <GripVertical className="w-4 h-4 text-gray-600" />
-      </div>
+      {!isSelected && (
+        <div className="absolute top-2 right-2 bg-white/90 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <GripVertical className="w-4 h-4 text-gray-600" />
+        </div>
+      )}
+      {isSelected && onConfirm && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+          <Button
+            onClick={(e) => {
+              e.stopPropagation();
+              onConfirm();
+            }}
+            size="sm"
+            className="shadow-lg"
+          >
+            反映
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -204,6 +222,7 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
                     : undefined
                   }
                   isSelected={selectedItem?.item.id === item.id && selectedItem?.type === "user"}
+                  onConfirm={targetSlotIndex !== null && targetSlotIndex !== undefined ? handleConfirm : undefined}
                 />
               ))}
               {filteredUserItems.length === 0 && (
@@ -228,6 +247,7 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
                     : undefined
                   }
                   isSelected={selectedItem?.item.id === item.id && selectedItem?.type === "official"}
+                  onConfirm={targetSlotIndex !== null && targetSlotIndex !== undefined ? handleConfirm : undefined}
                 />
               ))}
               {filteredOfficialItems.length === 0 && (
@@ -239,19 +259,6 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
           </ScrollArea>
         </TabsContent>
       </Tabs>
-
-      {/* 反映ボタン */}
-      {targetSlotIndex !== null && targetSlotIndex !== undefined && selectedItem && (
-        <div className="p-4 border-t bg-background">
-          <Button 
-            onClick={handleConfirm}
-            className="w-full"
-            size="lg"
-          >
-            選択したアイテムを反映
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
