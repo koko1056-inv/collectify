@@ -21,7 +21,7 @@ export function useBinder() {
         .order("page_order");
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as BinderPage[];
     },
   });
 

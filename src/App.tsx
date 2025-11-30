@@ -17,6 +17,7 @@ import Search from "./pages/Search";
 import Collection from "./pages/Collection";
 import Posts from "./pages/Posts";
 import Binder from "./pages/Binder";
+import BinderCreate from "./pages/BinderCreate";
 
 // Lazy load only rarely used pages
 const Login = lazy(() => import("./pages/Login").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -87,6 +88,7 @@ const App: React.FC = () => {
                     <Route path="/search" element={<Search />} />
                     <Route path="/collection" element={<Collection />} />
                     <Route path="/binder" element={<Binder />} />
+                    <Route path="/binder/create" element={<BinderCreate />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Suspense>

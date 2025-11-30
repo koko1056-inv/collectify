@@ -6,28 +6,18 @@ import { useBinder } from "@/hooks/useBinder";
 import { Button } from "@/components/ui/button";
 import { Plus, BookOpen, Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { BinderEditor } from "@/components/binder/BinderEditor";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 export default function Binder() {
   const { user } = useAuth();
-  const { binderPages, isLoadingPages, createPage, deletePage } = useBinder();
-  const [newPageTitle, setNewPageTitle] = useState("");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const navigate = useNavigate();
+  const { binderPages, isLoadingPages, deletePage } = useBinder();
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
 
   if (!user) {
     return <Navigate to="/login" />;
   }
-
-  const handleCreatePage = async () => {
-    if (!newPageTitle.trim()) return;
-    await createPage.mutateAsync(newPageTitle);
-    setNewPageTitle("");
-    setIsCreateDialogOpen(false);
-  };
 
   const handleDeletePage = async (id: string) => {
     if (confirm("このバインダーページを削除しますか?")) {
@@ -54,35 +44,10 @@ export default function Binder() {
               <BookOpen className="w-8 h-8 text-amber-700" />
               <h1 className="text-3xl font-bold text-gray-900">マイバインダー</h1>
             </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  新しいページ
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>新しいバインダーページを作成</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <Input
-                    placeholder="ページのタイトル"
-                    value={newPageTitle}
-                    onChange={(e) => setNewPageTitle(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleCreatePage()}
-                  />
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                      キャンセル
-                    </Button>
-                    <Button onClick={handleCreatePage} disabled={!newPageTitle.trim()}>
-                      作成
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+          <Button className="gap-2" onClick={() => navigate("/binder/create")}>
+            <Plus className="w-4 h-4" />
+            新しいページ
+          </Button>
           </div>
 
           {isLoadingPages ? (
@@ -96,7 +61,7 @@ export default function Binder() {
               <p className="text-muted-foreground mb-6">
                 新しいバインダーページを作成して、グッズを素敵にレイアウトしましょう！
               </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+              <Button onClick={() => navigate("/binder/create")} className="gap-2">
                 <Plus className="w-4 h-4" />
                 最初のページを作成
               </Button>
