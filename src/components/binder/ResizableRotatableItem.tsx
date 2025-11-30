@@ -142,9 +142,10 @@ export function ResizableRotatableItem({
     dragStartPos.current = { x: touch.x, y: touch.y };
   };
 
-  // 回転開始
+  // 回転開始（マウス）
   const handleRotateStart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setIsRotating(true);
     
     if (elementRef.current) {
@@ -152,6 +153,22 @@ export function ResizableRotatableItem({
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
       const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
+      rotateStartAngle.current = angle - rotation;
+    }
+  };
+
+  // 回転開始（タッチ）
+  const handleRotateTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const touch = getTouchPosition(e);
+    setIsRotating(true);
+    
+    if (elementRef.current) {
+      const rect = elementRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const angle = Math.atan2(touch.y - centerY, touch.x - centerX) * 180 / Math.PI;
       rotateStartAngle.current = angle - rotation;
     }
   };
@@ -273,6 +290,14 @@ export function ResizableRotatableItem({
         
         setSize({ width: newWidth, height: newHeight });
         setPosition({ x: newX, y: newY });
+      } else if (isRotating && elementRef.current) {
+        e.preventDefault();
+        const touch = getTouchPosition(e);
+        const rect = elementRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const angle = Math.atan2(touch.y - centerY, touch.x - centerX) * 180 / Math.PI;
+        setRotation(angle - rotateStartAngle.current);
       }
     };
 
@@ -494,16 +519,15 @@ export function ResizableRotatableItem({
               title="サイズ変更"
             />
             
-            {/* 回転ハンドル（デスクトップのみ） */}
-            {!isMobile && (
-              <div
-                className="absolute -top-10 left-1/2 -translate-x-1/2 w-8 h-8 bg-accent border-2 border-background rounded-full cursor-grab active:cursor-grabbing rotate-handle hover:scale-110 transition-transform shadow-lg flex items-center justify-center"
-                onMouseDown={handleRotateStart}
-                title="回転"
-              >
-                <RotateCw className="w-4 h-4 text-accent-foreground" />
-              </div>
-            )}
+            {/* 回転ハンドル */}
+            <div
+              className="absolute -top-10 left-1/2 -translate-x-1/2 w-8 h-8 bg-accent border-2 border-background rounded-full cursor-grab active:cursor-grabbing rotate-handle hover:scale-110 transition-transform shadow-lg flex items-center justify-center touch-manipulation"
+              onMouseDown={handleRotateStart}
+              onTouchStart={handleRotateTouchStart}
+              title="回転"
+            >
+              <RotateCw className="w-4 h-4 text-accent-foreground" />
+            </div>
           </>
         )}
       </div>
