@@ -107,16 +107,6 @@ export default function Binder() {
                     
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     
-                    {/* Binder ring holes decoration */}
-                    <div className="absolute left-2 top-0 bottom-0 flex flex-col justify-around py-4 z-10">
-                      {[...Array(3)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="w-3 h-3 rounded-full bg-gray-400/50 border border-gray-500/30"
-                        />
-                      ))}
-                    </div>
-                    
                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20">
                       <Button
                         size="icon"
