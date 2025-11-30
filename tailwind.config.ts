@@ -80,12 +80,34 @@ export default {
           "0%, 100%": { transform: "rotate(-3deg)" },
           "50%": { transform: "rotate(3deg)" },
         },
+        "page-flip-right": {
+          "0%": {
+            transform: "perspective(1200px) rotateY(-90deg) scale(0.9)",
+            opacity: "0",
+          },
+          "100%": {
+            transform: "perspective(1200px) rotateY(0deg) scale(1)",
+            opacity: "1",
+          },
+        },
+        "page-flip-left": {
+          "0%": {
+            transform: "perspective(1200px) rotateY(90deg) scale(0.9)",
+            opacity: "0",
+          },
+          "100%": {
+            transform: "perspective(1200px) rotateY(0deg) scale(1)",
+            opacity: "1",
+          },
+        },
       },
       animation: {
         "fade-in": "fade-in 0.3s ease-out",
         "scale-in": "scale-in 0.2s ease-out",
         shimmer: "shimmer 2s infinite",
         wiggle: "wiggle 0.5s ease-in-out infinite",
+        "page-flip-right": "page-flip-right 0.6s ease-out",
+        "page-flip-left": "page-flip-left 0.6s ease-out",
       },
       fontFamily: {
         sans: ["Inter", "Noto Sans JP", "sans-serif"],

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { useBinder } from "@/hooks/useBinder";
 import { DecorationTool, BinderItem, BinderDecoration, FramePreset } from "@/types/binder";
 import { ResizableRotatableItem } from "./ResizableRotatableItem";
@@ -69,6 +68,9 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame, pageDirection 
   const binderMaxWidth = isMobile ? "calc(100vw - 16px)" : "800px";
   const binderMinHeight = isMobile ? "600px" : "1100px";
 
+  const flipAnimationClass =
+    pageDirection === "right" ? "animate-page-flip-right" : "animate-page-flip-left";
+
   const { isOver, setNodeRef } = useDroppable({
     id: "binder-canvas",
     data: { type: "canvas" },
@@ -123,78 +125,31 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame, pageDirection 
     return null;
   }
 
-  // ページめくりアニメーションの設定
-  const pageVariants = {
-    initial: (direction: "left" | "right") => ({
-      rotateY: direction === "right" ? -90 : 90,
-      opacity: 0,
-      scale: 0.8,
-    }),
-    animate: {
-      rotateY: 0,
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.6,
-        ease: [0.43, 0.13, 0.23, 0.96] as [number, number, number, number],
-      },
-    },
-    exit: (direction: "left" | "right") => ({
-      rotateY: direction === "right" ? 90 : -90,
-      opacity: 0,
-      scale: 0.8,
-      transition: {
-        duration: 0.6,
-        ease: [0.43, 0.13, 0.23, 0.96] as [number, number, number, number],
-      },
-    }),
-  };
-
   // カードポケット型の場合は専用コンポーネントを使用
   if (page.binder_type === "card_pocket") {
-    return (
-      <motion.div
-        custom={pageDirection}
-        variants={pageVariants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        style={{ perspective: 1200 }}
-        className="w-full"
-      >
-        <CardPocketBinder page={page} />
-      </motion.div>
-    );
+    return <CardPocketBinder page={page} />;
   }
 
   // フリーレイアウト型
   return (
-    <motion.div
-      custom={pageDirection}
-      variants={pageVariants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      style={{ perspective: 1200 }}
-      className="flex items-center justify-center min-h-full"
-    >
-        <div
-          ref={setNodeRef}
-          className={`relative bg-white shadow-2xl rounded-lg overflow-hidden transition-all mx-auto ${
-            isOver ? "ring-4 ring-primary" : ""
-          }`}
-          style={{
-            width: binderWidth,
-            maxWidth: binderMaxWidth,
-            minHeight: binderMinHeight,
-            height: binderHeight,
-            backgroundColor: page.background_color || "#ffffff",
-            backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-          onClick={() => setSelectedItemId(null)}
-        >
+    <div className="flex items-center justify-center min-h-full [perspective:1200px]">
+      <div
+        ref={setNodeRef}
+        className={`relative bg-white shadow-2xl rounded-lg overflow-hidden transition-all mx-auto ${flipAnimationClass} ${
+          isOver ? "ring-4 ring-primary" : ""
+        }`}
+        style={{
+          width: binderWidth,
+          maxWidth: binderMaxWidth,
+          minHeight: binderMinHeight,
+          height: binderHeight,
+          backgroundColor: page.background_color || "#ffffff",
+          backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+        onClick={() => setSelectedItemId(null)}
+      >
           {/* グリッド（ガイド用） */}
           <div
             className="absolute inset-0 pointer-events-none"
@@ -329,6 +284,6 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame, pageDirection 
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
   );
 }
