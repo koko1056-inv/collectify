@@ -6,6 +6,7 @@ import { CardPocketBinder } from "./CardPocketBinder";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDroppable } from "@dnd-kit/core";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface BinderCanvasProps {
   pageId: string;
@@ -21,6 +22,13 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
   const items = itemsQuery.data || [];
   const decorations = decorationsQuery.data || [];
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const isMobile = useIsMobile();
+
+  // モバイルとデスクトップで異なるサイズ
+  const binderWidth = isMobile ? "100%" : "800px";
+  const binderHeight = isMobile ? "auto" : "1100px";
+  const binderMaxWidth = isMobile ? "calc(100vw - 16px)" : "800px";
+  const binderMinHeight = isMobile ? "600px" : "1100px";
 
   const { isOver, setNodeRef } = useDroppable({
     id: "binder-canvas",
@@ -86,12 +94,14 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
     <div className="flex items-center justify-center min-h-full">
         <div
           ref={setNodeRef}
-          className={`relative bg-white shadow-2xl rounded-lg overflow-hidden transition-all ${
+          className={`relative bg-white shadow-2xl rounded-lg overflow-hidden transition-all mx-auto ${
             isOver ? "ring-4 ring-primary" : ""
           }`}
           style={{
-            width: "800px",
-            height: "1100px",
+            width: binderWidth,
+            maxWidth: binderMaxWidth,
+            minHeight: binderMinHeight,
+            height: binderHeight,
             backgroundColor: page.background_color || "#ffffff",
             backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
             backgroundSize: "cover",
@@ -100,11 +110,11 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
           onClick={() => setSelectedItemId(null)}
         >
           {/* バインダーの穴（左側） */}
-          <div className="absolute left-4 top-0 bottom-0 flex flex-col justify-around py-12 z-10 pointer-events-none">
-            {[...Array(6)].map((_, i) => (
+          <div className={`absolute ${isMobile ? "left-2" : "left-4"} top-0 bottom-0 flex flex-col justify-around ${isMobile ? "py-4" : "py-12"} z-10 pointer-events-none`}>
+            {[...Array(isMobile ? 4 : 6)].map((_, i) => (
               <div
                 key={i}
-                className="w-8 h-8 rounded-full bg-gray-300 border-4 border-gray-400 shadow-inner"
+                className={`${isMobile ? "w-5 h-5 border-2" : "w-8 h-8 border-4"} rounded-full bg-gray-300 border-gray-400 shadow-inner`}
               />
             ))}
           </div>
@@ -117,13 +127,13 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
                 linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px)
               `,
-              backgroundSize: "50px 50px",
-              marginLeft: "60px",
+              backgroundSize: isMobile ? "30px 30px" : "50px 50px",
+              marginLeft: isMobile ? "30px" : "60px",
             }}
           />
 
           {/* アイテムレンダリングエリア */}
-          <div className="absolute inset-0 pl-16">
+          <div className={`absolute inset-0 ${isMobile ? "pl-8" : "pl-16"}`}>
             {itemsWithData.map((item: any) => {
               const frameStyle = selectedFrame && selectedItemId === item.id ? {
                 border: selectedFrame.border_style,
@@ -226,7 +236,7 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
           </div>
 
           {/* ツール表示 */}
-          <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-xs font-medium pointer-events-none">
+          <div className={`absolute ${isMobile ? "top-2 right-2 px-2 py-0.5" : "top-4 right-4 px-3 py-1"} bg-white/90 rounded-full text-xs font-medium pointer-events-none`}>
             {activeTool === "select" && "選択"}
             {activeTool === "item" && "アイテム配置"}
             {activeTool === "sticker" && "ステッカー"}
