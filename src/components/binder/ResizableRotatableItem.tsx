@@ -444,25 +444,25 @@ export function ResizableRotatableItem({
           <>
             {/* リサイズハンドル（4隅） */}
             <div
-              className={`absolute -top-2 -left-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
+              className={`absolute -top-2 -left-2 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "nw")}
               onTouchStart={(e) => handleResizeTouchStart(e, "nw")}
               title="サイズ変更"
             />
             <div
-              className={`absolute -top-2 -right-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nesw-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
+              className={`absolute -top-2 -right-2 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nesw-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "ne")}
               onTouchStart={(e) => handleResizeTouchStart(e, "ne")}
               title="サイズ変更"
             />
             <div
-              className={`absolute -bottom-2 -left-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nesw-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
+              className={`absolute -bottom-2 -left-2 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nesw-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "sw")}
               onTouchStart={(e) => handleResizeTouchStart(e, "sw")}
               title="サイズ変更"
             />
             <div
-              className={`absolute -bottom-2 -right-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
+              className={`absolute -bottom-2 -right-2 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "se")}
               onTouchStart={(e) => handleResizeTouchStart(e, "se")}
               title="サイズ変更"
@@ -470,25 +470,25 @@ export function ResizableRotatableItem({
             
             {/* リサイズハンドル（4辺） */}
             <div
-              className={`absolute -top-2 left-1/2 -translate-x-1/2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ns-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
+              className={`absolute -top-2 left-1/2 -translate-x-1/2 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ns-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "n")}
               onTouchStart={(e) => handleResizeTouchStart(e, "n")}
               title="サイズ変更"
             />
             <div
-              className={`absolute -bottom-2 left-1/2 -translate-x-1/2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ns-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
+              className={`absolute -bottom-2 left-1/2 -translate-x-1/2 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ns-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "s")}
               onTouchStart={(e) => handleResizeTouchStart(e, "s")}
               title="サイズ変更"
             />
             <div
-              className={`absolute top-1/2 -translate-y-1/2 -left-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ew-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
+              className={`absolute top-1/2 -translate-y-1/2 -left-2 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ew-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "w")}
               onTouchStart={(e) => handleResizeTouchStart(e, "w")}
               title="サイズ変更"
             />
             <div
-              className={`absolute top-1/2 -translate-y-1/2 -right-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ew-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
+              className={`absolute top-1/2 -translate-y-1/2 -right-2 ${isMobile ? 'w-5 h-5' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ew-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "e")}
               onTouchStart={(e) => handleResizeTouchStart(e, "e")}
               title="サイズ変更"
