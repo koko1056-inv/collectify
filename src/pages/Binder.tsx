@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, BookOpen, Pencil, Trash2, Grid3x3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { BinderEditor } from "@/components/binder/BinderEditor";
+import { BinderPagePreview } from "@/components/binder/BinderPagePreview";
 import { Navigate, useNavigate } from "react-router-dom";
 
 export default function Binder() {
@@ -101,6 +102,9 @@ export default function Binder() {
                       setIsPreviewMode(true);
                     }}
                   >
+                    {/* バインダーアイテムのプレビュー */}
+                    <BinderPagePreview pageId={page.id} binderType={page.binder_type} />
+                    
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     
                     {/* Binder ring holes decoration */}
