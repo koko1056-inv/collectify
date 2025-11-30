@@ -596,7 +596,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
         {/* スクロール誘導 */}
         <div className="flex flex-col items-center gap-2 animate-bounce mt-8">
-          <p className="text-sm text-muted-foreground">他のコレクターを見る</p>
+          <p className="text-sm text-muted-foreground">コレクション、コレクターを見る</p>
           <ChevronDown className="w-6 h-6 text-muted-foreground" />
         </div>
       </div>
