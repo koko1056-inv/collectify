@@ -77,6 +77,22 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
 
   const handleItemClick = async (item: any, type: "user" | "official") => {
     if (targetSlotIndex !== null && targetSlotIndex !== undefined) {
+      // 既存のアイテムがあるか確認
+      const { data: existingItems } = await supabase
+        .from("binder_items")
+        .select("id")
+        .eq("binder_page_id", pageId)
+        .eq("z_index", targetSlotIndex);
+
+      // 既存のアイテムがある場合は削除
+      if (existingItems && existingItems.length > 0) {
+        await Promise.all(
+          existingItems.map(existingItem =>
+            supabase.from("binder_items").delete().eq("id", existingItem.id)
+          )
+        );
+      }
+
       // ポケットに直接追加
       await addItem.mutateAsync({
         binder_page_id: pageId,
