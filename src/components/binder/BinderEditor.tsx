@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle2, Menu, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Menu, ChevronLeft, ChevronRight, Plus, ZoomIn, ZoomOut } from "lucide-react";
 import { useBinder } from "@/hooks/useBinder";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { BinderCanvas } from "./BinderCanvas";
@@ -59,6 +59,7 @@ export function BinderEditor({
   const isMobile = useIsMobile();
   const [showMobileToolbar, setShowMobileToolbar] = useState(false);
   const [pageDirection, setPageDirection] = useState<"left" | "right">("right");
+  const [zoom, setZoom] = useState(1);
 
   // 選択されたアイテムとデコレーションを取得
   const {
@@ -185,6 +186,18 @@ export function BinderEditor({
       toast.error("ページの追加に失敗しました");
     }
   };
+
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.1, 2));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(prev - 0.1, 0.5));
+  };
+
+  const handleZoomReset = () => {
+    setZoom(1);
+  };
   return <DndContext onDragEnd={isPreviewMode ? () => {} : handleDragEnd}>
       <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
         {/* ヘッダー */}
@@ -241,11 +254,55 @@ export function BinderEditor({
             </div>}
 
           {/* キャンバス */}
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden relative">
+            {/* ズームコントロール */}
+            {page.binder_type === "free_layout" && !isPreviewMode && (
+              <div className="absolute top-2 md:top-4 right-2 md:right-4 z-10 bg-white rounded-lg shadow-lg border p-2 flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleZoomOut}
+                  disabled={zoom <= 0.5}
+                  className="h-8 w-8"
+                >
+                  <ZoomOut className="w-4 h-4" />
+                </Button>
+                <span className="text-sm font-medium min-w-[3rem] text-center">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleZoomIn}
+                  disabled={zoom >= 2}
+                  className="h-8 w-8"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleZoomReset}
+                  className="h-8 px-2 text-xs"
+                >
+                  リセット
+                </Button>
+              </div>
+            )}
+            
             {selectedItemIds.length > 0 && !isPreviewMode}
             
             <div className="flex-1 overflow-auto p-2 md:p-8 pb-20 md:pb-8">
-              <BinderCanvas key={currentPageId} pageId={currentPageId} activeTool={activeTool} selectedFrame={selectedFrame} pageDirection={pageDirection} selectedItemIds={selectedItemIds} onSelectionChange={setSelectedItemIds} />
+              <BinderCanvas 
+                key={currentPageId} 
+                pageId={currentPageId} 
+                activeTool={activeTool} 
+                selectedFrame={selectedFrame} 
+                pageDirection={pageDirection} 
+                selectedItemIds={selectedItemIds} 
+                onSelectionChange={setSelectedItemIds}
+                zoom={zoom}
+              />
             </div>
             
             {!isPreviewMode && <KeyboardShortcuts selectedItemId={selectedItemIds[0] || null} onDelete={handlers.handleDelete} onDuplicate={handlers.handleDuplicate} onCopy={handlers.handleCopy} onPaste={handlers.handlePaste} onMove={handlers.handleMove} onBringToFront={handlers.handleBringToFront} onSendToBack={handlers.handleSendToBack} />}
