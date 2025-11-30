@@ -65,6 +65,11 @@ export function ResizableRotatableItem({
   const [showMobileControls, setShowMobileControls] = useState(false);
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
+  // デバッグ用：選択状態とモバイル判定をログ出力
+  useEffect(() => {
+    console.log(`[ResizableItem ${id}] isSelected: ${isSelected}, isMobile: ${isMobile}, shouldShowHandles: ${isSelected && !isMobile}`);
+  }, [isSelected, isMobile, id]);
+
   // モバイルタッチイベントのサポート
   const getTouchPosition = (e: TouchEvent | React.TouchEvent) => {
     const touch = 'touches' in e ? e.touches[0] : e;
