@@ -1,16 +1,5 @@
-export interface Binder {
-  id: string;
-  user_id: string;
-  title: string;
-  description: string | null;
-  cover_image: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface BinderPage {
   id: string;
-  binder_id: string | null;
   user_id: string;
   title: string;
   background_image: string | null;

@@ -19,12 +19,11 @@ import { toast } from "sonner";
 
 interface BinderEditorProps {
   pageId: string;
-  binderId?: string;
   onClose: () => void;
   isPreviewMode?: boolean;
 }
 
-export function BinderEditor({ pageId, binderId, onClose, isPreviewMode = false }: BinderEditorProps) {
+export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderEditorProps) {
   const { binderPages, updatePage, addItem, createPage } = useBinder();
   const [currentPageId, setCurrentPageId] = useState(pageId);
   const page = (binderPages as any[]).find((p) => p.id === currentPageId);
@@ -131,15 +130,8 @@ export function BinderEditor({ pageId, binderId, onClose, isPreviewMode = false 
   };
 
   const handleAddPage = async () => {
-    // バインダーIDが必要
-    if (!binderId) {
-      toast.error("バインダーIDが見つかりません");
-      return;
-    }
-    
     try {
       const newPage = await createPage.mutateAsync({
-        binderId,
         title: `新しいページ ${binderPages.length + 1}`,
         binderType: page?.binder_type || "free_layout",
         layoutConfig: page?.layout_config,

@@ -260,7 +260,6 @@ export type Database = {
         Row: {
           background_color: string | null
           background_image: string | null
-          binder_id: string | null
           binder_type: string
           created_at: string
           id: string
@@ -273,7 +272,6 @@ export type Database = {
         Insert: {
           background_color?: string | null
           background_image?: string | null
-          binder_id?: string | null
           binder_type?: string
           created_at?: string
           id?: string
@@ -286,50 +284,11 @@ export type Database = {
         Update: {
           background_color?: string | null
           background_image?: string | null
-          binder_id?: string | null
           binder_type?: string
           created_at?: string
           id?: string
           layout_config?: Json | null
           page_order?: number
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "binder_pages_binder_id_fkey"
-            columns: ["binder_id"]
-            isOneToOne: false
-            referencedRelation: "binders"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      binders: {
-        Row: {
-          cover_image: string | null
-          created_at: string
-          description: string | null
-          id: string
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          cover_image?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          title?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          cover_image?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
           title?: string
           updated_at?: string
           user_id?: string

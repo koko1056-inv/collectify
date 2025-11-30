@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,28 +12,18 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function BinderCreate() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
-  const binderId = searchParams.get("binderId");
   const { createPage } = useBinder();
   const [title, setTitle] = useState("");
   const [binderType, setBinderType] = useState<"free_layout" | "card_pocket">("free_layout");
   const [cols, setCols] = useState(3);
   const [rows, setRows] = useState(3);
 
-  // バインダーIDが必要
-  useEffect(() => {
-    if (!binderId) {
-      navigate("/binder");
-    }
-  }, [binderId, navigate]);
-
   const handleCreate = async () => {
-    if (!title.trim() || !user || !binderId) return;
+    if (!title.trim() || !user) return;
 
     const layoutConfig = binderType === "card_pocket" ? { cols, rows } : {};
     
     const newPage = await createPage.mutateAsync({
-      binderId,
       title,
       binderType,
       layoutConfig,
@@ -43,10 +33,6 @@ export default function BinderCreate() {
       navigate("/binder");
     }
   };
-
-  if (!binderId) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -62,9 +48,9 @@ export default function BinderCreate() {
 
         <Card className="p-6 space-y-6">
           <div>
-            <h1 className="text-2xl font-bold mb-2">新しいページを作成</h1>
+            <h1 className="text-2xl font-bold mb-2">新しいバインダーを作成</h1>
             <p className="text-muted-foreground">
-              ページのタイプとレイアウトを選択してください
+              バインダーのタイプとレイアウトを選択してください
             </p>
           </div>
 
@@ -78,7 +64,7 @@ export default function BinderCreate() {
           </div>
 
           <div className="space-y-4">
-            <Label>ページタイプ</Label>
+            <Label>バインダータイプ</Label>
             <RadioGroup value={binderType} onValueChange={(v) => setBinderType(v as any)}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card
@@ -185,7 +171,7 @@ export default function BinderCreate() {
             className="w-full"
             size="lg"
           >
-            ページを作成
+            バインダーを作成
           </Button>
         </Card>
       </div>

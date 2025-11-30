@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Binder, BinderPage, BinderItem, BinderDecoration } from "@/types/binder";
+import { BinderPage, BinderItem, BinderDecoration } from "@/types/binder";
 import { useToast } from "@/hooks/use-toast";
 
 export function useBinder() {
@@ -9,43 +9,9 @@ export function useBinder() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // バインダー一覧を取得
-  const { data: binders = [], isLoading: isLoadingBinders } = useQuery<Binder[]>({
-    queryKey: ["binders", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("binders")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return (data || []) as Binder[];
-    },
-  });
-
-  // 特定のバインダーのページ一覧を取得
-  const getBinderPages = (binderId: string) => {
-    return useQuery<BinderPage[]>({
-      queryKey: ["binder-pages", binderId],
-      enabled: !!binderId,
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from("binder_pages")
-          .select("*")
-          .eq("binder_id", binderId)
-          .order("page_order");
-
-        if (error) throw error;
-        return (data || []) as BinderPage[];
-      },
-    });
-  };
-
-  // バインダーページ一覧を取得（後方互換性のため）
+  // バインダーページ一覧を取得
   const { data: binderPages = [], isLoading: isLoadingPages } = useQuery<BinderPage[]>({
-    queryKey: ["all-binder-pages", user?.id],
+    queryKey: ["binder-pages", user?.id],
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -95,96 +61,17 @@ export function useBinder() {
     });
   };
 
-  // 新しいバインダーを作成
-  const createBinder = useMutation({
-    mutationFn: async (params: { title: string; description?: string }) => {
-      const { data, error } = await supabase
-        .from("binders")
-        .insert({
-          user_id: user!.id,
-          title: params.title,
-          description: params.description || null,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["binders"] });
-      toast({
-        title: "バインダーを作成しました",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "エラー",
-        description: "バインダーの作成に失敗しました",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // バインダーを更新
-  const updateBinder = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Binder> }) => {
-      const { data, error } = await supabase
-        .from("binders")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["binders"] });
-      toast({
-        title: "バインダーを更新しました",
-      });
-    },
-  });
-
-  // バインダーを削除
-  const deleteBinder = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("binders")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["binders"] });
-      toast({
-        title: "バインダーを削除しました",
-      });
-    },
-  });
-
   // 新しいバインダーページを作成
   const createPage = useMutation({
-    mutationFn: async (params: { binderId: string; title: string; binderType?: string; layoutConfig?: any }) => {
-      // 同じバインダー内のページ数を取得
-      const { data: existingPages } = await supabase
-        .from("binder_pages")
-        .select("page_order")
-        .eq("binder_id", params.binderId)
-        .order("page_order", { ascending: false })
-        .limit(1);
-
-      const maxOrder = existingPages && existingPages.length > 0 
-        ? existingPages[0].page_order
+    mutationFn: async (params: { title: string; binderType?: string; layoutConfig?: any }) => {
+      const maxOrder = binderPages.length > 0 
+        ? Math.max(...binderPages.map(p => p.page_order))
         : -1;
 
       const { data, error } = await supabase
         .from("binder_pages")
         .insert({
           user_id: user!.id,
-          binder_id: params.binderId,
           title: params.title,
           page_order: maxOrder + 1,
           binder_type: params.binderType || 'free_layout',
@@ -196,9 +83,8 @@ export function useBinder() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["binder-pages", variables.binderId] });
-      queryClient.invalidateQueries({ queryKey: ["all-binder-pages"] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["binder-pages"] });
       toast({
         title: "バインダーページを作成しました",
       });
@@ -232,20 +118,16 @@ export function useBinder() {
 
   // バインダーページを削除
   const deletePage = useMutation({
-    mutationFn: async ({ id, binderId }: { id: string; binderId?: string }) => {
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("binder_pages")
         .delete()
         .eq("id", id);
 
       if (error) throw error;
-      return binderId;
     },
-    onSuccess: (binderId) => {
-      if (binderId) {
-        queryClient.invalidateQueries({ queryKey: ["binder-pages", binderId] });
-      }
-      queryClient.invalidateQueries({ queryKey: ["all-binder-pages"] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["binder-pages"] });
       toast({
         title: "バインダーページを削除しました",
       });
@@ -355,16 +237,10 @@ export function useBinder() {
   });
 
   return {
-    binders,
-    isLoadingBinders,
     binderPages,
     isLoadingPages,
-    getBinderPages,
     getBinderItems,
     getBinderDecorations,
-    createBinder,
-    updateBinder,
-    deleteBinder,
     createPage,
     updatePage,
     deletePage,
