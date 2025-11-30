@@ -101,9 +101,13 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
     },
   });
 
-  // ポケット位置にアイテムを配置
+  // ポケット位置にアイテムを配置（z_indexが重複している場合は最新のものを使用）
   const pockets = Array.from({ length: totalPockets }, (_, index) => {
-    const item = itemsWithData.find(i => i.z_index === index);
+    // 同じz_indexを持つアイテムがある場合は、created_atが最新のものを使用
+    const matchingItems = itemsWithData.filter(i => i.z_index === index);
+    const item = matchingItems.length > 0 
+      ? matchingItems.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
+      : undefined;
     return { index, item };
   });
 
