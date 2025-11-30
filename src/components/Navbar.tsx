@@ -29,7 +29,9 @@ export function Navbar() {
     t
   } = useLanguage();
   const navigate = useNavigate();
-  const { profile } = useProfile(user?.id);
+  const {
+    profile
+  } = useProfile(user?.id);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
@@ -90,13 +92,9 @@ export function Navbar() {
         <Link to="/" className="logo-text text-xl font-bold">
           Collectify
         </Link>
-        {user && (
-          <div className="flex items-center gap-2">
+        {user && <div className="flex items-center gap-2">
             <NotificationBell className="sm:hidden" />
-            <button
-              onClick={() => navigate("/edit-profile")}
-              className="flex items-center justify-center"
-            >
+            <button onClick={() => navigate("/edit-profile")} className="flex items-center justify-center">
               <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
                 <AvatarImage src={profile?.avatar_url || undefined} />
                 <AvatarFallback className="bg-muted">
@@ -104,8 +102,7 @@ export function Navbar() {
                 </AvatarFallback>
               </Avatar>
             </button>
-          </div>
-        )}
+          </div>}
         {!user && <div className="w-8" />} {/* Right spacer when not logged in */}
       </div>
       
@@ -161,9 +158,7 @@ export function Navbar() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" onClick={() => setIsSearchModalOpen(true)} className="h-9 w-9">
-                      <UserSearch className="h-4 w-4" />
-                    </Button>
+                    
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{t("nav.search.user")}</p>
@@ -195,10 +190,7 @@ export function Navbar() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button
-                      onClick={() => navigate("/edit-profile")}
-                      className="flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
-                    >
+                    <button onClick={() => navigate("/edit-profile")} className="flex items-center justify-center rounded-full hover:opacity-80 transition-opacity">
                       <Avatar className="w-9 h-9 border-2 border-border hover:border-primary transition-colors">
                         <AvatarImage src={profile?.avatar_url || undefined} />
                         <AvatarFallback className="bg-muted">
@@ -215,9 +207,7 @@ export function Navbar() {
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9">
-                    <User className="h-4 w-4" />
-                  </Button>
+                  
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
