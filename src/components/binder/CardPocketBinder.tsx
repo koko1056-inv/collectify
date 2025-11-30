@@ -2,13 +2,15 @@ import { useBinder } from "@/hooks/useBinder";
 import { BinderPage } from "@/types/binder";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { DndContext, DragEndEvent, useDraggable } from "@dnd-kit/core";
+import { CardPocketSlot } from "./CardPocketSlot";
 
 interface CardPocketBinderProps {
   page: BinderPage;
 }
 
 export function CardPocketBinder({ page }: CardPocketBinderProps) {
-  const { getBinderItems } = useBinder();
+  const { getBinderItems, updateItem, addItem } = useBinder();
   const itemsQuery = getBinderItems(page.id);
   const items = itemsQuery.data || [];
 
@@ -67,18 +69,55 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
     return { index, item };
   });
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const targetSlotIndex = parseInt(over.id.toString().replace("slot-", ""));
+
+    // コレクションアイテムをポケットにドロップ
+    if (active.data.current?.type === "collection-item") {
+      const { itemType, item } = active.data.current;
+      
+      await addItem.mutateAsync({
+        binder_page_id: page.id,
+        user_item_id: itemType === "user" ? item.id : null,
+        official_item_id: itemType === "official" ? item.id : null,
+        custom_image_url: null,
+        position_x: 0,
+        position_y: 0,
+        width: 100,
+        height: 140,
+        rotation: 0,
+        z_index: targetSlotIndex,
+      });
+    }
+    // ポケット間でアイテムを移動
+    else if (active.data.current?.type === "pocket-item") {
+      const activeItem = items.find(i => i.id === active.id);
+      if (activeItem) {
+        await updateItem.mutateAsync({
+          id: activeItem.id,
+          updates: { z_index: targetSlotIndex },
+        });
+      }
+    }
+  };
+
   return (
-    <div
-      className="relative bg-white shadow-2xl rounded-lg overflow-hidden"
-      style={{
-        width: "800px",
-        height: "1100px",
-        backgroundColor: page.background_color || "#ffffff",
-        backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-    >
+    <DndContext onDragEnd={handleDragEnd}>
+      <div
+        className="relative bg-white shadow-2xl rounded-lg overflow-hidden"
+        style={{
+          width: "800px",
+          height: "1100px",
+          backgroundColor: page.background_color || "#ffffff",
+          backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
       {/* バインダーの穴（左側） */}
       <div className="absolute left-4 top-0 bottom-0 flex flex-col justify-around py-12">
         {[...Array(6)].map((_, i) => (
@@ -89,46 +128,31 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
         ))}
       </div>
 
-      {/* カードポケットグリッド */}
-      <div className="pl-20 pr-8 py-12 h-full">
-        <div
-          className="grid gap-4 h-full"
-          style={{
-            gridTemplateColumns: `repeat(${cols}, 1fr)`,
-            gridTemplateRows: `repeat(${rows}, 1fr)`,
-          }}
-        >
-          {pockets.map(({ index, item }) => (
-            <div
-              key={index}
-              className="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-gray-300 shadow-inner overflow-hidden"
-            >
-              {/* ポケットの反射効果 */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/30 pointer-events-none" />
-              
-              {/* アイテム */}
-              {item?.item_data ? (
-                <div className="w-full h-full p-2">
-                  <img
-                    src={item.item_data.image}
-                    alt={item.item_data.title}
-                    className="w-full h-full object-cover rounded"
-                  />
-                </div>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                  空
-                </div>
-              )}
-            </div>
-          ))}
+        {/* カードポケットグリッド */}
+        <div className="pl-20 pr-8 py-12 h-full">
+          <div
+            className="grid gap-4 h-full"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, 1fr)`,
+              gridTemplateRows: `repeat(${rows}, 1fr)`,
+            }}
+          >
+            {pockets.map(({ index, item }) => (
+              <CardPocketSlot
+                key={index}
+                id={page.id}
+                index={index}
+                item={item}
+              />
+            ))}
+          </div>
         </div>
-      </div>
 
       {/* ページタイプ表示 */}
       <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-xs font-medium">
         カードポケット型 ({cols}×{rows})
       </div>
-    </div>
+      </div>
+    </DndContext>
   );
 }

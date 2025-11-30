@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, CheckCircle2 } from "lucide-react";
 import { useBinder } from "@/hooks/useBinder";
+import { useAutoSave } from "@/hooks/useAutoSave";
 import { BinderCanvas } from "./BinderCanvas";
 import { BinderToolbar } from "./BinderToolbar";
 import { BinderItemPalette } from "./BinderItemPalette";
@@ -18,11 +19,35 @@ interface BinderEditorProps {
 }
 
 export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
-  const { binderPages } = useBinder();
+  const { binderPages, updatePage } = useBinder();
   const page = (binderPages as any[]).find((p) => p.id === pageId);
   const [activeTool, setActiveTool] = useState<DecorationTool>("select");
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedFrame, setSelectedFrame] = useState<FramePreset | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date>(new Date());
+  const [isSaving, setIsSaving] = useState(false);
+
+  // 自動保存（ページの変更を監視）
+  useAutoSave({
+    data: page,
+    onSave: async (data) => {
+      if (data) {
+        setIsSaving(true);
+        await updatePage.mutateAsync({
+          id: data.id,
+          updates: {
+            title: data.title,
+            background_color: data.background_color,
+            background_image: data.background_image,
+          },
+        });
+        setLastSaved(new Date());
+        setIsSaving(false);
+      }
+    },
+    delay: 3000,
+    enabled: true,
+  });
 
   if (!page) {
     return null;
@@ -46,10 +71,19 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
             {page.binder_type === "free_layout" ? "フリーレイアウト" : "カードポケット型"}
           </span>
         </div>
-        <Button className="gap-2">
-          <Save className="w-4 h-4" />
-          保存
-        </Button>
+        <div className="flex items-center gap-3">
+          {isSaving ? (
+            <span className="text-sm text-muted-foreground flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              保存中...
+            </span>
+          ) : (
+            <span className="text-sm text-muted-foreground flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+              自動保存済み
+            </span>
+          )}
+        </div>
       </div>
 
       {/* メインエリア */}
