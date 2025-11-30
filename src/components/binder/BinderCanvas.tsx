@@ -90,11 +90,11 @@ export function BinderCanvas({
     };
   }, [pageId, queryClient]);
 
-  // モバイルとデスクトップで異なるサイズ
-  const binderWidth = isMobile ? "100%" : "800px";
-  const binderHeight = isMobile ? "auto" : "1100px";
-  const binderMaxWidth = isMobile ? "calc(100vw - 16px)" : "800px";
-  const binderMinHeight = isMobile ? "600px" : "1100px";
+  // モバイルの縦長サイズに統一
+  const binderWidth = isMobile ? "100%" : "600px";
+  const binderHeight = "auto";
+  const binderMaxWidth = isMobile ? "calc(100vw - 16px)" : "600px";
+  const binderMinHeight = "900px";
 
   const flipAnimationClass =
     pageDirection === "right" ? "animate-page-flip-right" : "animate-page-flip-left";
