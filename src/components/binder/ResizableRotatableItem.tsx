@@ -119,14 +119,27 @@ export function ResizableRotatableItem({
     }
   };
 
-  // リサイズ開始
+  // リサイズ開始（マウス）
   const handleResizeStart = (e: React.MouseEvent, direction: string) => {
     e.stopPropagation();
+    e.preventDefault();
     setIsResizing(true);
     setResizeDirection(direction);
     resizeStartSize.current = { ...size };
     resizeStartPos.current = { ...position };
     dragStartPos.current = { x: e.clientX, y: e.clientY };
+  };
+
+  // リサイズ開始（タッチ）
+  const handleResizeTouchStart = (e: React.TouchEvent, direction: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const touch = getTouchPosition(e);
+    setIsResizing(true);
+    setResizeDirection(direction);
+    resizeStartSize.current = { ...size };
+    resizeStartPos.current = { ...position };
+    dragStartPos.current = { x: touch.x, y: touch.y };
   };
 
   // 回転開始
@@ -216,6 +229,50 @@ export function ResizableRotatableItem({
           clearTimeout(longPressTimer);
           setLongPressTimer(null);
         }
+      } else if (isResizing) {
+        e.preventDefault();
+        const touch = getTouchPosition(e);
+        const deltaX = touch.x - dragStartPos.current.x;
+        const deltaY = touch.y - dragStartPos.current.y;
+        const aspectRatio = resizeStartSize.current.width / resizeStartSize.current.height;
+        
+        let newWidth = resizeStartSize.current.width;
+        let newHeight = resizeStartSize.current.height;
+        let newX = resizeStartPos.current.x;
+        let newY = resizeStartPos.current.y;
+        
+        // 8方向リサイズ
+        if (resizeDirection.includes('e')) {
+          newWidth = Math.max(50, resizeStartSize.current.width + deltaX);
+        } else if (resizeDirection.includes('w')) {
+          newWidth = Math.max(50, resizeStartSize.current.width - deltaX);
+          newX = resizeStartPos.current.x + (resizeStartSize.current.width - newWidth);
+        }
+        
+        if (resizeDirection.includes('s')) {
+          newHeight = Math.max(50, resizeStartSize.current.height + deltaY);
+        } else if (resizeDirection.includes('n')) {
+          newHeight = Math.max(50, resizeStartSize.current.height - deltaY);
+          newY = resizeStartPos.current.y + (resizeStartSize.current.height - newHeight);
+        }
+        
+        // コーナーハンドルの場合はアスペクト比を維持
+        if (resizeDirection.length === 2) {
+          if (resizeDirection === 'se' || resizeDirection === 'nw') {
+            newHeight = newWidth / aspectRatio;
+            if (resizeDirection === 'nw') {
+              newY = resizeStartPos.current.y + (resizeStartSize.current.height - newHeight);
+            }
+          } else if (resizeDirection === 'ne' || resizeDirection === 'sw') {
+            newHeight = newWidth / aspectRatio;
+            if (resizeDirection === 'ne') {
+              newY = resizeStartPos.current.y + (resizeStartSize.current.height - newHeight);
+            }
+          }
+        }
+        
+        setSize({ width: newWidth, height: newHeight });
+        setPosition({ x: newX, y: newY });
       }
     };
 
@@ -327,113 +384,126 @@ export function ResizableRotatableItem({
 
         {/* コントロールボタン（選択時のみ表示 - デスクトップのみ） */}
         {isSelected && !isMobile && (
-          <>
-            <div className="absolute -top-14 left-0 flex gap-1 bg-white rounded-lg shadow-lg p-1 control-button">
+          <div className="absolute -top-14 left-0 flex gap-1 bg-white rounded-lg shadow-lg p-1 control-button">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={handleQuickRotate}
+              title="90度回転"
+            >
+              <RotateCw className="w-4 h-4" />
+            </Button>
+            {onDuplicate && (
               <Button
                 size="icon"
                 variant="ghost"
                 className="h-8 w-8"
-                onClick={handleQuickRotate}
-                title="90度回転"
+                onClick={onDuplicate}
+                title="複製"
               >
-                <RotateCw className="w-4 h-4" />
+                <Copy className="w-4 h-4" />
               </Button>
-              {onDuplicate && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  onClick={onDuplicate}
-                  title="複製"
-                >
-                  <Copy className="w-4 h-4" />
-                </Button>
-              )}
-              {onBringForward && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  onClick={onBringForward}
-                  title="前面へ"
-                >
-                  <ArrowUp className="w-4 h-4" />
-                </Button>
-              )}
-              {onSendBackward && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  onClick={onSendBackward}
-                  title="背面へ"
-                >
-                  <ArrowDown className="w-4 h-4" />
-                </Button>
-              )}
+            )}
+            {onBringForward && (
               <Button
                 size="icon"
-                variant="destructive"
+                variant="ghost"
                 className="h-8 w-8"
-                onClick={onDelete}
-                title="削除"
+                onClick={onBringForward}
+                title="前面へ"
               >
-                <Trash2 className="w-4 h-4" />
+                <ArrowUp className="w-4 h-4" />
               </Button>
-            </div>
+            )}
+            {onSendBackward && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                onClick={onSendBackward}
+                title="背面へ"
+              >
+                <ArrowDown className="w-4 h-4" />
+              </Button>
+            )}
+            <Button
+              size="icon"
+              variant="destructive"
+              className="h-8 w-8"
+              onClick={onDelete}
+              title="削除"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
 
+        {/* リサイズハンドル（選択時のみ表示 - モバイルでも表示） */}
+        {isSelected && (
+          <>
             {/* リサイズハンドル（4隅） */}
             <div
-              className="absolute -top-2 -left-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              className={`absolute -top-2 -left-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "nw")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "nw")}
               title="サイズ変更"
             />
             <div
-              className="absolute -top-2 -right-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-nesw-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              className={`absolute -top-2 -right-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nesw-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "ne")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "ne")}
               title="サイズ変更"
             />
             <div
-              className="absolute -bottom-2 -left-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-nesw-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              className={`absolute -bottom-2 -left-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nesw-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "sw")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "sw")}
               title="サイズ変更"
             />
             <div
-              className="absolute -bottom-2 -right-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              className={`absolute -bottom-2 -right-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-nwse-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "se")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "se")}
               title="サイズ変更"
             />
             
             {/* リサイズハンドル（4辺） */}
             <div
-              className="absolute -top-2 left-1/2 -translate-x-1/2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-ns-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              className={`absolute -top-2 left-1/2 -translate-x-1/2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ns-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "n")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "n")}
               title="サイズ変更"
             />
             <div
-              className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-ns-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              className={`absolute -bottom-2 left-1/2 -translate-x-1/2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ns-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "s")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "s")}
               title="サイズ変更"
             />
             <div
-              className="absolute top-1/2 -translate-y-1/2 -left-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-ew-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              className={`absolute top-1/2 -translate-y-1/2 -left-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ew-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "w")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "w")}
               title="サイズ変更"
             />
             <div
-              className="absolute top-1/2 -translate-y-1/2 -right-2 w-5 h-5 bg-primary border-2 border-background rounded-full cursor-ew-resize resize-handle hover:scale-125 transition-transform shadow-lg"
+              className={`absolute top-1/2 -translate-y-1/2 -right-2 ${isMobile ? 'w-7 h-7' : 'w-5 h-5'} bg-primary border-2 border-background rounded-full cursor-ew-resize resize-handle hover:scale-125 transition-transform shadow-lg touch-manipulation`}
               onMouseDown={(e) => handleResizeStart(e, "e")}
+              onTouchStart={(e) => handleResizeTouchStart(e, "e")}
               title="サイズ変更"
             />
             
-            {/* 回転ハンドル */}
-            <div
-              className="absolute -top-10 left-1/2 -translate-x-1/2 w-8 h-8 bg-accent border-2 border-background rounded-full cursor-grab active:cursor-grabbing rotate-handle hover:scale-110 transition-transform shadow-lg flex items-center justify-center"
-              onMouseDown={handleRotateStart}
-              title="回転"
-            >
-              <RotateCw className="w-4 h-4 text-accent-foreground" />
-            </div>
+            {/* 回転ハンドル（デスクトップのみ） */}
+            {!isMobile && (
+              <div
+                className="absolute -top-10 left-1/2 -translate-x-1/2 w-8 h-8 bg-accent border-2 border-background rounded-full cursor-grab active:cursor-grabbing rotate-handle hover:scale-110 transition-transform shadow-lg flex items-center justify-center"
+                onMouseDown={handleRotateStart}
+                title="回転"
+              >
+                <RotateCw className="w-4 h-4 text-accent-foreground" />
+              </div>
+            )}
           </>
         )}
       </div>
