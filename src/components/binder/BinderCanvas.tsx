@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useBinder } from "@/hooks/useBinder";
 import { DecorationTool, BinderItem, BinderDecoration, FramePreset } from "@/types/binder";
 import { ResizableRotatableItem } from "./ResizableRotatableItem";
 import { CardPocketBinder } from "./CardPocketBinder";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDroppable } from "@dnd-kit/core";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -16,6 +16,7 @@ interface BinderCanvasProps {
 
 export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvasProps) {
   const { binderPages, getBinderItems, getBinderDecorations, updateItem, deleteItem, updateDecoration, deleteDecoration, addItem } = useBinder();
+  const queryClient = useQueryClient();
   const page = (binderPages as any[]).find((p) => p.id === pageId);
   const itemsQuery = getBinderItems(pageId);
   const decorationsQuery = getBinderDecorations(pageId);
@@ -23,6 +24,42 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
   const decorations = decorationsQuery.data || [];
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const isMobile = useIsMobile();
+
+  // リアルタイムアップデートを設定
+  useEffect(() => {
+    const channel = supabase
+      .channel(`binder-canvas-${pageId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'binder_items',
+          filter: `binder_page_id=eq.${pageId}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['binder-items', pageId] });
+          queryClient.invalidateQueries({ queryKey: ['binder-items-with-data', pageId] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'binder_decorations',
+          filter: `binder_page_id=eq.${pageId}`
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['binder-decorations', pageId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [pageId, queryClient]);
 
   // モバイルとデスクトップで異なるサイズ
   const binderWidth = isMobile ? "100%" : "800px";
