@@ -196,7 +196,7 @@ export function BinderCanvas({
           />
 
           {/* アイテムレンダリングエリア */}
-          <div className="absolute inset-0 p-4 md:p-8">
+          <div className="absolute inset-0 p-4 md:p-8 pointer-events-none">
             {itemsWithData.map((item: any) => {
               const frameStyle = selectedFrame && selectedItemIds.includes(item.id) ? {
                 border: selectedFrame.border_style,
@@ -205,23 +205,23 @@ export function BinderCanvas({
               } : {};
 
               return (
-                <ResizableRotatableItem
-                  key={item.id}
-                  id={item.id}
-                  image={item.item_data?.image}
-                  initialX={item.position_x}
-                  initialY={item.position_y}
-                  initialWidth={item.width}
-                  initialHeight={item.height}
-                  initialRotation={item.rotation}
-                  zIndex={item.z_index}
-                  isSelected={selectedItemIds.includes(item.id)}
-                  onSelect={(e) => handleItemSelect(item.id, e)}
-                  onUpdate={(updates) =>
-                    updateItem.mutate({ id: item.id, updates })
-                  }
-                  onDelete={() => deleteItem.mutate({ id: item.id, pageId })}
-                  onDuplicate={async () => {
+                <div key={item.id} className="pointer-events-auto">
+                  <ResizableRotatableItem
+                    id={item.id}
+                    image={item.item_data?.image}
+                    initialX={item.position_x}
+                    initialY={item.position_y}
+                    initialWidth={item.width}
+                    initialHeight={item.height}
+                    initialRotation={item.rotation}
+                    zIndex={item.z_index}
+                    isSelected={selectedItemIds.includes(item.id)}
+                    onSelect={(e) => handleItemSelect(item.id, e)}
+                    onUpdate={(updates) =>
+                      updateItem.mutate({ id: item.id, updates })
+                    }
+                    onDelete={() => deleteItem.mutate({ id: item.id, pageId })}
+                    onDuplicate={async () => {
                     await addItem.mutateAsync({
                       binder_page_id: pageId,
                       user_item_id: item.user_item_id,
@@ -241,14 +241,15 @@ export function BinderCanvas({
                   onSendBackward={() => {
                     updateItem.mutate({ id: item.id, updates: { z_index: Math.max(1, item.z_index - 1) } });
                   }}
-                />
+                  />
+                </div>
               );
             })}
 
             {decorations.map((decoration: BinderDecoration) => (
-              <ResizableRotatableItem
-                key={decoration.id}
-                id={decoration.id}
+              <div key={decoration.id} className="pointer-events-auto">
+                <ResizableRotatableItem
+                  id={decoration.id}
                 content={
                   decoration.decoration_type === "text" ? (
                     <div
@@ -294,7 +295,8 @@ export function BinderCanvas({
                   updateDecoration.mutate({ id: decoration.id, updates })
                 }
                 onDelete={() => deleteDecoration.mutate({ id: decoration.id, pageId })}
-              />
+                />
+              </div>
             ))}
           </div>
 
