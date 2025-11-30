@@ -175,6 +175,8 @@ export function BinderCanvas({
           backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
+          transform: isMobile ? "scale(0.75)" : "none",
+          transformOrigin: "top center",
         }}
         onClick={handleCanvasClick}
       >
