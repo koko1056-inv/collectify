@@ -260,8 +260,10 @@ export type Database = {
         Row: {
           background_color: string | null
           background_image: string | null
+          binder_type: string
           created_at: string
           id: string
+          layout_config: Json | null
           page_order: number
           title: string
           updated_at: string
@@ -270,8 +272,10 @@ export type Database = {
         Insert: {
           background_color?: string | null
           background_image?: string | null
+          binder_type?: string
           created_at?: string
           id?: string
+          layout_config?: Json | null
           page_order?: number
           title?: string
           updated_at?: string
@@ -280,8 +284,10 @@ export type Database = {
         Update: {
           background_color?: string | null
           background_image?: string | null
+          binder_type?: string
           created_at?: string
           id?: string
+          layout_config?: Json | null
           page_order?: number
           title?: string
           updated_at?: string
@@ -560,6 +566,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      frame_presets: {
+        Row: {
+          border_style: string
+          category: string
+          corner_radius: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_public: boolean
+          name: string
+          padding: number | null
+          shadow_style: string | null
+        }
+        Insert: {
+          border_style: string
+          category: string
+          corner_radius?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_public?: boolean
+          name: string
+          padding?: number | null
+          shadow_style?: string | null
+        }
+        Update: {
+          border_style?: string
+          category?: string
+          corner_radius?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_public?: boolean
+          name?: string
+          padding?: number | null
+          shadow_style?: string | null
+        }
+        Relationships: []
       }
       goods_posts: {
         Row: {
@@ -1429,6 +1474,39 @@ export type Database = {
           source_url?: string
           title?: string | null
           url?: string
+        }
+        Relationships: []
+      }
+      sticker_presets: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          image_url: string | null
+          is_public: boolean
+          name: string
+          svg_data: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          is_public?: boolean
+          name: string
+          svg_data?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string | null
+          is_public?: boolean
+          name?: string
+          svg_data?: string | null
         }
         Relationships: []
       }

@@ -5,6 +5,8 @@ export interface BinderPage {
   background_image: string | null;
   background_color: string;
   page_order: number;
+  binder_type: 'free_layout' | 'card_pocket';
+  layout_config: Record<string, any>;
   created_at: string;
   updated_at: string;
 }
@@ -48,3 +50,27 @@ export interface BinderItemWithData extends BinderItem {
 }
 
 export type DecorationTool = 'select' | 'item' | 'sticker' | 'frame' | 'text' | 'background';
+
+export interface StickerPreset {
+  id: string;
+  name: string;
+  category: string;
+  image_url: string | null;
+  svg_data: string | null;
+  is_public: boolean;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface FramePreset {
+  id: string;
+  name: string;
+  category: string;
+  border_style: string;
+  corner_radius: number;
+  padding: number;
+  shadow_style: string | null;
+  is_public: boolean;
+  created_by: string | null;
+  created_at: string;
+}

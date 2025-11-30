@@ -6,10 +6,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface BinderToolbarProps {
   activeTool: DecorationTool;
   onToolChange: (tool: DecorationTool) => void;
-  onShowItemPalette: () => void;
 }
 
-export function BinderToolbar({ activeTool, onToolChange, onShowItemPalette }: BinderToolbarProps) {
+export function BinderToolbar({ activeTool, onToolChange }: BinderToolbarProps) {
   const tools: { icon: any; value: DecorationTool; label: string }[] = [
     { icon: MousePointer2, value: "select", label: "選択" },
     { icon: Image, value: "item", label: "アイテム" },
@@ -28,12 +27,7 @@ export function BinderToolbar({ activeTool, onToolChange, onShowItemPalette }: B
               <Button
                 variant={activeTool === tool.value ? "default" : "ghost"}
                 size="icon"
-                onClick={() => {
-                  onToolChange(tool.value);
-                  if (tool.value === "item") {
-                    onShowItemPalette();
-                  }
-                }}
+                onClick={() => onToolChange(tool.value)}
               >
                 <tool.icon className="w-5 h-5" />
               </Button>
