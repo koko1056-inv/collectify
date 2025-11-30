@@ -1,10 +1,10 @@
 import { useBinder } from "@/hooks/useBinder";
 import { BinderPage } from "@/types/binder";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CardPocketSlot } from "./CardPocketSlot";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { BinderItemPalette } from "./BinderItemPalette";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,11 +15,37 @@ interface CardPocketBinderProps {
 
 export function CardPocketBinder({ page }: CardPocketBinderProps) {
   const { getBinderItems, updateItem, addItem } = useBinder();
+  const queryClient = useQueryClient();
   const itemsQuery = getBinderItems(page.id);
   const items = itemsQuery.data || [];
   const isMobile = useIsMobile();
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [showItemPalette, setShowItemPalette] = useState(false);
+
+  // リアルタイムアップデートを設定
+  useEffect(() => {
+    const channel = supabase
+      .channel(`binder-items-${page.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'binder_items',
+          filter: `binder_page_id=eq.${page.id}`
+        },
+        () => {
+          // アイテムが追加・更新・削除されたときにクエリを再取得
+          queryClient.invalidateQueries({ queryKey: ['binder-items', page.id] });
+          queryClient.invalidateQueries({ queryKey: ['binder-items-data', page.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [page.id, queryClient]);
 
   // レイアウト設定（デフォルトは3x3のポケット）
   const cols = page.layout_config?.cols || 3;
