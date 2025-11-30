@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle2, Menu } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Menu, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useBinder } from "@/hooks/useBinder";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { BinderCanvas } from "./BinderCanvas";
@@ -15,6 +15,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { toast } from "sonner";
 
 interface BinderEditorProps {
   pageId: string;
@@ -22,8 +23,12 @@ interface BinderEditorProps {
 }
 
 export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
-  const { binderPages, updatePage, addItem } = useBinder();
-  const page = (binderPages as any[]).find((p) => p.id === pageId);
+  const { binderPages, updatePage, addItem, createPage } = useBinder();
+  const [currentPageId, setCurrentPageId] = useState(pageId);
+  const page = (binderPages as any[]).find((p) => p.id === currentPageId);
+  const currentIndex = binderPages.findIndex((p) => p.id === currentPageId);
+  const hasPrevPage = currentIndex > 0;
+  const hasNextPage = currentIndex < binderPages.length - 1;
   const [activeTool, setActiveTool] = useState<DecorationTool>("select");
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedFrame, setSelectedFrame] = useState<FramePreset | null>(null);
@@ -45,7 +50,7 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
       // キャンバスへのドロップ
       if (over.id === "binder-canvas") {
         addItem.mutate({
-          binder_page_id: pageId,
+          binder_page_id: currentPageId,
           user_item_id: itemType === "user" ? item.id : null,
           official_item_id: itemType === "official" ? item.id : null,
           custom_image_url: null,
@@ -61,7 +66,7 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
       else if (over.id.toString().startsWith("slot-")) {
         const slotIndex = parseInt(over.id.toString().replace("slot-", ""));
         addItem.mutate({
-          binder_page_id: pageId,
+          binder_page_id: currentPageId,
           user_item_id: itemType === "user" ? item.id : null,
           official_item_id: itemType === "official" ? item.id : null,
           custom_image_url: null,
@@ -110,6 +115,34 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
     }
   };
 
+  const handlePrevPage = () => {
+    if (hasPrevPage) {
+      setCurrentPageId(binderPages[currentIndex - 1].id);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (hasNextPage) {
+      setCurrentPageId(binderPages[currentIndex + 1].id);
+    }
+  };
+
+  const handleAddPage = async () => {
+    try {
+      const newPage = await createPage.mutateAsync({
+        title: `新しいページ ${binderPages.length + 1}`,
+        binderType: page?.binder_type || "free_layout",
+        layoutConfig: page?.layout_config,
+      });
+      if (newPage) {
+        setCurrentPageId(newPage.id);
+        toast.success("新しいページを追加しました");
+      }
+    } catch (error) {
+      toast.error("ページの追加に失敗しました");
+    }
+  };
+
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
@@ -126,18 +159,54 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
               </span>
             </div>
           </div>
-          <div className="shrink-0 hidden sm:flex items-center gap-3">
-            {isSaving ? (
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                保存中...
+          <div className="shrink-0 flex items-center gap-2 md:gap-3">
+            {/* ページナビゲーション */}
+            <div className="flex items-center gap-1 md:gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 md:h-9 md:w-9"
+                onClick={handlePrevPage}
+                disabled={!hasPrevPage}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-xs md:text-sm font-medium px-2 whitespace-nowrap">
+                {currentIndex + 1} / {binderPages.length}
               </span>
-            ) : (
-              <span className="text-sm text-muted-foreground flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                自動保存済み
-              </span>
-            )}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 md:h-9 md:w-9"
+                onClick={handleNextPage}
+                disabled={!hasNextPage}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 md:h-9 md:w-9"
+                onClick={handleAddPage}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            {/* 自動保存ステータス - デスクトップのみ */}
+            <div className="hidden sm:flex items-center gap-3">
+              {isSaving ? (
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  保存中...
+                </span>
+              ) : (
+                <span className="text-sm text-muted-foreground flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  自動保存済み
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -156,7 +225,7 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
           {/* キャンバス */}
           <div className="flex-1 overflow-auto p-2 md:p-8 pb-20 md:pb-8">
             <BinderCanvas
-              pageId={pageId}
+              pageId={currentPageId}
               activeTool={activeTool}
               selectedFrame={selectedFrame}
             />
@@ -167,14 +236,14 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
             <div className="w-80 bg-white border-l">
               <ScrollArea className="h-full">
                 {activeTool === "item" && (
-                  <BinderItemPalette pageId={pageId} onClose={() => setShowSidebar(false)} />
+                  <BinderItemPalette pageId={currentPageId} onClose={() => setShowSidebar(false)} />
                 )}
-                {activeTool === "sticker" && <StickerPalette pageId={pageId} />}
+                {activeTool === "sticker" && <StickerPalette pageId={currentPageId} />}
                 {activeTool === "frame" && (
-                  <FramePalette pageId={pageId} onSelectFrame={setSelectedFrame} />
+                  <FramePalette pageId={currentPageId} onSelectFrame={setSelectedFrame} />
                 )}
-                {activeTool === "text" && <TextTool pageId={pageId} />}
-                {activeTool === "background" && <BackgroundTool pageId={pageId} />}
+                {activeTool === "text" && <TextTool pageId={currentPageId} />}
+                {activeTool === "background" && <BackgroundTool pageId={currentPageId} />}
               </ScrollArea>
             </div>
           )}
@@ -194,14 +263,14 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
                 </div>
                 <ScrollArea className="h-[calc(80vh-80px)]">
                   {activeTool === "item" && (
-                    <BinderItemPalette pageId={pageId} onClose={() => setShowSidebar(false)} />
+                    <BinderItemPalette pageId={currentPageId} onClose={() => setShowSidebar(false)} />
                   )}
-                  {activeTool === "sticker" && <StickerPalette pageId={pageId} />}
+                  {activeTool === "sticker" && <StickerPalette pageId={currentPageId} />}
                   {activeTool === "frame" && (
-                    <FramePalette pageId={pageId} onSelectFrame={setSelectedFrame} />
+                    <FramePalette pageId={currentPageId} onSelectFrame={setSelectedFrame} />
                   )}
-                  {activeTool === "text" && <TextTool pageId={pageId} />}
-                  {activeTool === "background" && <BackgroundTool pageId={pageId} />}
+                  {activeTool === "text" && <TextTool pageId={currentPageId} />}
+                  {activeTool === "background" && <BackgroundTool pageId={currentPageId} />}
                 </ScrollArea>
               </SheetContent>
             </Sheet>
