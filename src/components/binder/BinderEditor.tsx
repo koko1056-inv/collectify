@@ -20,9 +20,10 @@ import { toast } from "sonner";
 interface BinderEditorProps {
   pageId: string;
   onClose: () => void;
+  isPreviewMode?: boolean;
 }
 
-export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
+export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderEditorProps) {
   const { binderPages, updatePage, addItem, createPage } = useBinder();
   const [currentPageId, setCurrentPageId] = useState(pageId);
   const page = (binderPages as any[]).find((p) => p.id === currentPageId);
@@ -108,6 +109,7 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
   }
 
   const handleToolChange = (tool: DecorationTool) => {
+    if (isPreviewMode) return; // プレビューモードではツール変更を無効化
     setActiveTool(tool);
     setShowSidebar(tool !== "select");
     if (isMobile) {
@@ -144,7 +146,7 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
   };
 
   return (
-    <DndContext onDragEnd={handleDragEnd}>
+    <DndContext onDragEnd={isPreviewMode ? () => {} : handleDragEnd}>
       <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
         {/* ヘッダー */}
         <div className="bg-white border-b p-3 md:p-4 flex items-center justify-between gap-2">
@@ -153,7 +155,10 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1 min-w-0">
-              <h2 className="text-base md:text-xl font-semibold truncate">{page.title}</h2>
+              <h2 className="text-base md:text-xl font-semibold truncate">
+                {page.title}
+                {isPreviewMode && <span className="ml-2 text-sm text-muted-foreground">(プレビュー)</span>}
+              </h2>
               <span className="text-xs md:text-sm text-muted-foreground">
                 {page.binder_type === "free_layout" ? "フリーレイアウト" : "カードポケット型"}
               </span>
@@ -161,6 +166,7 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
           </div>
           <div className="shrink-0 flex items-center gap-2 md:gap-3">
             {/* ページナビゲーション */}
+            {!isPreviewMode && (
             <div className="flex items-center gap-1 md:gap-2">
               <Button
                 variant="outline"
@@ -192,8 +198,10 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
+            )}
             
             {/* 自動保存ステータス - デスクトップのみ */}
+            {!isPreviewMode && (
             <div className="hidden sm:flex items-center gap-3">
               {isSaving ? (
                 <span className="text-sm text-muted-foreground flex items-center gap-2">
@@ -207,13 +215,14 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
                 </span>
               )}
             </div>
+            )}
           </div>
         </div>
 
         {/* メインエリア */}
         <div className="flex-1 flex overflow-hidden">
           {/* ツールバー - Desktop only */}
-          {!isMobile && (
+          {!isMobile && !isPreviewMode && (
             <div className="w-16 md:w-20 bg-white border-r">
               <BinderToolbar
                 activeTool={activeTool}
@@ -232,7 +241,7 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
           </div>
 
           {/* サイドバー - Desktop */}
-          {!isMobile && showSidebar && (
+          {!isMobile && !isPreviewMode && showSidebar && (
             <div className="w-80 bg-white border-l">
               <ScrollArea className="h-full">
                 {activeTool === "item" && (
@@ -249,7 +258,7 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
           )}
 
           {/* Mobile Sidebar Sheet */}
-          {isMobile && showSidebar && (
+          {isMobile && !isPreviewMode && showSidebar && (
             <Sheet open={showSidebar} onOpenChange={setShowSidebar}>
               <SheetContent side="bottom" className="h-[80vh] p-0">
                 <div className="p-4 border-b">
@@ -278,7 +287,7 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
         </div>
 
         {/* モバイルツールバー（下部固定） */}
-        {isMobile && (
+        {isMobile && !isPreviewMode && (
           <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40">
             <div className="flex justify-around items-center p-2">
               <BinderToolbar

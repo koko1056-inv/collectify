@@ -14,6 +14,7 @@ export default function Binder() {
   const navigate = useNavigate();
   const { binderPages, isLoadingPages, deletePage } = useBinder();
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   if (!user) {
     return <Navigate to="/login" />;
@@ -29,7 +30,11 @@ export default function Binder() {
     return (
       <BinderEditor
         pageId={selectedPageId}
-        onClose={() => setSelectedPageId(null)}
+        onClose={() => {
+          setSelectedPageId(null);
+          setIsPreviewMode(false);
+        }}
+        isPreviewMode={isPreviewMode}
       />
     );
   }
@@ -91,7 +96,10 @@ export default function Binder() {
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                     }}
-                    onClick={() => setSelectedPageId(page.id)}
+                    onClick={() => {
+                      setSelectedPageId(page.id);
+                      setIsPreviewMode(true);
+                    }}
                   >
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     
@@ -113,6 +121,7 @@ export default function Binder() {
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedPageId(page.id);
+                          setIsPreviewMode(false);
                         }}
                       >
                         <Pencil className="w-4 h-4" />
