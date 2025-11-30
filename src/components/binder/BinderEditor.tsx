@@ -34,7 +34,6 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedFrame, setSelectedFrame] = useState<FramePreset | null>(null);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
-  const [isSaving, setIsSaving] = useState(false);
   const isMobile = useIsMobile();
   const [showMobileToolbar, setShowMobileToolbar] = useState(false);
   const [pageDirection, setPageDirection] = useState<"left" | "right">("right");
@@ -88,7 +87,6 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
     data: page,
     onSave: async (data) => {
       if (data) {
-        setIsSaving(true);
         await updatePage.mutateAsync({
           id: data.id,
           updates: {
@@ -98,7 +96,6 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
           },
         });
         setLastSaved(new Date());
-        setIsSaving(false);
       }
     },
     delay: 3000,
@@ -206,7 +203,7 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
             {/* 自動保存ステータス - デスクトップのみ */}
             {!isPreviewMode && (
             <div className="hidden sm:flex items-center gap-3">
-              {isSaving ? (
+              {updatePage.isPending ? (
                 <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                   保存中...
