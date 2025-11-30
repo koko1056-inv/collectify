@@ -162,7 +162,7 @@ export function BinderCanvas({
 
   // フリーレイアウト型
   return (
-    <div className="flex items-center justify-center min-h-full [perspective:1200px]">
+    <div className="flex items-center justify-center [perspective:1200px]">
       <div
         ref={setNodeRef}
         className={`relative bg-white shadow-2xl rounded-lg overflow-hidden transition-all mx-auto ${flipAnimationClass} ${
