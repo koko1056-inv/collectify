@@ -39,20 +39,14 @@ export default function Binder() {
       <Navbar />
       <main className="container mx-auto pt-20 px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-4 md:space-y-6 animate-fade-in">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-lg shadow-sm">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900">マイバインダー</h1>
-                <p className="text-xs md:text-sm text-muted-foreground">グッズを素敵にレイアウト</p>
-              </div>
+          <div className="flex items-center gap-2 md:gap-3 bg-white p-4 rounded-lg shadow-sm">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-primary" />
             </div>
-          <Button className="gap-2 w-full sm:w-auto shadow-sm hover:shadow-md transition-shadow" onClick={() => navigate("/binder/create")}>
-            <Plus className="w-4 h-4" />
-            新しいページ
-          </Button>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">マイバインダー</h1>
+              <p className="text-xs md:text-sm text-muted-foreground">グッズを素敵にレイアウト</p>
+            </div>
           </div>
 
           {isLoadingPages ? (
@@ -171,6 +165,16 @@ export default function Binder() {
           )}
         </div>
       </main>
+      
+      {/* Floating Action Button */}
+      <Button
+        size="icon"
+        className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all z-50"
+        onClick={() => navigate("/binder/create")}
+      >
+        <Plus className="w-6 h-6" />
+      </Button>
+      
       <Footer />
     </div>
   );
