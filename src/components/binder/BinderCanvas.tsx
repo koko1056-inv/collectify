@@ -15,6 +15,7 @@ interface BinderCanvasProps {
   pageDirection?: "left" | "right";
   selectedItemIds?: string[];
   onSelectionChange?: (ids: string[]) => void;
+  zoom?: number;
 }
 
 export function BinderCanvas({ 
@@ -23,7 +24,8 @@ export function BinderCanvas({
   selectedFrame, 
   pageDirection = "right",
   selectedItemIds = [],
-  onSelectionChange
+  onSelectionChange,
+  zoom = 1
 }: BinderCanvasProps) {
   const { binderPages, getBinderItems, getBinderDecorations, updateItem, deleteItem, updateDecoration, deleteDecoration, addItem } = useBinder();
   const queryClient = useQueryClient();
@@ -176,6 +178,8 @@ export function BinderCanvas({
           backgroundImage: page.background_image ? `url(${page.background_image})` : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
+          transform: `scale(${zoom})`,
+          transformOrigin: "center",
         }}
         onClick={handleCanvasClick}
       >
