@@ -81,14 +81,14 @@ export default function Binder() {
               </div>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 md:gap-6">
               {binderPages.map((page) => (
                 <Card
                   key={page.id}
                   className="overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group border border-gray-200 hover:border-primary/20"
                 >
                   <div
-                    className="aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50"
+                    className="aspect-[3/4] sm:aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50"
                     style={{
                       backgroundColor: page.background_color || undefined,
                       backgroundImage: page.background_image
@@ -153,11 +153,11 @@ export default function Binder() {
                       </span>
                     </div>
                   </div>
-                  <div className="p-4 bg-white">
-                    <h3 className="font-semibold text-base md:text-lg truncate text-gray-900 group-hover:text-primary transition-colors">
+                  <div className="p-2 sm:p-4 bg-white">
+                    <h3 className="font-semibold text-xs sm:text-base md:text-lg truncate text-gray-900 group-hover:text-primary transition-colors">
                       {page.title}
                     </h3>
-                    <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                    <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground mt-0.5 sm:mt-1">
                       {new Date(page.created_at).toLocaleDateString("ja-JP", {
                         year: "numeric",
                         month: "long",
