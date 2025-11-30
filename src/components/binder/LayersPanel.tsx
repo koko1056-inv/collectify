@@ -14,8 +14,8 @@ interface LayerItem {
 
 interface LayersPanelProps {
   layers: LayerItem[];
-  selectedId: string | null;
-  onSelectLayer: (id: string) => void;
+  selectedIds: string[];
+  onSelectLayer: (id: string, event?: React.MouseEvent) => void;
   onDeleteLayer: (id: string) => void;
   onToggleVisibility?: (id: string) => void;
   onReorder?: (oldIndex: number, newIndex: number) => void;
@@ -23,7 +23,7 @@ interface LayersPanelProps {
 
 export function LayersPanel({
   layers,
-  selectedId,
+  selectedIds,
   onSelectLayer,
   onDeleteLayer,
   onToggleVisibility,
@@ -62,11 +62,11 @@ export function LayersPanel({
             <div
               key={layer.id}
               className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
-                selectedId === layer.id
+                selectedIds.includes(layer.id)
                   ? "bg-primary/10 border border-primary"
                   : "hover:bg-gray-100 border border-transparent"
               }`}
-              onClick={() => onSelectLayer(layer.id)}
+              onClick={(e) => onSelectLayer(layer.id, e)}
             >
               <div className="text-muted-foreground">
                 {getLayerIcon(layer)}

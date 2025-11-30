@@ -10,12 +10,15 @@ import { StickerPalette } from "./StickerPalette";
 import { FramePalette } from "./FramePalette";
 import { TextTool } from "./TextTool";
 import { BackgroundTool } from "./BackgroundTool";
+import { KeyboardShortcuts } from "./KeyboardShortcuts";
+import { AlignmentTools } from "./AlignmentTools";
 import { DecorationTool, FramePreset } from "@/types/binder";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import { useBinderEditorHandlers } from "./BinderEditorHandlers";
 
 interface BinderEditorProps {
   pageId: string;
@@ -24,7 +27,7 @@ interface BinderEditorProps {
 }
 
 export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderEditorProps) {
-  const { binderPages, updatePage, addItem, createPage } = useBinder();
+  const { binderPages, updatePage, addItem, createPage, updateItem, deleteItem, updateDecoration, deleteDecoration, addDecoration, getBinderItems, getBinderDecorations } = useBinder();
   const [currentPageId, setCurrentPageId] = useState(pageId);
   const page = (binderPages as any[]).find((p) => p.id === currentPageId);
   const currentIndex = binderPages.findIndex((p) => p.id === currentPageId);
@@ -34,9 +37,38 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedFrame, setSelectedFrame] = useState<FramePreset | null>(null);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [clipboard, setClipboard] = useState<{items: any[], decorations: any[]} | null>(null);
   const isMobile = useIsMobile();
   const [showMobileToolbar, setShowMobileToolbar] = useState(false);
   const [pageDirection, setPageDirection] = useState<"left" | "right">("right");
+
+  // 選択されたアイテムとデコレーションを取得
+  const { data: binderItemsData } = getBinderItems(currentPageId);
+  const { data: binderDecorationsData } = getBinderDecorations(currentPageId);
+  
+  const allItems = [
+    ...(binderItemsData || []).map(item => ({ ...item, type: 'item' as const })),
+    ...(binderDecorationsData || []).map(dec => ({ ...dec, type: 'decoration' as const }))
+  ];
+
+  const selectedItems = allItems.filter(item => selectedItemIds.includes(item.id));
+
+  // ハンドラーのセットアップ
+  const handlers = useBinderEditorHandlers(
+    currentPageId,
+    selectedItems,
+    allItems,
+    updateItem,
+    deleteItem,
+    updateDecoration,
+    deleteDecoration,
+    addItem,
+    addDecoration,
+    setSelectedItemIds,
+    clipboard,
+    setClipboard
+  );
 
   // ドラッグ&ドロップハンドラー
   const handleDragEnd = (event: DragEndEvent) => {
@@ -232,14 +264,48 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
           )}
 
           {/* キャンバス */}
-          <div className="flex-1 overflow-auto p-2 md:p-8 pb-20 md:pb-8">
-            <BinderCanvas
-              key={currentPageId}
-              pageId={currentPageId}
-              activeTool={activeTool}
-              selectedFrame={selectedFrame}
-              pageDirection={pageDirection}
-            />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {selectedItemIds.length > 0 && !isPreviewMode && (
+              <div className="bg-background border-b p-2 flex items-center gap-2">
+                <AlignmentTools
+                  disabled={selectedItemIds.length === 0}
+                  onAlignLeft={() => handlers.handleAlign('left')}
+                  onAlignCenter={() => handlers.handleAlign('center')}
+                  onAlignRight={() => handlers.handleAlign('right')}
+                  onAlignTop={() => handlers.handleAlign('top')}
+                  onAlignMiddle={() => handlers.handleAlign('middle')}
+                  onAlignBottom={() => handlers.handleAlign('bottom')}
+                />
+                <div className="ml-auto text-sm text-muted-foreground">
+                  {selectedItemIds.length} 個選択中
+                </div>
+              </div>
+            )}
+            
+            <div className="flex-1 overflow-auto p-2 md:p-8 pb-20 md:pb-8">
+              <BinderCanvas
+                key={currentPageId}
+                pageId={currentPageId}
+                activeTool={activeTool}
+                selectedFrame={selectedFrame}
+                pageDirection={pageDirection}
+                selectedItemIds={selectedItemIds}
+                onSelectionChange={setSelectedItemIds}
+              />
+            </div>
+            
+            {!isPreviewMode && (
+              <KeyboardShortcuts
+                selectedItemId={selectedItemIds[0] || null}
+                onDelete={handlers.handleDelete}
+                onDuplicate={handlers.handleDuplicate}
+                onCopy={handlers.handleCopy}
+                onPaste={handlers.handlePaste}
+                onMove={handlers.handleMove}
+                onBringToFront={handlers.handleBringToFront}
+                onSendToBack={handlers.handleSendToBack}
+              />
+            )}
           </div>
 
           {/* サイドバー - Desktop */}
