@@ -37,6 +37,7 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
   const [isSaving, setIsSaving] = useState(false);
   const isMobile = useIsMobile();
   const [showMobileToolbar, setShowMobileToolbar] = useState(false);
+  const [pageDirection, setPageDirection] = useState<"left" | "right">("right");
 
   // ドラッグ&ドロップハンドラー
   const handleDragEnd = (event: DragEndEvent) => {
@@ -119,12 +120,14 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
 
   const handlePrevPage = () => {
     if (hasPrevPage) {
+      setPageDirection("left");
       setCurrentPageId(binderPages[currentIndex - 1].id);
     }
   };
 
   const handleNextPage = () => {
     if (hasNextPage) {
+      setPageDirection("right");
       setCurrentPageId(binderPages[currentIndex + 1].id);
     }
   };
@@ -234,9 +237,11 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
           {/* キャンバス */}
           <div className="flex-1 overflow-auto p-2 md:p-8 pb-20 md:pb-8">
             <BinderCanvas
+              key={currentPageId}
               pageId={currentPageId}
               activeTool={activeTool}
               selectedFrame={selectedFrame}
+              pageDirection={pageDirection}
             />
           </div>
 

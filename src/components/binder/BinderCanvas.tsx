@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useBinder } from "@/hooks/useBinder";
 import { DecorationTool, BinderItem, BinderDecoration, FramePreset } from "@/types/binder";
 import { ResizableRotatableItem } from "./ResizableRotatableItem";
@@ -12,9 +13,10 @@ interface BinderCanvasProps {
   pageId: string;
   activeTool: DecorationTool;
   selectedFrame: FramePreset | null;
+  pageDirection?: "left" | "right";
 }
 
-export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvasProps) {
+export function BinderCanvas({ pageId, activeTool, selectedFrame, pageDirection = "right" }: BinderCanvasProps) {
   const { binderPages, getBinderItems, getBinderDecorations, updateItem, deleteItem, updateDecoration, deleteDecoration, addItem } = useBinder();
   const queryClient = useQueryClient();
   const page = (binderPages as any[]).find((p) => p.id === pageId);
@@ -121,14 +123,61 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
     return null;
   }
 
+  // ページめくりアニメーションの設定
+  const pageVariants = {
+    initial: (direction: "left" | "right") => ({
+      rotateY: direction === "right" ? -90 : 90,
+      opacity: 0,
+      scale: 0.8,
+    }),
+    animate: {
+      rotateY: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+        ease: [0.43, 0.13, 0.23, 0.96] as [number, number, number, number],
+      },
+    },
+    exit: (direction: "left" | "right") => ({
+      rotateY: direction === "right" ? 90 : -90,
+      opacity: 0,
+      scale: 0.8,
+      transition: {
+        duration: 0.6,
+        ease: [0.43, 0.13, 0.23, 0.96] as [number, number, number, number],
+      },
+    }),
+  };
+
   // カードポケット型の場合は専用コンポーネントを使用
   if (page.binder_type === "card_pocket") {
-    return <CardPocketBinder page={page} />;
+    return (
+      <motion.div
+        custom={pageDirection}
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        style={{ perspective: 1200 }}
+        className="w-full"
+      >
+        <CardPocketBinder page={page} />
+      </motion.div>
+    );
   }
 
   // フリーレイアウト型
   return (
-    <div className="flex items-center justify-center min-h-full">
+    <motion.div
+      custom={pageDirection}
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      style={{ perspective: 1200 }}
+      className="flex items-center justify-center min-h-full"
+    >
         <div
           ref={setNodeRef}
           className={`relative bg-white shadow-2xl rounded-lg overflow-hidden transition-all mx-auto ${
@@ -280,6 +329,6 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
   );
 }
