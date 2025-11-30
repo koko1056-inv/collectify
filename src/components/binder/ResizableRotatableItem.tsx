@@ -61,6 +61,7 @@ export function ResizableRotatableItem({
   const elementRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const [showMobileControls, setShowMobileControls] = useState(false);
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
 
   // モバイルタッチイベントのサポート
   const getTouchPosition = (e: TouchEvent | React.TouchEvent) => {
@@ -73,13 +74,8 @@ export function ResizableRotatableItem({
     if ((e.target as HTMLElement).closest('.control-button, .resize-handle, .rotate-handle')) return;
     
     e.stopPropagation();
+    e.preventDefault();
     onSelect(e);
-    
-    if (isMobile) {
-      // モバイルではコントロールパネルを表示
-      setShowMobileControls(true);
-      return;
-    }
     
     setIsDragging(true);
     dragStartPos.current = {
@@ -95,17 +91,30 @@ export function ResizableRotatableItem({
     e.stopPropagation();
     onSelect(e as any);
     
-    if (isMobile) {
-      setShowMobileControls(true);
-      return;
-    }
-    
     const touch = getTouchPosition(e);
+    
+    // 即座にドラッグ開始
     setIsDragging(true);
     dragStartPos.current = {
       x: touch.x - position.x,
       y: touch.y - position.y,
     };
+    
+    // モバイルの場合は長押しでコントロールパネル表示
+    if (isMobile) {
+      const timer = setTimeout(() => {
+        setShowMobileControls(true);
+        setIsDragging(false);
+      }, 500);
+      setLongPressTimer(timer);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
   };
 
   // リサイズ開始
@@ -133,6 +142,8 @@ export function ResizableRotatableItem({
   // マウス移動とタッチ移動
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
+      
       if (isDragging) {
         const newX = e.clientX - dragStartPos.current.x;
         const newY = e.clientY - dragStartPos.current.y;
@@ -157,10 +168,17 @@ export function ResizableRotatableItem({
 
     const handleTouchMove = (e: TouchEvent) => {
       if (isDragging) {
+        e.preventDefault();
         const touch = getTouchPosition(e);
         const newX = touch.x - dragStartPos.current.x;
         const newY = touch.y - dragStartPos.current.y;
         setPosition({ x: newX, y: newY });
+        
+        // 長押しタイマーをキャンセル（ドラッグ中）
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          setLongPressTimer(null);
+        }
       }
     };
 
@@ -177,11 +195,16 @@ export function ResizableRotatableItem({
       setIsDragging(false);
       setIsResizing(false);
       setIsRotating(false);
+      
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        setLongPressTimer(null);
+      }
     };
 
     if (isDragging || isResizing || isRotating) {
       document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("touchmove", handleTouchMove);
+      document.addEventListener("touchmove", handleTouchMove, { passive: false });
       document.addEventListener("mouseup", handleMouseUp);
       document.addEventListener("touchend", handleMouseUp);
       return () => {
@@ -191,7 +214,7 @@ export function ResizableRotatableItem({
         document.removeEventListener("touchend", handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, isRotating, position, size, rotation, onUpdate]);
+  }, [isDragging, isResizing, isRotating, position, size, rotation, onUpdate, longPressTimer]);
 
   const handleQuickRotate = () => {
     const newRotation = (rotation + 90) % 360;
@@ -233,9 +256,9 @@ export function ResizableRotatableItem({
     <>
       <div
         ref={elementRef}
-        className={`absolute ${isMobile ? 'cursor-pointer' : 'cursor-move'} transition-shadow select-none ${
+        className={`absolute transition-shadow select-none ${
           isSelected ? "ring-2 ring-primary shadow-xl" : ""
-        } ${isDragging ? "opacity-80" : ""}`}
+        } ${isDragging ? "opacity-80 cursor-grabbing" : "cursor-grab"}`}
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
@@ -243,9 +266,11 @@ export function ResizableRotatableItem({
           height: `${size.height}px`,
           transform: `rotate(${rotation}deg)`,
           zIndex,
+          touchAction: 'none',
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {/* アイテムコンテンツ */}
         <div className="w-full h-full relative">
