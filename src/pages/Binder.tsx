@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBinder } from "@/hooks/useBinder";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, Pencil, Trash2 } from "lucide-react";
+import { Plus, BookOpen, Pencil, Trash2, Grid3x3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { BinderEditor } from "@/components/binder/BinderEditor";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -35,46 +35,60 @@ export default function Binder() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
+    <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar />
       <main className="container mx-auto pt-20 px-4 py-8">
-        <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto space-y-4 md:space-y-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-lg shadow-sm">
             <div className="flex items-center gap-2 md:gap-3">
-              <BookOpen className="w-6 h-6 md:w-8 md:h-8 text-amber-700" />
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">マイバインダー</h1>
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900">マイバインダー</h1>
+                <p className="text-xs md:text-sm text-muted-foreground">グッズを素敵にレイアウト</p>
+              </div>
             </div>
-          <Button className="gap-2 w-full sm:w-auto" onClick={() => navigate("/binder/create")}>
+          <Button className="gap-2 w-full sm:w-auto shadow-sm hover:shadow-md transition-shadow" onClick={() => navigate("/binder/create")}>
             <Plus className="w-4 h-4" />
             新しいページ
           </Button>
           </div>
 
           {isLoadingPages ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">読み込み中...</p>
+            <div className="flex items-center justify-center py-16">
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                <p className="text-sm text-muted-foreground">読み込み中...</p>
+              </div>
             </div>
           ) : binderPages.length === 0 ? (
-            <Card className="p-12 text-center">
-              <BookOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">バインダーページがありません</h3>
-              <p className="text-muted-foreground mb-6">
-                新しいバインダーページを作成して、グッズを素敵にレイアウトしましょう！
-              </p>
-              <Button onClick={() => navigate("/binder/create")} className="gap-2">
-                <Plus className="w-4 h-4" />
-                最初のページを作成
-              </Button>
+            <Card className="p-8 md:p-12 text-center bg-white shadow-sm border-dashed border-2">
+              <div className="max-w-md mx-auto space-y-4">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <BookOpen className="w-10 h-10 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-semibold text-gray-900">バインダーページがありません</h3>
+                  <p className="text-sm text-muted-foreground">
+                    新しいバインダーページを作成して、グッズを素敵にレイアウトしましょう！
+                  </p>
+                </div>
+                <Button onClick={() => navigate("/binder/create")} className="gap-2 shadow-sm hover:shadow-md transition-all mt-4">
+                  <Plus className="w-4 h-4" />
+                  最初のページを作成
+                </Button>
+              </div>
             </Card>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {binderPages.map((page) => (
                 <Card
                   key={page.id}
-                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group active:scale-98"
+                  className="overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group border border-gray-200 hover:border-primary/20"
                 >
                   <div
-                    className="aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 relative"
+                    className="aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50"
                     style={{
                       backgroundColor: page.background_color || undefined,
                       backgroundImage: page.background_image
@@ -85,12 +99,23 @@ export default function Binder() {
                     }}
                     onClick={() => setSelectedPageId(page.id)}
                   >
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 md:opacity-0 transition-opacity touch-auto">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    {/* Binder ring holes decoration */}
+                    <div className="absolute left-2 top-0 bottom-0 flex flex-col justify-around py-4 z-10">
+                      {[...Array(3)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="w-3 h-3 rounded-full bg-gray-400/50 border border-gray-500/30"
+                        />
+                      ))}
+                    </div>
+                    
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200 z-20">
                       <Button
                         size="icon"
                         variant="secondary"
-                        className="h-9 w-9 md:h-8 md:w-8 touch-manipulation"
+                        className="h-8 w-8 bg-white/90 hover:bg-white backdrop-blur-sm shadow-lg touch-manipulation"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedPageId(page.id);
@@ -101,7 +126,7 @@ export default function Binder() {
                       <Button
                         size="icon"
                         variant="destructive"
-                        className="h-9 w-9 md:h-8 md:w-8 touch-manipulation"
+                        className="h-8 w-8 bg-white/90 hover:bg-destructive hover:text-white backdrop-blur-sm shadow-lg touch-manipulation"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeletePage(page.id);
@@ -110,11 +135,34 @@ export default function Binder() {
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
+                    
+                    {/* Page type badge */}
+                    <div className="absolute bottom-2 left-2 z-10">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700 shadow-sm">
+                        {page.binder_type === "free_layout" ? (
+                          <>
+                            <BookOpen className="w-3 h-3" />
+                            フリー
+                          </>
+                        ) : (
+                          <>
+                            <Grid3x3 className="w-3 h-3" />
+                            ポケット
+                          </>
+                        )}
+                      </span>
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg truncate">{page.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(page.created_at).toLocaleDateString("ja-JP")}
+                  <div className="p-4 bg-white">
+                    <h3 className="font-semibold text-base md:text-lg truncate text-gray-900 group-hover:text-primary transition-colors">
+                      {page.title}
+                    </h3>
+                    <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                      {new Date(page.created_at).toLocaleDateString("ja-JP", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric"
+                      })}
                     </p>
                   </div>
                 </Card>
