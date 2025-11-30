@@ -13,21 +13,29 @@ interface CardPocketSlotProps {
     };
   };
   onDragStart?: (itemId: string) => void;
+  onEmptySlotClick?: (index: number) => void;
 }
 
-export function CardPocketSlot({ id, index, item, onDragStart }: CardPocketSlotProps) {
+export function CardPocketSlot({ id, index, item, onDragStart, onEmptySlotClick }: CardPocketSlotProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: `slot-${index}`,
     data: { type: "pocket-slot", index },
   });
 
+  const handleClick = () => {
+    if (!item && onEmptySlotClick) {
+      onEmptySlotClick(index);
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
+      onClick={handleClick}
       className={cn(
         "relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 transition-all overflow-hidden",
         isOver ? "border-primary bg-primary/10 scale-105" : "border-gray-300",
-        item ? "cursor-grab active:cursor-grabbing" : ""
+        item ? "cursor-grab active:cursor-grabbing" : "cursor-pointer hover:border-primary/50 hover:bg-primary/5"
       )}
       draggable={!!item}
       onDragStart={() => item && onDragStart?.(item.id)}
@@ -47,7 +55,12 @@ export function CardPocketSlot({ id, index, item, onDragStart }: CardPocketSlotP
         </div>
       ) : (
         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-          {isOver ? "ドロップ" : "空"}
+          {isOver ? "ドロップ" : (
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-2xl">+</span>
+              <span>タップして追加</span>
+            </div>
+          )}
         </div>
       )}
     </div>

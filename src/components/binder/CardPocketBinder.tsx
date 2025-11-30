@@ -4,6 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CardPocketSlot } from "./CardPocketSlot";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { BinderItemPalette } from "./BinderItemPalette";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CardPocketBinderProps {
   page: BinderPage;
@@ -14,6 +18,8 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
   const itemsQuery = getBinderItems(page.id);
   const items = itemsQuery.data || [];
   const isMobile = useIsMobile();
+  const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
+  const [showItemPalette, setShowItemPalette] = useState(false);
 
   // レイアウト設定（デフォルトは3x3のポケット）
   const cols = page.layout_config?.cols || 3;
@@ -75,10 +81,20 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
     return { index, item };
   });
 
+  const handleEmptySlotClick = (index: number) => {
+    setSelectedSlotIndex(index);
+    setShowItemPalette(true);
+  };
+
+  const handleItemPaletteClose = () => {
+    setShowItemPalette(false);
+    setSelectedSlotIndex(null);
+  };
 
   return (
-    <div
-      className="relative bg-white shadow-2xl rounded-lg overflow-hidden mx-auto"
+    <>
+      <div
+        className="relative bg-white shadow-2xl rounded-lg overflow-hidden mx-auto"
         style={{
           width: binderWidth,
           maxWidth: binderMaxWidth,
@@ -115,6 +131,7 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
                 id={page.id}
                 index={index}
                 item={item}
+                onEmptySlotClick={handleEmptySlotClick}
               />
             ))}
           </div>
@@ -123,7 +140,26 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
       {/* ページタイプ表示 */}
       <div className={`absolute ${isMobile ? "top-2 right-2 px-2 py-0.5" : "top-4 right-4 px-3 py-1"} bg-white/90 rounded-full text-xs font-medium`}>
         カードポケット型 ({cols}×{rows})
-        </div>
       </div>
+    </div>
+
+    {/* アイテム選択シート（モバイル） */}
+    <Sheet open={showItemPalette} onOpenChange={handleItemPaletteClose}>
+      <SheetContent side="bottom" className="h-[80vh] p-0">
+        <div className="p-4 border-b">
+          <h3 className="font-semibold">
+            {selectedSlotIndex !== null && `ポケット ${selectedSlotIndex + 1} にアイテムを追加`}
+          </h3>
+        </div>
+        <ScrollArea className="h-[calc(80vh-80px)]">
+          <BinderItemPalette 
+            pageId={page.id} 
+            onClose={handleItemPaletteClose}
+            targetSlotIndex={selectedSlotIndex}
+          />
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
+  </>
   );
 }
