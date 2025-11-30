@@ -34,7 +34,6 @@ export function BinderCanvas({
   const decorations = decorationsQuery.data || [];
   const isMobile = useIsMobile();
 
-
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onSelectionChange?.([]);
