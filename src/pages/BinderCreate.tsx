@@ -35,7 +35,7 @@ export default function BinderCreate() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-2xl mx-auto pt-8">
         <Button
           variant="ghost"
