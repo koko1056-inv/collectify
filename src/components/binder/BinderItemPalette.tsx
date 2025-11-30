@@ -103,37 +103,62 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
   };
 
   const handleConfirm = async () => {
-    if (!selectedItem || targetSlotIndex === null || targetSlotIndex === undefined) return;
+    if (!selectedItem) return;
 
-    // 既存のアイテムがあるか確認
-    const { data: existingItems } = await supabase
-      .from("binder_items")
-      .select("id")
-      .eq("binder_page_id", pageId)
-      .eq("z_index", targetSlotIndex);
+    if (targetSlotIndex !== null && targetSlotIndex !== undefined) {
+      // カードポケットモード：指定されたスロットに配置
+      const { data: existingItems } = await supabase
+        .from("binder_items")
+        .select("id")
+        .eq("binder_page_id", pageId)
+        .eq("z_index", targetSlotIndex);
 
-    // 既存のアイテムがある場合は削除
-    if (existingItems && existingItems.length > 0) {
-      await Promise.all(
-        existingItems.map(existingItem =>
-          supabase.from("binder_items").delete().eq("id", existingItem.id)
-        )
-      );
+      if (existingItems && existingItems.length > 0) {
+        await Promise.all(
+          existingItems.map(existingItem =>
+            supabase.from("binder_items").delete().eq("id", existingItem.id)
+          )
+        );
+      }
+
+      await addItem.mutateAsync({
+        binder_page_id: pageId,
+        user_item_id: selectedItem.type === "user" ? selectedItem.item.id : null,
+        official_item_id: selectedItem.type === "official" ? selectedItem.item.id : null,
+        custom_image_url: null,
+        position_x: 0,
+        position_y: 0,
+        width: 100,
+        height: 140,
+        rotation: 0,
+        z_index: targetSlotIndex,
+      });
+    } else {
+      // フリーレイアウトモード：キャンバスの中央に配置
+      const { data: existingItems } = await supabase
+        .from("binder_items")
+        .select("z_index")
+        .eq("binder_page_id", pageId)
+        .order("z_index", { ascending: false })
+        .limit(1);
+
+      const maxZIndex = existingItems && existingItems.length > 0 ? existingItems[0].z_index : 0;
+
+      await addItem.mutateAsync({
+        binder_page_id: pageId,
+        user_item_id: selectedItem.type === "user" ? selectedItem.item.id : null,
+        official_item_id: selectedItem.type === "official" ? selectedItem.item.id : null,
+        custom_image_url: null,
+        position_x: 150,
+        position_y: 150,
+        width: 200,
+        height: 280,
+        rotation: 0,
+        z_index: maxZIndex + 1,
+      });
     }
-
-    // ポケットに直接追加
-    await addItem.mutateAsync({
-      binder_page_id: pageId,
-      user_item_id: selectedItem.type === "user" ? selectedItem.item.id : null,
-      official_item_id: selectedItem.type === "official" ? selectedItem.item.id : null,
-      custom_image_url: null,
-      position_x: 0,
-      position_y: 0,
-      width: 100,
-      height: 140,
-      rotation: 0,
-      z_index: targetSlotIndex,
-    });
+    
+    setSelectedItem(null);
     onClose();
   };
 
@@ -181,9 +206,7 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
         <div>
           <h3 className="font-semibold">アイテムを追加</h3>
           <p className="text-xs text-muted-foreground mt-1">
-            {targetSlotIndex !== null && targetSlotIndex !== undefined 
-              ? "アイテムをタップして選択" 
-              : "ドラッグ&ドロップで配置"}
+            アイテムをタップして選択し、反映ボタンで追加
           </p>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -217,12 +240,9 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
                   key={item.id} 
                   item={item} 
                   type="user"
-                  onClick={targetSlotIndex !== null && targetSlotIndex !== undefined 
-                    ? () => handleItemClick(item, "user")
-                    : undefined
-                  }
+                  onClick={() => handleItemClick(item, "user")}
                   isSelected={selectedItem?.item.id === item.id && selectedItem?.type === "user"}
-                  onConfirm={targetSlotIndex !== null && targetSlotIndex !== undefined ? handleConfirm : undefined}
+                  onConfirm={handleConfirm}
                 />
               ))}
               {filteredUserItems.length === 0 && (
@@ -242,12 +262,9 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
                   key={item.id} 
                   item={item} 
                   type="official"
-                  onClick={targetSlotIndex !== null && targetSlotIndex !== undefined 
-                    ? () => handleItemClick(item, "official")
-                    : undefined
-                  }
+                  onClick={() => handleItemClick(item, "official")}
                   isSelected={selectedItem?.item.id === item.id && selectedItem?.type === "official"}
-                  onConfirm={targetSlotIndex !== null && targetSlotIndex !== undefined ? handleConfirm : undefined}
+                  onConfirm={handleConfirm}
                 />
               ))}
               {filteredOfficialItems.length === 0 && (
