@@ -20,11 +20,13 @@ interface BinderItemPaletteProps {
 function DraggableItemCard({ 
   item, 
   type,
-  onClick 
+  onClick,
+  isSelected 
 }: { 
   item: any; 
   type: "user" | "official";
   onClick?: () => void;
+  isSelected?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `draggable-${type}-${item.id}`,
@@ -47,10 +49,12 @@ function DraggableItemCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="relative aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all cursor-grab active:cursor-grabbing group"
+      className={`relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all cursor-pointer group ${
+        isSelected ? "border-primary ring-2 ring-primary" : "border-transparent hover:border-primary"
+      } ${onClick ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"}`}
       onClick={handleClick}
-      {...listeners}
-      {...attributes}
+      {...(!onClick ? listeners : {})}
+      {...(!onClick ? attributes : {})}
     >
       <img
         src={item.image}
@@ -74,40 +78,45 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
   const { user } = useAuth();
   const { addItem } = useBinder();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedItem, setSelectedItem] = useState<{ item: any; type: "user" | "official" } | null>(null);
 
-  const handleItemClick = async (item: any, type: "user" | "official") => {
-    if (targetSlotIndex !== null && targetSlotIndex !== undefined) {
-      // 既存のアイテムがあるか確認
-      const { data: existingItems } = await supabase
-        .from("binder_items")
-        .select("id")
-        .eq("binder_page_id", pageId)
-        .eq("z_index", targetSlotIndex);
+  const handleItemClick = (item: any, type: "user" | "official") => {
+    setSelectedItem({ item, type });
+  };
 
-      // 既存のアイテムがある場合は削除
-      if (existingItems && existingItems.length > 0) {
-        await Promise.all(
-          existingItems.map(existingItem =>
-            supabase.from("binder_items").delete().eq("id", existingItem.id)
-          )
-        );
-      }
+  const handleConfirm = async () => {
+    if (!selectedItem || targetSlotIndex === null || targetSlotIndex === undefined) return;
 
-      // ポケットに直接追加
-      await addItem.mutateAsync({
-        binder_page_id: pageId,
-        user_item_id: type === "user" ? item.id : null,
-        official_item_id: type === "official" ? item.id : null,
-        custom_image_url: null,
-        position_x: 0,
-        position_y: 0,
-        width: 100,
-        height: 140,
-        rotation: 0,
-        z_index: targetSlotIndex,
-      });
-      onClose();
+    // 既存のアイテムがあるか確認
+    const { data: existingItems } = await supabase
+      .from("binder_items")
+      .select("id")
+      .eq("binder_page_id", pageId)
+      .eq("z_index", targetSlotIndex);
+
+    // 既存のアイテムがある場合は削除
+    if (existingItems && existingItems.length > 0) {
+      await Promise.all(
+        existingItems.map(existingItem =>
+          supabase.from("binder_items").delete().eq("id", existingItem.id)
+        )
+      );
     }
+
+    // ポケットに直接追加
+    await addItem.mutateAsync({
+      binder_page_id: pageId,
+      user_item_id: selectedItem.type === "user" ? selectedItem.item.id : null,
+      official_item_id: selectedItem.type === "official" ? selectedItem.item.id : null,
+      custom_image_url: null,
+      position_x: 0,
+      position_y: 0,
+      width: 100,
+      height: 140,
+      rotation: 0,
+      z_index: targetSlotIndex,
+    });
+    onClose();
   };
 
   // ユーザーのコレクションアイテムを取得
@@ -194,6 +203,7 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
                     ? () => handleItemClick(item, "user")
                     : undefined
                   }
+                  isSelected={selectedItem?.item.id === item.id && selectedItem?.type === "user"}
                 />
               ))}
               {filteredUserItems.length === 0 && (
@@ -217,6 +227,7 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
                     ? () => handleItemClick(item, "official")
                     : undefined
                   }
+                  isSelected={selectedItem?.item.id === item.id && selectedItem?.type === "official"}
                 />
               ))}
               {filteredOfficialItems.length === 0 && (
@@ -228,6 +239,19 @@ export function BinderItemPalette({ pageId, onClose, targetSlotIndex }: BinderIt
           </ScrollArea>
         </TabsContent>
       </Tabs>
+
+      {/* 反映ボタン */}
+      {targetSlotIndex !== null && targetSlotIndex !== undefined && selectedItem && (
+        <div className="p-4 border-t bg-background">
+          <Button 
+            onClick={handleConfirm}
+            className="w-full"
+            size="lg"
+          >
+            選択したアイテムを反映
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
