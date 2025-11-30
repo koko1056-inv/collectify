@@ -68,43 +68,63 @@ export default function BinderCreate() {
             <RadioGroup value={binderType} onValueChange={(v) => setBinderType(v as any)}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card
-                  className={`p-4 cursor-pointer transition-all ${
+                  className={`overflow-hidden cursor-pointer transition-all ${
                     binderType === "free_layout" ? "ring-2 ring-primary" : ""
                   }`}
                   onClick={() => setBinderType("free_layout")}
                 >
-                  <div className="flex items-start gap-3">
-                    <RadioGroupItem value="free_layout" id="free_layout" />
-                    <div className="flex-1">
-                      <Label htmlFor="free_layout" className="cursor-pointer flex items-center gap-2">
-                        <BookOpen className="w-5 h-5" />
-                        <span className="font-semibold">フリーレイアウト</span>
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        自由にグッズを配置して、独自のレイアウトを作成できます。
-                        ドラッグ＆ドロップでサイズや角度も調整可能。
-                      </p>
+                  {/* Visual Preview */}
+                  <div className="relative h-32 bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+                    <div className="absolute top-2 left-2 w-12 h-12 bg-white rounded shadow-md transform rotate-12" />
+                    <div className="absolute top-6 right-4 w-16 h-10 bg-white rounded shadow-md transform -rotate-6" />
+                    <div className="absolute bottom-4 left-6 w-14 h-14 bg-white rounded shadow-md transform rotate-3" />
+                  </div>
+                  
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <RadioGroupItem value="free_layout" id="free_layout" />
+                      <div className="flex-1">
+                        <Label htmlFor="free_layout" className="cursor-pointer flex items-center gap-2">
+                          <BookOpen className="w-5 h-5" />
+                          <span className="font-semibold">フリーレイアウト</span>
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          自由にグッズを配置して、独自のレイアウトを作成できます。
+                          ドラッグ＆ドロップでサイズや角度も調整可能。
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </Card>
 
                 <Card
-                  className={`p-4 cursor-pointer transition-all ${
+                  className={`overflow-hidden cursor-pointer transition-all ${
                     binderType === "card_pocket" ? "ring-2 ring-primary" : ""
                   }`}
                   onClick={() => setBinderType("card_pocket")}
                 >
-                  <div className="flex items-start gap-3">
-                    <RadioGroupItem value="card_pocket" id="card_pocket" />
-                    <div className="flex-1">
-                      <Label htmlFor="card_pocket" className="cursor-pointer flex items-center gap-2">
-                        <Grid3x3 className="w-5 h-5" />
-                        <span className="font-semibold">カードポケット型</span>
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        トレーディングカードのような、整然としたグリッドレイアウト。
-                        カード収集に最適。
-                      </p>
+                  {/* Visual Preview */}
+                  <div className="relative h-32 bg-gradient-to-br from-amber-50 to-orange-50 p-4">
+                    <div className="grid grid-cols-3 gap-2 h-full">
+                      {[...Array(9)].map((_, i) => (
+                        <div key={i} className="bg-white rounded shadow-sm" />
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <RadioGroupItem value="card_pocket" id="card_pocket" />
+                      <div className="flex-1">
+                        <Label htmlFor="card_pocket" className="cursor-pointer flex items-center gap-2">
+                          <Grid3x3 className="w-5 h-5" />
+                          <span className="font-semibold">カードポケット型</span>
+                        </Label>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          トレーディングカードのような、整然としたグリッドレイアウト。
+                          カード収集に最適。
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </Card>
