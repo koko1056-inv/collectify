@@ -6,10 +6,14 @@ import { UserCollection } from "@/components/UserCollection";
 import { useTags } from "@/hooks/useTags";
 import { useAuth } from "@/contexts/AuthContext";
 import { FilterBar } from "@/components/FilterBar";
+import { Button } from "@/components/ui/button";
+import { BookOpen } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Collection() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContent, setSelectedContent] = useState("");
@@ -31,15 +35,27 @@ export default function Collection() {
       <Navbar />
       <main className={`container mx-auto pt-20 transition-all duration-300 ${isMobile ? 'px-1 py-4' : 'px-2 py-4'}`}>
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
-          <FilterBar 
-            searchQuery={searchQuery} 
-            onSearchChange={handleSearchChange} 
-            selectedTags={selectedTags} 
-            onTagsChange={handleTagsChange} 
-            selectedContent={selectedContent} 
-            onContentChange={handleContentChange} 
-            tags={allTags} 
-          />
+          <div className="flex items-center gap-2 justify-between">
+            <div className="flex-1">
+              <FilterBar 
+                searchQuery={searchQuery} 
+                onSearchChange={handleSearchChange} 
+                selectedTags={selectedTags} 
+                onTagsChange={handleTagsChange} 
+                selectedContent={selectedContent} 
+                onContentChange={handleContentChange} 
+                tags={allTags} 
+              />
+            </div>
+            <Button
+              onClick={() => navigate("/binder")}
+              className="gap-2 shrink-0"
+              size={isMobile ? "sm" : "default"}
+            >
+              <BookOpen className="w-4 h-4" />
+              {!isMobile && "バインダー"}
+            </Button>
+          </div>
           
           <div className="transition-all duration-200">
             <UserCollection 
