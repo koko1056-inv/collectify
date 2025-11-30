@@ -109,16 +109,6 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
           }}
           onClick={() => setSelectedItemId(null)}
         >
-          {/* バインダーの穴（左側） */}
-          <div className={`absolute ${isMobile ? "left-2" : "left-4"} top-0 bottom-0 flex flex-col justify-around ${isMobile ? "py-4" : "py-12"} z-10 pointer-events-none`}>
-            {[...Array(isMobile ? 4 : 6)].map((_, i) => (
-              <div
-                key={i}
-                className={`${isMobile ? "w-5 h-5 border-2" : "w-8 h-8 border-4"} rounded-full bg-gray-300 border-gray-400 shadow-inner`}
-              />
-            ))}
-          </div>
-
           {/* グリッド（ガイド用） */}
           <div
             className="absolute inset-0 pointer-events-none"
@@ -128,12 +118,11 @@ export function BinderCanvas({ pageId, activeTool, selectedFrame }: BinderCanvas
                 linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px)
               `,
               backgroundSize: isMobile ? "30px 30px" : "50px 50px",
-              marginLeft: isMobile ? "30px" : "60px",
             }}
           />
 
           {/* アイテムレンダリングエリア */}
-          <div className={`absolute inset-0 ${isMobile ? "pl-8" : "pl-16"}`}>
+          <div className="absolute inset-0 p-4 md:p-8">
             {itemsWithData.map((item: any) => {
               const frameStyle = selectedFrame && selectedItemId === item.id ? {
                 border: selectedFrame.border_style,
