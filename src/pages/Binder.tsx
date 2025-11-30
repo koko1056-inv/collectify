@@ -38,13 +38,13 @@ export default function Binder() {
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
       <Navbar />
       <main className="container mx-auto pt-20 px-4 py-8">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <BookOpen className="w-8 h-8 text-amber-700" />
-              <h1 className="text-3xl font-bold text-gray-900">マイバインダー</h1>
+        <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
+              <BookOpen className="w-6 h-6 md:w-8 md:h-8 text-amber-700" />
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">マイバインダー</h1>
             </div>
-          <Button className="gap-2" onClick={() => navigate("/binder/create")}>
+          <Button className="gap-2 w-full sm:w-auto" onClick={() => navigate("/binder/create")}>
             <Plus className="w-4 h-4" />
             新しいページ
           </Button>
@@ -67,11 +67,11 @@ export default function Binder() {
               </Button>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {binderPages.map((page) => (
                 <Card
                   key={page.id}
-                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group"
+                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group active:scale-98"
                 >
                   <div
                     className="aspect-[3/4] bg-gradient-to-br from-amber-100 to-orange-100 relative"
@@ -86,11 +86,11 @@ export default function Binder() {
                     onClick={() => setSelectedPageId(page.id)}
                   >
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 md:opacity-0 transition-opacity touch-auto">
                       <Button
                         size="icon"
                         variant="secondary"
-                        className="h-8 w-8"
+                        className="h-9 w-9 md:h-8 md:w-8 touch-manipulation"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedPageId(page.id);
@@ -101,7 +101,7 @@ export default function Binder() {
                       <Button
                         size="icon"
                         variant="destructive"
-                        className="h-8 w-8"
+                        className="h-9 w-9 md:h-8 md:w-8 touch-manipulation"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeletePage(page.id);

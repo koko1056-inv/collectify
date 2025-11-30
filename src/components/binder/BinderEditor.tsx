@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Menu } from "lucide-react";
 import { useBinder } from "@/hooks/useBinder";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { BinderCanvas } from "./BinderCanvas";
@@ -13,6 +13,8 @@ import { BackgroundTool } from "./BackgroundTool";
 import { DecorationTool, FramePreset } from "@/types/binder";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface BinderEditorProps {
   pageId: string;
@@ -27,6 +29,8 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
   const [selectedFrame, setSelectedFrame] = useState<FramePreset | null>(null);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
   const [isSaving, setIsSaving] = useState(false);
+  const isMobile = useIsMobile();
+  const [showMobileToolbar, setShowMobileToolbar] = useState(false);
 
   // ドラッグ&ドロップハンドラー
   const handleDragEnd = (event: DragEndEvent) => {
@@ -45,10 +49,10 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
           user_item_id: itemType === "user" ? item.id : null,
           official_item_id: itemType === "official" ? item.id : null,
           custom_image_url: null,
-          position_x: 300,
-          position_y: 300,
-          width: 150,
-          height: 200,
+          position_x: isMobile ? 150 : 300,
+          position_y: isMobile ? 150 : 300,
+          width: isMobile ? 100 : 150,
+          height: isMobile ? 133 : 200,
           rotation: 0,
           z_index: Date.now(),
         });
@@ -101,74 +105,143 @@ export function BinderEditor({ pageId, onClose }: BinderEditorProps) {
   const handleToolChange = (tool: DecorationTool) => {
     setActiveTool(tool);
     setShowSidebar(tool !== "select");
+    if (isMobile) {
+      setShowMobileToolbar(false);
+    }
   };
 
   return (
     <DndContext onDragEnd={handleDragEnd}>
       <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
         {/* ヘッダー */}
-        <div className="bg-white border-b p-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <h2 className="text-xl font-semibold">{page.title}</h2>
-          <span className="text-sm text-muted-foreground">
-            {page.binder_type === "free_layout" ? "フリーレイアウト" : "カードポケット型"}
-          </span>
+        <div className="bg-white border-b p-3 md:p-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+            {isMobile && (
+              <Sheet open={showMobileToolbar} onOpenChange={setShowMobileToolbar}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="shrink-0">
+                    <Menu className="w-5 h-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[280px] p-0">
+                  <div className="p-4 border-b">
+                    <h3 className="font-semibold">ツール</h3>
+                  </div>
+                  <BinderToolbar
+                    activeTool={activeTool}
+                    onToolChange={handleToolChange}
+                  />
+                </SheetContent>
+              </Sheet>
+            )}
+            <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base md:text-xl font-semibold truncate">{page.title}</h2>
+              <span className="text-xs md:text-sm text-muted-foreground">
+                {page.binder_type === "free_layout" ? "フリーレイアウト" : "カードポケット型"}
+              </span>
+            </div>
+          </div>
+          <div className="shrink-0 hidden sm:flex items-center gap-3">
+            {isSaving ? (
+              <span className="text-sm text-muted-foreground flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                保存中...
+              </span>
+            ) : (
+              <span className="text-sm text-muted-foreground flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500" />
+                自動保存済み
+              </span>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          {isSaving ? (
-            <span className="text-sm text-muted-foreground flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              保存中...
-            </span>
-          ) : (
-            <span className="text-sm text-muted-foreground flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
-              自動保存済み
-            </span>
+
+        {/* メインエリア */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* ツールバー - Desktop only */}
+          {!isMobile && (
+            <div className="w-16 md:w-20 bg-white border-r">
+              <BinderToolbar
+                activeTool={activeTool}
+                onToolChange={handleToolChange}
+              />
+            </div>
+          )}
+
+          {/* キャンバス */}
+          <div className="flex-1 overflow-auto p-2 md:p-8">
+            <BinderCanvas
+              pageId={pageId}
+              activeTool={activeTool}
+              selectedFrame={selectedFrame}
+            />
+          </div>
+
+          {/* サイドバー - Desktop */}
+          {!isMobile && showSidebar && (
+            <div className="w-80 bg-white border-l">
+              <ScrollArea className="h-full">
+                {activeTool === "item" && (
+                  <BinderItemPalette pageId={pageId} onClose={() => setShowSidebar(false)} />
+                )}
+                {activeTool === "sticker" && <StickerPalette pageId={pageId} />}
+                {activeTool === "frame" && (
+                  <FramePalette pageId={pageId} onSelectFrame={setSelectedFrame} />
+                )}
+                {activeTool === "text" && <TextTool pageId={pageId} />}
+                {activeTool === "background" && <BackgroundTool pageId={pageId} />}
+              </ScrollArea>
+            </div>
+          )}
+
+          {/* Mobile Sidebar Sheet */}
+          {isMobile && showSidebar && (
+            <Sheet open={showSidebar} onOpenChange={setShowSidebar}>
+              <SheetContent side="bottom" className="h-[80vh] p-0">
+                <div className="p-4 border-b">
+                  <h3 className="font-semibold">
+                    {activeTool === "item" && "コレクション"}
+                    {activeTool === "sticker" && "ステッカー"}
+                    {activeTool === "frame" && "フレーム"}
+                    {activeTool === "text" && "テキスト"}
+                    {activeTool === "background" && "背景"}
+                  </h3>
+                </div>
+                <ScrollArea className="h-[calc(80vh-80px)]">
+                  {activeTool === "item" && (
+                    <BinderItemPalette pageId={pageId} onClose={() => setShowSidebar(false)} />
+                  )}
+                  {activeTool === "sticker" && <StickerPalette pageId={pageId} />}
+                  {activeTool === "frame" && (
+                    <FramePalette pageId={pageId} onSelectFrame={setSelectedFrame} />
+                  )}
+                  {activeTool === "text" && <TextTool pageId={pageId} />}
+                  {activeTool === "background" && <BackgroundTool pageId={pageId} />}
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
           )}
         </div>
-      </div>
 
-      {/* メインエリア */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* ツールバー */}
-        <div className="w-20 bg-white border-r">
-          <BinderToolbar
-            activeTool={activeTool}
-            onToolChange={handleToolChange}
-          />
-        </div>
-
-        {/* キャンバス */}
-        <div className="flex-1 overflow-auto p-8">
-          <BinderCanvas
-            pageId={pageId}
-            activeTool={activeTool}
-            selectedFrame={selectedFrame}
-          />
-        </div>
-
-        {/* サイドバー */}
-        {showSidebar && (
-          <div className="w-80 bg-white border-l">
-            <ScrollArea className="h-full">
-              {activeTool === "item" && (
-                <BinderItemPalette pageId={pageId} onClose={() => setShowSidebar(false)} />
-              )}
-              {activeTool === "sticker" && <StickerPalette pageId={pageId} />}
-              {activeTool === "frame" && (
-                <FramePalette pageId={pageId} onSelectFrame={setSelectedFrame} />
-              )}
-              {activeTool === "text" && <TextTool pageId={pageId} />}
-              {activeTool === "background" && <BackgroundTool pageId={pageId} />}
-            </ScrollArea>
-          </div>
+        {/* Mobile FAB for opening sidebar */}
+        {isMobile && activeTool !== "select" && !showSidebar && (
+          <Button
+            onClick={() => setShowSidebar(true)}
+            className="fixed right-4 bottom-4 z-10 shadow-lg rounded-full w-14 h-14"
+          >
+            <span className="text-xs">
+              {activeTool === "item" && "📦"}
+              {activeTool === "sticker" && "✨"}
+              {activeTool === "frame" && "🖼️"}
+              {activeTool === "text" && "T"}
+              {activeTool === "background" && "🎨"}
+            </span>
+          </Button>
         )}
       </div>
-    </div>
     </DndContext>
   );
 }
