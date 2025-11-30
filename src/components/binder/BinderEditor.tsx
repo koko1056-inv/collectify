@@ -19,18 +19,32 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { useBinderEditorHandlers } from "./BinderEditorHandlers";
-
 interface BinderEditorProps {
   pageId: string;
   onClose: () => void;
   isPreviewMode?: boolean;
 }
-
-export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderEditorProps) {
-  const { binderPages, updatePage, addItem, createPage, updateItem, deleteItem, updateDecoration, deleteDecoration, addDecoration, getBinderItems, getBinderDecorations } = useBinder();
+export function BinderEditor({
+  pageId,
+  onClose,
+  isPreviewMode = false
+}: BinderEditorProps) {
+  const {
+    binderPages,
+    updatePage,
+    addItem,
+    createPage,
+    updateItem,
+    deleteItem,
+    updateDecoration,
+    deleteDecoration,
+    addDecoration,
+    getBinderItems,
+    getBinderDecorations
+  } = useBinder();
   const [currentPageId, setCurrentPageId] = useState(pageId);
-  const page = (binderPages as any[]).find((p) => p.id === currentPageId);
-  const currentIndex = binderPages.findIndex((p) => p.id === currentPageId);
+  const page = (binderPages as any[]).find(p => p.id === currentPageId);
+  const currentIndex = binderPages.findIndex(p => p.id === currentPageId);
   const hasPrevPage = currentIndex > 0;
   const hasNextPage = currentIndex < binderPages.length - 1;
   const [activeTool, setActiveTool] = useState<DecorationTool>("select");
@@ -38,48 +52,48 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
   const [selectedFrame, setSelectedFrame] = useState<FramePreset | null>(null);
   const [lastSaved, setLastSaved] = useState<Date>(new Date());
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
-  const [clipboard, setClipboard] = useState<{items: any[], decorations: any[]} | null>(null);
+  const [clipboard, setClipboard] = useState<{
+    items: any[];
+    decorations: any[];
+  } | null>(null);
   const isMobile = useIsMobile();
   const [showMobileToolbar, setShowMobileToolbar] = useState(false);
   const [pageDirection, setPageDirection] = useState<"left" | "right">("right");
 
   // 選択されたアイテムとデコレーションを取得
-  const { data: binderItemsData } = getBinderItems(currentPageId);
-  const { data: binderDecorationsData } = getBinderDecorations(currentPageId);
-  
-  const allItems = [
-    ...(binderItemsData || []).map(item => ({ ...item, type: 'item' as const })),
-    ...(binderDecorationsData || []).map(dec => ({ ...dec, type: 'decoration' as const }))
-  ];
-
+  const {
+    data: binderItemsData
+  } = getBinderItems(currentPageId);
+  const {
+    data: binderDecorationsData
+  } = getBinderDecorations(currentPageId);
+  const allItems = [...(binderItemsData || []).map(item => ({
+    ...item,
+    type: 'item' as const
+  })), ...(binderDecorationsData || []).map(dec => ({
+    ...dec,
+    type: 'decoration' as const
+  }))];
   const selectedItems = allItems.filter(item => selectedItemIds.includes(item.id));
 
   // ハンドラーのセットアップ
-  const handlers = useBinderEditorHandlers(
-    currentPageId,
-    selectedItems,
-    allItems,
-    updateItem,
-    deleteItem,
-    updateDecoration,
-    deleteDecoration,
-    addItem,
-    addDecoration,
-    setSelectedItemIds,
-    clipboard,
-    setClipboard
-  );
+  const handlers = useBinderEditorHandlers(currentPageId, selectedItems, allItems, updateItem, deleteItem, updateDecoration, deleteDecoration, addItem, addDecoration, setSelectedItemIds, clipboard, setClipboard);
 
   // ドラッグ&ドロップハンドラー
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
+    const {
+      active,
+      over
+    } = event;
     if (!over) return;
 
     // コレクションアイテムをキャンバスまたはポケットにドロップ
     if (active.data.current?.type === "collection-item") {
-      const { itemType, item } = active.data.current;
-      
+      const {
+        itemType,
+        item
+      } = active.data.current;
+
       // キャンバスへのドロップ
       if (over.id === "binder-canvas") {
         addItem.mutate({
@@ -92,7 +106,7 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
           width: isMobile ? 100 : 150,
           height: isMobile ? 133 : 200,
           rotation: 0,
-          z_index: Date.now(),
+          z_index: Date.now()
         });
       }
       // カードポケットへのドロップ
@@ -108,7 +122,7 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
           width: 100,
           height: 140,
           rotation: 0,
-          z_index: slotIndex,
+          z_index: slotIndex
         });
       }
     }
@@ -117,27 +131,25 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
   // 自動保存（ページの変更を監視）
   useAutoSave({
     data: page,
-    onSave: async (data) => {
+    onSave: async data => {
       if (data) {
         await updatePage.mutateAsync({
           id: data.id,
           updates: {
             title: data.title,
             background_color: data.background_color,
-            background_image: data.background_image,
-          },
+            background_image: data.background_image
+          }
         });
         setLastSaved(new Date());
       }
     },
     delay: 3000,
-    enabled: true,
+    enabled: true
   });
-
   if (!page) {
     return null;
   }
-
   const handleToolChange = (tool: DecorationTool) => {
     if (isPreviewMode) return; // プレビューモードではツール変更を無効化
     setActiveTool(tool);
@@ -146,27 +158,24 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
       setShowMobileToolbar(false);
     }
   };
-
   const handlePrevPage = () => {
     if (hasPrevPage) {
       setPageDirection("left");
       setCurrentPageId(binderPages[currentIndex - 1].id);
     }
   };
-
   const handleNextPage = () => {
     if (hasNextPage) {
       setPageDirection("right");
       setCurrentPageId(binderPages[currentIndex + 1].id);
     }
   };
-
   const handleAddPage = async () => {
     try {
       const newPage = await createPage.mutateAsync({
         title: `新しいページ ${binderPages.length + 1}`,
         binderType: page?.binder_type || "free_layout",
-        layoutConfig: page?.layout_config,
+        layoutConfig: page?.layout_config
       });
       if (newPage) {
         setCurrentPageId(newPage.id);
@@ -176,9 +185,7 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
       toast.error("ページの追加に失敗しました");
     }
   };
-
-  return (
-    <DndContext onDragEnd={isPreviewMode ? () => {} : handleDragEnd}>
+  return <DndContext onDragEnd={isPreviewMode ? () => {} : handleDragEnd}>
       <div className="fixed inset-0 bg-gray-100 z-50 flex flex-col">
         {/* ヘッダー */}
         <div className="bg-white border-b p-3 md:p-4 flex items-center justify-between gap-2">
@@ -198,136 +205,65 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
           </div>
           <div className="shrink-0 flex items-center gap-2 md:gap-3">
             {/* ページナビゲーション */}
-            {!isPreviewMode && (
-            <div className="flex items-center gap-1 md:gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 md:h-9 md:w-9"
-                onClick={handlePrevPage}
-                disabled={!hasPrevPage}
-              >
+            {!isPreviewMode && <div className="flex items-center gap-1 md:gap-2">
+              <Button variant="outline" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handlePrevPage} disabled={!hasPrevPage}>
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               <span className="text-xs md:text-sm font-medium px-2 whitespace-nowrap">
                 {currentIndex + 1} / {binderPages.length}
               </span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 md:h-9 md:w-9"
-                onClick={handleNextPage}
-                disabled={!hasNextPage}
-              >
+              <Button variant="outline" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handleNextPage} disabled={!hasNextPage}>
                 <ChevronRight className="w-4 h-4" />
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 md:h-9 md:w-9"
-                onClick={handleAddPage}
-              >
+              <Button variant="outline" size="icon" className="h-8 w-8 md:h-9 md:w-9" onClick={handleAddPage}>
                 <Plus className="w-4 h-4" />
               </Button>
-            </div>
-            )}
+            </div>}
             
             {/* 自動保存ステータス - デスクトップのみ */}
-            {!isPreviewMode && (
-            <div className="hidden sm:flex items-center gap-3">
-              {updatePage.isPending ? (
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
+            {!isPreviewMode && <div className="hidden sm:flex items-center gap-3">
+              {updatePage.isPending ? <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                   保存中...
-                </span>
-              ) : (
-                <span className="text-sm text-muted-foreground flex items-center gap-2">
+                </span> : <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-500" />
                   自動保存済み
-                </span>
-              )}
-            </div>
-            )}
+                </span>}
+            </div>}
           </div>
         </div>
 
         {/* メインエリア */}
         <div className="flex-1 flex overflow-hidden">
           {/* ツールバー - Desktop only */}
-          {!isMobile && !isPreviewMode && (
-            <div className="w-16 md:w-20 bg-white border-r">
-              <BinderToolbar
-                activeTool={activeTool}
-                onToolChange={handleToolChange}
-              />
-            </div>
-          )}
+          {!isMobile && !isPreviewMode && <div className="w-16 md:w-20 bg-white border-r">
+              <BinderToolbar activeTool={activeTool} onToolChange={handleToolChange} />
+            </div>}
 
           {/* キャンバス */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            {selectedItemIds.length > 0 && !isPreviewMode && (
-              <div className="bg-background border-b p-2 flex items-center gap-2">
-                <AlignmentTools
-                  disabled={selectedItemIds.length === 0}
-                  onAlignLeft={() => handlers.handleAlign('left')}
-                  onAlignCenter={() => handlers.handleAlign('center')}
-                  onAlignRight={() => handlers.handleAlign('right')}
-                  onAlignTop={() => handlers.handleAlign('top')}
-                  onAlignMiddle={() => handlers.handleAlign('middle')}
-                  onAlignBottom={() => handlers.handleAlign('bottom')}
-                />
-                <div className="ml-auto text-sm text-muted-foreground">
-                  {selectedItemIds.length} 個選択中
-                </div>
-              </div>
-            )}
+            {selectedItemIds.length > 0 && !isPreviewMode}
             
             <div className="flex-1 overflow-auto p-2 md:p-8 pb-20 md:pb-8">
-              <BinderCanvas
-                key={currentPageId}
-                pageId={currentPageId}
-                activeTool={activeTool}
-                selectedFrame={selectedFrame}
-                pageDirection={pageDirection}
-                selectedItemIds={selectedItemIds}
-                onSelectionChange={setSelectedItemIds}
-              />
+              <BinderCanvas key={currentPageId} pageId={currentPageId} activeTool={activeTool} selectedFrame={selectedFrame} pageDirection={pageDirection} selectedItemIds={selectedItemIds} onSelectionChange={setSelectedItemIds} />
             </div>
             
-            {!isPreviewMode && (
-              <KeyboardShortcuts
-                selectedItemId={selectedItemIds[0] || null}
-                onDelete={handlers.handleDelete}
-                onDuplicate={handlers.handleDuplicate}
-                onCopy={handlers.handleCopy}
-                onPaste={handlers.handlePaste}
-                onMove={handlers.handleMove}
-                onBringToFront={handlers.handleBringToFront}
-                onSendToBack={handlers.handleSendToBack}
-              />
-            )}
+            {!isPreviewMode && <KeyboardShortcuts selectedItemId={selectedItemIds[0] || null} onDelete={handlers.handleDelete} onDuplicate={handlers.handleDuplicate} onCopy={handlers.handleCopy} onPaste={handlers.handlePaste} onMove={handlers.handleMove} onBringToFront={handlers.handleBringToFront} onSendToBack={handlers.handleSendToBack} />}
           </div>
 
           {/* サイドバー - Desktop */}
-          {!isMobile && !isPreviewMode && showSidebar && (
-            <div className="w-80 bg-white border-l">
+          {!isMobile && !isPreviewMode && showSidebar && <div className="w-80 bg-white border-l">
               <ScrollArea className="h-full">
-                {activeTool === "item" && (
-                  <BinderItemPalette pageId={currentPageId} onClose={() => setShowSidebar(false)} />
-                )}
+                {activeTool === "item" && <BinderItemPalette pageId={currentPageId} onClose={() => setShowSidebar(false)} />}
                 {activeTool === "sticker" && <StickerPalette pageId={currentPageId} />}
-                {activeTool === "frame" && (
-                  <FramePalette pageId={currentPageId} onSelectFrame={setSelectedFrame} />
-                )}
+                {activeTool === "frame" && <FramePalette pageId={currentPageId} onSelectFrame={setSelectedFrame} />}
                 {activeTool === "text" && <TextTool pageId={currentPageId} />}
                 {activeTool === "background" && <BackgroundTool pageId={currentPageId} />}
               </ScrollArea>
-            </div>
-          )}
+            </div>}
 
           {/* Mobile Sidebar Sheet */}
-          {isMobile && !isPreviewMode && showSidebar && (
-            <Sheet open={showSidebar} onOpenChange={setShowSidebar}>
+          {isMobile && !isPreviewMode && showSidebar && <Sheet open={showSidebar} onOpenChange={setShowSidebar}>
               <SheetContent side="bottom" className="h-[80vh] p-0">
                 <div className="p-4 border-b">
                   <h3 className="font-semibold">
@@ -339,33 +275,22 @@ export function BinderEditor({ pageId, onClose, isPreviewMode = false }: BinderE
                   </h3>
                 </div>
                 <ScrollArea className="h-[calc(80vh-80px)]">
-                  {activeTool === "item" && (
-                    <BinderItemPalette pageId={currentPageId} onClose={() => setShowSidebar(false)} />
-                  )}
+                  {activeTool === "item" && <BinderItemPalette pageId={currentPageId} onClose={() => setShowSidebar(false)} />}
                   {activeTool === "sticker" && <StickerPalette pageId={currentPageId} />}
-                  {activeTool === "frame" && (
-                    <FramePalette pageId={currentPageId} onSelectFrame={setSelectedFrame} />
-                  )}
+                  {activeTool === "frame" && <FramePalette pageId={currentPageId} onSelectFrame={setSelectedFrame} />}
                   {activeTool === "text" && <TextTool pageId={currentPageId} />}
                   {activeTool === "background" && <BackgroundTool pageId={currentPageId} />}
                 </ScrollArea>
               </SheetContent>
-            </Sheet>
-          )}
+            </Sheet>}
         </div>
 
         {/* モバイルツールバー（下部固定） */}
-        {isMobile && !isPreviewMode && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40">
+        {isMobile && !isPreviewMode && <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40">
             <div className="flex justify-around items-center p-2">
-              <BinderToolbar
-                activeTool={activeTool}
-                onToolChange={handleToolChange}
-              />
+              <BinderToolbar activeTool={activeTool} onToolChange={handleToolChange} />
             </div>
-          </div>
-        )}
+          </div>}
       </div>
-    </DndContext>
-  );
+    </DndContext>;
 }
