@@ -105,18 +105,8 @@ export function CardPocketBinder({ page }: CardPocketBinderProps) {
           backgroundPosition: "center",
         }}
       >
-      {/* バインダーの穴（左側） */}
-      <div className={`absolute ${isMobile ? "left-2" : "left-4"} top-0 bottom-0 flex flex-col justify-around ${isMobile ? "py-4" : "py-12"}`}>
-        {[...Array(isMobile ? 4 : 6)].map((_, i) => (
-          <div
-            key={i}
-            className={`${isMobile ? "w-5 h-5 border-2" : "w-8 h-8 border-4"} rounded-full bg-gray-300 border-gray-400 shadow-inner`}
-          />
-        ))}
-      </div>
-
         {/* カードポケットグリッド */}
-        <div className={`${isMobile ? "pl-10 pr-2 py-4" : "pl-20 pr-8 py-12"} h-full`}>
+        <div className={`${isMobile ? "p-2" : "p-8"} h-full`}>
           <div
             className={`grid ${isMobile ? "gap-2" : "gap-4"} h-full`}
             style={{
