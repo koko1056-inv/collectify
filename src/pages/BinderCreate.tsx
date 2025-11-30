@@ -23,9 +23,12 @@ export default function BinderCreate() {
 
     const layoutConfig = binderType === "card_pocket" ? { cols, rows } : {};
     
-    const newPage = await createPage.mutateAsync(title);
+    const newPage = await createPage.mutateAsync({
+      title,
+      binderType,
+      layoutConfig,
+    });
     
-    // バインダータイプを更新
     if (newPage) {
       navigate("/binder");
     }
