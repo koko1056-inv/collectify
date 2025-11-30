@@ -124,11 +124,17 @@ export function StickerPalette({ pageId }: StickerPaletteProps) {
                     onClick={() => handleAddSticker(sticker)}
                     title={sticker.name}
                   >
-                    <div
-                      className="w-full h-full flex items-center justify-center"
-                      style={{ color: selectedColor }}
-                      dangerouslySetInnerHTML={{ __html: sticker.svg_data || "" }}
-                    />
+                    {sticker.svg_data ? (
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        style={{ color: selectedColor }}
+                        dangerouslySetInnerHTML={{ __html: sticker.svg_data }}
+                      />
+                    ) : sticker.image_url ? (
+                      <div className="w-full h-full flex items-center justify-center text-4xl">
+                        {sticker.image_url}
+                      </div>
+                    ) : null}
                   </Button>
                 ))}
               </div>
