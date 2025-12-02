@@ -1,11 +1,6 @@
 import { useRef, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { 
-  PerspectiveCamera,
-  Float,
-  Html,
-  Stars
-} from "@react-three/drei";
+import { PerspectiveCamera, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
 
@@ -66,14 +61,12 @@ function PreviewItem({ item }: { item: RoomItem }) {
   if (!imageUrl) return null;
 
   return (
-    <Float speed={1} rotationIntensity={0.02} floatIntensity={0.1}>
-      <group position={[x, y, z]}>
-        <mesh ref={meshRef} scale={scale}>
-          <boxGeometry args={[1.5, 1.5, 0.1]} />
-          <meshStandardMaterial color="#ffffff" roughness={0.3} metalness={0.5} />
-        </mesh>
-      </group>
-    </Float>
+    <group position={[x, y, z]}>
+      <mesh ref={meshRef} scale={scale}>
+        <boxGeometry args={[1.5, 1.5, 0.1]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.3} metalness={0.5} />
+      </mesh>
+    </group>
   );
 }
 
@@ -131,7 +124,6 @@ function PreviewScene({ roomItems }: { roomItems: RoomItem[] }) {
       <directionalLight position={[5, 10, 5]} intensity={0.6} />
       
       <NeonAccents />
-      <Stars radius={50} depth={30} count={300} factor={3} fade speed={0.5} />
       
       <PreviewFloor />
       <PreviewWalls />
