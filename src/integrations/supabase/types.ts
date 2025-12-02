@@ -264,11 +264,14 @@ export type Database = {
           binder_type: string
           created_at: string
           id: string
+          is_main_room: boolean | null
+          is_public: boolean | null
           layout_config: Json | null
           page_order: number
           title: string
           updated_at: string
           user_id: string
+          visit_count: number | null
         }
         Insert: {
           background_color?: string | null
@@ -277,11 +280,14 @@ export type Database = {
           binder_type?: string
           created_at?: string
           id?: string
+          is_main_room?: boolean | null
+          is_public?: boolean | null
           layout_config?: Json | null
           page_order?: number
           title?: string
           updated_at?: string
           user_id: string
+          visit_count?: number | null
         }
         Update: {
           background_color?: string | null
@@ -290,11 +296,14 @@ export type Database = {
           binder_type?: string
           created_at?: string
           id?: string
+          is_main_room?: boolean | null
+          is_public?: boolean | null
           layout_config?: Json | null
           page_order?: number
           title?: string
           updated_at?: string
           user_id?: string
+          visit_count?: number | null
         }
         Relationships: [
           {
@@ -1493,6 +1502,81 @@ export type Database = {
           video_id?: string | null
         }
         Relationships: []
+      }
+      room_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_likes_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "binder_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_visits: {
+        Row: {
+          id: string
+          room_id: string
+          visit_date: string | null
+          visited_at: string | null
+          visitor_id: string
+        }
+        Insert: {
+          id?: string
+          room_id: string
+          visit_date?: string | null
+          visited_at?: string | null
+          visitor_id: string
+        }
+        Update: {
+          id?: string
+          room_id?: string
+          visit_date?: string | null
+          visited_at?: string | null
+          visitor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_visits_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "binder_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_visits_visitor_id_fkey"
+            columns: ["visitor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       scraped_images: {
         Row: {

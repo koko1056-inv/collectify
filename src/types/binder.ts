@@ -7,6 +7,9 @@ export interface BinderPage {
   page_order: number;
   binder_type: 'free_layout' | 'card_pocket';
   layout_config: Record<string, any>;
+  is_main_room?: boolean;
+  is_public?: boolean;
+  visit_count?: number;
   created_at: string;
   updated_at: string;
 }

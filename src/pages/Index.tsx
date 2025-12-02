@@ -9,7 +9,7 @@ import { OnboardingWalkthrough } from "@/components/onboarding/OnboardingWalkthr
 import { useOnboardingWalkthrough } from "@/hooks/useOnboardingWalkthrough";
 import { HomeContent } from "@/components/home/HomeContent";
 import { UserProfileCollection } from "@/components/home/UserProfileCollection";
-import { AvatarCenterHome } from "@/components/home/AvatarCenterHome";
+import { MyRoomHome } from "@/components/home/MyRoomHome";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
@@ -89,7 +89,7 @@ const Index = () => {
             />
           ) : showAvatarCenterHome ? (
             <>
-              <AvatarCenterHome 
+              <MyRoomHome 
                 profile={profile} 
                 onAvatarGenerated={handleAvatarGenerated}
               />
