@@ -1,10 +1,6 @@
 import { useRef, useState, Suspense } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { 
-  OrbitControls, 
-  PerspectiveCamera,
-  Html
-} from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
 
@@ -93,11 +89,9 @@ function NeonLight({ position, color }: { position: [number, number, number]; co
 function Item3D({ 
   item, 
   onClick,
-  isEditing 
 }: { 
   item: RoomItem; 
   onClick?: () => void;
-  isEditing?: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const groupRef = useRef<THREE.Group>(null);
@@ -144,40 +138,11 @@ function Item3D({
           roughness={0.3}
           metalness={0.5}
         />
-        {/* 画像をテクスチャとして適用 */}
-        <Html
-          position={[0, 0, 0.06]}
-          style={{
-            width: '100px',
-            height: '100px',
-            pointerEvents: 'none',
-          }}
-        >
-          <img 
-            src={imageUrl} 
-            alt={item.item_data?.title || "item"}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              borderRadius: '8px',
-            }}
-          />
-        </Html>
       </mesh>
       
       {/* ホバー時のグロー効果 */}
       {hovered && (
         <pointLight color="#a855f7" intensity={1} distance={3} />
-      )}
-      
-      {/* アイテム名 */}
-      {hovered && item.item_data?.title && (
-        <Html position={[0, 1.5, 0]} center>
-          <div className="bg-black/80 text-white px-3 py-1 rounded-full text-sm whitespace-nowrap backdrop-blur-sm">
-            {item.item_data.title}
-          </div>
-        </Html>
       )}
     </group>
   );
@@ -203,26 +168,6 @@ function Avatar3D({ avatarUrl }: { avatarUrl: string }) {
       >
         <cylinderGeometry args={[1, 1, 0.1, 32]} />
         <meshStandardMaterial color="#ffffff" />
-        <Html
-          position={[0, 0.06, 0]}
-          style={{
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-          }}
-        >
-          <img 
-            src={avatarUrl} 
-            alt="avatar"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius: '50%',
-            }}
-          />
-        </Html>
       </mesh>
       
       {/* アバターの光 */}
@@ -248,8 +193,8 @@ function Furniture() {
       </mesh>
       
       {/* テーブルの脚 */}
-      {[[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([x, z], i) => (
-        <mesh key={i} position={[5 + x * 1.2, 0.35, z * 0.8]} castShadow>
+      {[[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([legX, legZ], i) => (
+        <mesh key={i} position={[5 + legX * 1.2, 0.35, legZ * 0.8]} castShadow>
           <cylinderGeometry args={[0.08, 0.08, 0.7]} />
           <meshStandardMaterial color="#2d2d4a" />
         </mesh>
@@ -269,7 +214,6 @@ function CameraController() {
       maxDistance={25}
       minPolarAngle={Math.PI / 6}
       maxPolarAngle={Math.PI / 2.5}
-      target={[0, 0, 0]}
     />
   );
 }
@@ -279,7 +223,6 @@ function Scene({
   roomItems, 
   backgroundColor, 
   onItemClick,
-  isEditing,
   avatarUrl
 }: Room3DSceneProps) {
   return (
@@ -292,8 +235,6 @@ function Scene({
         position={[10, 15, 10]}
         intensity={0.8}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
       />
       
       {/* ネオンライト */}
@@ -313,7 +254,6 @@ function Scene({
           key={item.id} 
           item={item} 
           onClick={() => onItemClick?.(item)}
-          isEditing={isEditing}
         />
       ))}
       
@@ -326,38 +266,30 @@ function Scene({
   );
 }
 
-// ローディング表示
-function Loader() {
+// ローディング表示（React DOM）
+function LoaderOverlay() {
   return (
-    <Html center>
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-white text-sm">ルームを読み込み中...</p>
-      </div>
-    </Html>
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0f0f23]">
+      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <p className="text-white text-sm mt-4">ルームを読み込み中...</p>
+    </div>
   );
 }
 
 export function Room3DScene(props: Room3DSceneProps) {
   return (
-    <div className="w-full h-full min-h-[400px] bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] rounded-2xl overflow-hidden">
-      <Canvas
-        shadows
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: false }}
-      >
-        <PerspectiveCamera 
-          makeDefault 
-          position={[12, 12, 12]} 
-          fov={50}
-        />
-        <color attach="background" args={["#0f0f23"]} />
-        <fog attach="fog" args={["#0f0f23", 20, 50]} />
-        
-        <Suspense fallback={<Loader />}>
+    <div className="relative w-full h-full min-h-[400px] bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] rounded-2xl overflow-hidden">
+      <Suspense fallback={<LoaderOverlay />}>
+        <Canvas
+          shadows
+          dpr={[1, 2]}
+          gl={{ antialias: true, alpha: false }}
+          style={{ background: '#0f0f23' }}
+          camera={{ position: [12, 12, 12], fov: 50 }}
+        >
           <Scene {...props} />
-        </Suspense>
-      </Canvas>
+        </Canvas>
+      </Suspense>
     </div>
   );
 }
