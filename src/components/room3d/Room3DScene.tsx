@@ -148,8 +148,6 @@ function Item3D({
           />
           {/* 画像をテクスチャとして適用 */}
           <Html
-            transform
-            occlude
             position={[0, 0, 0.06]}
             style={{
               width: '100px',
@@ -203,10 +201,7 @@ function Avatar3D({ avatarUrl }: { avatarUrl: string }) {
           <cylinderGeometry args={[1, 1, 0.1, 32]} />
           <meshStandardMaterial color="#ffffff" />
           <Html
-            transform
-            occlude
             position={[0, 0.06, 0]}
-            rotation={[-Math.PI / 2, 0, 0]}
             style={{
               width: '80px',
               height: '80px',
