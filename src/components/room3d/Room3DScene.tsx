@@ -3,12 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { 
   OrbitControls, 
   PerspectiveCamera,
-  Environment,
   Float,
-  Text3D,
-  Center,
-  useTexture,
-  RoundedBox,
   Html,
   Stars
 } from "@react-three/drei";
@@ -244,14 +239,16 @@ function Furniture() {
   return (
     <group>
       {/* 棚 */}
-      <RoundedBox args={[4, 3, 0.5]} position={[-8, 1.5, -8]} radius={0.05} castShadow>
+      <mesh position={[-8, 1.5, -8]} castShadow>
+        <boxGeometry args={[4, 3, 0.5]} />
         <meshStandardMaterial color="#2d2d4a" roughness={0.7} />
-      </RoundedBox>
+      </mesh>
       
       {/* テーブル */}
-      <RoundedBox args={[3, 0.2, 2]} position={[5, 0.8, 0]} radius={0.05} castShadow>
+      <mesh position={[5, 0.8, 0]} castShadow>
+        <boxGeometry args={[3, 0.2, 2]} />
         <meshStandardMaterial color="#3d3d5a" roughness={0.6} />
-      </RoundedBox>
+      </mesh>
       
       {/* テーブルの脚 */}
       {[[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([x, z], i) => (

@@ -1,11 +1,10 @@
-import { useRef, useState, Suspense } from "react";
+import { useRef, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { 
   PerspectiveCamera,
   Float,
   Html,
-  Stars,
-  RoundedBox
+  Stars
 } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
@@ -138,9 +137,10 @@ function PreviewScene({ roomItems }: { roomItems: RoomItem[] }) {
       <PreviewWalls />
       
       {/* 装飾的なボックス */}
-      <RoundedBox args={[2, 1.5, 0.3]} position={[-4, 0.75, -3]} radius={0.05}>
+      <mesh position={[-4, 0.75, -3]}>
+        <boxGeometry args={[2, 1.5, 0.3]} />
         <meshStandardMaterial color="#2d2d4a" />
-      </RoundedBox>
+      </mesh>
       
       {roomItems.slice(0, 6).map((item) => (
         <PreviewItem key={item.id} item={item} />
