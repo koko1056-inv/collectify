@@ -58,12 +58,10 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
         <p className="text-muted-foreground">プロフィールを読み込み中...</p>
       </div>
     );
-  }
+   }
 
   const handleEditRoom = () => {
-    if (mainRoom) {
-      navigate(`/binder?edit=${mainRoom.id}`);
-    }
+    setShowFullscreenRoom(true);
   };
 
   // フルスクリーン3Dルームモード
@@ -335,7 +333,7 @@ function Room3DView({
             variant="outline" 
             size="sm" 
             className="gap-2"
-            onClick={() => navigate("/binder")}
+            onClick={() => navigate("/rooms/explore")}
           >
             <Users className="w-4 h-4" />
             他の部屋を見る

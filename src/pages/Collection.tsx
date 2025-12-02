@@ -7,7 +7,7 @@ import { useTags } from "@/hooks/useTags";
 import { useAuth } from "@/contexts/AuthContext";
 import { FilterBar } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
-import { BookOpen } from "lucide-react";
+import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function Collection() {
@@ -56,14 +56,14 @@ export default function Collection() {
         </div>
       </main>
       
-      {/* モバイル用のフローティングバインダーボタン */}
+      {/* モバイル用のフローティングルームボタン */}
       {isMobile && (
         <Button
-          onClick={() => navigate("/binder")}
+          onClick={() => navigate("/rooms/explore")}
           className="fixed bottom-20 right-4 z-40 shadow-lg rounded-full w-14 h-14 p-0"
           size="icon"
         >
-          <BookOpen className="w-6 h-6" />
+          <Home className="w-6 h-6" />
         </Button>
       )}
       
