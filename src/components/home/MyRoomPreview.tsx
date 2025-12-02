@@ -188,7 +188,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
             variant="outline" 
             size="sm" 
             className="gap-2"
-            onClick={() => navigate("/binder")}
+            onClick={() => navigate("/rooms/explore")}
           >
             <Users className="w-4 h-4" />
             他の部屋を見る

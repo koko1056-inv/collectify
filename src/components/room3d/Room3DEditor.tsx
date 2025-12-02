@@ -5,17 +5,14 @@ import {
   Home, 
   Heart, 
   Eye, 
-  Pencil, 
   Plus, 
-  Sparkles,
-  RotateCcw,
-  ZoomIn,
-  ZoomOut,
-  Move,
   Layers,
   X,
   Share2,
-  Settings
+  Trash2,
+  Move3D,
+  RotateCw,
+  Scale
 } from "lucide-react";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,9 +20,10 @@ import { Profile } from "@/types";
 import { cn } from "@/lib/utils";
 import { Room3DScene } from "./Room3DScene";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Slider } from "@/components/ui/slider";
 
 interface Room3DEditorProps {
   profile: Profile | undefined;
@@ -74,6 +72,8 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     toast.info(`${item.item_data?.title || "アイテム"}を選択しました`);
   }, []);
 
+  const queryClient = useQueryClient();
+
   const handleAddItem = useCallback(async (userItem: typeof userItems[0]) => {
     if (!mainRoom?.id) return;
     
@@ -83,8 +83,8 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
         .insert({
           binder_page_id: mainRoom.id,
           user_item_id: userItem.id,
-          position_x: 50,
-          position_y: 50,
+          position_x: Math.random() * 60 + 20, // ランダム配置
+          position_y: Math.random() * 60 + 20,
           width: 100,
           height: 100,
           rotation: 0,
@@ -94,11 +94,29 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       if (error) throw error;
       toast.success("アイテムを追加しました！");
       setShowItemPalette(false);
+      queryClient.invalidateQueries({ queryKey: ["room-items"] });
     } catch (error) {
       console.error("Error adding item:", error);
       toast.error("アイテムの追加に失敗しました");
     }
-  }, [mainRoom?.id, roomItems.length]);
+  }, [mainRoom?.id, roomItems.length, queryClient]);
+
+  const handleDeleteItem = useCallback(async (itemId: string) => {
+    try {
+      const { error } = await supabase
+        .from("binder_items")
+        .delete()
+        .eq("id", itemId);
+      
+      if (error) throw error;
+      toast.success("アイテムを削除しました");
+      setSelectedItem(null);
+      queryClient.invalidateQueries({ queryKey: ["room-items"] });
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      toast.error("削除に失敗しました");
+    }
+  }, [queryClient]);
 
   // ルームがない場合の作成画面
   if (!isLoading && !mainRoom && user) {
@@ -221,16 +239,20 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             <Plus className="w-4 h-4" />
             アイテム追加
           </Button>
-          <div className="w-px h-6 bg-white/20" />
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-white hover:bg-white/10 gap-2"
-            onClick={() => navigate(`/binder?edit=${mainRoom?.id}`)}
-          >
-            <Pencil className="w-4 h-4" />
-            詳細編集
-          </Button>
+          {selectedItem && (
+            <>
+              <div className="w-px h-6 bg-white/20" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-white hover:bg-white/10 gap-2"
+                onClick={() => handleDeleteItem(selectedItem.id)}
+              >
+                <Trash2 className="w-4 h-4" />
+                削除
+              </Button>
+            </>
+          )}
         </div>
       )}
 
