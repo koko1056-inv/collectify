@@ -1,19 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBinder } from "@/hooks/useBinder";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, Pencil, Trash2, Grid3x3 } from "lucide-react";
+import { Plus, BookOpen, Pencil, Trash2, Grid3x3, Home } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { BinderEditor } from "@/components/binder/BinderEditor";
 import { BinderPagePreview } from "@/components/binder/BinderPagePreview";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 export default function Binder() {
   const {
     user
   } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const editPageId = searchParams.get("edit");
   const {
     binderPages,
     isLoadingPages,
@@ -21,6 +23,17 @@ export default function Binder() {
   } = useBinder();
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  
+  // URLパラメータから編集モードに入る
+  useEffect(() => {
+    if (editPageId && !selectedPageId) {
+      setSelectedPageId(editPageId);
+      setIsPreviewMode(false);
+      // URLパラメータをクリア
+      setSearchParams({});
+    }
+  }, [editPageId, selectedPageId, setSearchParams]);
+  
   if (!user) {
     return <Navigate to="/login" />;
   }
@@ -95,7 +108,13 @@ export default function Binder() {
                     </div>
                     
                     {/* Page type badge */}
-                    <div className="absolute bottom-2 left-2 z-10">
+                    <div className="absolute bottom-2 left-2 z-10 flex gap-1">
+                      {(page as any).is_main_room && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium shadow-sm">
+                          <Home className="w-3 h-3" />
+                          メイン
+                        </span>
+                      )}
                       <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-medium text-gray-700 shadow-sm">
                         {page.binder_type === "free_layout" ? <>
                             <BookOpen className="w-3 h-3" />
