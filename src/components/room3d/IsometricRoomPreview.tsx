@@ -1,6 +1,5 @@
 import { useRef, Suspense } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { PerspectiveCamera, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
 
@@ -57,9 +56,6 @@ function PreviewItem({ item }: { item: RoomItem }) {
     }
   });
 
-  const imageUrl = item.custom_image_url || item.item_data?.image;
-  if (!imageUrl) return null;
-
   return (
     <group position={[x, y, z]}>
       <mesh ref={meshRef} scale={scale}>
@@ -107,9 +103,8 @@ function AutoRotateCamera() {
   });
 
   return (
-    <PerspectiveCamera 
+    <perspectiveCamera 
       ref={cameraRef}
-      makeDefault 
       position={[8, 8, 8]} 
       fov={40}
     />
@@ -143,12 +138,12 @@ function PreviewScene({ roomItems }: { roomItems: RoomItem[] }) {
   );
 }
 
-// ローダー
-function Loader() {
+// ローダー（React DOM要素として）
+function LoaderOverlay() {
   return (
-    <Html center>
+    <div className="absolute inset-0 flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-    </Html>
+    </div>
   );
 }
 
@@ -162,19 +157,17 @@ export function IsometricRoomPreview({
       className={`relative overflow-hidden rounded-2xl bg-[#0f0f23] cursor-pointer group ${className}`}
       onClick={onClick}
     >
-      <Canvas
-        shadows
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: false }}
-        style={{ touchAction: 'none' }}
-      >
-        <color attach="background" args={["#0f0f23"]} />
-        <fog attach="fog" args={["#0f0f23", 15, 30]} />
-        
-        <Suspense fallback={<Loader />}>
+      <Suspense fallback={<LoaderOverlay />}>
+        <Canvas
+          shadows
+          dpr={[1, 2]}
+          gl={{ antialias: true, alpha: false }}
+          style={{ touchAction: 'none', background: '#0f0f23' }}
+          camera={{ position: [8, 8, 8], fov: 40 }}
+        >
           <PreviewScene roomItems={roomItems} />
-        </Suspense>
-      </Canvas>
+        </Canvas>
+      </Suspense>
       
       {/* ホバーオーバーレイ */}
       <div className="absolute inset-0 bg-purple-500/0 group-hover:bg-purple-500/10 transition-colors pointer-events-none" />
