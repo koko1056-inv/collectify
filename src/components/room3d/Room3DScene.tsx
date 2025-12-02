@@ -3,9 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { 
   OrbitControls, 
   PerspectiveCamera,
-  Float,
-  Html,
-  Stars
+  Html
 } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
@@ -102,12 +100,13 @@ function Item3D({
   isEditing?: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   
   // 位置を3D空間に変換（パーセンテージから3D座標へ）
   const x = (item.position_x / 100) * 16 - 8;
   const z = (item.position_y / 100) * 16 - 8;
-  const y = 0.5 + (item.z_index * 0.1);
+  const baseY = 0.5 + (item.z_index * 0.1);
   
   // サイズをスケールに変換
   const scale = Math.min(item.width, item.height) / 100;
@@ -116,6 +115,10 @@ function Item3D({
     if (meshRef.current && hovered) {
       meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 2) * 0.1;
     }
+    // フローティングアニメーション
+    if (groupRef.current) {
+      groupRef.current.position.y = baseY + Math.sin(state.clock.elapsedTime + x) * 0.05;
+    }
   });
 
   const imageUrl = item.custom_image_url || item.item_data?.image;
@@ -123,109 +126,108 @@ function Item3D({
   if (!imageUrl) return null;
 
   return (
-    <Float 
-      speed={hovered ? 4 : 1} 
-      rotationIntensity={hovered ? 0.2 : 0.05} 
-      floatIntensity={hovered ? 0.5 : 0.2}
-    >
-      <group position={[x, y, z]}>
-        <mesh
-          ref={meshRef}
-          onClick={(e) => {
-            e.stopPropagation();
-            onClick?.();
+    <group ref={groupRef} position={[x, baseY, z]}>
+      <mesh
+        ref={meshRef}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.();
+        }}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+        castShadow
+        scale={hovered ? scale * 1.1 : scale}
+      >
+        <boxGeometry args={[2, 2, 0.1]} />
+        <meshStandardMaterial 
+          color={hovered ? "#ffffff" : "#f0f0f0"}
+          roughness={0.3}
+          metalness={0.5}
+        />
+        {/* 画像をテクスチャとして適用 */}
+        <Html
+          position={[0, 0, 0.06]}
+          style={{
+            width: '100px',
+            height: '100px',
+            pointerEvents: 'none',
           }}
-          onPointerOver={() => setHovered(true)}
-          onPointerOut={() => setHovered(false)}
-          castShadow
-          scale={hovered ? scale * 1.1 : scale}
         >
-          <boxGeometry args={[2, 2, 0.1]} />
-          <meshStandardMaterial 
-            color={hovered ? "#ffffff" : "#f0f0f0"}
-            roughness={0.3}
-            metalness={0.5}
-          />
-          {/* 画像をテクスチャとして適用 */}
-          <Html
-            position={[0, 0, 0.06]}
+          <img 
+            src={imageUrl} 
+            alt={item.item_data?.title || "item"}
             style={{
-              width: '100px',
-              height: '100px',
-              pointerEvents: 'none',
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              borderRadius: '8px',
             }}
-          >
-            <img 
-              src={imageUrl} 
-              alt={item.item_data?.title || "item"}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                borderRadius: '8px',
-              }}
-            />
-          </Html>
-        </mesh>
-        
-        {/* ホバー時のグロー効果 */}
-        {hovered && (
-          <pointLight color="#a855f7" intensity={1} distance={3} />
-        )}
-        
-        {/* アイテム名 */}
-        {hovered && item.item_data?.title && (
-          <Html position={[0, 1.5, 0]} center>
-            <div className="bg-black/80 text-white px-3 py-1 rounded-full text-sm whitespace-nowrap backdrop-blur-sm">
-              {item.item_data.title}
-            </div>
-          </Html>
-        )}
-      </group>
-    </Float>
+          />
+        </Html>
+      </mesh>
+      
+      {/* ホバー時のグロー効果 */}
+      {hovered && (
+        <pointLight color="#a855f7" intensity={1} distance={3} />
+      )}
+      
+      {/* アイテム名 */}
+      {hovered && item.item_data?.title && (
+        <Html position={[0, 1.5, 0]} center>
+          <div className="bg-black/80 text-white px-3 py-1 rounded-full text-sm whitespace-nowrap backdrop-blur-sm">
+            {item.item_data.title}
+          </div>
+        </Html>
+      )}
+    </group>
   );
 }
 
 // アバター3D表示
 function Avatar3D({ avatarUrl }: { avatarUrl: string }) {
   const [hovered, setHovered] = useState(false);
+  const groupRef = useRef<THREE.Group>(null);
+  
+  useFrame((state) => {
+    if (groupRef.current) {
+      groupRef.current.position.y = 1 + Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+    }
+  });
   
   return (
-    <Float speed={2} rotationIntensity={0.1} floatIntensity={0.3}>
-      <group position={[0, 1, 5]}>
-        <mesh
-          onPointerOver={() => setHovered(true)}
-          onPointerOut={() => setHovered(false)}
-          scale={hovered ? 1.1 : 1}
+    <group ref={groupRef} position={[0, 1, 5]}>
+      <mesh
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+        scale={hovered ? 1.1 : 1}
+      >
+        <cylinderGeometry args={[1, 1, 0.1, 32]} />
+        <meshStandardMaterial color="#ffffff" />
+        <Html
+          position={[0, 0.06, 0]}
+          style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+          }}
         >
-          <cylinderGeometry args={[1, 1, 0.1, 32]} />
-          <meshStandardMaterial color="#ffffff" />
-          <Html
-            position={[0, 0.06, 0]}
+          <img 
+            src={avatarUrl} 
+            alt="avatar"
             style={{
-              width: '80px',
-              height: '80px',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
               borderRadius: '50%',
-              overflow: 'hidden',
             }}
-          >
-            <img 
-              src={avatarUrl} 
-              alt="avatar"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                borderRadius: '50%',
-              }}
-            />
-          </Html>
-        </mesh>
-        
-        {/* アバターの光 */}
-        <pointLight color="#a855f7" intensity={1} distance={3} position={[0, 1, 0]} />
-      </group>
-    </Float>
+          />
+        </Html>
+      </mesh>
+      
+      {/* アバターの光 */}
+      <pointLight color="#a855f7" intensity={1} distance={3} position={[0, 1, 0]} />
+    </group>
   );
 }
 
@@ -258,12 +260,6 @@ function Furniture() {
 
 // カメラコントローラー
 function CameraController() {
-  const { camera } = useThree();
-  
-  useFrame(() => {
-    // アイソメトリック風のカメラ角度を維持
-  });
-
   return (
     <OrbitControls
       enablePan={true}
@@ -304,9 +300,6 @@ function Scene({
       <NeonLight position={[-8, 4, -8]} color="#a855f7" />
       <NeonLight position={[8, 4, -8]} color="#3b82f6" />
       <NeonLight position={[0, 5, -9]} color="#ec4899" />
-      
-      {/* 星空背景 */}
-      <Stars radius={100} depth={50} count={1000} factor={4} fade speed={1} />
       
       {/* 部屋の構造 */}
       <RoomFloor backgroundColor={backgroundColor || undefined} />
