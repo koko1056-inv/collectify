@@ -12,7 +12,8 @@ import {
   Trash2,
   Square,
   PanelLeft,
-  PanelTop
+  PanelTop,
+  Palette
 } from "lucide-react";
 import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,10 +21,22 @@ import { Profile } from "@/types";
 import { cn } from "@/lib/utils";
 import { Room3DScene } from "./Room3DScene";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+// 背景プリセット
+const BACKGROUND_PRESETS = [
+  { id: 'cyber', name: 'サイバー', color: '#0f0f23', gradient: 'from-[#0f0f23] to-[#1a1a2e]' },
+  { id: 'sunset', name: 'サンセット', color: '#1a0a0f', gradient: 'from-[#1a0a0f] to-[#2d1a1f]' },
+  { id: 'forest', name: 'フォレスト', color: '#0a1a0f', gradient: 'from-[#0a1a0f] to-[#1a2d1f]' },
+  { id: 'ocean', name: 'オーシャン', color: '#0a0f1a', gradient: 'from-[#0a0f1a] to-[#1a2d3f]' },
+  { id: 'pink', name: 'ピンク', color: '#1a0a1a', gradient: 'from-[#1a0a1a] to-[#2d1a2d]' },
+  { id: 'midnight', name: 'ミッドナイト', color: '#050510', gradient: 'from-[#050510] to-[#101025]' },
+  { id: 'warm', name: 'ウォーム', color: '#1a1408', gradient: 'from-[#1a1408] to-[#2d2410]' },
+  { id: 'cool', name: 'クール', color: '#081418', gradient: 'from-[#081418] to-[#102428]' },
+];
 
 interface Room3DEditorProps {
   profile: Profile | undefined;
@@ -35,6 +48,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showItemPalette, setShowItemPalette] = useState(false);
+  const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RoomItem | null>(null);
   const [selectedPlacement, setSelectedPlacement] = useState<PlacementType>('floor');
   
@@ -138,6 +152,28 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       toast.error("削除に失敗しました");
     }
   }, [queryClient]);
+
+  // 背景を変更
+  const updateBackground = useMutation({
+    mutationFn: async (backgroundColor: string) => {
+      if (!mainRoom?.id) throw new Error("Room not found");
+      
+      const { error } = await supabase
+        .from("binder_pages")
+        .update({ background_color: backgroundColor })
+        .eq("id", mainRoom.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("背景を変更しました");
+      setShowBackgroundPicker(false);
+      queryClient.invalidateQueries({ queryKey: ["main-room"] });
+    },
+    onError: () => {
+      toast.error("背景の変更に失敗しました");
+    }
+  });
 
   // ルームがない場合の作成画面
   if (!isLoading && !mainRoom && user) {
@@ -260,6 +296,16 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             <Plus className="w-4 h-4" />
             アイテム追加
           </Button>
+          <div className="w-px h-6 bg-white/20" />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-white hover:bg-white/10 gap-2"
+            onClick={() => setShowBackgroundPicker(true)}
+          >
+            <Palette className="w-4 h-4" />
+            背景
+          </Button>
           {selectedItem && (
             <>
               <div className="w-px h-6 bg-white/20" />
@@ -346,6 +392,43 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
                 </Button>
               </div>
             )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* 背景選択シート */}
+      <Sheet open={showBackgroundPicker} onOpenChange={setShowBackgroundPicker}>
+        <SheetContent side="bottom" className="h-[50vh]">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Palette className="w-5 h-5" />
+              背景テーマを選択
+            </SheetTitle>
+          </SheetHeader>
+          
+          <div className="grid grid-cols-4 sm:grid-cols-4 gap-4 mt-6">
+            {BACKGROUND_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                onClick={() => updateBackground.mutate(preset.color)}
+                disabled={updateBackground.isPending}
+                className={cn(
+                  "aspect-square rounded-xl overflow-hidden border-2 transition-all hover:scale-105 flex flex-col items-center justify-center",
+                  mainRoom?.background_color === preset.color 
+                    ? "border-primary ring-2 ring-primary/50" 
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <div className={cn(
+                  "w-full h-full bg-gradient-to-br flex items-center justify-center",
+                  preset.gradient
+                )}>
+                  <span className="text-white/80 text-xs font-medium drop-shadow-lg">
+                    {preset.name}
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
         </SheetContent>
       </Sheet>
