@@ -85,7 +85,7 @@ function NeonLight({ position, color }: { position: [number, number, number]; co
   );
 }
 
-// 3Dアイテム
+// 3Dアイテム（床・壁対応）
 function Item3D({ 
   item, 
   onClick,
@@ -97,21 +97,52 @@ function Item3D({
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   
-  // 位置を3D空間に変換（パーセンテージから3D座標へ）
-  const x = (item.position_x / 100) * 16 - 8;
-  const z = (item.position_y / 100) * 16 - 8;
-  const baseY = 0.5 + (item.z_index * 0.1);
-  
-  // サイズをスケールに変換
+  const placement = item.placement || 'floor';
   const scale = Math.min(item.width, item.height) / 100;
+  
+  // 配置場所に応じた位置と回転を計算
+  const getPositionAndRotation = () => {
+    const posX = (item.position_x / 100);
+    const posY = (item.position_y / 100);
+    
+    switch (placement) {
+      case 'back_wall':
+        // 後ろの壁（z = -10付近）
+        return {
+          position: [posX * 16 - 8, posY * 4 + 1, -9.9] as [number, number, number],
+          rotation: [0, 0, 0] as [number, number, number],
+        };
+      case 'left_wall':
+        // 左の壁（x = -10付近）
+        return {
+          position: [-9.9, posY * 4 + 1, posX * 16 - 8] as [number, number, number],
+          rotation: [0, Math.PI / 2, 0] as [number, number, number],
+        };
+      default:
+        // 床
+        return {
+          position: [posX * 16 - 8, 0.5 + (item.z_index * 0.1), posY * 16 - 8] as [number, number, number],
+          rotation: [-Math.PI / 2, 0, 0] as [number, number, number],
+        };
+    }
+  };
+  
+  const { position, rotation } = getPositionAndRotation();
+  const baseY = position[1];
 
   useFrame((state) => {
     if (meshRef.current && hovered) {
-      meshRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 2) * 0.1;
+      // ホバー時の微小な揺れ
+      const wobble = Math.sin(state.clock.elapsedTime * 3) * 0.02;
+      if (placement === 'floor') {
+        meshRef.current.rotation.z = wobble;
+      } else {
+        meshRef.current.rotation.z = wobble;
+      }
     }
-    // フローティングアニメーション
-    if (groupRef.current) {
-      groupRef.current.position.y = baseY + Math.sin(state.clock.elapsedTime + x) * 0.05;
+    // 床のアイテムのみフローティング
+    if (groupRef.current && placement === 'floor') {
+      groupRef.current.position.y = baseY + Math.sin(state.clock.elapsedTime + position[0]) * 0.05;
     }
   });
 
@@ -120,7 +151,7 @@ function Item3D({
   if (!imageUrl) return null;
 
   return (
-    <group ref={groupRef} position={[x, baseY, z]}>
+    <group ref={groupRef} position={position} rotation={rotation}>
       <mesh
         ref={meshRef}
         onClick={(e) => {
@@ -132,11 +163,12 @@ function Item3D({
         castShadow
         scale={hovered ? scale * 1.1 : scale}
       >
-        <boxGeometry args={[2, 2, 0.1]} />
+        <planeGeometry args={[2, 2]} />
         <meshStandardMaterial 
           color={hovered ? "#ffffff" : "#f0f0f0"}
           roughness={0.3}
           metalness={0.5}
+          side={THREE.DoubleSide}
         />
       </mesh>
       

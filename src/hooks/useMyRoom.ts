@@ -19,6 +19,8 @@ export interface MyRoom {
   updated_at: string;
 }
 
+export type PlacementType = 'floor' | 'back_wall' | 'left_wall';
+
 export interface RoomItem {
   id: string;
   binder_page_id: string;
@@ -31,6 +33,7 @@ export interface RoomItem {
   height: number;
   rotation: number;
   z_index: number;
+  placement?: PlacementType;
   item_data?: {
     id: string;
     title: string;
@@ -97,7 +100,13 @@ export function useMyRoom(userId?: string) {
             itemData = data;
           }
 
-          return { ...item, item_data: itemData } as RoomItem;
+          // rotationからplacementをデコード (0=floor, 90=back_wall, 180=left_wall)
+          const placement: PlacementType = 
+            item.rotation === 90 ? 'back_wall' : 
+            item.rotation === 180 ? 'left_wall' : 
+            'floor';
+
+          return { ...item, item_data: itemData, placement } as RoomItem;
         })
       );
 
