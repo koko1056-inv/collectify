@@ -10,20 +10,20 @@ import {
   X,
   Share2,
   Trash2,
-  Move3D,
-  RotateCw,
-  Scale
+  Square,
+  PanelLeft,
+  PanelTop
 } from "lucide-react";
-import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
+import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Profile } from "@/types";
 import { cn } from "@/lib/utils";
 import { Room3DScene } from "./Room3DScene";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Slider } from "@/components/ui/slider";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface Room3DEditorProps {
   profile: Profile | undefined;
@@ -36,6 +36,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
   const navigate = useNavigate();
   const [showItemPalette, setShowItemPalette] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RoomItem | null>(null);
+  const [selectedPlacement, setSelectedPlacement] = useState<PlacementType>('floor');
   
   const { 
     mainRoom, 
@@ -74,25 +75,45 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
 
   const queryClient = useQueryClient();
 
-  const handleAddItem = useCallback(async (userItem: typeof userItems[0]) => {
+  const handleAddItem = useCallback(async (userItem: typeof userItems[0], placement: PlacementType) => {
     if (!mainRoom?.id) return;
     
+    // 配置場所に応じた初期位置を設定
+    const getInitialPosition = () => {
+      switch (placement) {
+        case 'back_wall':
+          return { x: Math.random() * 60 + 20, y: Math.random() * 60 + 20 };
+        case 'left_wall':
+          return { x: Math.random() * 60 + 20, y: Math.random() * 60 + 20 };
+        default:
+          return { x: Math.random() * 60 + 20, y: Math.random() * 60 + 20 };
+      }
+    };
+    
+    const pos = getInitialPosition();
+    
     try {
+      // Note: placement will be stored in a JSON field or we use z_index as a workaround
+      // For now, encoding placement in the rotation field (0=floor, 90=back_wall, 180=left_wall)
+      const placementRotation = placement === 'floor' ? 0 : placement === 'back_wall' ? 90 : 180;
+      
       const { error } = await supabase
         .from("binder_items")
         .insert({
           binder_page_id: mainRoom.id,
           user_item_id: userItem.id,
-          position_x: Math.random() * 60 + 20, // ランダム配置
-          position_y: Math.random() * 60 + 20,
+          position_x: pos.x,
+          position_y: pos.y,
           width: 100,
           height: 100,
-          rotation: 0,
+          rotation: placementRotation,
           z_index: roomItems.length,
         });
       
       if (error) throw error;
-      toast.success("アイテムを追加しました！");
+      
+      const placementNames = { floor: '床', back_wall: '後ろの壁', left_wall: '左の壁' };
+      toast.success(`${placementNames[placement]}にアイテムを追加しました！`);
       setShowItemPalette(false);
       queryClient.invalidateQueries({ queryKey: ["room-items"] });
     } catch (error) {
@@ -265,7 +286,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
 
       {/* アイテムパレットシート */}
       <Sheet open={showItemPalette} onOpenChange={setShowItemPalette}>
-        <SheetContent side="bottom" className="h-[60vh]">
+        <SheetContent side="bottom" className="h-[70vh]">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <Layers className="w-5 h-5" />
@@ -273,11 +294,35 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             </SheetTitle>
           </SheetHeader>
           
-          <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 overflow-y-auto max-h-[calc(60vh-100px)]">
+          {/* 配置場所選択 */}
+          <div className="mt-4 mb-4">
+            <p className="text-sm text-muted-foreground mb-2">配置場所を選択:</p>
+            <ToggleGroup 
+              type="single" 
+              value={selectedPlacement} 
+              onValueChange={(v) => v && setSelectedPlacement(v as PlacementType)}
+              className="justify-start"
+            >
+              <ToggleGroupItem value="floor" aria-label="床" className="gap-2">
+                <Square className="w-4 h-4" />
+                床
+              </ToggleGroupItem>
+              <ToggleGroupItem value="back_wall" aria-label="後ろの壁" className="gap-2">
+                <PanelTop className="w-4 h-4" />
+                後ろの壁
+              </ToggleGroupItem>
+              <ToggleGroupItem value="left_wall" aria-label="左の壁" className="gap-2">
+                <PanelLeft className="w-4 h-4" />
+                左の壁
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+          
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 overflow-y-auto max-h-[calc(70vh-180px)]">
             {userItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => handleAddItem(item)}
+                onClick={() => handleAddItem(item, selectedPlacement)}
                 className="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-primary transition-all hover:scale-105 bg-muted"
               >
                 <img 
