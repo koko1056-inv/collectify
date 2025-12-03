@@ -257,14 +257,24 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
         
         <div className="flex items-center gap-2">
           {isOwnRoom && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="text-white hover:bg-white/10"
-              onClick={() => setShowBackgroundPicker(true)}
-            >
-              <Palette className="w-5 h-5" />
-            </Button>
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:bg-white/10"
+                onClick={() => setShowItemPalette(true)}
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:bg-white/10"
+                onClick={() => setShowBackgroundPicker(true)}
+              >
+                <Palette className="w-5 h-5" />
+              </Button>
+            </>
           )}
           <Button 
             variant="ghost" 
@@ -294,32 +304,18 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
         />
       </div>
 
-      {/* 編集ツールバー（自分のルームの場合のみ） */}
-      {isOwnRoom && (
+      {/* 編集ツールバー（選択アイテムがある場合のみ） */}
+      {isOwnRoom && selectedItem && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md rounded-full px-4 py-2">
           <Button 
             variant="ghost" 
             size="sm" 
             className="text-white hover:bg-white/10 gap-2"
-            onClick={() => setShowItemPalette(true)}
+            onClick={() => handleDeleteItem(selectedItem.id)}
           >
-            <Plus className="w-4 h-4" />
-            アイテム追加
+            <Trash2 className="w-4 h-4" />
+            削除
           </Button>
-          {selectedItem && (
-            <>
-              <div className="w-px h-6 bg-white/20" />
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-white hover:bg-white/10 gap-2"
-                onClick={() => handleDeleteItem(selectedItem.id)}
-              >
-                <Trash2 className="w-4 h-4" />
-                削除
-              </Button>
-            </>
-          )}
         </div>
       )}
 
