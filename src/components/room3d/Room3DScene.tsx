@@ -1,5 +1,5 @@
-import { useRef, useState, Suspense } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { useRef, useState, Suspense, useEffect } from "react";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
@@ -85,17 +85,37 @@ function NeonLight({ position, color }: { position: [number, number, number]; co
   );
 }
 
-// 3Dアイテム（床・壁対応）
-function Item3D({ 
+// テクスチャ付きアイテム
+function ItemWithTexture({ 
   item, 
   onClick,
+  imageUrl,
 }: { 
   item: RoomItem; 
   onClick?: () => void;
+  imageUrl: string;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  
+  // テクスチャを読み込み
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    loader.crossOrigin = 'anonymous';
+    loader.load(
+      imageUrl,
+      (loadedTexture) => {
+        loadedTexture.colorSpace = THREE.SRGBColorSpace;
+        setTexture(loadedTexture);
+      },
+      undefined,
+      (error) => {
+        console.error('Failed to load texture:', error);
+      }
+    );
+  }, [imageUrl]);
   
   const placement = item.placement || 'floor';
   const scale = Math.min(item.width, item.height) / 100;
@@ -107,19 +127,16 @@ function Item3D({
     
     switch (placement) {
       case 'back_wall':
-        // 後ろの壁（z = -10付近）
         return {
           position: [posX * 16 - 8, posY * 4 + 1, -9.9] as [number, number, number],
           rotation: [0, 0, 0] as [number, number, number],
         };
       case 'left_wall':
-        // 左の壁（x = -10付近）
         return {
           position: [-9.9, posY * 4 + 1, posX * 16 - 8] as [number, number, number],
           rotation: [0, Math.PI / 2, 0] as [number, number, number],
         };
       default:
-        // 床
         return {
           position: [posX * 16 - 8, 0.5 + (item.z_index * 0.1), posY * 16 - 8] as [number, number, number],
           rotation: [-Math.PI / 2, 0, 0] as [number, number, number],
@@ -132,23 +149,13 @@ function Item3D({
 
   useFrame((state) => {
     if (meshRef.current && hovered) {
-      // ホバー時の微小な揺れ
       const wobble = Math.sin(state.clock.elapsedTime * 3) * 0.02;
-      if (placement === 'floor') {
-        meshRef.current.rotation.z = wobble;
-      } else {
-        meshRef.current.rotation.z = wobble;
-      }
+      meshRef.current.rotation.z = wobble;
     }
-    // 床のアイテムのみフローティング
     if (groupRef.current && placement === 'floor') {
       groupRef.current.position.y = baseY + Math.sin(state.clock.elapsedTime + position[0]) * 0.05;
     }
   });
-
-  const imageUrl = item.custom_image_url || item.item_data?.image;
-  
-  if (!imageUrl) return null;
 
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
@@ -164,19 +171,46 @@ function Item3D({
         scale={hovered ? scale * 1.1 : scale}
       >
         <planeGeometry args={[2, 2]} />
-        <meshStandardMaterial 
-          color={hovered ? "#ffffff" : "#f0f0f0"}
-          roughness={0.3}
-          metalness={0.5}
-          side={THREE.DoubleSide}
-        />
+        {texture ? (
+          <meshBasicMaterial 
+            map={texture}
+            side={THREE.DoubleSide}
+            transparent
+          />
+        ) : (
+          <meshStandardMaterial 
+            color="#666666"
+            roughness={0.3}
+            side={THREE.DoubleSide}
+          />
+        )}
       </mesh>
       
-      {/* ホバー時のグロー効果 */}
       {hovered && (
         <pointLight color="#a855f7" intensity={1} distance={3} />
       )}
     </group>
+  );
+}
+
+// 3Dアイテム（床・壁対応）
+function Item3D({ 
+  item, 
+  onClick,
+}: { 
+  item: RoomItem; 
+  onClick?: () => void;
+}) {
+  const imageUrl = item.custom_image_url || item.item_data?.image;
+  
+  if (!imageUrl) return null;
+
+  return (
+    <ItemWithTexture 
+      item={item} 
+      onClick={onClick} 
+      imageUrl={imageUrl}
+    />
   );
 }
 
