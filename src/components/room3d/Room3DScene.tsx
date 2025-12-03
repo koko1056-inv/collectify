@@ -39,14 +39,26 @@ function GridOverlay() {
 }
 
 // 部屋の壁
-function RoomWalls() {
+function RoomWalls({ backgroundColor }: { backgroundColor?: string }) {
+  // 背景色から壁の色を派生させる
+  const getWallColors = (bg: string) => {
+    // 簡易的に明るさを調整した色を返す
+    const baseColor = bg || "#1a1a2e";
+    return {
+      backWall: baseColor,
+      leftWall: baseColor,
+    };
+  };
+  
+  const wallColors = getWallColors(backgroundColor || "#1a1a2e");
+  
   return (
     <group>
       {/* 後ろの壁 */}
       <mesh position={[0, 3, -10]} receiveShadow>
         <planeGeometry args={[20, 6]} />
         <meshStandardMaterial 
-          color="#16213e" 
+          color={wallColors.backWall}
           roughness={0.9}
           metalness={0.1}
         />
@@ -55,7 +67,7 @@ function RoomWalls() {
       <mesh position={[-10, 3, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
         <planeGeometry args={[20, 6]} />
         <meshStandardMaterial 
-          color="#1a1a2e" 
+          color={wallColors.leftWall}
           roughness={0.9}
           metalness={0.1}
         />
@@ -311,7 +323,7 @@ function Scene({
       {/* 部屋の構造 */}
       <RoomFloor backgroundColor={backgroundColor || undefined} />
       <GridOverlay />
-      <RoomWalls />
+      <RoomWalls backgroundColor={backgroundColor || undefined} />
       <Furniture />
       
       {/* アイテム */}
@@ -343,14 +355,19 @@ function LoaderOverlay() {
 }
 
 export function Room3DScene(props: Room3DSceneProps) {
+  const bgColor = props.backgroundColor || '#0f0f23';
+  
   return (
-    <div className="relative w-full h-full min-h-[400px] bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] rounded-2xl overflow-hidden">
+    <div 
+      className="relative w-full h-full min-h-[400px] rounded-2xl overflow-hidden"
+      style={{ background: bgColor }}
+    >
       <Suspense fallback={<LoaderOverlay />}>
         <Canvas
           shadows
           dpr={[1, 2]}
           gl={{ antialias: true, alpha: false }}
-          style={{ background: '#0f0f23' }}
+          style={{ background: bgColor }}
           camera={{ position: [12, 12, 12], fov: 50 }}
         >
           <Scene {...props} />

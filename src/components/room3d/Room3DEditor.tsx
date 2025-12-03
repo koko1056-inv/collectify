@@ -28,14 +28,14 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 // 背景プリセット
 const BACKGROUND_PRESETS = [
-  { id: 'cyber', name: 'サイバー', color: '#0f0f23', gradient: 'from-[#0f0f23] to-[#1a1a2e]' },
-  { id: 'sunset', name: 'サンセット', color: '#1a0a0f', gradient: 'from-[#1a0a0f] to-[#2d1a1f]' },
-  { id: 'forest', name: 'フォレスト', color: '#0a1a0f', gradient: 'from-[#0a1a0f] to-[#1a2d1f]' },
-  { id: 'ocean', name: 'オーシャン', color: '#0a0f1a', gradient: 'from-[#0a0f1a] to-[#1a2d3f]' },
-  { id: 'pink', name: 'ピンク', color: '#1a0a1a', gradient: 'from-[#1a0a1a] to-[#2d1a2d]' },
-  { id: 'midnight', name: 'ミッドナイト', color: '#050510', gradient: 'from-[#050510] to-[#101025]' },
-  { id: 'warm', name: 'ウォーム', color: '#1a1408', gradient: 'from-[#1a1408] to-[#2d2410]' },
-  { id: 'cool', name: 'クール', color: '#081418', gradient: 'from-[#081418] to-[#102428]' },
+  { id: 'cyber', name: 'サイバー', color: '#1a1a2e', gradient: 'from-[#1a1a2e] to-[#0f0f23]' },
+  { id: 'sunset', name: 'サンセット', color: '#3d1a1a', gradient: 'from-[#3d1a1a] to-[#1a0a0f]' },
+  { id: 'forest', name: 'フォレスト', color: '#1a3d1a', gradient: 'from-[#1a3d1a] to-[#0a1a0f]' },
+  { id: 'ocean', name: 'オーシャン', color: '#1a2a3d', gradient: 'from-[#1a2a3d] to-[#0a0f1a]' },
+  { id: 'pink', name: 'ピンク', color: '#3d1a3d', gradient: 'from-[#3d1a3d] to-[#1a0a1a]' },
+  { id: 'midnight', name: 'ミッドナイト', color: '#101025', gradient: 'from-[#101025] to-[#050510]' },
+  { id: 'warm', name: 'ウォーム', color: '#3d2a1a', gradient: 'from-[#3d2a1a] to-[#1a1408]' },
+  { id: 'light', name: 'ライト', color: '#4a4a5a', gradient: 'from-[#4a4a5a] to-[#3a3a4a]' },
 ];
 
 interface Room3DEditorProps {
