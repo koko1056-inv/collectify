@@ -256,6 +256,16 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
         </div>
         
         <div className="flex items-center gap-2">
+          {isOwnRoom && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:bg-white/10"
+              onClick={() => setShowBackgroundPicker(true)}
+            >
+              <Palette className="w-5 h-5" />
+            </Button>
+          )}
           <Button 
             variant="ghost" 
             size="icon" 
@@ -295,16 +305,6 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           >
             <Plus className="w-4 h-4" />
             アイテム追加
-          </Button>
-          <div className="w-px h-6 bg-white/20" />
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-white hover:bg-white/10 gap-2"
-            onClick={() => setShowBackgroundPicker(true)}
-          >
-            <Palette className="w-4 h-4" />
-            背景
           </Button>
           {selectedItem && (
             <>
