@@ -56,6 +56,11 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
   const [selectedItem, setSelectedItem] = useState<RoomItem | null>(null);
   const [selectedPlacement, setSelectedPlacement] = useState<PlacementType>('floor');
   const [isGenerating3D, setIsGenerating3D] = useState(false);
+  const [generation3DProgress, setGeneration3DProgress] = useState<{
+    status: string;
+    progress: number;
+    message: string;
+  } | null>(null);
   
   const { 
     mainRoom, 
@@ -228,6 +233,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     }
 
     setIsGenerating3D(true);
+    setGeneration3DProgress({ status: 'STARTING', progress: 0, message: '3D生成を開始しています...' });
     
     try {
       // 3D生成タスクを作成
@@ -238,7 +244,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       if (createError) throw createError;
       
       const taskId = createData.taskId;
-      toast.info("3Dモデルを生成中... (1-3分かかります)");
+      setGeneration3DProgress({ status: 'PENDING', progress: 10, message: 'タスクを作成しました...' });
 
       // タスクIDを保存
       await supabase
@@ -259,7 +265,23 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
 
         if (statusError) throw statusError;
 
+        // 進捗状態を更新
+        const progressMap: Record<string, { progress: number; message: string }> = {
+          'PENDING': { progress: 20, message: 'キューで待機中...' },
+          'IN_PROGRESS': { progress: 50, message: '3Dモデルを生成中...' },
+          'PROCESSING': { progress: 70, message: 'モデルを処理中...' },
+        };
+        
+        const progressInfo = progressMap[statusData.status] || { progress: Math.min(30 + attempts * 2, 90), message: '処理中...' };
+        setGeneration3DProgress({ 
+          status: statusData.status, 
+          progress: progressInfo.progress,
+          message: progressInfo.message
+        });
+
         if (statusData.status === 'SUCCEEDED' && statusData.modelUrl) {
+          setGeneration3DProgress({ status: 'SUCCEEDED', progress: 100, message: '完了！' });
+          
           // 成功：3DモデルURLを保存
           await supabase
             .from("binder_items")
@@ -269,7 +291,11 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             })
             .eq("id", item.id);
 
-          setIsGenerating3D(false);
+          setTimeout(() => {
+            setIsGenerating3D(false);
+            setGeneration3DProgress(null);
+          }, 1000);
+          
           toast.success("3Dモデルが完成しました！");
           queryClient.invalidateQueries({ queryKey: ["room-items"] });
           return;
@@ -287,6 +313,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     } catch (error) {
       console.error("Error generating 3D:", error);
       setIsGenerating3D(false);
+      setGeneration3DProgress(null);
       toast.error("3D生成に失敗しました");
     }
   }, [queryClient]);
@@ -450,22 +477,35 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           
           <div className="w-px h-6 bg-white/20" />
           
-          {/* 3D生成ボタン */}
-          {!selectedItem.model_3d_url && (
+          {/* 3D生成ボタン / 進捗表示 */}
+          {!selectedItem.model_3d_url && !isGenerating3D && (
             <Button 
               variant="ghost" 
               size="sm" 
               className="text-purple-400 hover:bg-purple-500/20 gap-2"
               onClick={() => handleGenerate3D(selectedItem)}
-              disabled={isGenerating3D}
             >
-              {isGenerating3D ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Box className="w-4 h-4" />
-              )}
-              {isGenerating3D ? "生成中..." : "3Dに変換"}
+              <Box className="w-4 h-4" />
+              3Dに変換
             </Button>
+          )}
+          
+          {isGenerating3D && generation3DProgress && (
+            <div className="flex items-center gap-3 px-2">
+              <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+              <div className="flex flex-col gap-1 min-w-[120px]">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-white/80">{generation3DProgress.message}</span>
+                  <span className="text-purple-400">{generation3DProgress.progress}%</span>
+                </div>
+                <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
+                    style={{ width: `${generation3DProgress.progress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
           )}
           
           {selectedItem.model_3d_url && (
