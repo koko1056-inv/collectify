@@ -631,18 +631,25 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             </ToggleGroup>
           </div>
           
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 overflow-y-auto max-h-[calc(70vh-180px)]">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 overflow-y-auto max-h-[calc(70vh-180px)] p-1">
             {userItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => handleAddItem(item, selectedPlacement)}
-                className="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-primary transition-all hover:scale-105 bg-muted"
+                className="flex flex-col rounded-lg overflow-hidden border border-border hover:border-primary transition-all hover:scale-[1.02] bg-card shadow-sm"
               >
-                <img 
-                  src={item.image} 
-                  alt={item.title}
-                  className="w-full h-full object-cover"
-                />
+                <div className="aspect-square w-full overflow-hidden bg-muted">
+                  <img 
+                    src={item.image} 
+                    alt={item.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-2 text-left">
+                  <p className="text-xs font-medium truncate text-foreground">
+                    {item.title}
+                  </p>
+                </div>
               </button>
             ))}
             
