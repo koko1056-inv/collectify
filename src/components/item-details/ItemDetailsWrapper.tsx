@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { isUUID } from "@/utils/tag/tag-core";
 import { Link } from "react-router-dom";
 import { SimpleItemTag } from "@/utils/tag/types";
+import { Item3DPreview } from "./Item3DPreview";
 
 interface ItemDetailsWrapperProps {
   itemId: string;
@@ -162,6 +163,30 @@ export function ItemDetailsWrapper({
     enabled: isUUID(itemId),
   });
 
+  // 3Dモデルを持つuser_itemを取得
+  const { data: model3dUrl } = useQuery({
+    queryKey: ["item-3d-model", itemId],
+    queryFn: async () => {
+      if (!isUUID(itemId)) {
+        return null;
+      }
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("model_3d_url")
+        .eq("official_item_id", itemId)
+        .not("model_3d_url", "is", null)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error fetching 3D model:", error);
+        return null;
+      }
+      return data?.model_3d_url || null;
+    },
+    enabled: isUUID(itemId),
+  });
+
   const { data: itemCreator, isLoading: isItemCreatorLoading } = useQuery({
     queryKey: ["item-creator", itemDetails?.created_by],
     queryFn: async () => {
@@ -298,12 +323,15 @@ export function ItemDetailsWrapper({
             {itemOwnersCount}人が所持
           </Badge>
         )}
-        <div className="mb-4">
+        <div className="mb-4 space-y-3">
           <img
             src={itemDetails.image}
             alt={itemDetails.title}
             className="w-full rounded-md aspect-square object-cover"
           />
+          {model3dUrl && (
+            <Item3DPreview modelUrl={model3dUrl} title={itemDetails.title} />
+          )}
         </div>
         {itemDetails.description && (
           <p className="text-sm text-gray-600 mb-4">{itemDetails.description}</p>
