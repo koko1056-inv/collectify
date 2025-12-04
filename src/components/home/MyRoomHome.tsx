@@ -55,7 +55,7 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
   // 未ログイン時のログイン促進表示
   if (!user) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center relative px-4 sm:px-8">
+      <div className="min-h-[50vh] sm:min-h-[60vh] flex flex-col items-center justify-start sm:justify-center relative px-4 sm:px-8 pt-4 sm:pt-0">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-blue-900/10 to-pink-900/10 rounded-3xl" />
         
         <div className="relative z-10 text-center space-y-6 max-w-md">
@@ -123,12 +123,12 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
   }
 
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center relative px-4 sm:px-8">
+    <div className="min-h-[50vh] sm:min-h-[60vh] flex flex-col items-center justify-start sm:justify-center relative px-4 sm:px-8 pt-2 sm:pt-0">
       {/* 背景のグラデーション - ダーク&ネオン */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-blue-900/10 to-pink-900/10 rounded-3xl" />
       
       {/* タブ切り替え */}
-      <div className="relative z-10 mb-6 mt-16 sm:mt-4">
+      <div className="relative z-10 mb-4 sm:mb-6 mt-2 sm:mt-4">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
           <TabsList className="grid w-full grid-cols-2 bg-background/80 backdrop-blur-sm">
             <TabsTrigger value="room" className="gap-2">
