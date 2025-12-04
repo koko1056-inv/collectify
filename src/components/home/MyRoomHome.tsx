@@ -55,22 +55,22 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
   // 未ログイン時のログイン促進表示
   if (!user) {
     return (
-      <div className="min-h-[50vh] sm:min-h-[60vh] flex flex-col items-center justify-start sm:justify-center relative px-4 sm:px-8 pt-4 sm:pt-0">
+      <div className="min-h-[45vh] sm:min-h-[60vh] flex flex-col items-center justify-start sm:justify-center relative px-4 sm:px-8 pt-0 sm:pt-0">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-blue-900/10 to-pink-900/10 rounded-3xl" />
         
-        <div className="relative z-10 text-center space-y-6 max-w-md">
-          <div className="w-40 h-40 mx-auto relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-full blur-xl animate-pulse" />
+        <div className="relative z-10 text-center space-y-4 sm:space-y-6 max-w-md">
+          <div className="w-28 h-28 sm:w-40 sm:h-40 mx-auto relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-full blur-lg sm:blur-xl animate-pulse" />
             <div className="relative w-full h-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full flex items-center justify-center border border-purple-500/30">
-              <Home className="w-20 h-20 text-purple-400" />
+              <Home className="w-12 h-12 sm:w-20 sm:h-20 text-purple-400" />
             </div>
           </div>
           
-          <div className="space-y-3">
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <div className="space-y-2 sm:space-y-3">
+            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
               マイルームを作ろう！
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               ログインして、自分だけの推し部屋を3D空間に作りましょう
             </p>
           </div>
@@ -86,7 +86,7 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
         </div>
 
         {/* エクスプローラーへのリンク */}
-        <div className="relative z-10 mt-6 flex items-center gap-4">
+        <div className="relative z-10 mt-4 sm:mt-6 flex items-center gap-4">
           <button 
             onClick={() => navigate("/rooms/explore")}
             className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 bg-background/50 backdrop-blur-sm px-4 py-2 rounded-full"
