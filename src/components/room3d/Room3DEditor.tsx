@@ -153,6 +153,22 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     }
   }, [queryClient]);
 
+  // アイテムを移動
+  const handleMoveItem = useCallback(async (itemId: string, posX: number, posY: number) => {
+    try {
+      const { error } = await supabase
+        .from("binder_items")
+        .update({ position_x: posX, position_y: posY })
+        .eq("id", itemId);
+      
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["room-items"] });
+    } catch (error) {
+      console.error("Error moving item:", error);
+      toast.error("アイテムの移動に失敗しました");
+    }
+  }, [queryClient]);
+
   // 背景を変更
   const updateBackground = useMutation({
     mutationFn: async (backgroundColor: string) => {
@@ -300,6 +316,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           roomTitle={mainRoom?.title}
           isEditing={isOwnRoom}
           onItemClick={handleItemClick}
+          onItemMove={handleMoveItem}
           avatarUrl={profile?.avatar_url}
         />
       </div>
@@ -321,9 +338,9 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
 
       {/* 操作ヒント */}
       <div className="absolute bottom-4 right-4 z-10 text-white/50 text-xs space-y-1">
-        <p>ドラッグ: 回転</p>
+        <p>アイテムをドラッグ: 移動</p>
+        <p>背景ドラッグ: 回転</p>
         <p>スクロール: ズーム</p>
-        <p>右クリック+ドラッグ: 移動</p>
       </div>
 
       {/* アイテムパレットシート */}
