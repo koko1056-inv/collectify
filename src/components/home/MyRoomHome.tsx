@@ -123,7 +123,7 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
   }
 
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center relative px-4 sm:px-8">
+    <div className="min-h-[60vh] flex flex-col items-center justify-center relative px-4 sm:px-8 pb-24">
       {/* 背景のグラデーション - ダーク&ネオン */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-blue-900/10 to-pink-900/10 rounded-3xl" />
       
