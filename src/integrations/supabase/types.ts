@@ -196,6 +196,8 @@ export type Database = {
           custom_image_url: string | null
           height: number
           id: string
+          model_3d_task_id: string | null
+          model_3d_url: string | null
           official_item_id: string | null
           position_x: number
           position_y: number
@@ -210,6 +212,8 @@ export type Database = {
           custom_image_url?: string | null
           height?: number
           id?: string
+          model_3d_task_id?: string | null
+          model_3d_url?: string | null
           official_item_id?: string | null
           position_x?: number
           position_y?: number
@@ -224,6 +228,8 @@ export type Database = {
           custom_image_url?: string | null
           height?: number
           id?: string
+          model_3d_task_id?: string | null
+          model_3d_url?: string | null
           official_item_id?: string | null
           position_x?: number
           position_y?: number

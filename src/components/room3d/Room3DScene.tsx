@@ -1,6 +1,6 @@
 import { useRef, useState, Suspense, useEffect } from "react";
 import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
 
@@ -338,6 +338,71 @@ function ItemWithTexture({
   );
 }
 
+// GLBモデル表示コンポーネント
+function GLBModel({ 
+  item,
+  modelUrl,
+  onClick,
+  isEditing,
+}: { 
+  item: RoomItem;
+  modelUrl: string;
+  onClick?: () => void;
+  isEditing?: boolean;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [hovered, setHovered] = useState(false);
+  const { scene } = useGLTF(modelUrl);
+  
+  const placement = item.placement || 'floor';
+  const scale = Math.min(item.width, item.height) / 100;
+  
+  // 配置場所に応じた位置
+  const getPosition = (): [number, number, number] => {
+    const posX = (item.position_x / 100);
+    const posY = (item.position_y / 100);
+    
+    switch (placement) {
+      case 'back_wall':
+        return [posX * 16 - 8, posY * 4 + 1, -9];
+      case 'left_wall':
+        return [-9, posY * 4 + 1, posX * 16 - 8];
+      default:
+        return [posX * 16 - 8, 0.5, posY * 16 - 8];
+    }
+  };
+
+  useFrame((state) => {
+    if (groupRef.current) {
+      // ゆっくり回転
+      groupRef.current.rotation.y += 0.005;
+      // 浮遊アニメーション
+      if (placement === 'floor') {
+        groupRef.current.position.y = 0.5 + Math.sin(state.clock.elapsedTime) * 0.1;
+      }
+    }
+  });
+
+  return (
+    <group
+      ref={groupRef}
+      position={getPosition()}
+      scale={scale * 1.5}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.();
+      }}
+      onPointerOver={() => setHovered(true)}
+      onPointerOut={() => setHovered(false)}
+    >
+      <primitive object={scene.clone()} />
+      {hovered && (
+        <pointLight color="#a855f7" intensity={2} distance={5} />
+      )}
+    </group>
+  );
+}
+
 // 3Dアイテム（床・壁対応）
 function Item3D({ 
   item, 
@@ -350,8 +415,22 @@ function Item3D({
   onMove?: (posX: number, posY: number) => void;
   isEditing?: boolean;
 }) {
+  // 3Dモデルがある場合はGLBを表示
+  if (item.model_3d_url) {
+    return (
+      <Suspense fallback={null}>
+        <GLBModel 
+          item={item}
+          modelUrl={item.model_3d_url}
+          onClick={onClick}
+          isEditing={isEditing}
+        />
+      </Suspense>
+    );
+  }
+
+  // 2D画像の場合
   const imageUrl = item.custom_image_url || item.item_data?.image;
-  
   if (!imageUrl) return null;
 
   return (
