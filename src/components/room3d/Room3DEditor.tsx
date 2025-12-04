@@ -15,7 +15,9 @@ import {
   PanelLeft,
   PanelTop,
   Palette,
-  Maximize2
+  Maximize2,
+  Box,
+  Loader2
 } from "lucide-react";
 import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,6 +55,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RoomItem | null>(null);
   const [selectedPlacement, setSelectedPlacement] = useState<PlacementType>('floor');
+  const [isGenerating3D, setIsGenerating3D] = useState(false);
   
   const { 
     mainRoom, 
@@ -216,6 +219,78 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     }
   });
 
+  // 3Dモデルを生成
+  const handleGenerate3D = useCallback(async (item: RoomItem) => {
+    const imageUrl = item.custom_image_url || item.item_data?.image;
+    if (!imageUrl) {
+      toast.error("画像がありません");
+      return;
+    }
+
+    setIsGenerating3D(true);
+    
+    try {
+      // 3D生成タスクを作成
+      const { data: createData, error: createError } = await supabase.functions.invoke('generate-3d-model', {
+        body: { action: 'create', imageUrl }
+      });
+
+      if (createError) throw createError;
+      
+      const taskId = createData.taskId;
+      toast.info("3Dモデルを生成中... (1-3分かかります)");
+
+      // タスクIDを保存
+      await supabase
+        .from("binder_items")
+        .update({ model_3d_task_id: taskId })
+        .eq("id", item.id);
+
+      // ステータスをポーリング
+      let attempts = 0;
+      const maxAttempts = 60; // 最大5分
+      
+      const pollStatus = async () => {
+        attempts++;
+        
+        const { data: statusData, error: statusError } = await supabase.functions.invoke('generate-3d-model', {
+          body: { action: 'check_status', taskId }
+        });
+
+        if (statusError) throw statusError;
+
+        if (statusData.status === 'SUCCEEDED' && statusData.modelUrl) {
+          // 成功：3DモデルURLを保存
+          await supabase
+            .from("binder_items")
+            .update({ 
+              model_3d_url: statusData.modelUrl,
+              model_3d_task_id: null 
+            })
+            .eq("id", item.id);
+
+          setIsGenerating3D(false);
+          toast.success("3Dモデルが完成しました！");
+          queryClient.invalidateQueries({ queryKey: ["room-items"] });
+          return;
+        } else if (statusData.status === 'FAILED') {
+          throw new Error("3D生成に失敗しました");
+        } else if (attempts < maxAttempts) {
+          // 進行中：5秒後に再チェック
+          setTimeout(pollStatus, 5000);
+        } else {
+          throw new Error("タイムアウト");
+        }
+      };
+
+      pollStatus();
+    } catch (error) {
+      console.error("Error generating 3D:", error);
+      setIsGenerating3D(false);
+      toast.error("3D生成に失敗しました");
+    }
+  }, [queryClient]);
+
   // ルームがない場合の作成画面
   if (!isLoading && !mainRoom && user) {
     return (
@@ -372,6 +447,33 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
               <Plus className="w-4 h-4" />
             </Button>
           </div>
+          
+          <div className="w-px h-6 bg-white/20" />
+          
+          {/* 3D生成ボタン */}
+          {!selectedItem.model_3d_url && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-purple-400 hover:bg-purple-500/20 gap-2"
+              onClick={() => handleGenerate3D(selectedItem)}
+              disabled={isGenerating3D}
+            >
+              {isGenerating3D ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Box className="w-4 h-4" />
+              )}
+              {isGenerating3D ? "生成中..." : "3Dに変換"}
+            </Button>
+          )}
+          
+          {selectedItem.model_3d_url && (
+            <div className="flex items-center gap-1 text-green-400 text-xs px-2">
+              <Box className="w-3 h-3" />
+              <span>3D済み</span>
+            </div>
+          )}
           
           <div className="w-px h-6 bg-white/20" />
           

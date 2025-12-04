@@ -27,6 +27,8 @@ export interface RoomItem {
   user_item_id: string | null;
   official_item_id: string | null;
   custom_image_url: string | null;
+  model_3d_url: string | null;
+  model_3d_task_id: string | null;
   position_x: number;
   position_y: number;
   width: number;
