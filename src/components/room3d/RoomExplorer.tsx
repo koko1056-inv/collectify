@@ -106,18 +106,17 @@ export function RoomExplorer() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* ヘッダー */}
-      <div className="sticky top-0 z-50 bg-[#0f0f23]/90 backdrop-blur-xl border-b border-white/10">
+      <div className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold text-foreground">
               Explore
             </h1>
             <Button 
               variant="outline" 
               size="sm"
-              className="border-white/20 text-white hover:bg-white/10"
               onClick={() => navigate("/")}
             >
               マイルームへ
@@ -126,36 +125,36 @@ export function RoomExplorer() {
           
           {/* 検索バー */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ルームを検索..."
-              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/50"
+              className="pl-10"
             />
           </div>
         </div>
 
         {/* タブ */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="px-4">
-          <TabsList className="bg-transparent border-b border-white/10 rounded-none w-full justify-start gap-4 p-0">
+          <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start gap-4 p-0">
             <TabsTrigger 
               value="trending" 
-              className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-purple-400 rounded-none pb-3 text-white/70 data-[state=active]:text-white"
+              className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none pb-3 text-muted-foreground data-[state=active]:text-foreground"
             >
               <TrendingUp className="w-4 h-4 mr-2" />
               トレンド
             </TabsTrigger>
             <TabsTrigger 
               value="featured"
-              className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-purple-400 rounded-none pb-3 text-white/70 data-[state=active]:text-white"
+              className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none pb-3 text-muted-foreground data-[state=active]:text-foreground"
             >
               <Sparkles className="w-4 h-4 mr-2" />
               注目
             </TabsTrigger>
             <TabsTrigger 
               value="new"
-              className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-purple-400 rounded-none pb-3 text-white/70 data-[state=active]:text-white"
+              className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none pb-3 text-muted-foreground data-[state=active]:text-foreground"
             >
               新着
             </TabsTrigger>
@@ -168,7 +167,7 @@ export function RoomExplorer() {
         {/* 注目のユーザー */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Crown className="w-5 h-5 text-yellow-400" />
+            <Crown className="w-5 h-5 text-muted-foreground" />
             Featured Users
           </h2>
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
@@ -176,20 +175,20 @@ export function RoomExplorer() {
               <button
                 key={user.id}
                 onClick={() => navigate(`/user/${user.id}`)}
-                className="flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
+                className="flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl bg-muted hover:bg-accent transition-colors"
               >
                 <div className="relative">
-                  <Avatar className="w-16 h-16 border-2 border-purple-500">
+                  <Avatar className="w-16 h-16 border-2 border-border">
                     <AvatarImage src={user.avatar_url || undefined} />
-                    <AvatarFallback className="bg-purple-900 text-white">
+                    <AvatarFallback className="bg-secondary text-secondary-foreground">
                       {user.username?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-3 h-3 text-white" />
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-primary-foreground" />
                   </div>
                 </div>
-                <span className="text-sm text-white/80 truncate max-w-[80px]">
+                <span className="text-sm text-muted-foreground truncate max-w-[80px]">
                   {user.display_name || user.username}
                 </span>
               </button>
@@ -200,7 +199,7 @@ export function RoomExplorer() {
         {/* ルーム一覧 */}
         <section>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-pink-400" />
+            <TrendingUp className="w-5 h-5 text-muted-foreground" />
             Popular This Week
           </h2>
           
@@ -209,7 +208,7 @@ export function RoomExplorer() {
               {[...Array(8)].map((_, i) => (
                 <div 
                   key={i} 
-                  className="aspect-square rounded-2xl bg-white/5 animate-pulse"
+                  className="aspect-square rounded-2xl bg-muted animate-pulse"
                 />
               ))}
             </div>
@@ -232,7 +231,7 @@ function RoomCard({ room, rank }: { room: FeaturedRoom; rank: number }) {
   return (
     <button
       onClick={() => navigate(`/room/${room.id}`)}
-      className="group relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900/50 to-blue-900/50 hover:scale-[1.02] transition-transform"
+      className="group relative aspect-square rounded-2xl overflow-hidden bg-muted hover:scale-[1.02] transition-transform"
     >
       {/* 背景画像 */}
       {room.background_image && (
@@ -244,15 +243,15 @@ function RoomCard({ room, rank }: { room: FeaturedRoom; rank: number }) {
       )}
       
       {/* オーバーレイ */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent" />
       
       {/* ランキングバッジ */}
       {rank <= 3 && (
         <div className={cn(
-          "absolute top-2 left-2 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm",
-          rank === 1 && "bg-gradient-to-r from-yellow-400 to-orange-400 text-black",
-          rank === 2 && "bg-gradient-to-r from-gray-300 to-gray-400 text-black",
-          rank === 3 && "bg-gradient-to-r from-orange-600 to-orange-700 text-white"
+          "absolute top-2 left-2 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border",
+          rank === 1 && "bg-foreground text-background border-foreground",
+          rank === 2 && "bg-muted-foreground text-background border-muted-foreground",
+          rank === 3 && "bg-secondary text-secondary-foreground border-border"
         )}>
           {rank}
         </div>
@@ -261,22 +260,22 @@ function RoomCard({ room, rank }: { room: FeaturedRoom; rank: number }) {
       {/* ユーザー情報 */}
       <div className="absolute bottom-0 left-0 right-0 p-3">
         <div className="flex items-center gap-2 mb-2">
-          <Avatar className="w-6 h-6 border border-white/30">
+          <Avatar className="w-6 h-6 border border-border">
             <AvatarImage src={room.profile?.avatar_url || undefined} />
-            <AvatarFallback className="bg-purple-900 text-white text-xs">
+            <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
               {room.profile?.username?.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <span className="text-white/90 text-sm truncate">
+          <span className="text-foreground/90 text-sm truncate">
             {room.profile?.display_name || room.profile?.username}
           </span>
         </div>
         
-        <h3 className="text-white font-medium text-sm truncate mb-1">
+        <h3 className="text-foreground font-medium text-sm truncate mb-1">
           {room.title}
         </h3>
         
-        <div className="flex items-center gap-3 text-white/60 text-xs">
+        <div className="flex items-center gap-3 text-muted-foreground text-xs">
           <span className="flex items-center gap-1">
             <Eye className="w-3 h-3" />
             {room.visit_count}
