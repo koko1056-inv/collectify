@@ -1,5 +1,5 @@
 import { useRef, useState, Suspense, useEffect } from "react";
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
@@ -11,6 +11,7 @@ interface Room3DSceneProps {
   roomTitle?: string;
   isEditing?: boolean;
   onItemClick?: (item: RoomItem) => void;
+  onItemMove?: (itemId: string, posX: number, posY: number) => void;
   avatarUrl?: string | null;
 }
 
@@ -97,20 +98,31 @@ function NeonLight({ position, color }: { position: [number, number, number]; co
   );
 }
 
-// テクスチャ付きアイテム
+// テクスチャ付きアイテム（ドラッグ対応）
 function ItemWithTexture({ 
   item, 
   onClick,
+  onMove,
   imageUrl,
+  isEditing,
 }: { 
   item: RoomItem; 
   onClick?: () => void;
+  onMove?: (posX: number, posY: number) => void;
   imageUrl: string;
+  isEditing?: boolean;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const { camera, gl, raycaster, scene } = useThree();
+  
+  // ドラッグ用のプレーン参照
+  const dragPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
+  const intersectionPoint = useRef(new THREE.Vector3());
+  const offset = useRef(new THREE.Vector3());
   
   // テクスチャを読み込み
   useEffect(() => {
@@ -156,31 +168,118 @@ function ItemWithTexture({
     }
   };
   
-  const { position, rotation } = getPositionAndRotation();
-  const baseY = position[1];
+  const { position: initialPosition, rotation } = getPositionAndRotation();
+  const [position, setPosition] = useState<[number, number, number]>(initialPosition);
+  const baseY = initialPosition[1];
+
+  // item.position が変わったら位置を更新
+  useEffect(() => {
+    const { position: newPos } = getPositionAndRotation();
+    setPosition(newPos);
+  }, [item.position_x, item.position_y]);
 
   useFrame((state) => {
-    if (meshRef.current && hovered) {
+    if (meshRef.current && hovered && !isDragging) {
       const wobble = Math.sin(state.clock.elapsedTime * 3) * 0.02;
       meshRef.current.rotation.z = wobble;
     }
-    if (groupRef.current && placement === 'floor') {
+    if (groupRef.current && placement === 'floor' && !isDragging) {
       groupRef.current.position.y = baseY + Math.sin(state.clock.elapsedTime + position[0]) * 0.05;
     }
   });
+
+  // ドラッグ開始
+  const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
+    if (!isEditing || placement !== 'floor') return;
+    
+    e.stopPropagation();
+    setIsDragging(true);
+    
+    // OrbitControlsを無効化するためにイベントをキャプチャ
+    gl.domElement.style.cursor = 'grabbing';
+    
+    // 現在のマウス位置での交点を計算
+    const mouse = new THREE.Vector2(
+      (e.nativeEvent.clientX / gl.domElement.clientWidth) * 2 - 1,
+      -(e.nativeEvent.clientY / gl.domElement.clientHeight) * 2 + 1
+    );
+    
+    raycaster.setFromCamera(mouse, camera);
+    raycaster.ray.intersectPlane(dragPlaneRef.current, intersectionPoint.current);
+    
+    if (groupRef.current) {
+      offset.current.copy(intersectionPoint.current).sub(groupRef.current.position);
+    }
+  };
+
+  // ドラッグ中
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handlePointerMove = (e: PointerEvent) => {
+      const mouse = new THREE.Vector2(
+        (e.clientX / gl.domElement.clientWidth) * 2 - 1,
+        -(e.clientY / gl.domElement.clientHeight) * 2 + 1
+      );
+      
+      raycaster.setFromCamera(mouse, camera);
+      raycaster.ray.intersectPlane(dragPlaneRef.current, intersectionPoint.current);
+      
+      const newX = intersectionPoint.current.x - offset.current.x;
+      const newZ = intersectionPoint.current.z - offset.current.z;
+      
+      // 範囲制限
+      const clampedX = Math.max(-8, Math.min(8, newX));
+      const clampedZ = Math.max(-8, Math.min(8, newZ));
+      
+      setPosition([clampedX, baseY, clampedZ]);
+    };
+
+    const handlePointerUp = () => {
+      setIsDragging(false);
+      gl.domElement.style.cursor = 'auto';
+      
+      // 新しい位置を0-100のスケールに変換して保存
+      const newPosX = ((position[0] + 8) / 16) * 100;
+      const newPosY = ((position[2] + 8) / 16) * 100;
+      
+      onMove?.(Math.round(newPosX), Math.round(newPosY));
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [isDragging, camera, gl, raycaster, onMove, position, baseY]);
 
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
       <mesh
         ref={meshRef}
         onClick={(e) => {
-          e.stopPropagation();
-          onClick?.();
+          if (!isDragging) {
+            e.stopPropagation();
+            onClick?.();
+          }
         }}
-        onPointerOver={() => setHovered(true)}
-        onPointerOut={() => setHovered(false)}
+        onPointerDown={handlePointerDown}
+        onPointerOver={() => {
+          setHovered(true);
+          if (isEditing && placement === 'floor') {
+            gl.domElement.style.cursor = 'grab';
+          }
+        }}
+        onPointerOut={() => {
+          setHovered(false);
+          if (!isDragging) {
+            gl.domElement.style.cursor = 'auto';
+          }
+        }}
         castShadow
-        scale={hovered ? scale * 1.1 : scale}
+        scale={isDragging ? scale * 1.15 : hovered ? scale * 1.1 : scale}
       >
         <planeGeometry args={[2, 2]} />
         {texture ? (
@@ -198,8 +297,8 @@ function ItemWithTexture({
         )}
       </mesh>
       
-      {hovered && (
-        <pointLight color="#a855f7" intensity={1} distance={3} />
+      {(hovered || isDragging) && (
+        <pointLight color={isDragging ? "#22c55e" : "#a855f7"} intensity={1.5} distance={3} />
       )}
     </group>
   );
@@ -209,9 +308,13 @@ function ItemWithTexture({
 function Item3D({ 
   item, 
   onClick,
+  onMove,
+  isEditing,
 }: { 
   item: RoomItem; 
   onClick?: () => void;
+  onMove?: (posX: number, posY: number) => void;
+  isEditing?: boolean;
 }) {
   const imageUrl = item.custom_image_url || item.item_data?.image;
   
@@ -221,7 +324,9 @@ function Item3D({
     <ItemWithTexture 
       item={item} 
       onClick={onClick} 
+      onMove={onMove}
       imageUrl={imageUrl}
+      isEditing={isEditing}
     />
   );
 }
@@ -301,6 +406,8 @@ function Scene({
   roomItems, 
   backgroundColor, 
   onItemClick,
+  onItemMove,
+  isEditing,
   avatarUrl
 }: Room3DSceneProps) {
   return (
@@ -332,6 +439,8 @@ function Scene({
           key={item.id} 
           item={item} 
           onClick={() => onItemClick?.(item)}
+          onMove={(posX, posY) => onItemMove?.(item.id, posX, posY)}
+          isEditing={isEditing}
         />
       ))}
       
