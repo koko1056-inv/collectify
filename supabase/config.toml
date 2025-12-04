@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.generate-background]
 verify_jwt = false
+
+[functions.generate-3d-model]
+verify_jwt = false
