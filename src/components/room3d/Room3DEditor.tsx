@@ -17,7 +17,9 @@ import {
   Palette,
   Maximize2,
   Box,
-  Loader2
+  Loader2,
+  RotateCcw,
+  RotateCw
 } from "lucide-react";
 import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -61,6 +63,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     progress: number;
     message: string;
   } | null>(null);
+  const [itemRotations, setItemRotations] = useState<Record<string, number>>({});
   
   const { 
     mainRoom, 
@@ -318,7 +321,23 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     }
   }, [queryClient]);
 
-  // ルームがない場合の作成画面
+  // 3Dモデルの回転を変更
+  const handleRotate3D = useCallback((itemId: string, delta: number) => {
+    setItemRotations(prev => {
+      const current = prev[itemId] || 0;
+      const newRotation = (current + delta + 360) % 360;
+      return { ...prev, [itemId]: newRotation };
+    });
+  }, []);
+
+  // 回転をリセット
+  const handleResetRotation = useCallback((itemId: string) => {
+    setItemRotations(prev => {
+      const newRotations = { ...prev };
+      delete newRotations[itemId];
+      return newRotations;
+    });
+  }, []);
   if (!isLoading && !mainRoom && user) {
     return (
       <div className={cn(
@@ -445,6 +464,8 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           onItemClick={handleItemClick}
           onItemMove={handleMoveItem}
           avatarUrl={profile?.avatar_url}
+          selectedItemId={selectedItem?.id}
+          itemRotations={itemRotations}
         />
       </div>
 
@@ -509,10 +530,37 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           )}
           
           {selectedItem.model_3d_url && (
-            <div className="flex items-center gap-1 text-green-400 text-xs px-2">
-              <Box className="w-3 h-3" />
-              <span>3D済み</span>
-            </div>
+            <>
+              <div className="flex items-center gap-1 text-green-400 text-xs px-2">
+                <Box className="w-3 h-3" />
+                <span>3D済み</span>
+              </div>
+              
+              <div className="w-px h-6 bg-white/20" />
+              
+              {/* 3Dモデル回転操作 */}
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="text-white hover:bg-white/10 h-8 w-8"
+                  onClick={() => handleRotate3D(selectedItem.id, -45)}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center gap-1 text-white text-xs px-2 min-w-[50px] justify-center">
+                  <span>{itemRotations[selectedItem.id] || 0}°</span>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="text-white hover:bg-white/10 h-8 w-8"
+                  onClick={() => handleRotate3D(selectedItem.id, 45)}
+                >
+                  <RotateCw className="w-4 h-4" />
+                </Button>
+              </div>
+            </>
           )}
           
           <div className="w-px h-6 bg-white/20" />

@@ -13,6 +13,8 @@ interface Room3DSceneProps {
   onItemClick?: (item: RoomItem) => void;
   onItemMove?: (itemId: string, posX: number, posY: number) => void;
   avatarUrl?: string | null;
+  selectedItemId?: string | null;
+  itemRotations?: Record<string, number>;
 }
 
 // メインのルームフロア
@@ -344,11 +346,15 @@ function GLBModel({
   modelUrl,
   onClick,
   isEditing,
+  isSelected,
+  customRotation,
 }: { 
   item: RoomItem;
   modelUrl: string;
   onClick?: () => void;
   isEditing?: boolean;
+  isSelected?: boolean;
+  customRotation?: number;
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
@@ -374,8 +380,14 @@ function GLBModel({
 
   useFrame((state) => {
     if (groupRef.current) {
-      // ゆっくり回転
-      groupRef.current.rotation.y += 0.005;
+      // カスタム回転が設定されている場合はそれを使用、なければ自動回転
+      if (customRotation !== undefined) {
+        groupRef.current.rotation.y = customRotation * (Math.PI / 180);
+      } else if (!isSelected) {
+        // 選択されていない場合のみ自動回転
+        groupRef.current.rotation.y += 0.005;
+      }
+      
       // 浮遊アニメーション
       if (placement === 'floor') {
         groupRef.current.position.y = 0.5 + Math.sin(state.clock.elapsedTime) * 0.1;
@@ -396,8 +408,8 @@ function GLBModel({
       onPointerOut={() => setHovered(false)}
     >
       <primitive object={scene.clone()} />
-      {hovered && (
-        <pointLight color="#a855f7" intensity={2} distance={5} />
+      {(hovered || isSelected) && (
+        <pointLight color={isSelected ? "#22c55e" : "#a855f7"} intensity={2} distance={5} />
       )}
     </group>
   );
@@ -409,11 +421,15 @@ function Item3D({
   onClick,
   onMove,
   isEditing,
+  isSelected,
+  customRotation,
 }: { 
   item: RoomItem; 
   onClick?: () => void;
   onMove?: (posX: number, posY: number) => void;
   isEditing?: boolean;
+  isSelected?: boolean;
+  customRotation?: number;
 }) {
   // 3Dモデルがある場合はGLBを表示
   if (item.model_3d_url) {
@@ -424,6 +440,8 @@ function Item3D({
           modelUrl={item.model_3d_url}
           onClick={onClick}
           isEditing={isEditing}
+          isSelected={isSelected}
+          customRotation={customRotation}
         />
       </Suspense>
     );
@@ -521,7 +539,9 @@ function Scene({
   onItemClick,
   onItemMove,
   isEditing,
-  avatarUrl
+  avatarUrl,
+  selectedItemId,
+  itemRotations,
 }: Room3DSceneProps) {
   return (
     <>
@@ -554,6 +574,8 @@ function Scene({
           onClick={() => onItemClick?.(item)}
           onMove={(posX, posY) => onItemMove?.(item.id, posX, posY)}
           isEditing={isEditing}
+          isSelected={selectedItemId === item.id}
+          customRotation={itemRotations?.[item.id]}
         />
       ))}
       
