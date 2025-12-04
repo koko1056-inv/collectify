@@ -117,12 +117,24 @@ function ItemWithTexture({
   const [hovered, setHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
-  const { camera, gl, raycaster, scene } = useThree();
+  const { camera, gl, raycaster } = useThree();
   
-  // ドラッグ用のプレーン参照
-  const dragPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
+  // ドラッグ用の参照
   const intersectionPoint = useRef(new THREE.Vector3());
   const offset = useRef(new THREE.Vector3());
+  
+  // 配置に応じたドラッグプレーンを取得
+  const getDragPlane = () => {
+    const placement = item.placement || 'floor';
+    switch (placement) {
+      case 'back_wall':
+        return new THREE.Plane(new THREE.Vector3(0, 0, 1), 9.9); // Z軸に垂直
+      case 'left_wall':
+        return new THREE.Plane(new THREE.Vector3(1, 0, 0), 9.9); // X軸に垂直
+      default:
+        return new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // Y軸に垂直（床）
+    }
+  };
   
   // テクスチャを読み込み
   useEffect(() => {
@@ -190,22 +202,21 @@ function ItemWithTexture({
 
   // ドラッグ開始
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (!isEditing || placement !== 'floor') return;
+    if (!isEditing) return;
     
     e.stopPropagation();
     setIsDragging(true);
     
-    // OrbitControlsを無効化するためにイベントをキャプチャ
     gl.domElement.style.cursor = 'grabbing';
     
-    // 現在のマウス位置での交点を計算
     const mouse = new THREE.Vector2(
       (e.nativeEvent.clientX / gl.domElement.clientWidth) * 2 - 1,
       -(e.nativeEvent.clientY / gl.domElement.clientHeight) * 2 + 1
     );
     
+    const dragPlane = getDragPlane();
     raycaster.setFromCamera(mouse, camera);
-    raycaster.ray.intersectPlane(dragPlaneRef.current, intersectionPoint.current);
+    raycaster.ray.intersectPlane(dragPlane, intersectionPoint.current);
     
     if (groupRef.current) {
       offset.current.copy(intersectionPoint.current).sub(groupRef.current.position);
@@ -216,6 +227,8 @@ function ItemWithTexture({
   useEffect(() => {
     if (!isDragging) return;
 
+    const dragPlane = getDragPlane();
+
     const handlePointerMove = (e: PointerEvent) => {
       const mouse = new THREE.Vector2(
         (e.clientX / gl.domElement.clientWidth) * 2 - 1,
@@ -223,16 +236,27 @@ function ItemWithTexture({
       );
       
       raycaster.setFromCamera(mouse, camera);
-      raycaster.ray.intersectPlane(dragPlaneRef.current, intersectionPoint.current);
+      raycaster.ray.intersectPlane(dragPlane, intersectionPoint.current);
       
-      const newX = intersectionPoint.current.x - offset.current.x;
-      const newZ = intersectionPoint.current.z - offset.current.z;
-      
-      // 範囲制限
-      const clampedX = Math.max(-8, Math.min(8, newX));
-      const clampedZ = Math.max(-8, Math.min(8, newZ));
-      
-      setPosition([clampedX, baseY, clampedZ]);
+      if (placement === 'floor') {
+        const newX = intersectionPoint.current.x - offset.current.x;
+        const newZ = intersectionPoint.current.z - offset.current.z;
+        const clampedX = Math.max(-8, Math.min(8, newX));
+        const clampedZ = Math.max(-8, Math.min(8, newZ));
+        setPosition([clampedX, baseY, clampedZ]);
+      } else if (placement === 'back_wall') {
+        const newX = intersectionPoint.current.x - offset.current.x;
+        const newY = intersectionPoint.current.y - offset.current.y;
+        const clampedX = Math.max(-8, Math.min(8, newX));
+        const clampedY = Math.max(1, Math.min(5, newY));
+        setPosition([clampedX, clampedY, -9.9]);
+      } else if (placement === 'left_wall') {
+        const newZ = intersectionPoint.current.z - offset.current.z;
+        const newY = intersectionPoint.current.y - offset.current.y;
+        const clampedZ = Math.max(-8, Math.min(8, newZ));
+        const clampedY = Math.max(1, Math.min(5, newY));
+        setPosition([-9.9, clampedY, clampedZ]);
+      }
     };
 
     const handlePointerUp = () => {
@@ -240,8 +264,18 @@ function ItemWithTexture({
       gl.domElement.style.cursor = 'auto';
       
       // 新しい位置を0-100のスケールに変換して保存
-      const newPosX = ((position[0] + 8) / 16) * 100;
-      const newPosY = ((position[2] + 8) / 16) * 100;
+      let newPosX: number, newPosY: number;
+      
+      if (placement === 'floor') {
+        newPosX = ((position[0] + 8) / 16) * 100;
+        newPosY = ((position[2] + 8) / 16) * 100;
+      } else if (placement === 'back_wall') {
+        newPosX = ((position[0] + 8) / 16) * 100;
+        newPosY = ((position[1] - 1) / 4) * 100;
+      } else { // left_wall
+        newPosX = ((position[2] + 8) / 16) * 100;
+        newPosY = ((position[1] - 1) / 4) * 100;
+      }
       
       onMove?.(Math.round(newPosX), Math.round(newPosY));
     };
