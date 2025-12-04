@@ -5,9 +5,9 @@ import { CardContent } from "@/components/ui/card";
 import { CollectionGoodsCardHeader } from "./CollectionGoodsCardHeader";
 import { CollectionGoodsCardFooter } from "./CollectionGoodsCardFooter";
 import { useState, useCallback } from "react";
-import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { CollectionGoodsCardModals } from "./CollectionGoodsCardModals";
 import { QuantityEditModal } from "./QuantityEditModal";
+import { UserItemDetailsModal } from "@/components/item-details/UserItemDetailsModal";
 
 interface CollectionGoodsCardProps {
   title: string;
@@ -85,6 +85,15 @@ export function CollectionGoodsCardWrapper({
         
         <CollectionGoodsCardFooter id={id} onMemoriesClick={handleMemoriesClick} onTagManageClick={handleTagManageClick} onDeleteClick={handleDeleteClick} onCreatePostClick={handleCreatePostClick} />
       </Card>
+
+      {/* ユーザーアイテム詳細モーダル */}
+      <UserItemDetailsModal
+        isOpen={isItemDetailsOpen}
+        onClose={() => setIsItemDetailsOpen(false)}
+        itemId={id}
+        title={title}
+        image={image}
+      />
 
       <CollectionGoodsCardModals isMemoriesModalOpen={isMemoriesModalOpen} setIsMemoriesModalOpen={setIsMemoriesModalOpen} isTagModalOpen={isTagModalOpen} setIsTagModalOpen={setIsTagModalOpen} isDeleteConfirmOpen={isDeleteConfirmOpen} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} isCreatePostModalOpen={isCreatePostModalOpen} setIsCreatePostModalOpen={setIsCreatePostModalOpen} id={id} title={title} image={image} />
 
