@@ -285,7 +285,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
         if (statusData.status === 'SUCCEEDED' && statusData.modelUrl) {
           setGeneration3DProgress({ status: 'SUCCEEDED', progress: 100, message: '完了！' });
           
-          // 成功：3DモデルURLを保存
+          // 成功：3DモデルURLをbinder_itemsに保存
           await supabase
             .from("binder_items")
             .update({ 
@@ -294,6 +294,17 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             })
             .eq("id", item.id);
 
+          // user_itemsにも3DモデルURLを保存（グッズに紐付け）
+          if (item.user_item_id) {
+            await supabase
+              .from("user_items")
+              .update({ 
+                model_3d_url: statusData.modelUrl,
+                model_3d_task_id: null 
+              })
+              .eq("id", item.user_item_id);
+          }
+
           setTimeout(() => {
             setIsGenerating3D(false);
             setGeneration3DProgress(null);
@@ -301,6 +312,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           
           toast.success("3Dモデルが完成しました！");
           queryClient.invalidateQueries({ queryKey: ["room-items"] });
+          queryClient.invalidateQueries({ queryKey: ["user-collection"] });
           return;
         } else if (statusData.status === 'FAILED') {
           throw new Error("3D生成に失敗しました");

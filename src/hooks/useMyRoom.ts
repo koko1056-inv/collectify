@@ -40,6 +40,8 @@ export interface RoomItem {
     id: string;
     title: string;
     image: string;
+    model_3d_url?: string | null;
+    model_3d_task_id?: string | null;
   };
 }
 
@@ -89,7 +91,7 @@ export function useMyRoom(userId?: string) {
           if (item.user_item_id) {
             const { data } = await supabase
               .from("user_items")
-              .select("id, title, image")
+              .select("id, title, image, model_3d_url, model_3d_task_id")
               .eq("id", item.user_item_id)
               .maybeSingle();
             itemData = data;
@@ -108,7 +110,10 @@ export function useMyRoom(userId?: string) {
             item.rotation === 180 ? 'left_wall' : 
             'floor';
 
-          return { ...item, item_data: itemData, placement } as RoomItem;
+          // user_itemsの3DモデルURLを優先的に使用
+          const model3dUrl = itemData?.model_3d_url || item.model_3d_url;
+
+          return { ...item, model_3d_url: model3dUrl, item_data: itemData, placement } as RoomItem;
         })
       );
 

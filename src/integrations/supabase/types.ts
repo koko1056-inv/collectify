@@ -1852,6 +1852,8 @@ export type Database = {
           id: string
           image: string
           images: string[] | null
+          model_3d_task_id: string | null
+          model_3d_url: string | null
           note: string | null
           official_item_id: string | null
           official_link: string | null
@@ -1871,6 +1873,8 @@ export type Database = {
           id?: string
           image: string
           images?: string[] | null
+          model_3d_task_id?: string | null
+          model_3d_url?: string | null
           note?: string | null
           official_item_id?: string | null
           official_link?: string | null
@@ -1890,6 +1894,8 @@ export type Database = {
           id?: string
           image?: string
           images?: string[] | null
+          model_3d_task_id?: string | null
+          model_3d_url?: string | null
           note?: string | null
           official_item_id?: string | null
           official_link?: string | null
