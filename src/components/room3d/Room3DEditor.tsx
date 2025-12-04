@@ -6,6 +6,7 @@ import {
   Heart, 
   Eye, 
   Plus, 
+  Minus,
   Layers,
   X,
   Share2,
@@ -13,7 +14,8 @@ import {
   Square,
   PanelLeft,
   PanelTop,
-  Palette
+  Palette,
+  Maximize2
 } from "lucide-react";
 import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -169,6 +171,29 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     }
   }, [queryClient]);
 
+  // アイテムのサイズを変更
+  const handleResizeItem = useCallback(async (itemId: string, newSize: number) => {
+    try {
+      const clampedSize = Math.max(50, Math.min(200, newSize));
+      const { error } = await supabase
+        .from("binder_items")
+        .update({ width: clampedSize, height: clampedSize })
+        .eq("id", itemId);
+      
+      if (error) throw error;
+      
+      // 選択中のアイテムのサイズも更新
+      if (selectedItem && selectedItem.id === itemId) {
+        setSelectedItem({ ...selectedItem, width: clampedSize, height: clampedSize });
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ["room-items"] });
+    } catch (error) {
+      console.error("Error resizing item:", error);
+      toast.error("サイズ変更に失敗しました");
+    }
+  }, [queryClient, selectedItem]);
+
   // 背景を変更
   const updateBackground = useMutation({
     mutationFn: async (backgroundColor: string) => {
@@ -323,11 +348,38 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
 
       {/* 編集ツールバー（選択アイテムがある場合のみ） */}
       {isOwnRoom && selectedItem && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md rounded-full px-4 py-2">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 bg-black/70 backdrop-blur-md rounded-full px-4 py-2">
+          {/* サイズ変更 */}
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-white hover:bg-white/10 h-8 w-8"
+              onClick={() => handleResizeItem(selectedItem.id, (selectedItem.width || 100) - 20)}
+            >
+              <Minus className="w-4 h-4" />
+            </Button>
+            <div className="flex items-center gap-1 text-white text-xs px-2">
+              <Maximize2 className="w-3 h-3" />
+              <span>{selectedItem.width || 100}%</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="text-white hover:bg-white/10 h-8 w-8"
+              onClick={() => handleResizeItem(selectedItem.id, (selectedItem.width || 100) + 20)}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="w-px h-6 bg-white/20" />
+          
+          {/* 削除 */}
           <Button 
             variant="ghost" 
             size="sm" 
-            className="text-white hover:bg-white/10 gap-2"
+            className="text-red-400 hover:bg-red-500/20 gap-2"
             onClick={() => handleDeleteItem(selectedItem.id)}
           >
             <Trash2 className="w-4 h-4" />
