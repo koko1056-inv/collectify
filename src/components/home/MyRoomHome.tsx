@@ -67,11 +67,14 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
           </div>
           
           <div className="space-y-3">
+            <p className="text-sm text-muted-foreground font-medium">
+              ログインしてください
+            </p>
             <h2 className="text-3xl font-bold text-foreground">
               マイルームを作ろう！
             </h2>
             <p className="text-muted-foreground">
-              ログインして、自分だけの推し部屋を3D空間に作りましょう
+              自分だけの推し部屋を3D空間に作りましょう
             </p>
           </div>
 
