@@ -101,7 +101,7 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
 
   if (!profile) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="min-h-[60vh] flex items-center justify-center bg-background">
         <p className="text-muted-foreground">プロフィールを読み込み中...</p>
       </div>
     );
