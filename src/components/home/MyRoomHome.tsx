@@ -123,9 +123,9 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
   }
 
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center relative px-4 sm:px-8 pb-24">
-      {/* 背景のグラデーション - ダーク&ネオン */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-blue-900/10 to-pink-900/10 rounded-3xl" />
+    <div className="min-h-[60vh] flex flex-col items-center justify-center relative px-4 sm:px-8 pb-24 bg-background">
+      {/* 背景のグラデーション - モノクロ */}
+      <div className="absolute inset-0 bg-gradient-to-br from-muted/30 via-background to-muted/20 rounded-3xl" />
       
       {/* タブ切り替え */}
       <div className="relative z-10 mb-6 mt-16 sm:mt-4">
