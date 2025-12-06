@@ -515,11 +515,11 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-purple-400 hover:bg-purple-500/20 gap-2"
+              className="text-white hover:bg-white/20 gap-2 border border-white/30"
               onClick={() => handleGenerate3D(selectedItem)}
             >
               <Box className="w-4 h-4" />
-              3Dに変換
+              3Dモデルを生成
             </Button>
           )}
           
