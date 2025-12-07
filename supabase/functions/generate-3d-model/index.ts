@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const MESHY_API_URL = 'https://api.meshy.ai/v2';
+const MESHY_API_URL = 'https://api.meshy.ai/openapi/v1';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
