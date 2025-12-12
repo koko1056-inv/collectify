@@ -182,6 +182,32 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     }
   }, [queryClient]);
 
+  // アイテムの配置場所を変更
+  const handleChangePlacement = useCallback(async (itemId: string, placement: PlacementType) => {
+    try {
+      const placementRotation = placement === 'floor' ? 0 : placement === 'back_wall' ? 90 : 180;
+      const { error } = await supabase
+        .from("binder_items")
+        .update({ rotation: placementRotation, position_x: 50, position_y: 50 })
+        .eq("id", itemId);
+      
+      if (error) throw error;
+      
+      const placementNames = { floor: '床', back_wall: '後ろの壁', left_wall: '左の壁' };
+      toast.success(`${placementNames[placement]}に移動しました`);
+      
+      // 選択中のアイテムの配置場所も更新
+      if (selectedItem && selectedItem.id === itemId) {
+        setSelectedItem({ ...selectedItem, placement, position_x: 50, position_y: 50 });
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ["room-items"] });
+    } catch (error) {
+      console.error("Error changing placement:", error);
+      toast.error("配置場所の変更に失敗しました");
+    }
+  }, [queryClient, selectedItem]);
+
   // アイテムのサイズを変更
   const handleResizeItem = useCallback(async (itemId: string, newSize: number) => {
     try {
@@ -483,118 +509,155 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
 
       {/* 編集ツールバー（選択アイテムがある場合のみ） */}
       {isOwnRoom && selectedItem && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 bg-black/70 backdrop-blur-md rounded-full px-4 py-2">
-          {/* サイズ変更 */}
-          <div className="flex items-center gap-1">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="text-white hover:bg-white/10 h-8 w-8"
-              onClick={() => handleResizeItem(selectedItem.id, (selectedItem.width || 100) - 20)}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2">
+          {/* 配置場所選択 */}
+          <div className="flex items-center gap-2 bg-black/70 backdrop-blur-md rounded-full px-3 py-1.5">
+            <span className="text-white/70 text-xs mr-1">配置:</span>
+            <ToggleGroup 
+              type="single" 
+              value={selectedItem.placement || 'floor'} 
+              onValueChange={(v) => v && handleChangePlacement(selectedItem.id, v as PlacementType)}
+              className="gap-1"
             >
-              <Minus className="w-4 h-4" />
-            </Button>
-            <div className="flex items-center gap-1 text-white text-xs px-2">
-              <Maximize2 className="w-3 h-3" />
-              <span>{selectedItem.width || 100}%</span>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="text-white hover:bg-white/10 h-8 w-8"
-              onClick={() => handleResizeItem(selectedItem.id, (selectedItem.width || 100) + 20)}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
+              <ToggleGroupItem 
+                value="floor" 
+                aria-label="床" 
+                className="h-7 px-2 text-xs data-[state=on]:bg-primary data-[state=on]:text-white text-white/70 hover:text-white hover:bg-white/10"
+              >
+                <Square className="w-3 h-3 mr-1" />
+                床
+              </ToggleGroupItem>
+              <ToggleGroupItem 
+                value="back_wall" 
+                aria-label="後ろの壁" 
+                className="h-7 px-2 text-xs data-[state=on]:bg-primary data-[state=on]:text-white text-white/70 hover:text-white hover:bg-white/10"
+              >
+                <PanelTop className="w-3 h-3 mr-1" />
+                後壁
+              </ToggleGroupItem>
+              <ToggleGroupItem 
+                value="left_wall" 
+                aria-label="左の壁" 
+                className="h-7 px-2 text-xs data-[state=on]:bg-primary data-[state=on]:text-white text-white/70 hover:text-white hover:bg-white/10"
+              >
+                <PanelLeft className="w-3 h-3 mr-1" />
+                左壁
+              </ToggleGroupItem>
+            </ToggleGroup>
           </div>
           
-          <div className="w-px h-6 bg-white/20" />
-          
-          {/* 3D生成ボタン / 進捗表示 */}
-          {!selectedItem.model_3d_url && !isGenerating3D && (
+          {/* メインツールバー */}
+          <div className="flex items-center gap-3 bg-black/70 backdrop-blur-md rounded-full px-4 py-2">
+            {/* サイズ変更 */}
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="text-white hover:bg-white/10 h-8 w-8"
+                onClick={() => handleResizeItem(selectedItem.id, (selectedItem.width || 100) - 20)}
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
+              <div className="flex items-center gap-1 text-white text-xs px-2">
+                <Maximize2 className="w-3 h-3" />
+                <span>{selectedItem.width || 100}%</span>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="text-white hover:bg-white/10 h-8 w-8"
+                onClick={() => handleResizeItem(selectedItem.id, (selectedItem.width || 100) + 20)}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <div className="w-px h-6 bg-white/20" />
+            
+            {/* 3D生成ボタン / 進捗表示 */}
+            {!selectedItem.model_3d_url && !isGenerating3D && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-white hover:bg-white/20 gap-2 border border-white/30"
+                onClick={() => handleGenerate3D(selectedItem)}
+              >
+                <Box className="w-4 h-4" />
+                3D化
+              </Button>
+            )}
+            
+            {isGenerating3D && generation3DProgress && (
+              <div className="flex items-center gap-3 px-2">
+                <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                <div className="flex flex-col gap-1 min-w-[100px]">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-white/80 text-[10px]">{generation3DProgress.message}</span>
+                    <span className="text-purple-400">{generation3DProgress.progress}%</span>
+                  </div>
+                  <div className="h-1 bg-white/20 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
+                      style={{ width: `${generation3DProgress.progress}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {selectedItem.model_3d_url && (
+              <>
+                <div className="flex items-center gap-1 text-green-400 text-xs px-2">
+                  <Box className="w-3 h-3" />
+                  <span>3D</span>
+                </div>
+                
+                <div className="w-px h-6 bg-white/20" />
+                
+                {/* 3Dモデル回転操作 */}
+                <div className="flex items-center gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="text-white hover:bg-white/10 h-8 w-8"
+                    onClick={() => handleRotate3D(selectedItem.id, -45)}
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                  </Button>
+                  <div className="flex items-center gap-1 text-white text-xs px-1 min-w-[40px] justify-center">
+                    <span>{itemRotations[selectedItem.id] || 0}°</span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="text-white hover:bg-white/10 h-8 w-8"
+                    onClick={() => handleRotate3D(selectedItem.id, 45)}
+                  >
+                    <RotateCw className="w-4 h-4" />
+                  </Button>
+                </div>
+              </>
+            )}
+            
+            <div className="w-px h-6 bg-white/20" />
+            
+            {/* 削除 */}
             <Button 
               variant="ghost" 
-              size="sm" 
-              className="text-white hover:bg-white/20 gap-2 border border-white/30"
-              onClick={() => handleGenerate3D(selectedItem)}
+              size="icon" 
+              className="text-red-400 hover:bg-red-500/20 h-8 w-8"
+              onClick={() => handleDeleteItem(selectedItem.id)}
             >
-              <Box className="w-4 h-4" />
-              3Dモデルを生成
+              <Trash2 className="w-4 h-4" />
             </Button>
-          )}
-          
-          {isGenerating3D && generation3DProgress && (
-            <div className="flex items-center gap-3 px-2">
-              <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
-              <div className="flex flex-col gap-1 min-w-[120px]">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-white/80">{generation3DProgress.message}</span>
-                  <span className="text-purple-400">{generation3DProgress.progress}%</span>
-                </div>
-                <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
-                    style={{ width: `${generation3DProgress.progress}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {selectedItem.model_3d_url && (
-            <>
-              <div className="flex items-center gap-1 text-green-400 text-xs px-2">
-                <Box className="w-3 h-3" />
-                <span>3D済み</span>
-              </div>
-              
-              <div className="w-px h-6 bg-white/20" />
-              
-              {/* 3Dモデル回転操作 */}
-              <div className="flex items-center gap-1">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="text-white hover:bg-white/10 h-8 w-8"
-                  onClick={() => handleRotate3D(selectedItem.id, -45)}
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </Button>
-                <div className="flex items-center gap-1 text-white text-xs px-2 min-w-[50px] justify-center">
-                  <span>{itemRotations[selectedItem.id] || 0}°</span>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="text-white hover:bg-white/10 h-8 w-8"
-                  onClick={() => handleRotate3D(selectedItem.id, 45)}
-                >
-                  <RotateCw className="w-4 h-4" />
-                </Button>
-              </div>
-            </>
-          )}
-          
-          <div className="w-px h-6 bg-white/20" />
-          
-          {/* 削除 */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-red-400 hover:bg-red-500/20 gap-2"
-            onClick={() => handleDeleteItem(selectedItem.id)}
-          >
-            <Trash2 className="w-4 h-4" />
-            削除
-          </Button>
+          </div>
         </div>
       )}
 
       {/* 操作ヒント */}
       <div className="absolute bottom-4 right-4 z-10 text-white/50 text-xs space-y-1">
-        <p>アイテムをドラッグ: 移動</p>
-        <p>背景ドラッグ: 回転</p>
-        <p>スクロール: ズーム</p>
+        <p>ドラッグ: 移動</p>
+        <p>回転/ズーム: タッチ操作</p>
       </div>
 
       {/* アイテムパレットシート */}
