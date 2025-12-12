@@ -158,7 +158,17 @@ export const enTranslations = {
     empty: "No posts yet",
     like: "Like",
     comment: "Comment",
-    share: "Share"
+    share: "Share",
+    selectGoods: "Select Goods",
+    multiSelect: "Multi-select",
+    addGoods: "Add Goods",
+    searchGoods: "Search by goods name or content...",
+    filterByType: "Filter by goods type",
+    noSearchResults: "No goods match your search",
+    changeSearchCondition: "Try changing search conditions",
+    noGoodsToPost: "No goods to post",
+    addGoodsFirst: "Add goods to your collection first",
+    postImage: "Post Image"
   },
   polls: {
     title: "Polls",
@@ -189,5 +199,8 @@ export const enTranslations = {
     loginToStart: "Login to Start",
     createRoom: "Create Your Room",
     createRoomDesc: "Create your own fandom room in 3D space"
+  },
+  addItem: {
+    backToSearch: "Back to Search"
   }
 };

@@ -158,7 +158,17 @@ export const jaTranslations = {
     empty: "まだ投稿がありません",
     like: "いいね",
     comment: "コメント",
-    share: "シェア"
+    share: "シェア",
+    selectGoods: "グッズを選択",
+    multiSelect: "複数選択",
+    addGoods: "グッズ追加",
+    searchGoods: "グッズ名やコンテンツ名で検索...",
+    filterByType: "グッズタイプで絞り込む",
+    noSearchResults: "検索条件に一致するグッズが見つかりません",
+    changeSearchCondition: "検索条件を変更してみてください",
+    noGoodsToPost: "投稿できるグッズがありません",
+    addGoodsFirst: "まずはコレクションにグッズを追加してください",
+    postImage: "投稿画像"
   },
   polls: {
     title: "投票",
@@ -189,5 +199,8 @@ export const jaTranslations = {
     loginToStart: "ログインして始める",
     createRoom: "マイルームを作ろう",
     createRoomDesc: "自分だけの推し部屋を3D空間に作りましょう"
+  },
+  addItem: {
+    backToSearch: "検索に戻る"
   }
 };
