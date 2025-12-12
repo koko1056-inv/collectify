@@ -58,14 +58,14 @@ export function Footer() {
             </Link>
 
             <Link
-              to="/collection"
+              to="/posts"
               className={cn(
                 "flex flex-col items-center justify-center w-1/5 text-[10px]",
-                isActive("/collection") ? "text-primary" : "text-gray-500"
+                isActive("/posts") ? "text-primary" : "text-gray-500"
               )}
             >
-              <Package className={cn("h-6 w-6 mb-1", isActive("/collection") ? "text-primary" : "text-gray-400")} />
-              <span>{t("footer.collection")}</span>
+              <Users className={cn("h-6 w-6 mb-1", isActive("/posts") ? "text-primary" : "text-gray-400")} />
+              <span>コミュニティ</span>
             </Link>
 
             <Link

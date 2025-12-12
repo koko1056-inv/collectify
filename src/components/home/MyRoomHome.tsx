@@ -15,7 +15,8 @@ import {
   Shirt,
   Image,
   Maximize2,
-  Compass
+  Compass,
+  Package
 } from "lucide-react";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +27,7 @@ import { AvatarDressUpModal } from "./avatar-center/AvatarDressUpModal";
 import { AvatarGalleryModal } from "./avatar-center/AvatarGalleryModal";
 import { IsometricRoomPreview } from "@/components/room3d/IsometricRoomPreview";
 import { Room3DEditor } from "@/components/room3d/Room3DEditor";
+import { ProfileCollection } from "@/components/profile/ProfileCollection";
 
 interface MyRoomHomeProps {
   profile: Profile | undefined;
@@ -35,7 +37,7 @@ interface MyRoomHomeProps {
 export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"room" | "avatar">("room");
+  const [activeTab, setActiveTab] = useState<"room" | "collection" | "avatar">("room");
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showDressUp, setShowDressUp] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
@@ -131,16 +133,20 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
       <div className="absolute inset-0 bg-gradient-to-br from-muted/30 via-background to-muted/20 rounded-3xl" />
       
       {/* タブ切り替え */}
-      <div className="relative z-10 mb-6 mt-16 sm:mt-4">
+      <div className="relative z-10 mb-6 mt-16 sm:mt-4 w-full max-w-md">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-2 bg-background/80 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-3 bg-background/80 backdrop-blur-sm">
             <TabsTrigger value="room" className="gap-2">
               <Home className="w-4 h-4" />
-              マイルーム
+              <span className="hidden sm:inline">ルーム</span>
+            </TabsTrigger>
+            <TabsTrigger value="collection" className="gap-2">
+              <Package className="w-4 h-4" />
+              <span className="hidden sm:inline">コレクション</span>
             </TabsTrigger>
             <TabsTrigger value="avatar" className="gap-2">
               <User className="w-4 h-4" />
-              アバター
+              <span className="hidden sm:inline">アバター</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -162,6 +168,10 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
           onOpenFullscreen={() => setShowFullscreenRoom(true)}
           createRoomPending={createMainRoom.isPending}
         />
+      ) : activeTab === "collection" ? (
+        <div className="w-full max-w-6xl">
+          {user?.id && <ProfileCollection userId={user.id} />}
+        </div>
       ) : (
         <AvatarView
           profile={profile}
