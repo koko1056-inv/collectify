@@ -15,7 +15,7 @@ export default function MyRoom() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="w-full px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pt-14 pb-24 sm:pt-24">
+      <main className="w-full px-4 sm:px-6 lg:px-8 pt-14 pb-24 sm:pt-24">
         <MyRoomHome 
           profile={profile} 
           onAvatarGenerated={handleAvatarGenerated} 
