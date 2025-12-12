@@ -129,6 +129,11 @@ export function MyRoomHome({
             <Users className="w-4 h-4" />
             他のコレクターを探す
           </Button>
+        ) : activeTab === "room" ? (
+          <Button variant="outline" size="sm" onClick={() => navigate("/rooms/explore")} className="gap-2 rounded-full">
+            <Compass className="w-4 h-4" />
+            他のルームを探す
+          </Button>
         ) : (
           <>
             <Button variant="outline" size="sm" onClick={() => navigate("/rooms/explore")} className="gap-2 rounded-full">
