@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -9,10 +8,8 @@ import { OnboardingWalkthrough } from "@/components/onboarding/OnboardingWalkthr
 import { useOnboardingWalkthrough } from "@/hooks/useOnboardingWalkthrough";
 import { HomeContent } from "@/components/home/HomeContent";
 import { UserProfileCollection } from "@/components/home/UserProfileCollection";
-import { MyRoomHome } from "@/components/home/MyRoomHome";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProfile } from "@/hooks/useProfile";
-import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [showInterestDialog, setShowInterestDialog] = useState(false);
@@ -39,30 +36,11 @@ const Index = () => {
 
   // ユーザーのコレクションを表示するか、ホームページを表示するか
   const showUserCollection = !!userId && !!viewedProfile;
-  // ホーム画面（userIdがない）では常にアバター中心のレイアウトを表示
-  const showAvatarCenterHome = !userId;
-
-  console.log("[Index] visibility flags", {
-    routeUserId: userId,
-    hasUser: !!user,
-    hasProfile: !!profile,
-    profileId: profile?.id,
-    profileObject: profile,
-    showUserCollection,
-    showAvatarCenterHome,
-  });
-
-  const handleAvatarGenerated = async (url: string) => {
-    // AvatarCenterHomeで既にprofiles.avatar_urlを更新しているので
-    // ここではプロフィールを再取得するだけ
-    console.log("[Index] Avatar generated, refetching profile");
-    await refetchProfile();
-  };
 
   // 他ユーザーのプロフィールを見ているときのローディング表示のみ
   if (userId && isLoadingViewedProfile) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <main className="container mx-auto px-1 py-4 pt-0 pb-24 sm:px-2 sm:py-8 sm:pt-20 sm:pb-8">
           <div className="flex items-center justify-center min-h-[60vh]">
@@ -78,7 +56,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-1 py-4 pt-0 pb-24 sm:px-2 sm:py-8 sm:pt-20 sm:pb-8">
         <div className={`space-y-4 sm:space-y-6 ${isMobile ? "pt-2" : ""}`}>
@@ -87,14 +65,6 @@ const Index = () => {
               viewedProfile={viewedProfile} 
               userId={userId} 
             />
-          ) : showAvatarCenterHome ? (
-            <>
-              <MyRoomHome 
-                profile={profile} 
-                onAvatarGenerated={handleAvatarGenerated}
-              />
-              <HomeContent profile={profile} />
-            </>
           ) : (
             <HomeContent profile={profile} />
           )}
