@@ -6,6 +6,7 @@ import { useToggleLike } from "@/hooks/posts";
 import { useState, memo } from "react";
 import { CommentsModal } from "./CommentsModal";
 import { LazyImage } from "@/components/ui/lazy-image";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PostCardProps {
   post: GoodsPost;
@@ -14,6 +15,7 @@ interface PostCardProps {
 
 export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const toggleLike = useToggleLike();
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
 
@@ -43,10 +45,9 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
         onClick={onClick}
       >
         <div className="relative overflow-hidden rounded-lg bg-background border hover:shadow-lg transition-all duration-300">
-          {/* 画像 */}
           <LazyImage
             src={post.image_url}
-            alt={post.caption || "投稿画像"}
+            alt={post.caption || t("posts.postImage")}
             className="w-full h-auto object-cover"
             skeletonClassName="aspect-square"
           />
