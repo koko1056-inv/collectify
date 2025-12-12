@@ -68,13 +68,12 @@ const queryClient = new QueryClient({
 
 const App: React.FC = () => {
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <OnboardingProvider>
-                <TooltipProvider>
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <OnboardingProvider>
+              <TooltipProvider>
                 <Toaster />
                 <Sonner />
                 <Suspense fallback={<LoadingFallback />}>
@@ -95,12 +94,11 @@ const App: React.FC = () => {
                   </Routes>
                 </Suspense>
               </TooltipProvider>
-              </OnboardingProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </LanguageProvider>
-      </QueryClientProvider>
-    </React.StrictMode>
+            </OnboardingProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </LanguageProvider>
+    </QueryClientProvider>
   );
 };
 
