@@ -317,20 +317,20 @@ function AvatarView({
       {/* アバターアクションボタン */}
       <div className="flex flex-col gap-3 w-full max-w-md">
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors hover-scale" onClick={onShowAvatarModal}>
-          <CardContent className="p-6 text-center">
-            <Sparkles className="w-8 h-8 mx-auto mb-3 text-primary" />
+          <CardContent className="p-4 flex items-center gap-3">
+            <Sparkles className="w-5 h-5 text-primary" />
             <span className="text-sm font-medium">AI生成</span>
           </CardContent>
         </Card>
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors hover-scale" onClick={onShowDressUp}>
-          <CardContent className="p-6 text-center">
-            <Shirt className="w-8 h-8 mx-auto mb-3 text-primary" />
+          <CardContent className="p-4 flex items-center gap-3">
+            <Shirt className="w-5 h-5 text-primary" />
             <span className="text-sm font-medium">着せ替え</span>
           </CardContent>
         </Card>
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors hover-scale" onClick={onShowGallery}>
-          <CardContent className="p-6 text-center">
-            <Image className="w-8 h-8 mx-auto mb-3 text-primary" />
+          <CardContent className="p-4 flex items-center gap-3">
+            <Image className="w-5 h-5 text-primary" />
             <span className="text-sm font-medium">ギャラリー</span>
           </CardContent>
         </Card>
