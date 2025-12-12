@@ -201,6 +201,21 @@ export const jaTranslations = {
     createRoomDesc: "自分だけの推し部屋を3D空間に作りましょう"
   },
   addItem: {
-    backToSearch: "検索に戻る"
+    backToSearch: "検索に戻る",
+    title: "新規アイテムの追加",
+    communityNote: "あなたが追加したグッズは、他のユーザーがコレクションに追加できるようになります。コミュニティの成長にご協力ください！",
+    step1: "画像の追加",
+    step2: "詳細の追加",
+    next: "次へ",
+    back: "戻る",
+    adding: "追加中...",
+    addButton: "アイテムを追加",
+    imagesSelected: "件の画像が選択されました。各グッズの詳細を入力してください。",
+    imageSelectedTitle: "画像を選択しました",
+    registrationComplete: "登録完了",
+    itemsRegistered: "件のグッズを登録しました",
+    itemsFailed: "件失敗",
+    registrationError: "グッズの登録に失敗しました。",
+    loginRequired: "ログインが必要です。"
   }
 };
