@@ -87,23 +87,24 @@ export function Navbar() {
   };
   return <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-sm">
       {/* モバイル版のロゴ (sm未満でのみ表示) */}
-      <div className="flex sm:hidden justify-between items-center h-12 bg-white border-b px-4">
-        <div className="w-8" /> {/* Left spacer for balance */}
-        <Link to="/" className="logo-text text-xl font-bold">
+      <div className="flex sm:hidden items-center h-12 bg-white border-b px-4">
+        <div className="w-20 flex-shrink-0" /> {/* Left spacer for balance */}
+        <Link to="/my-room" className="logo-text text-xl font-bold flex-1 text-center">
           Collectify
         </Link>
-        {user && <div className="flex items-center gap-2">
-            <NotificationBell className="sm:hidden" />
-            <button onClick={() => navigate("/edit-profile")} className="flex items-center justify-center">
-              <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
-                <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback className="bg-muted">
-                  <User className="w-4 h-4" />
-                </AvatarFallback>
-              </Avatar>
-            </button>
-          </div>}
-        {!user && <div className="w-8" />} {/* Right spacer when not logged in */}
+        <div className="w-20 flex-shrink-0 flex justify-end">
+          {user && <div className="flex items-center gap-2">
+              <NotificationBell className="sm:hidden" />
+              <button onClick={() => navigate("/edit-profile")} className="flex items-center justify-center">
+                <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="bg-muted">
+                    <User className="w-4 h-4" />
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </div>}
+        </div>
       </div>
       
       {/* デスクトップ版のナビゲーション */}
