@@ -315,7 +315,7 @@ function AvatarView({
       </div>
 
       {/* アバターアクションボタン */}
-      <div className="grid grid-cols-3 gap-4 w-full max-w-md">
+      <div className="flex flex-col gap-3 w-full max-w-md">
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors hover-scale" onClick={onShowAvatarModal}>
           <CardContent className="p-6 text-center">
             <Sparkles className="w-8 h-8 mx-auto mb-3 text-primary" />
