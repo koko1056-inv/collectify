@@ -12,6 +12,8 @@ import { ProfileBioSection } from "./ProfileBioSection";
 import { ProfileInterestsSection } from "./ProfileInterestsSection";
 import { ProfileFavoritesSection } from "./ProfileFavoritesSection";
 import { ProfileWishlistSection } from "./ProfileWishlistSection";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -251,6 +253,13 @@ export const ProfileCard = memo(function ProfileCard({
 
       {effectiveUserId && (
         <ProfileWishlistSection userId={effectiveUserId} />
+      )}
+
+      {isOwnProfile && (
+        <div className="mt-8 pt-6 border-t border-border">
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">言語設定 / Language</h3>
+          <LanguageToggle />
+        </div>
       )}
     </div>
   );

@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { Language, TranslationKey, getTranslation } from "../translations";
 
 interface LanguageContextType {
@@ -10,8 +9,18 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+const LANGUAGE_KEY = "app-language";
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>("ja");
+  const [language, setLanguageState] = useState<Language>(() => {
+    const saved = localStorage.getItem(LANGUAGE_KEY);
+    return (saved === "en" || saved === "ja") ? saved : "ja";
+  });
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    localStorage.setItem(LANGUAGE_KEY, lang);
+  };
 
   const t = (key: TranslationKey): string => {
     return getTranslation(language, key);
