@@ -3,10 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, User } from "lucide-react";
+import { Loader2, User, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ImageEditDialogProps {
   isOpen: boolean;
@@ -14,6 +14,13 @@ interface ImageEditDialogProps {
   imageUrl: string;
   onEditComplete: (prompt: string, avatarUrl?: string) => void;
   isEditing: boolean;
+}
+
+interface AvatarOption {
+  id: string;
+  image_url: string;
+  name?: string;
+  isProfile?: boolean;
 }
 
 export function ImageEditDialog({
@@ -25,7 +32,8 @@ export function ImageEditDialog({
 }: ImageEditDialogProps) {
   const [editPrompt, setEditPrompt] = useState("");
   const [selectedAvatarUrl, setSelectedAvatarUrl] = useState<string | null>(null);
-  const [avatars, setAvatars] = useState<Array<{ id: string; image_url: string }>>([]);
+  const [avatars, setAvatars] = useState<AvatarOption[]>([]);
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -37,17 +45,30 @@ export function ImageEditDialog({
   const loadUserAvatars = async () => {
     if (!user) return;
     
+    // プロフィールのアバターを取得
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("avatar_url, username")
+      .eq("id", user.id)
+      .single();
+
+    if (profileData?.avatar_url) {
+      setProfileAvatar(profileData.avatar_url);
+    }
+
+    // ギャラリーのアバターを取得
     const { data, error } = await supabase
       .from("avatar_gallery")
-      .select("id, image_url, item_ids")
+      .select("id, image_url, name, item_ids")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (!error && data) {
       // ベースアバターのみを表示（item_idsが存在しないもの）
-      const baseAvatars = data.filter(avatar => 
-        !avatar.item_ids || avatar.item_ids.length === 0
-      ).slice(0, 6);
+      const baseAvatars = data
+        .filter(avatar => !avatar.item_ids || avatar.item_ids.length === 0)
+        .slice(0, 5)
+        .map(a => ({ ...a, isProfile: false }));
       setAvatars(baseAvatars);
     }
   };
@@ -61,30 +82,41 @@ export function ImageEditDialog({
     }
   };
 
+  const allAvatarOptions: AvatarOption[] = [
+    ...(profileAvatar ? [{ id: 'profile', image_url: profileAvatar, name: 'プロフィール', isProfile: true }] : []),
+    ...avatars,
+  ];
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>画像を編集</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            AIで画像を生成
+          </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
-          <div>
+          {/* 参照画像 */}
+          <div className="rounded-lg overflow-hidden border">
             <img
               src={imageUrl}
-              alt="編集対象"
-              className="w-full h-64 object-cover rounded-lg"
+              alt="参照画像"
+              className="w-full h-48 object-cover"
             />
           </div>
 
-          {avatars.length > 0 && (
-            <div className="space-y-2">
-              <Label className="text-sm flex items-center gap-2">
-                <User className="w-4 h-4" />
-                ベースアバターを選択（任意）
-              </Label>
-              <div className="grid grid-cols-3 gap-2">
-                {avatars.map((avatar) => (
+          {/* アバター選択 */}
+          <div className="space-y-2">
+            <Label className="text-sm flex items-center gap-2">
+              <User className="w-4 h-4" />
+              アバターを使用（任意）
+            </Label>
+            
+            {allAvatarOptions.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {allAvatarOptions.map((avatar) => (
                   <button
                     key={avatar.id}
                     type="button"
@@ -92,41 +124,61 @@ export function ImageEditDialog({
                       selectedAvatarUrl === avatar.image_url ? null : avatar.image_url
                     )}
                     disabled={isEditing}
-                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                    className={`relative rounded-full overflow-hidden border-2 transition-all ${
                       selectedAvatarUrl === avatar.image_url
-                        ? 'border-primary ring-2 ring-primary/20'
+                        ? 'border-primary ring-2 ring-primary/30 scale-110'
                         : 'border-border hover:border-primary/50'
                     }`}
                   >
-                    <img
-                      src={avatar.image_url}
-                      alt="Avatar"
-                      className="w-full h-full object-cover"
-                    />
+                    <Avatar className="w-14 h-14">
+                      <AvatarImage src={avatar.image_url} className="object-cover" />
+                      <AvatarFallback>
+                        <User className="w-6 h-6" />
+                      </AvatarFallback>
+                    </Avatar>
                     {selectedAvatarUrl === avatar.image_url && (
-                      <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                        <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                      <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                        <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs">
                           ✓
                         </div>
+                      </div>
+                    )}
+                    {avatar.isProfile && (
+                      <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[8px] px-1.5 rounded-full">
+                        メイン
                       </div>
                     )}
                   </button>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-sm text-muted-foreground py-2">
+                アバターがありません。プロフィールでアバターを設定してください。
+              </p>
+            )}
+            
+            {selectedAvatarUrl && (
+              <p className="text-xs text-primary">
+                選択したアバターが画像生成に使用されます
+              </p>
+            )}
+          </div>
 
+          {/* プロンプト入力 */}
           <div className="space-y-2">
-            <Label htmlFor="edit-prompt">編集内容を入力</Label>
+            <Label htmlFor="edit-prompt">生成内容を入力</Label>
             <Input
               id="edit-prompt"
-              placeholder="例: アバターを左上に配置して、背景を青空にして"
+              placeholder="例: アバターがグッズを持っている、背景を青空に"
               value={editPrompt}
               onChange={(e) => setEditPrompt(e.target.value)}
               disabled={isEditing}
             />
             <p className="text-xs text-muted-foreground">
-              AI が画像を編集します。具体的な指示を入力してください。
+              {selectedAvatarUrl 
+                ? "選択したアバターとグッズ画像を参考にAIが画像を生成します"
+                : "グッズ画像を参考にAIが画像を生成します"
+              }
             </p>
           </div>
 
@@ -141,10 +193,13 @@ export function ImageEditDialog({
               {isEditing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  編集中...
+                  生成中...
                 </>
               ) : (
-                "編集する"
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  生成する
+                </>
               )}
             </Button>
           </div>
