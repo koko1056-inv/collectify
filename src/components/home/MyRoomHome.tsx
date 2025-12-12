@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   Home, 
   Heart, 
@@ -16,7 +17,9 @@ import {
   Image,
   Maximize2,
   Compass,
-  Package
+  Package,
+  ArrowRight,
+  TrendingUp
 } from "lucide-react";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -57,25 +60,22 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
   // 未ログイン時のログイン促進表示
   if (!user) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center relative px-4 sm:px-8 bg-background">
-        <div className="absolute inset-0 bg-gradient-to-br from-muted/30 via-background to-muted/20 rounded-3xl" />
+      <div className="min-h-[70vh] flex flex-col items-center justify-center relative px-4 sm:px-8 animate-fade-in">
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
         
-        <div className="relative z-10 text-center space-y-6 max-w-md">
-          <div className="w-40 h-40 mx-auto relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-muted/50 to-muted/30 rounded-full blur-xl animate-pulse" />
-            <div className="relative w-full h-full bg-gradient-to-br from-muted/40 to-muted/20 rounded-full flex items-center justify-center border border-border">
-              <Home className="w-20 h-20 text-muted-foreground" />
+        <div className="relative z-10 text-center space-y-8 max-w-md">
+          <div className="w-32 h-32 mx-auto relative">
+            <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-2xl animate-pulse" />
+            <div className="relative w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl flex items-center justify-center border border-primary/20 shadow-xl">
+              <Home className="w-14 h-14 text-primary" />
             </div>
           </div>
           
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground font-medium">
-              ログインしてください
-            </p>
-            <h2 className="text-3xl font-bold text-foreground">
-              マイルームを作ろう！
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+              マイルームを作ろう
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-lg">
               自分だけの推し部屋を3D空間に作りましょう
             </p>
           </div>
@@ -83,21 +83,19 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
           <Button 
             size="lg" 
             onClick={() => navigate("/login")}
-            className="gap-2 bg-foreground text-background hover:bg-foreground/90 shadow-lg transition-all hover:scale-105"
+            className="gap-2 h-12 px-8 text-base shadow-lg hover-scale"
           >
             <User className="w-5 h-5" />
-            ログインする
+            ログインして始める
+            <ArrowRight className="w-4 h-4" />
           </Button>
-        </div>
 
-        {/* エクスプローラーへのリンク */}
-        <div className="relative z-10 mt-6 flex items-center gap-4">
           <button 
             onClick={() => navigate("/rooms/explore")}
-            className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 bg-background/50 backdrop-blur-sm px-4 py-2 rounded-full"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 mx-auto"
           >
             <Compass className="w-4 h-4" />
-            ルームを探索
+            他のルームを探索する
           </button>
         </div>
       </div>
@@ -106,8 +104,11 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
 
   if (!profile) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">プロフィールを読み込み中...</p>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">読み込み中...</p>
+        </div>
       </div>
     );
   }
@@ -128,85 +129,107 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
   }
 
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center relative px-4 sm:px-8 pb-24 bg-background">
-      {/* 背景のグラデーション - モノクロ */}
-      <div className="absolute inset-0 bg-gradient-to-br from-muted/30 via-background to-muted/20 rounded-3xl" />
-      
-      {/* タブ切り替え */}
-      <div className="relative z-10 mb-6 mt-16 sm:mt-4 w-full max-w-lg px-2">
+    <div className="min-h-[60vh] flex flex-col pb-24 animate-fade-in">
+      {/* ヘッダーセクション */}
+      <div className="text-center mb-6 pt-14 sm:pt-4">
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <Avatar className="w-10 h-10 border-2 border-primary/20">
+            <AvatarImage src={profile.avatar_url || undefined} />
+            <AvatarFallback className="bg-primary/10 text-primary">
+              {profile.username?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="text-left">
+            <p className="text-sm text-muted-foreground">おかえりなさい</p>
+            <h1 className="text-lg font-semibold text-foreground">
+              {profile.display_name || profile.username}さん
+            </h1>
+          </div>
+        </div>
+      </div>
+
+      {/* タブナビゲーション */}
+      <div className="w-full max-w-lg mx-auto px-4 mb-6">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-3 h-14 bg-muted/50 backdrop-blur-sm p-1.5 rounded-xl border border-border/50">
+          <TabsList className="grid w-full grid-cols-3 h-16 bg-muted/30 backdrop-blur-sm p-1.5 rounded-2xl border border-border/30 shadow-sm">
             <TabsTrigger 
               value="room" 
-              className="flex flex-col items-center justify-center gap-1 h-full rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              className="flex flex-col items-center justify-center gap-1.5 h-full rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200"
             >
               <Home className="w-5 h-5" />
-              <span className="text-[10px] sm:text-xs font-medium">ルーム</span>
+              <span className="text-[11px] font-medium">ルーム</span>
             </TabsTrigger>
             <TabsTrigger 
               value="collection" 
-              className="flex flex-col items-center justify-center gap-1 h-full rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              className="flex flex-col items-center justify-center gap-1.5 h-full rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200"
             >
               <Package className="w-5 h-5" />
-              <span className="text-[10px] sm:text-xs font-medium">コレクション</span>
+              <span className="text-[11px] font-medium">コレクション</span>
             </TabsTrigger>
             <TabsTrigger 
               value="avatar" 
-              className="flex flex-col items-center justify-center gap-1 h-full rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+              className="flex flex-col items-center justify-center gap-1.5 h-full rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200"
             >
               <User className="w-5 h-5" />
-              <span className="text-[10px] sm:text-xs font-medium">アバター</span>
+              <span className="text-[11px] font-medium">アバター</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      {activeTab === "room" ? (
-        <Room3DView 
-          mainRoom={mainRoom}
-          roomItems={roomItems}
-          likeCount={likeCount}
-          isLiked={isLiked}
-          isLoading={isLoading}
-          isOwnRoom={isOwnRoom}
-          profile={profile}
-          user={user}
-          onEditRoom={handleEditRoom}
-          onCreateRoom={() => createMainRoom.mutate("マイルーム")}
-          onToggleLike={() => toggleLike.mutate()}
-          onOpenFullscreen={() => setShowFullscreenRoom(true)}
-          createRoomPending={createMainRoom.isPending}
-        />
-      ) : activeTab === "collection" ? (
-        <div className="w-full max-w-6xl">
-          {user?.id && <ProfileCollection userId={user.id} />}
-        </div>
-      ) : (
-        <AvatarView
-          profile={profile}
-          userId={user?.id}
-          onShowAvatarModal={() => setShowAvatarModal(true)}
-          onShowDressUp={() => setShowDressUp(true)}
-          onShowGallery={() => setShowGallery(true)}
-        />
-      )}
+      {/* メインコンテンツ */}
+      <div className="flex-1 w-full">
+        {activeTab === "room" ? (
+          <Room3DView 
+            mainRoom={mainRoom}
+            roomItems={roomItems}
+            likeCount={likeCount}
+            isLiked={isLiked}
+            isLoading={isLoading}
+            isOwnRoom={isOwnRoom}
+            profile={profile}
+            user={user}
+            onEditRoom={handleEditRoom}
+            onCreateRoom={() => createMainRoom.mutate("マイルーム")}
+            onToggleLike={() => toggleLike.mutate()}
+            onOpenFullscreen={() => setShowFullscreenRoom(true)}
+            createRoomPending={createMainRoom.isPending}
+          />
+        ) : activeTab === "collection" ? (
+          <div className="w-full max-w-6xl mx-auto px-4 animate-fade-in">
+            {user?.id && <ProfileCollection userId={user.id} />}
+          </div>
+        ) : (
+          <AvatarView
+            profile={profile}
+            userId={user?.id}
+            onShowAvatarModal={() => setShowAvatarModal(true)}
+            onShowDressUp={() => setShowDressUp(true)}
+            onShowGallery={() => setShowGallery(true)}
+          />
+        )}
+      </div>
 
-      {/* エクスプローラーへのリンク */}
-      <div className="relative z-10 mt-6 flex items-center gap-4">
-        <button 
+      {/* クイックアクション */}
+      <div className="flex items-center justify-center gap-3 mt-8 px-4">
+        <Button 
+          variant="outline" 
+          size="sm"
           onClick={() => navigate("/rooms/explore")}
-          className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 bg-background/50 backdrop-blur-sm px-4 py-2 rounded-full"
+          className="gap-2 rounded-full"
         >
           <Compass className="w-4 h-4" />
-          ルームを探索
-        </button>
-        <button 
+          ルーム探索
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
           onClick={() => navigate("/search")}
-          className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+          className="gap-2 rounded-full"
         >
           <Users className="w-4 h-4" />
-          コレクターを見る
-        </button>
+          コレクター
+        </Button>
       </div>
 
       {/* モーダル */}
@@ -271,32 +294,36 @@ function Room3DView({
   // ルームがない場合の作成画面
   if (!isLoading && !mainRoom && user) {
     return (
-      <div className="relative z-10 text-center space-y-6 max-w-md">
-        <div className="w-40 h-40 mx-auto relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-muted/50 to-muted/30 rounded-full blur-xl animate-pulse" />
-          <div className="relative w-full h-full bg-gradient-to-br from-muted/40 to-muted/20 rounded-full flex items-center justify-center border border-border">
-            <Home className="w-20 h-20 text-muted-foreground" />
-          </div>
-        </div>
-        
-        <div className="space-y-3">
-          <h2 className="text-3xl font-bold text-foreground">
-            3Dマイルームを作ろう！
-          </h2>
-          <p className="text-muted-foreground">
-            自分だけの推し部屋を3D空間に作って、グッズを自由に飾りましょう
-          </p>
-        </div>
+      <div className="flex flex-col items-center justify-center px-4 animate-fade-in">
+        <Card className="max-w-md w-full border-dashed border-2 bg-muted/20">
+          <CardContent className="pt-8 pb-8 text-center space-y-6">
+            <div className="w-24 h-24 mx-auto relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
+              <div className="relative w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center border border-primary/20">
+                <Home className="w-12 h-12 text-primary" />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-foreground">
+                3Dルームを作成
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                グッズを自由に飾れる3D空間を作りましょう
+              </p>
+            </div>
 
-        <Button 
-          size="lg" 
-          onClick={onCreateRoom}
-          disabled={createRoomPending}
-          className="gap-2 bg-foreground text-background hover:bg-foreground/90 shadow-lg transition-all hover:scale-105"
-        >
-          <Plus className="w-5 h-5" />
-          3Dルームを作成
-        </Button>
+            <Button 
+              size="lg" 
+              onClick={onCreateRoom}
+              disabled={createRoomPending}
+              className="gap-2 w-full h-12 hover-scale"
+            >
+              <Plus className="w-5 h-5" />
+              ルームを作成
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -305,30 +332,32 @@ function Room3DView({
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-muted-foreground">3Dルームを準備中...</p>
+        <div className="w-14 h-14 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-muted-foreground">ルームを準備中...</p>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="flex flex-col items-center px-4 animate-fade-in">
       {/* 3Dルームプレビュー */}
       <div className="relative w-full max-w-2xl group">
-        <IsometricRoomPreview
-          roomItems={roomItems}
-          backgroundImage={mainRoom?.background_image}
-          backgroundColor={mainRoom?.background_color}
-          onClick={onOpenFullscreen}
-          className="aspect-[4/3] shadow-2xl shadow-purple-500/10"
-        />
+        <Card className="overflow-hidden border-0 shadow-xl">
+          <IsometricRoomPreview
+            roomItems={roomItems}
+            backgroundImage={mainRoom?.background_image}
+            backgroundColor={mainRoom?.background_color}
+            onClick={onOpenFullscreen}
+            className="aspect-[4/3] cursor-pointer"
+          />
+        </Card>
         
         {/* オーバーレイボタン */}
-        <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
           <Button 
             variant="secondary" 
             size="icon"
-            className="bg-black/50 backdrop-blur-sm hover:bg-black/70 text-white"
+            className="bg-background/80 backdrop-blur-sm shadow-lg h-9 w-9"
             onClick={(e) => {
               e.stopPropagation();
               onOpenFullscreen();
@@ -341,75 +370,81 @@ function Room3DView({
         {/* アイテムがない場合のヒント */}
         {roomItems.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center space-y-2 bg-black/60 backdrop-blur-sm p-6 rounded-xl">
-              <Sparkles className="w-8 h-8 mx-auto text-purple-400" />
-              <p className="text-sm text-white/80">
-                クリックして3Dルームを編集
+            <div className="text-center space-y-2 bg-background/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border">
+              <Sparkles className="w-8 h-8 mx-auto text-primary" />
+              <p className="text-sm text-foreground font-medium">
+                タップしてルームを編集
               </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* ルーム情報 */}
-      <div className="relative z-10 mt-6 text-center space-y-4">
-        <h2 className="text-xl font-bold text-foreground flex items-center justify-center gap-2">
-          {mainRoom?.title || "マイルーム"}
-          <span className="text-xs px-2 py-0.5 bg-foreground text-background rounded-full">
-            3D
-          </span>
-        </h2>
-
-        {/* 統計情報 */}
-        <div className="flex items-center justify-center gap-6">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Eye className="w-4 h-4" />
-            <span className="text-sm">{mainRoom?.visit_count || 0} 訪問</span>
+      {/* ルーム情報カード */}
+      <Card className="w-full max-w-2xl mt-4 border-border/50">
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold text-foreground">
+                {mainRoom?.title || "マイルーム"}
+              </h2>
+              <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary font-medium rounded-full">
+                3D
+              </span>
+            </div>
+            
+            {/* 統計情報 */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Eye className="w-4 h-4" />
+                <span className="text-sm font-medium">{mainRoom?.visit_count || 0}</span>
+              </div>
+              
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (user && !isOwnRoom) {
+                    onToggleLike();
+                  }
+                }}
+                className={cn(
+                  "flex items-center gap-1.5 transition-colors",
+                  isLiked ? "text-red-500" : "text-muted-foreground hover:text-red-500"
+                )}
+                disabled={!user || isOwnRoom}
+              >
+                <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
+                <span className="text-sm font-medium">{likeCount}</span>
+              </button>
+            </div>
           </div>
-          
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              if (user && !isOwnRoom) {
-                onToggleLike();
-              }
-            }}
-            className={cn(
-              "flex items-center gap-2 transition-colors",
-              isLiked ? "text-red-500" : "text-muted-foreground hover:text-red-500"
-            )}
-            disabled={!user || isOwnRoom}
-          >
-            <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-            <span className="text-sm">{likeCount} いいね</span>
-          </button>
-        </div>
 
-        {/* アクションボタン */}
-        <div className="flex items-center justify-center gap-3">
+          {/* アクションボタン */}
           {isOwnRoom && (
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="gap-2 bg-foreground text-background hover:bg-foreground/90"
-              onClick={onEditRoom}
-            >
-              <Pencil className="w-4 h-4" />
-              編集
-            </Button>
+            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/50">
+              <Button 
+                variant="default" 
+                size="sm" 
+                className="gap-2 flex-1"
+                onClick={onEditRoom}
+              >
+                <Pencil className="w-4 h-4" />
+                編集する
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                onClick={() => navigate("/rooms/explore")}
+              >
+                <TrendingUp className="w-4 h-4" />
+                人気ルーム
+              </Button>
+            </div>
           )}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-2"
-            onClick={() => navigate("/rooms/explore")}
-          >
-            <Users className="w-4 h-4" />
-            他の部屋を見る
-          </Button>
-        </div>
-      </div>
-    </>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -430,44 +465,59 @@ function AvatarView({
   onShowGallery,
 }: AvatarViewProps) {
   return (
-    <>
+    <div className="flex flex-col items-center px-4 animate-fade-in">
       {/* アバター表示 */}
-      <div className="relative mb-4">
+      <div className="relative mb-6">
         {profile?.avatar_url ? (
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-muted/50 to-muted/30 blur-xl" />
-            <Avatar className="w-64 h-64 sm:w-72 sm:h-72 border-4 border-background shadow-2xl relative z-10">
-              <AvatarImage src={profile.avatar_url} />
-              <AvatarFallback>{profile.username?.charAt(0)}</AvatarFallback>
+          <div className="relative group">
+            <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-2xl opacity-60" />
+            <Avatar className="w-56 h-56 sm:w-64 sm:h-64 border-4 border-background shadow-2xl relative z-10 transition-transform duration-300 group-hover:scale-105">
+              <AvatarImage src={profile.avatar_url} className="object-cover" />
+              <AvatarFallback className="text-4xl bg-primary/10 text-primary">
+                {profile.username?.charAt(0).toUpperCase()}
+              </AvatarFallback>
             </Avatar>
           </div>
         ) : (
-          <div className="relative">
-            <div className="w-64 h-64 sm:w-72 sm:h-72 border-4 border-dashed border-muted-foreground/20 rounded-full flex items-center justify-center bg-muted/5">
-              <div className="text-center">
-                <User className="w-16 h-16 mx-auto text-muted-foreground/30 mb-2" />
-                <p className="text-muted-foreground/70 text-sm">アバターを設定</p>
-              </div>
+          <Card className="w-56 h-56 sm:w-64 sm:h-64 rounded-full border-dashed border-2 flex items-center justify-center bg-muted/10">
+            <div className="text-center space-y-2">
+              <User className="w-16 h-16 mx-auto text-muted-foreground/40" />
+              <p className="text-muted-foreground text-sm">アバター未設定</p>
             </div>
-          </div>
+          </Card>
         )}
       </div>
 
       {/* アバターアクションボタン */}
-      <div className="relative z-10 flex flex-wrap justify-center gap-3 mt-4">
-        <Button variant="outline" size="sm" className="gap-2" onClick={onShowAvatarModal}>
-          <Sparkles className="w-4 h-4" />
-          AI生成
-        </Button>
-        <Button variant="outline" size="sm" className="gap-2" onClick={onShowDressUp}>
-          <Shirt className="w-4 h-4" />
-          着せ替え
-        </Button>
-        <Button variant="outline" size="sm" className="gap-2" onClick={onShowGallery}>
-          <Image className="w-4 h-4" />
-          ギャラリー
-        </Button>
+      <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
+        <Card 
+          className="cursor-pointer hover:bg-muted/50 transition-colors hover-scale"
+          onClick={onShowAvatarModal}
+        >
+          <CardContent className="p-4 text-center">
+            <Sparkles className="w-6 h-6 mx-auto mb-2 text-primary" />
+            <span className="text-xs font-medium">AI生成</span>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer hover:bg-muted/50 transition-colors hover-scale"
+          onClick={onShowDressUp}
+        >
+          <CardContent className="p-4 text-center">
+            <Shirt className="w-6 h-6 mx-auto mb-2 text-primary" />
+            <span className="text-xs font-medium">着せ替え</span>
+          </CardContent>
+        </Card>
+        <Card 
+          className="cursor-pointer hover:bg-muted/50 transition-colors hover-scale"
+          onClick={onShowGallery}
+        >
+          <CardContent className="p-4 text-center">
+            <Image className="w-6 h-6 mx-auto mb-2 text-primary" />
+            <span className="text-xs font-medium">ギャラリー</span>
+          </CardContent>
+        </Card>
       </div>
-    </>
+    </div>
   );
 }
