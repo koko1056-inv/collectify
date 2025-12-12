@@ -110,7 +110,8 @@ export default {
         "page-flip-left": "page-flip-left 0.6s ease-out",
       },
       fontFamily: {
-        sans: ["Inter", "Noto Sans JP", "sans-serif"],
+        sans: ["Zen Maru Gothic", "Zen Kaku Gothic New", "sans-serif"],
+        display: ["Zen Kaku Gothic New", "sans-serif"],
         righteous: ["Righteous", "cursive"],
       },
     },
