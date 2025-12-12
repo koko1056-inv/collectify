@@ -14,6 +14,7 @@ import { Info, Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AdminItemForm() {
   const [currentStep, setCurrentStep] = useState("step1");
@@ -21,6 +22,7 @@ export function AdminItemForm() {
   const [selectedImages, setSelectedImages] = useState<Array<{ url: string; title: string | null }>>([]);
   const [isMultipleMode, setIsMultipleMode] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const {
     imageFile,
@@ -37,7 +39,6 @@ export function AdminItemForm() {
     setSelectedTags,
   } = useItemDetails();
 
-  // フォームのリセット状態を管理するためのkey
   const [formKey, setFormKey] = useState(0);
 
   const resetForm = () => {
@@ -62,7 +63,6 @@ export function AdminItemForm() {
     setStep1Completed(false);
     setSelectedImages([]);
     setIsMultipleMode(false);
-    // フォーム全体を再レンダリング
     setFormKey(prev => prev + 1);
   };
 
@@ -97,14 +97,13 @@ export function AdminItemForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>新規アイテムの追加</CardTitle>
+        <CardTitle>{t("addItem.title")}</CardTitle>
       </CardHeader>
       <CardContent className="px-0 sm:px-6">
         <Alert className="mb-4 bg-blue-50 border-blue-100">
           <Info className="h-4 w-4 text-blue-500" />
           <AlertDescription className="text-blue-700 text-sm">
-            あなたが追加したグッズは、他のユーザーがコレクションに追加できるようになります。
-            コミュニティの成長にご協力ください！
+            {t("addItem.communityNote")}
           </AlertDescription>
         </Alert>
 
@@ -123,7 +122,7 @@ export function AdminItemForm() {
               )}>
                 {step1Completed ? <Check className="w-4 h-4" /> : "1"}
               </span>
-              <span>画像の追加</span>
+              <span>{t("addItem.step1")}</span>
             </TabsTrigger>
             
             <ChevronRight className={cn(
@@ -145,7 +144,7 @@ export function AdminItemForm() {
               )}>
                 2
               </span>
-              <span>詳細の追加</span>
+              <span>{t("addItem.step2")}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -157,7 +156,6 @@ export function AdminItemForm() {
                 previewUrl={previewUrl}
                 setPreviewUrl={setPreviewUrl}
                 onAnalysisComplete={(result) => {
-                  // 複数画像が選択された場合の処理
                   if (result.selectedImages && result.selectedImages.length > 0) {
                     setSelectedImages(result.selectedImages);
                     setIsMultipleMode(true);
@@ -165,11 +163,10 @@ export function AdminItemForm() {
                     setCurrentStep("step2");
                     
                     toast({
-                      title: "画像を選択しました",
-                      description: `${result.selectedImages.length}件の画像が選択されました。各グッズの詳細を入力してください。`,
+                      title: t("addItem.imageSelectedTitle"),
+                      description: `${result.selectedImages.length}${t("addItem.imagesSelected")}`,
                     });
                   } else {
-                    // 単一画像の場合はAI分析結果をフォームに自動入力
                     const updates: any = {};
                     
                     if (result.title) updates.title = result.title;
@@ -191,7 +188,7 @@ export function AdminItemForm() {
                   disabled={!canProceedToStep2}
                   className="px-8"
                 >
-                  次へ
+                  {t("addItem.next")}
                 </Button>
               </div>
             </TabsContent>
@@ -204,8 +201,8 @@ export function AdminItemForm() {
                     const user = (await supabase.auth.getUser()).data.user;
                     if (!user) {
                       toast({
-                        title: "エラー",
-                        description: "ログインが必要です。",
+                        title: t("common.error"),
+                        description: t("addItem.loginRequired"),
                         variant: "destructive",
                       });
                       return;
@@ -216,7 +213,6 @@ export function AdminItemForm() {
 
                     for (const item of items) {
                       try {
-                        // 画像をアップロード
                         const response = await fetch(item.imageUrl);
                         const blob = await response.blob();
                         const file = new File([blob], `item-${Date.now()}.jpg`, { type: blob.type });
@@ -235,7 +231,6 @@ export function AdminItemForm() {
                           .from('kuji_images')
                           .getPublicUrl(filePath);
 
-                        // アイテムを登録
                         const { data: newItem, error: insertError } = await supabase
                           .from('official_items')
                           .insert({
@@ -253,7 +248,6 @@ export function AdminItemForm() {
 
                         if (insertError) throw insertError;
 
-                        // タグを追加
                         if (newItem) {
                           const tagIds: string[] = [];
                           if (item.characterTag) tagIds.push(item.characterTag);
@@ -279,14 +273,14 @@ export function AdminItemForm() {
 
                     if (successCount > 0) {
                       toast({
-                        title: "登録完了",
-                        description: `${successCount}件のグッズを登録しました${errorCount > 0 ? `（${errorCount}件失敗）` : ''}。`,
+                        title: t("addItem.registrationComplete"),
+                        description: `${successCount}${t("addItem.itemsRegistered")}${errorCount > 0 ? `（${errorCount}${t("addItem.itemsFailed")}）` : ''}`,
                       });
                       resetForm();
                     } else {
                       toast({
-                        title: "エラー",
-                        description: "グッズの登録に失敗しました。",
+                        title: t("common.error"),
+                        description: t("addItem.registrationError"),
                         variant: "destructive",
                       });
                     }
@@ -310,10 +304,10 @@ export function AdminItemForm() {
                       variant="outline"
                       onClick={() => setCurrentStep("step1")}
                     >
-                      戻る
+                      {t("addItem.back")}
                     </Button>
                     <Button type="submit" disabled={loading} className="px-8">
-                      {loading ? "追加中..." : "アイテムを追加"}
+                      {loading ? t("addItem.adding") : t("addItem.addButton")}
                     </Button>
                   </div>
                 </>

@@ -201,6 +201,21 @@ export const enTranslations = {
     createRoomDesc: "Create your own fandom room in 3D space"
   },
   addItem: {
-    backToSearch: "Back to Search"
+    backToSearch: "Back to Search",
+    title: "Add New Item",
+    communityNote: "Items you add can be added to collections by other users. Help grow the community!",
+    step1: "Add Image",
+    step2: "Add Details",
+    next: "Next",
+    back: "Back",
+    adding: "Adding...",
+    addButton: "Add Item",
+    imagesSelected: " images selected. Enter details for each item.",
+    imageSelectedTitle: "Images Selected",
+    registrationComplete: "Registration Complete",
+    itemsRegistered: " items registered",
+    itemsFailed: " failed",
+    registrationError: "Failed to register items.",
+    loginRequired: "Login required."
   }
 };
