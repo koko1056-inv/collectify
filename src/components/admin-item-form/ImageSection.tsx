@@ -1,9 +1,8 @@
 
 import { useState } from "react";
-import { ItemImageUpload } from "../item/ItemImageUpload";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -14,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface AnalysisResult {
   title: string;
@@ -54,6 +54,7 @@ export function ImageSection({
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [showImageSelector, setShowImageSelector] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
@@ -66,8 +67,8 @@ export function ImageSection({
   const handleAnalyzeImage = async () => {
     if (!previewUrl) {
       toast({
-        title: "エラー",
-        description: "画像を選択してください。",
+        title: t("common.error"),
+        description: t("addItem.selectImage"),
         variant: "destructive",
       });
       return;
@@ -75,10 +76,8 @@ export function ImageSection({
 
     setIsAnalyzing(true);
     try {
-      // 画像URLをbase64に変換して送信
       let imageUrl = previewUrl;
       
-      // ローカルのBlobURLの場合はbase64に変換
       if (previewUrl.startsWith('blob:')) {
         const response = await fetch(previewUrl);
         const blob = await response.blob();
@@ -90,7 +89,6 @@ export function ImageSection({
         });
       }
 
-      // URLの情報も送信（元のページURLがある場合）
       const requestBody: any = { imageUrl };
       if (imageUrlInput || urlInput) {
         requestBody.sourceUrl = imageUrlInput || urlInput;
@@ -105,15 +103,15 @@ export function ImageSection({
       if (data && onAnalysisComplete) {
         onAnalysisComplete(data);
         toast({
-          title: "分析完了",
-          description: "AIが画像とURLを分析してフォームに自動入力しました。",
+          title: t("addItem.analysisComplete"),
+          description: t("addItem.analysisCompleteDesc"),
         });
       }
     } catch (error) {
       console.error('Error analyzing image:', error);
       toast({
-        title: "エラー",
-        description: "画像の分析に失敗しました。もう一度お試しください。",
+        title: t("common.error"),
+        description: t("addItem.analysisError"),
         variant: "destructive",
       });
     } finally {
@@ -124,8 +122,8 @@ export function ImageSection({
   const handleScrapeImages = async () => {
     if (!urlInput) {
       toast({
-        title: "エラー",
-        description: "URLを入力してください。",
+        title: t("common.error"),
+        description: t("addItem.enterUrl"),
         variant: "destructive",
       });
       return;
@@ -142,8 +140,8 @@ export function ImageSection({
       const images = data.images;
       if (images.length === 0) {
         toast({
-          title: "画像が見つかりませんでした",
-          description: "指定されたURLから画像を取得できませんでした。",
+          title: t("addItem.noImagesFound"),
+          description: t("addItem.noImagesFoundDesc"),
           variant: "destructive",
         });
         return;
@@ -154,8 +152,8 @@ export function ImageSection({
     } catch (error) {
       console.error('Error scraping images:', error);
       toast({
-        title: "エラー",
-        description: "画像の取得に失敗しました。",
+        title: t("common.error"),
+        description: t("addItem.fetchError"),
         variant: "destructive",
       });
     } finally {
@@ -171,8 +169,8 @@ export function ImageSection({
       } else {
         if (newSet.size >= 10) {
           toast({
-            title: "選択上限",
-            description: "最大10件まで選択できます。",
+            title: t("addItem.maxSelection"),
+            description: t("addItem.maxSelectionDesc"),
             variant: "destructive",
           });
           return prev;
@@ -186,8 +184,8 @@ export function ImageSection({
   const handleConfirmSelection = () => {
     if (selectedImages.size === 0) {
       toast({
-        title: "エラー",
-        description: "少なくとも1つの画像を選択してください。",
+        title: t("common.error"),
+        description: t("addItem.selectAtLeastOne"),
         variant: "destructive",
       });
       return;
@@ -195,7 +193,6 @@ export function ImageSection({
 
     const selectedImagesData = scrapedImages.filter(img => selectedImages.has(img.url));
     
-    // 親コンポーネントに選択した画像を渡す
     if (onAnalysisComplete) {
       onAnalysisComplete({
         title: "",
@@ -209,8 +206,8 @@ export function ImageSection({
     }
     
     toast({
-      title: "画像を選択しました",
-      description: `${selectedImages.size}件の画像を選択しました。`,
+      title: t("addItem.imageSelectedTitle"),
+      description: `${selectedImages.size}${t("addItem.imagesSelectedToast")}`,
     });
     
     setShowImageSelector(false);
@@ -222,23 +219,20 @@ export function ImageSection({
   const handleSetImageUrl = async () => {
     if (!imageUrlInput) {
       toast({
-        title: "エラー",
-        description: "画像URLを入力してください。",
+        title: t("common.error"),
+        description: t("addItem.enterImageUrl"),
         variant: "destructive",
       });
       return;
     }
 
     try {
-      // URLが有効な画像かチェック
       const img = new Image();
       img.onload = async () => {
         try {
-          // 画像URLから画像データを取得してFileオブジェクトに変換
           const response = await fetch(imageUrlInput);
           const blob = await response.blob();
           
-          // ファイル名を生成
           const urlParts = imageUrlInput.split('/');
           const fileName = urlParts[urlParts.length - 1] || 'image.jpg';
           
@@ -247,14 +241,14 @@ export function ImageSection({
           setImageUrlInput("");
           
           toast({
-            title: "画像を設定しました",
-            description: "画像URLから画像を取得しました。",
+            title: t("addItem.imageSet"),
+            description: t("addItem.imageSetDesc"),
           });
         } catch (error) {
           console.error('Error fetching image:', error);
           toast({
-            title: "エラー",
-            description: "画像の取得に失敗しました。URLを確認してください。",
+            title: t("common.error"),
+            description: t("addItem.imageFetchError"),
             variant: "destructive",
           });
         }
@@ -262,8 +256,8 @@ export function ImageSection({
       
       img.onerror = () => {
         toast({
-          title: "エラー",
-          description: "有効な画像URLではありません。",
+          title: t("common.error"),
+          description: t("addItem.invalidImageUrl"),
           variant: "destructive",
         });
       };
@@ -272,8 +266,8 @@ export function ImageSection({
     } catch (error) {
       console.error('Error setting image URL:', error);
       toast({
-        title: "エラー",
-        description: "画像の設定に失敗しました。",
+        title: t("common.error"),
+        description: t("addItem.imageSetError"),
         variant: "destructive",
       });
     }
@@ -282,22 +276,22 @@ export function ImageSection({
   return (
     <>
       <div className="space-y-4">
-        <div className="bg-gray-50 p-2 sm:p-4 rounded-lg border">
-          <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4 text-gray-900">画像の追加方法</h3>
+        <div className="bg-muted/50 p-2 sm:p-4 rounded-lg border">
+          <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4 text-foreground">{t("addItem.howToAddImage")}</h3>
           
           <div className="space-y-4 sm:space-y-6">
-            {/* 方法1 */}
-            <div className="bg-white p-3 sm:p-4 rounded-lg border-2 border-gray-200">
+            {/* 方法A */}
+            <div className="bg-background p-3 sm:p-4 rounded-lg border-2 border-border">
               <div className="flex items-start gap-2 sm:gap-3 mb-3">
                 <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
                   A
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label htmlFor="imageUrl" className="text-sm sm:text-base font-semibold text-gray-900 block mb-1">
-                    画像URLを直接設定
+                  <label htmlFor="imageUrl" className="text-sm sm:text-base font-semibold text-foreground block mb-1">
+                    {t("addItem.methodA")}
                   </label>
-                  <p className="text-xs sm:text-sm text-gray-600 break-words">
-                    画像の直接URLがある場合はこちらを使用してください
+                  <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                    {t("addItem.methodADesc")}
                   </p>
                 </div>
               </div>
@@ -306,7 +300,7 @@ export function ImageSection({
                   id="imageUrl"
                   value={imageUrlInput}
                   onChange={(e) => setImageUrlInput(e.target.value)}
-                  placeholder="https://exar..."
+                  placeholder="https://..."
                   className="text-sm"
                 />
                 <Button
@@ -314,23 +308,23 @@ export function ImageSection({
                   onClick={handleSetImageUrl}
                   className="sm:flex-shrink-0 text-sm px-4"
                 >
-                  設定
+                  {t("addItem.set")}
                 </Button>
               </div>
             </div>
 
-            {/* 方法2 */}
-            <div className="bg-white p-3 sm:p-4 rounded-lg border-2 border-gray-200">
+            {/* 方法B */}
+            <div className="bg-background p-3 sm:p-4 rounded-lg border-2 border-border">
               <div className="flex items-start gap-2 sm:gap-3 mb-3">
                 <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
                   B
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label htmlFor="fileUpload" className="text-sm sm:text-base font-semibold text-gray-900 block mb-1">
-                    ファイルから画像をアップロード
+                  <label htmlFor="fileUpload" className="text-sm sm:text-base font-semibold text-foreground block mb-1">
+                    {t("addItem.methodB")}
                   </label>
-                  <p className="text-xs sm:text-sm text-gray-600 break-words">
-                    お手持ちの画像ファイルを選択してアップロードできます
+                  <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                    {t("addItem.methodBDesc")}
                   </p>
                 </div>
               </div>
@@ -349,18 +343,18 @@ export function ImageSection({
               </div>
             </div>
 
-            {/* 方法3 */}
-            <div className="bg-white p-3 sm:p-4 rounded-lg border-2 border-gray-200">
+            {/* 方法C */}
+            <div className="bg-background p-3 sm:p-4 rounded-lg border-2 border-border">
               <div className="flex items-start gap-2 sm:gap-3 mb-3">
                 <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
                   C
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label htmlFor="url" className="text-sm sm:text-base font-semibold text-gray-900 block mb-1">
-                    Webサイトから画像を取得
+                  <label htmlFor="url" className="text-sm sm:text-base font-semibold text-foreground block mb-1">
+                    {t("addItem.methodC")}
                   </label>
-                  <p className="text-xs sm:text-sm text-gray-600 break-words">
-                    商品ページのURLを入力すると、そのページから画像を自動取得します。複数選択して一括登録できます。
+                  <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                    {t("addItem.methodCDesc")}
                   </p>
                 </div>
               </div>
@@ -369,7 +363,7 @@ export function ImageSection({
                   id="url"
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="https://exar..."
+                  placeholder="https://..."
                   disabled={isScrapingImages}
                   className="text-sm"
                 />
@@ -382,7 +376,7 @@ export function ImageSection({
                   {isScrapingImages ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    "取得"
+                    t("addItem.fetch")
                   )}
                 </Button>
               </div>
@@ -392,9 +386,9 @@ export function ImageSection({
 
         {/* 画像プレビュー */}
         {previewUrl && (
-          <div className="bg-white p-4 rounded-lg border">
+          <div className="bg-background p-4 rounded-lg border">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-lg text-gray-900">画像プレビュー</h3>
+              <h3 className="font-semibold text-lg text-foreground">{t("addItem.imagePreview")}</h3>
               <Button
                 type="button"
                 onClick={handleAnalyzeImage}
@@ -406,11 +400,11 @@ export function ImageSection({
                 {isAnalyzing ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    分析中...
+                    {t("addItem.analyzing")}
                   </>
                 ) : (
                   <>
-                    ✨ AIで自動記入
+                    ✨ {t("addItem.aiAutoFill")}
                   </>
                 )}
               </Button>
@@ -418,7 +412,7 @@ export function ImageSection({
             <div className="relative max-w-md mx-auto">
               <img
                 src={previewUrl}
-                alt="選択された画像のプレビュー"
+                alt={t("addItem.imagePreview")}
                 className="w-full h-auto rounded-lg border object-cover max-h-64"
               />
               <Button
@@ -430,9 +424,9 @@ export function ImageSection({
                   setPreviewUrl(null);
                   setImageUrlInput("");
                 }}
-                className="absolute top-2 right-2 bg-white/90 hover:bg-white"
+                className="absolute top-2 right-2 bg-background/90 hover:bg-background"
               >
-                削除
+                {t("addItem.delete")}
               </Button>
             </div>
           </div>
@@ -442,9 +436,9 @@ export function ImageSection({
       <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>グッズを選択</DialogTitle>
+            <DialogTitle>{t("addItem.selectGoods")}</DialogTitle>
             <DialogDescription>
-              最大10件の画像を選択できます (選択中: {selectedImages.size}/10)
+              {t("addItem.maxImages")} ({t("addItem.selecting")}: {selectedImages.size}/10)
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-[65vh]">
@@ -454,9 +448,9 @@ export function ImageSection({
                 return (
                   <div
                     key={index}
-                    className="relative overflow-hidden rounded-lg border-2 cursor-pointer transition-all bg-white"
+                    className="relative overflow-hidden rounded-lg border-2 cursor-pointer transition-all bg-background"
                     style={{
-                      borderColor: isSelected ? '#3b82f6' : '#e5e7eb',
+                      borderColor: isSelected ? 'hsl(var(--primary))' : 'hsl(var(--border))',
                       transform: isSelected ? 'scale(0.98)' : 'scale(1)',
                     }}
                     onClick={() => toggleImageSelection(imageData.url)}
@@ -467,13 +461,12 @@ export function ImageSection({
                         alt={imageData.title || `Image ${index + 1}`}
                         className="w-full h-full object-cover"
                       />
-                      {/* 選択インジケーター */}
                       <div className="absolute bottom-2 right-2">
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                             isSelected
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-white/80 text-gray-400 border-2 border-gray-300'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-background/80 text-muted-foreground border-2 border-border'
                           }`}
                         >
                           {isSelected && (
@@ -496,7 +489,7 @@ export function ImageSection({
                     </div>
                     {imageData.title && (
                       <div className="p-2">
-                        <p className="text-xs font-medium line-clamp-2 text-gray-900">
+                        <p className="text-xs font-medium line-clamp-2 text-foreground">
                           {imageData.title}
                         </p>
                       </div>
@@ -514,13 +507,13 @@ export function ImageSection({
                 setSelectedImages(new Set());
               }}
             >
-              キャンセル
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={handleConfirmSelection}
               disabled={selectedImages.size === 0}
             >
-              {selectedImages.size}件を選択
+              {selectedImages.size}{t("addItem.selectItems")}
             </Button>
           </div>
         </DialogContent>
