@@ -24,7 +24,11 @@ export const enTranslations = {
   },
   tabs: {
     official: "Official Goods",
-    collection: "My Collection"
+    collection: "My Collection",
+    goods: "Goods",
+    friends: "Friends",
+    posts: "Posts",
+    polls: "Polls"
   },
   collection: {
     empty: "No items have been added to your collection yet.",
@@ -33,11 +37,16 @@ export const enTranslations = {
     add: "Add to Collection",
     remove: "Remove from Collection",
     list: "Collection List",
-    noItems: "No items in collection yet"
+    noItems: "No items in collection yet",
+    todaysCollection: "Today's Collection"
   },
   search: {
     placeholder: "Search goods...",
-    button: "Search"
+    button: "Search",
+    filter: "Filter",
+    sortNewest: "Newest",
+    sortPopular: "Popular",
+    sortLikes: "Most Liked"
   },
   tags: {
     select: "Select Tags",
@@ -125,7 +134,8 @@ export const enTranslations = {
     saving: "Saving...",
     edit: "Edit",
     close: "Close",
-    fetchError: "Failed to fetch data"
+    fetchError: "Failed to fetch data",
+    newPost: "New Post"
   },
   profile: {
     bio: "Profile",
@@ -141,5 +151,19 @@ export const enTranslations = {
     following: "Following",
     followers: "Followers",
     languageSettings: "Language"
+  },
+  posts: {
+    title: "Posts",
+    create: "Create Post",
+    empty: "No posts yet",
+    like: "Like",
+    comment: "Comment",
+    share: "Share"
+  },
+  polls: {
+    title: "Polls",
+    create: "Create Poll",
+    vote: "Vote",
+    results: "View Results"
   }
 };

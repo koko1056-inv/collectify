@@ -11,6 +11,7 @@ import { Dices } from "lucide-react";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
 import { useBatchItemMemories } from "@/hooks/useBatchItemMemories";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -26,6 +27,7 @@ export function UserCollection({
   onContentChange,
 }: UserCollectionProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [isCompact, setIsCompact] = useState(false);
   const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
@@ -99,7 +101,7 @@ export function UserCollection({
 
   if (!effectiveUserId) {
     return <div className="text-center py-8">
-        <p className="text-gray-500">コレクションを表示するにはログインしてください。</p>
+        <p className="text-gray-500">{t("collection.empty")}</p>
       </div>;
   }
   if (isItemsLoading) {
@@ -113,12 +115,12 @@ export function UserCollection({
   }
   if (items.length === 0) {
     return <div className="text-center py-8">
-        <p className="text-gray-500">まだコレクションに追加されたアイテムがありません。</p>
+        <p className="text-gray-500">{t("collection.empty")}</p>
       </div>;
   }
   if (filteredItems.length === 0) {
     return <div className="text-center py-8">
-        <p className="text-gray-500">選択されたタグやコンテンツに一致するアイテムがありません。</p>
+        <p className="text-gray-500">{t("collection.noMatches")}</p>
       </div>;
   }
   return (
@@ -126,7 +128,7 @@ export function UserCollection({
       <div className="flex justify-center mb-4">
         <Button onClick={handleRandomModalOpen} variant="outline" className="gap-2">
           <Dices className="h-4 w-4" />
-          今日のコレクション
+          {t("collection.todaysCollection")}
         </Button>
       </div>
       
