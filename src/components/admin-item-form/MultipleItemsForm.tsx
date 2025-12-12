@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
@@ -9,6 +7,7 @@ import { TitleSection } from "./sections/TitleSection";
 import { ContentSection } from "./sections/ContentSection";
 import { ItemTypeSection } from "./sections/ItemTypeSection";
 import { TagsSection } from "./sections/TagsSection";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ImageData {
   url: string;
@@ -35,6 +34,7 @@ interface MultipleItemsFormProps {
 }
 
 export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFormProps) {
+  const { t } = useLanguage();
   const [items, setItems] = useState<ItemFormData[]>(
     images.map((img) => ({
       imageUrl: img.url,
@@ -74,20 +74,20 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">
-          {items.length}件のグッズを登録
+          {items.length}{t("addItem.registerItems")}
         </h3>
         <div className="flex gap-2">
           <Button variant="outline" onClick={onBack} disabled={loading}>
-            戻る
+            {t("addItem.back")}
           </Button>
           <Button onClick={handleSubmit} disabled={!allItemsValid || loading}>
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                登録中...
+                {t("addItem.registering")}
               </>
             ) : (
-              `${items.length}件を一括登録`
+              `${items.length}${t("addItem.bulkRegister")}`
             )}
           </Button>
         </div>
@@ -97,7 +97,6 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 pr-4">
           {items.map((item, index) => (
             <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
-              {/* 画像プレビュー */}
               <div className="relative">
                 <div className="aspect-square relative overflow-hidden bg-muted">
                   <img
@@ -111,12 +110,10 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
                 </div>
               </div>
 
-              {/* フォーム */}
               <div className="p-5 space-y-5">
-                {/* 基本情報セクション */}
                 <div className="space-y-4 pb-4 border-b">
                   <div className="mb-3">
-                    <h4 className="text-base font-semibold text-foreground">基本情報</h4>
+                    <h4 className="text-base font-semibold text-foreground">{t("addItem.basicInfo")}</h4>
                   </div>
                   
                   <TitleSection 
@@ -135,10 +132,9 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
                   />
                 </div>
 
-                {/* タグセクション */}
                 <div className="space-y-4">
                   <div className="mb-3">
-                    <h4 className="text-base font-semibold text-foreground">分類タグ</h4>
+                    <h4 className="text-base font-semibold text-foreground">{t("addItem.categoryTags")}</h4>
                   </div>
                   
                   <TagsSection 
