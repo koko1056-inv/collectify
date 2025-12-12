@@ -10,6 +10,7 @@ import { CreatePollModal } from "@/components/polls/CreatePollModal";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Lazy load heavy components
 const CreatePostFromCollectionModal = lazy(() => import("@/components/posts/CreatePostFromCollectionModal").then(module => ({
@@ -19,6 +20,7 @@ const PostsSidebar = lazy(() => import("@/components/posts/PostsSidebar").then(m
   default: module.PostsSidebar
 })));
 const Posts = memo(function Posts() {
+  const { t } = useLanguage();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreatePollModalOpen, setIsCreatePollModalOpen] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
@@ -54,8 +56,8 @@ const Posts = memo(function Posts() {
               <div className="max-w-6xl mx-auto px-4">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="w-full mb-4">
-                    <TabsTrigger value="posts" className="flex-1">投稿</TabsTrigger>
-                    <TabsTrigger value="polls" className="flex-1">投票</TabsTrigger>
+                    <TabsTrigger value="posts" className="flex-1">{t("tabs.posts")}</TabsTrigger>
+                    <TabsTrigger value="polls" className="flex-1">{t("tabs.polls")}</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="posts">
@@ -67,16 +69,16 @@ const Posts = memo(function Posts() {
                         className="gap-2 lg:hidden flex-shrink-0"
                       >
                         <Filter className="h-4 w-4" />
-                        フィルター
+                        {t("search.filter")}
                       </Button>
                       <Select value={sortBy} onValueChange={(value: "newest" | "popular" | "likes") => setSortBy(value)}>
                         <SelectTrigger className="w-[140px] sm:w-[180px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="newest">新着順</SelectItem>
-                          <SelectItem value="popular">人気順</SelectItem>
-                          <SelectItem value="likes">いいね順</SelectItem>
+                          <SelectItem value="newest">{t("search.sortNewest")}</SelectItem>
+                          <SelectItem value="popular">{t("search.sortPopular")}</SelectItem>
+                          <SelectItem value="likes">{t("search.sortLikes")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -97,7 +99,7 @@ const Posts = memo(function Posts() {
       <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
         <SheetContent side="left" className="w-80 p-0">
           <SheetHeader className="p-4 border-b">
-            <SheetTitle>フィルター</SheetTitle>
+            <SheetTitle>{t("search.filter")}</SheetTitle>
           </SheetHeader>
           <div className="overflow-y-auto h-[calc(100vh-5rem)]">
             <Suspense fallback={<Skeleton className="w-full h-96" />}>
@@ -114,7 +116,7 @@ const Posts = memo(function Posts() {
       <Footer />
 
       {/* フローティングアクションボタン（投稿用） */}
-      {activeTab === "posts" && <button onClick={() => setIsCreateModalOpen(true)} className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95" aria-label="新規投稿">
+      {activeTab === "posts" && <button onClick={() => setIsCreateModalOpen(true)} className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95" aria-label={t("common.newPost")}>
           <Plus className="h-6 w-6 text-primary-foreground" />
         </button>}
 

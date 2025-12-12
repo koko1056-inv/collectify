@@ -24,7 +24,11 @@ export const jaTranslations = {
   },
   tabs: {
     official: "公式グッズ",
-    collection: "マイコレクション"
+    collection: "マイコレクション",
+    goods: "グッズ",
+    friends: "フレンド",
+    posts: "投稿",
+    polls: "投票"
   },
   collection: {
     empty: "まだコレクションに追加されたアイテムがありません。",
@@ -33,11 +37,16 @@ export const jaTranslations = {
     add: "コレクションに追加",
     remove: "コレクションから削除",
     list: "コレクション一覧",
-    noItems: "まだコレクションがありません"
+    noItems: "まだコレクションがありません",
+    todaysCollection: "今日のコレクション"
   },
   search: {
     placeholder: "グッズを検索...",
-    button: "探す"
+    button: "探す",
+    filter: "フィルター",
+    sortNewest: "新着順",
+    sortPopular: "人気順",
+    sortLikes: "いいね順"
   },
   tags: {
     select: "タグを選択",
@@ -125,7 +134,8 @@ export const jaTranslations = {
     saving: "保存中...",
     edit: "編集",
     close: "閉じる",
-    fetchError: "データの取得に失敗しました"
+    fetchError: "データの取得に失敗しました",
+    newPost: "新規投稿"
   },
   profile: {
     bio: "プロフィール",
@@ -141,5 +151,19 @@ export const jaTranslations = {
     following: "フォロー中",
     followers: "フォロワー",
     languageSettings: "言語設定"
+  },
+  posts: {
+    title: "投稿",
+    create: "投稿を作成",
+    empty: "まだ投稿がありません",
+    like: "いいね",
+    comment: "コメント",
+    share: "シェア"
+  },
+  polls: {
+    title: "投票",
+    create: "投票を作成",
+    vote: "投票する",
+    results: "結果を見る"
   }
 };
