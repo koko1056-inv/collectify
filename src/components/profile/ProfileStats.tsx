@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FollowList } from "./FollowList";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileStatsProps {
   userId: string;
@@ -12,6 +12,7 @@ interface ProfileStatsProps {
 export function ProfileStats({ userId }: ProfileStatsProps) {
   const [showFollowingModal, setShowFollowingModal] = useState(false);
   const [showFollowersModal, setShowFollowersModal] = useState(false);
+  const { t } = useLanguage();
 
   const { data: profile } = useQuery({
     queryKey: ["profile-stats", userId],
@@ -25,10 +26,10 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
       if (error) throw error;
       return data;
     },
-    staleTime: 30 * 1000, // 30秒間キャッシュ
-    gcTime: 5 * 60 * 1000, // 5分間保持
-    refetchOnMount: true, // マウント時に再取得
-    refetchOnWindowFocus: true, // フォーカス時に再取得
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const { data: collectionCount = 0 } = useQuery({
@@ -42,8 +43,8 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
       if (error) throw error;
       return count || 0;
     },
-    staleTime: 2 * 60 * 1000, // 2分間キャッシュ
-    gcTime: 5 * 60 * 1000, // 5分間保持
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
   });
 
   return (
@@ -54,25 +55,25 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
           onClick={() => setShowFollowingModal(true)}
         >
           <span className="text-xl font-bold">{profile?.following_count || 0}</span>
-          <span className="text-sm text-gray-600">フォロー中</span>
+          <span className="text-sm text-gray-600">{t("profile.following")}</span>
         </div>
         <div 
           className="flex flex-col cursor-pointer hover:opacity-75 transition-opacity"
           onClick={() => setShowFollowersModal(true)}
         >
           <span className="text-xl font-bold">{profile?.followers_count || 0}</span>
-          <span className="text-sm text-gray-600">フォロワー</span>
+          <span className="text-sm text-gray-600">{t("profile.followers")}</span>
         </div>
         <div className="flex flex-col">
           <span className="text-xl font-bold">{collectionCount}</span>
-          <span className="text-sm text-gray-600">コレクション</span>
+          <span className="text-sm text-gray-600">{t("nav.collection")}</span>
         </div>
       </div>
 
       <Dialog open={showFollowingModal} onOpenChange={setShowFollowingModal}>
         <DialogContent className="max-w-md max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>フォロー中</DialogTitle>
+            <DialogTitle>{t("profile.following")}</DialogTitle>
           </DialogHeader>
           <FollowList userId={userId} type="following" />
         </DialogContent>
@@ -81,7 +82,7 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
       <Dialog open={showFollowersModal} onOpenChange={setShowFollowersModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>フォロワー</DialogTitle>
+            <DialogTitle>{t("profile.followers")}</DialogTitle>
           </DialogHeader>
           <FollowList userId={userId} type="followers" />
         </DialogContent>

@@ -1,9 +1,9 @@
-
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, Edit, X } from "lucide-react";
+import { Check, X } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileBioProps {
   bio: string;
@@ -30,6 +30,8 @@ export function ProfileBio({
   onSubmit,
   isOwnProfile = false,
 }: ProfileBioProps) {
+  const { t } = useLanguage();
+
   if (!isOwnProfile && !bio && !xUsername) {
     return null;
   }
@@ -39,23 +41,23 @@ export function ProfileBio({
       {isEditing ? (
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="bio">プロフィール</Label>
+            <Label htmlFor="bio">{t("profile.bio")}</Label>
             <Textarea
               id="bio"
               value={bio}
               onChange={onBioChange}
-              placeholder="好きなアーティスト/キャラクター、推しポイント、収集歴などを自由に書いてください"
+              placeholder={t("profile.bioPlaceholder")}
               className="min-h-[120px]"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="xUsername">Xアカウント</Label>
+            <Label htmlFor="xUsername">{t("profile.xAccount")}</Label>
             <Input
               id="xUsername"
               type="text"
               value={xUsername}
               onChange={onXUsernameChange}
-              placeholder="Xのユーザー名（@なし）"
+              placeholder={t("profile.xPlaceholder")}
             />
           </div>
           <div className="flex justify-end gap-2">
@@ -67,11 +69,11 @@ export function ProfileBio({
               className="gap-2"
             >
               <X className="h-4 w-4" />
-              キャンセル
+              {t("common.cancel")}
             </Button>
             <Button type="submit" size="sm" disabled={saving} className="gap-2">
               <Check className="h-4 w-4" />
-              {saving ? "保存中..." : "保存"}
+              {saving ? t("common.saving") : t("common.save")}
             </Button>
           </div>
         </form>

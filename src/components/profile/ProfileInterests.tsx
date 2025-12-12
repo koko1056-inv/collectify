@@ -9,30 +9,28 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getAllContentNames } from "@/utils/tag/content-operations";
+import { useLanguage } from "@/contexts/LanguageContext";
+
 interface ProfileInterestsProps {
   currentInterests: string[] | null;
   onUpdate: () => void;
 }
+
 export function ProfileInterests({
   currentInterests = [],
   onUpdate
 }: ProfileInterestsProps) {
-  const {
-    user
-  } = useAuth();
-  const {
-    toast
-  } = useToast();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { t } = useLanguage();
   const [selectedInterests, setSelectedInterests] = useState<string[]>(currentInterests || []);
   const [saving, setSaving] = useState(false);
   const [isSelectingContent, setIsSelectingContent] = useState(false);
   const [isAddingContent, setIsAddingContent] = useState(false);
   const [newContentName, setNewContentName] = useState("");
   const queryClient = useQueryClient();
-  const {
-    data: contentNames = [],
-    isLoading
-  } = useQuery({
+
+  const { data: contentNames = [], isLoading } = useQuery({
     queryKey: ["content-names"],
     queryFn: async () => {
       try {
@@ -43,6 +41,7 @@ export function ProfileInterests({
       }
     }
   });
+
   const handleToggleContent = (contentName: string) => {
     setSelectedInterests(prev => {
       if (prev.includes(contentName)) {
@@ -52,19 +51,18 @@ export function ProfileInterests({
       }
     });
   };
+
   const handleAddNewContent = async () => {
     if (!newContentName.trim()) {
       toast({
-        title: "エラー",
-        description: "コンテンツ名を入力してください",
+        title: t("common.error"),
+        description: t("interests.enterName"),
         variant: "destructive"
       });
       return;
     }
     try {
-      const {
-        error
-      } = await supabase.from("content_names").insert([{
+      const { error } = await supabase.from("content_names").insert([{
         name: newContentName,
         type: "anime"
       }]);
@@ -75,100 +73,113 @@ export function ProfileInterests({
       setNewContentName("");
       setIsAddingContent(false);
       toast({
-        title: "コンテンツを追加しました",
-        description: `${newContentName}を追加しました`
+        title: t("interests.contentAdded"),
+        description: `${newContentName}${t("interests.contentAddedDesc")}`
       });
       setSelectedInterests(prev => [...prev, newContentName]);
     } catch (error) {
       console.error("Error adding content:", error);
       toast({
-        title: "エラー",
-        description: "コンテンツの追加に失敗しました",
+        title: t("common.error"),
+        description: t("interests.contentAddError"),
         variant: "destructive"
       });
     }
   };
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
     try {
-      const {
-        error
-      } = await supabase.from("profiles").update({
+      const { error } = await supabase.from("profiles").update({
         interests: selectedInterests
       }).eq("id", user.id);
       if (error) throw error;
       toast({
-        title: "更新完了",
-        description: "推しコンテンツを更新しました"
+        title: t("interests.updated"),
+        description: t("interests.updatedDesc")
       });
       onUpdate();
     } catch (error) {
       console.error("Error updating interests:", error);
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "推しコンテンツの更新に失敗しました"
+        title: t("common.error"),
+        description: t("interests.updateError")
       });
     } finally {
       setSaving(false);
     }
   };
+
   if (isLoading) {
-    return <div className="flex items-center justify-center p-4">
+    return (
+      <div className="flex items-center justify-center p-4">
         <Loader2 className="h-6 w-6 animate-spin" />
-      </div>;
+      </div>
+    );
   }
-  return <div className="space-y-4">
+
+  return (
+    <div className="space-y-4">
       <div className="flex items-center justify-between pl-4">
-        <h3 className="text-xl font-bold text-gray-800">推しコンテンツ</h3>
+        <h3 className="text-xl font-bold text-gray-800">{t("interests.favoriteContent")}</h3>
         <Button size="sm" variant="outline" onClick={() => setIsSelectingContent(true)}>
-          選択する
+          {t("interests.selectContent")}
         </Button>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {selectedInterests.map(interest => <div key={interest} className="bg-primary/5 text-primary flex items-center gap-1 px-3 py-1.5 rounded-full text-sm">
+        {selectedInterests.map(interest => (
+          <div key={interest} className="bg-primary/5 text-primary flex items-center gap-1 px-3 py-1.5 rounded-full text-sm">
             {interest}
             <button onClick={() => handleToggleContent(interest)} className="text-primary/50 hover:text-primary">
               <X className="h-3 w-3" />
             </button>
-          </div>)}
+          </div>
+        ))}
       </div>
 
       <Dialog open={isSelectingContent} onOpenChange={setIsSelectingContent}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>推しコンテンツを選択</DialogTitle>
+            <DialogTitle>{t("interests.selectTitle")}</DialogTitle>
             <DialogDescription>
-              あなたの推しコンテンツを選んでください
+              {t("interests.selectDescription")}
             </DialogDescription>
           </DialogHeader>
           
           <div className="flex justify-end mb-4">
             <Button variant="outline" size="sm" onClick={() => setIsAddingContent(true)}>
               <Plus className="h-4 w-4 mr-1" />
-              新規追加
+              {t("interests.addNew")}
             </Button>
           </div>
 
           <ScrollArea className="h-[300px] pr-4">
             <div className="grid grid-cols-2 gap-2">
-              {contentNames.map(content => <Button key={content.id} variant={selectedInterests.includes(content.name) ? "default" : "outline"} onClick={() => handleToggleContent(content.name)} className="w-full justify-center px-2 truncate max-w-full text-xs">
+              {contentNames.map(content => (
+                <Button
+                  key={content.id}
+                  variant={selectedInterests.includes(content.name) ? "default" : "outline"}
+                  onClick={() => handleToggleContent(content.name)}
+                  className="w-full justify-center px-2 truncate max-w-full text-xs"
+                >
                   {content.name}
-                </Button>)}
+                </Button>
+              ))}
             </div>
           </ScrollArea>
 
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setIsSelectingContent(false)}>
-              キャンセル
+              {t("common.cancel")}
             </Button>
             <Button onClick={() => {
-            handleSave();
-            setIsSelectingContent(false);
-          }}>
-              保存する
+              handleSave();
+              setIsSelectingContent(false);
+            }}>
+              {t("common.save")}
             </Button>
           </div>
         </DialogContent>
@@ -177,23 +188,28 @@ export function ProfileInterests({
       <Dialog open={isAddingContent} onOpenChange={setIsAddingContent}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>新しいコンテンツを追加</DialogTitle>
+            <DialogTitle>{t("interests.addNewTitle")}</DialogTitle>
             <DialogDescription>
-              推しコンテンツとして表示したい作品名などを追加できます
+              {t("interests.addNewDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <Input value={newContentName} onChange={e => setNewContentName(e.target.value)} placeholder="コンテンツ名を入力" />
+            <Input
+              value={newContentName}
+              onChange={e => setNewContentName(e.target.value)}
+              placeholder={t("interests.inputPlaceholder")}
+            />
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => setIsAddingContent(false)}>
-                キャンセル
+                {t("common.cancel")}
               </Button>
               <Button onClick={handleAddNewContent}>
-                追加する
+                {t("interests.addButton")}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
-    </div>;
+    </div>
+  );
 }
