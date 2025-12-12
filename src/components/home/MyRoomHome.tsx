@@ -95,26 +95,21 @@ export function MyRoomHome({
     return <Room3DEditor profile={profile} isFullScreen={true} onClose={() => setShowFullscreenRoom(false)} />;
   }
   return <div className="min-h-[60vh] flex flex-col pb-24 animate-fade-in">
-      {/* ヘッダーセクション */}
-      <div className="text-center mb-6 pt-14 sm:pt-4">
-        
-      </div>
-
       {/* タブナビゲーション */}
-      <div className="w-full max-w-lg mx-auto px-4 mb-6">
+      <div className="w-full px-4 pt-2 mb-4">
         <Tabs value={activeTab} onValueChange={v => setActiveTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-3 h-16 bg-muted/30 backdrop-blur-sm p-1.5 rounded-2xl border border-border/30 shadow-sm">
-            <TabsTrigger value="room" className="flex flex-col items-center justify-center gap-1.5 h-full rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200">
-              <Home className="w-5 h-5" />
-              <span className="text-[11px] font-medium">ルーム</span>
+          <TabsList className="grid w-full grid-cols-3 h-14 bg-muted/30 backdrop-blur-sm p-1 rounded-xl border border-border/30 shadow-sm">
+            <TabsTrigger value="room" className="flex flex-col items-center justify-center gap-1 h-full rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200">
+              <Home className="w-4 h-4" />
+              <span className="text-[10px] font-medium">ルーム</span>
             </TabsTrigger>
-            <TabsTrigger value="collection" className="flex flex-col items-center justify-center gap-1.5 h-full rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200">
-              <Package className="w-5 h-5" />
-              <span className="text-[11px] font-medium">コレクション</span>
+            <TabsTrigger value="collection" className="flex flex-col items-center justify-center gap-1 h-full rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200">
+              <Package className="w-4 h-4" />
+              <span className="text-[10px] font-medium">コレクション</span>
             </TabsTrigger>
-            <TabsTrigger value="avatar" className="flex flex-col items-center justify-center gap-1.5 h-full rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200">
-              <User className="w-5 h-5" />
-              <span className="text-[11px] font-medium">アバター</span>
+            <TabsTrigger value="avatar" className="flex flex-col items-center justify-center gap-1 h-full rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-md data-[state=active]:text-primary transition-all duration-200">
+              <User className="w-4 h-4" />
+              <span className="text-[10px] font-medium">アバター</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -122,7 +117,7 @@ export function MyRoomHome({
 
       {/* メインコンテンツ */}
       <div className="flex-1 w-full">
-        {activeTab === "room" ? <Room3DView mainRoom={mainRoom} roomItems={roomItems} likeCount={likeCount} isLiked={isLiked} isLoading={isLoading} isOwnRoom={isOwnRoom} profile={profile} user={user} onEditRoom={handleEditRoom} onCreateRoom={() => createMainRoom.mutate("マイルーム")} onToggleLike={() => toggleLike.mutate()} onOpenFullscreen={() => setShowFullscreenRoom(true)} createRoomPending={createMainRoom.isPending} /> : activeTab === "collection" ? <div className="w-full max-w-6xl mx-auto px-4 animate-fade-in">
+        {activeTab === "room" ? <Room3DView mainRoom={mainRoom} roomItems={roomItems} likeCount={likeCount} isLiked={isLiked} isLoading={isLoading} isOwnRoom={isOwnRoom} profile={profile} user={user} onEditRoom={handleEditRoom} onCreateRoom={() => createMainRoom.mutate("マイルーム")} onToggleLike={() => toggleLike.mutate()} onOpenFullscreen={() => setShowFullscreenRoom(true)} createRoomPending={createMainRoom.isPending} /> : activeTab === "collection" ? <div className="w-full animate-fade-in">
             {user?.id && <ProfileCollection userId={user.id} />}
           </div> : <AvatarView profile={profile} userId={user?.id} onShowAvatarModal={() => setShowAvatarModal(true)} onShowDressUp={() => setShowDressUp(true)} onShowGallery={() => setShowGallery(true)} />}
       </div>
@@ -220,8 +215,8 @@ function Room3DView({
   }
   return <div className="flex flex-col items-center px-4 animate-fade-in">
       {/* 3Dルームプレビュー */}
-      <div className="relative w-full max-w-2xl group">
-        <Card className="overflow-hidden border-0 shadow-xl">
+      <div className="relative w-full group">
+        <Card className="overflow-hidden border-0 shadow-xl rounded-xl">
           <IsometricRoomPreview roomItems={roomItems} backgroundImage={mainRoom?.background_image} backgroundColor={mainRoom?.background_color} onClick={onOpenFullscreen} className="aspect-[4/3] cursor-pointer" />
         </Card>
         
@@ -247,7 +242,7 @@ function Room3DView({
       </div>
 
       {/* ルーム情報カード */}
-      <Card className="w-full max-w-2xl mt-4 border-border/50">
+      <Card className="w-full mt-4 border-border/50 rounded-xl">
         <CardContent className="py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
