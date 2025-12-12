@@ -27,7 +27,7 @@ export function MyRoomHome({
     user
   } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"room" | "collection" | "avatar">("room");
+  const [activeTab, setActiveTab] = useState<"room" | "collection" | "avatar">("collection");
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showDressUp, setShowDressUp] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
