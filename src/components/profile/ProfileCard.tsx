@@ -28,6 +28,7 @@ export const ProfileCard = memo(function ProfileCard({
 }: ProfileCardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [bio, setBio] = useState("");
@@ -257,7 +258,7 @@ export const ProfileCard = memo(function ProfileCard({
 
       {isOwnProfile && (
         <div className="mt-8 pt-6 border-t border-border">
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">言語設定 / Language</h3>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">{t("profile.languageSettings")} / Language</h3>
           <LanguageToggle />
         </div>
       )}

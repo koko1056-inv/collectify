@@ -1,4 +1,3 @@
-
 export const jaTranslations = {
   nav: {
     login: "ログイン",
@@ -8,14 +7,20 @@ export const jaTranslations = {
     community: "コミュニティ",
     search: {
       user: "ユーザーを探す"
-    }
+    },
+    myRoom: "マイルーム",
+    collection: "コレクション",
+    searchNav: "検索",
+    addGoods: "グッズを追加"
   },
   footer: {
     home: "ホーム",
     search: "探す",
     collection: "コレクション",
     trade: "トレード",
-    profile: "プロフィール"
+    profile: "プロフィール",
+    myRoom: "マイルーム",
+    community: "コミュニティ"
   },
   tabs: {
     official: "公式グッズ",
@@ -26,7 +31,9 @@ export const jaTranslations = {
     noMatches: "選択されたタグに一致するアイテムがありません。",
     title: "マイコレクション",
     add: "コレクションに追加",
-    remove: "コレクションから削除"
+    remove: "コレクションから削除",
+    list: "コレクション一覧",
+    noItems: "まだコレクションがありません"
   },
   search: {
     placeholder: "グッズを検索...",
@@ -58,7 +65,23 @@ export const jaTranslations = {
     success: "興味のあるタグを保存しました",
     successDesc: "おすすめのアイテムが表示されます",
     error: "エラーが発生しました",
-    errorDesc: "興味のあるタグの保存に失敗しました"
+    errorDesc: "興味のあるタグの保存に失敗しました",
+    favoriteContent: "推しコンテンツ",
+    selectContent: "選択する",
+    selectTitle: "推しコンテンツを選択",
+    selectDescription: "あなたの推しコンテンツを選んでください",
+    addNew: "新規追加",
+    addNewTitle: "新しいコンテンツを追加",
+    addNewDescription: "推しコンテンツとして表示したい作品名などを追加できます",
+    inputPlaceholder: "コンテンツ名を入力",
+    addButton: "追加する",
+    contentAdded: "コンテンツを追加しました",
+    contentAddedDesc: "を追加しました",
+    contentAddError: "コンテンツの追加に失敗しました",
+    updated: "更新完了",
+    updatedDesc: "推しコンテンツを更新しました",
+    updateError: "推しコンテンツの更新に失敗しました",
+    enterName: "コンテンツ名を入力してください"
   },
   wishlist: {
     empty: "ウィッシュリストは空です",
@@ -97,6 +120,26 @@ export const jaTranslations = {
     confirm: "確定",
     delete: "削除する",
     error: "エラー",
-    loading: "読み込み中..."
+    loading: "読み込み中...",
+    save: "保存",
+    saving: "保存中...",
+    edit: "編集",
+    close: "閉じる",
+    fetchError: "データの取得に失敗しました"
+  },
+  profile: {
+    bio: "プロフィール",
+    bioPlaceholder: "好きなアーティスト/キャラクター、推しポイント、収集歴などを自由に書いてください",
+    xAccount: "Xアカウント",
+    xPlaceholder: "Xのユーザー名（@なし）",
+    updated: "更新完了",
+    updatedDesc: "プロフィールを更新しました",
+    updateError: "プロフィールの更新に失敗しました",
+    favorites: "お気に入りコレクション",
+    favoritesUpdated: "お気に入りコレクションを更新しました",
+    favoritesUpdateError: "お気に入りコレクションの更新に失敗しました",
+    following: "フォロー中",
+    followers: "フォロワー",
+    languageSettings: "言語設定"
   }
 };

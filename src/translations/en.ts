@@ -1,4 +1,3 @@
-
 export const enTranslations = {
   nav: {
     login: "Login",
@@ -8,14 +7,20 @@ export const enTranslations = {
     community: "Community",
     search: {
       user: "Find Users"
-    }
+    },
+    myRoom: "My Room",
+    collection: "Collection",
+    searchNav: "Search",
+    addGoods: "Add Goods"
   },
   footer: {
     home: "Home",
     search: "Search",
     collection: "Collection",
     trade: "Trade",
-    profile: "Profile"
+    profile: "Profile",
+    myRoom: "My Room",
+    community: "Community"
   },
   tabs: {
     official: "Official Goods",
@@ -26,7 +31,9 @@ export const enTranslations = {
     noMatches: "No items match the selected tags.",
     title: "My Collection",
     add: "Add to Collection",
-    remove: "Remove from Collection"
+    remove: "Remove from Collection",
+    list: "Collection List",
+    noItems: "No items in collection yet"
   },
   search: {
     placeholder: "Search goods...",
@@ -58,7 +65,23 @@ export const enTranslations = {
     success: "Interests saved successfully",
     successDesc: "You will now see recommended items",
     error: "An error occurred",
-    errorDesc: "Failed to save interests"
+    errorDesc: "Failed to save interests",
+    favoriteContent: "Favorite Content",
+    selectContent: "Select",
+    selectTitle: "Select Favorite Content",
+    selectDescription: "Choose your favorite content",
+    addNew: "Add New",
+    addNewTitle: "Add New Content",
+    addNewDescription: "Add the name of your favorite content",
+    inputPlaceholder: "Enter content name",
+    addButton: "Add",
+    contentAdded: "Content Added",
+    contentAddedDesc: "has been added",
+    contentAddError: "Failed to add content",
+    updated: "Updated",
+    updatedDesc: "Favorite content updated",
+    updateError: "Failed to update favorite content",
+    enterName: "Please enter a content name"
   },
   wishlist: {
     empty: "Your wishlist is empty",
@@ -97,6 +120,26 @@ export const enTranslations = {
     confirm: "Confirm",
     delete: "Delete",
     error: "Error",
-    loading: "Loading..."
+    loading: "Loading...",
+    save: "Save",
+    saving: "Saving...",
+    edit: "Edit",
+    close: "Close",
+    fetchError: "Failed to fetch data"
+  },
+  profile: {
+    bio: "Profile",
+    bioPlaceholder: "Write about your favorite artists/characters, collection history, etc.",
+    xAccount: "X Account",
+    xPlaceholder: "X username (without @)",
+    updated: "Updated",
+    updatedDesc: "Profile updated successfully",
+    updateError: "Failed to update profile",
+    favorites: "Favorite Collection",
+    favoritesUpdated: "Favorite collection updated",
+    favoritesUpdateError: "Failed to update favorite collection",
+    following: "Following",
+    followers: "Followers",
+    languageSettings: "Language"
   }
 };
