@@ -165,5 +165,29 @@ export const jaTranslations = {
     create: "投票を作成",
     vote: "投票する",
     results: "結果を見る"
+  },
+  room: {
+    title: "ルーム",
+    myRoom: "マイルーム",
+    create: "ルームを作成",
+    createTitle: "3Dルームを作成",
+    createDesc: "グッズを自由に飾れる3D空間を作りましょう",
+    edit: "編集する",
+    popular: "人気ルーム",
+    preparing: "ルームを準備中...",
+    tapToEdit: "タップしてルームを編集",
+    explore: "他のルームを探索する"
+  },
+  avatar: {
+    title: "アバター",
+    notSet: "アバター未設定",
+    aiGenerate: "AI生成",
+    dressUp: "着せ替え",
+    gallery: "ギャラリー"
+  },
+  auth: {
+    loginToStart: "ログインして始める",
+    createRoom: "マイルームを作ろう",
+    createRoomDesc: "自分だけの推し部屋を3D空間に作りましょう"
   }
 };
