@@ -165,5 +165,29 @@ export const enTranslations = {
     create: "Create Poll",
     vote: "Vote",
     results: "View Results"
+  },
+  room: {
+    title: "Room",
+    myRoom: "My Room",
+    create: "Create Room",
+    createTitle: "Create 3D Room",
+    createDesc: "Create your own 3D space to display goods",
+    edit: "Edit",
+    popular: "Popular Rooms",
+    preparing: "Preparing room...",
+    tapToEdit: "Tap to edit room",
+    explore: "Explore other rooms"
+  },
+  avatar: {
+    title: "Avatar",
+    notSet: "No avatar set",
+    aiGenerate: "AI Generate",
+    dressUp: "Dress Up",
+    gallery: "Gallery"
+  },
+  auth: {
+    loginToStart: "Login to Start",
+    createRoom: "Create Your Room",
+    createRoomDesc: "Create your own fandom room in 3D space"
   }
 };
