@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, UserSearch, User, Repeat2, Home, Search, FileText, FolderOpen, Plus } from "lucide-react";
+import { ShoppingBasket, UserSearch, User, Repeat2, Search, FileText, FolderOpen, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
@@ -115,12 +115,6 @@ export function Navbar() {
         {/* ナビゲーションメニュー */}
         {user && <NavigationMenu className="mr-auto">
             <NavigationMenuList>
-              <NavigationMenuItem>
-                <Link to="/" className={cn(navigationMenuTriggerStyle())}>
-                  <Home className="h-4 w-4 mr-2" />
-                  ホーム
-                </Link>
-              </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link to="/search" className={cn(navigationMenuTriggerStyle())}>
                   <Search className="h-4 w-4 mr-2" />
