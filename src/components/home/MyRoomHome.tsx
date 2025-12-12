@@ -315,23 +315,23 @@ function AvatarView({
       </div>
 
       {/* アバターアクションボタン */}
-      <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
+      <div className="grid grid-cols-3 gap-4 w-full max-w-md">
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors hover-scale" onClick={onShowAvatarModal}>
-          <CardContent className="p-4 text-center">
-            <Sparkles className="w-6 h-6 mx-auto mb-2 text-primary" />
-            <span className="text-xs font-medium">AI生成</span>
+          <CardContent className="p-6 text-center">
+            <Sparkles className="w-8 h-8 mx-auto mb-3 text-primary" />
+            <span className="text-sm font-medium">AI生成</span>
           </CardContent>
         </Card>
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors hover-scale" onClick={onShowDressUp}>
-          <CardContent className="p-4 text-center">
-            <Shirt className="w-6 h-6 mx-auto mb-2 text-primary" />
-            <span className="text-xs font-medium">着せ替え</span>
+          <CardContent className="p-6 text-center">
+            <Shirt className="w-8 h-8 mx-auto mb-3 text-primary" />
+            <span className="text-sm font-medium">着せ替え</span>
           </CardContent>
         </Card>
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors hover-scale" onClick={onShowGallery}>
-          <CardContent className="p-4 text-center">
-            <Image className="w-6 h-6 mx-auto mb-2 text-primary" />
-            <span className="text-xs font-medium">ギャラリー</span>
+          <CardContent className="p-6 text-center">
+            <Image className="w-8 h-8 mx-auto mb-3 text-primary" />
+            <span className="text-sm font-medium">ギャラリー</span>
           </CardContent>
         </Card>
       </div>
