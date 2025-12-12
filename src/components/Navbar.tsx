@@ -171,9 +171,7 @@ export function Navbar() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button asChild variant="outline" size="icon" className="h-9 w-9">
-                      <Link to="/add-item">
-                        <Plus className="h-4 w-4" />
-                      </Link>
+                      
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
