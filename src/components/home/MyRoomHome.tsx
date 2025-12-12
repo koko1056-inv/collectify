@@ -133,20 +133,29 @@ export function MyRoomHome({ profile, onAvatarGenerated }: MyRoomHomeProps) {
       <div className="absolute inset-0 bg-gradient-to-br from-muted/30 via-background to-muted/20 rounded-3xl" />
       
       {/* タブ切り替え */}
-      <div className="relative z-10 mb-6 mt-16 sm:mt-4 w-full max-w-md">
+      <div className="relative z-10 mb-6 mt-16 sm:mt-4 w-full max-w-lg px-2">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-3 bg-background/80 backdrop-blur-sm">
-            <TabsTrigger value="room" className="gap-2">
-              <Home className="w-4 h-4" />
-              <span className="hidden sm:inline">ルーム</span>
+          <TabsList className="grid w-full grid-cols-3 h-14 bg-muted/50 backdrop-blur-sm p-1.5 rounded-xl border border-border/50">
+            <TabsTrigger 
+              value="room" 
+              className="flex flex-col items-center justify-center gap-1 h-full rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-[10px] sm:text-xs font-medium">ルーム</span>
             </TabsTrigger>
-            <TabsTrigger value="collection" className="gap-2">
-              <Package className="w-4 h-4" />
-              <span className="hidden sm:inline">コレクション</span>
+            <TabsTrigger 
+              value="collection" 
+              className="flex flex-col items-center justify-center gap-1 h-full rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+            >
+              <Package className="w-5 h-5" />
+              <span className="text-[10px] sm:text-xs font-medium">コレクション</span>
             </TabsTrigger>
-            <TabsTrigger value="avatar" className="gap-2">
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">アバター</span>
+            <TabsTrigger 
+              value="avatar" 
+              className="flex flex-col items-center justify-center gap-1 h-full rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all"
+            >
+              <User className="w-5 h-5" />
+              <span className="text-[10px] sm:text-xs font-medium">アバター</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
