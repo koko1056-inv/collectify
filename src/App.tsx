@@ -12,10 +12,10 @@ import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Import main pages directly for faster navigation
-import Index from "./pages/Index";
 import Search from "./pages/Search";
 import Collection from "./pages/Collection";
 import Posts from "./pages/Posts";
+import MyRoom from "./pages/MyRoom";
 
 // Lazy load only rarely used pages
 const Login = lazy(() => import("./pages/Login").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -25,7 +25,7 @@ const UserProfile = lazy(() => import("./pages/UserProfile").catch(() => ({ defa
 const EditProfile = lazy(() => import("./pages/EditProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 const RoomExplore = lazy(() => import("./pages/RoomExplore").catch(() => ({ default: () => <div>Error loading page</div> })));
 const RoomView = lazy(() => import("./pages/RoomView").catch(() => ({ default: () => <div>Error loading page</div> })));
-const MyRoom = lazy(() => import("./pages/MyRoom").catch(() => ({ default: () => <div>Error loading page</div> })));
+
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -79,7 +79,7 @@ const App: React.FC = () => {
                 <Sonner />
                 <Suspense fallback={<LoadingFallback />}>
                   <Routes>
-                    <Route path="/" element={<Index />} />
+                    <Route path="/" element={<Navigate to="/my-room" replace />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/add-item" element={<AddItem />} />
@@ -91,7 +91,7 @@ const App: React.FC = () => {
                     <Route path="/my-room" element={<MyRoom />} />
                     <Route path="/rooms/explore" element={<RoomExplore />} />
                     <Route path="/room/:roomId" element={<RoomView />} />
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="*" element={<Navigate to="/my-room" replace />} />
                   </Routes>
                 </Suspense>
               </TooltipProvider>
