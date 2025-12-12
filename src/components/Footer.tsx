@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, Search, Package, Users, User } from "lucide-react";
+import { Search, Users, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useState } from "react";
@@ -22,20 +22,9 @@ export function Footer() {
           {/* ナビゲーションボタン */}
           <div className="flex justify-around items-center h-16">
             <Link
-              to="/"
-              className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-[10px]",
-                isActive("/") ? "text-primary" : "text-gray-500"
-              )}
-            >
-              <Home className={cn("h-6 w-6 mb-1", isActive("/") ? "text-primary" : "text-gray-400")} />
-              <span>{t("footer.home")}</span>
-            </Link>
-            
-            <Link
               to="/search"
               className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-[10px]",
+                "flex flex-col items-center justify-center w-1/4 text-[10px]",
                 isActive("/search") ? "text-primary" : "text-gray-500"
               )}
             >
@@ -46,7 +35,7 @@ export function Footer() {
             <Link
               to="/my-room"
               className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-[10px]",
+                "flex flex-col items-center justify-center w-1/4 text-[10px]",
                 isActive("/my-room") ? "text-primary" : "text-gray-500"
               )}
             >
@@ -60,7 +49,7 @@ export function Footer() {
             <Link
               to="/posts"
               className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-[10px]",
+                "flex flex-col items-center justify-center w-1/4 text-[10px]",
                 isActive("/posts") ? "text-primary" : "text-gray-500"
               )}
             >
@@ -71,7 +60,7 @@ export function Footer() {
             <Link
               to="/edit-profile"
               className={cn(
-                "flex flex-col items-center justify-center w-1/5 text-[10px]",
+                "flex flex-col items-center justify-center w-1/4 text-[10px]",
                 isActive("/edit-profile") ? "text-primary" : "text-gray-500"
               )}
             >
