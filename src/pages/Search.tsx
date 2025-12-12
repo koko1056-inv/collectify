@@ -14,11 +14,14 @@ import { useState, useEffect } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { Package, Users } from "lucide-react";
+import { Package, Users, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const Search = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedContent, setSelectedContent] = useState("");
@@ -181,6 +184,18 @@ const Search = () => {
           </Tabs>
         </div>
       </main>
+      
+      {/* フローティング追加ボタン */}
+      {currentTab === "goods" && (
+        <Button
+          onClick={() => navigate("/add-item")}
+          className="fixed bottom-20 right-4 sm:bottom-8 sm:right-8 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
+          size="icon"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      )}
+      
       <Footer />
     </div>
   );

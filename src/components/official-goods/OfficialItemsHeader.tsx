@@ -71,14 +71,6 @@ export const OfficialItemsHeader = memo(function OfficialItemsHeader({
           <Tags className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
           <span className="whitespace-nowrap">タグ管理</span>
         </Button>
-        <Button 
-          onClick={handleAddItem} 
-          size="sm"
-          className="bg-gray-900 hover:bg-gray-800 h-7 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
-        >
-          <PlusCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
-          <span className="whitespace-nowrap">追加</span>
-        </Button>
       </div>
 
       <ContentTagManageModal 
