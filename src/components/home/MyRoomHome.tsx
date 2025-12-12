@@ -123,30 +123,7 @@ export function MyRoomHome({
       </div>
 
       {/* クイックアクション */}
-      <div className="flex items-center justify-center gap-3 mt-8 px-4">
-        {activeTab === "collection" ? (
-          <Button variant="outline" size="sm" onClick={() => navigate("/search")} className="gap-2 rounded-full">
-            <Users className="w-4 h-4" />
-            他のコレクターを探す
-          </Button>
-        ) : activeTab === "room" ? (
-          <Button variant="outline" size="sm" onClick={() => navigate("/rooms/explore")} className="gap-2 rounded-full">
-            <Compass className="w-4 h-4" />
-            他のルームを探す
-          </Button>
-        ) : (
-          <>
-            <Button variant="outline" size="sm" onClick={() => navigate("/rooms/explore")} className="gap-2 rounded-full">
-              <Compass className="w-4 h-4" />
-              ルーム探索
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/search")} className="gap-2 rounded-full">
-              <Users className="w-4 h-4" />
-              コレクター
-            </Button>
-          </>
-        )}
-      </div>
+      
 
       {/* モーダル */}
       {user?.id && <>
