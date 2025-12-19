@@ -117,24 +117,9 @@ export function MyRoomHome({
 
       {/* メインコンテンツ */}
       <div className="flex-1 w-full">
-        {activeTab === "room" ? (
-          <div className="w-full animate-fade-in">
-            <Room3DEditor profile={profile} isFullScreen={false} />
-          </div>
-        ) : activeTab === "collection" ? (
-          <div className="w-full animate-fade-in">
+        {activeTab === "room" ? <Room3DView mainRoom={mainRoom} roomItems={roomItems} likeCount={likeCount} isLiked={isLiked} isLoading={isLoading} isOwnRoom={isOwnRoom} profile={profile} user={user} onEditRoom={handleEditRoom} onCreateRoom={() => createMainRoom.mutate(t("room.myRoom"))} onToggleLike={() => toggleLike.mutate()} onOpenFullscreen={() => setShowFullscreenRoom(true)} createRoomPending={createMainRoom.isPending} t={t} /> : activeTab === "collection" ? <div className="w-full animate-fade-in">
             {user?.id && <ProfileCollection userId={user.id} />}
-          </div>
-        ) : (
-          <AvatarView 
-            profile={profile} 
-            userId={user?.id} 
-            onShowAvatarModal={() => setShowAvatarModal(true)} 
-            onShowDressUp={() => setShowDressUp(true)} 
-            onShowGallery={() => setShowGallery(true)} 
-            t={t} 
-          />
-        )}
+          </div> : <AvatarView profile={profile} userId={user?.id} onShowAvatarModal={() => setShowAvatarModal(true)} onShowDressUp={() => setShowDressUp(true)} onShowGallery={() => setShowGallery(true)} t={t} />}
       </div>
 
       {/* クイックアクション */}

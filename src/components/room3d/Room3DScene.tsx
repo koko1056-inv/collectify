@@ -4,7 +4,7 @@ import { OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
 import { FurnitureItem3D, RoomFurniture } from "./FurnitureItem3D";
-import { FURNITURE_PRESETS } from "./furniturePresets";
+import { FURNITURE_PRESETS, FurniturePreset } from "./furniturePresets";
 
 interface Room3DSceneProps {
   roomItems: RoomItem[];
@@ -583,16 +583,15 @@ function Scene({
         const preset = FURNITURE_PRESETS.find((p) => p.id === furniture.furniture_id);
         if (!preset) return null;
         return (
-          <Suspense key={furniture.id} fallback={null}>
-            <FurnitureItem3D
-              furniture={furniture}
-              preset={preset}
-              onClick={() => onFurnitureClick?.(furniture)}
-              onMove={(posX, posY) => onFurnitureMove?.(furniture.id, posX, posY)}
-              isEditing={isEditing}
-              isSelected={selectedFurnitureId === furniture.id}
-            />
-          </Suspense>
+          <FurnitureItem3D
+            key={furniture.id}
+            furniture={furniture}
+            preset={preset}
+            onClick={() => onFurnitureClick?.(furniture)}
+            onMove={(posX, posY) => onFurnitureMove?.(furniture.id, posX, posY)}
+            isEditing={isEditing}
+            isSelected={selectedFurnitureId === furniture.id}
+          />
         );
       })}
       
@@ -638,11 +637,10 @@ export function Room3DScene(props: Room3DSceneProps) {
     >
       <Suspense fallback={<LoaderOverlay />}>
         <Canvas
-          className="w-full h-full"
           shadows
-          dpr={[1, 1.5]}
-          gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
-          style={{ background: bgColor, width: "100%", height: "100%", touchAction: "none" }}
+          dpr={[1, 2]}
+          gl={{ antialias: true, alpha: false }}
+          style={{ background: bgColor }}
           camera={{ position: [12, 12, 12], fov: 50 }}
         >
           <Scene {...props} />
