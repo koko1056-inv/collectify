@@ -638,10 +638,11 @@ export function Room3DScene(props: Room3DSceneProps) {
     >
       <Suspense fallback={<LoaderOverlay />}>
         <Canvas
+          className="w-full h-full"
           shadows
-          dpr={[1, 2]}
-          gl={{ antialias: true, alpha: false }}
-          style={{ background: bgColor }}
+          dpr={[1, 1.5]}
+          gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+          style={{ background: bgColor, width: "100%", height: "100%", touchAction: "none" }}
           camera={{ position: [12, 12, 12], fov: 50 }}
         >
           <Scene {...props} />
