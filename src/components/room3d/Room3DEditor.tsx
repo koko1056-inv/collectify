@@ -39,14 +39,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // 背景プリセット
 const BACKGROUND_PRESETS = [
-  { id: 'cyber', name: 'サイバー', color: '#1a1a2e', gradient: 'from-[#1a1a2e] to-[#0f0f23]' },
-  { id: 'sunset', name: 'サンセット', color: '#3d1a1a', gradient: 'from-[#3d1a1a] to-[#1a0a0f]' },
-  { id: 'forest', name: 'フォレスト', color: '#1a3d1a', gradient: 'from-[#1a3d1a] to-[#0a1a0f]' },
-  { id: 'ocean', name: 'オーシャン', color: '#1a2a3d', gradient: 'from-[#1a2a3d] to-[#0a0f1a]' },
-  { id: 'pink', name: 'ピンク', color: '#3d1a3d', gradient: 'from-[#3d1a3d] to-[#1a0a1a]' },
-  { id: 'midnight', name: 'ミッドナイト', color: '#101025', gradient: 'from-[#101025] to-[#050510]' },
-  { id: 'warm', name: 'ウォーム', color: '#3d2a1a', gradient: 'from-[#3d2a1a] to-[#1a1408]' },
-  { id: 'light', name: 'ライト', color: '#4a4a5a', gradient: 'from-[#4a4a5a] to-[#3a3a4a]' },
+  // ダークテーマ
+  { id: 'cyber', name: 'サイバー', color: '#1a1a2e', gradient: 'from-[#1a1a2e] to-[#0f0f23]', theme: 'dark' },
+  { id: 'sunset', name: 'サンセット', color: '#3d1a1a', gradient: 'from-[#3d1a1a] to-[#1a0a0f]', theme: 'dark' },
+  { id: 'forest', name: 'フォレスト', color: '#1a3d1a', gradient: 'from-[#1a3d1a] to-[#0a1a0f]', theme: 'dark' },
+  { id: 'ocean', name: 'オーシャン', color: '#1a2a3d', gradient: 'from-[#1a2a3d] to-[#0a0f1a]', theme: 'dark' },
+  { id: 'pink', name: 'ピンク', color: '#3d1a3d', gradient: 'from-[#3d1a3d] to-[#1a0a1a]', theme: 'dark' },
+  { id: 'midnight', name: 'ミッドナイト', color: '#101025', gradient: 'from-[#101025] to-[#050510]', theme: 'dark' },
+  // ライトテーマ
+  { id: 'white', name: 'ホワイト', color: '#f5f5f5', gradient: 'from-[#f5f5f5] to-[#e0e0e0]', theme: 'light' },
+  { id: 'cream', name: 'クリーム', color: '#faf8f0', gradient: 'from-[#faf8f0] to-[#f0ebe0]', theme: 'light' },
+  { id: 'sky', name: 'スカイ', color: '#e8f4fc', gradient: 'from-[#e8f4fc] to-[#d0e8f8]', theme: 'light' },
+  { id: 'mint', name: 'ミント', color: '#e8f8f0', gradient: 'from-[#e8f8f0] to-[#d0f0e0]', theme: 'light' },
+  { id: 'lavender', name: 'ラベンダー', color: '#f0e8f8', gradient: 'from-[#f0e8f8] to-[#e0d0f0]', theme: 'light' },
+  { id: 'peach', name: 'ピーチ', color: '#fff0e8', gradient: 'from-[#fff0e8] to-[#ffe0d0]', theme: 'light' },
 ];
 
 interface Room3DEditorProps {
@@ -748,7 +754,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
 
       {/* 背景選択シート */}
       <Sheet open={showBackgroundPicker} onOpenChange={setShowBackgroundPicker}>
-        <SheetContent side="bottom" className="h-[50vh]">
+        <SheetContent side="bottom" className="h-[55vh]">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <Palette className="w-5 h-5" />
@@ -756,30 +762,66 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             </SheetTitle>
           </SheetHeader>
           
-          <div className="grid grid-cols-4 sm:grid-cols-4 gap-4 mt-6">
-            {BACKGROUND_PRESETS.map((preset) => (
-              <button
-                key={preset.id}
-                onClick={() => updateBackground.mutate(preset.color)}
-                disabled={updateBackground.isPending}
-                className={cn(
-                  "aspect-square rounded-xl overflow-hidden border-2 transition-all hover:scale-105 flex flex-col items-center justify-center",
-                  mainRoom?.background_color === preset.color 
-                    ? "border-primary ring-2 ring-primary/50" 
-                    : "border-border hover:border-primary/50"
-                )}
-              >
-                <div className={cn(
-                  "w-full h-full bg-gradient-to-br flex items-center justify-center",
-                  preset.gradient
-                )}>
-                  <span className="text-white/80 text-xs font-medium drop-shadow-lg">
-                    {preset.name}
-                  </span>
-                </div>
-              </button>
-            ))}
-          </div>
+          <Tabs defaultValue="dark" className="mt-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="dark">🌙 ダーク</TabsTrigger>
+              <TabsTrigger value="light">☀️ ライト</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="dark" className="mt-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                {BACKGROUND_PRESETS.filter(p => p.theme === 'dark').map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => updateBackground.mutate(preset.color)}
+                    disabled={updateBackground.isPending}
+                    className={cn(
+                      "aspect-square rounded-xl overflow-hidden border-2 transition-all hover:scale-105 flex flex-col items-center justify-center",
+                      mainRoom?.background_color === preset.color 
+                        ? "border-primary ring-2 ring-primary/50" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-full h-full bg-gradient-to-br flex items-center justify-center",
+                      preset.gradient
+                    )}>
+                      <span className="text-white/80 text-xs font-medium drop-shadow-lg">
+                        {preset.name}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="light" className="mt-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                {BACKGROUND_PRESETS.filter(p => p.theme === 'light').map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => updateBackground.mutate(preset.color)}
+                    disabled={updateBackground.isPending}
+                    className={cn(
+                      "aspect-square rounded-xl overflow-hidden border-2 transition-all hover:scale-105 flex flex-col items-center justify-center",
+                      mainRoom?.background_color === preset.color 
+                        ? "border-primary ring-2 ring-primary/50" 
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-full h-full bg-gradient-to-br flex items-center justify-center",
+                      preset.gradient
+                    )}>
+                      <span className="text-gray-700 text-xs font-medium">
+                        {preset.name}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </SheetContent>
       </Sheet>
 
