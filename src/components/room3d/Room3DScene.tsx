@@ -3,17 +3,23 @@ import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
+import { FurnitureItem3D, RoomFurniture } from "./FurnitureItem3D";
+import { FURNITURE_PRESETS, FurniturePreset } from "./furniturePresets";
 
 interface Room3DSceneProps {
   roomItems: RoomItem[];
+  roomFurniture?: RoomFurniture[];
   backgroundImage?: string | null;
   backgroundColor?: string | null;
   roomTitle?: string;
   isEditing?: boolean;
   onItemClick?: (item: RoomItem) => void;
   onItemMove?: (itemId: string, posX: number, posY: number) => void;
+  onFurnitureClick?: (furniture: RoomFurniture) => void;
+  onFurnitureMove?: (furnitureId: string, posX: number, posY: number) => void;
   avatarUrl?: string | null;
   selectedItemId?: string | null;
+  selectedFurnitureId?: string | null;
   itemRotations?: Record<string, number>;
 }
 
@@ -490,8 +496,10 @@ function Avatar3D({ avatarUrl }: { avatarUrl: string }) {
   );
 }
 
-// デコレーション家具
-function Furniture() {
+// デコレーション家具（デフォルトの装飾 - 家具が追加されていない場合のみ表示）
+function DefaultFurniture({ hasCustomFurniture }: { hasCustomFurniture: boolean }) {
+  if (hasCustomFurniture) return null;
+  
   return (
     <group>
       {/* 棚 */}
@@ -535,12 +543,16 @@ function CameraController() {
 // メインシーン
 function Scene({ 
   roomItems, 
+  roomFurniture = [],
   backgroundColor, 
   onItemClick,
   onItemMove,
+  onFurnitureClick,
+  onFurnitureMove,
   isEditing,
   avatarUrl,
   selectedItemId,
+  selectedFurnitureId,
   itemRotations,
 }: Room3DSceneProps) {
   return (
@@ -564,7 +576,24 @@ function Scene({
       <RoomFloor backgroundColor={backgroundColor || undefined} />
       <GridOverlay />
       <RoomWalls backgroundColor={backgroundColor || undefined} />
-      <Furniture />
+      <DefaultFurniture hasCustomFurniture={roomFurniture.length > 0} />
+      
+      {/* カスタム家具 */}
+      {roomFurniture.map((furniture) => {
+        const preset = FURNITURE_PRESETS.find((p) => p.id === furniture.furniture_id);
+        if (!preset) return null;
+        return (
+          <FurnitureItem3D
+            key={furniture.id}
+            furniture={furniture}
+            preset={preset}
+            onClick={() => onFurnitureClick?.(furniture)}
+            onMove={(posX, posY) => onFurnitureMove?.(furniture.id, posX, posY)}
+            isEditing={isEditing}
+            isSelected={selectedFurnitureId === furniture.id}
+          />
+        );
+      })}
       
       {/* アイテム */}
       {roomItems.map((item) => (

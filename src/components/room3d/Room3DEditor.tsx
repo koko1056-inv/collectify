@@ -19,18 +19,22 @@ import {
   Box,
   Loader2,
   RotateCcw,
-  RotateCw
+  RotateCw,
+  Armchair
 } from "lucide-react";
 import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Profile } from "@/types";
 import { cn } from "@/lib/utils";
 import { Room3DScene } from "./Room3DScene";
+import { RoomFurniture } from "./FurnitureItem3D";
+import { FURNITURE_PRESETS, FURNITURE_CATEGORIES, FurniturePreset } from "./furniturePresets";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 
 // 背景プリセット
@@ -55,9 +59,12 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showItemPalette, setShowItemPalette] = useState(false);
+  const [showFurniturePalette, setShowFurniturePalette] = useState(false);
   const [showBackgroundPicker, setShowBackgroundPicker] = useState(false);
   const [selectedItem, setSelectedItem] = useState<RoomItem | null>(null);
+  const [selectedFurniture, setSelectedFurniture] = useState<RoomFurniture | null>(null);
   const [selectedPlacement, setSelectedPlacement] = useState<PlacementType>('floor');
+  const [selectedFurnitureCategory, setSelectedFurnitureCategory] = useState<string>('chair');
   const [isGenerating3D, setIsGenerating3D] = useState(false);
   const [generation3DProgress, setGeneration3DProgress] = useState<{
     status: string;
@@ -65,6 +72,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     message: string;
   } | null>(null);
   const [itemRotations, setItemRotations] = useState<Record<string, number>>({});
+  const [roomFurniture, setRoomFurniture] = useState<RoomFurniture[]>([]);
   
   const { 
     mainRoom, 
@@ -98,7 +106,42 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
 
   const handleItemClick = useCallback((item: RoomItem) => {
     setSelectedItem(item);
+    setSelectedFurniture(null);
     toast.info(`${item.item_data?.title || "アイテム"}を選択しました`);
+  }, []);
+
+  const handleFurnitureClick = useCallback((furniture: RoomFurniture) => {
+    setSelectedFurniture(furniture);
+    setSelectedItem(null);
+    const preset = FURNITURE_PRESETS.find(p => p.id === furniture.furniture_id);
+    toast.info(`${preset?.name || "家具"}を選択しました`);
+  }, []);
+
+  const handleAddFurniture = useCallback((preset: FurniturePreset, placement: PlacementType) => {
+    const newFurniture: RoomFurniture = {
+      id: `furniture_${Date.now()}`,
+      furniture_id: preset.id,
+      position_x: Math.random() * 60 + 20,
+      position_y: Math.random() * 60 + 20,
+      placement,
+      scale: preset.defaultScale,
+      rotation_y: 0,
+    };
+    setRoomFurniture(prev => [...prev, newFurniture]);
+    toast.success(`${preset.name}を追加しました！`);
+    setShowFurniturePalette(false);
+  }, []);
+
+  const handleDeleteFurniture = useCallback((furnitureId: string) => {
+    setRoomFurniture(prev => prev.filter(f => f.id !== furnitureId));
+    setSelectedFurniture(null);
+    toast.success("家具を削除しました");
+  }, []);
+
+  const handleMoveFurniture = useCallback((furnitureId: string, posX: number, posY: number) => {
+    setRoomFurniture(prev => prev.map(f => 
+      f.id === furnitureId ? { ...f, position_x: posX, position_y: posY } : f
+    ));
   }, []);
 
   const queryClient = useQueryClient();
@@ -464,8 +507,18 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
                 size="icon" 
                 className="text-white hover:bg-white/10"
                 onClick={() => setShowItemPalette(true)}
+                title="グッズを追加"
               >
                 <Plus className="w-5 h-5" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:bg-white/10"
+                onClick={() => setShowFurniturePalette(true)}
+                title="家具を追加"
+              >
+                <Armchair className="w-5 h-5" />
               </Button>
               <Button 
                 variant="ghost" 
@@ -496,17 +549,48 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       <div className="flex-1 relative">
         <Room3DScene
           roomItems={roomItems}
+          roomFurniture={roomFurniture}
           backgroundImage={mainRoom?.background_image}
           backgroundColor={mainRoom?.background_color}
           roomTitle={mainRoom?.title}
           isEditing={isOwnRoom}
           onItemClick={handleItemClick}
           onItemMove={handleMoveItem}
+          onFurnitureClick={handleFurnitureClick}
+          onFurnitureMove={handleMoveFurniture}
           avatarUrl={profile?.avatar_url}
           selectedItemId={selectedItem?.id}
+          selectedFurnitureId={selectedFurniture?.id}
           itemRotations={itemRotations}
         />
       </div>
+
+      {/* 家具編集ツールバー */}
+      {isOwnRoom && selectedFurniture && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/80 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl">
+          <span className="text-white text-sm mr-2">
+            {FURNITURE_PRESETS.find(p => p.id === selectedFurniture.furniture_id)?.name}
+          </span>
+          <div className="w-px h-8 bg-white/20" />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 px-3 text-xs gap-1.5 rounded-lg text-red-400 hover:bg-red-500/20 hover:text-red-300"
+            onClick={() => handleDeleteFurniture(selectedFurniture.id)}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            削除
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 text-white/50 hover:text-white hover:bg-white/10 rounded-lg"
+            onClick={() => setSelectedFurniture(null)}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
 
       {/* 編集ツールバー（選択アイテムがある場合のみ） */}
       {isOwnRoom && selectedItem && (
@@ -696,6 +780,49 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
               </button>
             ))}
           </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* 家具パレットシート */}
+      <Sheet open={showFurniturePalette} onOpenChange={setShowFurniturePalette}>
+        <SheetContent side="bottom" className="h-[70vh]">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Armchair className="w-5 h-5" />
+              家具を追加
+            </SheetTitle>
+          </SheetHeader>
+          
+          <Tabs value={selectedFurnitureCategory} onValueChange={setSelectedFurnitureCategory} className="mt-4">
+            <TabsList className="flex flex-wrap h-auto gap-1">
+              {FURNITURE_CATEGORIES.map((cat) => (
+                <TabsTrigger key={cat.id} value={cat.id} className="text-xs gap-1">
+                  <span>{cat.icon}</span>
+                  {cat.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            {FURNITURE_CATEGORIES.map((cat) => (
+              <TabsContent key={cat.id} value={cat.id} className="mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[calc(70vh-180px)] overflow-y-auto p-1">
+                  {FURNITURE_PRESETS.filter(f => f.category === cat.id).map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => handleAddFurniture(preset, preset.allowedPlacements[0])}
+                      className="flex flex-col rounded-lg overflow-hidden border border-border hover:border-primary transition-all hover:scale-[1.02] bg-card shadow-sm p-4"
+                    >
+                      <div className="text-4xl text-center mb-2">{preset.icon}</div>
+                      <p className="text-sm font-medium text-center text-foreground">{preset.name}</p>
+                      <p className="text-xs text-muted-foreground text-center mt-1">
+                        {preset.allowedPlacements.includes('floor') ? '床' : '壁'}に設置
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
         </SheetContent>
       </Sheet>
     </div>
