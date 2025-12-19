@@ -4,7 +4,7 @@ import { OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomItem } from "@/hooks/useMyRoom";
 import { FurnitureItem3D, RoomFurniture } from "./FurnitureItem3D";
-import { FURNITURE_PRESETS, FurniturePreset } from "./furniturePresets";
+import { FURNITURE_PRESETS } from "./furniturePresets";
 
 interface Room3DSceneProps {
   roomItems: RoomItem[];
@@ -583,15 +583,16 @@ function Scene({
         const preset = FURNITURE_PRESETS.find((p) => p.id === furniture.furniture_id);
         if (!preset) return null;
         return (
-          <FurnitureItem3D
-            key={furniture.id}
-            furniture={furniture}
-            preset={preset}
-            onClick={() => onFurnitureClick?.(furniture)}
-            onMove={(posX, posY) => onFurnitureMove?.(furniture.id, posX, posY)}
-            isEditing={isEditing}
-            isSelected={selectedFurnitureId === furniture.id}
-          />
+          <Suspense key={furniture.id} fallback={null}>
+            <FurnitureItem3D
+              furniture={furniture}
+              preset={preset}
+              onClick={() => onFurnitureClick?.(furniture)}
+              onMove={(posX, posY) => onFurnitureMove?.(furniture.id, posX, posY)}
+              isEditing={isEditing}
+              isSelected={selectedFurnitureId === furniture.id}
+            />
+          </Suspense>
         );
       })}
       

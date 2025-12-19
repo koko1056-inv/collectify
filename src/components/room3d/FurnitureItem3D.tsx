@@ -27,7 +27,12 @@ interface FurnitureItem3DProps {
 function FurniturePart({ 
   part 
 }: { 
-  part: FurniturePreset['geometry']['parts'][0] 
+  part: {
+    type: 'box' | 'cylinder' | 'sphere';
+    position: [number, number, number];
+    args: number[];
+    color: string;
+  }
 }) {
   const getGeometry = () => {
     switch (part.type) {
