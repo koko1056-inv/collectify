@@ -191,7 +191,7 @@ export const enTranslations = {
   avatar: {
     title: "Avatar",
     notSet: "No avatar set",
-    aiGenerate: "AI Generate",
+    aiGenerate: "Generate Avatar",
     dressUp: "Dress Up",
     gallery: "Gallery"
   },
