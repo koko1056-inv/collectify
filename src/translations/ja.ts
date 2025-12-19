@@ -191,7 +191,7 @@ export const jaTranslations = {
   avatar: {
     title: "アバター",
     notSet: "アバター未設定",
-    aiGenerate: "AI生成",
+    aiGenerate: "アバター生成",
     dressUp: "着せ替え",
     gallery: "ギャラリー"
   },
