@@ -150,6 +150,20 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     ));
   }, []);
 
+  const handleScaleFurniture = useCallback((furnitureId: string, delta: number) => {
+    setRoomFurniture(prev => prev.map(f => {
+      if (f.id !== furnitureId) return f;
+      const newScale = Math.max(0.3, Math.min(3, f.scale + delta));
+      return { ...f, scale: newScale };
+    }));
+    // 選択中の家具も更新
+    setSelectedFurniture(prev => {
+      if (!prev || prev.id !== furnitureId) return prev;
+      const newScale = Math.max(0.3, Math.min(3, prev.scale + delta));
+      return { ...prev, scale: newScale };
+    });
+  }, []);
+
   const queryClient = useQueryClient();
 
   const handleAddItem = useCallback(async (userItem: typeof userItems[0], placement: PlacementType) => {
@@ -577,6 +591,32 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           <span className="text-white text-sm mr-2">
             {FURNITURE_PRESETS.find(p => p.id === selectedFurniture.furniture_id)?.name}
           </span>
+          <div className="w-px h-8 bg-white/20" />
+          
+          {/* サイズ変更 */}
+          <div className="flex items-center gap-1">
+            <span className="text-white/60 text-xs mr-1">サイズ:</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleScaleFurniture(selectedFurniture.id, -0.2)}
+            >
+              <Minus className="w-4 h-4" />
+            </Button>
+            <span className="text-white text-xs w-10 text-center">
+              {Math.round(selectedFurniture.scale * 100)}%
+            </span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleScaleFurniture(selectedFurniture.id, 0.2)}
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          </div>
+          
           <div className="w-px h-8 bg-white/20" />
           <Button 
             variant="ghost" 
