@@ -496,35 +496,7 @@ function Avatar3D({ avatarUrl }: { avatarUrl: string }) {
   );
 }
 
-// デコレーション家具（デフォルトの装飾 - 家具が追加されていない場合のみ表示）
-function DefaultFurniture({ hasCustomFurniture }: { hasCustomFurniture: boolean }) {
-  if (hasCustomFurniture) return null;
-  
-  return (
-    <group>
-      {/* 棚 */}
-      <mesh position={[-8, 1.5, -8]} castShadow>
-        <boxGeometry args={[4, 3, 0.5]} />
-        <meshStandardMaterial color="#2d2d4a" roughness={0.7} />
-      </mesh>
-      
-      {/* テーブル */}
-      <mesh position={[5, 0.8, 0]} castShadow>
-        <boxGeometry args={[3, 0.2, 2]} />
-        <meshStandardMaterial color="#3d3d5a" roughness={0.6} />
-      </mesh>
-      
-      {/* テーブルの脚 */}
-      {[[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([legX, legZ], i) => (
-        <mesh key={i} position={[5 + legX * 1.2, 0.35, legZ * 0.8]} castShadow>
-          <cylinderGeometry args={[0.08, 0.08, 0.7]} />
-          <meshStandardMaterial color="#2d2d4a" />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
+// デフォルト家具は削除 - Room3DEditorでroomFurnitureとして管理
 // カメラコントローラー
 function CameraController() {
   return (
@@ -576,7 +548,7 @@ function Scene({
       <RoomFloor backgroundColor={backgroundColor || undefined} />
       <GridOverlay />
       <RoomWalls backgroundColor={backgroundColor || undefined} />
-      <DefaultFurniture hasCustomFurniture={roomFurniture.length > 0} />
+      {/* デフォルト家具はroomFurnitureで管理 */}
       
       {/* カスタム家具 */}
       {roomFurniture.map((furniture) => {
