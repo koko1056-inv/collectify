@@ -20,7 +20,10 @@ import {
   Loader2,
   RotateCcw,
   RotateCw,
-  Armchair
+  Armchair,
+  MoveHorizontal,
+  MoveVertical,
+  Move3d
 } from "lucide-react";
 import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -294,6 +297,48 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       toast.error("サイズ変更に失敗しました");
     }
   }, [queryClient, selectedItem]);
+
+  // アイテムの位置をX/Y/Z軸で調整
+  const handleAdjustItemPosition = useCallback(async (
+    itemId: string, 
+    axis: 'x' | 'y' | 'z', 
+    delta: number
+  ) => {
+    const item = roomItems.find(i => i.id === itemId) || selectedItem;
+    if (!item) return;
+
+    try {
+      let updates: Record<string, number> = {};
+      
+      if (axis === 'x') {
+        const newX = Math.max(0, Math.min(100, item.position_x + delta));
+        updates.position_x = newX;
+      } else if (axis === 'y') {
+        const newY = Math.max(0, Math.min(100, item.position_y + delta));
+        updates.position_y = newY;
+      } else if (axis === 'z') {
+        const newZ = Math.max(0, Math.min(20, item.z_index + delta));
+        updates.z_index = newZ;
+      }
+
+      const { error } = await supabase
+        .from("binder_items")
+        .update(updates)
+        .eq("id", itemId);
+      
+      if (error) throw error;
+      
+      // 選択中のアイテムも更新
+      if (selectedItem && selectedItem.id === itemId) {
+        setSelectedItem({ ...selectedItem, ...updates });
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ["room-items"] });
+    } catch (error) {
+      console.error("Error adjusting item position:", error);
+      toast.error("位置調整に失敗しました");
+    }
+  }, [queryClient, selectedItem, roomItems]);
 
   // 背景を変更
   const updateBackground = useMutation({
@@ -640,51 +685,94 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
 
       {/* 編集ツールバー（選択アイテムがある場合のみ） */}
       {isOwnRoom && selectedItem && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/80 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl">
-          {/* 配置場所変更ボタン */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex flex-wrap items-center justify-center gap-2 bg-black/80 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl max-w-[95vw]">
+          {/* X軸調整 */}
           <div className="flex items-center gap-1">
-            <span className="text-white/60 text-xs mr-2">移動先:</span>
+            <span className="text-white/60 text-xs">X:</span>
             <Button 
               variant="ghost" 
-              size="sm"
-              className={cn(
-                "h-8 px-3 text-xs gap-1.5 rounded-lg transition-all",
-                selectedItem.placement === 'floor' 
-                  ? "bg-primary text-white" 
-                  : "text-white/70 hover:text-white hover:bg-white/10"
-              )}
-              onClick={() => handleChangePlacement(selectedItem.id, 'floor')}
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleAdjustItemPosition(selectedItem.id, 'x', -5)}
             >
-              <Square className="w-3.5 h-3.5" />
-              床
+              <Minus className="w-3 h-3" />
             </Button>
+            <span className="text-white text-xs w-8 text-center">{Math.round(selectedItem.position_x)}</span>
             <Button 
               variant="ghost" 
-              size="sm"
-              className={cn(
-                "h-8 px-3 text-xs gap-1.5 rounded-lg transition-all",
-                selectedItem.placement === 'back_wall' 
-                  ? "bg-primary text-white" 
-                  : "text-white/70 hover:text-white hover:bg-white/10"
-              )}
-              onClick={() => handleChangePlacement(selectedItem.id, 'back_wall')}
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleAdjustItemPosition(selectedItem.id, 'x', 5)}
             >
-              <PanelTop className="w-3.5 h-3.5" />
-              後壁
+              <Plus className="w-3 h-3" />
             </Button>
+          </div>
+
+          {/* Y軸調整 */}
+          <div className="flex items-center gap-1">
+            <span className="text-white/60 text-xs">Y:</span>
             <Button 
               variant="ghost" 
-              size="sm"
-              className={cn(
-                "h-8 px-3 text-xs gap-1.5 rounded-lg transition-all",
-                selectedItem.placement === 'left_wall' 
-                  ? "bg-primary text-white" 
-                  : "text-white/70 hover:text-white hover:bg-white/10"
-              )}
-              onClick={() => handleChangePlacement(selectedItem.id, 'left_wall')}
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleAdjustItemPosition(selectedItem.id, 'y', -5)}
             >
-              <PanelLeft className="w-3.5 h-3.5" />
-              左壁
+              <Minus className="w-3 h-3" />
+            </Button>
+            <span className="text-white text-xs w-8 text-center">{Math.round(selectedItem.position_y)}</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleAdjustItemPosition(selectedItem.id, 'y', 5)}
+            >
+              <Plus className="w-3 h-3" />
+            </Button>
+          </div>
+
+          {/* Z軸（高さ）調整 */}
+          <div className="flex items-center gap-1">
+            <span className="text-white/60 text-xs">Z:</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleAdjustItemPosition(selectedItem.id, 'z', -1)}
+            >
+              <Minus className="w-3 h-3" />
+            </Button>
+            <span className="text-white text-xs w-8 text-center">{selectedItem.z_index}</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleAdjustItemPosition(selectedItem.id, 'z', 1)}
+            >
+              <Plus className="w-3 h-3" />
+            </Button>
+          </div>
+          
+          <div className="w-px h-8 bg-white/20" />
+
+          {/* サイズ調整 */}
+          <div className="flex items-center gap-1">
+            <span className="text-white/60 text-xs">サイズ:</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleResizeItem(selectedItem.id, selectedItem.width - 10)}
+            >
+              <Minus className="w-3 h-3" />
+            </Button>
+            <span className="text-white text-xs w-8 text-center">{Math.round(selectedItem.width)}%</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleResizeItem(selectedItem.id, selectedItem.width + 10)}
+            >
+              <Plus className="w-3 h-3" />
             </Button>
           </div>
           
