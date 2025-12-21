@@ -167,6 +167,35 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     });
   }, []);
 
+  // 家具の位置をX/Y軸で調整
+  const handleAdjustFurniturePosition = useCallback((
+    furnitureId: string, 
+    axis: 'x' | 'y', 
+    delta: number
+  ) => {
+    setRoomFurniture(prev => prev.map(f => {
+      if (f.id !== furnitureId) return f;
+      if (axis === 'x') {
+        const newX = Math.max(0, Math.min(100, f.position_x + delta));
+        return { ...f, position_x: newX };
+      } else {
+        const newY = Math.max(0, Math.min(100, f.position_y + delta));
+        return { ...f, position_y: newY };
+      }
+    }));
+    // 選択中の家具も更新
+    setSelectedFurniture(prev => {
+      if (!prev || prev.id !== furnitureId) return prev;
+      if (axis === 'x') {
+        const newX = Math.max(0, Math.min(100, prev.position_x + delta));
+        return { ...prev, position_x: newX };
+      } else {
+        const newY = Math.max(0, Math.min(100, prev.position_y + delta));
+        return { ...prev, position_y: newY };
+      }
+    });
+  }, []);
+
   const queryClient = useQueryClient();
 
   const handleAddItem = useCallback(async (userItem: typeof userItems[0], placement: PlacementType) => {
@@ -632,22 +661,68 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
 
       {/* 家具編集ツールバー */}
       {isOwnRoom && selectedFurniture && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/80 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex flex-wrap items-center justify-center gap-2 bg-black/80 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl max-w-[95vw]">
           <span className="text-white text-sm mr-2">
             {FURNITURE_PRESETS.find(p => p.id === selectedFurniture.furniture_id)?.name}
           </span>
           <div className="w-px h-8 bg-white/20" />
           
-          {/* サイズ変更 */}
+          {/* X軸調整 */}
           <div className="flex items-center gap-1">
-            <span className="text-white/60 text-xs mr-1">サイズ:</span>
+            <span className="text-white/60 text-xs">X:</span>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleAdjustFurniturePosition(selectedFurniture.id, 'x', -5)}
+            >
+              <Minus className="w-3 h-3" />
+            </Button>
+            <span className="text-white text-xs w-8 text-center">{Math.round(selectedFurniture.position_x)}</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleAdjustFurniturePosition(selectedFurniture.id, 'x', 5)}
+            >
+              <Plus className="w-3 h-3" />
+            </Button>
+          </div>
+
+          {/* Y軸調整 */}
+          <div className="flex items-center gap-1">
+            <span className="text-white/60 text-xs">Y:</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleAdjustFurniturePosition(selectedFurniture.id, 'y', -5)}
+            >
+              <Minus className="w-3 h-3" />
+            </Button>
+            <span className="text-white text-xs w-8 text-center">{Math.round(selectedFurniture.position_y)}</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleAdjustFurniturePosition(selectedFurniture.id, 'y', 5)}
+            >
+              <Plus className="w-3 h-3" />
+            </Button>
+          </div>
+          
+          <div className="w-px h-8 bg-white/20" />
+          
+          {/* サイズ変更 */}
+          <div className="flex items-center gap-1">
+            <span className="text-white/60 text-xs">サイズ:</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
               onClick={() => handleScaleFurniture(selectedFurniture.id, -0.2)}
             >
-              <Minus className="w-4 h-4" />
+              <Minus className="w-3 h-3" />
             </Button>
             <span className="text-white text-xs w-10 text-center">
               {Math.round(selectedFurniture.scale * 100)}%
@@ -655,10 +730,10 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
               onClick={() => handleScaleFurniture(selectedFurniture.id, 0.2)}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3 h-3" />
             </Button>
           </div>
           
