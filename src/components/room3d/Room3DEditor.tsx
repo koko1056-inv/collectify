@@ -81,7 +81,65 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     message: string;
   } | null>(null);
   const [itemRotations, setItemRotations] = useState<Record<string, number>>({});
-  const [roomFurniture, setRoomFurniture] = useState<RoomFurniture[]>([]);
+  const [roomFurniture, setRoomFurniture] = useState<RoomFurniture[]>(() => {
+    // デフォルトの装飾家具を初期配置
+    return [
+      {
+        id: 'default_bookshelf',
+        furniture_id: 'shelf_bookshelf',
+        position_x: 15,
+        position_y: 15,
+        placement: 'floor' as PlacementType,
+        scale: 1.2,
+        rotation_y: 0,
+      },
+      {
+        id: 'default_desk',
+        furniture_id: 'table_desk',
+        position_x: 70,
+        position_y: 50,
+        placement: 'floor' as PlacementType,
+        scale: 1,
+        rotation_y: 0,
+      },
+      {
+        id: 'default_chair',
+        furniture_id: 'chair_gaming',
+        position_x: 65,
+        position_y: 60,
+        placement: 'floor' as PlacementType,
+        scale: 0.9,
+        rotation_y: 0,
+      },
+      {
+        id: 'default_plant',
+        furniture_id: 'deco_plant',
+        position_x: 85,
+        position_y: 25,
+        placement: 'floor' as PlacementType,
+        scale: 1,
+        rotation_y: 0,
+      },
+      {
+        id: 'default_lamp',
+        furniture_id: 'lamp_floor',
+        position_x: 20,
+        position_y: 70,
+        placement: 'floor' as PlacementType,
+        scale: 1,
+        rotation_y: 0,
+      },
+      {
+        id: 'default_poster',
+        furniture_id: 'deco_poster',
+        position_x: 50,
+        position_y: 60,
+        placement: 'back_wall' as PlacementType,
+        scale: 1.5,
+        rotation_y: 0,
+      },
+    ];
+  });
   
   const { 
     mainRoom, 
