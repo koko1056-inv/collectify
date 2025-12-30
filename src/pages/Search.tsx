@@ -5,6 +5,8 @@ import { FilterBar } from "@/components/FilterBar";
 import { SlideFilterBar } from "@/components/SlideFilterBar";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
 import { FriendSearch } from "@/components/search/FriendSearch";
+import { TradeMatchingSection } from "@/components/trade/TradeMatchingSection";
+import { PublicCollectionView } from "@/components/collection/PublicCollectionView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
@@ -13,7 +15,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { Package, Users, Plus } from "lucide-react";
+import { Package, Users, Plus, ArrowLeftRight, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -124,14 +126,26 @@ const Search = () => {
         <div className="space-y-4 sm:space-y-6">
           {/* タブ */}
           <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-              <TabsTrigger value="goods" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-4 max-w-lg mx-auto">
+              <TabsTrigger value="goods" className="flex items-center gap-1 text-xs sm:text-sm">
                 <Package className="h-4 w-4" />
-                {t("tabs.goods")}
+                <span className="hidden sm:inline">{t("tabs.goods")}</span>
+                <span className="sm:hidden">グッズ</span>
               </TabsTrigger>
-              <TabsTrigger value="friends" className="flex items-center gap-2">
+              <TabsTrigger value="collections" className="flex items-center gap-1 text-xs sm:text-sm">
+                <Heart className="h-4 w-4" />
+                <span className="hidden sm:inline">コレクション</span>
+                <span className="sm:hidden">コレ</span>
+              </TabsTrigger>
+              <TabsTrigger value="trade" className="flex items-center gap-1 text-xs sm:text-sm">
+                <ArrowLeftRight className="h-4 w-4" />
+                <span className="hidden sm:inline">交換</span>
+                <span className="sm:hidden">交換</span>
+              </TabsTrigger>
+              <TabsTrigger value="friends" className="flex items-center gap-1 text-xs sm:text-sm">
                 <Users className="h-4 w-4" />
-                {t("tabs.friends")}
+                <span className="hidden sm:inline">{t("tabs.friends")}</span>
+                <span className="sm:hidden">友達</span>
               </TabsTrigger>
             </TabsList>
 
@@ -166,6 +180,16 @@ const Search = () => {
                 onContentChange={setSelectedContent}
                 tags={allTags}
               />
+            </TabsContent>
+
+            {/* 人気コレクションタブ */}
+            <TabsContent value="collections" className="space-y-4 sm:space-y-6">
+              <PublicCollectionView />
+            </TabsContent>
+
+            {/* 交換マッチングタブ */}
+            <TabsContent value="trade" className="space-y-4 sm:space-y-6">
+              <TradeMatchingSection />
             </TabsContent>
 
             {/* フレンド検索タブ */}
