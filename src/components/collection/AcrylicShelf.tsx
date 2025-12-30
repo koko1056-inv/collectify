@@ -32,16 +32,15 @@ const AcrylicShelf = memo(function AcrylicShelf({
         className="grid grid-cols-3 gap-2 px-1 py-2"
         style={{ 
           transformStyle: "preserve-3d",
-          transform: "translateZ(6px)",
+          transform: "translateZ(8px)",
         }}
       >
-        {items.map((item, itemIndex) => (
+        {items.map((item) => (
           <div 
             key={item.id} 
             className="relative"
             style={{
               transformStyle: "preserve-3d",
-              transform: "translateZ(2px)",
             }}
           >
             {isSelectionMode && (
@@ -56,10 +55,9 @@ const AcrylicShelf = memo(function AcrylicShelf({
             )}
             {/* アイテムカード - 浮いている効果 */}
             <div 
-              className="relative group transition-transform duration-300 hover:scale-105"
+              className="relative transition-all duration-300 hover:scale-105 hover:-translate-y-1"
               style={{
-                transformStyle: "preserve-3d",
-                filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.15))",
+                filter: "drop-shadow(0 6px 12px rgba(0,0,0,0.15))",
               }}
             >
               <MemoizedMyCollectionGoodsCard
@@ -72,8 +70,7 @@ const AcrylicShelf = memo(function AcrylicShelf({
               />
               {/* カードの光沢オーバーレイ */}
               <div 
-                className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent pointer-events-none rounded-lg opacity-60"
-                style={{ transform: "translateZ(1px)" }}
+                className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent pointer-events-none rounded-lg"
               />
             </div>
           </div>
@@ -83,8 +80,7 @@ const AcrylicShelf = memo(function AcrylicShelf({
         {items.length < 3 && Array.from({ length: 3 - items.length }).map((_, i) => (
           <div 
             key={`empty-${i}`} 
-            className="aspect-[3/4] rounded-lg border-2 border-dashed border-white/30 bg-white/10"
-            style={{ transform: "translateZ(2px)" }}
+            className="aspect-[3/4] rounded-lg border-2 border-dashed border-slate-300/50 bg-slate-100/30"
           />
         ))}
       </div>
@@ -92,37 +88,30 @@ const AcrylicShelf = memo(function AcrylicShelf({
       {/* 立体的なガラス棚板 */}
       {!isLastShelf && (
         <div 
-          className="relative h-4 mx-0"
+          className="relative h-3 mx-1"
           style={{ transformStyle: "preserve-3d" }}
         >
           {/* 棚板の上面 - 光沢 */}
           <div 
-            className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/40 via-white/80 to-white/40 rounded-t"
+            className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-slate-300/60 via-white/90 to-slate-300/60 rounded-sm"
             style={{ transform: "translateZ(4px)" }}
           />
           
           {/* 棚板本体 - ガラス */}
           <div 
-            className="absolute inset-x-0 top-1 h-2 bg-gradient-to-b from-slate-200/70 via-slate-100/50 to-slate-200/70"
+            className="absolute inset-x-0 top-[3px] h-[6px] bg-gradient-to-b from-slate-300/80 via-slate-200/60 to-slate-300/80 rounded-sm"
             style={{ 
               transform: "translateZ(3px)",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5)",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.6)",
             }}
           >
             {/* ガラス内の反射ライン */}
-            <div className="absolute inset-x-6 top-0.5 h-px bg-white/60 rounded-full" />
+            <div className="absolute inset-x-8 top-1 h-[1px] bg-white/70 rounded-full" />
           </div>
-          
-          {/* 棚板の厚み（前面） */}
-          <div 
-            className="absolute inset-x-0 top-3 h-1 bg-gradient-to-b from-slate-300/80 to-slate-400/60"
-            style={{ transform: "translateZ(2px) rotateX(-45deg)" }}
-          />
           
           {/* 棚板から落ちる影 */}
           <div 
-            className="absolute inset-x-2 bottom-0 h-3 bg-gradient-to-b from-slate-400/30 to-transparent blur-sm"
-            style={{ transform: "translateZ(0px)" }}
+            className="absolute inset-x-4 top-[9px] h-2 bg-gradient-to-b from-slate-500/25 to-transparent blur-[2px]"
           />
         </div>
       )}
