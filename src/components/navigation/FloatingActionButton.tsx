@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Camera, FolderOpen, FileText, X } from "lucide-react";
+import { Plus, Camera, FolderOpen, FileText, X, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,22 +14,25 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
 
   const actions = [
     {
+      icon: Sparkles,
+      label: "クイック追加",
+      onClick: () => navigate("/quick-add"),
+      color: "bg-gradient-to-r from-pink-500 to-purple-500",
+      description: "AI自動認識",
+    },
+    {
       icon: Camera,
-      label: "グッズ追加",
+      label: "詳細追加",
       onClick: () => navigate("/add-item"),
-      color: "bg-pink-500",
+      color: "bg-blue-500",
+      description: "手動入力",
     },
     {
       icon: FileText,
       label: "投稿作成",
       onClick: () => navigate("/posts"),
-      color: "bg-purple-500",
-    },
-    {
-      icon: FolderOpen,
-      label: "コレクション",
-      onClick: () => navigate("/collection"),
-      color: "bg-blue-500",
+      color: "bg-green-500",
+      description: "コミュニティ",
     },
   ];
 
@@ -69,7 +72,10 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
                 )}
               >
                 <action.icon className="h-5 w-5" />
-                <span className="text-sm font-medium whitespace-nowrap">{action.label}</span>
+                <div className="flex flex-col items-start">
+                  <span className="text-sm font-medium whitespace-nowrap">{action.label}</span>
+                  <span className="text-xs opacity-80">{action.description}</span>
+                </div>
               </motion.button>
             ))}
           </div>

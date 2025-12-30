@@ -21,6 +21,7 @@ import MyRoom from "./pages/MyRoom";
 const Login = lazy(() => import("./pages/Login").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Admin = lazy(() => import("./pages/Admin").catch(() => ({ default: () => <div>Error loading page</div> })));
 const AddItem = lazy(() => import("./pages/AddItem").catch(() => ({ default: () => <div>Error loading page</div> })));
+const QuickAdd = lazy(() => import("./pages/QuickAdd").catch(() => ({ default: () => <div>Error loading page</div> })));
 const UserProfile = lazy(() => import("./pages/UserProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 const EditProfile = lazy(() => import("./pages/EditProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 const RoomExplore = lazy(() => import("./pages/RoomExplore").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -82,6 +83,7 @@ const App: React.FC = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/admin" element={<Admin />} />
                     <Route path="/add-item" element={<AddItem />} />
+                    <Route path="/quick-add" element={<QuickAdd />} />
                     <Route path="/user/:userId" element={<UserProfile />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
                     <Route path="/posts" element={<Posts />} />
