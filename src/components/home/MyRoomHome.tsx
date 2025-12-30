@@ -16,6 +16,8 @@ import { IsometricRoomPreview } from "@/components/room3d/IsometricRoomPreview";
 import { Room3DEditor } from "@/components/room3d/Room3DEditor";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { IntegratedFeed } from "./IntegratedFeed";
+import { CollectionStats } from "./CollectionStats";
 interface MyRoomHomeProps {
   profile: Profile | undefined;
   onAvatarGenerated: (url: string) => void;
@@ -114,6 +116,14 @@ export function MyRoomHome({
           </TabsList>
         </Tabs>
       </div>
+
+      {/* 統合フィード - コレクションタブ時のみ表示 */}
+      {activeTab === "collection" && (
+        <div className="w-full px-4 mb-6 space-y-6">
+          <CollectionStats />
+          <IntegratedFeed />
+        </div>
+      )}
 
       {/* メインコンテンツ */}
       <div className="flex-1 w-full">

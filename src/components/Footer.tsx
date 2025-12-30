@@ -1,85 +1,102 @@
-
 import { Link, useLocation } from "react-router-dom";
-import { Search, Users, User } from "lucide-react";
+import { Search, User, Compass, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useState } from "react";
-import { UserSearchSheet } from "./UserSearchSheet";
-import { FriendsListSheet } from "./FriendsListSheet";
+import { FloatingActionButton } from "./navigation/FloatingActionButton";
 
 export function Footer() {
   const location = useLocation();
   const { t } = useLanguage();
-  const [isSearchSheetOpen, setIsSearchSheetOpen] = useState(false);
-  const [isFriendsListOpen, setIsFriendsListOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
+  // 画像提案に基づいた3タブ + FAB構成
+  // 発見(Search) - ホーム(MyRoom) - プロフィール(EditProfile)
+  // 中央にFABを配置
+
   return (
-    <>
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t sm:hidden">
-        <div className="flex flex-col w-full">
-          {/* ナビゲーションボタン */}
-          <div className="flex justify-around items-center h-16">
-            <Link
-              to="/search"
-              className={cn(
-                "flex flex-col items-center justify-center w-1/4 text-[10px]",
-                isActive("/search") ? "text-primary" : "text-gray-500"
-              )}
-            >
-              <Search className={cn("h-6 w-6 mb-1", isActive("/search") ? "text-primary" : "text-gray-400")} />
-              <span>{t("footer.search")}</span>
-            </Link>
+    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t sm:hidden z-40">
+      <div className="flex items-center justify-around h-16 relative">
+        {/* 発見タブ */}
+        <Link
+          to="/search"
+          className={cn(
+            "flex flex-col items-center justify-center flex-1 py-2",
+            isActive("/search") ? "text-primary" : "text-muted-foreground"
+          )}
+        >
+          <Compass className={cn(
+            "h-6 w-6 mb-0.5 transition-all",
+            isActive("/search") && "scale-110"
+          )} />
+          <span className="text-[10px] font-medium">発見</span>
+        </Link>
 
-            <Link
-              to="/my-room"
-              className={cn(
-                "flex flex-col items-center justify-center w-1/4 text-[10px]",
-                isActive("/my-room") ? "text-primary" : "text-gray-500"
-              )}
-            >
-              <svg className={cn("h-6 w-6 mb-1", isActive("/my-room") ? "text-primary" : "text-gray-400")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-              <span>{t("footer.myRoom")}</span>
-            </Link>
+        {/* ホームタブ */}
+        <Link
+          to="/my-room"
+          className={cn(
+            "flex flex-col items-center justify-center flex-1 py-2",
+            isActive("/my-room") ? "text-primary" : "text-muted-foreground"
+          )}
+        >
+          <Home className={cn(
+            "h-6 w-6 mb-0.5 transition-all",
+            isActive("/my-room") && "scale-110"
+          )} />
+          <span className="text-[10px] font-medium">ホーム</span>
+        </Link>
 
-            <Link
-              to="/posts"
-              className={cn(
-                "flex flex-col items-center justify-center w-1/4 text-[10px]",
-                isActive("/posts") ? "text-primary" : "text-gray-500"
-              )}
-            >
-              <Users className={cn("h-6 w-6 mb-1", isActive("/posts") ? "text-primary" : "text-gray-400")} />
-              <span>{t("footer.community")}</span>
-            </Link>
-
-            <Link
-              to="/edit-profile"
-              className={cn(
-                "flex flex-col items-center justify-center w-1/4 text-[10px]",
-                isActive("/edit-profile") ? "text-primary" : "text-gray-500"
-              )}
-            >
-              <User className={cn("h-6 w-6 mb-1", isActive("/edit-profile") ? "text-primary" : "text-gray-400")} />
-              <span>{t("footer.profile")}</span>
-            </Link>
+        {/* 中央FAB用のスペース */}
+        <div className="flex-1 flex justify-center">
+          <div className="relative -mt-8">
+            <FloatingActionButton />
           </div>
         </div>
+
+        {/* コミュニティタブ */}
+        <Link
+          to="/posts"
+          className={cn(
+            "flex flex-col items-center justify-center flex-1 py-2",
+            isActive("/posts") ? "text-primary" : "text-muted-foreground"
+          )}
+        >
+          <svg 
+            className={cn(
+              "h-6 w-6 mb-0.5 transition-all",
+              isActive("/posts") && "scale-110"
+            )} 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span className="text-[10px] font-medium">コミュニティ</span>
+        </Link>
+
+        {/* プロフィールタブ */}
+        <Link
+          to="/edit-profile"
+          className={cn(
+            "flex flex-col items-center justify-center flex-1 py-2",
+            isActive("/edit-profile") ? "text-primary" : "text-muted-foreground"
+          )}
+        >
+          <User className={cn(
+            "h-6 w-6 mb-0.5 transition-all",
+            isActive("/edit-profile") && "scale-110"
+          )} />
+          <span className="text-[10px] font-medium">プロフィール</span>
+        </Link>
       </div>
-
-      <UserSearchSheet
-        isOpen={isSearchSheetOpen}
-        onClose={() => setIsSearchSheetOpen(false)}
-      />
-
-      <FriendsListSheet
-        isOpen={isFriendsListOpen}
-        onClose={() => setIsFriendsListOpen(false)}
-      />
-    </>
+    </div>
   );
 }
