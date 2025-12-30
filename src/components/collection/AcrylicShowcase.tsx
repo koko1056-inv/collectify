@@ -57,16 +57,16 @@ const AcrylicShowcase = memo(function AcrylicShowcase({
         <div 
           className="relative mx-auto w-full"
           style={{ 
-            perspective: "1200px",
-            perspectiveOrigin: "50% 20%",
+            perspective: "800px",
+            perspectiveOrigin: "50% 50%",
           }}
         >
-          {/* ショーケース本体 - 3D回転 */}
+          {/* ショーケース本体 - 3D回転（控えめに） */}
           <div
             className="relative"
             style={{
               transformStyle: "preserve-3d",
-              transform: "rotateX(5deg)",
+              transform: "rotateX(2deg)",
             }}
           >
             {/* ガラスケース全体 */}
