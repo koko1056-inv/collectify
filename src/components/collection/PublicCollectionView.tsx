@@ -31,15 +31,15 @@ export function PublicCollectionView() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // 人気のコレクションを取得
+  // 人気のコレクションを取得（全ユーザーのコレクションを公開として扱う）
   const { data: collections, isLoading } = useQuery({
     queryKey: ["public-collections", user?.id],
     queryFn: async () => {
-      // まずコレクションいいね数が多いユーザーを取得
+      // まずコレクションいいね数を取得
       const { data: likesCounts, error: likesError } = await supabase
         .from("collection_likes")
         .select("collection_owner_id")
-        .limit(100);
+        .limit(500);
 
       if (likesError) throw likesError;
 
@@ -50,17 +50,30 @@ export function PublicCollectionView() {
         likesCountMap.set(like.collection_owner_id, count + 1);
       });
 
-      // トップユーザーを取得（いいね数順）
-      const topUserIds = Array.from(likesCountMap.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .map(([id]) => id);
+      // アイテムを持っているユーザーを取得（コレクションは基本公開）
+      const { data: usersWithItems, error: usersError } = await supabase
+        .from("user_items")
+        .select("user_id")
+        .limit(100);
+
+      if (usersError) throw usersError;
+
+      // ユニークなユーザーIDを取得
+      const uniqueUserIds = [...new Set(usersWithItems?.map(item => item.user_id) || [])];
+      
+      // 自分を除外
+      const filteredUserIds = uniqueUserIds.filter(id => id !== user?.id);
+
+      if (filteredUserIds.length === 0) {
+        return [];
+      }
 
       // プロフィール情報を取得
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("id, username, avatar_url, bio")
-        .in("id", topUserIds.length > 0 ? topUserIds : ["00000000-0000-0000-0000-000000000000"]);
+        .in("id", filteredUserIds)
+        .limit(20);
 
       if (profilesError) throw profilesError;
 
@@ -105,7 +118,13 @@ export function PublicCollectionView() {
         })
       );
 
-      return collectionsWithDetails.sort((a, b) => b.likes_count - a.likes_count);
+      // いいね数とアイテム数でソート
+      return collectionsWithDetails.sort((a, b) => {
+        if (b.likes_count !== a.likes_count) {
+          return b.likes_count - a.likes_count;
+        }
+        return b.items_count - a.items_count;
+      });
     },
   });
 
