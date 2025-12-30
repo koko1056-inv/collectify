@@ -71,7 +71,7 @@ export function CollectionViewToggle({
         </div>
       </div>
 
-      <TabsContent value="grid" className="mt-2">
+      <TabsContent value="grid" className="mt-0">
         {viewMode === "showcase" ? (
           <AcrylicShowcase
             items={items}
