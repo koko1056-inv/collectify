@@ -127,25 +127,21 @@ const Search = () => {
           {/* タブ */}
           <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-4 max-w-lg mx-auto">
-              <TabsTrigger value="goods" className="flex items-center gap-1 text-xs sm:text-sm">
-                <Package className="h-4 w-4" />
+              <TabsTrigger value="goods" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
+                <Package className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">{t("tabs.goods")}</span>
-                <span className="sm:hidden">グッズ</span>
               </TabsTrigger>
-              <TabsTrigger value="collections" className="flex items-center gap-1 text-xs sm:text-sm">
-                <Heart className="h-4 w-4" />
+              <TabsTrigger value="collections" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
+                <Heart className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">コレクション</span>
-                <span className="sm:hidden">コレ</span>
               </TabsTrigger>
-              <TabsTrigger value="trade" className="flex items-center gap-1 text-xs sm:text-sm">
-                <ArrowLeftRight className="h-4 w-4" />
+              <TabsTrigger value="trade" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
+                <ArrowLeftRight className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">交換</span>
-                <span className="sm:hidden">交換</span>
               </TabsTrigger>
-              <TabsTrigger value="friends" className="flex items-center gap-1 text-xs sm:text-sm">
-                <Users className="h-4 w-4" />
+              <TabsTrigger value="friends" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
+                <Users className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">{t("tabs.friends")}</span>
-                <span className="sm:hidden">友達</span>
               </TabsTrigger>
             </TabsList>
 
