@@ -113,15 +113,8 @@ export function MyRoomHome({
               <span className="text-[10px] font-medium">{t("avatar.title")}</span>
             </TabsTrigger>
           </TabsList>
-        </Tabs>
+      </Tabs>
       </div>
-
-      {/* コレクション統計 - コレクションタブ時のみ表示 */}
-      {activeTab === "collection" && (
-        <div className="w-full px-4 mb-6">
-          <CollectionStats />
-        </div>
-      )}
 
       {/* メインコンテンツ */}
       <div className="flex-1 w-full">
@@ -312,6 +305,11 @@ function AvatarView({
   t
 }: AvatarViewProps) {
   return <div className="flex flex-col items-center px-4 animate-fade-in">
+      {/* マイ統計 */}
+      <div className="w-full mb-6">
+        <CollectionStats />
+      </div>
+
       {/* アバター表示 */}
       <div className="relative mb-6">
         {profile?.avatar_url ? <div className="relative group">
