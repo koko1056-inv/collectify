@@ -126,7 +126,8 @@ export function TradeMatchingSection() {
           )
         `)
         .neq("user_id", user.id)
-        .limit(100);
+        .order("created_at", { ascending: false })
+        .range(0, 999);
 
       if (error) throw error;
 
@@ -216,7 +217,8 @@ export function TradeMatchingSection() {
           )
         `)
         .neq("user_id", user.id)
-        .limit(100);
+        .order("created_at", { ascending: false })
+        .range(0, 999);
 
       if (error) throw error;
 
