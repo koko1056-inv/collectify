@@ -1,14 +1,17 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, Upload, Loader2, Check, X, Sparkles, ArrowLeft, Package } from "lucide-react";
+import { Camera, Upload, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { CategoryTagSelect } from "@/components/tag/CategoryTagSelect";
+import { useQuery } from "@tanstack/react-query";
 
 interface AnalysisResult {
   title: string;
@@ -17,6 +20,12 @@ interface AnalysisResult {
   category: string;
   contentName: string;
   characterName: string;
+}
+
+interface SelectedTags {
+  character: string | null;
+  type: string | null;
+  series: string | null;
 }
 
 type Step = "capture" | "analyzing" | "confirm" | "complete";
@@ -33,11 +42,31 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editedData, setEditedData] = useState<AnalysisResult | null>(null);
+  const [selectedTags, setSelectedTags] = useState<SelectedTags>({
+    character: null,
+    type: null,
+    series: null,
+  });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // コンテンツ名からcontent_idを取得
+  const { data: contentId } = useQuery({
+    queryKey: ["content-id", editedData?.contentName],
+    queryFn: async () => {
+      if (!editedData?.contentName) return null;
+      const { data } = await supabase
+        .from("content_names")
+        .select("id")
+        .eq("name", editedData.contentName)
+        .single();
+      return data?.id || null;
+    },
+    enabled: !!editedData?.contentName,
+  });
 
   const handleFileSelect = useCallback(async (file: File) => {
     setImageFile(file);
@@ -114,8 +143,46 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
         .from('kuji_images')
         .getPublicUrl(filePath);
 
-      // user_itemsに直接追加（自分のコレクションへ）
-      const { error: insertError } = await supabase
+      // 1. official_itemsに追加（探索に表示されるように）
+      const { data: officialItem, error: officialInsertError } = await supabase
+        .from('official_items')
+        .insert({
+          title: editedData.title || "無題のグッズ",
+          image: publicUrl,
+          price: editedData.price || "0",
+          release_date: new Date().toISOString().split('T')[0],
+          content_name: editedData.contentName || null,
+          description: editedData.description || null,
+          item_type: editedData.category || "goods",
+          created_by: user.id,
+        })
+        .select()
+        .single();
+
+      if (officialInsertError) throw officialInsertError;
+
+      // 2. タグを保存
+      for (const [category, tagName] of Object.entries(selectedTags)) {
+        if (tagName) {
+          // タグIDを取得
+          const { data: tagData } = await supabase
+            .from('tags')
+            .select('id')
+            .eq('name', tagName)
+            .eq('category', category)
+            .single();
+
+          if (tagData) {
+            await supabase.from('item_tags').insert({
+              official_item_id: officialItem.id,
+              tag_id: tagData.id,
+            });
+          }
+        }
+      }
+
+      // 3. user_itemsに追加（自分のコレクションへ）
+      const { data: userItem, error: userInsertError } = await supabase
         .from('user_items')
         .insert({
           user_id: user.id,
@@ -125,13 +192,35 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
           release_date: new Date().toISOString(),
           content_name: editedData.contentName || null,
           note: editedData.description || null,
-        });
+          official_item_id: officialItem.id,
+        })
+        .select()
+        .single();
 
-      if (insertError) throw insertError;
+      if (userInsertError) throw userInsertError;
+
+      // 4. user_item_tagsにもタグを保存
+      for (const [category, tagName] of Object.entries(selectedTags)) {
+        if (tagName) {
+          const { data: tagData } = await supabase
+            .from('tags')
+            .select('id')
+            .eq('name', tagName)
+            .eq('category', category)
+            .single();
+
+          if (tagData) {
+            await supabase.from('user_item_tags').insert({
+              user_item_id: userItem.id,
+              tag_id: tagData.id,
+            });
+          }
+        }
+      }
 
       setStep("complete");
       
-      // 3秒後に自動で閉じる
+      // 2秒後に自動で閉じる
       setTimeout(() => {
         onComplete?.();
       }, 2000);
@@ -154,6 +243,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     setPreviewUrl(null);
     setAnalysisResult(null);
     setEditedData(null);
+    setSelectedTags({ character: null, type: null, series: null });
   };
 
   return (
@@ -332,6 +422,54 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                     placeholder="作品名を入力"
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* タグ選択 */}
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Tag className="w-4 h-4" />
+                  タグを設定
+                </div>
+                
+                <CategoryTagSelect
+                  category="character"
+                  label="キャラクター"
+                  value={selectedTags.character}
+                  onChange={(value) => setSelectedTags(prev => ({ ...prev, character: value }))}
+                  contentId={contentId}
+                />
+                
+                <CategoryTagSelect
+                  category="type"
+                  label="グッズタイプ"
+                  value={selectedTags.type}
+                  onChange={(value) => setSelectedTags(prev => ({ ...prev, type: value }))}
+                />
+                
+                <CategoryTagSelect
+                  category="series"
+                  label="シリーズ"
+                  value={selectedTags.series}
+                  onChange={(value) => setSelectedTags(prev => ({ ...prev, series: value }))}
+                  contentId={contentId}
+                />
+
+                {/* 選択中のタグ表示 */}
+                {(selectedTags.character || selectedTags.type || selectedTags.series) && (
+                  <div className="flex flex-wrap gap-2 pt-2 border-t">
+                    {selectedTags.character && (
+                      <Badge variant="secondary">{selectedTags.character}</Badge>
+                    )}
+                    {selectedTags.type && (
+                      <Badge variant="outline">{selectedTags.type}</Badge>
+                    )}
+                    {selectedTags.series && (
+                      <Badge variant="outline">{selectedTags.series}</Badge>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
