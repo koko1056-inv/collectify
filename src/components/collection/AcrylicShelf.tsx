@@ -23,11 +23,27 @@ const AcrylicShelf = memo(function AcrylicShelf({
   isLastShelf,
 }: AcrylicShelfProps) {
   return (
-    <div className="relative">
+    <div 
+      className="relative"
+      style={{ transformStyle: "preserve-3d" }}
+    >
       {/* アイテムグリッド */}
-      <div className="grid grid-cols-3 gap-2 px-1 py-2">
-        {items.map((item) => (
-          <div key={item.id} className="relative">
+      <div 
+        className="grid grid-cols-3 gap-2 px-1 py-2"
+        style={{ 
+          transformStyle: "preserve-3d",
+          transform: "translateZ(6px)",
+        }}
+      >
+        {items.map((item, itemIndex) => (
+          <div 
+            key={item.id} 
+            className="relative"
+            style={{
+              transformStyle: "preserve-3d",
+              transform: "translateZ(2px)",
+            }}
+          >
             {isSelectionMode && (
               <div className="absolute top-2 left-2 z-10">
                 <input
@@ -38,8 +54,14 @@ const AcrylicShelf = memo(function AcrylicShelf({
                 />
               </div>
             )}
-            {/* アイテムカードに反射エフェクト */}
-            <div className="relative group">
+            {/* アイテムカード - 浮いている効果 */}
+            <div 
+              className="relative group transition-transform duration-300 hover:scale-105"
+              style={{
+                transformStyle: "preserve-3d",
+                filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.15))",
+              }}
+            >
               <MemoizedMyCollectionGoodsCard
                 id={item.id}
                 title={item.title}
@@ -49,7 +71,10 @@ const AcrylicShelf = memo(function AcrylicShelf({
                 memories={batchMemories[item.id] || []}
               />
               {/* カードの光沢オーバーレイ */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div 
+                className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent pointer-events-none rounded-lg opacity-60"
+                style={{ transform: "translateZ(1px)" }}
+              />
             </div>
           </div>
         ))}
@@ -58,28 +83,47 @@ const AcrylicShelf = memo(function AcrylicShelf({
         {items.length < 3 && Array.from({ length: 3 - items.length }).map((_, i) => (
           <div 
             key={`empty-${i}`} 
-            className="aspect-[3/4] rounded-lg border-2 border-dashed border-slate-200/50 bg-slate-50/30"
+            className="aspect-[3/4] rounded-lg border-2 border-dashed border-white/30 bg-white/10"
+            style={{ transform: "translateZ(2px)" }}
           />
         ))}
       </div>
       
       {/* 立体的なガラス棚板 */}
       {!isLastShelf && (
-        <div className="relative h-3 mx-1">
-          {/* 棚板の上面（光が当たる部分） */}
-          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+        <div 
+          className="relative h-4 mx-0"
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          {/* 棚板の上面 - 光沢 */}
+          <div 
+            className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-white/40 via-white/80 to-white/40 rounded-t"
+            style={{ transform: "translateZ(4px)" }}
+          />
           
-          {/* 棚板のガラス本体 */}
-          <div className="absolute inset-x-0 top-[2px] h-[6px] bg-gradient-to-b from-slate-200/60 via-slate-300/40 to-slate-200/60 backdrop-blur-sm">
-            {/* ガラスの内部反射 */}
-            <div className="absolute inset-x-4 top-1 h-[2px] bg-white/40 rounded-full" />
+          {/* 棚板本体 - ガラス */}
+          <div 
+            className="absolute inset-x-0 top-1 h-2 bg-gradient-to-b from-slate-200/70 via-slate-100/50 to-slate-200/70"
+            style={{ 
+              transform: "translateZ(3px)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.5)",
+            }}
+          >
+            {/* ガラス内の反射ライン */}
+            <div className="absolute inset-x-6 top-0.5 h-px bg-white/60 rounded-full" />
           </div>
           
-          {/* 棚板の影（アイテムに落ちる影） */}
-          <div className="absolute inset-x-2 bottom-0 h-2 bg-gradient-to-b from-slate-400/20 to-transparent blur-sm" />
+          {/* 棚板の厚み（前面） */}
+          <div 
+            className="absolute inset-x-0 top-3 h-1 bg-gradient-to-b from-slate-300/80 to-slate-400/60"
+            style={{ transform: "translateZ(2px) rotateX(-45deg)" }}
+          />
           
-          {/* 棚板の厚み（下面） */}
-          <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-transparent via-slate-400/40 to-transparent" />
+          {/* 棚板から落ちる影 */}
+          <div 
+            className="absolute inset-x-2 bottom-0 h-3 bg-gradient-to-b from-slate-400/30 to-transparent blur-sm"
+            style={{ transform: "translateZ(0px)" }}
+          />
         </div>
       )}
     </div>
