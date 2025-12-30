@@ -301,6 +301,10 @@ interface AvatarViewProps {
   onShowGallery: () => void;
   t: (key: string) => string;
 }
+
+// Import AvatarSocialSection dynamically to avoid circular deps
+import { AvatarSocialSection } from "./AvatarSocialSection";
+
 function AvatarView({
   profile,
   userId,
@@ -349,5 +353,10 @@ function AvatarView({
           </CardContent>
         </Card>
       </div>
+
+      {/* ソーシャルセクション */}
+      {userId && (
+        <AvatarSocialSection userId={userId} avatarUrl={profile?.avatar_url} />
+      )}
     </div>;
 }
