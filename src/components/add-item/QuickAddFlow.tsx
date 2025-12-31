@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Camera, Upload, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag } from "lucide-react";
+import { Camera, Upload, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag, ScanBarcode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { CategoryTagSelect } from "@/components/tag/CategoryTagSelect";
 import { useQuery } from "@tanstack/react-query";
+import { BarcodeScanner } from "./BarcodeScanner";
 
 interface AnalysisResult {
   title: string;
@@ -28,7 +29,7 @@ interface SelectedTags {
   series: string | null;
 }
 
-type Step = "capture" | "analyzing" | "confirm" | "complete";
+type Step = "capture" | "barcode" | "analyzing" | "confirm" | "complete";
 
 interface QuickAddFlowProps {
   onComplete?: () => void;
@@ -47,6 +48,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     type: null,
     series: null,
   });
+  const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -244,6 +246,44 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     setAnalysisResult(null);
     setEditedData(null);
     setSelectedTags({ character: null, type: null, series: null });
+    setScannedBarcode(null);
+  };
+
+  // バーコードスキャン結果の処理
+  const handleBarcodeScan = async (barcode: string) => {
+    setScannedBarcode(barcode);
+    setStep("analyzing");
+    
+    try {
+      // バーコードから商品情報を検索（ここでは基本的な情報をセット）
+      // 将来的にはAPIを使って商品情報を取得可能
+      const result: AnalysisResult = {
+        title: "",
+        description: `バーコード: ${barcode}`,
+        price: "",
+        category: "goods",
+        contentName: "",
+        characterName: "",
+      };
+      
+      setAnalysisResult(result);
+      setEditedData(result);
+      
+      toast({
+        title: "バーコードを読み取りました",
+        description: `コード: ${barcode}`,
+      });
+      
+      setStep("confirm");
+    } catch (error) {
+      console.error("Barcode lookup error:", error);
+      toast({
+        title: "エラー",
+        description: "バーコード情報の取得に失敗しました",
+        variant: "destructive",
+      });
+      setStep("capture");
+    }
   };
 
   return (
@@ -261,19 +301,19 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-bold">グッズを追加</h2>
               <p className="text-muted-foreground text-sm">
-                写真を撮影するか、画像を選択してください
+                写真・バーコードから登録できます
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+            <div className="grid grid-cols-3 gap-3 w-full max-w-md">
               {/* カメラで撮影 */}
               <Button
                 variant="outline"
-                className="flex-1 h-32 flex-col gap-3 border-2 border-dashed hover:border-primary hover:bg-primary/5"
+                className="h-28 flex-col gap-2 border-2 border-dashed hover:border-primary hover:bg-primary/5"
                 onClick={() => cameraInputRef.current?.click()}
               >
-                <Camera className="w-10 h-10 text-primary" />
-                <span className="font-medium">カメラで撮影</span>
+                <Camera className="w-8 h-8 text-primary" />
+                <span className="font-medium text-xs">カメラ</span>
               </Button>
               <input
                 ref={cameraInputRef}
@@ -290,11 +330,11 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               {/* ギャラリーから選択 */}
               <Button
                 variant="outline"
-                className="flex-1 h-32 flex-col gap-3 border-2 border-dashed hover:border-primary hover:bg-primary/5"
+                className="h-28 flex-col gap-2 border-2 border-dashed hover:border-primary hover:bg-primary/5"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <Upload className="w-10 h-10 text-primary" />
-                <span className="font-medium">ギャラリーから</span>
+                <Upload className="w-8 h-8 text-primary" />
+                <span className="font-medium text-xs">ギャラリー</span>
               </Button>
               <input
                 ref={fileInputRef}
@@ -306,6 +346,16 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                   if (file) handleFileSelect(file);
                 }}
               />
+
+              {/* バーコードスキャン */}
+              <Button
+                variant="outline"
+                className="h-28 flex-col gap-2 border-2 border-dashed hover:border-primary hover:bg-primary/5"
+                onClick={() => setStep("barcode")}
+              >
+                <ScanBarcode className="w-8 h-8 text-primary" />
+                <span className="font-medium text-xs">バーコード</span>
+              </Button>
             </div>
 
             {onCancel && (
@@ -314,6 +364,14 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               </Button>
             )}
           </motion.div>
+        )}
+
+        {/* バーコードスキャン画面 */}
+        {step === "barcode" && (
+          <BarcodeScanner
+            onScan={handleBarcodeScan}
+            onClose={() => setStep("capture")}
+          />
         )}
 
         {/* Step 2: AI分析中 */}
