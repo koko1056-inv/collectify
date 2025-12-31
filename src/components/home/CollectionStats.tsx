@@ -83,29 +83,29 @@ export function CollectionStats() {
       icon: Package,
       label: "コレクション",
       value: stats?.totalItems || 0,
-      color: "text-pink-500",
-      bgColor: "bg-pink-500/10"
+      color: "text-stats-items",
+      bgColor: "bg-stats-items-bg"
     },
     {
       icon: Heart,
       label: "ウィッシュリスト",
       value: stats?.totalWishlists || 0,
-      color: "text-red-500",
-      bgColor: "bg-red-500/10"
+      color: "text-stats-login",
+      bgColor: "bg-stats-login-bg"
     },
     {
       icon: Users,
       label: "フォロワー",
       value: stats?.totalFollowers || 0,
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/10"
+      color: "text-stats-content",
+      bgColor: "bg-stats-content-bg"
     },
     {
       icon: TrendingUp,
       label: "今週の追加",
       value: stats?.recentAdditions || 0,
-      color: "text-green-500",
-      bgColor: "bg-green-500/10",
+      color: "text-stats-member",
+      bgColor: "bg-stats-member-bg",
       highlight: (stats?.recentAdditions || 0) > 0
     }
   ];

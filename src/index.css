@@ -22,9 +22,17 @@
     --muted: 30 10% 95%;
     --muted-foreground: 240 5% 45%;
     
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
     /* カード用 */
     --card: 0 0% 100%;
     --card-foreground: 240 10% 10%;
+    
+    /* ポップオーバー/ドロップダウン用 */
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 10%;
     
     /* 統計項目用カラー - ブランドカラーベース */
     --stats-login: 350 60% 50%;
@@ -81,9 +89,17 @@
     --muted: 240 8% 14%;
     --muted-foreground: 30 10% 60%;
     
+    /* Destructive - ダークモード */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    
     /* カード用 */
     --card: 240 8% 10%;
     --card-foreground: 30 20% 96%;
+    
+    /* ポップオーバー/ドロップダウン用 */
+    --popover: 240 8% 10%;
+    --popover-foreground: 30 20% 96%;
     
     /* 統計項目用カラー（ダークモード） */
     --stats-login: 350 55% 65%;

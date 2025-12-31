@@ -4,16 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, UserSearch, User, Repeat2, Search, FileText, FolderOpen, Plus } from "lucide-react";
+import { ShoppingBasket, User, Search, FileText, FolderOpen } from "lucide-react";
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
 import { TradeRequestsModal } from "./trade/TradeRequestsModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ChatButton } from "./ChatButton";
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -85,9 +83,9 @@ export function Navbar() {
       });
     }
   };
-  return <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b shadow-sm">
+  return <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b shadow-sm">
       {/* モバイル版のロゴ (sm未満でのみ表示) */}
-      <div className="flex sm:hidden items-center h-12 bg-white border-b px-4">
+      <div className="flex sm:hidden items-center h-12 bg-background border-b px-4">
         <div className="w-20 flex-shrink-0" /> {/* Left spacer for balance */}
         <Link to="/my-room" className="logo-text text-xl font-bold flex-1 text-center">
           Collectify
@@ -150,70 +148,22 @@ export function Navbar() {
         <div className="ml-auto flex items-center gap-4">
           <UserInfo />
           {user ? <>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t("nav.search.user")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <Button variant="outline" size="icon" onClick={() => setIsWishlistModalOpen(true)} className="relative h-9 w-9">
+              <Button variant="outline" size="icon" onClick={() => setIsWishlistModalOpen(true)} className="relative h-8 w-8">
                 <ShoppingBasket className="h-4 w-4 text-foreground" />
               </Button>
               
               <ChatButton />
               <NotificationBell className="hidden sm:block" />
               
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button asChild variant="outline" size="icon" className="h-9 w-9">
-                      
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t("nav.addGoods")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <button onClick={() => navigate("/edit-profile")} className="flex items-center justify-center rounded-full hover:opacity-80 transition-opacity">
+                <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="bg-muted">
+                    <User className="w-4 h-4" />
+                  </AvatarFallback>
+                </Avatar>
+              </button>
               
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button onClick={() => navigate("/edit-profile")} className="flex items-center justify-center rounded-full hover:opacity-80 transition-opacity">
-                      <Avatar className="w-9 h-9 border-2 border-border hover:border-primary transition-colors">
-                        <AvatarImage src={profile?.avatar_url || undefined} />
-                        <AvatarFallback className="bg-muted">
-                          <User className="w-4 h-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t("footer.profile")}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link to="/edit-profile">{t("nav.profile")}</Link>
-                  </DropdownMenuItem>
-                  {user.email === "admin@example.com" && <DropdownMenuItem asChild>
-                      <Link to="/admin">{t("nav.admin")}</Link>
-                    </DropdownMenuItem>}
-                  <DropdownMenuItem onClick={handleLogout}>
-                    {t("nav.logout")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </> : <Link to="/login">
               <Button variant="outline" className="text-sm">
                 {t("nav.login")}
