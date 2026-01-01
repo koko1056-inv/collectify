@@ -6,10 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeftRight, Heart, Sparkles, Users, Gift } from "lucide-react";
+import { ArrowLeftRight, Heart, Sparkles, Users, Gift, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TradeRequestModal } from "./TradeRequestModal";
 import { InlineFollowButton } from "./InlineFollowButton";
+import { ChatModal } from "@/components/chat/ChatModal";
 
 interface MatchedUser {
   user_id: string;
@@ -50,6 +51,7 @@ export function TradeMatchingSection() {
     itemId: string;
     itemTitle: string;
   } | null>(null);
+  const [chatPartnerId, setChatPartnerId] = useState<string | null>(null);
 
   // ユーザーのウィッシュリストを取得
   const { data: wishlistItems } = useQuery({
@@ -405,6 +407,17 @@ export function TradeMatchingSection() {
                       </Badge>
                     </div>
                     <InlineFollowButton userId={matchedUser.user_id} size="icon" />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setChatPartnerId(matchedUser.user_id);
+                      }}
+                      className="h-8 w-8 shrink-0"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                    </Button>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -497,6 +510,17 @@ export function TradeMatchingSection() {
                       </Badge>
                     </div>
                     <InlineFollowButton userId={wantingUser.user_id} size="icon" />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setChatPartnerId(wantingUser.user_id);
+                      }}
+                      className="h-8 w-8 shrink-0"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                    </Button>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -539,6 +563,14 @@ export function TradeMatchingSection() {
           requestedItemId={selectedMatch.itemId}
           requestedItemTitle={selectedMatch.itemTitle}
           receiverId={selectedMatch.userId}
+        />
+      )}
+
+      {chatPartnerId && (
+        <ChatModal
+          isOpen={!!chatPartnerId}
+          onClose={() => setChatPartnerId(null)}
+          partnerId={chatPartnerId}
         />
       )}
     </div>
