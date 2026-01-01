@@ -1,5 +1,4 @@
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useChat } from "./useChat";
 import { ChatStep } from "./ChatStep";
 import { ShippingStep } from "./ShippingStep";
@@ -8,6 +7,10 @@ import { ShippingConfirmDialog } from "./ShippingConfirmDialog";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { PartnerProfile } from "./types";
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -71,36 +74,58 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[500px] h-[90vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>
-              {partnerProfile ? 
-                `${partnerProfile.display_name || partnerProfile.username}とのチャット` : 
-                "チャット"}
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-[480px] h-[85vh] max-h-[700px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden">
+          {/* カスタムヘッダー */}
+          <div className="flex items-center gap-3 px-4 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <Avatar className="h-10 w-10 ring-2 ring-primary/10">
+              <AvatarImage src={partnerProfile?.avatar_url || ""} />
+              <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                {partnerProfile?.display_name?.[0] || partnerProfile?.username?.[0] || "?"}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm truncate">
+                {partnerProfile?.display_name || partnerProfile?.username || "ユーザー"}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                @{partnerProfile?.username || "unknown"}
+              </p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 rounded-full" 
+              onClick={handleClose}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
           
-          {step === 'chat' && (
-            <ChatStep 
-              messages={messages}
-              onSendMessage={sendMessage}
-              onProceedToShipping={proceedToShipping}
-              showShippingButton={!!tradeRequestId}
-            />
-          )}
+          {/* チャットコンテンツ */}
+          <div className="flex-1 flex flex-col min-h-0 bg-muted/30">
+            {step === 'chat' && (
+              <ChatStep 
+                messages={messages}
+                onSendMessage={sendMessage}
+                onProceedToShipping={proceedToShipping}
+                showShippingButton={!!tradeRequestId}
+                partnerProfile={partnerProfile}
+              />
+            )}
 
-          {step === 'shipping' && (
-            <ShippingStep 
-              onShippingComplete={() => setIsShippingConfirmOpen(true)} 
-            />
-          )}
+            {step === 'shipping' && (
+              <ShippingStep 
+                onShippingComplete={() => setIsShippingConfirmOpen(true)} 
+              />
+            )}
 
-          {step === 'complete' && (
-            <CompleteStep 
-              onComplete={handleComplete}
-              isCompleting={isCompleting}
-            />
-          )}
+            {step === 'complete' && (
+              <CompleteStep 
+                onComplete={handleComplete}
+                isCompleting={isCompleting}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

@@ -1,4 +1,3 @@
-
 export interface Message {
   id: string;
   content: string;
@@ -7,6 +6,8 @@ export interface Message {
 }
 
 export interface PartnerProfile {
+  id: string;
   username: string; 
   display_name: string | null;
+  avatar_url: string | null;
 }
