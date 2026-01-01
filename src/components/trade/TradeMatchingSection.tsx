@@ -55,18 +55,18 @@ export function TradeMatchingSection() {
     queryKey: ["user-wishlist", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      
+
       const { data, error } = await supabase
         .from("wishlists")
         .select(`
           id,
           official_item_id,
           original_item_id,
-          official_items (id, title, image),
-          original_items (id, title, image)
+          official_item:official_items!wishlists_official_item_id_fkey (id, title, image),
+          original_item:original_items!wishlists_original_item_id_fkey (id, title, image)
         `)
         .eq("user_id", user.id);
-      
+
       if (error) throw error;
       return data || [];
     },
@@ -92,25 +92,30 @@ export function TradeMatchingSection() {
 
   // マッチングするユーザーを検索（あなたの欲しいものを持っている人）
   const { data: matchedUsers, isLoading: isLoadingMatched } = useQuery({
-    queryKey: ["trade-matches", user?.id, wishlistItems],
+    queryKey: [
+      "trade-matches",
+      user?.id,
+      (wishlistItems || []).map((w: any) => w.id).join("|")
+    ],
     queryFn: async () => {
       if (!user?.id || !wishlistItems?.length) return [];
 
-      const officialItemIds = wishlistItems
-        .filter(w => w.official_item_id)
-        .map(w => w.official_item_id);
-      
-      const originalItemIds = wishlistItems
-        .filter(w => w.original_item_id)
-        .map(w => w.original_item_id);
+      const normalize = (s: string) =>
+        (s || "")
+          .toLowerCase()
+          .replace(/\s+/g, "")
+          .replace(/[【】\[\]（）()「」『』"“”'’・\-–—:：]/g, "");
 
-      // ウィッシュリストのアイテムタイトルを取得（タイトルベースマッチング用）
-      const wishlistTitles = wishlistItems
-        .map(w => (w.official_items?.title || w.original_items?.title || "").toLowerCase())
-        .filter(t => t.length > 0);
+      const officialItemIds = (wishlistItems as any[])
+        .map(w => w.official_item_id)
+        .filter(Boolean);
 
-      // ユーザーの欲しいものを持っている人を検索
-      const { data: allUserItems, error } = await supabase
+      const originalItemIds = (wishlistItems as any[])
+        .map(w => w.original_item_id)
+        .filter(Boolean);
+
+      // まずはIDベースでサーバー側フィルタ（取りこぼし防止）
+      let itemsQuery = supabase
         .from("user_items")
         .select(`
           id,
@@ -119,43 +124,60 @@ export function TradeMatchingSection() {
           user_id,
           official_item_id,
           original_item_id,
-          profiles:user_id (
+          profile:profiles!user_items_user_id_fkey(
             id,
             username,
             avatar_url
           )
         `)
         .neq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .range(0, 999);
+        .order("created_at", { ascending: false });
 
+      const orParts: string[] = [];
+      if (officialItemIds.length > 0) {
+        orParts.push(`official_item_id.in.(${officialItemIds.join(",")})`);
+      }
+      if (originalItemIds.length > 0) {
+        orParts.push(`original_item_id.in.(${originalItemIds.join(",")})`);
+      }
+
+      if (orParts.length > 0) {
+        itemsQuery = itemsQuery.or(orParts.join(","));
+      } else {
+        // IDがないウィッシュリスト（タイトルだけ等）の場合は広めに取得してクライアント側で照合
+        itemsQuery = itemsQuery.range(0, 4999);
+      }
+
+      const { data: candidateItems, error } = await itemsQuery;
       if (error) throw error;
 
-      // ユーザーごとにグループ化
       const userMap = new Map<string, MatchedUser>();
-      
-      allUserItems?.forEach((item: any) => {
-        const profile = item.profiles;
+
+      (candidateItems || []).forEach((item: any) => {
+        const profileRaw = item.profile;
+        const profile = Array.isArray(profileRaw) ? profileRaw[0] : profileRaw;
         if (!profile) return;
 
         // IDベースのマッチング
-        let matchedWishlistItem = wishlistItems.find(
-          w => (w.official_item_id && w.official_item_id === item.official_item_id) || 
-               (w.original_item_id && w.original_item_id === item.original_item_id)
+        let matchedWishlistItem = (wishlistItems as any[]).find(
+          w =>
+            (w.official_item_id && w.official_item_id === item.official_item_id) ||
+            (w.original_item_id && w.original_item_id === item.original_item_id)
         );
 
         // タイトルベースのマッチング（IDマッチがない場合）
         if (!matchedWishlistItem && item.title) {
-          const itemTitleLower = item.title.toLowerCase();
-          matchedWishlistItem = wishlistItems.find(w => {
-            const wishlistTitle = (w.official_items?.title || w.original_items?.title || "").toLowerCase();
-            return wishlistTitle.length > 3 && itemTitleLower.includes(wishlistTitle) || wishlistTitle.includes(itemTitleLower);
+          const itemTitleNorm = normalize(item.title);
+          matchedWishlistItem = (wishlistItems as any[]).find(w => {
+            const wishlistTitle = w.official_item?.title || w.original_item?.title || "";
+            const wishlistTitleNorm = normalize(wishlistTitle);
+            return wishlistTitleNorm.length >= 4 && (itemTitleNorm.includes(wishlistTitleNorm) || wishlistTitleNorm.includes(itemTitleNorm));
           });
         }
 
         if (!matchedWishlistItem) return;
 
-        const wishlistItemData = matchedWishlistItem.official_items || matchedWishlistItem.original_items;
+        const wishlistItemData = matchedWishlistItem.official_item || matchedWishlistItem.original_item;
 
         if (!userMap.has(profile.id)) {
           userMap.set(profile.id, {
@@ -166,7 +188,6 @@ export function TradeMatchingSection() {
           });
         }
 
-        // 重複チェック
         const existingItems = userMap.get(profile.id)!.matched_items;
         if (!existingItems.some(m => m.their_item.id === item.id)) {
           existingItems.push({
@@ -191,74 +212,87 @@ export function TradeMatchingSection() {
 
   // 自分のアイテムを欲しがっている人を検索
   const { data: wantingUsers, isLoading: isLoadingWanting } = useQuery({
-    queryKey: ["wanting-users", user?.id, myItems],
+    queryKey: [
+      "wanting-users",
+      user?.id,
+      (myItems || []).map((i: any) => i.id).join("|")
+    ],
     queryFn: async () => {
       if (!user?.id || !myItems?.length) return [];
 
-      // 自分のアイテムタイトル一覧（タイトルベースマッチング用）
-      const myItemTitles = myItems
-        .map(item => item.title.toLowerCase())
-        .filter(t => t.length > 0);
+      const normalize = (s: string) =>
+        (s || "")
+          .toLowerCase()
+          .replace(/\s+/g, "")
+          .replace(/[【】\[\]（）()「」『』"“”'’・\-–—:：]/g, "");
 
-      // 他のユーザーのウィッシュリストを取得
-      const { data: allWishlists, error } = await supabase
+      const myOfficialIds = (myItems as any[])
+        .map(i => i.official_item_id)
+        .filter(Boolean);
+
+      const myOriginalIds = (myItems as any[])
+        .map(i => i.original_item_id)
+        .filter(Boolean);
+
+      let wishlistsQuery = supabase
         .from("wishlists")
         .select(`
           id,
           user_id,
           official_item_id,
           original_item_id,
-          official_items (id, title),
-          original_items (id, title),
-          profiles:user_id (
-            id,
-            username,
-            avatar_url
-          )
+          official_item:official_items!wishlists_official_item_id_fkey (id, title),
+          original_item:original_items!wishlists_original_item_id_fkey (id, title)
         `)
         .neq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .range(0, 999);
+        .order("created_at", { ascending: false });
 
+      const orParts: string[] = [];
+      if (myOfficialIds.length > 0) {
+        orParts.push(`official_item_id.in.(${myOfficialIds.join(",")})`);
+      }
+      if (myOriginalIds.length > 0) {
+        orParts.push(`original_item_id.in.(${myOriginalIds.join(",")})`);
+      }
+
+      if (orParts.length > 0) {
+        wishlistsQuery = wishlistsQuery.or(orParts.join(","));
+      } else {
+        wishlistsQuery = wishlistsQuery.range(0, 4999);
+      }
+
+      const { data: allWishlists, error } = await wishlistsQuery;
       if (error) throw error;
 
-      // ユーザーごとにグループ化
-      const userMap = new Map<string, WantingUser>();
-      
-      allWishlists?.forEach((wishlist: any) => {
-        const profile = wishlist.profiles;
-        if (!profile) return;
+      const tempMap = new Map<string, { wanted_items: WantingUser["wanted_items"] }>();
 
+      (allWishlists || []).forEach((wishlist: any) => {
         // IDベースのマッチング
-        let matchedItem = myItems.find(
-          item => (item.official_item_id && item.official_item_id === wishlist.official_item_id) || 
-                  (item.original_item_id && item.original_item_id === wishlist.original_item_id)
+        let matchedItem = (myItems as any[]).find(
+          item =>
+            (item.official_item_id && item.official_item_id === wishlist.official_item_id) ||
+            (item.original_item_id && item.original_item_id === wishlist.original_item_id)
         );
 
         // タイトルベースのマッチング（IDマッチがない場合）
         if (!matchedItem) {
-          const wishlistTitle = (wishlist.official_items?.title || wishlist.original_items?.title || "").toLowerCase();
-          if (wishlistTitle.length > 3) {
-            matchedItem = myItems.find(item => {
-              const itemTitleLower = item.title.toLowerCase();
-              return itemTitleLower.includes(wishlistTitle) || wishlistTitle.includes(itemTitleLower);
+          const wishlistTitle = wishlist.official_item?.title || wishlist.original_item?.title || "";
+          const wishlistTitleNorm = normalize(wishlistTitle);
+          if (wishlistTitleNorm.length >= 4) {
+            matchedItem = (myItems as any[]).find(item => {
+              const itemTitleNorm = normalize(item.title);
+              return itemTitleNorm.includes(wishlistTitleNorm) || wishlistTitleNorm.includes(itemTitleNorm);
             });
           }
         }
 
         if (!matchedItem) return;
 
-        if (!userMap.has(profile.id)) {
-          userMap.set(profile.id, {
-            user_id: profile.id,
-            username: profile.username,
-            avatar_url: profile.avatar_url,
-            wanted_items: [],
-          });
+        if (!tempMap.has(wishlist.user_id)) {
+          tempMap.set(wishlist.user_id, { wanted_items: [] });
         }
 
-        // 重複チェック
-        const existingItems = userMap.get(profile.id)!.wanted_items;
+        const existingItems = tempMap.get(wishlist.user_id)!.wanted_items;
         if (!existingItems.some(i => i.your_item.id === matchedItem!.id)) {
           existingItems.push({
             your_item: {
@@ -270,7 +304,28 @@ export function TradeMatchingSection() {
         }
       });
 
-      return Array.from(userMap.values());
+      if (tempMap.size === 0) return [];
+
+      // wishlists には profiles のFKが無いケースがあるため、別クエリでプロフィールを取得
+      const userIds = Array.from(tempMap.keys());
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .in("id", userIds);
+
+      if (profilesError) throw profilesError;
+
+      const profileMap = new Map<string, any>((profiles || []).map(p => [p.id, p]));
+
+      return userIds.map((uid) => {
+        const p = profileMap.get(uid);
+        return {
+          user_id: uid,
+          username: p?.username || "unknown",
+          avatar_url: p?.avatar_url || null,
+          wanted_items: tempMap.get(uid)!.wanted_items,
+        } as WantingUser;
+      });
     },
     enabled: !!user?.id && !!myItems?.length,
   });
