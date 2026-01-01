@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeftRight, Heart, Sparkles, Users, Gift } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TradeRequestModal } from "./TradeRequestModal";
+import { InlineFollowButton } from "./InlineFollowButton";
 
 interface MatchedUser {
   user_id: string;
@@ -391,9 +392,9 @@ export function TradeMatchingSection() {
                         {matchedUser.username?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p 
-                        className="font-medium cursor-pointer hover:text-primary transition-colors"
+                        className="font-medium cursor-pointer hover:text-primary transition-colors truncate"
                         onClick={() => navigate(`/user/${matchedUser.user_id}`)}
                       >
                         {matchedUser.username}
@@ -403,6 +404,7 @@ export function TradeMatchingSection() {
                         {matchedUser.matched_items.length}個マッチ
                       </Badge>
                     </div>
+                    <InlineFollowButton userId={matchedUser.user_id} size="icon" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -482,9 +484,9 @@ export function TradeMatchingSection() {
                         {wantingUser.username?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p 
-                        className="font-medium cursor-pointer hover:text-amber-500 transition-colors"
+                        className="font-medium cursor-pointer hover:text-amber-500 transition-colors truncate"
                         onClick={() => navigate(`/user/${wantingUser.user_id}`)}
                       >
                         {wantingUser.username}
@@ -494,6 +496,7 @@ export function TradeMatchingSection() {
                         {wantingUser.wanted_items.length}個欲しがっている
                       </Badge>
                     </div>
+                    <InlineFollowButton userId={wantingUser.user_id} size="icon" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
