@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Share2, MessageCircle } from "lucide-react";
 import { LogoutButton } from "./LogoutButton";
@@ -7,6 +6,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 import { ChatModal } from "@/components/chat/ChatModal";
 import { PointsDisplay } from "@/components/ui/points-display";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProfileHeaderProps {
   username: string;
@@ -19,6 +21,35 @@ export function ProfileHeader({ username, onShare, isOwnProfile, userId }: Profi
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // 相互フォローかどうかをチェック
+  const { data: isMutualFollow } = useQuery({
+    queryKey: ["mutual-follow", user?.id, userId],
+    queryFn: async () => {
+      if (!user?.id || !userId) return false;
+
+      // 自分が相手をフォローしているか
+      const { data: following } = await supabase
+        .from("follows")
+        .select("id")
+        .eq("follower_id", user.id)
+        .eq("following_id", userId)
+        .maybeSingle();
+
+      // 相手が自分をフォローしているか
+      const { data: followedBy } = await supabase
+        .from("follows")
+        .select("id")
+        .eq("follower_id", userId)
+        .eq("following_id", user.id)
+        .maybeSingle();
+
+      return !!following && !!followedBy;
+    },
+    enabled: !!user?.id && !!userId && user.id !== userId,
+  });
+
+  const canChat = isMutualFollow === true;
 
   return (
     <>
@@ -45,20 +76,34 @@ export function ProfileHeader({ username, onShare, isOwnProfile, userId }: Profi
         </div>
         <div className="flex-1 flex justify-start gap-2">
           {!isOwnProfile && userId && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsChatOpen(true)}
-              className="h-8 w-8"
-            >
-              <MessageCircle className="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setIsChatOpen(true)}
+                      className="h-8 w-8"
+                      disabled={!canChat}
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                {!canChat && (
+                  <TooltipContent>
+                    <p>相互フォローでチャットできます</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           )}
           {isOwnProfile && <LogoutButton />}
         </div>
       </div>
 
-      {userId && (
+      {userId && canChat && (
         <ChatModal
           isOpen={isChatOpen}
           onClose={() => setIsChatOpen(false)}
