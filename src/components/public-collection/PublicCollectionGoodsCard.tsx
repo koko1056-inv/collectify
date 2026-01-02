@@ -29,7 +29,7 @@ export function PublicCollectionGoodsCard({
         />
       </UICardHeader>
       <UICardContent className="p-3 space-y-1">
-        <h3 className="text-xs font-medium text-gray-900 truncate">{title}</h3>
+        <h3 className="text-[10px] font-medium text-gray-900 truncate">{title}</h3>
         <CollectionGoodsCardContent
           id={id}
           isOwner={false}
