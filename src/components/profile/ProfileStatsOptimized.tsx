@@ -129,8 +129,7 @@ export const ProfileStats = memo(function ProfileStats({ userId }: ProfileStatsP
                 onClick={item.onClick}
                 className={cn(
                   "flex flex-col items-center p-2 rounded-xl transition-all",
-                  item.onClick && "hover:bg-muted/50 cursor-pointer",
-                  item.highlight && "ring-1 ring-primary/30 bg-primary/5"
+                  item.onClick && "hover:bg-muted/50 cursor-pointer"
                 )}
               >
                 <div className={cn(
