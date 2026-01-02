@@ -14,6 +14,7 @@ import { ProfileFavoritesSection } from "./ProfileFavoritesSection";
 import { ProfileWishlistSection } from "./ProfileWishlistSection";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { CollectionStats } from "@/components/home/CollectionStats";
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -254,6 +255,12 @@ export const ProfileCard = memo(function ProfileCard({
 
       {effectiveUserId && (
         <ProfileWishlistSection userId={effectiveUserId} />
+      )}
+
+      {isOwnProfile && (
+        <div className="mt-8 pt-6 border-t border-border">
+          <CollectionStats />
+        </div>
       )}
 
       {isOwnProfile && (
