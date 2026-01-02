@@ -1,4 +1,5 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useChat } from "./useChat";
 import { ChatStep } from "./ChatStep";
 import { ShippingStep } from "./ShippingStep";
@@ -74,7 +75,10 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[480px] h-[85vh] max-h-[700px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden">
+        <DialogContent className="sm:max-w-[480px] h-[85vh] max-h-[700px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden [&>button:last-child]:hidden">
+          <VisuallyHidden.Root>
+            <DialogTitle>チャット</DialogTitle>
+          </VisuallyHidden.Root>
           {/* カスタムヘッダー */}
           <div className="flex items-center gap-3 px-4 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <Avatar className="h-10 w-10 ring-2 ring-primary/10">
