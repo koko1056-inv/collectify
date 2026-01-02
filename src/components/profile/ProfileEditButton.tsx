@@ -13,7 +13,7 @@ export const ProfileEditButton = memo(function ProfileEditButton({
         onClick={onClick}
         className="text-center py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 text-sm font-bold"
       >
-        プロフィールを編集
+        プロフィール編集
       </button>
     </div>
   );
