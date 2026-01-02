@@ -158,7 +158,7 @@ export function FollowList({ userId, type }: FollowListProps) {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-[60vh] max-h-[500px]">
       <DialogHeader className="pb-4 border-b border-border">
         <DialogTitle className="flex items-center gap-2 text-lg">
           {type === "followers" ? (
