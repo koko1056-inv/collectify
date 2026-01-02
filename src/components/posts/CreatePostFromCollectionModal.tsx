@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CreatePostModal } from "./CreatePostModal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, X, Plus } from "lucide-react";
+import { Search, X, Plus, ImageIcon, CheckCircle2, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTags } from "@/hooks/useTags";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -217,18 +217,39 @@ export function CreatePostFromCollectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] overflow-hidden flex flex-col">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <DialogTitle className="text-base font-bold">{t("posts.selectGoods")}</DialogTitle>
+      <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] overflow-hidden flex flex-col p-0">
+        {/* ヘッダー部分 - ステップ表示付き */}
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-5 border-b">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
+              1
+            </div>
+            <div className="flex-1">
+              <DialogTitle className="text-lg font-bold">投稿するグッズを選択</DialogTitle>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                コレクションから投稿したいグッズをタップしてください
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-background/80">
+                <ImageIcon className="h-3.5 w-3.5" />
+                <span>{filteredAndSortedItems.length}件</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* アクションボタン */}
           <div className="flex items-center gap-2">
-            {!isSelectionMode && (
+            {!isSelectionMode ? (
               <>
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => setIsSelectionMode(true)}
+                  className="bg-background/80 hover:bg-background"
                 >
-                  {t("posts.multiSelect")}
+                  <CheckCircle2 className="h-4 w-4 mr-1.5" />
+                  複数選択
                 </Button>
                 <Button 
                   variant="outline" 
@@ -237,151 +258,202 @@ export function CreatePostFromCollectionModal({
                     onClose();
                     navigate('/add-item');
                   }}
-                  className="flex items-center gap-2"
+                  className="bg-background/80 hover:bg-background"
                 >
-                  <Plus className="h-4 w-4" />
-                  {t("posts.addGoods")}
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  新しいグッズを追加
                 </Button>
               </>
+            ) : (
+              <div className="w-full">
+                <SelectionModeControls
+                  selectedItems={selectedItemIds}
+                  totalItems={filteredAndSortedItems.length}
+                  onSelectAll={handleSelectAll}
+                  onConfirm={handleConfirmSelection}
+                  onCancel={handleCancelSelection}
+                />
+              </div>
             )}
           </div>
-        </DialogHeader>
-
-        {isSelectionMode && (
-          <div className="pb-3 border-b">
-            <SelectionModeControls
-              selectedItems={selectedItemIds}
-              totalItems={filteredAndSortedItems.length}
-              onSelectAll={handleSelectAll}
-              onConfirm={handleConfirmSelection}
-              onCancel={handleCancelSelection}
-            />
-          </div>
-        )}
-        
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input 
-            type="text" 
-            placeholder={t("posts.searchGoods")} 
-            value={searchQuery} 
-            onChange={e => setSearchQuery(e.target.value)} 
-            className="pl-10" 
-          />
         </div>
 
-        {typeTags.length > 0 && (
-          <div className="mb-4">
-            <div className="text-sm font-medium mb-2">{t("posts.filterByType")}</div>
-            <ScrollArea className="w-full whitespace-nowrap">
-              <div className="flex space-x-2 pb-2">
-                {typeTags.map(tag => (
-                  <Button 
-                    key={tag.id} 
-                    variant={selectedTags.includes(tag.name) ? "default" : "outline"} 
-                    size="sm" 
-                    onClick={() => handleTagToggle(tag.name)} 
-                    className="whitespace-nowrap"
-                  >
-                    {tag.name}
-                  </Button>
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+        {/* 検索・フィルター */}
+        <div className="px-4 py-3 space-y-3 border-b bg-muted/30">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input 
+              type="text" 
+              placeholder="グッズ名やコンテンツ名で検索..." 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              className="pl-10 bg-background" 
+            />
           </div>
-        )}
 
-        {(selectedContentNames.length > 0 || selectedTags.length > 0) && (
-          <div className="mb-3">
-            <div className="flex flex-wrap gap-1">
+          {typeTags.length > 0 && (
+            <div>
+              <ScrollArea className="w-full whitespace-nowrap">
+                <div className="flex space-x-2 pb-1">
+                  {typeTags.map(tag => (
+                    <Button 
+                      key={tag.id} 
+                      variant={selectedTags.includes(tag.name) ? "default" : "outline"} 
+                      size="sm" 
+                      onClick={() => handleTagToggle(tag.name)} 
+                      className="whitespace-nowrap h-8 text-xs"
+                    >
+                      {tag.name}
+                    </Button>
+                  ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </div>
+          )}
+
+          {(selectedContentNames.length > 0 || selectedTags.length > 0) && (
+            <div className="flex flex-wrap gap-1.5">
               {selectedContentNames.map(contentName => (
-                <Badge key={contentName} variant="secondary" className="text-xs">
+                <Badge key={contentName} variant="secondary" className="text-xs py-1">
                   {contentName}
                   <button 
                     onClick={() => handleContentNameToggle(contentName)} 
-                    className="ml-1 hover:bg-muted rounded-full"
+                    className="ml-1.5 hover:bg-muted rounded-full"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
               ))}
               {selectedTags.map(tagName => (
-                <Badge key={tagName} variant="outline" className="text-xs border-primary/30 text-primary">
+                <Badge key={tagName} variant="outline" className="text-xs py-1 border-primary/30 text-primary">
                   {tagName}
                   <button 
                     onClick={() => handleTagToggle(tagName)} 
-                    className="ml-1 hover:bg-primary/10 rounded-full"
+                    className="ml-1.5 hover:bg-primary/10 rounded-full"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
               ))}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearAllFilters}
+                className="h-6 text-xs text-muted-foreground hover:text-foreground"
+              >
+                クリア
+              </Button>
             </div>
-          </div>
-        )}
+          )}
+        </div>
         
-        <div className="flex-1 overflow-y-auto">
+        {/* グッズ一覧 */}
+        <div className="flex-1 overflow-y-auto px-4 py-3">
           {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 p-2">
-              {[...Array(21)].map((_, i) => (
-                <div key={i} className="flex flex-col space-y-3">
-                  <Skeleton className="w-full h-32 rounded" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-3 w-3/4" />
-                  </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="flex flex-col space-y-2">
+                  <Skeleton className="w-full aspect-square rounded-lg" />
+                  <Skeleton className="h-4 w-full" />
                 </div>
               ))}
             </div>
           ) : filteredAndSortedItems.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 p-2">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
               {filteredAndSortedItems.map(item => (
-                <div key={item.id} className="relative">
+                <div 
+                  key={item.id} 
+                  className="group relative cursor-pointer"
+                  onClick={() => handleItemSelect(item)}
+                >
                   {isSelectionMode && (
                     <div className="absolute top-2 left-2 z-10">
                       <Checkbox
                         checked={selectedItemIds.includes(item.id)}
                         onCheckedChange={() => handleItemToggle(item.id)}
-                        className="bg-background border-2"
+                        className="bg-background border-2 h-5 w-5"
                       />
                     </div>
                   )}
-                  <Button 
-                    variant="outline" 
-                    onClick={() => handleItemSelect(item)} 
-                    className="flex flex-col items-center p-3 h-auto space-y-2 hover:shadow-md transition-shadow min-h-[180px] w-full"
-                  >
-                    <img 
-                      src={item.image} 
-                      alt={item.title} 
-                      className="w-full h-24 md:h-28 lg:h-32 object-cover rounded flex-shrink-0" 
-                    />
-                    <div className="text-left w-full flex-1 flex flex-col justify-between">
+                  <div className={`
+                    relative rounded-xl overflow-hidden border-2 transition-all duration-200
+                    ${isSelectionMode && selectedItemIds.includes(item.id) 
+                      ? 'border-primary ring-2 ring-primary/20' 
+                      : 'border-transparent hover:border-primary/50'}
+                    bg-card hover:shadow-lg
+                  `}>
+                    <div className="aspect-square overflow-hidden bg-muted">
+                      <img 
+                        src={item.image} 
+                        alt={item.title} 
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                      />
+                    </div>
+                    <div className="p-2.5">
                       <div className="font-medium text-xs line-clamp-2 leading-tight">{item.title}</div>
                       {item.content_name && (
-                        <div className="text-xs text-muted-foreground mt-1 line-clamp-1">{item.content_name}</div>
+                        <div className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{item.content_name}</div>
                       )}
                     </div>
-                  </Button>
+                    {/* ホバー時のオーバーレイ */}
+                    {!isSelectionMode && (
+                      <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-lg">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          選択して投稿
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           ) : searchQuery || selectedContentNames.length > 0 || selectedTags.length > 0 ? (
             <div className="text-center py-16">
-              <p className="text-muted-foreground text-lg">{t("posts.noSearchResults")}</p>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                <Search className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground text-lg font-medium">検索結果がありません</p>
               <p className="text-sm text-muted-foreground/70 mt-2">
-                {t("posts.changeSearchCondition")}
+                検索条件を変更してお試しください
               </p>
+              <Button 
+                variant="outline" 
+                onClick={clearAllFilters}
+                className="mt-4"
+              >
+                フィルターをクリア
+              </Button>
             </div>
           ) : (
             <div className="text-center py-16">
-              <p className="text-muted-foreground text-lg">{t("posts.noGoodsToPost")}</p>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                <ImageIcon className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <p className="text-muted-foreground text-lg font-medium">投稿できるグッズがありません</p>
               <p className="text-sm text-muted-foreground/70 mt-2">
-                {t("posts.addGoodsFirst")}
+                まずはコレクションにグッズを追加しましょう
               </p>
+              <Button 
+                onClick={() => {
+                  onClose();
+                  navigate('/add-item');
+                }}
+                className="mt-4"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                グッズを追加する
+              </Button>
             </div>
           )}
+        </div>
+
+        {/* フッター - ヒント表示 */}
+        <div className="px-4 py-3 border-t bg-muted/30 text-center">
+          <p className="text-xs text-muted-foreground">
+            💡 グッズをタップすると、キャプションや画像を編集して投稿できます
+          </p>
         </div>
       </DialogContent>
     </Dialog>
