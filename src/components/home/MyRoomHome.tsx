@@ -16,7 +16,6 @@ import { IsometricRoomPreview } from "@/components/room3d/IsometricRoomPreview";
 import { Room3DEditor } from "@/components/room3d/Room3DEditor";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CollectionStats } from "./CollectionStats";
 interface MyRoomHomeProps {
   profile: Profile | undefined;
   onAvatarGenerated: (url: string) => void;
@@ -305,11 +304,6 @@ function AvatarView({
   t
 }: AvatarViewProps) {
   return <div className="flex flex-col items-center px-4 animate-fade-in">
-      {/* マイ統計 */}
-      <div className="w-full mb-6">
-        <CollectionStats />
-      </div>
-
       {/* アバター表示 */}
       <div className="relative mb-6">
         {profile?.avatar_url ? <div className="relative group">
