@@ -1,9 +1,9 @@
-import { useState, lazy, Suspense, useCallback, memo } from "react";
+import { useState, lazy, Suspense, useCallback, memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, Vote } from "lucide-react";
 import { PostsGrid } from "@/components/posts/PostsGrid";
 import { PollsGrid } from "@/components/polls/PollsGrid";
 import { CreatePollModal } from "@/components/polls/CreatePollModal";
@@ -11,6 +11,7 @@ import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Badge } from "@/components/ui/badge";
 
 // Lazy load heavy components
 const CreatePostFromCollectionModal = lazy(() => import("@/components/posts/CreatePostFromCollectionModal").then(module => ({
@@ -19,6 +20,7 @@ const CreatePostFromCollectionModal = lazy(() => import("@/components/posts/Crea
 const PostsSidebar = lazy(() => import("@/components/posts/PostsSidebar").then(module => ({
   default: module.PostsSidebar
 })));
+
 const Posts = memo(function Posts() {
   const { t } = useLanguage();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -37,7 +39,26 @@ const Posts = memo(function Posts() {
     setFilters(newFilters);
   }, []);
 
-  return <div className="min-h-screen bg-background">
+  // アクティブなフィルター数を計算
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.selectedTags.length > 0) count++;
+    if (filters.selectedContent) count++;
+    if (filters.searchQuery) count++;
+    if (filters.selectedItemIds.length > 0) count++;
+    return count;
+  }, [filters]);
+
+  const handleCreateAction = () => {
+    if (activeTab === "posts") {
+      setIsCreateModalOpen(true);
+    } else {
+      setIsCreatePollModalOpen(true);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="flex min-h-[calc(100vh-4rem)] pt-16">
@@ -66,10 +87,18 @@ const Posts = memo(function Posts() {
                         variant="outline"
                         size="sm"
                         onClick={() => setIsFilterSheetOpen(true)}
-                        className="gap-2 lg:hidden flex-shrink-0"
+                        className="gap-2 lg:hidden flex-shrink-0 relative"
                       >
                         <Filter className="h-4 w-4" />
                         {t("search.filter")}
+                        {activeFilterCount > 0 && (
+                          <Badge 
+                            variant="default" 
+                            className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
+                          >
+                            {activeFilterCount}
+                          </Badge>
+                        )}
                       </Button>
                       <Select value={sortBy} onValueChange={(value: "newest" | "popular" | "likes") => setSortBy(value)}>
                         <SelectTrigger className="w-[140px] sm:w-[180px]">
@@ -82,11 +111,15 @@ const Posts = memo(function Posts() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <PostsGrid filters={filters} sortBy={sortBy} />
+                    <PostsGrid 
+                      filters={filters} 
+                      sortBy={sortBy} 
+                      onCreatePost={() => setIsCreateModalOpen(true)}
+                    />
                   </TabsContent>
                   
                   <TabsContent value="polls">
-                    <PollsGrid />
+                    <PollsGrid onCreatePoll={() => setIsCreatePollModalOpen(true)} />
                   </TabsContent>
                 </Tabs>
               </div>
@@ -115,10 +148,18 @@ const Posts = memo(function Posts() {
       {/* フッター */}
       <Footer />
 
-      {/* フローティングアクションボタン（投稿用） */}
-      {activeTab === "posts" && <button onClick={() => setIsCreateModalOpen(true)} className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95" aria-label={t("common.newPost")}>
+      {/* フローティングアクションボタン（投稿/投票用） */}
+      <button 
+        onClick={handleCreateAction} 
+        className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 group" 
+        aria-label={activeTab === "posts" ? t("common.newPost") : "新規投票"}
+      >
+        {activeTab === "posts" ? (
           <Plus className="h-6 w-6 text-primary-foreground" />
-        </button>}
+        ) : (
+          <Vote className="h-6 w-6 text-primary-foreground" />
+        )}
+      </button>
 
       {/* 投稿作成モーダル */}
       <Suspense fallback={null}>
@@ -127,7 +168,8 @@ const Posts = memo(function Posts() {
       
       {/* 投票作成モーダル */}
       <CreatePollModal isOpen={isCreatePollModalOpen} onClose={() => setIsCreatePollModalOpen(false)} />
-    </div>;
+    </div>
+  );
 });
 
 export default Posts;

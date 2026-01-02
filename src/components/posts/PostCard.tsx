@@ -52,8 +52,49 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
             skeletonClassName="aspect-square"
           />
           
-          {/* ホバー時のオーバーレイ */}
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3">
+          {/* モバイル用: 常時表示のユーザー情報とアクション */}
+          <div className="p-2 space-y-2 lg:hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={post.profiles?.avatar_url} />
+                  <AvatarFallback className="text-[10px]">
+                    {post.profiles?.username?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-xs font-medium truncate max-w-[80px]">
+                  {post.profiles?.username}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleLike}
+                  className="flex items-center gap-1 text-xs"
+                  disabled={!user}
+                >
+                  <Heart 
+                    className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`}
+                  />
+                  <span className="text-muted-foreground">{likesCount}</span>
+                </button>
+                <button
+                  onClick={handleCommentClick}
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">{commentsCount}</span>
+                </button>
+              </div>
+            </div>
+            {post.caption && (
+              <p className="text-xs text-muted-foreground line-clamp-2">
+                {post.caption}
+              </p>
+            )}
+          </div>
+          
+          {/* デスクトップ用: ホバー時のオーバーレイ */}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-col justify-between p-3 hidden lg:flex">
             {/* トップエリア：アクションボタン */}
             <div className="flex justify-end gap-2">
               <button
