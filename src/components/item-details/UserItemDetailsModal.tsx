@@ -1,13 +1,16 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Calendar, Tag, Box } from "lucide-react";
+import { Loader2, Calendar, Tag, BookHeart, Plus, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Item3DPreview } from "./Item3DPreview";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
+import { ja } from "date-fns/locale";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UserItemDetailsModalProps {
   isOpen: boolean;
@@ -15,6 +18,13 @@ interface UserItemDetailsModalProps {
   itemId: string;
   title: string;
   image: string;
+}
+
+interface Memory {
+  id: string;
+  image_url: string | null;
+  comment: string | null;
+  created_at: string;
 }
 
 export function UserItemDetailsModal({
@@ -25,12 +35,14 @@ export function UserItemDetailsModal({
   image,
 }: UserItemDetailsModalProps) {
   const queryClient = useQueryClient();
-  const [isGenerating3D, setIsGenerating3D] = useState(false);
-  const [generation3DProgress, setGeneration3DProgress] = useState<{
-    status: string;
-    progress: number;
-    message: string;
-  } | null>(null);
+  const { user } = useAuth();
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [noteValue, setNoteValue] = useState("");
+  const [purchaseDateValue, setPurchaseDateValue] = useState("");
+  const [isAddingMemory, setIsAddingMemory] = useState(false);
+  const [memoryComment, setMemoryComment] = useState("");
+  const [memoryImage, setMemoryImage] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // user_itemの詳細を取得
   const { data: itemDetails, isLoading } = useQuery({
@@ -53,107 +65,113 @@ export function UserItemDetailsModal({
         .single();
 
       if (error) throw error;
+      setNoteValue(data.note || "");
+      setPurchaseDateValue(data.purchase_date || "");
       return data;
     },
     enabled: isOpen && !!itemId,
   });
 
-  // 3Dモデルを生成
-  const handleGenerate3D = useCallback(async () => {
-    const imageUrl = itemDetails?.image || image;
-    if (!imageUrl) {
-      toast.error("画像がありません");
+  // 思い出を取得
+  const { data: memories = [] } = useQuery({
+    queryKey: ["item-memories", itemId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("item_memories")
+        .select("*")
+        .eq("user_item_id", itemId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data as Memory[];
+    },
+    enabled: isOpen && !!itemId,
+  });
+
+  // メモと購入日を保存
+  const handleSaveNote = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_items")
+        .update({ 
+          note: noteValue,
+          purchase_date: purchaseDateValue || null
+        })
+        .eq("id", itemId);
+
+      if (error) throw error;
+      
+      toast.success("保存しました");
+      setIsEditingNote(false);
+      queryClient.invalidateQueries({ queryKey: ["user-item-details", itemId] });
+    } catch (error) {
+      console.error("Error saving note:", error);
+      toast.error("保存に失敗しました");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [noteValue, purchaseDateValue, itemId, queryClient]);
+
+  // 思い出を追加
+  const handleAddMemory = useCallback(async () => {
+    if (!memoryComment.trim() && !memoryImage) {
+      toast.error("コメントか画像を入力してください");
       return;
     }
 
-    setIsGenerating3D(true);
-    setGeneration3DProgress({ status: 'STARTING', progress: 0, message: '3D生成を開始しています...' });
-    
+    setIsSaving(true);
     try {
-      // 3D生成タスクを作成
-      const { data: createData, error: createError } = await supabase.functions.invoke('generate-3d-model', {
-        body: { action: 'create', imageUrl }
-      });
+      let imageUrl: string | null = null;
 
-      if (createError) throw createError;
-      
-      const taskId = createData.taskId;
-      setGeneration3DProgress({ status: 'PENDING', progress: 10, message: 'タスクを作成しました...' });
-
-      // タスクIDを保存
-      await supabase
-        .from("user_items")
-        .update({ model_3d_task_id: taskId })
-        .eq("id", itemId);
-
-      // ステータスをポーリング
-      let attempts = 0;
-      const maxAttempts = 60; // 最大5分
-      
-      const pollStatus = async () => {
-        attempts++;
+      // 画像をアップロード
+      if (memoryImage) {
+        const fileExt = memoryImage.name.split('.').pop();
+        const fileName = `${user?.id}/${itemId}/${Date.now()}.${fileExt}`;
         
-        const { data: statusData, error: statusError } = await supabase.functions.invoke('generate-3d-model', {
-          body: { action: 'check_status', taskId }
+        const { error: uploadError } = await supabase.storage
+          .from("item-memories")
+          .upload(fileName, memoryImage);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("item-memories")
+          .getPublicUrl(fileName);
+
+        imageUrl = urlData.publicUrl;
+      }
+
+      // 思い出を保存
+      const { error } = await supabase
+        .from("item_memories")
+        .insert({
+          user_item_id: itemId,
+          comment: memoryComment.trim() || null,
+          image_url: imageUrl,
         });
 
-        if (statusError) throw statusError;
+      if (error) throw error;
 
-        // 進捗状態を更新
-        const progressMap: Record<string, { progress: number; message: string }> = {
-          'PENDING': { progress: 20, message: 'キューで待機中...' },
-          'IN_PROGRESS': { progress: 50, message: '3Dモデルを生成中...' },
-          'PROCESSING': { progress: 70, message: 'モデルを処理中...' },
-        };
-        
-        const progressInfo = progressMap[statusData.status] || { progress: Math.min(30 + attempts * 2, 90), message: '処理中...' };
-        setGeneration3DProgress({ 
-          status: statusData.status, 
-          progress: progressInfo.progress,
-          message: progressInfo.message
-        });
-
-        if (statusData.status === 'SUCCEEDED' && statusData.modelUrl) {
-          setGeneration3DProgress({ status: 'SUCCEEDED', progress: 100, message: '完了！' });
-          
-          // 成功：3DモデルURLをuser_itemsに保存
-          await supabase
-            .from("user_items")
-            .update({ 
-              model_3d_url: statusData.modelUrl,
-              model_3d_task_id: null 
-            })
-            .eq("id", itemId);
-
-          setTimeout(() => {
-            setIsGenerating3D(false);
-            setGeneration3DProgress(null);
-          }, 1000);
-          
-          toast.success("3Dモデルが完成しました！");
-          queryClient.invalidateQueries({ queryKey: ["user-item-details", itemId] });
-          queryClient.invalidateQueries({ queryKey: ["user-collection"] });
-          return;
-        } else if (statusData.status === 'FAILED') {
-          throw new Error("3D生成に失敗しました");
-        } else if (attempts < maxAttempts) {
-          // 進行中：5秒後に再チェック
-          setTimeout(pollStatus, 5000);
-        } else {
-          throw new Error("タイムアウト");
-        }
-      };
-
-      pollStatus();
+      toast.success("思い出を追加しました");
+      setMemoryComment("");
+      setMemoryImage(null);
+      setIsAddingMemory(false);
+      queryClient.invalidateQueries({ queryKey: ["item-memories", itemId] });
     } catch (error) {
-      console.error("Error generating 3D:", error);
-      setIsGenerating3D(false);
-      setGeneration3DProgress(null);
-      toast.error("3D生成に失敗しました");
+      console.error("Error adding memory:", error);
+      toast.error("追加に失敗しました");
+    } finally {
+      setIsSaving(false);
     }
-  }, [itemDetails?.image, image, itemId, queryClient]);
+  }, [memoryComment, memoryImage, itemId, user?.id, queryClient]);
 
-  const has3DModel = !!itemDetails?.model_3d_url;
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setMemoryImage(file);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -179,38 +197,6 @@ export function UserItemDetailsModal({
               />
             </div>
 
-            {/* 3Dプレビュー */}
-            {itemDetails?.model_3d_url && (
-              <Item3DPreview 
-                modelUrl={itemDetails.model_3d_url} 
-                title={title} 
-              />
-            )}
-
-            {/* 3Dモデル生成ボタン */}
-            {!has3DModel && (
-              <div className="space-y-2">
-                {isGenerating3D ? (
-                  <div className="space-y-2 p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>{generation3DProgress?.message || '生成中...'}</span>
-                    </div>
-                    <Progress value={generation3DProgress?.progress || 0} className="h-2" />
-                  </div>
-                ) : (
-                  <Button 
-                    variant="outline" 
-                    className="w-full gap-2"
-                    onClick={handleGenerate3D}
-                  >
-                    <Box className="w-4 h-4" />
-                    3Dモデルを生成
-                  </Button>
-                )}
-              </div>
-            )}
-
             {/* 詳細情報 */}
             <div className="space-y-3">
               {itemDetails?.content_name && (
@@ -221,20 +207,25 @@ export function UserItemDetailsModal({
                 </div>
               )}
 
-              {itemDetails?.release_date && (
+              {/* 購入日 */}
+              <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">発売日:</span>
-                  <span className="font-medium">{itemDetails.release_date}</span>
+                  <span className="text-muted-foreground">購入日:</span>
+                  {isEditingNote ? (
+                    <Input
+                      type="date"
+                      value={purchaseDateValue}
+                      onChange={(e) => setPurchaseDateValue(e.target.value)}
+                      className="h-7 w-auto"
+                    />
+                  ) : (
+                    <span className="font-medium">
+                      {itemDetails?.purchase_date || "未設定"}
+                    </span>
+                  )}
                 </div>
-              )}
-
-              {itemDetails?.prize && (
-                <div className="text-sm">
-                  <span className="text-muted-foreground">価格:</span>
-                  <span className="font-medium ml-2">{itemDetails.prize}</span>
-                </div>
-              )}
+              </div>
 
               {itemDetails?.quantity && itemDetails.quantity > 1 && (
                 <div className="text-sm">
@@ -245,14 +236,56 @@ export function UserItemDetailsModal({
                 </div>
               )}
 
-              {itemDetails?.note && (
-                <div className="text-sm">
-                  <span className="text-muted-foreground">メモ:</span>
-                  <p className="mt-1 text-foreground bg-muted p-2 rounded">
-                    {itemDetails.note}
-                  </p>
+              {/* 一言メモ */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">一言メモ:</span>
+                  {!isEditingNote && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs"
+                      onClick={() => setIsEditingNote(true)}
+                    >
+                      編集
+                    </Button>
+                  )}
                 </div>
-              )}
+                {isEditingNote ? (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={noteValue}
+                      onChange={(e) => setNoteValue(e.target.value)}
+                      placeholder="このグッズについての一言メモ..."
+                      className="min-h-[80px]"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setIsEditingNote(false);
+                          setNoteValue(itemDetails?.note || "");
+                          setPurchaseDateValue(itemDetails?.purchase_date || "");
+                        }}
+                      >
+                        キャンセル
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSaveNote}
+                        disabled={isSaving}
+                      >
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "保存"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-foreground bg-muted p-2 rounded min-h-[40px]">
+                    {itemDetails?.note || "メモはありません"}
+                  </p>
+                )}
+              </div>
 
               {/* タグ */}
               {itemDetails?.user_item_tags && itemDetails.user_item_tags.length > 0 && (
@@ -266,6 +299,100 @@ export function UserItemDetailsModal({
                     ))}
                   </div>
                 </div>
+              )}
+            </div>
+
+            {/* 思い出記録セクション */}
+            <div className="border-t pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <BookHeart className="w-4 h-4 text-primary" />
+                  <span className="font-medium text-sm">思い出記録</span>
+                </div>
+                {!isAddingMemory && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => setIsAddingMemory(true)}
+                  >
+                    <Plus className="w-3 h-3" />
+                    追加
+                  </Button>
+                )}
+              </div>
+
+              {/* 思い出追加フォーム */}
+              {isAddingMemory && (
+                <div className="space-y-2 p-3 bg-muted rounded-lg">
+                  <Textarea
+                    value={memoryComment}
+                    onChange={(e) => setMemoryComment(e.target.value)}
+                    placeholder="思い出のコメント..."
+                    className="min-h-[60px] bg-background"
+                  />
+                  <div className="flex items-center gap-2">
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageSelect}
+                      />
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                        <ImagePlus className="w-4 h-4" />
+                        {memoryImage ? memoryImage.name : "画像を追加"}
+                      </div>
+                    </label>
+                  </div>
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsAddingMemory(false);
+                        setMemoryComment("");
+                        setMemoryImage(null);
+                      }}
+                    >
+                      キャンセル
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleAddMemory}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "記録"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* 思い出一覧 */}
+              {memories.length > 0 ? (
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {memories.map((memory) => (
+                    <div key={memory.id} className="bg-muted/50 rounded-lg p-2 space-y-1">
+                      {memory.image_url && (
+                        <img
+                          src={memory.image_url}
+                          alt="思い出の画像"
+                          className="w-full rounded aspect-video object-cover"
+                        />
+                      )}
+                      {memory.comment && (
+                        <p className="text-xs text-foreground">{memory.comment}</p>
+                      )}
+                      <p className="text-[10px] text-muted-foreground">
+                        {format(new Date(memory.created_at), "yyyy年M月d日", { locale: ja })}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  まだ思い出がありません
+                </p>
               )}
             </div>
           </div>
