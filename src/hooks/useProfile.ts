@@ -73,7 +73,7 @@ export function useProfile(userId: string | undefined) {
       return profileData as Profile;
     },
     enabled: !!userId,
-    staleTime: 1 * 60 * 1000, // 1分間キャッシュ
+    staleTime: 0, // 常に最新データを取得
     gcTime: 30 * 60 * 1000, // 30分間保持
     refetchOnMount: true, // マウント時に再取得
     refetchOnWindowFocus: true, // フォーカス時に再取得

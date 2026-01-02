@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +56,7 @@ export function ProfileImageUpload({
   const [avatarToEdit, setAvatarToEdit] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // ゼロから生成したアバター（着せ替えではないもの）を取得
   useEffect(() => {
@@ -222,6 +224,10 @@ export function ProfileImageUpload({
       // 3. UIを更新
       setPreviewUrl(avatarUrl);
       setIsPopoverOpen(false);
+      
+      // 4. プロフィールキャッシュを即座に無効化
+      await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+      
       sonnerToast.success("アバターを切り替えました");
     } catch (error) {
       console.error("Error selecting avatar:", error);
