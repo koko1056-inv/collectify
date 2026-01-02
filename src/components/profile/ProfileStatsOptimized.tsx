@@ -19,7 +19,7 @@ async function fetchProfileStats(userId: string) {
       .from("profiles")
       .select("followers_count, following_count")
       .eq("id", userId)
-      .single(),
+      .maybeSingle(),
     supabase
       .from("user_items")
       .select("id", { count: "exact", head: true })
@@ -35,14 +35,13 @@ async function fetchProfileStats(userId: string) {
       .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
   ]);
 
-  if (profileData.error) throw profileData.error;
-  
+  // エラーがあってもデフォルト値を返す
   return {
-    followersCount: profileData.data.followers_count || 0,
-    followingCount: profileData.data.following_count || 0,
-    collectionCount: collectionCount.count || 0,
-    wishlistCount: wishlistCount.count || 0,
-    recentAdditions: recentCount.count || 0
+    followersCount: profileData.data?.followers_count ?? 0,
+    followingCount: profileData.data?.following_count ?? 0,
+    collectionCount: collectionCount.count ?? 0,
+    wishlistCount: wishlistCount.count ?? 0,
+    recentAdditions: recentCount.count ?? 0
   };
 }
 
