@@ -79,13 +79,20 @@ export function ConversationList() {
         }
       });
 
+      // UUIDを正しく抽出する関数（UUIDは36文字: 8-4-4-4-12形式）
+      const extractPartnerId = (key: string): string => {
+        // UUIDは36文字（ハイフン含む）
+        const uuidLength = 36;
+        if (key.length >= uuidLength) {
+          return key.substring(0, uuidLength);
+        }
+        return key;
+      };
+
       // パートナーのプロフィールを取得
       const partnerIds = [...new Set(
-        [...conversationMap.keys()].map(key => key.split('-')[0])
+        [...conversationMap.keys()].map(key => extractPartnerId(key))
       )];
-
-      console.log("[ConversationList] conversationMap size:", conversationMap.size);
-      console.log("[ConversationList] partnerIds:", partnerIds);
 
       // partnerIdsが空の場合は早期リターン
       if (partnerIds.length === 0) {
@@ -98,18 +105,17 @@ export function ConversationList() {
         .select("id, display_name, username, avatar_url")
         .in("id", partnerIds);
 
-      console.log("[ConversationList] profiles:", profiles);
-      console.log("[ConversationList] profileError:", profileError);
+      if (profileError) {
+        console.error("[ConversationList] Profile fetch error:", profileError);
+      }
 
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
       // 会話リストを作成
       const convList: Conversation[] = [];
       conversationMap.forEach((conv, key) => {
-        const partnerId = key.split('-')[0];
+        const partnerId = extractPartnerId(key);
         const profile = profileMap.get(partnerId);
-
-        console.log("[ConversationList] Processing:", { key, partnerId, hasProfile: !!profile });
 
         if (profile) {
           const isLastMessageMine = conv.lastMessage.sender_id === user.id;
@@ -126,8 +132,6 @@ export function ConversationList() {
           });
         }
       });
-
-      console.log("[ConversationList] Final convList:", convList.length);
 
       // 最新メッセージ順にソート
       convList.sort((a, b) => 
