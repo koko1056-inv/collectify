@@ -8,10 +8,10 @@ export default function AddItem() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       <Navbar />
-      <main className="container mx-auto px-4 py-6 pb-20">
+      <main className="container mx-auto px-4 pt-20 pb-20">
         {/* ヘッダー部分 */}
         <div className="max-w-2xl mx-auto">
-          <BackButton className="mb-4" to="/search" />
+          <BackButton className="mb-6" to="/search" />
           
           {/* タイトルセクション */}
           <div className="mb-6 text-center">
