@@ -364,8 +364,6 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       const content = contentNames.find(c => c.name === selectedContent);
       if (!content) throw new Error("コンテンツが見つかりません");
 
-      console.log('[linkTag] Updating tag:', { tagId, contentId: content.id, category: selectedCategory });
-
       const { error } = await supabase
         .from("tags")
         .update({ 
@@ -375,29 +373,52 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .eq("id", tagId);
 
       if (error) throw error;
+      return tagId;
+    },
+    onMutate: async (tagId) => {
+      // キャンセル
+      await queryClient.cancelQueries({ queryKey: ["content-tags"] });
+      await queryClient.cancelQueries({ queryKey: ["unlinked-tags"] });
+
+      // 現在のキャッシュを保存
+      const previousContentTags = queryClient.getQueryData(["content-tags", selectedContent, selectedCategory]);
+      const previousUnlinkedTags = queryClient.getQueryData<any[]>(["unlinked-tags"]);
+
+      // 紐づけるタグを取得
+      const tagToLink = previousUnlinkedTags?.find(t => t.id === tagId);
       
-      console.log('[linkTag] Successfully updated tag in database');
+      // 楽観的更新: 未紐づけタグから削除
+      queryClient.setQueryData<any[]>(["unlinked-tags"], (old) => 
+        old ? old.filter(t => t.id !== tagId) : old
+      );
+      
+      // 楽観的更新: コンテンツタグに追加
+      if (tagToLink) {
+        queryClient.setQueryData<any[]>(["content-tags", selectedContent, selectedCategory], (old) => 
+          old ? [...old, { ...tagToLink, category: selectedCategory }] : [{ ...tagToLink, category: selectedCategory }]
+        );
+      }
+
+      return { previousContentTags, previousUnlinkedTags };
+    },
+    onError: (_err, _tagId, context) => {
+      if (context?.previousContentTags) {
+        queryClient.setQueryData(["content-tags", selectedContent, selectedCategory], context.previousContentTags);
+      }
+      if (context?.previousUnlinkedTags) {
+        queryClient.setQueryData(["unlinked-tags"], context.previousUnlinkedTags);
+      }
+      toast.error("タグの紐づけに失敗しました");
     },
     onSuccess: async () => {
-      console.log('[linkTag] Invalidating queries for:', { selectedContent, selectedCategory });
-      
-      // 現在選択中のコンテンツのクエリを特定して無効化
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["content-tags", selectedContent, selectedCategory], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["unlinked-tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["tags-by-category"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["tags-with-count"], refetchType: "active" }),
-        queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "active" }),
       ]);
-      
-      console.log('[linkTag] Queries invalidated, UI should update now');
-      toast.success(`タグを「${selectedContent}」の${selectedCategory === 'character' ? 'キャラクター・人物名' : 'グッズシリーズ'}に紐づけました`);
-    },
-    onError: (error: any) => {
-      console.error('[linkTag] Error:', error);
-      toast.error("タグの紐づけに失敗しました: " + error.message);
+      toast.success(`タグを紐づけました`);
     },
   });
 
@@ -406,8 +427,6 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
     mutationFn: async (tagIds: string[]) => {
       const content = contentNames.find(c => c.name === selectedContent);
       if (!content) throw new Error("コンテンツが見つかりません");
-
-      console.log('[linkMultipleTags] Updating tags:', { tagIds, contentId: content.id, category: selectedCategory });
 
       const { error } = await supabase
         .from("tags")
@@ -418,33 +437,51 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         .in("id", tagIds);
 
       if (error) throw error;
-      
-      console.log('[linkMultipleTags] Successfully updated tags in database');
-      return tagIds.length;
+      return tagIds;
     },
-    onSuccess: async (count) => {
-      console.log('[linkMultipleTags] Invalidating queries for:', { selectedContent, selectedCategory, count });
+    onMutate: async (tagIds) => {
+      await queryClient.cancelQueries({ queryKey: ["content-tags"] });
+      await queryClient.cancelQueries({ queryKey: ["unlinked-tags"] });
+
+      const previousContentTags = queryClient.getQueryData(["content-tags", selectedContent, selectedCategory]);
+      const previousUnlinkedTags = queryClient.getQueryData<any[]>(["unlinked-tags"]);
+
+      // 紐づけるタグを取得
+      const tagsToLink = previousUnlinkedTags?.filter(t => tagIds.includes(t.id)) || [];
       
-      // 現在選択中のコンテンツのクエリを特定して無効化
+      // 楽観的更新: 未紐づけタグから削除
+      queryClient.setQueryData<any[]>(["unlinked-tags"], (old) => 
+        old ? old.filter(t => !tagIds.includes(t.id)) : old
+      );
+      
+      // 楽観的更新: コンテンツタグに追加
+      queryClient.setQueryData<any[]>(["content-tags", selectedContent, selectedCategory], (old) => {
+        const updatedTags = tagsToLink.map(t => ({ ...t, category: selectedCategory }));
+        return old ? [...old, ...updatedTags] : updatedTags;
+      });
+
+      return { previousContentTags, previousUnlinkedTags };
+    },
+    onError: (_err, _tagIds, context) => {
+      if (context?.previousContentTags) {
+        queryClient.setQueryData(["content-tags", selectedContent, selectedCategory], context.previousContentTags);
+      }
+      if (context?.previousUnlinkedTags) {
+        queryClient.setQueryData(["unlinked-tags"], context.previousUnlinkedTags);
+      }
+      toast.error("タグの紐づけに失敗しました");
+    },
+    onSuccess: async (tagIds) => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["content-tags", selectedContent, selectedCategory], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["content-tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["unlinked-tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["tags"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["tags-by-category"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["tags-with-count"], refetchType: "active" }),
-        queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "active" }),
       ]);
       
-      const tagCount = selectedUnlinkedTags.length;
       setSelectedUnlinkedTags([]);
-      
-      console.log('[linkMultipleTags] Queries invalidated, UI should update now');
-      toast.success(`${tagCount}件のタグを「${selectedContent}」の${selectedCategory === 'character' ? 'キャラクター・人物名' : 'グッズシリーズ'}に紐づけました`);
-    },
-    onError: (error: any) => {
-      console.error('[linkMultipleTags] Error:', error);
-      toast.error("タグの紐づけに失敗しました: " + error.message);
+      toast.success(`${tagIds.length}件のタグを紐づけました`);
     },
   });
 
@@ -551,9 +588,9 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col p-0">
         {/* ヘッダー */}
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-6 border-b">
-          <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
+          <DialogHeader className="text-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="p-3 bg-primary/10 rounded-full">
                 <Tags className="h-6 w-6 text-primary" />
               </div>
               <div>
