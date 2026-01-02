@@ -84,10 +84,22 @@ export function ConversationList() {
         [...conversationMap.keys()].map(key => key.split('-')[0])
       )];
 
-      const { data: profiles } = await supabase
+      console.log("[ConversationList] conversationMap size:", conversationMap.size);
+      console.log("[ConversationList] partnerIds:", partnerIds);
+
+      // partnerIdsが空の場合は早期リターン
+      if (partnerIds.length === 0) {
+        setConversations([]);
+        return;
+      }
+
+      const { data: profiles, error: profileError } = await supabase
         .from("profiles")
         .select("id, display_name, username, avatar_url")
         .in("id", partnerIds);
+
+      console.log("[ConversationList] profiles:", profiles);
+      console.log("[ConversationList] profileError:", profileError);
 
       const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
@@ -96,6 +108,8 @@ export function ConversationList() {
       conversationMap.forEach((conv, key) => {
         const partnerId = key.split('-')[0];
         const profile = profileMap.get(partnerId);
+
+        console.log("[ConversationList] Processing:", { key, partnerId, hasProfile: !!profile });
 
         if (profile) {
           const isLastMessageMine = conv.lastMessage.sender_id === user.id;
@@ -112,6 +126,8 @@ export function ConversationList() {
           });
         }
       });
+
+      console.log("[ConversationList] Final convList:", convList.length);
 
       // 最新メッセージ順にソート
       convList.sort((a, b) => 
