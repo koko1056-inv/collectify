@@ -14,6 +14,9 @@ import { ProfileFavoritesSection } from "./ProfileFavoritesSection";
 import { ProfileWishlistSection } from "./ProfileWishlistSection";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -29,6 +32,7 @@ export const ProfileCard = memo(function ProfileCard({
   const { user } = useAuth();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [bio, setBio] = useState("");
@@ -223,7 +227,17 @@ export const ProfileCard = memo(function ProfileCard({
       <ProfileStats userId={effectiveUserId} />
 
       {isOwnProfile && (
-        <ProfileEditButton onClick={() => setIsEditing(true)} />
+        <div className="flex gap-2 mb-4">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/messages")}
+            className="flex-1"
+          >
+            <MessageCircle className="h-4 w-4 mr-2" />
+            メッセージ一覧
+          </Button>
+          <ProfileEditButton onClick={() => setIsEditing(true)} />
+        </div>
       )}
 
       <ProfileBioSection
