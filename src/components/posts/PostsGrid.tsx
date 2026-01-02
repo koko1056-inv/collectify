@@ -4,6 +4,7 @@ import { useState, useMemo, useRef, useEffect, memo } from "react";
 import { PostDetailModal } from "./PostDetailModal";
 import { GoodsPost } from "@/types/posts";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { EmptyPostsState } from "./EmptyPostsState";
 
 interface PostsGridProps {
   filters?: {
@@ -13,9 +14,10 @@ interface PostsGridProps {
     selectedItemIds: string[];
   };
   sortBy?: "newest" | "popular" | "likes";
+  onCreatePost?: () => void;
 }
 
-export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest" }: PostsGridProps) {
+export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", onCreatePost }: PostsGridProps) {
   const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostsWithPagination();
   const [selectedPost, setSelectedPost] = useState<GoodsPost | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -144,24 +146,14 @@ export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest" }:
   }
 
   if (!posts || posts.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">まだ投稿がありません</p>
-      </div>
-    );
+    return <EmptyPostsState onCreatePost={onCreatePost} />;
   }
 
   if (!sortedPosts || sortedPosts.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">
-          {filters?.searchQuery || filters?.selectedContent || filters?.selectedTags?.length || filters?.selectedItemIds?.length
-            ? "条件に一致する投稿が見つかりませんでした"
-            : "まだ投稿がありません"}
-        </p>
-      </div>
-    );
+    const hasFilters = !!(filters?.searchQuery || filters?.selectedContent || filters?.selectedTags?.length || filters?.selectedItemIds?.length);
+    return <EmptyPostsState hasFilters={hasFilters} onCreatePost={onCreatePost} />;
   }
+
 
   return (
     <>

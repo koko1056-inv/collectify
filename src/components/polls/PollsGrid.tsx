@@ -1,8 +1,13 @@
 import { usePolls } from "@/hooks/polls/usePollsQuery";
 import { PollCard } from "./PollCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyPollsState } from "./EmptyPollsState";
 
-export function PollsGrid() {
+interface PollsGridProps {
+  onCreatePoll?: () => void;
+}
+
+export function PollsGrid({ onCreatePoll }: PollsGridProps) {
   const { data: polls, isLoading } = usePolls();
 
   if (isLoading) {
@@ -16,11 +21,7 @@ export function PollsGrid() {
   }
 
   if (!polls || polls.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">まだ投票がありません</p>
-      </div>
-    );
+    return <EmptyPollsState onCreatePoll={onCreatePoll} />;
   }
 
   return (
