@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserCard } from "./UserCard";
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, UserPlus } from "lucide-react";
+import { Users, UserPlus, Search } from "lucide-react";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 interface Profile {
   id: string;
@@ -26,7 +27,18 @@ export function FollowList({ userId, type }: FollowListProps) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [collectionCounts, setCollectionCounts] = useState<Record<string, number>>({});
   const [followState, setFollowState] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
+
+  const filteredProfiles = useMemo(() => {
+    if (!searchQuery.trim()) return profiles;
+    const query = searchQuery.toLowerCase();
+    return profiles.filter(
+      (profile) =>
+        profile.username.toLowerCase().includes(query) ||
+        (profile.bio && profile.bio.toLowerCase().includes(query))
+    );
+  }, [profiles, searchQuery]);
 
   useEffect(() => {
     const fetchFollows = async () => {
@@ -166,6 +178,18 @@ export function FollowList({ userId, type }: FollowListProps) {
         </DialogTitle>
       </DialogHeader>
 
+      {profiles.length > 0 && (
+        <div className="relative mt-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="ユーザーを検索..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-3 py-4">
           {[...Array(4)].map((_, i) => (
@@ -197,10 +221,15 @@ export function FollowList({ userId, type }: FollowListProps) {
               : "フォローしたユーザーがここに表示されます"}
           </p>
         </div>
+      ) : filteredProfiles.length === 0 && searchQuery ? (
+        <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
+          <Search className="w-8 h-8 text-muted-foreground mb-2" />
+          <p className="text-muted-foreground">「{searchQuery}」に一致するユーザーがいません</p>
+        </div>
       ) : (
         <ScrollArea className="flex-1 -mx-6 px-6">
           <div className="space-y-2 py-4">
-            {profiles.map((profile) => (
+            {filteredProfiles.map((profile) => (
               <UserCard
                 key={profile.id}
                 id={profile.id}
