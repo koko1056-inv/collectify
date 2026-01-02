@@ -262,7 +262,10 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
               すべて
             </Button>
             {contentNamesData.map((content, index) => {
-              const contentName = typeof content === 'string' ? content : String(content);
+              const contentName = typeof content === 'string' ? content : 
+                                 (content && typeof content === 'object' && 'name' in (content as any)) ? 
+                                 (content as any).name : null;
+              if (!contentName) return null;
               return (
                 <Button
                   key={`${contentName}-${index}`}
