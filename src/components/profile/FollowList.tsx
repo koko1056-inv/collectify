@@ -1,10 +1,11 @@
-
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserCard } from "./UserCard";
 import { useAuth } from "@/contexts/AuthContext";
+import { Users, UserPlus } from "lucide-react";
+import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Profile {
   id: string;
@@ -50,11 +51,9 @@ export function FollowList({ userId, type }: FollowListProps) {
       
       setProfiles(profiles);
       
-      // 各ユーザーのコレクション数を取得
       if (profiles.length > 0) {
         fetchCollectionCounts(profiles.map(p => p.id));
         
-        // 現在のユーザーがログインしている場合、フォロー状態を取得
         if (user) {
           fetchFollowState(profiles.map(p => p.id));
         }
@@ -68,7 +67,6 @@ export function FollowList({ userId, type }: FollowListProps) {
 
   const fetchCollectionCounts = async (profileIds: string[]) => {
     try {
-      // 一度のクエリで全ユーザーのコレクション数を取得
       const { data, error } = await supabase
         .from("user_items")
         .select("user_id")
@@ -76,9 +74,8 @@ export function FollowList({ userId, type }: FollowListProps) {
         
       if (error) throw error;
       
-      // ユーザーごとのコレクション数を集計
       const counts: Record<string, number> = {};
-      profileIds.forEach(id => counts[id] = 0); // 初期化
+      profileIds.forEach(id => counts[id] = 0);
       
       data?.forEach(item => {
         counts[item.user_id] = (counts[item.user_id] || 0) + 1;
@@ -120,7 +117,6 @@ export function FollowList({ userId, type }: FollowListProps) {
 
     try {
       if (followState[profileId]) {
-        // フォロー解除
         await supabase
           .from("follows")
           .delete()
@@ -129,7 +125,6 @@ export function FollowList({ userId, type }: FollowListProps) {
           
         setFollowState(prev => ({ ...prev, [profileId]: false }));
       } else {
-        // フォロー
         await supabase
           .from("follows")
           .insert({ follower_id: user.id, following_id: profileId });
@@ -137,7 +132,6 @@ export function FollowList({ userId, type }: FollowListProps) {
         setFollowState(prev => ({ ...prev, [profileId]: true }));
       }
       
-      // プロフィールデータを再取得
       const { data, error } = await supabase
         .from("profiles")
         .select("id, username, avatar_url, bio, followers_count, following_count")
@@ -151,54 +145,78 @@ export function FollowList({ userId, type }: FollowListProps) {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="p-4 bg-white rounded-lg shadow-sm">
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-12 w-12 rounded-full" />
-              <div className="flex-1">
-                <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-3 w-40" />
-              </div>
-            </div>
-            <div className="flex justify-between mt-4">
-              <Skeleton className="h-6 w-12" />
-              <Skeleton className="h-6 w-12" />
-              <Skeleton className="h-6 w-12" />
-            </div>
-            <Skeleton className="h-9 w-full mt-3" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <ScrollArea className="max-h-[60vh] overflow-y-auto">
-      <div className="space-y-4 pr-4 pb-4">
-        {profiles.length === 0 ? (
-          <p className="text-gray-500">
+    <div className="flex flex-col h-full">
+      <DialogHeader className="pb-4 border-b border-border">
+        <DialogTitle className="flex items-center gap-2 text-lg">
+          {type === "followers" ? (
+            <>
+              <Users className="w-5 h-5 text-primary" />
+              フォロワー
+            </>
+          ) : (
+            <>
+              <UserPlus className="w-5 h-5 text-primary" />
+              フォロー中
+            </>
+          )}
+          <span className="text-muted-foreground font-normal text-sm ml-1">
+            ({profiles.length})
+          </span>
+        </DialogTitle>
+      </DialogHeader>
+
+      {loading ? (
+        <div className="space-y-3 py-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30">
+              <Skeleton className="h-12 w-12 rounded-full flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+              <Skeleton className="h-8 w-20 rounded-full" />
+            </div>
+          ))}
+        </div>
+      ) : profiles.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+            {type === "followers" ? (
+              <Users className="w-8 h-8 text-muted-foreground" />
+            ) : (
+              <UserPlus className="w-8 h-8 text-muted-foreground" />
+            )}
+          </div>
+          <p className="text-muted-foreground font-medium">
             {type === "followers" ? "フォロワーはいません" : "フォロー中のユーザーはいません"}
           </p>
-        ) : (
-          profiles.map((profile) => (
-            <UserCard
-              key={profile.id}
-              id={profile.id}
-              username={profile.username}
-              bio={profile.bio}
-              avatar_url={profile.avatar_url}
-              followersCount={profile.followers_count || 0}
-              followingCount={profile.following_count || 0}
-              collectionCount={collectionCounts[profile.id] || 0}
-              isFollowing={followState[profile.id]}
-              onFollow={user && user.id !== profile.id ? () => handleFollow(profile.id) : undefined}
-            />
-          ))
-        )}
-      </div>
-    </ScrollArea>
+          <p className="text-sm text-muted-foreground/70 mt-1">
+            {type === "followers" 
+              ? "あなたをフォローしているユーザーがここに表示されます" 
+              : "フォローしたユーザーがここに表示されます"}
+          </p>
+        </div>
+      ) : (
+        <ScrollArea className="flex-1 -mx-6 px-6">
+          <div className="space-y-2 py-4">
+            {profiles.map((profile) => (
+              <UserCard
+                key={profile.id}
+                id={profile.id}
+                username={profile.username}
+                bio={profile.bio}
+                avatar_url={profile.avatar_url}
+                followersCount={profile.followers_count || 0}
+                followingCount={profile.following_count || 0}
+                collectionCount={collectionCounts[profile.id] || 0}
+                isFollowing={followState[profile.id]}
+                onFollow={user && user.id !== profile.id ? () => handleFollow(profile.id) : undefined}
+              />
+            ))}
+          </div>
+        </ScrollArea>
+      )}
+    </div>
   );
 }

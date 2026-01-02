@@ -1,10 +1,9 @@
-
 import React from "react";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { User } from "lucide-react";
+import { User, Package, Users, UserCheck } from "lucide-react";
 import { Link } from "react-router-dom";
-import { FollowButton } from "./FollowButton";
+import { cn } from "@/lib/utils";
 
 interface UserCardProps {
   id: string;
@@ -30,60 +29,64 @@ export function UserCard({
   onFollow,
 }: UserCardProps) {
   return (
-    <div className="bg-white rounded-lg p-4 shadow-sm">
-      <div className="flex items-center space-x-3">
-        <Link to={`/user/${id}`}>
-          <Avatar className="h-12 w-12 border-2 border-white">
-            {avatar_url ? (
-              <img
-                src={avatar_url}
-                alt={username}
-                className="w-full h-full object-cover rounded-full"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-full">
-                <User className="h-6 w-6 text-gray-500" />
-              </div>
-            )}
-          </Avatar>
-        </Link>
-        
-        <div className="flex-1">
-          <Link to={`/user/${id}`} className="block">
-            <div className="font-semibold text-gray-900">{username}</div>
-            {bio && <p className="text-sm text-gray-500 line-clamp-1">{bio}</p>}
-          </Link>
-        </div>
-      </div>
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/50 hover:border-border hover:shadow-sm transition-all">
+      <Link to={`/user/${id}`} className="flex-shrink-0">
+        <Avatar className="h-12 w-12 ring-2 ring-background shadow-sm">
+          <AvatarImage
+            src={avatar_url || undefined}
+            alt={username}
+            className="object-cover"
+          />
+          <AvatarFallback className="bg-primary/10 text-primary font-medium">
+            {username?.charAt(0).toUpperCase() || <User className="h-5 w-5" />}
+          </AvatarFallback>
+        </Avatar>
+      </Link>
       
-      <div className="flex justify-between mt-2 text-xs text-gray-500">
-        <div className="text-center">
-          <div>{followingCount}</div>
-          <div>フォロー中</div>
-        </div>
-        <div className="text-center">
-          <div>{followersCount}</div>
-          <div>フォロワー</div>
-        </div>
-        <div className="text-center">
-          <div>{collectionCount}</div>
-          <div>コレクション</div>
-        </div>
+      <div className="flex-1 min-w-0">
+        <Link to={`/user/${id}`} className="block group">
+          <div className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+            {username}
+          </div>
+          {bio ? (
+            <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{bio}</p>
+          ) : (
+            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Package className="w-3 h-3" />
+                {collectionCount}
+              </span>
+              <span className="flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                {followersCount}
+              </span>
+            </div>
+          )}
+        </Link>
       </div>
 
-      <div className="mt-3">
-        {onFollow ? (
-          <Button
-            variant={isFollowing ? "outline" : "default"}
-            className="w-full"
-            onClick={onFollow}
-          >
-            {isFollowing ? "フォロー中" : "フォローする"}
-          </Button>
-        ) : (
-          <FollowButton userId={id} />
-        )}
-      </div>
+      {onFollow && (
+        <Button
+          variant={isFollowing ? "outline" : "default"}
+          size="sm"
+          onClick={onFollow}
+          className={cn(
+            "h-8 px-3 rounded-full text-xs font-medium transition-all",
+            isFollowing 
+              ? "border-primary/30 text-primary hover:bg-primary/10" 
+              : "shadow-sm"
+          )}
+        >
+          {isFollowing ? (
+            <>
+              <UserCheck className="w-3.5 h-3.5 mr-1" />
+              フォロー中
+            </>
+          ) : (
+            "フォロー"
+          )}
+        </Button>
+      )}
     </div>
   );
 }
