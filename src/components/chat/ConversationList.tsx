@@ -16,6 +16,7 @@ interface Conversation {
   lastMessageTime: string;
   unreadCount: number;
   tradeRequestId?: string;
+  isLastMessageMine: boolean; // 最後のメッセージが自分のものか
 }
 
 export function ConversationList() {
@@ -97,6 +98,7 @@ export function ConversationList() {
         const profile = profileMap.get(partnerId);
 
         if (profile) {
+          const isLastMessageMine = conv.lastMessage.sender_id === user.id;
           convList.push({
             partnerId,
             partnerName: profile.display_name || profile.username,
@@ -106,6 +108,7 @@ export function ConversationList() {
             lastMessageTime: conv.lastMessage.created_at,
             unreadCount: conv.unreadCount,
             tradeRequestId: conv.tradeRequestId,
+            isLastMessageMine,
           });
         }
       });
@@ -233,6 +236,7 @@ export function ConversationList() {
                   </span>
                 </div>
                 <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                  {conv.isLastMessageMine && <span className="text-primary">自分: </span>}
                   {conv.lastMessage}
                 </p>
               </div>
