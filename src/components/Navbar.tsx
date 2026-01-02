@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, User, Search, FileText, FolderOpen } from "lucide-react";
+import { ShoppingBasket, User, Search, FileText, FolderOpen, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
@@ -16,6 +16,14 @@ import { cn } from "@/lib/utils";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/useProfile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 export function Navbar() {
   const {
     user
@@ -24,7 +32,9 @@ export function Navbar() {
     toast
   } = useToast();
   const {
-    t
+    t,
+    language,
+    setLanguage
   } = useLanguage();
   const navigate = useNavigate();
   const {
@@ -93,14 +103,35 @@ export function Navbar() {
         <div className="w-20 flex-shrink-0 flex justify-end">
           {user && <div className="flex items-center gap-2">
               <NotificationBell className="sm:hidden" />
-              <button onClick={() => navigate("/edit-profile")} className="flex items-center justify-center">
-                <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
-                  <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-muted">
-                    <User className="w-4 h-4" />
-                  </AvatarFallback>
-                </Avatar>
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center justify-center">
+                    <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-muted">
+                        <User className="w-4 h-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
+                    <User className="w-4 h-4 mr-2" />
+                    プロフィール
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="flex items-center gap-2">
+                    <Globe className="w-4 h-4" />
+                    言語 / Language
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => setLanguage("ja")} className={language === "ja" ? "bg-accent" : ""}>
+                    🇯🇵 日本語
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
+                    🇺🇸 English
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>}
         </div>
       </div>
@@ -155,14 +186,35 @@ export function Navbar() {
               <ChatButton />
               <NotificationBell className="hidden sm:block" />
               
-              <button onClick={() => navigate("/edit-profile")} className="flex items-center justify-center rounded-full hover:opacity-80 transition-opacity">
-                <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
-                  <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-muted">
-                    <User className="w-4 h-4" />
-                  </AvatarFallback>
-                </Avatar>
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center justify-center rounded-full hover:opacity-80 transition-opacity">
+                    <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-muted">
+                        <User className="w-4 h-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
+                    <User className="w-4 h-4 mr-2" />
+                    プロフィール
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="flex items-center gap-2">
+                    <Globe className="w-4 h-4" />
+                    言語 / Language
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => setLanguage("ja")} className={language === "ja" ? "bg-accent" : ""}>
+                    🇯🇵 日本語
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
+                    🇺🇸 English
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               
             </> : <Link to="/login">
               <Button variant="outline" className="text-sm">

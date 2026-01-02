@@ -256,12 +256,6 @@ export const ProfileCard = memo(function ProfileCard({
         <ProfileWishlistSection userId={effectiveUserId} />
       )}
 
-      {isOwnProfile && (
-        <div className="mt-8 pt-6 border-t border-border">
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">{t("profile.languageSettings")} / Language</h3>
-          <LanguageToggle />
-        </div>
-      )}
     </div>
   );
 });
