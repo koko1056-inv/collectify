@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, lazy, Suspense } from "react";
+import { useState, useEffect, memo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,9 +14,6 @@ import { ProfileFavoritesSection } from "./ProfileFavoritesSection";
 import { ProfileWishlistSection } from "./ProfileWishlistSection";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-// 遅延読み込み - 画面下部のコンポーネント
-const CollectionStats = lazy(() => import("@/components/home/CollectionStats").then(m => ({ default: m.CollectionStats })));
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -257,14 +254,6 @@ export const ProfileCard = memo(function ProfileCard({
 
       {effectiveUserId && (
         <ProfileWishlistSection userId={effectiveUserId} />
-      )}
-
-      {isOwnProfile && (
-        <div className="mt-8 pt-6 border-t border-border">
-          <Suspense fallback={<Skeleton className="h-40 w-full rounded-xl" />}>
-            <CollectionStats />
-          </Suspense>
-        </div>
       )}
 
       {isOwnProfile && (
