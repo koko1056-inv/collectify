@@ -5,16 +5,17 @@ import { useToast } from '@/hooks/use-toast'
 import { useNavigate } from 'react-router-dom'
 import { trackLogin, trackLogout } from '@/utils/analytics'
 
-// ログインボーナス処理のユーティリティ関数
+// ログインボーナス処理のユーティリティ関数（連続ログイン対応）
 const awardLoginBonus = async (userId: string) => {
   try {
     console.log("[AuthContext] Starting login bonus process for user:", userId);
     const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     
-    // 今日既にログインボーナスを受け取っているかチェック
+    // 現在のユーザーポイント情報を取得
     const { data: userPoints, error: pointsError } = await supabase
       .from("user_points")
-      .select("last_login_bonus_date, total_points")
+      .select("last_login_bonus_date, total_points, login_streak, last_login_date")
       .eq("user_id", userId)
       .single();
       
@@ -26,46 +27,82 @@ const awardLoginBonus = async (userId: string) => {
       return;
     }
     
-    // ユーザーポイントレコードがない場合は作成
+    // 基本ログインボーナス（3pt）
+    const baseBonus = 3;
+    
+    // 連続ログイン計算
+    let newStreak = 1;
+    const lastLoginDate = userPoints?.last_login_date;
+    
+    if (lastLoginDate === yesterday) {
+      // 昨日もログインしていたら連続日数を増やす
+      newStreak = (userPoints?.login_streak || 0) + 1;
+    } else if (lastLoginDate === today) {
+      // 今日既にログイン済み
+      newStreak = userPoints?.login_streak || 1;
+    }
+    // それ以外は連続日数リセット（1日目から）
+    
+    // 7日連続ボーナス
+    let streakBonus = 0;
+    if (newStreak > 0 && newStreak % 7 === 0) {
+      streakBonus = 50;
+    }
+    
+    const totalBonus = baseBonus + streakBonus;
     let currentPoints = userPoints?.total_points || 0;
+    
+    // ユーザーポイントレコードがない場合は作成
     if (!userPoints || pointsError?.code === 'PGRST116') {
       console.log("[AuthContext] Creating new user points record");
-      const { data: newRecord, error: insertError } = await supabase
+      await supabase
         .from("user_points")
         .insert({ 
           user_id: userId,
-          total_points: 1,
-          last_login_bonus_date: today
+          total_points: totalBonus,
+          last_login_bonus_date: today,
+          login_streak: 1,
+          last_login_date: today
         });
-      console.log("[AuthContext] New record insert result:", { newRecord, insertError });
-      currentPoints = 1;
+      currentPoints = totalBonus;
     } else {
-      // ポイント残高とログインボーナス日時を更新
-      currentPoints += 1;
-      console.log("[AuthContext] Updating existing points to:", currentPoints);
-      const { error: updateError } = await supabase
+      // ポイント残高とログイン情報を更新
+      currentPoints += totalBonus;
+      console.log("[AuthContext] Updating existing points to:", currentPoints, "streak:", newStreak);
+      await supabase
         .from("user_points")
         .update({ 
           total_points: currentPoints,
-          last_login_bonus_date: today
+          last_login_bonus_date: today,
+          login_streak: newStreak,
+          last_login_date: today
         })
         .eq("user_id", userId);
-      console.log("[AuthContext] Points update result:", updateError);
     }
     
-    // ポイント履歴に記録
-    console.log("[AuthContext] Creating point transaction record");
-    const { error: transactionError } = await supabase
+    // ポイント履歴に記録（基本ボーナス）
+    await supabase
       .from("point_transactions")
       .insert({
         user_id: userId,
-        points: 1,
+        points: baseBonus,
         transaction_type: "login_bonus",
-        description: "ログインボーナス"
+        description: `ログインボーナス（${newStreak}日目）`
       });
-    console.log("[AuthContext] Transaction insert result:", transactionError);
+    
+    // 7日連続ボーナスがあれば別途記録
+    if (streakBonus > 0) {
+      await supabase
+        .from("point_transactions")
+        .insert({
+          user_id: userId,
+          points: streakBonus,
+          transaction_type: "streak_bonus",
+          description: `7日連続ログインボーナス！`
+        });
+    }
       
-    console.log("[AuthContext] Login bonus process completed successfully");
+    console.log("[AuthContext] Login bonus process completed:", { totalBonus, newStreak, streakBonus });
   } catch (error) {
     console.error("[AuthContext] ログインボーナス付与エラー:", error);
   }

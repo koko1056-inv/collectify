@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useUserStats } from "@/hooks/useUserStats";
+import { useUserPoints } from "@/hooks/usePoints";
 
 interface PointsDisplayProps {
   size?: "sm" | "md" | "lg";
@@ -8,12 +8,9 @@ interface PointsDisplayProps {
 }
 
 export function PointsDisplay({ size = "md", showIcon = true }: PointsDisplayProps) {
-  const { data: userStats, isLoading, error } = useUserStats();
-
-  console.log("[PointsDisplay] Component state:", { userStats, isLoading, error });
+  const { data: userPoints, isLoading, error } = useUserPoints();
 
   if (isLoading) {
-    console.log("[PointsDisplay] Showing loading state");
     return (
       <div className={`flex items-center gap-1 ${
         size === "sm" ? "text-sm" : size === "lg" ? "text-lg" : "text-base"
@@ -25,21 +22,10 @@ export function PointsDisplay({ size = "md", showIcon = true }: PointsDisplayPro
   }
 
   if (error) {
-    console.error("[PointsDisplay] Error loading stats:", error);
+    console.error("[PointsDisplay] Error loading points:", error);
   }
 
-  // ログイン日数×1 + グッズ追加数×5 で計算
-  const loginPoints = (userStats?.totalLoginDays || 0) * 1;
-  const itemPoints = (userStats?.totalItemsAdded || 0) * 5;
-  const totalPoints = loginPoints + itemPoints;
-  
-  console.log("[PointsDisplay] Points calculation:", {
-    loginDays: userStats?.totalLoginDays,
-    itemsAdded: userStats?.totalItemsAdded,
-    loginPoints,
-    itemPoints,
-    totalPoints
-  });
+  const totalPoints = userPoints?.total_points || 0;
 
   return (
     <Badge 

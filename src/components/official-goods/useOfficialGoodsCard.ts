@@ -6,6 +6,8 @@ import { useState, useEffect } from "react";
 import { trackAddToCollection } from "@/utils/analytics";
 import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
+import { addToCollection } from "@/utils/collection-actions";
+import { useNavigate } from "react-router-dom";
 
 interface UseOfficialGoodsCardProps {
   id: string;
@@ -16,6 +18,7 @@ interface UseOfficialGoodsCardProps {
 export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -111,19 +114,38 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
         return;
       }
 
-      const { data, error } = await supabase.from("user_items").insert({
+      // 上限チェック付きでコレクションに追加
+      const result = await addToCollection({
+        userId: user.id,
         title,
         image,
-        release_date: new Date().toISOString().split('T')[0],
-        user_id: user.id,
-        prize: "0",
-        official_item_id: id,
-      }).select().single();
+        officialItemId: id,
+        releaseDate: new Date().toISOString().split('T')[0],
+        prize: "0"
+      });
 
-      if (error) throw error;
+      if (!result.success) {
+        if (result.isAtLimit) {
+          toast({
+            title: "コレクション枠が上限です",
+            description: "ポイントショップで枠を追加購入してください。",
+            variant: "destructive",
+          });
+          // ショップへナビゲート
+          navigate("/shop");
+        } else {
+          toast({
+            title: "エラー",
+            description: result.error || "コレクションへの追加に失敗しました。",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
 
-      if (data) {
-        await copyTagsFromOfficialItem(id, data.id);
+      // タグをコピー
+      if (result.userItemId) {
+        await copyTagsFromOfficialItem(id, result.userItemId);
       }
 
       trackAddToCollection(id, title, user.id);
@@ -131,13 +153,15 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       await refetchIsInCollection();
       await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
       await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
+      await queryClient.invalidateQueries({ queryKey: ["userPoints"] });
+      await queryClient.invalidateQueries({ queryKey: ["collectionCount"] });
 
       // 効果音を再生
       playSuccessSound();
 
       toast({
-        title: "成功",
-        description: "コレクションに追加しました。",
+        title: "コレクションに追加しました！",
+        description: result.pointsAwarded ? `+${result.pointsAwarded}ポイント獲得` : undefined,
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
