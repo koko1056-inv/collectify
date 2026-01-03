@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/useProfile";
+import { PointsNavButton } from "./shop/PointsNavButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -179,6 +180,7 @@ export function Navbar() {
         <div className="ml-auto flex items-center gap-4">
           <UserInfo />
           {user ? <>
+              <PointsNavButton />
               <Button variant="outline" size="icon" onClick={() => setIsWishlistModalOpen(true)} className="relative h-8 w-8">
                 <ShoppingBasket className="h-4 w-4 text-foreground" />
               </Button>
