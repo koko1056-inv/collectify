@@ -9,6 +9,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { CollectionLimitBanner } from "@/components/shop/CollectionLimitBanner";
 
 export default function Collection() {
   const isMobile = useIsMobile();
@@ -35,6 +36,7 @@ export default function Collection() {
       <Navbar />
       <main className={`container mx-auto pt-20 transition-all duration-300 ${isMobile ? 'px-1 py-4' : 'px-2 py-4'}`}>
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
+          <CollectionLimitBanner type="collection" />
           <FilterBar 
             searchQuery={searchQuery} 
             onSearchChange={handleSearchChange} 
