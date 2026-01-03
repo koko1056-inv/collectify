@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { UploadCloud, Image as ImageIcon } from "lucide-react";
+import React, { useState, useCallback } from "react";
+import { UploadCloud, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -10,6 +10,7 @@ interface ProfileImageUploadProps {
   userId: string;
   avatarUrl?: string | null;
   className?: string;
+  isUploading?: boolean;
 }
 
 export function ProfileImageUpload({
@@ -18,52 +19,75 @@ export function ProfileImageUpload({
   setPreviewUrl,
   userId,
   avatarUrl,
-  className
+  className,
+  isUploading = false,
 }: ProfileImageUploadProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const objectUrl = URL.createObjectURL(file);
-      setPreviewUrl(objectUrl);
-      await onImageChange(file);
-      setIsPopoverOpen(false);
-    }
-  };
+  const displayUrl = previewUrl || avatarUrl || "/placeholder.svg";
+  const showLoading = isUploading || localLoading;
 
-  const handleFileSelectClick = () => {
-    document.getElementById('profile-image-upload')?.click();
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 即座にローカルプレビューを表示
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
     setIsPopoverOpen(false);
-  };
+    setLocalLoading(true);
+
+    try {
+      await onImageChange(file);
+    } finally {
+      setLocalLoading(false);
+      // オブジェクトURLをクリーンアップ（アップロード後はサーバーURLに置き換わる）
+      URL.revokeObjectURL(objectUrl);
+    }
+
+    // input要素をリセット（同じファイルを再選択可能にする）
+    e.target.value = "";
+  }, [onImageChange, setPreviewUrl]);
+
+  const handleFileSelectClick = useCallback(() => {
+    document.getElementById("profile-image-upload")?.click();
+    setIsPopoverOpen(false);
+  }, []);
+
+  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.currentTarget;
+    if (!target.src.includes("placeholder.svg")) {
+      target.src = "/placeholder.svg";
+    }
+  }, []);
 
   return (
     <>
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
           <div
-            className={`relative rounded-full overflow-hidden cursor-pointer ${className || ''}`}
+            className={`relative rounded-full overflow-hidden cursor-pointer ${className || ""}`}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
           >
             <img
-              src={previewUrl || avatarUrl || "/placeholder.svg"}
+              src={displayUrl}
               alt="Profile"
               className="w-24 h-24 object-cover rounded-full"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                if (!target.src.includes("placeholder.svg")) {
-                  target.src = "/placeholder.svg";
-                }
-              }}
+              onError={handleImageError}
             />
             <div
               className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity ${
-                isHovering ? "opacity-100" : "opacity-0"
+                isHovering || showLoading ? "opacity-100" : "opacity-0"
               }`}
             >
-              <ImageIcon className="text-white w-8 h-8" />
+              {showLoading ? (
+                <Loader2 className="text-white w-8 h-8 animate-spin" />
+              ) : (
+                <ImageIcon className="text-white w-8 h-8" />
+              )}
             </div>
           </div>
         </PopoverTrigger>
@@ -72,6 +96,7 @@ export function ProfileImageUpload({
             variant="ghost"
             className="w-full justify-start h-auto py-3 px-3"
             onClick={handleFileSelectClick}
+            disabled={showLoading}
           >
             <UploadCloud className="w-4 h-4 mr-3" />
             <span className="text-sm">ファイルを選択</span>
@@ -84,7 +109,8 @@ export function ProfileImageUpload({
         type="file"
         onChange={handleFileChange}
         className="hidden"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        disabled={showLoading}
       />
     </>
   );
