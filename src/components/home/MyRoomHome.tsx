@@ -484,65 +484,75 @@ function AvatarView({
   onShowGallery,
   t
 }: AvatarViewProps) {
+  const hasAvatar = !!profile?.avatar_url;
+
   return (
-    <div className="flex flex-col items-center animate-fade-in">
-      {/* アバター表示 */}
-      <div className="relative mb-8">
-        {profile?.avatar_url ? (
-          <div className="relative group">
-            <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-2xl opacity-60" />
-            <Avatar className="w-48 h-48 sm:w-56 sm:h-56 border-4 border-background shadow-2xl relative z-10 transition-transform duration-300 group-hover:scale-105">
+    <div className="flex flex-col items-center animate-fade-in px-4">
+      {/* アバター表示エリア */}
+      <div className="relative mb-6">
+        {hasAvatar ? (
+          <button 
+            onClick={onShowGallery}
+            className="relative group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
+          >
+            <div className="absolute -inset-3 bg-gradient-to-br from-primary/30 to-primary/5 rounded-full blur-xl opacity-50 group-hover:opacity-80 transition-opacity" />
+            <Avatar className="w-40 h-40 sm:w-48 sm:h-48 border-4 border-background shadow-2xl relative z-10 transition-all duration-300 group-hover:scale-105 group-hover:shadow-primary/20 group-hover:shadow-xl">
               <AvatarImage src={profile.avatar_url} className="object-cover" />
               <AvatarFallback className="text-4xl bg-primary/10 text-primary">
                 {profile.username?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-          </div>
-        ) : null}
+            {/* ホバー時のオーバーレイ */}
+            <div className="absolute inset-0 z-20 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Image className="w-8 h-8 text-white" />
+            </div>
+          </button>
+        ) : (
+          /* アバター未設定時の生成誘導 */
+          <button
+            onClick={onShowAvatarModal}
+            className="relative group cursor-pointer focus:outline-none"
+          >
+            <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full border-2 border-dashed border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5 flex flex-col items-center justify-center gap-3 transition-all duration-300 group-hover:border-primary group-hover:from-primary/20 group-hover:to-primary/10 group-hover:scale-105">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+              <span className="text-sm font-medium text-primary">{t("avatar.aiGenerate")}</span>
+            </div>
+          </button>
+        )}
       </div>
 
-      {/* アバターアクションボタン */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg">
-        <Card 
-          className="cursor-pointer hover:bg-primary/5 hover:border-primary/30 transition-all duration-200 hover-scale group" 
+      {/* アクションボタン（横並び・コンパクト） */}
+      <div className="flex items-center justify-center gap-2 sm:gap-3 w-full max-w-sm mb-6">
+        <button 
           onClick={onShowAvatarModal}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Sparkles className="w-6 h-6 text-primary" />
-            </div>
-            <span className="text-sm font-medium">{t("avatar.aiGenerate")}</span>
-          </CardContent>
-        </Card>
+          <Sparkles className="w-4 h-4" />
+          <span className="text-sm">{t("avatar.aiGenerate")}</span>
+        </button>
         
-        <Card 
-          className="cursor-pointer hover:bg-primary/5 hover:border-primary/30 transition-all duration-200 hover-scale group" 
+        <button 
           onClick={onShowDressUp}
+          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-card border border-border hover:bg-accent hover:border-primary/30 transition-all duration-200"
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Shirt className="w-6 h-6 text-primary" />
-            </div>
-            <span className="text-sm font-medium">{t("avatar.dressUp")}</span>
-          </CardContent>
-        </Card>
+          <Shirt className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm hidden sm:inline">{t("avatar.dressUp")}</span>
+        </button>
         
-        <Card 
-          className="cursor-pointer hover:bg-primary/5 hover:border-primary/30 transition-all duration-200 hover-scale group" 
+        <button 
           onClick={onShowGallery}
+          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-card border border-border hover:bg-accent hover:border-primary/30 transition-all duration-200"
         >
-          <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Image className="w-6 h-6 text-primary" />
-            </div>
-            <span className="text-sm font-medium">{t("avatar.gallery")}</span>
-          </CardContent>
-        </Card>
+          <Image className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm hidden sm:inline">{t("avatar.gallery")}</span>
+        </button>
       </div>
 
       {/* ソーシャルセクション */}
       {userId && (
-        <div className="w-full mt-8">
+        <div className="w-full">
           <AvatarSocialSection userId={userId} avatarUrl={profile?.avatar_url} />
         </div>
       )}

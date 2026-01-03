@@ -101,48 +101,52 @@ export function AvatarSocialSection({ userId, avatarUrl }: AvatarSocialSectionPr
   };
 
   return (
-    <div className="space-y-6 w-full max-w-md mt-6">
+    <div className="space-y-4 w-full max-w-md mx-auto">
       {/* アバターへのリアクション */}
       {avatarUrl && (
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-3">
           <Button
             variant={isLiked ? "default" : "outline"}
             size="sm"
             onClick={handleLike}
-            className="gap-2"
+            className={`gap-2 rounded-full px-5 transition-all duration-200 ${isLiked ? 'shadow-md' : ''}`}
           >
-            <Heart className={`w-4 h-4 ${isLiked ? "fill-current" : ""}`} />
-            <span>いいね</span>
+            <Heart className={`w-4 h-4 transition-transform ${isLiked ? "fill-current scale-110" : ""}`} />
+            <span>{t("posts.like") || "いいね"}</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={handleShare} className="gap-2">
+          <Button variant="outline" size="sm" onClick={handleShare} className="gap-2 rounded-full px-5">
             <Share2 className="w-4 h-4" />
-            <span>シェア</span>
+            <span>{t("posts.share") || "シェア"}</span>
           </Button>
         </div>
       )}
 
       {/* 同じ推しを持つユーザー */}
       {similarUsers && similarUsers.length > 0 && (
-        <Card className="overflow-hidden">
+        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Users className="w-4 h-4 text-primary" />
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                <Users className="w-3.5 h-3.5 text-primary" />
+              </div>
               <h3 className="text-sm font-medium">同じ推しのコレクター</h3>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-2">
+            <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-hide">
               {similarUsers.map((user: any) => (
                 <button
                   key={user.id}
                   onClick={() => navigate(`/user/${user.id}`)}
-                  className="flex flex-col items-center gap-1 min-w-[60px] hover:opacity-80 transition-opacity"
+                  className="flex flex-col items-center gap-1.5 min-w-[64px] group"
                 >
-                  <Avatar className="w-12 h-12 border-2 border-primary/20">
-                    <AvatarImage src={user.avatar_url} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      {user.username?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-xs text-muted-foreground truncate max-w-[60px]">
+                  <div className="relative">
+                    <Avatar className="w-14 h-14 border-2 border-transparent group-hover:border-primary/50 transition-all duration-200 group-hover:scale-105">
+                      <AvatarImage src={user.avatar_url} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                        {user.username?.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <span className="text-xs text-muted-foreground group-hover:text-foreground truncate max-w-[64px] transition-colors">
                     {user.username}
                   </span>
                 </button>
@@ -154,10 +158,12 @@ export function AvatarSocialSection({ userId, avatarUrl }: AvatarSocialSectionPr
 
       {/* 人気アバターランキング */}
       {popularAvatars && popularAvatars.length > 0 && (
-        <Card className="overflow-hidden">
+        <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Crown className="w-4 h-4 text-yellow-500" />
+              <div className="w-7 h-7 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                <Crown className="w-3.5 h-3.5 text-yellow-500" />
+              </div>
               <h3 className="text-sm font-medium">人気アバター</h3>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -165,25 +171,29 @@ export function AvatarSocialSection({ userId, avatarUrl }: AvatarSocialSectionPr
                 <button
                   key={avatar.id}
                   onClick={() => navigate(`/user/${avatar.user_id}`)}
-                  className="relative group"
+                  className="relative group focus:outline-none"
                 >
-                  <div className="aspect-square rounded-lg overflow-hidden border border-border">
+                  <div className="aspect-square rounded-xl overflow-hidden border border-border/50 group-hover:border-primary/30 transition-all duration-200 group-hover:shadow-md">
                     <img
                       src={avatar.image_url}
                       alt="Avatar"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
+                    {/* ホバーオーバーレイ */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-end justify-center pb-2">
+                      <Eye className="w-4 h-4 text-white" />
+                    </div>
                   </div>
+                  {/* ランキングバッジ */}
                   {index < 3 && (
-                    <div className={`absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                      index === 0 ? "bg-yellow-500" : index === 1 ? "bg-gray-400" : "bg-amber-600"
+                    <div className={`absolute -top-1.5 -left-1.5 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-md ${
+                      index === 0 ? "bg-gradient-to-br from-yellow-400 to-yellow-600" : 
+                      index === 1 ? "bg-gradient-to-br from-gray-300 to-gray-500" : 
+                      "bg-gradient-to-br from-amber-500 to-amber-700"
                     }`}>
                       {index + 1}
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                    <Eye className="w-4 h-4 text-white" />
-                  </div>
                 </button>
               ))}
             </div>
