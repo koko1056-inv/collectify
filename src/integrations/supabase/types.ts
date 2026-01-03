@@ -1150,6 +1150,81 @@ export type Database = {
           },
         ]
       }
+      point_packages: {
+        Row: {
+          bonus_points: number
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          points: number
+          price: number
+          sort_order: number
+        }
+        Insert: {
+          bonus_points?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          points: number
+          price: number
+          sort_order?: number
+        }
+        Update: {
+          bonus_points?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          points?: number
+          price?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      point_shop_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          item_type: string
+          name: string
+          points_cost: number
+          sort_order: number
+          value: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          item_type: string
+          name: string
+          points_cost: number
+          sort_order?: number
+          value?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          item_type?: string
+          name?: string
+          points_cost?: number
+          sort_order?: number
+          value?: number
+        }
+        Relationships: []
+      }
       point_transactions: {
         Row: {
           created_at: string
@@ -1933,11 +2008,84 @@ export type Database = {
           },
         ]
       }
+      user_limits: {
+        Row: {
+          ai_image_last_reset: string | null
+          ai_image_uses_today: number
+          collection_slots: number
+          created_at: string
+          custom_tag_slots: number
+          group_create_count: number
+          id: string
+          room_slots: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_image_last_reset?: string | null
+          ai_image_uses_today?: number
+          collection_slots?: number
+          created_at?: string
+          custom_tag_slots?: number
+          group_create_count?: number
+          id?: string
+          room_slots?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_image_last_reset?: string | null
+          ai_image_uses_today?: number
+          collection_slots?: number
+          created_at?: string
+          custom_tag_slots?: number
+          group_create_count?: number
+          id?: string
+          room_slots?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_point_purchases: {
+        Row: {
+          id: string
+          points_spent: number
+          purchased_at: string
+          shop_item_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          points_spent: number
+          purchased_at?: string
+          shop_item_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          points_spent?: number
+          purchased_at?: string
+          shop_item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_point_purchases_shop_item_id_fkey"
+            columns: ["shop_item_id"]
+            isOneToOne: false
+            referencedRelation: "point_shop_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_points: {
         Row: {
           created_at: string
           id: string
           last_login_bonus_date: string | null
+          last_login_date: string | null
+          login_streak: number | null
           total_points: number
           updated_at: string
           user_id: string
@@ -1946,6 +2094,8 @@ export type Database = {
           created_at?: string
           id?: string
           last_login_bonus_date?: string | null
+          last_login_date?: string | null
+          login_streak?: number | null
           total_points?: number
           updated_at?: string
           user_id: string
@@ -1954,6 +2104,8 @@ export type Database = {
           created_at?: string
           id?: string
           last_login_bonus_date?: string | null
+          last_login_date?: string | null
+          login_streak?: number | null
           total_points?: number
           updated_at?: string
           user_id?: string
