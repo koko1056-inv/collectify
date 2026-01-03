@@ -9,8 +9,6 @@ export function useProfile(userId: string | undefined) {
     queryFn: async () => {
       if (!userId) throw new Error("User ID not provided");
       
-      console.log("[useProfile] Fetching profile for userId:", userId);
-      
       // プロフィールを取得（明示的に全フィールドを指定）
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
@@ -34,38 +32,28 @@ export function useProfile(userId: string | undefined) {
         .maybeSingle();
       
       if (profileError) {
-        console.error("[useProfile] Error fetching profile:", profileError);
         throw profileError;
       }
       
       if (!profileData) {
-        console.error("[useProfile] Profile not found for userId:", userId);
         throw new Error("Profile not found");
       }
       
-      console.log("[useProfile] Profile fetched successfully:", {
-        id: profileData.id,
-        username: profileData.username,
-        hasId: !!profileData.id
-      });
-      
-      // is_current=trueのアバターを取得
-      const { data: currentAvatar } = await supabase
-        .from("avatar_gallery")
-        .select("image_url")
-        .eq("user_id", userId)
-        .eq("is_current", true)
-        .maybeSingle();
-      
-      // is_currentのアバターがあり、プロフィール側にまだavatar_urlがない場合のみ同期
-      if (currentAvatar && !profileData.avatar_url) {
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({ avatar_url: currentAvatar.image_url })
-          .eq("id", userId);
+      // avatar_urlがない場合のみ、is_current=trueのアバターを取得して同期
+      if (!profileData.avatar_url) {
+        const { data: currentAvatar } = await supabase
+          .from("avatar_gallery")
+          .select("image_url")
+          .eq("user_id", userId)
+          .eq("is_current", true)
+          .maybeSingle();
         
-        if (!updateError) {
-          // 同期した新しいURLをプロフィールに反映
+        if (currentAvatar) {
+          await supabase
+            .from("profiles")
+            .update({ avatar_url: currentAvatar.image_url })
+            .eq("id", userId);
+          
           profileData.avatar_url = currentAvatar.image_url;
         }
       }
@@ -73,10 +61,10 @@ export function useProfile(userId: string | undefined) {
       return profileData as Profile;
     },
     enabled: !!userId,
-    staleTime: 0, // 常に最新データを取得
-    gcTime: 30 * 60 * 1000, // 30分間保持
-    refetchOnMount: true, // マウント時に再取得
-    refetchOnWindowFocus: true, // フォーカス時に再取得
+    staleTime: 1000 * 60 * 2, // 2分間キャッシュ
+    gcTime: 1000 * 60 * 30, // 30分間保持
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   return {
