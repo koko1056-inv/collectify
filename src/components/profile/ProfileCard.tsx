@@ -50,11 +50,6 @@ export const ProfileCard = memo(function ProfileCard({
   // プロフィールデータをローカル状態に設定
   useEffect(() => {
     if (profile) {
-      console.log("[ProfileCard] Profile data updated:", {
-        id: profile.id,
-        username: profile.username,
-        avatar_url: profile.avatar_url
-      });
       setBio(profile.bio || "");
       setXUsername(profile.x_username || "");
       setUsername_(profile.username || "");
@@ -70,7 +65,6 @@ export const ProfileCard = memo(function ProfileCard({
   // アバターURLが変更されたときにプレビューURLを更新
   useEffect(() => {
     if (profile?.avatar_url) {
-      console.log("[ProfileCard] Avatar URL changed to:", profile.avatar_url);
       setPreviewUrl(profile.avatar_url);
     }
   }, [profile?.avatar_url]);

@@ -3,12 +3,18 @@ import { Footer } from "@/components/Footer";
 import { MyRoomHome } from "@/components/home/MyRoomHome";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
+import type { AvatarGenerationResult } from "@/types/avatar";
+import { ensureProfileImagesPublicUrl, setCurrentAvatar } from "@/utils/avatar-storage";
 
 export default function MyRoom() {
   const { user } = useAuth();
   const { profile, refetchProfile } = useProfile(user?.id);
 
-  const handleAvatarGenerated = async () => {
+  const handleAvatarGenerated = async ({ imageUrl, prompt }: AvatarGenerationResult) => {
+    if (!user?.id) return;
+
+    const publicUrl = await ensureProfileImagesPublicUrl({ userId: user.id, sourceUrl: imageUrl });
+    await setCurrentAvatar({ userId: user.id, avatarUrl: publicUrl, prompt, itemIds: null });
     await refetchProfile();
   };
 

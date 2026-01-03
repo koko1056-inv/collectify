@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { toast as sonnerToast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { useQueryClient } from "@tanstack/react-query";
+import type { AvatarGenerationResult } from "@/types/avatar";
+import { ensureProfileImagesPublicUrl, setCurrentAvatar } from "@/utils/avatar-storage";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -117,22 +119,22 @@ export function ProfileImageUpload({
     setIsPopoverOpen(false);
   };
 
-  const handleAvatarGenerated = async (imageUrl: string) => {
+  const handleAvatarGenerated = async ({ imageUrl, prompt }: AvatarGenerationResult) => {
     try {
-      // base64画像をBlobに変換
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      
-      // BlobをFileに変換
-      const file = new File([blob], "ai-avatar.png", { type: "image/png" });
-      
+      // 生成結果(外部URL/base64含む)を必ず自前ストレージに保存してからDBへ反映
+      const publicUrl = await ensureProfileImagesPublicUrl({ userId, sourceUrl: imageUrl });
+
+      await setCurrentAvatar({
+        userId,
+        avatarUrl: publicUrl,
+        prompt,
+        itemIds: null,
+      });
+
       // プレビューを更新
-      setPreviewUrl(imageUrl);
-      
-      // 画像をアップロード（完了を待つ）
-      await onImageChange(file);
-      
-      // アップロード完了後、既存のAI生成アバター（item_idsがnullまたは空配列、かつプロフィール画像でないもの）を取得
+      setPreviewUrl(publicUrl);
+
+      // 10個を超える古い「ゼロから生成」アバターを削除（プロフィール画像・着せ替えは除外）
       const { data: existingAvatars } = await supabase
         .from("avatar_gallery")
         .select("id, item_ids, prompt, created_at")
@@ -141,29 +143,24 @@ export function ProfileImageUpload({
 
       if (existingAvatars) {
         const pureAvatars = existingAvatars.filter(
-          avatar => (!avatar.item_ids || avatar.item_ids.length === 0) && 
-                    avatar.prompt !== "プロフィール画像"
+          (a) => (!a.item_ids || a.item_ids.length === 0) && a.prompt !== "プロフィール画像"
         );
 
-        // 10個を超える場合は古いものを削除（新しいアバターが追加されているので、10個まで残す）
         if (pureAvatars.length > 10) {
-          const toDelete = pureAvatars.slice(10); // 11個目以降を削除対象に
-          for (const avatar of toDelete) {
-            await supabase
-              .from("avatar_gallery")
-              .delete()
-              .eq("id", avatar.id);
+          const toDelete = pureAvatars.slice(10);
+          for (const a of toDelete) {
+            await supabase.from("avatar_gallery").delete().eq("id", a.id);
           }
         }
       }
-      
+
       // アバターリストを再取得（ゼロから生成したもののみ）
       const { data } = await supabase
         .from("avatar_gallery")
         .select("id, image_url, item_ids, prompt, name")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
-      
+
       if (data) {
         const seen = new Set<string>();
         const pureAvatars = [] as Array<{ id: string; image_url: string; name: string | null }>;
@@ -181,7 +178,10 @@ export function ProfileImageUpload({
 
         setRecentAvatars(pureAvatars.slice(0, 10));
       }
-      
+
+      // プロフィールキャッシュを更新
+      await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+
       toast({
         title: "アバター設定完了",
         description: "AIで生成したアバターをプロフィールに設定しました",
@@ -198,36 +198,22 @@ export function ProfileImageUpload({
 
   const handleSelectAvatar = async (avatarUrl: string, avatarId: string) => {
     try {
-      // 1. まずprofiles.avatar_urlを更新（これが最も重要）
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: avatarUrl })
-        .eq("id", userId);
+      // 既存データが外部URLの場合でも、選択時に自前ストレージへ移して安定化
+      const stableUrl = await ensureProfileImagesPublicUrl({ userId, sourceUrl: avatarUrl });
 
-      if (profileError) {
-        throw profileError;
-      }
+      await setCurrentAvatar({
+        userId,
+        avatarUrl: stableUrl,
+        avatarGalleryId: avatarId,
+      });
 
-      // 2. avatar_galleryの同期（統一処理）
-      // すべてのアバターの is_current を false に設定
-      await supabase
-        .from("avatar_gallery")
-        .update({ is_current: false })
-        .eq("user_id", userId);
-
-      // 選択したアバターを is_current = true に設定
-      await supabase
-        .from("avatar_gallery")
-        .update({ is_current: true })
-        .eq("id", avatarId);
-
-      // 3. UIを更新
-      setPreviewUrl(avatarUrl);
+      // UIを更新
+      setPreviewUrl(stableUrl);
       setIsPopoverOpen(false);
-      
-      // 4. プロフィールキャッシュを即座に無効化
+
+      // プロフィールキャッシュを即座に無効化
       await queryClient.invalidateQueries({ queryKey: ["profile", userId] });
-      
+
       sonnerToast.success("アバターを切り替えました");
     } catch (error) {
       console.error("Error selecting avatar:", error);

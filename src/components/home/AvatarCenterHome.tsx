@@ -5,11 +5,13 @@ import { Dices, Store, Shirt, ChevronDown, Image, User, UploadCloud, Sparkles, C
 import { Profile } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { AvatarGenerationModal } from "@/components/profile/AvatarGenerationModal";
+import type { AvatarGenerationResult } from "@/types/avatar";
 import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
 import { GoodsDisplayModal } from "./avatar-center/GoodsDisplayModal";
 import { AvatarDressUpModal } from "./avatar-center/AvatarDressUpModal";
 import { AvatarGalleryModal } from "./avatar-center/AvatarGalleryModal";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureProfileImagesPublicUrl, setCurrentAvatar } from "@/utils/avatar-storage";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
@@ -38,12 +40,6 @@ interface AvatarCenterHomeProps {
 }
 
 export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHomeProps) {
-  console.log("[AvatarCenterHome] Received profile:", { 
-    profile, 
-    hasId: !!profile?.id, 
-    id: profile?.id,
-    keys: profile ? Object.keys(profile) : [] 
-  });
 
   // プロフィールが存在しない場合の早期リターン
   if (!profile) {
@@ -150,33 +146,22 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     if (!userId) return;
 
     try {
-      // 1. まずprofiles.avatar_urlを更新（最優先）
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: avatarUrl })
-        .eq("id", userId);
+      const stableUrl = await ensureProfileImagesPublicUrl({ userId, sourceUrl: avatarUrl });
 
-      if (profileError) throw profileError;
-
-      // 2. avatar_galleryの同期
-      await supabase
-        .from("avatar_gallery")
-        .update({ is_current: false })
-        .eq("user_id", userId);
-
-      await supabase
-        .from("avatar_gallery")
-        .update({ is_current: true })
-        .eq("id", avatarId);
+      await setCurrentAvatar({
+        userId,
+        avatarUrl: stableUrl,
+        avatarGalleryId: avatarId,
+      });
 
       // 3. UIを更新
-      setCurrentAvatarUrl(avatarUrl);
+      setCurrentAvatarUrl(stableUrl);
       setIsAvatarPopoverOpen(false);
       toast.success("アバターを切り替えました");
-      
+
       // 親コンポーネントに通知
-      onAvatarGenerated(avatarUrl);
-      
+      onAvatarGenerated(stableUrl);
+
       // 再取得
       await fetchCurrentAvatar();
       await fetchRecentAvatars();
@@ -254,40 +239,23 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   };
 
   // AI生成したアバターを設定
-  const handleAvatarGenerated = async (imageUrl: string) => {
+  const handleAvatarGenerated = async ({ imageUrl, prompt }: AvatarGenerationResult) => {
     if (!userId) return;
 
     try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const file = new File([blob], "ai-avatar.png", { type: "image/png" });
-      
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
+      const publicUrl = await ensureProfileImagesPublicUrl({ userId, sourceUrl: imageUrl });
 
-      const { error: uploadError } = await supabase.storage
-        .from("profile_images")
-        .upload(filePath, file);
+      await setCurrentAvatar({
+        userId,
+        avatarUrl: publicUrl,
+        prompt,
+        itemIds: null,
+      });
 
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("profile_images")
-        .getPublicUrl(filePath);
-
-      // 1. profiles.avatar_urlを更新
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: publicUrl })
-        .eq("id", userId);
-
-      if (updateError) throw updateError;
-
-      // 2. avatar_galleryに新しいアバターを追加（削除はしない）
       setCurrentAvatarUrl(publicUrl);
       toast.success("AIで生成したアバターを設定しました");
       onAvatarGenerated(publicUrl);
-      
+
       await fetchCurrentAvatar();
       await fetchRecentAvatars();
     } catch (error) {

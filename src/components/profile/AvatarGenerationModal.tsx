@@ -5,15 +5,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Sparkles, Upload, X, Wand2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import type { AvatarGenerationResult } from "@/types/avatar";
 
 interface AvatarGenerationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAvatarGenerated: (imageUrl: string) => void;
+  onAvatarGenerated: (result: AvatarGenerationResult) => void | Promise<void>;
 }
 
 const EXAMPLE_PROMPTS = [
@@ -31,7 +31,6 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
   const [progress, setProgress] = useState(0);
   const [generationStep, setGenerationStep] = useState<string>("");
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,52 +102,17 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
         throw new Error("画像URLが取得できませんでした");
       }
 
-      // ステップ3: 保存中
+      // ステップ3: 保存中（呼び出し元に処理を委譲）
       setProgress(70);
       setGenerationStep("アバターを保存中...");
 
-      // ギャラリーに保存（可能な場合）
-      if (user?.id) {
-        try {
-          const { error: galleryError } = await supabase
-            .from("avatar_gallery")
-            .insert({
-              user_id: user.id,
-              image_url: data.imageUrl,
-              prompt: prompt.trim(),
-              is_current: true,
-            });
-
-          if (galleryError) {
-            console.error("Error saving avatar to gallery:", galleryError);
-          }
-
-          // 他のアバターの is_current を false に更新
-          await supabase
-            .from("avatar_gallery")
-            .update({ is_current: false })
-            .neq("image_url", data.imageUrl)
-            .eq("user_id", user.id);
-
-          // プロフィールのavatar_urlも更新
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .update({ avatar_url: data.imageUrl })
-            .eq("id", user.id);
-
-          if (profileError) {
-            console.error("Error updating profile avatar:", profileError);
-          }
-        } catch (galleryError) {
-          console.error("Avatar gallery update error:", galleryError);
-        }
-      }
+      const usedPrompt = prompt.trim() || (uploadedImage ? "写真から生成したアバター" : "AIアバター");
+      await onAvatarGenerated({ imageUrl: data.imageUrl, prompt: usedPrompt });
 
       // ステップ4: 完了
       setProgress(100);
       setGenerationStep("完了！");
 
-      onAvatarGenerated(data.imageUrl);
       toast({
         title: "アバター生成完了",
         description: "AIアバターが生成されました",

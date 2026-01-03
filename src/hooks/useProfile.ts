@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types";
+import { ensureProfileImagesPublicUrl, isProfileImagesPublicUrl } from "@/utils/avatar-storage";
 
 export function useProfile(userId: string | undefined) {
   const { data, refetch, isLoading, error } = useQuery<Profile>({
@@ -39,7 +40,24 @@ export function useProfile(userId: string | undefined) {
         throw new Error("Profile not found");
       }
       
-      // avatar_urlがない場合のみ、is_current=trueのアバターを取得して同期
+      // avatar_url の不安定要因（外部URL/一時URL）を排除し、常に profile_images の public URL に正規化
+      if (profileData.avatar_url && !isProfileImagesPublicUrl(profileData.avatar_url)) {
+        try {
+          const stableUrl = await ensureProfileImagesPublicUrl({
+            userId,
+            sourceUrl: profileData.avatar_url,
+          });
+
+          if (stableUrl && stableUrl !== profileData.avatar_url) {
+            await supabase.from("profiles").update({ avatar_url: stableUrl }).eq("id", userId);
+            profileData.avatar_url = stableUrl;
+          }
+        } catch {
+          // 正規化に失敗してもプロフィール取得自体は継続
+        }
+      }
+
+      // avatar_urlがない場合のみ、is_current=trueのアバターを取得して同期（こちらも正規化）
       if (!profileData.avatar_url) {
         const { data: currentAvatar } = await supabase
           .from("avatar_gallery")
@@ -47,17 +65,23 @@ export function useProfile(userId: string | undefined) {
           .eq("user_id", userId)
           .eq("is_current", true)
           .maybeSingle();
-        
-        if (currentAvatar) {
-          await supabase
-            .from("profiles")
-            .update({ avatar_url: currentAvatar.image_url })
-            .eq("id", userId);
-          
-          profileData.avatar_url = currentAvatar.image_url;
+
+        if (currentAvatar?.image_url) {
+          try {
+            const stableUrl = await ensureProfileImagesPublicUrl({
+              userId,
+              sourceUrl: currentAvatar.image_url,
+            });
+
+            await supabase.from("profiles").update({ avatar_url: stableUrl }).eq("id", userId);
+            profileData.avatar_url = stableUrl;
+          } catch {
+            // 失敗時は従来URLで同期（表示自体はAvatarImage側のリトライに委ねる）
+            await supabase.from("profiles").update({ avatar_url: currentAvatar.image_url }).eq("id", userId);
+            profileData.avatar_url = currentAvatar.image_url;
+          }
         }
       }
-      
       return profileData as Profile;
     },
     enabled: !!userId,
