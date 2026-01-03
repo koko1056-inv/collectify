@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, memo, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -12,11 +12,11 @@ import { ProfileBioSection } from "./ProfileBioSection";
 import { ProfileInterestsSection } from "./ProfileInterestsSection";
 import { ProfileFavoritesSection } from "./ProfileFavoritesSection";
 import { ProfileWishlistSection } from "./ProfileWishlistSection";
-import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useProfileImageUpload } from "@/hooks/useProfileImageUpload";
 
 interface ProfileCardProps {
   onShare: () => void;
@@ -40,12 +40,23 @@ export const ProfileCard = memo(function ProfileCard({
   const [username_, setUsername_] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isFavoritesEditing, setIsFavoritesEditing] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const isOwnProfile = !userId || user?.id === userId;
   const effectiveUserId = userId || user?.id;
 
   const { profile, refetchProfile } = useProfile(effectiveUserId);
+
+  // プロフィール画像アップロードフック
+  const {
+    uploadImage,
+    isUploading,
+    previewUrl,
+    setPreviewUrl,
+    initializePreview,
+  } = useProfileImageUpload({
+    userId: effectiveUserId || "",
+    onSuccess: () => refetchProfile(),
+  });
 
   // プロフィールデータをローカル状態に設定
   useEffect(() => {
@@ -54,20 +65,17 @@ export const ProfileCard = memo(function ProfileCard({
       setXUsername(profile.x_username || "");
       setUsername_(profile.username || "");
       setUsername(profile.username || "");
-      // 初回ロード時もアバターURLを設定
-      if (profile.avatar_url) {
-        setPreviewUrl(profile.avatar_url);
-      }
+      // アバターURLを初期化
+      initializePreview(profile.avatar_url || null);
       setLoading(false);
     }
-  }, [profile, setUsername]);
+  }, [profile, setUsername, initializePreview]);
 
-  // アバターURLが変更されたときにプレビューURLを更新
-  useEffect(() => {
-    if (profile?.avatar_url) {
-      setPreviewUrl(profile.avatar_url);
-    }
-  }, [profile?.avatar_url]);
+  // 画像変更ハンドラー
+  const handleImageChange = useCallback(async (file: File | null) => {
+    if (!file || !isOwnProfile) return;
+    await uploadImage(file);
+  }, [isOwnProfile, uploadImage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,97 +111,6 @@ export const ProfileCard = memo(function ProfileCard({
     });
   };
 
-  const handleImageChange = async (file: File | null) => {
-    if (!file || !user || !isOwnProfile) return;
-
-    try {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase
-        .storage
-        .from("profile_images")
-        .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const {
-        data: { publicUrl },
-      } = supabase
-        .storage
-        .from("profile_images")
-        .getPublicUrl(filePath);
-
-      // 1. まずprofiles.avatar_urlを更新（これが最も重要）
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({
-          avatar_url: publicUrl,
-        })
-        .eq("id", user.id);
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      // 2. avatar_galleryの同期（統一処理）
-      try {
-        // すべてのアバターをis_current=falseに設定
-        await supabase
-          .from("avatar_gallery")
-          .update({ is_current: false })
-          .eq("user_id", user.id);
-
-        // 既存のプロフィール画像エントリを探す
-        const { data: existingProfileAvatar } = await supabase
-          .from("avatar_gallery")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("prompt", "プロフィール画像")
-          .maybeSingle();
-
-        if (existingProfileAvatar) {
-          // 既存エントリを更新
-          await supabase
-            .from("avatar_gallery")
-            .update({ 
-              image_url: publicUrl,
-              is_current: true 
-            })
-            .eq("id", existingProfileAvatar.id);
-        } else {
-          // 新規エントリを作成
-          await supabase.from("avatar_gallery").insert({
-            user_id: user.id,
-            image_url: publicUrl,
-            is_current: true,
-            item_ids: null,
-            prompt: "プロフィール画像",
-          });
-        }
-      } catch (galleryError) {
-        console.error("Error syncing avatar_gallery:", galleryError);
-        // ギャラリー同期失敗時もプロフィール更新は成功しているので続行
-      }
-
-      await refetchProfile();
-
-      setPreviewUrl(publicUrl);
-      toast({
-        title: "画像アップロード完了",
-        description: "プロフィール画像を更新しました",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "エラー",
-        description: "画像のアップロードに失敗しました",
-      });
-      console.error("Error uploading image:", error);
-    }
-  };
 
   if (loading) {
     return (
@@ -216,6 +133,7 @@ export const ProfileCard = memo(function ProfileCard({
         onImageChange={handleImageChange}
         onShare={onShare}
         setPreviewUrl={setPreviewUrl}
+        isUploading={isUploading}
       />
 
       <ProfileStats userId={effectiveUserId} />

@@ -11,6 +11,7 @@ interface ProfileImageSectionProps {
   onImageChange: (file: File | null) => Promise<void>;
   onShare: () => void;
   setPreviewUrl: (url: string | null) => void;
+  isUploading?: boolean;
 }
 
 export const ProfileImageSection = memo(function ProfileImageSection({
@@ -22,6 +23,7 @@ export const ProfileImageSection = memo(function ProfileImageSection({
   onImageChange,
   onShare,
   setPreviewUrl,
+  isUploading,
 }: ProfileImageSectionProps) {
   return (
     <div className="flex flex-col items-center mb-4">
@@ -33,6 +35,7 @@ export const ProfileImageSection = memo(function ProfileImageSection({
             setPreviewUrl={setPreviewUrl}
             userId={userId}
             avatarUrl={avatarUrl}
+            isUploading={isUploading}
           />
         ) : (
           <img
