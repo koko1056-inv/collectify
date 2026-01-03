@@ -51,33 +51,73 @@ export function MyRoomHome({
       <div className="min-h-[70vh] flex flex-col items-center justify-center relative px-4 sm:px-8 animate-fade-in">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
         
-        <div className="relative z-10 text-center space-y-8 max-w-md">
-          <div className="w-32 h-32 mx-auto relative">
+        <div className="relative z-10 text-center space-y-8 max-w-lg">
+          {/* メインアイコン */}
+          <div className="w-28 h-28 mx-auto relative">
             <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-2xl animate-pulse" />
             <div className="relative w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl flex items-center justify-center border border-primary/20 shadow-xl">
-              <Home className="w-14 h-14 text-primary" />
+              <Package className="w-12 h-12 text-primary" />
             </div>
           </div>
           
-          <div className="space-y-3">
+          {/* メインコピー */}
+          <div className="space-y-4">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-              {t("auth.createRoom")}
+              推しグッズを記録しよう
             </h2>
-            <p className="text-muted-foreground text-lg">
-              {t("auth.createRoomDesc")}
+            <p className="text-muted-foreground text-base leading-relaxed">
+              あなたの大切なコレクションを管理・共有できるアプリ。<br className="hidden sm:block" />
+              同じ趣味の仲間と繋がろう
             </p>
           </div>
 
+          {/* 特徴アイコン */}
+          <div className="flex justify-center gap-6 text-muted-foreground">
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
+                <Package className="w-5 h-5" />
+              </div>
+              <span className="text-xs">コレクション</span>
+            </div>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
+                <Home className="w-5 h-5" />
+              </div>
+              <span className="text-xs">マイルーム</span>
+            </div>
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
+                <Heart className="w-5 h-5" />
+              </div>
+              <span className="text-xs">交換・共有</span>
+            </div>
+          </div>
+
+          {/* CTAボタン */}
           <Button size="lg" onClick={() => navigate("/login")} className="gap-2 h-12 px-8 text-base shadow-lg hover-scale">
             <User className="w-5 h-5" />
-            {t("auth.loginToStart")}
+            無料ではじめる
             <ArrowRight className="w-4 h-4" />
           </Button>
 
-          <button onClick={() => navigate("/rooms/explore")} className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-2 mx-auto">
-            <Compass className="w-4 h-4" />
-            {t("room.explore")}
-          </button>
+          {/* サブリンク */}
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <button 
+              onClick={() => navigate("/search")} 
+              className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+            >
+              <TrendingUp className="w-4 h-4" />
+              グッズを見る
+            </button>
+            <span className="text-muted-foreground/30">|</span>
+            <button 
+              onClick={() => navigate("/rooms/explore")} 
+              className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+            >
+              <Compass className="w-4 h-4" />
+              ルームを探す
+            </button>
+          </div>
         </div>
       </div>
     );
