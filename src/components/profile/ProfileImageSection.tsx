@@ -1,7 +1,6 @@
-import { memo, useState, useEffect } from "react";
+import { memo } from "react";
 import { ProfileImageUpload } from "./ProfileImageUpload";
 import { ProfileHeader } from "./ProfileHeader";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ProfileImageSectionProps {
   isOwnProfile: boolean;
@@ -36,16 +35,17 @@ export const ProfileImageSection = memo(function ProfileImageSection({
             avatarUrl={avatarUrl}
           />
         ) : (
-          <Avatar className="w-24 h-24">
-            <AvatarImage 
-              src={avatarUrl || undefined} 
-              alt={username}
-              className="object-cover"
-            />
-            <AvatarFallback className="text-2xl">
-              {username?.charAt(0)?.toUpperCase() || "?"}
-            </AvatarFallback>
-          </Avatar>
+          <img
+            src={avatarUrl || "/placeholder.svg"}
+            alt={username}
+            className="w-24 h-24 object-cover rounded-full"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              if (!target.src.includes("placeholder.svg")) {
+                target.src = "/placeholder.svg";
+              }
+            }}
+          />
         )}
       </div>
       <ProfileHeader
