@@ -129,6 +129,54 @@
     --loading-overlay: 240 10% 8% / 0.8;
   }
 
+  /* テーマカラー: ブルー */
+  [data-theme-color="blue"] {
+    --primary: 210 80% 50%;
+    --ring: 210 80% 50%;
+    --accent: 210 50% 95%;
+    --accent-foreground: 210 80% 35%;
+    --stats-login: 210 70% 50%;
+    --stats-login-bg: 210 40% 97%;
+    --stats-login-hover: 210 40% 94%;
+    --gradient-brand: linear-gradient(135deg, hsl(210 80% 50%), hsl(190 70% 50%));
+  }
+
+  /* テーマカラー: グリーン */
+  [data-theme-color="green"] {
+    --primary: 150 60% 40%;
+    --ring: 150 60% 40%;
+    --accent: 150 40% 95%;
+    --accent-foreground: 150 60% 30%;
+    --stats-login: 150 55% 45%;
+    --stats-login-bg: 150 35% 97%;
+    --stats-login-hover: 150 35% 94%;
+    --gradient-brand: linear-gradient(135deg, hsl(150 60% 40%), hsl(170 55% 45%));
+  }
+
+  /* テーマカラー: パープル */
+  [data-theme-color="purple"] {
+    --primary: 270 60% 55%;
+    --ring: 270 60% 55%;
+    --accent: 270 40% 95%;
+    --accent-foreground: 270 60% 40%;
+    --stats-login: 270 55% 55%;
+    --stats-login-bg: 270 35% 97%;
+    --stats-login-hover: 270 35% 94%;
+    --gradient-brand: linear-gradient(135deg, hsl(270 60% 55%), hsl(290 55% 55%));
+  }
+
+  /* テーマカラー: オレンジ */
+  [data-theme-color="orange"] {
+    --primary: 25 90% 50%;
+    --ring: 25 90% 50%;
+    --accent: 25 50% 95%;
+    --accent-foreground: 25 90% 35%;
+    --stats-login: 25 80% 50%;
+    --stats-login-bg: 25 40% 97%;
+    --stats-login-hover: 25 40% 94%;
+    --gradient-brand: linear-gradient(135deg, hsl(25 90% 50%), hsl(40 85% 55%));
+  }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;

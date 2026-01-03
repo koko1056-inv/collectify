@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -73,36 +74,38 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <BrowserRouter>
-          <AuthProvider>
-            <OnboardingProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <Suspense fallback={<LoadingFallback />}>
-                  <Routes>
-                    <Route path="/" element={<Navigate to="/my-room" replace />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/add-item" element={<AddItem />} />
-                    <Route path="/quick-add" element={<QuickAdd />} />
-                    <Route path="/user/:userId" element={<UserProfile />} />
-                    <Route path="/edit-profile" element={<EditProfile />} />
-                    <Route path="/messages" element={<Messages />} />
-                    <Route path="/posts" element={<Posts />} />
-                    <Route path="/search" element={<Search />} />
-                    <Route path="/collection" element={<Collection />} />
-                    <Route path="/my-room" element={<MyRoom />} />
-                    <Route path="/rooms/explore" element={<RoomExplore />} />
-                    <Route path="/room/:roomId" element={<RoomView />} />
-                    <Route path="/shop" element={<PointShop />} />
-                    <Route path="*" element={<Navigate to="/my-room" replace />} />
-                  </Routes>
-                </Suspense>
-              </TooltipProvider>
-            </OnboardingProvider>
-          </AuthProvider>
-        </BrowserRouter>
+        <ThemeColorProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <OnboardingProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Routes>
+                      <Route path="/" element={<Navigate to="/my-room" replace />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/admin" element={<Admin />} />
+                      <Route path="/add-item" element={<AddItem />} />
+                      <Route path="/quick-add" element={<QuickAdd />} />
+                      <Route path="/user/:userId" element={<UserProfile />} />
+                      <Route path="/edit-profile" element={<EditProfile />} />
+                      <Route path="/messages" element={<Messages />} />
+                      <Route path="/posts" element={<Posts />} />
+                      <Route path="/search" element={<Search />} />
+                      <Route path="/collection" element={<Collection />} />
+                      <Route path="/my-room" element={<MyRoom />} />
+                      <Route path="/rooms/explore" element={<RoomExplore />} />
+                      <Route path="/room/:roomId" element={<RoomView />} />
+                      <Route path="/shop" element={<PointShop />} />
+                      <Route path="*" element={<Navigate to="/my-room" replace />} />
+                    </Routes>
+                  </Suspense>
+                </TooltipProvider>
+              </OnboardingProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </ThemeColorProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );
