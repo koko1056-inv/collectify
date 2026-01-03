@@ -19,7 +19,7 @@ import { AvatarSocialSection } from "./AvatarSocialSection";
 
 interface MyRoomHomeProps {
   profile: Profile | undefined;
-  onAvatarGenerated: (url: string) => void;
+  onAvatarGenerated: (result: import("@/types/avatar").AvatarGenerationResult) => void | Promise<void>;
 }
 
 export function MyRoomHome({

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Image as ImageIcon, Check, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ensureProfileImagesPublicUrl, setCurrentAvatar } from "@/utils/avatar-storage";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -73,27 +74,13 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
 
   const handleSelectAvatar = async (avatarUrl: string, avatarId: string) => {
     try {
-      // すべてのアバターの is_current を false に
-      await supabase
-        .from("avatar_gallery")
-        .update({ is_current: false })
-        .eq("user_id", userId);
+      const stableUrl = await ensureProfileImagesPublicUrl({ userId, sourceUrl: avatarUrl });
 
-      // 選択したアバターの is_current を true に
-      const { error: galleryError } = await supabase
-        .from("avatar_gallery")
-        .update({ is_current: true })
-        .eq("id", avatarId);
-
-      if (galleryError) throw galleryError;
-
-      // プロフィールのアバターURLを更新
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: avatarUrl })
-        .eq("id", userId);
-
-      if (profileError) throw profileError;
+      await setCurrentAvatar({
+        userId,
+        avatarUrl: stableUrl,
+        avatarGalleryId: avatarId,
+      });
 
       toast({
         title: "アバターを変更しました",
@@ -102,7 +89,7 @@ export function AvatarGalleryModal({ isOpen, onClose, userId, currentAvatarUrl }
 
       // データの更新を確実に完了させてから画面を更新
       await fetchAvatars();
-      
+
       // 少し待ってから閉じることで、親コンポーネントが確実に最新データを取得できるようにする
       setTimeout(() => {
         onClose();
