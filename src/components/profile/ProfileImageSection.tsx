@@ -1,7 +1,7 @@
-import { memo } from "react";
+import { memo, useState, useEffect } from "react";
 import { ProfileImageUpload } from "./ProfileImageUpload";
 import { ProfileHeader } from "./ProfileHeader";
-import { LazyImage } from "@/components/ui/lazy-image";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface ProfileImageSectionProps {
   isOwnProfile: boolean;
@@ -36,12 +36,16 @@ export const ProfileImageSection = memo(function ProfileImageSection({
             avatarUrl={avatarUrl}
           />
         ) : (
-          <LazyImage
-            src={avatarUrl || "/placeholder.svg"}
-            alt={username}
-            className="w-24 h-24 rounded-full object-cover"
-            skeletonClassName="w-24 h-24 rounded-full"
-          />
+          <Avatar className="w-24 h-24">
+            <AvatarImage 
+              src={avatarUrl || undefined} 
+              alt={username}
+              className="object-cover"
+            />
+            <AvatarFallback className="text-2xl">
+              {username?.charAt(0)?.toUpperCase() || "?"}
+            </AvatarFallback>
+          </Avatar>
         )}
       </div>
       <ProfileHeader

@@ -20,18 +20,19 @@ export function LazyImage({
 }: LazyImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  const [currentSrc, setCurrentSrc] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const imgRef = useRef<HTMLImageElement>(null);
-  const maxRetries = 2;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const maxRetries = 3;
 
   // srcが変更されたらリセット
   useEffect(() => {
     setIsLoaded(false);
-    setHasError(false);
+    setCurrentSrc(null);
     setRetryCount(0);
   }, [src]);
 
+  // IntersectionObserver for lazy loading
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -45,8 +46,8 @@ export function LazyImage({
       }
     );
 
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
     }
 
     return () => {
@@ -54,56 +55,63 @@ export function LazyImage({
     };
   }, []);
 
-  const handleLoad = useCallback(() => {
-    setIsLoaded(true);
-    setHasError(false);
-  }, []);
-
-  const handleError = useCallback(() => {
-    if (retryCount < maxRetries) {
-      // 少し待ってから再試行
-      setTimeout(() => {
-        setRetryCount(prev => prev + 1);
-        setIsLoaded(false);
-      }, 500 * (retryCount + 1));
-    } else {
-      setHasError(true);
-      setIsLoaded(true); // フォールバックを表示するため
-    }
-  }, [retryCount]);
-
-  // 再試行時にキャッシュをバイパスするためのURL生成
-  const getImageSrc = () => {
-    if (!isInView) return undefined;
-    if (hasError) return fallbackSrc;
+  // 画像のプリロードと表示
+  useEffect(() => {
+    if (!isInView || !src) return;
     
-    // 再試行時はキャッシュバスティング用のパラメータを追加
-    if (retryCount > 0 && src && !src.includes("placeholder")) {
+    const loadImage = (imageSrc: string) => {
+      const img = new Image();
+      
+      img.onload = () => {
+        setCurrentSrc(imageSrc);
+        setIsLoaded(true);
+      };
+      
+      img.onerror = () => {
+        if (retryCount < maxRetries) {
+          // リトライ回数を増やして再試行
+          const timer = setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+          }, 500 * (retryCount + 1));
+          return () => clearTimeout(timer);
+        } else {
+          // フォールバック画像を表示
+          setCurrentSrc(fallbackSrc);
+          setIsLoaded(true);
+        }
+      };
+      
+      img.src = imageSrc;
+    };
+
+    // リトライ時はキャッシュバスティングパラメータを追加
+    let imageSrc = src;
+    if (retryCount > 0 && !src.includes("placeholder")) {
       const separator = src.includes("?") ? "&" : "?";
-      return `${src}${separator}_retry=${retryCount}`;
+      imageSrc = `${src}${separator}_r=${retryCount}&t=${Date.now()}`;
     }
-    return src;
-  };
+    
+    loadImage(imageSrc);
+  }, [isInView, src, retryCount, fallbackSrc]);
 
   return (
-    <div className="relative w-full h-full">
+    <div ref={containerRef} className="relative w-full h-full">
       {!isLoaded && (
         <Skeleton className={cn("absolute inset-0 w-full h-full", skeletonClassName)} />
       )}
-      <img
-        ref={imgRef}
-        src={getImageSrc()}
-        alt={alt}
-        className={cn(
-          "transition-opacity duration-300",
-          isLoaded ? "opacity-100" : "opacity-0",
-          className
-        )}
-        onLoad={handleLoad}
-        onError={handleError}
-        loading="lazy"
-        {...props}
-      />
+      {currentSrc && (
+        <img
+          src={currentSrc}
+          alt={alt}
+          className={cn(
+            "transition-opacity duration-300",
+            isLoaded ? "opacity-100" : "opacity-0",
+            className
+          )}
+          loading="lazy"
+          {...props}
+        />
+      )}
     </div>
   );
 }
