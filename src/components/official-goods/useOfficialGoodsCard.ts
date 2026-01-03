@@ -131,8 +131,6 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
             description: "ポイントショップで枠を追加購入してください。",
             variant: "destructive",
           });
-          // ショップへナビゲート
-          navigate("/shop");
         } else {
           toast({
             title: "エラー",
