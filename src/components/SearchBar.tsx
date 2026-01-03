@@ -1,9 +1,10 @@
-
 import { useState } from "react";
 import { useSearchSuggestions } from "@/hooks/useSearchSuggestions";
+import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { useItemDetails } from "@/hooks/useItemDetails";
 import { SearchInput } from "@/components/search/SearchInput";
 import { SearchSuggestions } from "@/components/search/SearchSuggestions";
+import { SearchHistory } from "@/components/search/SearchHistory";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { ProgressiveTooltip } from "@/components/onboarding/ProgressiveTooltip";
 import { Tag } from "@/types";
@@ -34,21 +35,25 @@ export function SearchBar({
 }: SearchBarProps) {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isItemDetailsOpen, setIsItemDetailsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   
   const { suggestions, showSuggestions, setShowSuggestions, isLoading, error } = useSearchSuggestions(searchQuery);
+  const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
   const { data: itemDetails } = useItemDetails(selectedItemId || "", !!selectedItemId);
+
+  // 履歴を表示するかどうか（フォーカス中かつ検索クエリが空または短い場合）
+  const showHistory = isFocused && searchQuery.length < 2 && !showSuggestions;
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    console.log('検索入力変更:', value);
     onSearchChange(value);
     setShowSuggestions(value.length >= 2);
   };
 
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
-    console.log('候補クリック:', suggestion);
     onSearchChange(suggestion.title);
     setShowSuggestions(false);
+    addToHistory(suggestion.title);
     
     // グッズの場合は詳細モーダルを開く
     if (suggestion.type === 'item') {
@@ -57,7 +62,14 @@ export function SearchBar({
     }
   };
 
+  const handleHistoryClick = (query: string) => {
+    onSearchChange(query);
+    setIsFocused(false);
+    addToHistory(query); // 使用したので先頭に移動
+  };
+
   const handleInputFocus = () => {
+    setIsFocused(true);
     if (searchQuery.length >= 2) {
       setShowSuggestions(true);
     }
@@ -65,15 +77,23 @@ export function SearchBar({
 
   const handleInputBlur = () => {
     // 少し遅延を入れてクリックイベントを処理できるようにする
-    setTimeout(() => setShowSuggestions(false), 200);
+    setTimeout(() => {
+      setIsFocused(false);
+      setShowSuggestions(false);
+    }, 200);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       setShowSuggestions(false);
+      setIsFocused(false);
+      if (searchQuery.length >= 2) {
+        addToHistory(searchQuery);
+      }
     }
     if (e.key === 'Escape') {
       setShowSuggestions(false);
+      setIsFocused(false);
     }
   };
 
@@ -95,6 +115,16 @@ export function SearchBar({
           />
         </ProgressiveTooltip>
 
+        {/* 検索履歴 */}
+        <SearchHistory
+          history={history}
+          onHistoryClick={handleHistoryClick}
+          onRemove={removeFromHistory}
+          onClearAll={clearHistory}
+          visible={showHistory}
+        />
+
+        {/* 検索サジェスト */}
         <SearchSuggestions
           suggestions={suggestions}
           showSuggestions={showSuggestions}
