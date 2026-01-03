@@ -143,10 +143,18 @@ export function MyRoomHome({
     return <Room3DEditor profile={profile} isFullScreen={true} onClose={() => setShowFullscreenRoom(false)} />;
   }
 
+  // タブバッジの状態（新着があるかどうか）
+  // 実際のアプリではこれをSupabaseから取得
+  const tabBadges = {
+    collection: false, // コレクションに新着がある場合true
+    room: roomItems.length === 0 && mainRoom, // ルームが空の場合にヒントとして表示
+    avatar: !profile?.avatar_url, // アバター未設定の場合
+  };
+
   const tabs = [
-    { id: "collection" as const, icon: Package, label: "コレクション" },
-    { id: "room" as const, icon: Home, label: "ルーム" },
-    { id: "avatar" as const, icon: User, label: "アバター" },
+    { id: "collection" as const, icon: Package, label: "コレクション", badge: tabBadges.collection },
+    { id: "room" as const, icon: Home, label: "ルーム", badge: tabBadges.room },
+    { id: "avatar" as const, icon: User, label: "アバター", badge: tabBadges.avatar },
   ];
 
   return (
@@ -192,14 +200,24 @@ export function MyRoomHome({
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200",
+                    "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 relative",
                     isActive 
                       ? "bg-background text-primary shadow-md" 
                       : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                   )}
                 >
-                  <Icon className={cn("w-4 h-4", isActive && "text-primary")} />
+                  <div className="relative">
+                    <Icon className={cn("w-4 h-4", isActive && "text-primary")} />
+                    {/* バッジドット */}
+                    {tab.badge && !isActive && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
+                    )}
+                  </div>
                   <span className="hidden sm:inline">{tab.label}</span>
+                  {/* モバイルでもバッジを表示 */}
+                  {tab.badge && !isActive && (
+                    <span className="sm:hidden absolute top-1 right-1/4 w-2 h-2 bg-primary rounded-full animate-pulse" />
+                  )}
                 </button>
               );
             })}
