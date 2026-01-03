@@ -208,16 +208,12 @@ export function MyRoomHome({
                 >
                   <div className="relative">
                     <Icon className={cn("w-4 h-4", isActive && "text-primary")} />
-                    {/* バッジドット */}
+                    {/* バッジドット - 1つだけ表示 */}
                     {tab.badge && !isActive && (
                       <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
                     )}
                   </div>
                   <span className="hidden sm:inline">{tab.label}</span>
-                  {/* モバイルでもバッジを表示 */}
-                  {tab.badge && !isActive && (
-                    <span className="sm:hidden absolute top-1 right-1/4 w-2 h-2 bg-primary rounded-full animate-pulse" />
-                  )}
                 </button>
               );
             })}
