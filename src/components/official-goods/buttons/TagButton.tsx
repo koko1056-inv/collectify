@@ -1,9 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Tag } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface TagButtonProps {
   onClick: (e: React.MouseEvent) => void;
@@ -11,15 +10,15 @@ interface TagButtonProps {
   isUserItem?: boolean;
 }
 
-export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProps) {
-  // カテゴリ別タグ数を取得するクエリ（改善版）
-  const { data: categoryCounts = { character: 0, type: 0, series: 0, total: 0 }, refetch } = useQuery({
+export const TagButton = memo(function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProps) {
+  const queryClient = useQueryClient();
+  
+  // カテゴリ別タグ数を取得するクエリ（最適化版）
+  const { data: categoryCounts = { character: 0, type: 0, series: 0, total: 0 } } = useQuery({
     queryKey: ["item-category-tags-count", itemId, isUserItem],
     queryFn: async () => {
       const table = isUserItem ? "user_item_tags" : "item_tags";
       const idField = isUserItem ? "user_item_id" : "official_item_id";
-      
-      console.log(`[TagButton] Fetching category counts for ${itemId}`);
       
       const { data, error } = await supabase
         .from(table)
@@ -34,7 +33,6 @@ export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProp
         .eq(idField, itemId);
       
       if (error) {
-        console.error("Error getting category tag counts:", error);
         return { character: 0, type: 0, series: 0, total: 0 };
       }
       
@@ -49,74 +47,18 @@ export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProp
         }
       });
       
-      // 総数は実際のタグ数ではなく、設定されているカテゴリの数
       counts.total = uniqueCategories.size;
-      
-      console.log(`[TagButton] Category counts for ${itemId}:`, counts);
-      console.log(`[TagButton] Unique categories: ${Array.from(uniqueCategories).join(', ')}`);
       return counts;
     },
     enabled: !!itemId,
-    staleTime: 0, // 常に最新データを取得
-    refetchOnWindowFocus: true, // ウィンドウフォーカス時に再取得
-    refetchOnMount: true, // マウント時に再取得
+    staleTime: 1000 * 60 * 2, // 2分間キャッシュ
+    gcTime: 1000 * 60 * 10, // 10分間保持
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
-  // リアルタイム更新の設定（強化版）
-  useEffect(() => {
-    if (!itemId) return;
-
-    const table = isUserItem ? "user_item_tags" : "item_tags";
-    const idField = isUserItem ? "user_item_id" : "official_item_id";
-    
-    // タグ変更のリアルタイム監視
-    const tagChannel = supabase
-      .channel(`tag-changes-${isUserItem ? 'user' : 'official'}-${itemId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: table,
-          filter: `${idField}=eq.${itemId}`
-        },
-        async (payload) => {
-          console.log(`[TagButton] Tag change detected for ${table} ${itemId}`, payload);
-          
-          // 少し遅延してからリフェッチ（DB反映を待つ）
-          setTimeout(async () => {
-            await refetch();
-          }, 100);
-        }
-      )
-      .subscribe();
-
-    // タグテーブル自体の変更も監視
-    const tagsChannel = supabase
-      .channel(`tags-changes-${itemId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tags'
-        },
-        async (payload) => {
-          console.log(`[TagButton] Tags table change detected for ${itemId}`, payload);
-          
-          // 少し遅延してからリフェッチ
-          setTimeout(async () => {
-            await refetch();
-          }, 100);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(tagChannel);
-      supabase.removeChannel(tagsChannel);
-    };
-  }, [itemId, isUserItem, refetch]);
+  // リアルタイム更新は削除 - 過剰なリクエストを防止
+  // タグ変更時はユーザーアクション後にinvalidateQueriesで更新
 
   return (
     <div className="flex flex-col items-center">
@@ -133,4 +75,4 @@ export function TagButton({ onClick, itemId, isUserItem = false }: TagButtonProp
       </div>
     </div>
   );
-}
+});

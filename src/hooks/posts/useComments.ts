@@ -17,9 +17,12 @@ export function usePostComments(postId: string) {
   const query = useQuery({
     queryKey: ["comments", postId],
     queryFn: async () => {
-      console.log("コメントを取得中:", postId);
-      
-      // コメントを取得（parent_comment_idを含む）
+      // postIdが空の場合は早期リターン
+      if (!postId) {
+        return [];
+      }
+
+      // コメントを取得
       const { data: commentsData, error: commentsError } = await supabase
         .from("post_comments")
         .select("*")
@@ -31,49 +34,55 @@ export function usePostComments(postId: string) {
         throw commentsError;
       }
 
-      // 各コメントに対してプロフィール情報といいね情報を取得
-      const commentsWithProfiles = await Promise.all(
-        (commentsData || []).map(async (comment) => {
-          const { data: profileData, error: profileError } = await supabase
-            .from("profiles")
-            .select("username, avatar_url")
-            .eq("id", comment.user_id)
-            .single();
+      if (!commentsData || commentsData.length === 0) {
+        return [];
+      }
 
-          if (profileError) {
-            console.error("プロフィール取得エラー:", profileError);
-          }
+      // ユーザーIDを収集して一括でプロフィールを取得
+      const userIds = [...new Set(commentsData.map(c => c.user_id))];
+      const commentIds = commentsData.map(c => c.id);
 
-          // いいね情報を取得
-          const { data: likesData, error: likesError } = await supabase
-            .from("comment_likes")
-            .select("id, user_id")
-            .eq("comment_id", comment.id);
+      const [profilesResult, likesResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", userIds),
+        supabase
+          .from("comment_likes")
+          .select("id, user_id, comment_id")
+          .in("comment_id", commentIds)
+      ]);
 
-          if (likesError) {
-            console.error("いいね取得エラー:", likesError);
-          }
-
-          return {
-            ...comment,
-            profiles: profileData || { username: "Unknown User", avatar_url: null },
-            comment_likes: likesData || []
-          };
-        })
+      const profilesMap = new Map(
+        (profilesResult.data || []).map(p => [p.id, { username: p.username, avatar_url: p.avatar_url }])
       );
       
+      const likesMap = new Map<string, CommentLike[]>();
+      (likesResult.data || []).forEach(like => {
+        const existing = likesMap.get(like.comment_id) || [];
+        existing.push({ id: like.id, user_id: like.user_id });
+        likesMap.set(like.comment_id, existing);
+      });
+
       // コメントをスレッド形式に整形
-      const threadedComments: PostComment[] = commentsWithProfiles
+      const formattedComments = commentsData.map(comment => ({
+        ...comment,
+        profiles: profilesMap.get(comment.user_id) || { username: "Unknown User", avatar_url: null },
+        comment_likes: likesMap.get(comment.id) || []
+      }));
+
+      const threadedComments: PostComment[] = formattedComments
         .filter(c => !c.parent_comment_id)
         .map(parent => ({
           ...parent,
-          replies: commentsWithProfiles.filter(c => c.parent_comment_id === parent.id)
+          replies: formattedComments.filter(c => c.parent_comment_id === parent.id)
         }));
-      
-      console.log("取得したコメントデータ:", threadedComments);
       
       return threadedComments;
     },
+    enabled: !!postId,
+    staleTime: 1000 * 30, // 30秒間キャッシュ
+    gcTime: 1000 * 60 * 5, // 5分間保持
   });
 
   // コメントのリアルタイム更新
