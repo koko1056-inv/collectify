@@ -4,12 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, User, Search, FileText, FolderOpen, Globe } from "lucide-react";
+import { ShoppingBasket, User, Search, FileText, FolderOpen, Globe, Palette } from "lucide-react";
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
 import { TradeRequestsModal } from "./trade/TradeRequestsModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useThemeColor, themeColors } from "@/contexts/ThemeColorContext";
 import { ChatButton } from "./ChatButton";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ export function Navbar() {
     language,
     setLanguage
   } = useLanguage();
+  const { themeColor, setThemeColor } = useThemeColor();
   const navigate = useNavigate();
   const {
     profile
@@ -132,6 +134,20 @@ export function Navbar() {
                   <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
                     🇺🇸 English
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="flex items-center gap-2">
+                    <Palette className="w-4 h-4" />
+                    テーマカラー
+                  </DropdownMenuLabel>
+                  {themeColors.map((color) => (
+                    <DropdownMenuItem
+                      key={color.value}
+                      onClick={() => setThemeColor(color.value)}
+                      className={themeColor === color.value ? "bg-accent" : ""}
+                    >
+                      {color.emoji} {color.label}
+                    </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>}
@@ -216,6 +232,20 @@ export function Navbar() {
                   <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
                     🇺🇸 English
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="flex items-center gap-2">
+                    <Palette className="w-4 h-4" />
+                    テーマカラー
+                  </DropdownMenuLabel>
+                  {themeColors.map((color) => (
+                    <DropdownMenuItem
+                      key={color.value}
+                      onClick={() => setThemeColor(color.value)}
+                      className={themeColor === color.value ? "bg-accent" : ""}
+                    >
+                      {color.emoji} {color.label}
+                    </DropdownMenuItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
               
