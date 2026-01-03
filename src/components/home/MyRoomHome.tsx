@@ -498,14 +498,7 @@ function AvatarView({
               </AvatarFallback>
             </Avatar>
           </div>
-        ) : (
-          <Card className="w-48 h-48 sm:w-56 sm:h-56 rounded-full border-dashed border-2 flex items-center justify-center bg-muted/10">
-            <div className="text-center space-y-2">
-              <User className="w-16 h-16 mx-auto text-muted-foreground/40" />
-              <p className="text-muted-foreground text-sm">{t("avatar.notSet")}</p>
-            </div>
-          </Card>
-        )}
+        ) : null}
       </div>
 
       {/* アバターアクションボタン */}
