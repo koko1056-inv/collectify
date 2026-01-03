@@ -23,9 +23,9 @@ export function PointsNavButton({ variant = "full" }: PointsNavButtonProps) {
     return (
       <Button
         variant="ghost"
-        size="icon"
+        size="sm"
         onClick={() => navigate("/shop")}
-        className="relative"
+        className="relative p-2"
       >
         <ShoppingCart className="w-5 h-5" />
       </Button>
