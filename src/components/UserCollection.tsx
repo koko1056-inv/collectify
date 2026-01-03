@@ -7,12 +7,13 @@ import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { CollectionGrid } from "./collection/CollectionGrid";
 import { Button } from "./ui/button";
-import { Dices } from "lucide-react";
+import { Dices, Plus, Sparkles, Package, Camera } from "lucide-react";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
 import { useBatchItemMemories } from "@/hooks/useBatchItemMemories";
 import { useLanguage } from "@/contexts/LanguageContext";
-
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "./ui/card";
 interface UserCollectionProps {
   selectedTags: string[];
   userId?: string | null;
@@ -28,6 +29,7 @@ export function UserCollection({
 }: UserCollectionProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [isCompact, setIsCompact] = useState(false);
   const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
@@ -114,9 +116,69 @@ export function UserCollection({
       </div>;
   }
   if (items.length === 0) {
-    return <div className="text-center py-8">
-        <p className="text-gray-500">{t("collection.empty")}</p>
-      </div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4 animate-fade-in">
+        <Card className="max-w-sm w-full border-dashed border-2 bg-gradient-to-br from-primary/5 to-muted/20">
+          <CardContent className="pt-8 pb-8 text-center space-y-6">
+            {/* メインアイコン */}
+            <div className="w-20 h-20 mx-auto relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
+              <div className="relative w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center border border-primary/20">
+                <Package className="w-10 h-10 text-primary" />
+              </div>
+            </div>
+            
+            {/* テキスト */}
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold text-foreground">
+                最初のグッズを追加しよう！
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                あなたの大切なコレクションを<br />記録してみましょう
+              </p>
+            </div>
+
+            {/* CTAボタン */}
+            <div className="space-y-3">
+              <Button 
+                size="lg" 
+                onClick={() => navigate("/quick-add")} 
+                className="gap-2 w-full h-12 hover-scale shadow-lg"
+              >
+                <Plus className="w-5 h-5" />
+                グッズを追加
+              </Button>
+              
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate("/search")} 
+                  className="flex-1 gap-1.5"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  公式から探す
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate("/image-search")} 
+                  className="flex-1 gap-1.5"
+                >
+                  <Camera className="w-4 h-4" />
+                  写真で追加
+                </Button>
+              </div>
+            </div>
+
+            {/* ヒント */}
+            <p className="text-xs text-muted-foreground/70">
+              💡 ヒント: 写真を撮るだけで自動登録できます
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
   if (filteredItems.length === 0) {
     return <div className="text-center py-8">
