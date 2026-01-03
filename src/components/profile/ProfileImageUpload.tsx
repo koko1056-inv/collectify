@@ -338,6 +338,12 @@ export function ProfileImageUpload({
               src={previewUrl || avatarUrl || "/placeholder.svg"}
               alt="Profile"
               className="w-24 h-24 object-cover rounded-full"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (!target.src.includes("placeholder.svg")) {
+                  target.src = "/placeholder.svg";
+                }
+              }}
             />
             <div
               className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity ${

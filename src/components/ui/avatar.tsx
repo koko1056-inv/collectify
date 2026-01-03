@@ -18,16 +18,45 @@ const Avatar = React.forwardRef<
 ))
 Avatar.displayName = AvatarPrimitive.Root.displayName
 
+interface AvatarImageProps extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> {
+  fallbackDelay?: number;
+}
+
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn("aspect-square h-full w-full", className)}
-    {...props}
-  />
-))
+  AvatarImageProps
+>(({ className, src, fallbackDelay = 600, ...props }, ref) => {
+  const [imgSrc, setImgSrc] = React.useState(src);
+  const [retryCount, setRetryCount] = React.useState(0);
+  const maxRetries = 2;
+
+  // srcが変更されたらリセット
+  React.useEffect(() => {
+    setImgSrc(src);
+    setRetryCount(0);
+  }, [src]);
+
+  const handleError = React.useCallback(() => {
+    if (retryCount < maxRetries && src) {
+      // 再試行時にキャッシュバスティング
+      setTimeout(() => {
+        const separator = src.includes("?") ? "&" : "?";
+        setImgSrc(`${src}${separator}_retry=${retryCount + 1}&t=${Date.now()}`);
+        setRetryCount(prev => prev + 1);
+      }, 300 * (retryCount + 1));
+    }
+  }, [src, retryCount]);
+
+  return (
+    <AvatarPrimitive.Image
+      ref={ref}
+      src={imgSrc}
+      className={cn("aspect-square h-full w-full", className)}
+      onError={handleError}
+      {...props}
+    />
+  );
+})
 AvatarImage.displayName = AvatarPrimitive.Image.displayName
 
 const AvatarFallback = React.forwardRef<
