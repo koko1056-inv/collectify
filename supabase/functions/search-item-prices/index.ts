@@ -65,6 +65,9 @@ serve(async (req) => {
           body: JSON.stringify({
             query,
             limit: 3,
+            scrapeOptions: {
+              formats: ['markdown', 'links'],
+            },
           }),
         });
 
@@ -77,14 +80,22 @@ serve(async (req) => {
         console.log(`${shop} search returned:`, data.data?.length || 0, 'results');
 
         if (data.success && data.data) {
-          return data.data.map((item: any) => ({
-            shop,
-            shopIcon: icon,
-            title: item.title || 'タイトル不明',
-            price: extractPrice(item.description || item.markdown || ''),
-            url: item.url,
-            image: item.image,
-          }));
+          return data.data.map((item: any) => {
+            // Try to extract image from metadata, og:image, or markdown content
+            let image = item.metadata?.ogImage || 
+                       item.metadata?.image || 
+                       item.image ||
+                       extractImageFromMarkdown(item.markdown || '');
+            
+            return {
+              shop,
+              shopIcon: icon,
+              title: item.title || item.metadata?.title || 'タイトル不明',
+              price: extractPrice(item.description || item.markdown || ''),
+              url: item.url,
+              image,
+            };
+          });
         }
         return [];
       } catch (error) {
@@ -132,4 +143,25 @@ function extractPrice(text: string): string {
   }
   
   return '価格不明';
+}
+
+function extractImageFromMarkdown(markdown: string): string | undefined {
+  // Extract first image URL from markdown ![alt](url) or <img src="url">
+  const mdImageMatch = markdown.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+  if (mdImageMatch) {
+    return mdImageMatch[1];
+  }
+  
+  const imgTagMatch = markdown.match(/<img[^>]+src=["'](https?:\/\/[^"']+)["']/i);
+  if (imgTagMatch) {
+    return imgTagMatch[1];
+  }
+  
+  // Look for common image URLs in the text
+  const imageUrlMatch = markdown.match(/(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|webp|gif))/i);
+  if (imageUrlMatch) {
+    return imageUrlMatch[1];
+  }
+  
+  return undefined;
 }
