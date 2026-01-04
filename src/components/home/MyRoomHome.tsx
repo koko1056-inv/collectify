@@ -3,14 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Shirt, Image, Maximize2, Compass, Package, ArrowRight, TrendingUp, ChevronRight } from "lucide-react";
+import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Maximize2, Compass, Package, ArrowRight, TrendingUp, ChevronRight } from "lucide-react";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Profile } from "@/types";
 import { cn } from "@/lib/utils";
-import { AvatarGenerationModal } from "@/components/profile/AvatarGenerationModal";
-import { AvatarDressUpModal } from "./avatar-center/AvatarDressUpModal";
-import { AvatarGalleryModal } from "./avatar-center/AvatarGalleryModal";
+import { AvatarStudioModal } from "@/components/avatar";
 import { IsometricRoomPreview } from "@/components/room3d/IsometricRoomPreview";
 import { Room3DEditor } from "@/components/room3d/Room3DEditor";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
@@ -30,9 +28,7 @@ export function MyRoomHome({
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"room" | "collection" | "avatar">("collection");
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
-  const [showDressUp, setShowDressUp] = useState(false);
-  const [showGallery, setShowGallery] = useState(false);
+  const [showAvatarStudio, setShowAvatarStudio] = useState(false);
   const [showFullscreenRoom, setShowFullscreenRoom] = useState(false);
   const {
     mainRoom,
@@ -249,9 +245,7 @@ export function MyRoomHome({
             <AvatarView 
               profile={profile} 
               userId={user?.id} 
-              onShowAvatarModal={() => setShowAvatarModal(true)} 
-              onShowDressUp={() => setShowDressUp(true)} 
-              onShowGallery={() => setShowGallery(true)} 
+              onOpenAvatarStudio={() => setShowAvatarStudio(true)}
               t={t} 
             />
           )}
@@ -260,24 +254,13 @@ export function MyRoomHome({
 
       {/* モーダル */}
       {user?.id && (
-        <>
-          <AvatarGenerationModal 
-            isOpen={showAvatarModal} 
-            onClose={() => setShowAvatarModal(false)} 
-            onAvatarGenerated={onAvatarGenerated} 
-          />
-          <AvatarDressUpModal 
-            isOpen={showDressUp} 
-            onClose={() => setShowDressUp(false)} 
-            userId={user.id} 
-          />
-          <AvatarGalleryModal 
-            isOpen={showGallery} 
-            onClose={() => setShowGallery(false)} 
-            userId={user.id} 
-            currentAvatarUrl={profile?.avatar_url || null} 
-          />
-        </>
+        <AvatarStudioModal 
+          isOpen={showAvatarStudio} 
+          onClose={() => setShowAvatarStudio(false)} 
+          userId={user.id}
+          currentAvatarUrl={profile?.avatar_url || null}
+          onAvatarGenerated={onAvatarGenerated}
+        />
       )}
     </div>
   );
@@ -470,18 +453,14 @@ function Room3DView({
 interface AvatarViewProps {
   profile: Profile;
   userId: string | undefined;
-  onShowAvatarModal: () => void;
-  onShowDressUp: () => void;
-  onShowGallery: () => void;
+  onOpenAvatarStudio: () => void;
   t: (key: string) => string;
 }
 
 function AvatarView({
   profile,
   userId,
-  onShowAvatarModal,
-  onShowDressUp,
-  onShowGallery,
+  onOpenAvatarStudio,
   t
 }: AvatarViewProps) {
   const hasAvatar = !!profile?.avatar_url;
@@ -492,7 +471,7 @@ function AvatarView({
       <div className="relative mb-6">
         {hasAvatar ? (
           <button 
-            onClick={onShowGallery}
+            onClick={onOpenAvatarStudio}
             className="relative group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-full"
           >
             <div className="absolute -inset-3 bg-gradient-to-br from-primary/30 to-primary/5 rounded-full blur-xl opacity-50 group-hover:opacity-80 transition-opacity" />
@@ -504,13 +483,13 @@ function AvatarView({
             </Avatar>
             {/* ホバー時のオーバーレイ */}
             <div className="absolute inset-0 z-20 rounded-full bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <Image className="w-8 h-8 text-white" />
+              <Sparkles className="w-8 h-8 text-white" />
             </div>
           </button>
         ) : (
           /* アバター未設定時の生成誘導 */
           <button
-            onClick={onShowAvatarModal}
+            onClick={onOpenAvatarStudio}
             className="relative group cursor-pointer focus:outline-none"
           >
             <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full border-2 border-dashed border-primary/40 bg-gradient-to-br from-primary/10 to-primary/5 flex flex-col items-center justify-center gap-3 transition-all duration-300 group-hover:border-primary group-hover:from-primary/20 group-hover:to-primary/10 group-hover:scale-105">
@@ -523,30 +502,14 @@ function AvatarView({
         )}
       </div>
 
-      {/* アクションボタン（横並び・コンパクト） */}
+      {/* アバタースタジオを開くボタン */}
       <div className="flex items-center justify-center gap-2 sm:gap-3 w-full max-w-sm mb-6">
         <button 
-          onClick={onShowAvatarModal}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+          onClick={onOpenAvatarStudio}
+          className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-medium shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
         >
-          <Sparkles className="w-4 h-4" />
-          <span className="text-sm">{t("avatar.aiGenerate")}</span>
-        </button>
-        
-        <button 
-          onClick={onShowDressUp}
-          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-card border border-border hover:bg-accent hover:border-primary/30 transition-all duration-200"
-        >
-          <Shirt className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm hidden sm:inline">{t("avatar.dressUp")}</span>
-        </button>
-        
-        <button 
-          onClick={onShowGallery}
-          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-card border border-border hover:bg-accent hover:border-primary/30 transition-all duration-200"
-        >
-          <Image className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm hidden sm:inline">{t("avatar.gallery")}</span>
+          <Sparkles className="w-5 h-5" />
+          <span className="text-base">アバタースタジオ</span>
         </button>
       </div>
 
