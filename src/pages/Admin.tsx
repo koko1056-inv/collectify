@@ -4,8 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { AdminItemForm } from "@/components/AdminItemForm";
 import { AdminItemList } from "@/components/AdminItemList";
+import { TagCandidatesManager } from "@/components/admin/TagCandidatesManager";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Admin = () => {
   const { user } = useAuth();
@@ -41,10 +43,22 @@ const Admin = () => {
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">管理者ページ</h1>
-        <div className="grid gap-8">
-          <AdminItemForm />
-          <AdminItemList />
-        </div>
+        
+        <Tabs defaultValue="items" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="items">アイテム管理</TabsTrigger>
+            <TabsTrigger value="tags">タグ候補管理</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="items" className="space-y-8">
+            <AdminItemForm />
+            <AdminItemList />
+          </TabsContent>
+          
+          <TabsContent value="tags">
+            <TagCandidatesManager />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
