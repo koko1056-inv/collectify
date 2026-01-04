@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, ChevronDown, Lightbulb, Search, X } from "lucide-react";
+import { Check, ChevronDown, Lightbulb, Search, X, TrendingUp } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 interface TagSuggestSelectProps {
   category: 'character' | 'type' | 'series';
@@ -32,6 +33,30 @@ interface Tag {
   display_context: string | null;
   usage_count: number;
   status: string;
+}
+
+// 検索語をハイライト表示するコンポーネント
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) {
+    return <span>{text}</span>;
+  }
+
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const parts = text.split(regex);
+
+  return (
+    <span>
+      {parts.map((part, i) => 
+        regex.test(part) ? (
+          <mark key={i} className="bg-primary/20 text-primary font-medium px-0.5 rounded">
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </span>
+  );
 }
 
 export function TagSuggestSelect({
@@ -249,6 +274,16 @@ export function TagSuggestSelect({
           
           <ScrollArea className="h-[200px]">
             <div className="p-1">
+              {/* 人気タグセクション（検索なしの場合） */}
+              {!searchQuery.trim() && filteredTags.length > 0 && (
+                <div className="px-2 py-1 mb-1">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" />
+                    人気のタグ
+                  </span>
+                </div>
+              )}
+              
               {filteredTags.length > 0 ? (
                 filteredTags.map((tag) => (
                   <button
@@ -260,10 +295,15 @@ export function TagSuggestSelect({
                     )}
                   >
                     <span className="flex items-center gap-2">
-                      {tag.name}
+                      <HighlightedText text={tag.name} query={searchQuery} />
                       {tag.display_context && (
+                        <Badge variant="outline" className="text-xs py-0 h-5">
+                          {tag.display_context}
+                        </Badge>
+                      )}
+                      {tag.usage_count > 0 && (
                         <span className="text-xs text-muted-foreground">
-                          ({tag.display_context})
+                          ({tag.usage_count})
                         </span>
                       )}
                     </span>
