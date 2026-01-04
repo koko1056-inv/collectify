@@ -18,6 +18,7 @@ export default function Collection() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContent, setSelectedContent] = useState("");
+  const [selectedPersonalTag, setSelectedPersonalTag] = useState("");
   const { data: allTags = [] } = useTags();
 
   const handleSearchChange = useCallback((query: string) => {
@@ -31,6 +32,11 @@ export default function Collection() {
   const handleContentChange = useCallback((content: string) => {
     setSelectedContent(content);
   }, []);
+
+  const handlePersonalTagChange = useCallback((tag: string) => {
+    setSelectedPersonalTag(tag);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <Navbar />
@@ -44,7 +50,9 @@ export default function Collection() {
             onTagsChange={handleTagsChange} 
             selectedContent={selectedContent} 
             onContentChange={handleContentChange} 
-            tags={allTags} 
+            tags={allTags}
+            selectedPersonalTag={selectedPersonalTag}
+            onPersonalTagChange={handlePersonalTagChange}
           />
           
           <div className="transition-all duration-200">
@@ -52,7 +60,8 @@ export default function Collection() {
               selectedTags={selectedTags} 
               userId={user?.id || null} 
               selectedContent={selectedContent} 
-              onContentChange={handleContentChange} 
+              onContentChange={handleContentChange}
+              selectedPersonalTag={selectedPersonalTag}
             />
           </div>
         </div>

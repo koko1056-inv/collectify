@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
+import { PersonalTagsSection } from "@/components/personal-tags/PersonalTagsSection";
 
 interface UserItemDetailsModalProps {
   isOpen: boolean;
@@ -300,6 +301,9 @@ export function UserItemDetailsModal({
                   </div>
                 </div>
               )}
+
+              {/* マイタグ */}
+              <PersonalTagsSection userItemId={itemId} />
             </div>
 
             {/* 思い出記録セクション */}

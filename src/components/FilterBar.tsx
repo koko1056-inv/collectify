@@ -5,11 +5,13 @@ import { SearchBar } from "./SearchBar";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Tag as TagIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "./ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "./ui/badge";
 
 interface FilterBarProps {
   searchQuery: string;
@@ -19,6 +21,8 @@ interface FilterBarProps {
   selectedContent: string;
   onContentChange: (content: string) => void;
   tags: Tag[];
+  selectedPersonalTag?: string;
+  onPersonalTagChange?: (tag: string) => void;
 }
 
 export function FilterBar({
@@ -29,10 +33,32 @@ export function FilterBar({
   selectedContent,
   onContentChange,
   tags,
+  selectedPersonalTag,
+  onPersonalTagChange,
 }: FilterBarProps) {
+  const { user } = useAuth();
   const [contentSearchQuery, setContentSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPersonalTagDialogOpen, setIsPersonalTagDialogOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  // ユーザーの全マイタグを取得
+  const { data: personalTags = [] } = useQuery({
+    queryKey: ["all-personal-tag-names", user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("user_personal_tags")
+        .select("tag_name")
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      
+      const uniqueTags = [...new Set(data.map(t => t.tag_name))];
+      return uniqueTags.sort();
+    },
+    enabled: !!user,
+  });
 
   const handleContentSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setContentSearchQuery(e.target.value);
@@ -165,6 +191,43 @@ export function FilterBar({
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* マイタグフィルタ */}
+      {user && personalTags.length > 0 && onPersonalTagChange && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <TagIcon className="w-3 h-3 text-primary" />
+            <span className="text-xs font-medium text-muted-foreground">マイタグで絞り込み</span>
+          </div>
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex w-max gap-1.5 pb-2">
+              <Button
+                variant={!selectedPersonalTag ? "default" : "outline"}
+                size="sm"
+                className="text-xs h-6 px-2 shrink-0"
+                onClick={() => onPersonalTagChange("")}
+              >
+                すべて
+              </Button>
+              {personalTags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant={selectedPersonalTag === tag ? "default" : "secondary"}
+                  className={`text-xs cursor-pointer ${
+                    selectedPersonalTag === tag 
+                      ? "bg-primary text-primary-foreground" 
+                      : "bg-primary/10 text-primary hover:bg-primary/20"
+                  }`}
+                  onClick={() => onPersonalTagChange(tag)}
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+      )}
 
       <TagFilter
         selectedTags={selectedTags}

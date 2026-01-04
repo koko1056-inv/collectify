@@ -19,6 +19,7 @@ interface UserCollectionProps {
   userId?: string | null;
   selectedContent?: string;
   onContentChange?: (content: string) => void;
+  selectedPersonalTag?: string;
 }
 
 export function UserCollection({
@@ -26,6 +27,7 @@ export function UserCollection({
   userId,
   selectedContent,
   onContentChange,
+  selectedPersonalTag,
 }: UserCollectionProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -71,6 +73,23 @@ export function UserCollection({
   const itemIds = useMemo(() => items.map(item => item.id), [items]);
   const { data: batchMemories = {} } = useBatchItemMemories(itemIds);
 
+  // マイタグでフィルタする場合、対象のuser_item_idを取得
+  const { data: personalTagItemIds = [] } = useQuery({
+    queryKey: ["personal-tag-filter", effectiveUserId, selectedPersonalTag],
+    queryFn: async () => {
+      if (!selectedPersonalTag || !effectiveUserId) return [];
+      const { data, error } = await supabase
+        .from("user_personal_tags")
+        .select("user_item_id")
+        .eq("user_id", effectiveUserId)
+        .eq("tag_name", selectedPersonalTag);
+
+      if (error) throw error;
+      return data.map(d => d.user_item_id);
+    },
+    enabled: !!effectiveUserId && !!selectedPersonalTag,
+  });
+
   // content_nameでのフィルタを追加
   const filteredItems = useMemo(() => {
     let filtered = items;
@@ -87,8 +106,15 @@ export function UserCollection({
         return 'content_name' in item && item.content_name === selectedContent;
       });
     }
+    // マイタグでフィルタ
+    if (selectedPersonalTag && personalTagItemIds.length > 0) {
+      filtered = filtered.filter(item => personalTagItemIds.includes(item.id));
+    } else if (selectedPersonalTag && personalTagItemIds.length === 0) {
+      // マイタグが選択されているが該当アイテムがない場合は空にする
+      filtered = [];
+    }
     return filtered;
-  }, [items, selectedTags, selectedContent]);
+  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;

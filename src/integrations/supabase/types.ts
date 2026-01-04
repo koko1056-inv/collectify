@@ -2148,6 +2148,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_personal_tags: {
+        Row: {
+          created_at: string
+          id: string
+          tag_name: string
+          user_id: string
+          user_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tag_name: string
+          user_id: string
+          user_item_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tag_name?: string
+          user_id?: string
+          user_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_personal_tags_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_personal_tags_user_item_id_fkey"
+            columns: ["user_item_id"]
+            isOneToOne: false
+            referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_point_purchases: {
         Row: {
           id: string
