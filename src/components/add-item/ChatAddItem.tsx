@@ -137,15 +137,16 @@ export function ChatAddItem() {
         return;
       }
 
-      // Upload image if it's a base64 string
+      // Upload image - both base64 and external URLs need to be uploaded to our storage
       let imageUrl = data.imageUrl || "";
+      
       if (imageUrl.startsWith("data:")) {
+        // Base64 image
         const response = await fetch(imageUrl);
         const blob = await response.blob();
         const file = new File([blob], `item-${Date.now()}.jpg`, { type: blob.type });
         
-        const fileExt = "jpg";
-        const fileName = `${Math.random()}.${fileExt}`;
+        const fileName = `${crypto.randomUUID()}.jpg`;
         const filePath = `${user.id}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
@@ -159,6 +160,37 @@ export function ChatAddItem() {
           .getPublicUrl(filePath);
         
         imageUrl = urlData.publicUrl;
+      } else if (imageUrl.startsWith("http") && !imageUrl.includes("supabase.co")) {
+        // External URL - proxy and upload to our storage
+        try {
+          const { data: proxyData } = await supabase.functions.invoke("proxy-image", {
+            body: { url: imageUrl }
+          });
+          
+          if (proxyData?.base64) {
+            const response = await fetch(`data:image/jpeg;base64,${proxyData.base64}`);
+            const blob = await response.blob();
+            const file = new File([blob], `item-${Date.now()}.jpg`, { type: "image/jpeg" });
+            
+            const fileName = `${crypto.randomUUID()}.jpg`;
+            const filePath = `${user.id}/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from("kuji_images")
+              .upload(filePath, file);
+
+            if (!uploadError) {
+              const { data: urlData } = supabase.storage
+                .from("kuji_images")
+                .getPublicUrl(filePath);
+              
+              imageUrl = urlData.publicUrl;
+            }
+          }
+        } catch (proxyError) {
+          console.warn("Failed to proxy image, using original URL:", proxyError);
+          // Keep original URL as fallback
+        }
       }
 
       // Insert the item
