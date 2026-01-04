@@ -7,7 +7,7 @@ import { useSimpleTagManage } from "@/hooks/useSimpleTagManage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
-interface TagManageModalProps {
+interface TagManageModalV2Props {
   isOpen: boolean;
   onClose: () => void;
   itemIds: string[];
@@ -16,14 +16,14 @@ interface TagManageModalProps {
   isUserItem?: boolean;
 }
 
-export function TagManageModal({
+export function TagManageModalV2({
   isOpen,
   onClose,
   itemIds,
   title = "タグ管理",
   itemTitle,
   isUserItem = false
-}: TagManageModalProps) {
+}: TagManageModalV2Props) {
   const {
     tagSelections,
     contentName,
@@ -61,7 +61,7 @@ export function TagManageModal({
               
               <Separator />
               
-              {/* タグ選択セクション（Pinterest型UI） */}
+              {/* タグ選択セクション（新しいPinterest型UI） */}
               <div className="space-y-4">
                 <h4 className="text-sm font-medium">タグ設定</h4>
                 <p className="text-xs text-muted-foreground">

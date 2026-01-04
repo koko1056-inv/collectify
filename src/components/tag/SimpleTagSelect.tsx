@@ -31,7 +31,8 @@ export function SimpleTagSelect({
       let query = supabase
         .from("tags")
         .select("*")
-        .eq("category", category);
+        .eq("category", category)
+        .eq("status", "approved"); // 承認済みのみ取得
       
       // キャラクターとシリーズの場合、コンテンツIDでフィルタリング
       if ((category === "character" || category === "series") && contentId) {
@@ -41,7 +42,7 @@ export function SimpleTagSelect({
         query = query.is("content_id", null);
       }
       
-      const { data, error } = await query.order("name");
+      const { data, error } = await query.order("usage_count", { ascending: false }).order("name");
       
       if (error) {
         console.error(`Error fetching tags for category ${category}:`, error);
@@ -82,10 +83,11 @@ export function SimpleTagSelect({
         return;
       }
 
-      // タグデータを準備
+      // タグデータを準備（status='approved'で作成）
       const tagData: any = { 
         name: trimmedName, 
-        category 
+        category,
+        status: 'approved'
       };
       
       // キャラクターとシリーズの場合、content_idを設定
