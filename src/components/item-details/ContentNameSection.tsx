@@ -83,14 +83,7 @@ export function ContentNameSection({
     setEditedData({ ...editedData, item_type: value });
   };
 
-  if (!isEditing && contentName) {
-    return (
-      <div className="text-sm">
-        <span className="font-medium">コンテンツ: </span>
-        <span>{contentName}</span>
-      </div>
-    );
-  }
+  // 編集モードでない場合はItemDetailInfoで表示されるためここでは表示しない
 
   if (!isEditing) return null;
 
