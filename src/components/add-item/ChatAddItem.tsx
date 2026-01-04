@@ -25,6 +25,19 @@ interface CollectedData {
   price?: string;
 }
 
+
+const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label}がタイムアウトしました`)), ms);
+  });
+  try {
+    return (await Promise.race([promise, timeout])) as T;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+};
+
 export function ChatAddItem() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -61,15 +74,19 @@ export function ChatAddItem() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("add-item-chat", {
-        body: {
-          messages: newMessages.map(m => ({
-            role: m.role,
-            content: m.content,
-            imageUrl: m.imageUrl
-          }))
-        }
-      });
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("add-item-chat", {
+          body: {
+            messages: newMessages.map((m) => ({
+              role: m.role,
+              content: m.content,
+              imageUrl: m.imageUrl,
+            })),
+          },
+        }),
+        30000,
+        "AI応答"
+      );
 
       if (error) throw error;
 
@@ -149,9 +166,11 @@ export function ChatAddItem() {
         const fileName = `${crypto.randomUUID()}.jpg`;
         const filePath = `${user.id}/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("kuji_images")
-          .upload(filePath, file);
+        const { error: uploadError } = await withTimeout(
+          supabase.storage.from("kuji_images").upload(filePath, file),
+          30000,
+          "画像アップロード"
+        );
 
         if (uploadError) throw uploadError;
 
@@ -164,9 +183,13 @@ export function ChatAddItem() {
         // External URL - proxy and upload to our storage
         console.log("Proxying external image:", imageUrl);
         
-        const { data: proxyData, error: proxyError } = await supabase.functions.invoke("proxy-image", {
-          body: { url: imageUrl },
-        });
+        const { data: proxyData, error: proxyError } = await withTimeout(
+          supabase.functions.invoke("proxy-image", {
+            body: { url: imageUrl },
+          }),
+          15000,
+          "画像取得"
+        );
 
         if (proxyError || proxyData?.error) {
           const errorMsg = proxyData?.error || proxyError?.message || "Unknown error";
@@ -204,9 +227,11 @@ export function ChatAddItem() {
         const fileName = `${crypto.randomUUID()}.${ext}`;
         const filePath = `${user.id}/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("kuji_images")
-          .upload(filePath, file);
+        const { error: uploadError } = await withTimeout(
+          supabase.storage.from("kuji_images").upload(filePath, file),
+          30000,
+          "画像アップロード"
+        );
 
         if (uploadError) {
           console.error("Failed to upload image:", uploadError);
