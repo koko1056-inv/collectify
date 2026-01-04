@@ -162,42 +162,45 @@ export function ChatAddItem() {
         imageUrl = urlData.publicUrl;
       } else if (imageUrl.startsWith("http") && !imageUrl.includes("supabase.co")) {
         // External URL - proxy and upload to our storage (avoid CORS-broken URLs)
-        try {
-          const { data: proxyData, error: proxyError } = await supabase.functions.invoke("proxy-image", {
-            body: { url: imageUrl },
-          });
+        const { data: proxyData, error: proxyError } = await supabase.functions.invoke("proxy-image", {
+          body: { url: imageUrl },
+        });
 
-          if (proxyError) throw proxyError;
-
-          const imageBlob = proxyData?.imageBlob as string | undefined;
-          const contentType = (proxyData?.contentType as string | undefined) || "image/jpeg";
-
-          if (imageBlob) {
-            const response = await fetch(`data:${contentType};base64,${imageBlob}`);
-            const blob = await response.blob();
-
-            const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
-            const file = new File([blob], `item-${Date.now()}.${ext}`, { type: contentType });
-
-            const fileName = `${crypto.randomUUID()}.${ext}`;
-            const filePath = `${user.id}/${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-              .from("kuji_images")
-              .upload(filePath, file);
-
-            if (!uploadError) {
-              const { data: urlData } = supabase.storage
-                .from("kuji_images")
-                .getPublicUrl(filePath);
-
-              imageUrl = urlData.publicUrl;
-            }
-          }
-        } catch (proxyError) {
-          console.warn("Failed to proxy image, using original URL:", proxyError);
-          // Keep original URL as fallback
+        if (proxyError) {
+          console.error("Failed to proxy image:", proxyError);
+          throw new Error("画像のアップロードに失敗しました。別の画像を使用してください。");
         }
+
+        const imageBlob = proxyData?.imageBlob as string | undefined;
+        const contentType = (proxyData?.contentType as string | undefined) || "image/jpeg";
+
+        if (!imageBlob) {
+          throw new Error("画像の取得に失敗しました。別の画像を使用してください。");
+        }
+
+        const response = await fetch(`data:${contentType};base64,${imageBlob}`);
+        const blob = await response.blob();
+
+        const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+        const file = new File([blob], `item-${Date.now()}.${ext}`, { type: contentType });
+
+        const fileName = `${crypto.randomUUID()}.${ext}`;
+        const filePath = `${user.id}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("kuji_images")
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error("Failed to upload image:", uploadError);
+          throw new Error("画像のアップロードに失敗しました。");
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("kuji_images")
+          .getPublicUrl(filePath);
+
+        imageUrl = urlData.publicUrl;
       }
 
       // Insert the item
