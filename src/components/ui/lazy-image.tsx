@@ -84,11 +84,22 @@ export function LazyImage({
       img.src = imageSrc;
     };
 
+    // 外部ホストの画像はCORS/期限切れで壊れやすいのでプロキシ経由で読み込む
+    const shouldProxy =
+      src.startsWith("http") &&
+      !src.startsWith("data:") &&
+      !src.includes("supabase.co/storage") &&
+      !src.includes("/functions/v1/proxy-image");
+
+    const baseSrc = shouldProxy
+      ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=${encodeURIComponent(src)}`
+      : src;
+
     // リトライ時はキャッシュバスティングパラメータを追加
-    let imageSrc = src;
-    if (retryCount > 0 && !src.includes("placeholder")) {
-      const separator = src.includes("?") ? "&" : "?";
-      imageSrc = `${src}${separator}_r=${retryCount}&t=${Date.now()}`;
+    let imageSrc = baseSrc;
+    if (retryCount > 0 && !baseSrc.includes("placeholder")) {
+      const separator = baseSrc.includes("?") ? "&" : "?";
+      imageSrc = `${baseSrc}${separator}_r=${retryCount}&t=${Date.now()}`;
     }
     
     loadImage(imageSrc);

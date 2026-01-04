@@ -12,5 +12,8 @@ verify_jwt = false
 [functions.search-item-prices]
 verify_jwt = false
 
+[functions.proxy-image]
+verify_jwt = false
+
 [functions.add-item-chat]
 verify_jwt = false

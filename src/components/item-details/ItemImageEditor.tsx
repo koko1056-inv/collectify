@@ -53,11 +53,16 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
     }
   };
 
+  const displayImageUrl =
+    image && image.startsWith("http") && !image.includes("supabase.co/storage")
+      ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=${encodeURIComponent(image)}`
+      : image;
+
   return (
     <div className="w-full h-full relative group">
       <div className="w-full h-full flex items-center justify-center bg-gray-50">
         <img
-          src={image}
+          src={displayImageUrl}
           alt={title}
           className="w-full h-full object-contain"
         />
