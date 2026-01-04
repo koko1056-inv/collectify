@@ -1,5 +1,6 @@
-
-// 基本的なタグクエリ関数をエクスポート
-export * from './tag-basic-queries';
-export * from './tag-search-queries';
-export * from './tag-group-queries';
+/**
+ * タグクエリ関連の関数をエクスポート
+ */
+export { getTagsForItem, getTagsForMultipleItems, isItemInUserCollection } from './tag-basic-queries';
+export { getTagsByCategory, findTagIdByName, isSimpleTag, getTagGroups } from './tag-search';
+export { getItemsGroupedByTag, getItemsGroupedByCustomGroups } from './tag-groups';

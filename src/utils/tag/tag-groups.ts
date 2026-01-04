@@ -1,7 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Tag, TagGroup, TagGroupedItems, ItemsGroupedByTag } from "./types";
+import { TagGroupedItems, ItemsGroupedByTag } from "@/types/tag";
 
-// タグでグループ化されたアイテムを取得する関数
+/**
+ * タグでグループ化されたアイテムを取得する関数
+ */
 export async function getItemsGroupedByTag(
   userId: string, 
   tagCategory?: string 
@@ -36,9 +38,7 @@ export async function getItemsGroupedByTag(
     const groupedItems: TagGroupedItems = {};
 
     // タグIDとタグ名のマッピングを作成
-    const tagMap: Record<string, string> = {};
     tags.forEach(tag => {
-      tagMap[tag.id] = tag.name;
       groupedItems[tag.name] = [];
     });
 
@@ -83,12 +83,12 @@ export async function getItemsGroupedByTag(
   }
 }
 
-// カスタムグループでアイテムをグループ化する関数
+/**
+ * カスタムグループでアイテムをグループ化する関数
+ */
 export async function getItemsGroupedByCustomGroups(
   userId: string
 ): Promise<ItemsGroupedByTag[]> {
-  // 現時点ではカスタムグループ機能は実装されていないため、単純にタグでグループ化した結果を返す
-  // 将来的にカスタムグループ機能を実装する際に、この関数を拡張することができます
   try {
     const { data, error } = await supabase
       .from("user_items")
@@ -131,48 +131,5 @@ export async function getItemsGroupedByCustomGroups(
   } catch (error) {
     console.error("Error grouping items by custom groups:", error);
     return [];
-  }
-}
-
-// タググループを取得する関数
-export async function getTagGroups(): Promise<{ [key: string]: string[] }> {
-  try {
-    const { data, error } = await supabase
-      .from("tags")
-      .select(`
-        id,
-        name,
-        category
-      `)
-      .eq("is_category", true)
-      .order("name");
-
-    if (error) {
-      console.error("Error fetching tag groups:", error);
-      return {};
-    }
-
-    const groups: { [key: string]: string[] } = {};
-
-    // カテゴリとして設定されているタグを取得
-    for (const group of data) {
-      groups[group.name] = [];
-
-      // 各カテゴリに属するタグを取得
-      const { data: groupTags, error: groupError } = await supabase
-        .from("tags")
-        .select("name")
-        .eq("category", group.name)
-        .order("name");
-
-      if (!groupError && groupTags) {
-        groups[group.name] = groupTags.map(tag => tag.name);
-      }
-    }
-
-    return groups;
-  } catch (error) {
-    console.error("Error in getTagGroups:", error);
-    return {};
   }
 }

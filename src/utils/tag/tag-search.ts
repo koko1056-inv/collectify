@@ -1,11 +1,10 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleTag, Tag } from "./types";
+import { Tag, SimpleTag } from "@/types/tag";
 
-// カテゴリーごとのタグを取得（承認済みのみ）
-export async function getTagsByCategory(
-  category: string
-): Promise<Tag[]> {
+/**
+ * カテゴリーごとのタグを取得（承認済みのみ）
+ */
+export async function getTagsByCategory(category: string): Promise<Tag[]> {
   try {
     const { data, error } = await supabase
       .from("tags")
@@ -27,20 +26,20 @@ export async function getTagsByCategory(
   }
 }
 
-// タグ名からタグIDを検索（承認済みのみ）
+/**
+ * タグ名からタグIDを検索（承認済みのみ）
+ */
 export async function findTagIdByName(
   name: string,
   category?: string,
   contentId?: string | null
 ): Promise<string | null> {
   try {
-    console.log(`[findTagIdByName] Searching for tag: name="${name}", category="${category}", contentId="${contentId}"`);
-    
     const query = supabase
       .from("tags")
       .select("id, name, category, content_id")
       .eq("name", name)
-      .eq("status", "approved"); // 承認済みのみ検索
+      .eq("status", "approved");
     
     if (category) {
       query.eq("category", category);
@@ -56,19 +55,15 @@ export async function findTagIdByName(
     
     const { data, error } = await query.maybeSingle();
     
-    console.log(`[findTagIdByName] Query result:`, { data, error });
-    
     if (error) {
       console.error(`[findTagIdByName] Database error for tag "${name}":`, error);
       return null;
     }
     
     if (!data) {
-      console.error(`[findTagIdByName] Tag not found: "${name}"`);
       return null;
     }
     
-    console.log(`[findTagIdByName] Found tag ID: ${data.id} for name: ${name}`);
     return data.id;
   } catch (error) {
     console.error(`[findTagIdByName] Exception while searching for tag "${name}":`, error);
@@ -76,7 +71,9 @@ export async function findTagIdByName(
   }
 }
 
-// SimpleTagかどうかをチェック（型ガード関数）
+/**
+ * SimpleTagかどうかをチェック（型ガード関数）
+ */
 export function isSimpleTag(tag: any): tag is SimpleTag {
   return (
     typeof tag === 'object' &&
@@ -86,7 +83,10 @@ export function isSimpleTag(tag: any): tag is SimpleTag {
   );
 }
 
-// グループ化されたタグを取得（承認済みのみ）
+/**
+ * グループ化されたタグを取得（承認済みのみ）
+ * 注意: N+1クエリ問題あり - 将来的に最適化が必要
+ */
 export async function getTagGroups(): Promise<{[key: string]: string[]}> {
   try {
     const { data, error } = await supabase
