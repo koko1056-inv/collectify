@@ -26,6 +26,26 @@ interface CollectedData {
 }
 
 
+const normalizeImageUrl = (raw?: string): string | undefined => {
+  if (!raw) return raw;
+  if (raw.startsWith("data:")) return raw;
+
+  try {
+    const u = new URL(raw);
+
+    // Google画像検索の中継URL → 実画像URLへ
+    // 例: https://www.google.com/imgres?imgurl=https%3A%2F%2F...jpg&...
+    if ((u.hostname === "www.google.com" || u.hostname === "google.com") && u.pathname === "/imgres") {
+      const imgurl = u.searchParams.get("imgurl");
+      if (imgurl) return imgurl;
+    }
+  } catch {
+    // ignore
+  }
+
+  return raw;
+};
+
 const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<never>((_, reject) => {
@@ -65,9 +85,10 @@ export function ChatAddItem() {
   }, [messages]);
 
   const sendMessage = async (content: string, imageUrl?: string) => {
-    if (!content.trim() && !imageUrl) return;
+    const normalizedImageUrl = normalizeImageUrl(imageUrl);
+    if (!content.trim() && !normalizedImageUrl) return;
 
-    const userMessage: Message = { role: "user", content, imageUrl };
+    const userMessage: Message = { role: "user", content, imageUrl: normalizedImageUrl };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
@@ -99,7 +120,10 @@ export function ChatAddItem() {
       setMessages([...newMessages, assistantMessage]);
       
       if (data.collectedData) {
-        setCollectedData(data.collectedData);
+        setCollectedData({
+          ...data.collectedData,
+          imageUrl: normalizeImageUrl(data.collectedData.imageUrl),
+        });
       }
       setIsComplete(data.isComplete || false);
       setIsConfirmed(data.isConfirmed || false);
@@ -155,7 +179,7 @@ export function ChatAddItem() {
       }
 
       // Upload image - both base64 and external URLs need to be uploaded to our storage
-      let imageUrl = data.imageUrl || "";
+      let imageUrl = normalizeImageUrl(data.imageUrl) || "";
       
       if (imageUrl.startsWith("data:")) {
         // Base64 image
