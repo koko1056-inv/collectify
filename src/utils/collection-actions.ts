@@ -86,7 +86,7 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
     
     if (insertError) throw insertError;
     
-    // 5. ポイント付与（5pt）
+    // 5. ポイント付与（1pt）
     let pointsAwarded = 0;
     const { data: userPoints } = await supabase
       .from("user_points")
@@ -95,7 +95,7 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
       .single();
     
     const currentPoints = userPoints?.total_points || 0;
-    const newPoints = currentPoints + 5;
+    const newPoints = currentPoints + 1;
     
     // ポイント更新
     if (userPoints) {
@@ -106,7 +106,7 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
     } else {
       await supabase
         .from("user_points")
-        .insert({ user_id: userId, total_points: 5 });
+        .insert({ user_id: userId, total_points: 1 });
     }
     
     // ポイント履歴に記録
@@ -114,13 +114,13 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
       .from("point_transactions")
       .insert({
         user_id: userId,
-        points: 5,
+        points: 1,
         transaction_type: "item_add",
         description: `グッズ追加: ${title}`,
         reference_id: userItem.id
       });
     
-    pointsAwarded = 5;
+    pointsAwarded = 1;
     
     return {
       success: true,
