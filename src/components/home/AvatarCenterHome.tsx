@@ -4,12 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Dices, Store, Shirt, ChevronDown, Image, User, UploadCloud, Sparkles, Check, Trash2, Edit2, Search } from "lucide-react";
 import { Profile } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
-import { AvatarGenerationModal } from "@/components/profile/AvatarGenerationModal";
+import { AvatarStudioModal } from "@/components/avatar";
 import type { AvatarGenerationResult } from "@/types/avatar";
 import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
 import { GoodsDisplayModal } from "./avatar-center/GoodsDisplayModal";
-import { AvatarDressUpModal } from "./avatar-center/AvatarDressUpModal";
-import { AvatarGalleryModal } from "./avatar-center/AvatarGalleryModal";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureProfileImagesPublicUrl, setCurrentAvatar } from "@/utils/avatar-storage";
 import { toast } from "sonner";
@@ -54,11 +52,9 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
   const { user } = useAuth();
   const userId = user?.id;
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [showAvatarStudio, setShowAvatarStudio] = useState(false);
   const [showRandomPickup, setShowRandomPickup] = useState(false);
   const [showGoodsDisplay, setShowGoodsDisplay] = useState(false);
-  const [showDressUp, setShowDressUp] = useState(false);
-  const [showGallery, setShowGallery] = useState(false);
   const [showGoodsGallery, setShowGoodsGallery] = useState(false);
   const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
   const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string; name: string | null }>>([]);
@@ -378,7 +374,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     {
       icon: Image,
       label: "着せ替えギャラリー",
-      onClick: () => setShowGallery(true),
+      onClick: () => setShowAvatarStudio(true),
       color: "from-gray-800 to-gray-900"
     },
     {
@@ -396,7 +392,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
     {
       icon: Shirt,
       label: "グッズ着せ替え",
-      onClick: () => setShowDressUp(true),
+      onClick: () => setShowAvatarStudio(true),
       color: "from-gray-500 to-gray-600"
     }
   ];
@@ -522,12 +518,12 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
                   variant="ghost"
                   className="justify-start h-auto py-3 px-3"
                   onClick={() => {
-                    setShowAvatarModal(true);
+                    setShowAvatarStudio(true);
                     setIsAvatarPopoverOpen(false);
                   }}
                 >
                   <Sparkles className="w-4 h-4 mr-3" />
-                  <span className="text-sm">AIでアバター生成</span>
+                  <span className="text-sm">アバタースタジオ</span>
                 </Button>
               </div>
             </div>
@@ -570,9 +566,14 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
       </div>
 
       {/* モーダル */}
-      <AvatarGenerationModal
-        isOpen={showAvatarModal}
-        onClose={() => setShowAvatarModal(false)}
+      <AvatarStudioModal
+        isOpen={showAvatarStudio}
+        onClose={() => {
+          setShowAvatarStudio(false);
+          fetchCurrentAvatar();
+        }}
+        userId={userId}
+        currentAvatarUrl={currentAvatarUrl || profile?.avatar_url || null}
         onAvatarGenerated={handleAvatarGenerated}
       />
 
@@ -637,25 +638,6 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         onClose={() => setShowGoodsGallery(false)}
         userId={userId}
         initialShowGallery={true}
-      />
-
-      <AvatarDressUpModal
-        isOpen={showDressUp}
-        onClose={() => {
-          setShowDressUp(false);
-          fetchCurrentAvatar();
-        }}
-        userId={userId}
-      />
-
-      <AvatarGalleryModal
-        isOpen={showGallery}
-        onClose={() => {
-          setShowGallery(false);
-          fetchCurrentAvatar();
-        }}
-        userId={userId}
-        currentAvatarUrl={currentAvatarUrl || profile?.avatar_url}
       />
     </>
   );

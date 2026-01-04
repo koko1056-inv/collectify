@@ -1,0 +1,1 @@
+export { AvatarStudioModal } from "./AvatarStudioModal";
