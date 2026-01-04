@@ -126,14 +126,35 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to fetch image";
     console.error("Error in proxy-image function:", error);
+
+    // GET (imgタグ) の場合は、壊れた画像にならないように 1x1 透明PNGを返す
+    if (req.method === "GET") {
+      const transparentPngBase64 =
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMBAF3vKxkAAAAASUVORK5CYII=";
+      const binary = atob(transparentPngBase64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+      return new Response(bytes, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "image/png",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+
+    // POST (supabase.functions.invoke) の場合は、ステータス200でエラー内容を返して
+    // クライアント側が「登録は続行しつつ注意喚起」できるようにする
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Failed to fetch image",
-        suggestion: "画像を直接アップロードしてください"
+      JSON.stringify({
+        error: message,
+        suggestion: "画像を直接アップロードしてください",
       }),
       {
-        status: 500,
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
