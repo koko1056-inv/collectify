@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.add-item-chat]
 verify_jwt = false
+
+[functions.delete-official-item]
+verify_jwt = false
