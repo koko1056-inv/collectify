@@ -217,23 +217,26 @@ export function CreatePostFromCollectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[95vh] w-[95vw] overflow-hidden flex flex-col p-0">
-        {/* ヘッダー部分 - ステップ表示付き */}
-        <div className="bg-gradient-to-r from-primary/5 to-primary/10 px-6 py-5 border-b">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold">
-              1
+      <DialogContent className="max-w-5xl max-h-[90vh] w-[95vw] overflow-hidden flex flex-col p-0">
+        {/* ヘッダー部分 */}
+        <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 px-5 py-4 border-b">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shadow-sm">
+                1
+              </div>
+              <div className="text-xs text-muted-foreground">/ 2</div>
             </div>
             <div className="flex-1">
-              <DialogTitle className="text-lg font-bold">投稿するグッズを選択</DialogTitle>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                コレクションから投稿したいグッズをタップしてください
+              <h2 className="text-lg font-bold">投稿するグッズを選択</h2>
+              <p className="text-sm text-muted-foreground">
+                {isSelectionMode ? "複数選択中 - チェックを入れて確定してください" : "タップで選択、または複数選択モードを使用"}
               </p>
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-background/80">
-                <ImageIcon className="h-3.5 w-3.5" />
-                <span>{filteredAndSortedItems.length}件</span>
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="px-3 py-1.5 rounded-full bg-background border flex items-center gap-1.5">
+                <ImageIcon className="h-4 w-4 text-primary" />
+                <span>{filteredAndSortedItems.length}</span>
               </div>
             </div>
           </div>
@@ -246,7 +249,7 @@ export function CreatePostFromCollectionModal({
                   variant="outline" 
                   size="sm"
                   onClick={() => setIsSelectionMode(true)}
-                  className="bg-background/80 hover:bg-background"
+                  className="bg-background hover:bg-primary hover:text-primary-foreground transition-colors"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-1.5" />
                   複数選択
@@ -258,14 +261,14 @@ export function CreatePostFromCollectionModal({
                     onClose();
                     navigate('/add-item');
                   }}
-                  className="bg-background/80 hover:bg-background"
+                  className="bg-background hover:bg-background"
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
-                  新しいグッズを追加
+                  新しく追加
                 </Button>
               </>
             ) : (
-              <div className="w-full">
+              <div className="w-full bg-primary/5 rounded-lg p-2">
                 <SelectionModeControls
                   selectedItems={selectedItemIds}
                   totalItems={filteredAndSortedItems.length}
@@ -279,58 +282,66 @@ export function CreatePostFromCollectionModal({
         </div>
 
         {/* 検索・フィルター */}
-        <div className="px-4 py-3 space-y-3 border-b bg-muted/30">
+        <div className="px-4 py-3 space-y-3 border-b bg-background">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input 
               type="text" 
-              placeholder="グッズ名やコンテンツ名で検索..." 
+              placeholder="グッズ名・コンテンツ名で検索..." 
               value={searchQuery} 
               onChange={e => setSearchQuery(e.target.value)} 
-              className="pl-10 bg-background" 
+              className="pl-10 h-10" 
             />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                onClick={() => setSearchQuery("")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
 
           {typeTags.length > 0 && (
-            <div>
-              <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex space-x-2 pb-1">
-                  {typeTags.map(tag => (
-                    <Button 
-                      key={tag.id} 
-                      variant={selectedTags.includes(tag.name) ? "default" : "outline"} 
-                      size="sm" 
-                      onClick={() => handleTagToggle(tag.name)} 
-                      className="whitespace-nowrap h-8 text-xs"
-                    >
-                      {tag.name}
-                    </Button>
-                  ))}
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            </div>
+            <ScrollArea className="w-full whitespace-nowrap">
+              <div className="flex gap-2 pb-1">
+                {typeTags.map(tag => (
+                  <Button 
+                    key={tag.id} 
+                    variant={selectedTags.includes(tag.name) ? "default" : "outline"} 
+                    size="sm" 
+                    onClick={() => handleTagToggle(tag.name)} 
+                    className="whitespace-nowrap h-8 text-xs rounded-full"
+                  >
+                    {tag.name}
+                  </Button>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           )}
 
-          {(selectedContentNames.length > 0 || selectedTags.length > 0) && (
-            <div className="flex flex-wrap gap-1.5">
+          {hasActiveFilters && (
+            <div className="flex flex-wrap items-center gap-1.5">
               {selectedContentNames.map(contentName => (
-                <Badge key={contentName} variant="secondary" className="text-xs py-1">
+                <Badge key={contentName} variant="secondary" className="text-xs py-1 pr-1">
                   {contentName}
                   <button 
                     onClick={() => handleContentNameToggle(contentName)} 
-                    className="ml-1.5 hover:bg-muted rounded-full"
+                    className="ml-1 p-0.5 hover:bg-muted rounded-full"
                   >
                     <X className="h-3 w-3" />
                   </button>
                 </Badge>
               ))}
               {selectedTags.map(tagName => (
-                <Badge key={tagName} variant="outline" className="text-xs py-1 border-primary/30 text-primary">
+                <Badge key={tagName} className="text-xs py-1 pr-1 bg-primary/10 text-primary border-0">
                   {tagName}
                   <button 
                     onClick={() => handleTagToggle(tagName)} 
-                    className="ml-1.5 hover:bg-primary/10 rounded-full"
+                    className="ml-1 p-0.5 hover:bg-primary/20 rounded-full"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -340,83 +351,91 @@ export function CreatePostFromCollectionModal({
                 variant="ghost" 
                 size="sm" 
                 onClick={clearAllFilters}
-                className="h-6 text-xs text-muted-foreground hover:text-foreground"
+                className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
               >
-                クリア
+                すべてクリア
               </Button>
             </div>
           )}
         </div>
         
         {/* グッズ一覧 */}
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="flex-1 overflow-y-auto px-4 py-4">
           {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {[...Array(12)].map((_, i) => (
                 <div key={i} className="flex flex-col space-y-2">
-                  <Skeleton className="w-full aspect-square rounded-lg" />
-                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="w-full aspect-square rounded-xl" />
+                  <Skeleton className="h-4 w-3/4" />
                 </div>
               ))}
             </div>
           ) : filteredAndSortedItems.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3">
-              {filteredAndSortedItems.map(item => (
-                <div 
-                  key={item.id} 
-                  className="group relative cursor-pointer"
-                  onClick={() => handleItemSelect(item)}
-                >
-                  {isSelectionMode && (
-                    <div className="absolute top-2 left-2 z-10">
-                      <Checkbox
-                        checked={selectedItemIds.includes(item.id)}
-                        onCheckedChange={() => handleItemToggle(item.id)}
-                        className="bg-background border-2 h-5 w-5"
-                      />
-                    </div>
-                  )}
-                  <div className={`
-                    relative rounded-xl overflow-hidden border-2 transition-all duration-200
-                    ${isSelectionMode && selectedItemIds.includes(item.id) 
-                      ? 'border-primary ring-2 ring-primary/20' 
-                      : 'border-transparent hover:border-primary/50'}
-                    bg-card hover:shadow-lg
-                  `}>
-                    <div className="aspect-square overflow-hidden bg-muted">
-                      <img 
-                        src={item.image} 
-                        alt={item.title} 
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
-                      />
-                    </div>
-                    <div className="p-2.5">
-                      <div className="font-medium text-xs line-clamp-2 leading-tight">{item.title}</div>
-                      {item.content_name && (
-                        <div className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{item.content_name}</div>
-                      )}
-                    </div>
-                    {/* ホバー時のオーバーレイ */}
-                    {!isSelectionMode && (
-                      <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-lg">
-                          <Sparkles className="h-3.5 w-3.5" />
-                          選択して投稿
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              {filteredAndSortedItems.map(item => {
+                const isSelected = selectedItemIds.includes(item.id);
+                return (
+                  <div 
+                    key={item.id} 
+                    className="group relative cursor-pointer"
+                    onClick={() => handleItemSelect(item)}
+                  >
+                    {isSelectionMode && (
+                      <div className="absolute top-2 left-2 z-10">
+                        <div className={`
+                          h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all
+                          ${isSelected 
+                            ? 'bg-primary border-primary text-primary-foreground' 
+                            : 'bg-background/80 border-muted-foreground/30 backdrop-blur-sm'}
+                        `}>
+                          {isSelected && <CheckCircle2 className="h-4 w-4" />}
                         </div>
                       </div>
                     )}
+                    <div className={`
+                      relative rounded-xl overflow-hidden transition-all duration-200
+                      ${isSelected 
+                        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' 
+                        : 'hover:ring-2 hover:ring-primary/50 hover:ring-offset-1 hover:ring-offset-background'}
+                      bg-card shadow-sm hover:shadow-md
+                    `}>
+                      <div className="aspect-square overflow-hidden bg-muted">
+                        <img 
+                          src={item.image} 
+                          alt={item.title} 
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="p-2.5">
+                        <p className="font-medium text-xs line-clamp-2 leading-tight">{item.title}</p>
+                        {item.content_name && (
+                          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{item.content_name}</p>
+                        )}
+                      </div>
+                      
+                      {/* ホバー時のオーバーレイ */}
+                      {!isSelectionMode && (
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                          <div className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                            <Sparkles className="h-3.5 w-3.5" />
+                            選択して投稿
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          ) : searchQuery || selectedContentNames.length > 0 || selectedTags.length > 0 ? (
+          ) : hasActiveFilters ? (
             <div className="text-center py-16">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                <Search className="h-8 w-8 text-muted-foreground" />
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                <Search className="h-10 w-10 text-muted-foreground" />
               </div>
-              <p className="text-muted-foreground text-lg font-medium">検索結果がありません</p>
-              <p className="text-sm text-muted-foreground/70 mt-2">
-                検索条件を変更してお試しください
+              <p className="text-lg font-medium">検索結果がありません</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                条件を変更してもう一度お試しください
               </p>
               <Button 
                 variant="outline" 
@@ -428,12 +447,12 @@ export function CreatePostFromCollectionModal({
             </div>
           ) : (
             <div className="text-center py-16">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                <ImageIcon className="h-8 w-8 text-muted-foreground" />
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                <ImageIcon className="h-10 w-10 text-primary" />
               </div>
-              <p className="text-muted-foreground text-lg font-medium">投稿できるグッズがありません</p>
-              <p className="text-sm text-muted-foreground/70 mt-2">
-                まずはコレクションにグッズを追加しましょう
+              <p className="text-lg font-medium">グッズがありません</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                コレクションにグッズを追加しましょう
               </p>
               <Button 
                 onClick={() => {
@@ -443,17 +462,23 @@ export function CreatePostFromCollectionModal({
                 className="mt-4"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                グッズを追加する
+                グッズを追加
               </Button>
             </div>
           )}
         </div>
 
-        {/* フッター - ヒント表示 */}
-        <div className="px-4 py-3 border-t bg-muted/30 text-center">
-          <p className="text-xs text-muted-foreground">
-            💡 グッズをタップすると、キャプションや画像を編集して投稿できます
+        {/* フッター */}
+        <div className="px-4 py-3 border-t bg-muted/30 flex items-center justify-between gap-4">
+          <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5" />
+            グッズをタップして次のステップへ
           </p>
+          {isSelectionMode && selectedItemIds.length > 0 && (
+            <Button onClick={handleConfirmSelection} size="sm">
+              {selectedItemIds.length}件を選択して次へ
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
