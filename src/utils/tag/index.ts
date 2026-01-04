@@ -1,23 +1,41 @@
+/**
+ * タグ関連のすべてのユーティリティ関数をエクスポート
+ */
 
-// タグ関連のすべてのユーティリティ関数をエクスポート
-export * from './tag-core';
-export * from './tag-mutations';
-export * from './tag-queries';
-export * from './tag-copy';
-export * from './content-operations';
-export * from './user-item-operations';
-// tag-searchからのエクスポートは重複するため、個別に必要な関数だけを再エクスポート
-export { findTagIdByName, isSimpleTag } from './tag-search';
+// コア関数
+export { isValidUUID, isUUID } from './tag-core';
+
+// タグ操作（追加・削除・更新）
+export { addTagToItem, removeTagFromItem, updateTagsForMultipleItems } from './tag-mutations';
+
+// タグクエリ
+export { getTagsForItem, getTagsForMultipleItems, isItemInUserCollection } from './tag-basic-queries';
+
+// タグ検索
+export { getTagsByCategory, findTagIdByName, isSimpleTag, getTagGroups } from './tag-search';
+
+// タググループ
 export { getItemsGroupedByTag, getItemsGroupedByCustomGroups } from './tag-groups';
 
-// types.tsから直接型をインポートして再エクスポート（重複を避けるため）
+// タグコピー
+export { copyTagsFromOfficialItem } from './tag-copy';
+
+// コンテンツ操作
+export { getAllContentNames, addContentName, getContentById, setItemContent } from './content-operations';
+
+// ユーザーアイテム操作
+export { deleteUserItem, getRandomUserItem } from './user-item-operations';
+
+// 型を再エクスポート
 export type { 
   Tag,
   SimpleTag,
   SimpleItemTag,
+  ItemTag,
+  TagUpdate,
   TagGroup,
   ContentInfo,
   TagGroupedItems,
   ItemsGroupedByTag,
   UserItemWithTags
-} from './types';
+} from '@/types/tag';

@@ -1,20 +1,9 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import { Tag, SimpleItemTag } from "@/types/tag";
 
-// 循環参照を避けるため、型を直接定義
-interface Tag {
-  id: string;
-  name: string;
-  category?: string;
-  created_at?: string;
-}
-
-interface SimpleItemTag {
-  id: string;
-  tag_id: string;
-  tags: Tag | null;
-}
-
+/**
+ * アイテムのタグを取得する関数
+ */
 export async function getTagsForItem(itemId: string, isUserItem: boolean = false): Promise<SimpleItemTag[]> {
   if (!itemId) return [];
   
@@ -22,8 +11,6 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
   const itemIdField = isUserItem ? "user_item_id" : "official_item_id";
 
   try {
-    console.log(`Fetching tags for ${isUserItem ? 'user' : 'official'} item: ${itemId}`);
-    
     const { data, error } = await supabase
       .from(table)
       .select(`
@@ -43,15 +30,9 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
       throw error;
     }
     
-    console.log(`Raw tag data for item ${itemId}:`, data);
-    
     // Ensure each item has the required fields and valid tag data
     const processedData = (data || []).map(item => {
-      console.log(`Processing tag item:`, item);
-      
-      // タグ情報が正しく取得されているか確認
       if (!item.tags) {
-        console.warn(`Tag data is null for tag_id: ${item.tag_id}`);
         return null;
       }
       
@@ -60,9 +41,8 @@ export async function getTagsForItem(itemId: string, isUserItem: boolean = false
         tag_id: item.tag_id,
         tags: item.tags
       };
-    }).filter(Boolean); // null値を除去
+    }).filter(Boolean) as SimpleItemTag[];
     
-    console.log(`Processed tag data for item ${itemId}:`, processedData);
     return processedData;
   } catch (error) {
     console.error("Error fetching tags for item:", error);
