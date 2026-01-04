@@ -109,6 +109,23 @@ serve(async (req) => {
 
     // For client-side processing (POST via supabase.functions.invoke)
     const buffer = await imageResponse.arrayBuffer();
+
+    // Guard: Imgur sometimes returns a tiny "image not available" placeholder.
+    // Treat very small images from imgur as a failure so the client can ask for direct upload.
+    try {
+      const host = new URL(targetUrl).hostname;
+      if (host.endsWith("imgur.com") && buffer.byteLength < 5 * 1024) {
+        return new Response(
+          JSON.stringify({
+            error: "画像が見つからない(または削除済み)可能性があります",
+            suggestion: "画像を直接アップロードしてください",
+          }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } catch {
+      // ignore
+    }
     
     // Validate size (max 10MB)
     if (buffer.byteLength > 10 * 1024 * 1024) {
