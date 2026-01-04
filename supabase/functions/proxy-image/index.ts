@@ -1,15 +1,14 @@
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 function bufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   const len = bytes.byteLength;
-  let binary = '';
+  let binary = "";
   for (let i = 0; i < len; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
@@ -18,50 +17,70 @@ function bufferToBase64(buffer: ArrayBuffer): string {
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { url } = await req.json()
-    if (!url) {
-      throw new Error('URL is required')
-    }
+    const requestUrl = new URL(req.url);
 
-    console.log('Fetching image from:', url)
-    
-    // Fetch the image
-    const imageResponse = await fetch(url)
+    const targetUrl =
+      req.method === "GET"
+        ? requestUrl.searchParams.get("url")
+        : (await req.json())?.url;
+
+    if (!targetUrl) throw new Error("URL is required");
+
+    console.log("proxy-image: fetching", targetUrl);
+
+    const imageResponse = await fetch(targetUrl, {
+      headers: {
+        // Some hosts block requests without UA
+        "User-Agent": "Mozilla/5.0 (Lovable; proxy-image)",
+      },
+    });
+
     if (!imageResponse.ok) {
-      throw new Error(`Failed to fetch image: ${imageResponse.statusText}`)
+      const text = await imageResponse.text().catch(() => "");
+      console.error("proxy-image: fetch failed", imageResponse.status, text);
+      throw new Error(`Failed to fetch image: ${imageResponse.status}`);
     }
 
-    // Get the image as array buffer
-    const buffer = await imageResponse.arrayBuffer()
-    
-    // Convert to base64 using the optimized function
-    const base64 = bufferToBase64(buffer)
+    const contentType = imageResponse.headers.get("content-type") || "image/jpeg";
 
-    return new Response(
-      JSON.stringify({ imageBlob: base64 }),
-      { 
+    // For <img src> usage
+    if (req.method === "GET") {
+      return new Response(imageResponse.body, {
         headers: {
           ...corsHeaders,
-          'Content-Type': 'application/json',
+          "Content-Type": contentType,
+          // cache for 1 day
+          "Cache-Control": "public, max-age=86400",
         },
+      });
+    }
+
+    // For client-side processing (supabase.functions.invoke)
+    const buffer = await imageResponse.arrayBuffer();
+    const imageBlob = bufferToBase64(buffer);
+
+    return new Response(JSON.stringify({ imageBlob, contentType }), {
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
       },
-    )
+    });
   } catch (error) {
-    console.error('Error in proxy-image function:', error)
+    console.error("Error in proxy-image function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      {
         status: 500,
         headers: {
           ...corsHeaders,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-      },
-    )
+      }
+    );
   }
-})
+});

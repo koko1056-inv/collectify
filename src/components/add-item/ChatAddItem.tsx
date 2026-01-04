@@ -161,18 +161,25 @@ export function ChatAddItem() {
         
         imageUrl = urlData.publicUrl;
       } else if (imageUrl.startsWith("http") && !imageUrl.includes("supabase.co")) {
-        // External URL - proxy and upload to our storage
+        // External URL - proxy and upload to our storage (avoid CORS-broken URLs)
         try {
-          const { data: proxyData } = await supabase.functions.invoke("proxy-image", {
-            body: { url: imageUrl }
+          const { data: proxyData, error: proxyError } = await supabase.functions.invoke("proxy-image", {
+            body: { url: imageUrl },
           });
-          
-          if (proxyData?.base64) {
-            const response = await fetch(`data:image/jpeg;base64,${proxyData.base64}`);
+
+          if (proxyError) throw proxyError;
+
+          const imageBlob = proxyData?.imageBlob as string | undefined;
+          const contentType = (proxyData?.contentType as string | undefined) || "image/jpeg";
+
+          if (imageBlob) {
+            const response = await fetch(`data:${contentType};base64,${imageBlob}`);
             const blob = await response.blob();
-            const file = new File([blob], `item-${Date.now()}.jpg`, { type: "image/jpeg" });
-            
-            const fileName = `${crypto.randomUUID()}.jpg`;
+
+            const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+            const file = new File([blob], `item-${Date.now()}.${ext}`, { type: contentType });
+
+            const fileName = `${crypto.randomUUID()}.${ext}`;
             const filePath = `${user.id}/${fileName}`;
 
             const { error: uploadError } = await supabase.storage
@@ -183,7 +190,7 @@ export function ChatAddItem() {
               const { data: urlData } = supabase.storage
                 .from("kuji_images")
                 .getPublicUrl(filePath);
-              
+
               imageUrl = urlData.publicUrl;
             }
           }
