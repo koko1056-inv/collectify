@@ -161,21 +161,38 @@ export function ChatAddItem() {
         
         imageUrl = urlData.publicUrl;
       } else if (imageUrl.startsWith("http") && !imageUrl.includes("supabase.co")) {
-        // External URL - proxy and upload to our storage (avoid CORS-broken URLs)
+        // External URL - proxy and upload to our storage
+        console.log("Proxying external image:", imageUrl);
+        
         const { data: proxyData, error: proxyError } = await supabase.functions.invoke("proxy-image", {
           body: { url: imageUrl },
         });
 
-        if (proxyError) {
-          console.error("Failed to proxy image:", proxyError);
-          throw new Error("画像のアップロードに失敗しました。別の画像を使用してください。");
+        if (proxyError || proxyData?.error) {
+          const errorMsg = proxyData?.error || proxyError?.message || "Unknown error";
+          console.error("Failed to proxy image:", errorMsg);
+          
+          // ユーザーに直接アップロードを促すメッセージを追加
+          setMessages(prev => [...prev, {
+            role: "assistant",
+            content: `⚠️ 外部画像の取得に失敗しました。\n\n画像を直接アップロードしてください。左下の画像ボタン📷をタップして、スマホやPCから画像を選んでください。`,
+            suggestions: []
+          }]);
+          setIsSubmitting(false);
+          return;
         }
 
         const imageBlob = proxyData?.imageBlob as string | undefined;
         const contentType = (proxyData?.contentType as string | undefined) || "image/jpeg";
 
         if (!imageBlob) {
-          throw new Error("画像の取得に失敗しました。別の画像を使用してください。");
+          setMessages(prev => [...prev, {
+            role: "assistant",
+            content: `⚠️ 画像データの取得に失敗しました。\n\n画像を直接アップロードしてください。`,
+            suggestions: []
+          }]);
+          setIsSubmitting(false);
+          return;
         }
 
         const response = await fetch(`data:${contentType};base64,${imageBlob}`);
@@ -193,7 +210,13 @@ export function ChatAddItem() {
 
         if (uploadError) {
           console.error("Failed to upload image:", uploadError);
-          throw new Error("画像のアップロードに失敗しました。");
+          toast({
+            title: "エラー",
+            description: "画像のアップロードに失敗しました。再度お試しください。",
+            variant: "destructive"
+          });
+          setIsSubmitting(false);
+          return;
         }
 
         const { data: urlData } = supabase.storage
@@ -201,6 +224,7 @@ export function ChatAddItem() {
           .getPublicUrl(filePath);
 
         imageUrl = urlData.publicUrl;
+        console.log("Image uploaded successfully:", imageUrl);
       }
 
       // Insert the item
