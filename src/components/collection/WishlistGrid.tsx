@@ -1,11 +1,12 @@
-
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle, Trash2 } from "lucide-react";
+import { CheckCircle, Trash2, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { PriceSearchModal } from "@/components/wishlist/PriceSearchModal";
 
 interface WishlistGridProps {
   userId: string;
@@ -16,6 +17,12 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Price search modal state
+  const [priceSearchItem, setPriceSearchItem] = useState<{
+    title: string;
+    image?: string;
+  } | null>(null);
 
   const { data: wishlistItems = [], isLoading } = useQuery({
     queryKey: ["wishlist", userId],
@@ -107,6 +114,13 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
     }
   };
 
+  const handlePriceSearch = (item: any) => {
+    setPriceSearchItem({
+      title: item.official_items?.title || '',
+      image: item.official_items?.image,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -121,48 +135,71 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
   }
 
   if (!wishlistItems || wishlistItems.length === 0) {
-    return <p className="text-center text-gray-500 py-4">欲しい物リストは空です</p>;
+    return <p className="text-center text-muted-foreground py-4">欲しい物リストは空です</p>;
   }
 
   return (
-    <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
-      {wishlistItems.map((item: any) => (
-        <div
-          key={item.id}
-          className="bg-white border rounded-lg p-3 flex flex-col items-center shadow-sm relative"
-        >
-          <img
-            src={item.official_items?.image}
-            alt={item.official_items?.title}
-            className="h-24 w-24 object-cover rounded mb-2"
-          />
-          <div className="text-center w-full">
-            <h3 className="font-medium text-sm line-clamp-2">{item.official_items?.title}</h3>
-            {item.note && <p className="text-xs text-gray-500 mt-1">メモ: {item.note}</p>}
-            <p className="text-xs text-gray-400 mt-1">{item.official_items?.price}</p>
-          </div>
-          {enableActions && user && user.id === userId && (
-            <div className="flex gap-2 mt-2">
-              <Button
-                onClick={() => handleAddToCollection(item.official_items, item.id)}
-                size="sm"
-                variant="ghost"
-              >
-                <CheckCircle className="w-4 h-4 mr-1" />
-                ゲット
-              </Button>
-              <Button
-                onClick={() => handleRemoveFromWishlist(item.id)}
-                size="sm"
-                variant="ghost"
-                className="text-red-500"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+    <>
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4">
+        {wishlistItems.map((item: any) => (
+          <div
+            key={item.id}
+            className="bg-card border rounded-lg p-3 flex flex-col items-center shadow-sm relative group"
+          >
+            <img
+              src={item.official_items?.image}
+              alt={item.official_items?.title}
+              className="h-24 w-24 object-cover rounded mb-2"
+            />
+            <div className="text-center w-full">
+              <h3 className="font-medium text-sm line-clamp-2">{item.official_items?.title}</h3>
+              {item.note && <p className="text-xs text-muted-foreground mt-1">メモ: {item.note}</p>}
+              <p className="text-xs text-muted-foreground mt-1">{item.official_items?.price}</p>
             </div>
-          )}
-        </div>
-      ))}
-    </div>
+            
+            {/* Price Search Button - Always visible */}
+            <Button
+              onClick={() => handlePriceSearch(item)}
+              size="sm"
+              variant="outline"
+              className="mt-2 w-full gap-1 text-xs"
+            >
+              <Search className="w-3 h-3" />
+              価格検索
+            </Button>
+            
+            {enableActions && user && user.id === userId && (
+              <div className="flex gap-2 mt-2 w-full">
+                <Button
+                  onClick={() => handleAddToCollection(item.official_items, item.id)}
+                  size="sm"
+                  variant="ghost"
+                  className="flex-1 text-xs"
+                >
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  ゲット
+                </Button>
+                <Button
+                  onClick={() => handleRemoveFromWishlist(item.id)}
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      {/* Price Search Modal */}
+      <PriceSearchModal
+        isOpen={!!priceSearchItem}
+        onClose={() => setPriceSearchItem(null)}
+        itemTitle={priceSearchItem?.title || ''}
+        itemImage={priceSearchItem?.image}
+      />
+    </>
   );
 }
