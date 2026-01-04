@@ -295,35 +295,58 @@ export function ChatAddItem() {
 
       // Add tags if available
       if (newItem) {
-        const tagPromises = [];
-        
-        // Find and add tags
+        // Find or create tags and link them
         for (const [field, category] of [
           ["characterTag", "character"],
           ["typeTag", "type"],
           ["seriesTag", "series"]
         ] as const) {
           const tagName = data[field];
-          if (tagName) {
-            const { data: tagData } = await supabase
+          if (tagName && tagName.trim()) {
+            console.log(`Processing tag: ${tagName} for category: ${category}`);
+            
+            // First try to find existing tag
+            let { data: tagData } = await supabase
               .from("tags")
               .select("id")
-              .eq("name", tagName)
+              .eq("name", tagName.trim())
               .eq("category", category)
               .maybeSingle();
 
+            // If not found, create new tag
+            if (!tagData) {
+              console.log(`Creating new tag: ${tagName} for category: ${category}`);
+              const { data: newTag, error: tagError } = await supabase
+                .from("tags")
+                .insert({
+                  name: tagName.trim(),
+                  category: category
+                })
+                .select("id")
+                .single();
+              
+              if (tagError) {
+                console.error(`Failed to create tag: ${tagName}`, tagError);
+                continue;
+              }
+              tagData = newTag;
+            }
+
             if (tagData) {
-              tagPromises.push(
-                supabase.from("item_tags").insert({
+              console.log(`Linking tag ${tagData.id} to item ${newItem.id}`);
+              const { error: linkError } = await supabase
+                .from("item_tags")
+                .insert({
                   official_item_id: newItem.id,
                   tag_id: tagData.id
-                })
-              );
+                });
+              
+              if (linkError) {
+                console.error(`Failed to link tag: ${tagName}`, linkError);
+              }
             }
           }
         }
-
-        await Promise.all(tagPromises);
       }
 
       toast({
