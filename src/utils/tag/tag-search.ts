@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SimpleTag, Tag } from "./types";
 
-// カテゴリーごとのタグを取得
+// カテゴリーごとのタグを取得（承認済みのみ）
 export async function getTagsByCategory(
   category: string
 ): Promise<Tag[]> {
@@ -11,6 +11,8 @@ export async function getTagsByCategory(
       .from("tags")
       .select("*")
       .eq("category", category)
+      .eq("status", "approved")
+      .order("usage_count", { ascending: false })
       .order("name");
     
     if (error) {
@@ -25,7 +27,7 @@ export async function getTagsByCategory(
   }
 }
 
-// タグ名からタグIDを検索
+// タグ名からタグIDを検索（承認済みのみ）
 export async function findTagIdByName(
   name: string,
   category?: string,
@@ -34,7 +36,11 @@ export async function findTagIdByName(
   try {
     console.log(`[findTagIdByName] Searching for tag: name="${name}", category="${category}", contentId="${contentId}"`);
     
-    const query = supabase.from("tags").select("id, name, category, content_id").eq("name", name);
+    const query = supabase
+      .from("tags")
+      .select("id, name, category, content_id")
+      .eq("name", name)
+      .eq("status", "approved"); // 承認済みのみ検索
     
     if (category) {
       query.eq("category", category);
@@ -80,13 +86,14 @@ export function isSimpleTag(tag: any): tag is SimpleTag {
   );
 }
 
-// グループ化されたタグを取得
+// グループ化されたタグを取得（承認済みのみ）
 export async function getTagGroups(): Promise<{[key: string]: string[]}> {
   try {
     const { data, error } = await supabase
       .from("tags")
       .select("*")
       .eq("is_category", true)
+      .eq("status", "approved")
       .order("name");
     
     if (error) {
@@ -100,11 +107,12 @@ export async function getTagGroups(): Promise<{[key: string]: string[]}> {
     for (const group of data) {
       groups[group.name] = [];
       
-      // 各カテゴリに属するタグを取得
+      // 各カテゴリに属するタグを取得（承認済みのみ）
       const { data: groupTags, error: groupError } = await supabase
         .from("tags")
         .select("name")
         .eq("category", group.name)
+        .eq("status", "approved")
         .order("name");
       
       if (!groupError && groupTags) {

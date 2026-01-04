@@ -1716,30 +1716,131 @@ export type Database = {
         }
         Relationships: []
       }
+      tag_aliases: {
+        Row: {
+          alias_name: string
+          canonical_tag_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+        }
+        Insert: {
+          alias_name: string
+          canonical_tag_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+        }
+        Update: {
+          alias_name?: string
+          canonical_tag_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tag_aliases_canonical_tag_id_fkey"
+            columns: ["canonical_tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tag_candidates: {
+        Row: {
+          category: string
+          content_id: string | null
+          created_at: string
+          id: string
+          merged_to_tag_id: string | null
+          name: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          suggested_by: string
+          suggestion_count: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          content_id?: string | null
+          created_at?: string
+          id?: string
+          merged_to_tag_id?: string | null
+          name: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          suggested_by: string
+          suggestion_count?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content_id?: string | null
+          created_at?: string
+          id?: string
+          merged_to_tag_id?: string | null
+          name?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          suggested_by?: string
+          suggestion_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tag_candidates_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tag_candidates_merged_to_tag_id_fkey"
+            columns: ["merged_to_tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tags: {
         Row: {
           category: string | null
           content_id: string | null
           created_at: string
+          display_context: string | null
           id: string
           is_category: boolean | null
           name: string
+          status: string
+          usage_count: number
         }
         Insert: {
           category?: string | null
           content_id?: string | null
           created_at?: string
+          display_context?: string | null
           id?: string
           is_category?: boolean | null
           name: string
+          status?: string
+          usage_count?: number
         }
         Update: {
           category?: string | null
           content_id?: string | null
           created_at?: string
+          display_context?: string | null
           id?: string
           is_category?: boolean | null
           name?: string
+          status?: string
+          usage_count?: number
         }
         Relationships: [
           {

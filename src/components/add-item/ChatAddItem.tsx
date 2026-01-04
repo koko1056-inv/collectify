@@ -313,14 +313,28 @@ export function ChatAddItem() {
               .eq("category", category)
               .maybeSingle();
 
-            // If not found, create new tag
+            // If not found, create new tag with status='approved' (created via chat = trusted)
             if (!tagData) {
               console.log(`Creating new tag: ${tagName} for category: ${category}`);
+              
+              // content_idを取得（character/seriesの場合）
+              let tagContentId = null;
+              if ((category === "character" || category === "series") && data.content_name) {
+                const { data: contentData } = await supabase
+                  .from("content_names")
+                  .select("id")
+                  .eq("name", data.content_name)
+                  .maybeSingle();
+                tagContentId = contentData?.id || null;
+              }
+              
               const { data: newTag, error: tagError } = await supabase
                 .from("tags")
                 .insert({
                   name: tagName.trim(),
-                  category: category
+                  category: category,
+                  status: 'approved',
+                  content_id: tagContentId
                 })
                 .select("id")
                 .single();
