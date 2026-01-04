@@ -5,15 +5,23 @@ import { Skeleton } from "./ui/skeleton";
 import { useState, useMemo, useCallback } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import { CollectionGrid } from "./collection/CollectionGrid";
 import { Button } from "./ui/button";
-import { Dices, Plus, Sparkles, Package, Camera } from "lucide-react";
+import { Dices, Plus, Sparkles, Package, Camera, ArrowUpDown, Clock, SortAsc, Heart } from "lucide-react";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
 import { useBatchItemMemories } from "@/hooks/useBatchItemMemories";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+
+type SortOption = "newest" | "oldest" | "title" | "content";
+
 interface UserCollectionProps {
   selectedTags: string[];
   userId?: string | null;
@@ -34,6 +42,7 @@ export function UserCollection({
   const navigate = useNavigate();
   const [isCompact, setIsCompact] = useState(false);
   const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<SortOption>("newest");
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
 
@@ -90,7 +99,7 @@ export function UserCollection({
     enabled: !!effectiveUserId && !!selectedPersonalTag,
   });
 
-  // content_nameでのフィルタを追加
+  // content_nameでのフィルタとソートを追加
   const filteredItems = useMemo(() => {
     let filtered = items;
     if (selectedTags.length > 0) {
@@ -102,7 +111,6 @@ export function UserCollection({
     }
     if (selectedContent && selectedContent !== "all") {
       filtered = filtered.filter(item => {
-        // TypeScript エラーを回避するために、content_nameプロパティの存在を確認
         return 'content_name' in item && item.content_name === selectedContent;
       });
     }
@@ -110,11 +118,43 @@ export function UserCollection({
     if (selectedPersonalTag && personalTagItemIds.length > 0) {
       filtered = filtered.filter(item => personalTagItemIds.includes(item.id));
     } else if (selectedPersonalTag && personalTagItemIds.length === 0) {
-      // マイタグが選択されているが該当アイテムがない場合は空にする
       filtered = [];
     }
-    return filtered;
-  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds]);
+    
+    // ソート処理
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortOption) {
+        case "newest":
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "oldest":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "title":
+          return (a.title || "").localeCompare(b.title || "", "ja");
+        case "content":
+          const contentA = 'content_name' in a ? (a.content_name || "") : "";
+          const contentB = 'content_name' in b ? (b.content_name || "") : "";
+          return contentA.localeCompare(contentB, "ja");
+        default:
+          return 0;
+      }
+    });
+    
+    return sorted;
+  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, sortOption]);
+
+  const sortLabels: Record<SortOption, string> = {
+    newest: "新しい順",
+    oldest: "古い順",
+    title: "タイトル順",
+    content: "コンテンツ順",
+  };
+
+  const sortIcons: Record<SortOption, React.ReactNode> = {
+    newest: <Clock className="w-4 h-4" />,
+    oldest: <Clock className="w-4 h-4" />,
+    title: <SortAsc className="w-4 h-4" />,
+    content: <Heart className="w-4 h-4" />,
+  };
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -213,8 +253,29 @@ export function UserCollection({
   }
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
-      <div className="flex justify-center mb-4">
-        <Button onClick={handleRandomModalOpen} variant="outline" className="gap-2">
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <ArrowUpDown className="h-4 w-4" />
+              {sortLabels[sortOption]}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {(Object.keys(sortLabels) as SortOption[]).map((option) => (
+              <DropdownMenuItem
+                key={option}
+                onClick={() => setSortOption(option)}
+                className={sortOption === option ? "bg-accent" : ""}
+              >
+                <span className="mr-2">{sortIcons[option]}</span>
+                {sortLabels[option]}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Button onClick={handleRandomModalOpen} variant="outline" size="sm" className="gap-2">
           <Dices className="h-4 w-4" />
           {t("collection.todaysCollection")}
         </Button>
