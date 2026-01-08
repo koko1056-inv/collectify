@@ -463,7 +463,7 @@ export function AvatarStudioModal({
               </div>
             )}
 
-            <ScrollArea className="flex-1 px-6 pb-6">
+            <ScrollArea className="flex-1 px-6 pb-4 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 220px)' }}>
               {/* 生成タブ */}
               <TabsContent value="generate" className="mt-4 space-y-4">
                 {/* 写真アップロード */}
