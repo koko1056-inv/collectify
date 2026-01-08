@@ -24,25 +24,51 @@ Deno.serve(async (req) => {
     }
 
     console.log('Editing image with prompt:', prompt);
-    console.log('Image URL provided:', !!imageUrl);
+    console.log('Image URL (goods) provided:', !!imageUrl);
+    console.log('Avatar URL provided:', !!avatarUrl);
     console.log('Item images count:', itemImages?.length || 0);
 
-    // コンテンツ配列を構築（プロンプト + 参考画像 + グッズ画像）
-    const content: any[] = [
-      {
+    // コンテンツ配列を構築
+    const content: any[] = [];
+
+    // アバターが選択されている場合のプロンプト
+    if (avatarUrl) {
+      content.push({
         type: "text",
-        text: `【画像編集タスク】\n\n参考画像として最初の画像（ベースアバター）のスタイル、特徴、構図を完全に保持してください。\n\n${prompt}\n\n【画像の役割】\n- 1枚目：参考画像（プリファレンス）- このアバターの全ての特徴（顔、髪型、表情、ポーズ、背景、色調）をそのまま維持\n- 2枚目以降：装着するグッズ - これらを1枚目のアバターに自然に合成\n\n【厳守事項】\n✓ 参考画像（1枚目）の人物の外見は一切変更しない\n✓ 参考画像の画風、色調、構図を維持\n✓ グッズのみを自然に追加・装着\n✓ グッズの色、デザイン、形状を忠実に再現\n✓ 違和感のない自然な合成を実現`
-      },
-      {
+        text: `【画像生成タスク】\n\n${prompt}\n\n【画像の役割】\n- 1枚目：アバター画像 - このキャラクターの全ての特徴（顔、髪型、表情、服装、色調、画風）を完全に維持\n- 2枚目：グッズ画像 - このグッズを参考にして生成\n\n【厳守事項】\n✓ アバター（1枚目）の人物の外見・スタイルは一切変更しない\n✓ アバターの画風、色調を維持\n✓ グッズの色、デザイン、形状を忠実に再現\n✓ 自然で違和感のない画像を生成`
+      });
+      // アバター画像を最初に追加
+      content.push({
+        type: "image_url",
+        image_url: {
+          url: avatarUrl,
+          detail: "high"
+        }
+      });
+      // グッズ画像を追加
+      content.push({
         type: "image_url",
         image_url: {
           url: imageUrl,
           detail: "high"
         }
-      }
-    ];
+      });
+    } else {
+      // アバターなしの場合はグッズ画像のみ
+      content.push({
+        type: "text",
+        text: `【画像生成タスク】\n\n${prompt}\n\n以下の画像を参考にして新しい画像を生成してください。\n\n【厳守事項】\n✓ 元の画像の特徴やスタイルを参考にする\n✓ ユーザーの指示に従って画像を生成`
+      });
+      content.push({
+        type: "image_url",
+        image_url: {
+          url: imageUrl,
+          detail: "high"
+        }
+      });
+    }
 
-    // グッズ画像を追加（最大3枚まで）
+    // 追加のグッズ画像を追加（最大3枚まで）
     if (itemImages && Array.isArray(itemImages) && itemImages.length > 0) {
       const imagesToAdd = itemImages.slice(0, 3);
       for (const itemImageUrl of imagesToAdd) {
