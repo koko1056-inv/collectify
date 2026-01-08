@@ -81,15 +81,14 @@ export function ProfileImageUpload({
   }, []);
 
   const handleAvatarSelect = useCallback(async (selectedUrl: string) => {
+    // 即座にプレビューを更新してダイアログを閉じる
     setPreviewUrl(selectedUrl);
     setIsGalleryOpen(false);
-    setLocalLoading(true);
-    try {
-      if (onAvatarSelect) {
-        await onAvatarSelect(selectedUrl);
-      }
-    } finally {
-      setLocalLoading(false);
+    
+    // バックグラウンドでDB更新（ローディング表示なし）
+    if (onAvatarSelect) {
+      // ローディングを表示せずにバックグラウンドで実行
+      onAvatarSelect(selectedUrl).catch(console.error);
     }
   }, [onAvatarSelect, setPreviewUrl]);
 
