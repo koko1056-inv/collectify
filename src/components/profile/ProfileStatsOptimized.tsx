@@ -78,40 +78,30 @@ export const ProfileStats = memo(function ProfileStats({ userId }: ProfileStatsP
       icon: Package,
       label: "コレクション",
       value: stats?.collectionCount || 0,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
       onClick: undefined
     },
     {
       icon: Heart,
       label: "ウィッシュ",
       value: stats?.wishlistCount || 0,
-      color: "text-pink-600",
-      bgColor: "bg-pink-100",
       onClick: undefined
     },
     {
       icon: Users,
       label: "フォロワー",
       value: stats?.followersCount || 0,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
       onClick: () => setShowFollowers(true)
     },
     {
       icon: UserPlus,
       label: "フォロー中",
       value: stats?.followingCount || 0,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
       onClick: () => setShowFollowing(true)
     },
     {
       icon: TrendingUp,
       label: "今週追加",
       value: stats?.recentAdditions || 0,
-      color: "text-amber-600",
-      bgColor: "bg-amber-100",
       highlight: (stats?.recentAdditions || 0) > 0,
       onClick: undefined
     }
@@ -132,11 +122,8 @@ export const ProfileStats = memo(function ProfileStats({ userId }: ProfileStatsP
                   item.onClick && "hover:bg-muted/50 cursor-pointer"
                 )}
               >
-                <div className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center mb-1",
-                  item.bgColor
-                )}>
-                  <item.icon className={cn("w-5 h-5", item.color)} />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-1 bg-primary/10">
+                  <item.icon className="w-5 h-5 text-primary" />
                 </div>
                 <span className="text-lg font-bold">{item.value}</span>
                 <span className="text-[10px] text-muted-foreground leading-tight">{item.label}</span>
