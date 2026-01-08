@@ -5,10 +5,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Sparkles, Upload, X, Wand2 } from "lucide-react";
+import { Loader2, Sparkles, Upload, X, Wand2, Coins } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import type { AvatarGenerationResult } from "@/types/avatar";
+import { useUserPoints, useDeductPoints } from "@/hooks/usePoints";
+
+const GENERATION_COST = 10;
 
 interface AvatarGenerationModalProps {
   isOpen: boolean;
@@ -31,6 +34,8 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
   const [progress, setProgress] = useState(0);
   const [generationStep, setGenerationStep] = useState<string>("");
   const { toast } = useToast();
+  const { data: userPoints } = useUserPoints();
+  const deductPoints = useDeductPoints();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -68,11 +73,29 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
       return;
     }
 
+    // ポイント残高チェック
+    const currentPoints = userPoints?.total_points || 0;
+    if (currentPoints < GENERATION_COST) {
+      toast({
+        variant: "destructive",
+        title: "ポイント不足",
+        description: `アバター生成には${GENERATION_COST}ポイント必要です（現在: ${currentPoints}pt）`,
+      });
+      return;
+    }
+
     setIsGenerating(true);
     setProgress(0);
     setGenerationStep("準備中...");
 
     try {
+      // ポイントを消費
+      await deductPoints.mutateAsync({
+        points: GENERATION_COST,
+        transactionType: "avatar_generation",
+        description: "AIアバター生成",
+      });
+
       // ステップ1: 画像変換
       setProgress(20);
       setGenerationStep("画像を処理中...");
@@ -145,9 +168,16 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
             AIアバター生成
+            <span className="ml-auto flex items-center gap-1 text-sm font-normal text-muted-foreground">
+              <Coins className="w-4 h-4" />
+              {GENERATION_COST}pt
+            </span>
           </DialogTitle>
           <DialogDescription>
             あなたの理想のアバターを説明してください。AIが3D風のアバター画像を生成します。
+            <span className="block mt-1 text-xs">
+              現在のポイント: <span className="font-medium text-foreground">{userPoints?.total_points || 0}pt</span>
+            </span>
           </DialogDescription>
         </DialogHeader>
 

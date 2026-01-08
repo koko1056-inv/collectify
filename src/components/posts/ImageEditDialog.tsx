@@ -3,11 +3,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, User, Sparkles } from "lucide-react";
+import { Loader2, User, Sparkles, Coins } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useUserPoints, useDeductPoints } from "@/hooks/usePoints";
+import { useToast } from "@/hooks/use-toast";
 
+const GENERATION_COST = 10;
 interface ImageEditDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,7 +38,9 @@ export function ImageEditDialog({
   const [avatars, setAvatars] = useState<AvatarOption[]>([]);
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const { user } = useAuth();
-
+  const { data: userPoints } = useUserPoints();
+  const deductPoints = useDeductPoints();
+  const { toast } = useToast();
   useEffect(() => {
     if (user && isOpen) {
       loadUserAvatars();
@@ -77,15 +82,37 @@ export function ImageEditDialog({
     }
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (editPrompt.trim()) {
-      const prompt = editPrompt.trim();
-      onEditComplete(prompt, selectedAvatarUrl || undefined);
-      setEditPrompt("");
-      setSelectedAvatarUrl(null);
+      // ポイント残高チェック
+      const currentPoints = userPoints?.total_points || 0;
+      if (currentPoints < GENERATION_COST) {
+        toast({
+          variant: "destructive",
+          title: "ポイント不足",
+          description: `画像生成には${GENERATION_COST}ポイント必要です（現在: ${currentPoints}pt）`,
+        });
+        return;
+      }
+
+      try {
+        // ポイントを消費
+        await deductPoints.mutateAsync({
+          points: GENERATION_COST,
+          transactionType: "post_image_generation",
+          description: "投稿用画像生成",
+        });
+
+        const prompt = editPrompt.trim();
+        onEditComplete(prompt, selectedAvatarUrl || undefined);
+        setEditPrompt("");
+        setSelectedAvatarUrl(null);
+      } catch (error) {
+        // ポイント消費に失敗した場合は処理を中止
+        console.error("Failed to deduct points:", error);
+      }
     }
   };
-
   const allAvatarOptions: AvatarOption[] = [
     ...(profileAvatar ? [{ id: 'profile', image_url: profileAvatar, name: 'プロフィール', isProfile: true }] : []),
     ...avatars,
@@ -98,7 +125,14 @@ export function ImageEditDialog({
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
             AIで画像を生成
+            <span className="ml-auto flex items-center gap-1 text-sm font-normal text-muted-foreground">
+              <Coins className="w-4 h-4" />
+              {GENERATION_COST}pt
+            </span>
           </DialogTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            現在のポイント: <span className="font-medium text-foreground">{userPoints?.total_points || 0}pt</span>
+          </p>
         </DialogHeader>
         
         <div className="space-y-4">
