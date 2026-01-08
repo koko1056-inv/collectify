@@ -253,31 +253,42 @@ export function UserCollection({
   }
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
-      <div className="flex items-center justify-between gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-4 p-2 bg-muted/30 rounded-xl">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <ArrowUpDown className="h-4 w-4" />
-              {sortLabels[sortOption]}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2 h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50 hover:bg-accent/50 transition-all"
+            >
+              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-sm font-medium">{sortLabels[sortOption]}</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
+          <DropdownMenuContent align="start" className="min-w-[160px]">
             {(Object.keys(sortLabels) as SortOption[]).map((option) => (
               <DropdownMenuItem
                 key={option}
                 onClick={() => setSortOption(option)}
-                className={sortOption === option ? "bg-accent" : ""}
+                className={`gap-2 ${sortOption === option ? "bg-accent font-medium" : ""}`}
               >
-                <span className="mr-2">{sortIcons[option]}</span>
+                <span className="text-muted-foreground">{sortIcons[option]}</span>
                 {sortLabels[option]}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button onClick={handleRandomModalOpen} variant="outline" size="sm" className="gap-2">
-          <Dices className="h-4 w-4" />
-          {t("collection.todaysCollection")}
+        <div className="flex-1" />
+
+        <Button 
+          onClick={handleRandomModalOpen} 
+          variant="ghost" 
+          size="sm" 
+          className="gap-2 h-9 px-3 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 hover:from-primary/20 hover:to-accent/20 transition-all group"
+        >
+          <Dices className="h-3.5 w-3.5 text-primary group-hover:rotate-12 transition-transform" />
+          <span className="text-sm font-medium text-primary">{t("collection.todaysCollection")}</span>
         </Button>
       </div>
       
