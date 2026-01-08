@@ -62,8 +62,9 @@ export function useProfile(userId: string | undefined) {
     enabled: !!userId,
     staleTime: 1000 * 60 * 2,
     gcTime: 1000 * 60 * 30,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    // プロフィールは編集・オンボーディング等で変わりやすいので、マウント時は必ず最新を取りに行く
+    refetchOnMount: "always",
+    refetchOnWindowFocus: "always",
   });
 
   return {
