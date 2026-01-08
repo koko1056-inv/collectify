@@ -58,6 +58,16 @@ export const handleUserLogin = async (formData: LoginFormData) => {
 };
 
 export const handleUserSignup = async (formData: LoginFormData) => {
+  // Validate username - only allow alphanumeric, underscore, hyphen
+  const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+  if (!usernameRegex.test(formData.username)) {
+    throw new Error("ユーザー名は英数字、アンダースコア、ハイフンのみ使用できます");
+  }
+
+  if (formData.username.length < 3 || formData.username.length > 20) {
+    throw new Error("ユーザー名は3〜20文字で入力してください");
+  }
+
   // Check if username is already taken
   const { data: existingProfile, error: checkError } = await supabase
     .from('profiles')
@@ -75,7 +85,7 @@ export const handleUserSignup = async (formData: LoginFormData) => {
   }
 
   // Generate a consistent email format for the user
-  const email = `${formData.username}@example.com`;
+  const email = `${formData.username.toLowerCase()}@example.com`;
 
   const { data, error } = await supabase.auth.signUp({
     email,
