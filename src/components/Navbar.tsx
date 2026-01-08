@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, User, Search, FileText, FolderOpen, Globe, Palette } from "lucide-react";
+import { ShoppingBasket, User, Search, FileText, FolderOpen, Globe, Palette, HelpCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
@@ -123,6 +123,10 @@ export function Navbar() {
                     <User className="w-4 h-4 mr-2" />
                     プロフィール
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/how-to-use")}>
+                    <HelpCircle className="w-4 h-4 mr-2" />
+                    使い方
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="flex items-center gap-2">
                     <Globe className="w-4 h-4" />
@@ -220,6 +224,10 @@ export function Navbar() {
                   <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                     <User className="w-4 h-4 mr-2" />
                     プロフィール
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/how-to-use")}>
+                    <HelpCircle className="w-4 h-4 mr-2" />
+                    使い方
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="flex items-center gap-2">

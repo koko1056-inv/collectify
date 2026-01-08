@@ -29,7 +29,7 @@ const Messages = lazy(() => import("./pages/Messages").catch(() => ({ default: (
 const RoomExplore = lazy(() => import("./pages/RoomExplore").catch(() => ({ default: () => <div>Error loading page</div> })));
 const RoomView = lazy(() => import("./pages/RoomView").catch(() => ({ default: () => <div>Error loading page</div> })));
 const PointShop = lazy(() => import("./pages/PointShop").catch(() => ({ default: () => <div>Error loading page</div> })));
-
+const HowToUse = lazy(() => import("./pages/HowToUse").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -98,6 +98,7 @@ const App: React.FC = () => {
                       <Route path="/rooms/explore" element={<RoomExplore />} />
                       <Route path="/room/:roomId" element={<RoomView />} />
                       <Route path="/shop" element={<PointShop />} />
+                      <Route path="/how-to-use" element={<HowToUse />} />
                       <Route path="*" element={<Navigate to="/my-room" replace />} />
                     </Routes>
                   </Suspense>
