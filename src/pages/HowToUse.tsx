@@ -30,7 +30,7 @@ import { motion } from "framer-motion";
 // スクリーンショット画像
 import guideSearchImg from "@/assets/guide-search.png";
 import guidePostsImg from "@/assets/guide-posts.png";
-import guideHomeImg from "@/assets/guide-home.png";
+import guideCollectionImg from "@/assets/guide-collection.png";
 
 const featureShowcase = [
   {
@@ -53,7 +53,7 @@ const featureShowcase = [
     title: "コレクション管理",
     subtitle: "大切なグッズを記録",
     description: "持っているグッズを登録して一覧で管理。購入日や価格、思い出の写真も一緒に保存できます。",
-    image: guideHomeImg,
+    image: guideCollectionImg,
     color: "from-green-500 to-emerald-500",
     steps: [
       "グッズをコレクションに追加",
