@@ -23,7 +23,7 @@ export function ProfileWishlist({ userId }: ProfileWishlistProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate("/collection")}
+            onClick={() => navigate("/search")}
             className="gap-1"
           >
             <Plus className="w-4 h-4" />
