@@ -29,7 +29,7 @@ import { motion } from "framer-motion";
 
 // スクリーンショット画像
 import guideSearchImg from "@/assets/guide-search.png";
-import guidePostsImg from "@/assets/guide-posts.png";
+import guideCommunityImg from "@/assets/guide-community.png";
 import guideCollectionImg from "@/assets/guide-collection.png";
 
 const featureShowcase = [
@@ -68,7 +68,7 @@ const featureShowcase = [
     title: "コミュニティ",
     subtitle: "仲間と交流しよう",
     description: "投稿でグッズを紹介したり、他のコレクターと交流。いいねやコメントで盛り上がろう！",
-    image: guidePostsImg,
+    image: guideCommunityImg,
     color: "from-purple-500 to-pink-500",
     steps: [
       "写真付きで投稿を作成",
