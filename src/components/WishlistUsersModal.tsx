@@ -115,6 +115,7 @@ export function WishlistUsersModal({
           .eq("user_id", user.id);
         
         if (error) throw error;
+        return { added: false };
       } else {
         // ウィッシュリストに追加
         const { error } = await supabase
@@ -122,15 +123,28 @@ export function WishlistUsersModal({
           .insert([{ official_item_id: itemId, user_id: user.id }]);
         
         if (error) throw error;
+        return { added: true };
       }
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      // 楽観的更新: mutation開始前に即座にUIを更新
+      await queryClient.cancelQueries({ queryKey: ["is-in-wishlist", itemId, user?.id] });
+      await queryClient.cancelQueries({ queryKey: ["wishlist-users", itemId] });
+      
+      const previousIsInWishlist = queryClient.getQueryData(["is-in-wishlist", itemId, user?.id]);
+      
+      // 即座にisInWishlistを更新
+      queryClient.setQueryData(["is-in-wishlist", itemId, user?.id], !isInWishlist);
+      
+      return { previousIsInWishlist };
+    },
+    onSuccess: (data) => {
       // ウィッシュリストに追加した時のみ効果音を再生
-      if (!isInWishlist) {
+      if (data.added) {
         playWishlistSound();
       }
 
-      // 即座にリアルタイム更新をトリガー（遅延を最小化）
+      // 即座にリアルタイム更新をトリガー
       const channel = supabase.channel('wishlist-update-trigger');
       channel.send({
         type: 'broadcast',
@@ -138,17 +152,22 @@ export function WishlistUsersModal({
         payload: { itemId, userId: user?.id, immediate: true }
       });
       
-      // 必要最小限のクエリのみ無効化
-      queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", itemId, user?.id] });
+      // 関連クエリを無効化して再フェッチ
+      queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", itemId] });
       queryClient.invalidateQueries({ queryKey: ["wishlist-users", itemId] });
       queryClient.invalidateQueries({ queryKey: ["wishlist-count", itemId] });
+      queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] });
       
       toast({
-        title: isInWishlist ? "ウィッシュリストから削除しました" : "ウィッシュリストに追加しました",
-        description: `「${itemTitle}」を${isInWishlist ? "削除" : "追加"}しました`,
+        title: data.added ? "ウィッシュリストに追加しました" : "ウィッシュリストから削除しました",
+        description: `「${itemTitle}」を${data.added ? "追加" : "削除"}しました`,
       });
     },
-    onError: (error) => {
+    onError: (error, _, context) => {
+      // エラー時は元に戻す
+      if (context?.previousIsInWishlist !== undefined) {
+        queryClient.setQueryData(["is-in-wishlist", itemId, user?.id], context.previousIsInWishlist);
+      }
       toast({
         title: "エラー",
         description: "操作に失敗しました",
