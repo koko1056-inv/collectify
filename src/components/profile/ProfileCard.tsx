@@ -134,6 +134,7 @@ export const ProfileCard = memo(function ProfileCard({
         onShare={onShare}
         setPreviewUrl={setPreviewUrl}
         isUploading={isUploading}
+        onAvatarChange={refetchProfile}
       />
 
       <ProfileStats userId={effectiveUserId} />
