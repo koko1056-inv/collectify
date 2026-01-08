@@ -398,7 +398,7 @@ export function AvatarStudioModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-hidden flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-2">
             <DialogTitle className="flex items-center gap-2 text-xl">
               <div className="p-2 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg">
@@ -538,14 +538,6 @@ export function AvatarStudioModal({
                   </div>
                 </div>
 
-                <Button
-                  onClick={handleGenerate}
-                  disabled={isGenerating || (!prompt.trim() && !uploadedImage)}
-                  className="w-full h-12 text-base gap-2"
-                >
-                  <Sparkles className="w-5 h-5" />
-                  アバターを生成
-                </Button>
               </TabsContent>
 
               {/* 着せ替えタブ */}
@@ -736,6 +728,20 @@ export function AvatarStudioModal({
                 )}
               </TabsContent>
             </ScrollArea>
+
+            {/* 固定フッター - 生成ボタン */}
+            {activeTab === "generate" && (
+              <div className="px-6 py-4 border-t bg-background">
+                <Button
+                  onClick={handleGenerate}
+                  disabled={isGenerating || (!prompt.trim() && !uploadedImage)}
+                  className="w-full h-12 text-base gap-2"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  アバターを生成
+                </Button>
+              </div>
+            )}
           </Tabs>
         </DialogContent>
       </Dialog>
