@@ -52,17 +52,11 @@ export async function setCurrentAvatar(params: {
   prompt?: string | null;
   itemIds?: string[] | null;
   name?: string | null;
+  skipGalleryInsert?: boolean; // DBトリガーで自動追加される場合はtrue
 }) {
-  const { userId, avatarUrl, avatarGalleryId, prompt, itemIds, name } = params;
+  const { userId, avatarUrl, avatarGalleryId, prompt, itemIds, name, skipGalleryInsert } = params;
 
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({ avatar_url: avatarUrl })
-    .eq("id", userId);
-
-  if (profileError) throw profileError;
-
-  // すべてのアバターの is_current を false に
+  // すべてのアバターの is_current を false に（先に実行）
   const { error: resetError } = await supabase
     .from("avatar_gallery")
     .update({ is_current: false })
@@ -70,6 +64,15 @@ export async function setCurrentAvatar(params: {
 
   if (resetError) throw resetError;
 
+  // プロフィールを更新（DBトリガーで avatar_gallery に追加される）
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ avatar_url: avatarUrl })
+    .eq("id", userId);
+
+  if (profileError) throw profileError;
+
+  // 既存のギャラリーIDがある場合は更新
   if (avatarGalleryId) {
     const updateData: Record<string, unknown> = {
       image_url: avatarUrl,
@@ -88,6 +91,26 @@ export async function setCurrentAvatar(params: {
     return;
   }
 
+  // skipGalleryInsert=trueの場合、DBトリガーで追加されるため手動挿入をスキップ
+  // トリガーで作成されたエントリのpromptを更新
+  if (skipGalleryInsert) {
+    // トリガーで作成されたエントリを更新
+    await new Promise(resolve => setTimeout(resolve, 100)); // トリガー処理待ち
+    const { error: updateError } = await supabase
+      .from("avatar_gallery")
+      .update({ 
+        prompt: prompt ?? null,
+        item_ids: itemIds ?? null,
+        name: name ?? null 
+      })
+      .eq("user_id", userId)
+      .eq("image_url", avatarUrl);
+
+    if (updateError) console.error("Gallery update error:", updateError);
+    return;
+  }
+
+  // 手動で挿入（トリガーがない場合のフォールバック）
   const { error: insertError } = await supabase.from("avatar_gallery").insert({
     user_id: userId,
     image_url: avatarUrl,

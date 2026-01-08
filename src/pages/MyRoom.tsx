@@ -14,7 +14,8 @@ export default function MyRoom() {
     if (!user?.id) return;
 
     const publicUrl = await ensureProfileImagesPublicUrl({ userId: user.id, sourceUrl: imageUrl });
-    await setCurrentAvatar({ userId: user.id, avatarUrl: publicUrl, prompt, itemIds: null });
+    // skipGalleryInsert: true - DBトリガー sync_profile_avatar_to_gallery で自動追加されるため
+    await setCurrentAvatar({ userId: user.id, avatarUrl: publicUrl, prompt, itemIds: null, skipGalleryInsert: true });
     await refetchProfile();
   };
 

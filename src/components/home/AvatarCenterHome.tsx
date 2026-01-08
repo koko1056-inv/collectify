@@ -246,6 +246,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         avatarUrl: publicUrl,
         prompt,
         itemIds: null,
+        skipGalleryInsert: true,
       });
 
       setCurrentAvatarUrl(publicUrl);
