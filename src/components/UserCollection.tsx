@@ -6,7 +6,7 @@ import { useState, useMemo, useCallback } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Button } from "./ui/button";
-import { Dices, Plus, Sparkles, Package, Camera, ArrowUpDown, Clock, SortAsc, Heart } from "lucide-react";
+import { Dices, Plus, Sparkles, Package, Camera, ArrowUpDown, Clock, SortAsc, Heart, Search } from "lucide-react";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
 import { useBatchItemMemories } from "@/hooks/useBatchItemMemories";
@@ -222,8 +222,8 @@ export function UserCollection({
                   onClick={() => navigate("/search")} 
                   className="flex-1 gap-1.5"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  公式から探す
+                  <Search className="w-4 h-4" />
+                  発見から探す
                 </Button>
                 <Button 
                   variant="outline" 
