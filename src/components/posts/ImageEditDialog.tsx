@@ -52,21 +52,25 @@ export function ImageEditDialog({
       .eq("id", user.id)
       .single();
 
-    if (profileData?.avatar_url) {
-      setProfileAvatar(profileData.avatar_url);
-    }
+    const profileAvatarUrl = profileData?.avatar_url || null;
+    setProfileAvatar(profileAvatarUrl);
 
     // ギャラリーのアバターを取得
     const { data, error } = await supabase
       .from("avatar_gallery")
-      .select("id, image_url, name, item_ids")
+      .select("id, image_url, name, item_ids, is_current")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
     if (!error && data) {
       // ベースアバターのみを表示（item_idsが存在しないもの）
+      // プロフィールアバターと同じURLは除外（重複防止）
       const baseAvatars = data
-        .filter(avatar => !avatar.item_ids || avatar.item_ids.length === 0)
+        .filter(avatar => {
+          const isBase = !avatar.item_ids || avatar.item_ids.length === 0;
+          const isDuplicate = profileAvatarUrl && avatar.image_url === profileAvatarUrl;
+          return isBase && !isDuplicate;
+        })
         .slice(0, 5)
         .map(a => ({ ...a, isProfile: false }));
       setAvatars(baseAvatars);
