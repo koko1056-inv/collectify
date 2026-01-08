@@ -30,29 +30,38 @@ export const ProfileImageSection = memo(function ProfileImageSection({
 }: ProfileImageSectionProps) {
 
   const handleAvatarSelect = async (selectedUrl: string) => {
-    // プロフィールのavatar_urlを更新
-    const { error } = await supabase
-      .from("profiles")
-      .update({ avatar_url: selectedUrl })
-      .eq("id", userId);
+    // 楽観的UI更新: 先にpreviewUrlを設定してすぐに反映
+    setPreviewUrl(selectedUrl);
+    
+    // DB更新を並列実行
+    const updatePromises = [
+      // プロフィールのavatar_urlを更新
+      supabase
+        .from("profiles")
+        .update({ avatar_url: selectedUrl })
+        .eq("id", userId),
+      // avatar_galleryのis_currentをリセット
+      supabase
+        .from("avatar_gallery")
+        .update({ is_current: false })
+        .eq("user_id", userId),
+    ];
 
-    if (error) {
-      console.error("Failed to update avatar:", error);
+    const [profileResult] = await Promise.all(updatePromises);
+
+    if (profileResult.error) {
+      console.error("Failed to update avatar:", profileResult.error);
       return;
     }
 
-    // avatar_galleryのis_currentを更新
-    await supabase
-      .from("avatar_gallery")
-      .update({ is_current: false })
-      .eq("user_id", userId);
-
+    // 選択したアバターをcurrentに設定（これは順序が必要なので後で実行）
     await supabase
       .from("avatar_gallery")
       .update({ is_current: true })
       .eq("user_id", userId)
       .eq("image_url", selectedUrl);
 
+    // バックグラウンドでrefetch（UIはすでに更新済み）
     onAvatarChange?.();
   };
 
