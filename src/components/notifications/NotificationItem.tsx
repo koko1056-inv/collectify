@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Notification, NotificationData } from '@/types/notification';
@@ -20,6 +20,12 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     switch (notification.type) {
       case 'new_item':
         return <Package className="h-4 w-4 text-blue-500" />;
+      case 'comment':
+        return <MessageCircle className="h-4 w-4 text-primary" />;
+      case 'reply':
+        return <Reply className="h-4 w-4 text-primary" />;
+      case 'like':
+        return <Heart className="h-4 w-4 text-red-500" />;
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'warning':
@@ -54,6 +60,8 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     // Navigate based on notification type
     if (notification.type === 'new_item' && notification.data.item_id) {
       navigate(`/search?item=${notification.data.item_id}`);
+    } else if ((notification.type === 'comment' || notification.type === 'reply' || notification.type === 'like') && notification.data.post_id) {
+      navigate(`/posts?post=${notification.data.post_id}`);
     }
   };
 
@@ -117,6 +125,22 @@ export function NotificationItem({ notification }: NotificationItemProps) {
                   <p className="text-xs text-muted-foreground">{data.content_name}</p>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Special rendering for comment/reply/like notifications */}
+          {(notification.type === 'comment' || notification.type === 'reply' || notification.type === 'like') && data.image && (
+            <div className="flex items-center gap-2 mb-2">
+              <img
+                src={data.image}
+                alt="投稿画像"
+                className="w-8 h-8 rounded object-cover"
+              />
+              {data.comment_text && (
+                <p className="text-xs text-muted-foreground line-clamp-1 flex-1">
+                  「{data.comment_text}」
+                </p>
+              )}
             </div>
           )}
 

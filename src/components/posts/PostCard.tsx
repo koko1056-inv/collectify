@@ -1,12 +1,13 @@
 import { GoodsPost } from "@/types/posts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToggleLike } from "@/hooks/posts";
 import { useState, memo } from "react";
 import { CommentsModal } from "./CommentsModal";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Badge } from "@/components/ui/badge";
 
 interface PostCardProps {
   post: GoodsPost;
@@ -86,10 +87,54 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
                 </button>
               </div>
             </div>
+            {/* グッズ情報 */}
+            {post.user_items && (
+              <div className="flex items-center gap-2 p-1.5 bg-muted/50 rounded">
+                {post.user_items.image && (
+                  <img 
+                    src={post.user_items.image} 
+                    alt={post.user_items.title || ""} 
+                    className="w-6 h-6 rounded object-cover"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-medium truncate">
+                    {post.user_items.title}
+                  </p>
+                  {post.user_items.content_name && (
+                    <p className="text-[9px] text-muted-foreground truncate">
+                      {post.user_items.content_name}
+                    </p>
+                  )}
+                </div>
+                <Package className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              </div>
+            )}
             {post.caption && (
               <p className="text-xs text-muted-foreground line-clamp-2">
                 {post.caption}
               </p>
+            )}
+            {/* タグ表示 */}
+            {post.user_items?.user_item_tags && post.user_items.user_item_tags.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {post.user_items.user_item_tags.slice(0, 3).map((tagItem, index) => (
+                  tagItem.tags && (
+                    <Badge 
+                      key={tagItem.tags.id || index} 
+                      variant="secondary" 
+                      className="text-[9px] px-1.5 py-0"
+                    >
+                      #{tagItem.tags.name}
+                    </Badge>
+                  )
+                ))}
+                {post.user_items.user_item_tags.length > 3 && (
+                  <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+                    +{post.user_items.user_item_tags.length - 3}
+                  </Badge>
+                )}
+              </div>
             )}
           </div>
           
