@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,11 @@ export function ProfileInterests({
   const [isAddingContent, setIsAddingContent] = useState(false);
   const [newContentName, setNewContentName] = useState("");
   const queryClient = useQueryClient();
+
+  // propsが変わったら状態を更新
+  useEffect(() => {
+    setSelectedInterests(currentInterests || []);
+  }, [currentInterests]);
 
   const { data: contentNames = [], isLoading } = useQuery({
     queryKey: ["content-names"],
