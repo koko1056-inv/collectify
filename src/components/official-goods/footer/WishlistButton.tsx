@@ -22,7 +22,7 @@ export function WishlistButton({
   const [wishlistCount, setWishlistCount] = useState(initialWishlistCount);
 
   // 現在のユーザーがこのアイテムをウィッシュリストに入れているか確認
-  const { data: isInWishlist } = useQuery({
+  const { data: isInWishlist, refetch: refetchIsInWishlist } = useQuery({
     queryKey: ["is-in-wishlist", itemId, user?.id],
     queryFn: async () => {
       if (!user) return false;
@@ -43,6 +43,14 @@ export function WishlistButton({
     },
     enabled: !!user,
   });
+
+  // ウィッシュリストの変更をグローバルに監視するため、wishlist-countsのキャッシュを監視
+  useEffect(() => {
+    // isInWishlistが変わったらカウントも同期
+    if (isInWishlist !== undefined) {
+      fetchWishlistCount();
+    }
+  }, [isInWishlist]);
 
   // ウィッシュリストのカウントをリアルタイムで更新
   const fetchWishlistCount = async () => {
