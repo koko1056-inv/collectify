@@ -8,6 +8,8 @@ import { Filter, Hash, Package, X, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { TrendingTags } from "./TrendingTags";
+import { WeeklyRanking } from "./WeeklyRanking";
 
 interface PostsSidebarProps {
   onFiltersChange?: (filters: {
@@ -179,6 +181,23 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
 
   return (
     <div className="w-full space-y-4 p-4">
+      {/* トレンドタグ */}
+      <Card>
+        <CardContent className="pt-4">
+          <TrendingTags 
+            onTagClick={handleTagToggle} 
+            selectedTags={selectedTags} 
+          />
+        </CardContent>
+      </Card>
+
+      {/* 週間ランキング */}
+      <Card>
+        <CardContent className="pt-4">
+          <WeeklyRanking />
+        </CardContent>
+      </Card>
+
       {/* 検索 */}
       <Card>
         <CardHeader className="pb-3">
