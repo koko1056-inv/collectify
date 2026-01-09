@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Filter, Vote } from "lucide-react";
+import { Plus, Filter, Vote, Trophy } from "lucide-react";
 import { PostsGrid } from "@/components/posts/PostsGrid";
 import { PollsGrid } from "@/components/polls/PollsGrid";
 import { CreatePollModal } from "@/components/polls/CreatePollModal";
+import { ChallengesGrid, CreateChallengeModal } from "@/components/challenges";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +26,7 @@ const Posts = memo(function Posts() {
   const { t } = useLanguage();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreatePollModalOpen, setIsCreatePollModalOpen] = useState(false);
+  const [isCreateChallengeModalOpen, setIsCreateChallengeModalOpen] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("posts");
   const [filters, setFilters] = useState({
@@ -52,9 +54,17 @@ const Posts = memo(function Posts() {
   const handleCreateAction = () => {
     if (activeTab === "posts") {
       setIsCreateModalOpen(true);
-    } else {
+    } else if (activeTab === "polls") {
       setIsCreatePollModalOpen(true);
+    } else {
+      setIsCreateChallengeModalOpen(true);
     }
+  };
+
+  const getCreateIcon = () => {
+    if (activeTab === "posts") return <Plus className="h-6 w-6 text-primary-foreground" />;
+    if (activeTab === "polls") return <Vote className="h-6 w-6 text-primary-foreground" />;
+    return <Trophy className="h-6 w-6 text-primary-foreground" />;
   };
 
   return (
@@ -79,6 +89,10 @@ const Posts = memo(function Posts() {
                   <TabsList className="w-full mb-4">
                     <TabsTrigger value="posts" className="flex-1">{t("tabs.posts")}</TabsTrigger>
                     <TabsTrigger value="polls" className="flex-1">{t("tabs.polls")}</TabsTrigger>
+                    <TabsTrigger value="challenges" className="flex-1 gap-1">
+                      <Trophy className="h-3.5 w-3.5" />
+                      ランキング
+                    </TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="posts">
@@ -121,6 +135,10 @@ const Posts = memo(function Posts() {
                   <TabsContent value="polls">
                     <PollsGrid onCreatePoll={() => setIsCreatePollModalOpen(true)} />
                   </TabsContent>
+
+                  <TabsContent value="challenges">
+                    <ChallengesGrid onCreateChallenge={() => setIsCreateChallengeModalOpen(true)} />
+                  </TabsContent>
                 </Tabs>
               </div>
             </div>
@@ -148,17 +166,13 @@ const Posts = memo(function Posts() {
       {/* フッター */}
       <Footer />
 
-      {/* フローティングアクションボタン（投稿/投票用） */}
+      {/* フローティングアクションボタン */}
       <button 
         onClick={handleCreateAction} 
         className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 group" 
-        aria-label={activeTab === "posts" ? t("common.newPost") : "新規投票"}
+        aria-label={activeTab === "posts" ? t("common.newPost") : activeTab === "polls" ? "新規投票" : "新規チャレンジ"}
       >
-        {activeTab === "posts" ? (
-          <Plus className="h-6 w-6 text-primary-foreground" />
-        ) : (
-          <Vote className="h-6 w-6 text-primary-foreground" />
-        )}
+        {getCreateIcon()}
       </button>
 
       {/* 投稿作成モーダル */}
@@ -168,6 +182,9 @@ const Posts = memo(function Posts() {
       
       {/* 投票作成モーダル */}
       <CreatePollModal isOpen={isCreatePollModalOpen} onClose={() => setIsCreatePollModalOpen(false)} />
+
+      {/* チャレンジ作成モーダル */}
+      <CreateChallengeModal isOpen={isCreateChallengeModalOpen} onClose={() => setIsCreateChallengeModalOpen(false)} />
     </div>
   );
 });
