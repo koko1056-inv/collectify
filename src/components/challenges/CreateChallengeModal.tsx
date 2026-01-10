@@ -6,10 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateChallenge } from "@/hooks/challenges";
-import { Trophy, Calendar, Package, Search, X } from "lucide-react";
+import { Trophy, Calendar, Package, Search, X, Coins, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useUserPoints } from "@/hooks/usePoints";
 
 interface CreateChallengeModalProps {
   isOpen: boolean;
@@ -34,6 +35,11 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
   const [secondPlacePoints, setSecondPlacePoints] = useState("50");
   const [thirdPlacePoints, setThirdPlacePoints] = useState("30");
   const createChallenge = useCreateChallenge();
+  const { data: userPoints } = useUserPoints();
+
+  const totalPrizePoints = (parseInt(firstPlacePoints) || 0) + (parseInt(secondPlacePoints) || 0) + (parseInt(thirdPlacePoints) || 0);
+  const currentBalance = userPoints?.total_points || 0;
+  const hasEnoughPoints = currentBalance >= totalPrizePoints;
 
   const { data: officialItems = [], isLoading: isLoadingItems } = useQuery({
     queryKey: ["official-items-search", searchQuery],
@@ -280,8 +286,32 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
                   />
                 </div>
               </div>
+              
+              {/* 合計と残高表示 */}
+              <div className={`mt-3 p-3 rounded-lg ${hasEnoughPoints ? 'bg-muted/50' : 'bg-destructive/10 border border-destructive/30'}`}>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1.5">
+                    <Coins className="h-4 w-4" />
+                    必要ポイント
+                  </span>
+                  <span className="font-bold">{totalPrizePoints}pt</span>
+                </div>
+                <div className="flex items-center justify-between text-sm mt-1">
+                  <span className="text-muted-foreground">あなたの残高</span>
+                  <span className={hasEnoughPoints ? 'text-muted-foreground' : 'text-destructive font-medium'}>
+                    {currentBalance}pt
+                  </span>
+                </div>
+                {!hasEnoughPoints && (
+                  <div className="flex items-center gap-1.5 text-xs text-destructive mt-2">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    ポイントが不足しています
+                  </div>
+                )}
+              </div>
+              
               <p className="text-xs text-muted-foreground mt-1.5">
-                チャレンジ終了時に入賞者へ付与されるポイント
+                作成時にあなたのポイントから賞金プールが差し引かれます
               </p>
             </div>
           </div>
@@ -293,10 +323,10 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!title.trim() || createChallenge.isPending}
+            disabled={!title.trim() || createChallenge.isPending || !hasEnoughPoints}
             className="flex-1"
           >
-            {createChallenge.isPending ? "作成中..." : "作成"}
+            {createChallenge.isPending ? "作成中..." : `作成 (-${totalPrizePoints}pt)`}
           </Button>
         </div>
       </DialogContent>

@@ -23,6 +23,49 @@ export function useCreateChallenge() {
     mutationFn: async (data: CreateChallengeData) => {
       if (!user) throw new Error("ログインが必要です");
 
+      const firstPoints = data.first_place_points || 100;
+      const secondPoints = data.second_place_points || 50;
+      const thirdPoints = data.third_place_points || 30;
+      const totalPrizePoints = firstPoints + secondPoints + thirdPoints;
+
+      // 現在のポイント残高を取得
+      const { data: userPoints, error: pointsError } = await supabase
+        .from("user_points")
+        .select("total_points")
+        .eq("user_id", user.id)
+        .single();
+
+      if (pointsError && pointsError.code !== 'PGRST116') {
+        throw pointsError;
+      }
+
+      const currentPoints = userPoints?.total_points || 0;
+
+      // ポイント残高チェック
+      if (currentPoints < totalPrizePoints) {
+        throw new Error(`ポイントが不足しています（現在: ${currentPoints}pt、必要: ${totalPrizePoints}pt）`);
+      }
+
+      // ポイントを差し引く
+      if (userPoints) {
+        await supabase
+          .from("user_points")
+          .update({ total_points: currentPoints - totalPrizePoints })
+          .eq("user_id", user.id);
+      } else {
+        // ポイントレコードがない場合は作成（通常は到達しない）
+        throw new Error("ポイントが不足しています");
+      }
+
+      // ポイント履歴に記録
+      await supabase.from("point_transactions").insert({
+        user_id: user.id,
+        points: -totalPrizePoints,
+        transaction_type: "challenge_create",
+        description: `チャレンジ「${data.title}」作成（賞金プール）`,
+      });
+
+      // チャレンジを作成
       const { data: challenge, error } = await supabase
         .from("challenges")
         .insert({
@@ -32,18 +75,28 @@ export function useCreateChallenge() {
           image_url: data.image_url,
           official_item_id: data.official_item_id,
           ends_at: data.ends_at,
-          first_place_points: data.first_place_points || 100,
-          second_place_points: data.second_place_points || 50,
-          third_place_points: data.third_place_points || 30,
+          first_place_points: firstPoints,
+          second_place_points: secondPoints,
+          third_place_points: thirdPoints,
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // チャレンジ作成失敗時はポイントを戻す
+        await supabase
+          .from("user_points")
+          .update({ total_points: currentPoints })
+          .eq("user_id", user.id);
+        throw error;
+      }
+
       return challenge;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
+      queryClient.invalidateQueries({ queryKey: ["userPoints"] });
+      queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
       toast({ title: "チャレンジを作成しました" });
     },
     onError: (error) => {
