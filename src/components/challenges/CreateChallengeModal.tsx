@@ -6,18 +6,51 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateChallenge } from "@/hooks/challenges";
-import { Trophy, Calendar } from "lucide-react";
+import { Trophy, Calendar, Package, Search, X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CreateChallengeModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+interface OfficialItem {
+  id: string;
+  title: string;
+  image: string;
+  content_name?: string;
+}
+
 export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [duration, setDuration] = useState("3"); // days
+  const [duration, setDuration] = useState("3");
+  const [selectedItem, setSelectedItem] = useState<OfficialItem | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showItemSearch, setShowItemSearch] = useState(false);
   const createChallenge = useCreateChallenge();
+
+  const { data: officialItems = [], isLoading: isLoadingItems } = useQuery({
+    queryKey: ["official-items-search", searchQuery],
+    queryFn: async () => {
+      let query = supabase
+        .from("official_items")
+        .select("id, title, image, content_name")
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (searchQuery.trim()) {
+        query = query.or(`title.ilike.%${searchQuery}%,content_name.ilike.%${searchQuery}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as OfficialItem[];
+    },
+    enabled: isOpen,
+  });
 
   const handleSubmit = () => {
     if (!title.trim()) return;
@@ -29,6 +62,7 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
       {
         title: title.trim(),
         description: description.trim() || undefined,
+        official_item_id: selectedItem?.id,
         ends_at: endsAt.toISOString(),
       },
       {
@@ -36,15 +70,28 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
           setTitle("");
           setDescription("");
           setDuration("3");
+          setSelectedItem(null);
+          setSearchQuery("");
+          setShowItemSearch(false);
           onClose();
         },
       }
     );
   };
 
+  const handleItemSelect = (item: OfficialItem) => {
+    setSelectedItem(item);
+    setShowItemSearch(false);
+    setSearchQuery("");
+  };
+
+  const handleRemoveItem = () => {
+    setSelectedItem(null);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-primary" />
@@ -52,68 +99,160 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="title">テーマ</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="例: グッズのおしゃれな飾り方"
-              className="mt-1"
-            />
-          </div>
+        <ScrollArea className="flex-1 pr-4">
+          <div className="space-y-4 pb-4">
+            <div>
+              <Label htmlFor="title">テーマ</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="例: グッズのおしゃれな飾り方"
+                className="mt-1"
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="description">説明（任意）</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="チャレンジの詳細や参加条件など"
-              className="mt-1"
-              rows={3}
-            />
-          </div>
+            <div>
+              <Label htmlFor="description">説明（任意）</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="チャレンジの詳細や参加条件など"
+                className="mt-1"
+                rows={3}
+              />
+            </div>
 
-          <div>
-            <Label className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              開催期間
-            </Label>
-            <Select value={duration} onValueChange={setDuration}>
-              <SelectTrigger className="mt-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1日間</SelectItem>
-                <SelectItem value="3">3日間</SelectItem>
-                <SelectItem value="7">1週間</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            {/* グッズ選択セクション */}
+            <div>
+              <Label className="flex items-center gap-2 mb-2">
+                <Package className="h-4 w-4" />
+                対象グッズ（任意）
+              </Label>
+              
+              {selectedItem ? (
+                <div className="relative flex items-center gap-3 p-3 rounded-lg border bg-muted/50">
+                  <img
+                    src={selectedItem.image}
+                    alt={selectedItem.title}
+                    className="w-16 h-16 object-cover rounded-md"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm line-clamp-2">{selectedItem.title}</p>
+                    {selectedItem.content_name && (
+                      <p className="text-xs text-muted-foreground mt-0.5">{selectedItem.content_name}</p>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleRemoveItem}
+                    className="h-8 w-8 shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="グッズを検索..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setShowItemSearch(true);
+                      }}
+                      onFocus={() => setShowItemSearch(true)}
+                      className="pl-9"
+                    />
+                  </div>
 
-          <div className="bg-muted/50 rounded-lg p-3 text-sm">
-            <p className="font-medium mb-1">🏆 入賞ポイント</p>
-            <div className="flex gap-4 text-muted-foreground">
-              <span>🥇 1位: 100pt</span>
-              <span>🥈 2位: 50pt</span>
-              <span>🥉 3位: 30pt</span>
+                  {showItemSearch && (
+                    <div className="border rounded-lg overflow-hidden bg-background shadow-sm">
+                      <div className="max-h-48 overflow-y-auto">
+                        {isLoadingItems ? (
+                          <div className="p-4 text-center text-sm text-muted-foreground">
+                            読み込み中...
+                          </div>
+                        ) : officialItems.length === 0 ? (
+                          <div className="p-4 text-center text-sm text-muted-foreground">
+                            グッズが見つかりません
+                          </div>
+                        ) : (
+                          <div className="divide-y">
+                            {officialItems.map((item) => (
+                              <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => handleItemSelect(item)}
+                                className="w-full flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors text-left"
+                              >
+                                <img
+                                  src={item.image}
+                                  alt={item.title}
+                                  className="w-12 h-12 object-cover rounded"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium line-clamp-1">{item.title}</p>
+                                  {item.content_name && (
+                                    <p className="text-xs text-muted-foreground">{item.content_name}</p>
+                                  )}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground mt-1.5">
+                特定のグッズに関連するチャレンジの場合に選択してください
+              </p>
+            </div>
+
+            <div>
+              <Label className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                開催期間
+              </Label>
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1日間</SelectItem>
+                  <SelectItem value="3">3日間</SelectItem>
+                  <SelectItem value="7">1週間</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-3 text-sm">
+              <p className="font-medium mb-1">🏆 入賞ポイント</p>
+              <div className="flex gap-4 text-muted-foreground">
+                <span>🥇 1位: 100pt</span>
+                <span>🥈 2位: 50pt</span>
+                <span>🥉 3位: 30pt</span>
+              </div>
             </div>
           </div>
+        </ScrollArea>
 
-          <div className="flex gap-2 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              キャンセル
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!title.trim() || createChallenge.isPending}
-              className="flex-1"
-            >
-              {createChallenge.isPending ? "作成中..." : "作成"}
-            </Button>
-          </div>
+        <div className="flex gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={onClose} className="flex-1">
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!title.trim() || createChallenge.isPending}
+            className="flex-1"
+          >
+            {createChallenge.isPending ? "作成中..." : "作成"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

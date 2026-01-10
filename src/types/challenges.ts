@@ -4,6 +4,7 @@ export interface Challenge {
   title: string;
   description?: string;
   image_url?: string;
+  official_item_id?: string;
   starts_at: string;
   ends_at: string;
   status: 'active' | 'ended' | 'cancelled';
@@ -16,7 +17,12 @@ export interface Challenge {
     username: string;
     avatar_url?: string;
   };
-  challenge_entries?: ChallengeEntry[];
+  official_items?: {
+    id: string;
+    title: string;
+    image: string;
+  };
+  challenge_entries?: { id: string }[];
   _count?: {
     entries: number;
   };

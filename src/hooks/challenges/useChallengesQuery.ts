@@ -14,6 +14,7 @@ export function useChallenges() {
         .select(`
           *,
           profiles!user_id (username, avatar_url),
+          official_items (id, title, image),
           challenge_entries (id)
         `)
         .in("status", ["active", "ended"])
@@ -55,7 +56,8 @@ export function useChallenge(challengeId: string) {
         .from("challenges")
         .select(`
           *,
-          profiles!user_id (username, avatar_url)
+          profiles!user_id (username, avatar_url),
+          official_items (id, title, image)
         `)
         .eq("id", challengeId)
         .single();

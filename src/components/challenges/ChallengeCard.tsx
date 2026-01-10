@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Users, Clock, ChevronRight } from "lucide-react";
+import { Trophy, Users, Clock, ChevronRight, Package } from "lucide-react";
 import { Challenge } from "@/types/challenges";
 import { formatDistanceToNow, isPast, parseISO } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -39,6 +39,24 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
         </CardHeader>
 
         <CardContent className="pb-3">
+          {/* 紐づけられたグッズ */}
+          {challenge.official_items && (
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 mb-3">
+              <img
+                src={challenge.official_items.image}
+                alt={challenge.official_items.title}
+                className="w-10 h-10 object-cover rounded"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Package className="h-3 w-3" />
+                  対象グッズ
+                </div>
+                <p className="text-sm font-medium truncate">{challenge.official_items.title}</p>
+              </div>
+            </div>
+          )}
+
           <h3 className="font-bold text-lg mb-2 line-clamp-2">{challenge.title}</h3>
           {challenge.description && (
             <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
