@@ -30,6 +30,9 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
   const [selectedItem, setSelectedItem] = useState<OfficialItem | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showItemSearch, setShowItemSearch] = useState(false);
+  const [firstPlacePoints, setFirstPlacePoints] = useState("100");
+  const [secondPlacePoints, setSecondPlacePoints] = useState("50");
+  const [thirdPlacePoints, setThirdPlacePoints] = useState("30");
   const createChallenge = useCreateChallenge();
 
   const { data: officialItems = [], isLoading: isLoadingItems } = useQuery({
@@ -64,6 +67,9 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
         description: description.trim() || undefined,
         official_item_id: selectedItem?.id,
         ends_at: endsAt.toISOString(),
+        first_place_points: parseInt(firstPlacePoints) || 100,
+        second_place_points: parseInt(secondPlacePoints) || 50,
+        third_place_points: parseInt(thirdPlacePoints) || 30,
       },
       {
         onSuccess: () => {
@@ -73,6 +79,9 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
           setSelectedItem(null);
           setSearchQuery("");
           setShowItemSearch(false);
+          setFirstPlacePoints("100");
+          setSecondPlacePoints("50");
+          setThirdPlacePoints("30");
           onClose();
         },
       }
@@ -231,13 +240,49 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
               </Select>
             </div>
 
-            <div className="bg-muted/50 rounded-lg p-3 text-sm">
-              <p className="font-medium mb-1">🏆 入賞ポイント</p>
-              <div className="flex gap-4 text-muted-foreground">
-                <span>🥇 1位: 100pt</span>
-                <span>🥈 2位: 50pt</span>
-                <span>🥉 3位: 30pt</span>
+            <div>
+              <Label className="flex items-center gap-2 mb-2">
+                <Trophy className="h-4 w-4" />
+                入賞ポイント
+              </Label>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <Label className="text-xs text-muted-foreground">🥇 1位</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={firstPlacePoints}
+                    onChange={(e) => setFirstPlacePoints(e.target.value)}
+                    className="mt-1"
+                    placeholder="100"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">🥈 2位</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={secondPlacePoints}
+                    onChange={(e) => setSecondPlacePoints(e.target.value)}
+                    className="mt-1"
+                    placeholder="50"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">🥉 3位</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={thirdPlacePoints}
+                    onChange={(e) => setThirdPlacePoints(e.target.value)}
+                    className="mt-1"
+                    placeholder="30"
+                  />
+                </div>
               </div>
+              <p className="text-xs text-muted-foreground mt-1.5">
+                チャレンジ終了時に入賞者へ付与されるポイント
+              </p>
             </div>
           </div>
         </ScrollArea>
