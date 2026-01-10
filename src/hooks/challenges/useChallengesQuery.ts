@@ -96,7 +96,8 @@ export function useChallengeEntries(challengeId: string) {
       })) as ChallengeEntry[];
     },
     enabled: !!challengeId,
-    staleTime: 30 * 1000,
+    staleTime: 5 * 1000, // 5秒で再取得可能に（リアルタイム性向上）
+    refetchInterval: 10 * 1000, // 10秒ごとに自動更新
   });
 
   useEffect(() => {
