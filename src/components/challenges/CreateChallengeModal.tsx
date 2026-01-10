@@ -100,15 +100,15 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-lg max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-primary" />
             チャレンジを作成
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 max-h-[60vh] pr-4">
+        <div className="flex-1 overflow-y-auto px-6">
           <div className="space-y-4 pb-4">
             <div>
               <Label htmlFor="title">テーマ</Label>
@@ -285,9 +285,9 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
               </p>
             </div>
           </div>
-        </ScrollArea>
+        </div>
 
-        <div className="flex gap-2 pt-4 border-t">
+        <div className="flex gap-2 px-6 py-4 border-t shrink-0">
           <Button variant="outline" onClick={onClose} className="flex-1">
             キャンセル
           </Button>
