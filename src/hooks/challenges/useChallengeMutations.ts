@@ -7,6 +7,7 @@ interface CreateChallengeData {
   title: string;
   description?: string;
   image_url?: string;
+  official_item_id?: string;
   ends_at: string;
   first_place_points?: number;
   second_place_points?: number;
@@ -29,6 +30,7 @@ export function useCreateChallenge() {
           title: data.title,
           description: data.description,
           image_url: data.image_url,
+          official_item_id: data.official_item_id,
           ends_at: data.ends_at,
           first_place_points: data.first_place_points || 100,
           second_place_points: data.second_place_points || 50,

@@ -457,6 +457,7 @@ export type Database = {
           first_place_points: number
           id: string
           image_url: string | null
+          official_item_id: string | null
           second_place_points: number
           starts_at: string
           status: string
@@ -472,6 +473,7 @@ export type Database = {
           first_place_points?: number
           id?: string
           image_url?: string | null
+          official_item_id?: string | null
           second_place_points?: number
           starts_at?: string
           status?: string
@@ -487,6 +489,7 @@ export type Database = {
           first_place_points?: number
           id?: string
           image_url?: string | null
+          official_item_id?: string | null
           second_place_points?: number
           starts_at?: string
           status?: string
@@ -496,6 +499,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "challenges_official_item_id_fkey"
+            columns: ["official_item_id"]
+            isOneToOne: false
+            referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "challenges_user_id_fkey"
             columns: ["user_id"]

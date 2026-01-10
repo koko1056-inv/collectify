@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trophy, Users, Clock, Vote, ImagePlus, Medal } from "lucide-react";
+import { Trophy, Users, Clock, Vote, ImagePlus, Medal, Package } from "lucide-react";
 import { useChallenge, useChallengeEntries, useVoteForEntry, useEndChallenge } from "@/hooks/challenges";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow, isPast, parseISO, format } from "date-fns";
@@ -104,6 +104,24 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
                   : formatDistanceToNow(parseISO(challenge.ends_at), { locale: ja, addSuffix: true })}
               </span>
             </div>
+
+            {/* 紐づけられたグッズ */}
+            {challenge.official_items && (
+              <div className="flex items-center gap-3 mt-4 p-3 rounded-lg border bg-muted/30">
+                <img
+                  src={challenge.official_items.image}
+                  alt={challenge.official_items.title}
+                  className="w-14 h-14 object-cover rounded-lg"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-0.5">
+                    <Package className="h-3 w-3" />
+                    対象グッズ
+                  </div>
+                  <p className="font-medium truncate">{challenge.official_items.title}</p>
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center gap-3 mt-4 p-3 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 rounded-lg">
               <Trophy className="h-5 w-5 text-yellow-500" />
