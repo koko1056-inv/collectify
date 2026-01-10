@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trophy, Users, Clock, Vote, ImagePlus, Medal, Package } from "lucide-react";
+import { Trophy, Users, Clock, Vote, ImagePlus, Medal, Package, TrendingUp } from "lucide-react";
 import { useChallenge, useChallengeEntries, useVoteForEntry, useEndChallenge } from "@/hooks/challenges";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow, isPast, parseISO, format } from "date-fns";
@@ -12,6 +12,7 @@ import { ja } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChallengeEntryModal } from "./ChallengeEntryModal";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ChallengeDetailModalProps {
   challengeId: string;
@@ -31,6 +32,7 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
   const isOwner = user?.id === challenge?.user_id;
   const hasEntered = entries?.some(e => e.user_id === user?.id);
   const userVotedEntryId = entries?.find(e => e.challenge_votes?.some(v => v.user_id === user?.id))?.id;
+  const totalVotes = entries?.reduce((sum, e) => sum + (e._count?.votes || 0), 0) || 0;
 
   // Sort entries by vote count
   const sortedEntries = [...(entries || [])].sort((a, b) => 
@@ -48,11 +50,31 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
     endChallenge.mutate(challengeId);
   };
 
-  const getRankBadge = (index: number) => {
-    if (index === 0) return <Medal className="h-5 w-5 text-yellow-500" />;
-    if (index === 1) return <Medal className="h-5 w-5 text-gray-400" />;
-    if (index === 2) return <Medal className="h-5 w-5 text-amber-600" />;
-    return null;
+  const getRankBadge = (index: number, voteCount: number) => {
+    if (voteCount === 0) return null;
+    if (index === 0) return (
+      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500 text-white text-xs font-bold">
+        <Medal className="h-3.5 w-3.5" />
+        1位
+      </div>
+    );
+    if (index === 1) return (
+      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gray-400 text-white text-xs font-bold">
+        <Medal className="h-3.5 w-3.5" />
+        2位
+      </div>
+    );
+    if (index === 2) return (
+      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-600 text-white text-xs font-bold">
+        <Medal className="h-3.5 w-3.5" />
+        3位
+      </div>
+    );
+    return (
+      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+        {index + 1}位
+      </div>
+    );
   };
 
   if (challengeLoading) {
@@ -134,6 +156,19 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
           </DialogHeader>
 
           <ScrollArea className="flex-1 p-6">
+            {/* リアルタイムランキングヘッダー */}
+            {!entriesLoading && sortedEntries.length > 0 && (
+              <div className="flex items-center justify-between mb-4 p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-sm">リアルタイムランキング</span>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  総投票数: <span className="font-bold text-foreground">{totalVotes}</span>票
+                </div>
+              </div>
+            )}
+
             {entriesLoading ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 {[...Array(4)].map((_, i) => (
@@ -147,70 +182,116 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
                 <p className="text-sm">最初の参加者になりましょう！</p>
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {sortedEntries.map((entry, index) => {
-                  const isMyVote = userVotedEntryId === entry.id;
-                  const isMyEntry = entry.user_id === user?.id;
-                  
-                  return (
-                    <div 
-                      key={entry.id} 
-                      className={cn(
-                        "relative rounded-lg overflow-hidden border bg-card",
-                        isEnded && index < 3 && "ring-2 ring-primary/20"
-                      )}
-                    >
-                      <div className="aspect-square relative">
-                        <img 
-                          src={entry.image_url} 
-                          alt="" 
-                          className="w-full h-full object-cover"
-                        />
-                        {isEnded && index < 3 && (
-                          <div className="absolute top-2 left-2">
-                            {getRankBadge(index)}
-                          </div>
+              <div className="space-y-3">
+                <AnimatePresence mode="popLayout">
+                  {sortedEntries.map((entry, index) => {
+                    const isMyVote = userVotedEntryId === entry.id;
+                    const isMyEntry = entry.user_id === user?.id;
+                    const voteCount = entry._count?.votes || 0;
+                    const votePercentage = totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0;
+                    
+                    return (
+                      <motion.div 
+                        key={entry.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.3 }}
+                        className={cn(
+                          "relative rounded-lg overflow-hidden border bg-card",
+                          index < 3 && voteCount > 0 && "ring-2",
+                          index === 0 && voteCount > 0 && "ring-yellow-500/50",
+                          index === 1 && voteCount > 0 && "ring-gray-400/50",
+                          index === 2 && voteCount > 0 && "ring-amber-600/50"
                         )}
-                      </div>
-
-                      <div className="p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={entry.profiles?.avatar_url} />
-                              <AvatarFallback>{entry.profiles?.username?.[0]}</AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm font-medium truncate">
-                              {entry.profiles?.username}
-                            </span>
+                      >
+                        <div className="flex gap-3 p-3">
+                          {/* ランク表示 */}
+                          <div className="flex-shrink-0 flex flex-col items-center justify-center w-12">
+                            {getRankBadge(index, voteCount)}
                           </div>
-                          <Badge variant="outline" className="flex-shrink-0">
-                            {entry._count?.votes || 0}票
-                          </Badge>
+
+                          {/* 画像 */}
+                          <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
+                            <img 
+                              src={entry.image_url} 
+                              alt="" 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+
+                          {/* 情報 */}
+                          <div className="flex-1 min-w-0 flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <Avatar className="h-5 w-5">
+                                  <AvatarImage src={entry.profiles?.avatar_url} />
+                                  <AvatarFallback className="text-[10px]">{entry.profiles?.username?.[0]}</AvatarFallback>
+                                </Avatar>
+                                <span className="text-sm font-medium truncate">
+                                  {entry.profiles?.username}
+                                </span>
+                              </div>
+                              {entry.caption && (
+                                <p className="text-xs text-muted-foreground line-clamp-1">
+                                  {entry.caption}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* 投票バー */}
+                            <div className="mt-2">
+                              <div className="flex items-center justify-between text-xs mb-1">
+                                <motion.span 
+                                  key={voteCount}
+                                  initial={{ scale: 1.2 }}
+                                  animate={{ scale: 1 }}
+                                  className="font-bold text-primary"
+                                >
+                                  {voteCount}票
+                                </motion.span>
+                                <span className="text-muted-foreground">
+                                  {votePercentage.toFixed(0)}%
+                                </span>
+                              </div>
+                              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                <motion.div 
+                                  className={cn(
+                                    "h-full rounded-full",
+                                    index === 0 && "bg-yellow-500",
+                                    index === 1 && "bg-gray-400",
+                                    index === 2 && "bg-amber-600",
+                                    index > 2 && "bg-primary"
+                                  )}
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${votePercentage}%` }}
+                                  transition={{ duration: 0.5, ease: "easeOut" }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 投票ボタン */}
+                          {!isEnded && !isMyEntry && user && (
+                            <div className="flex-shrink-0 flex items-center">
+                              <Button
+                                variant={isMyVote ? "default" : "outline"}
+                                size="sm"
+                                className="gap-1.5"
+                                onClick={() => handleVote(entry.id)}
+                                disabled={voteForEntry.isPending}
+                              >
+                                <Vote className="h-4 w-4" />
+                                {isMyVote ? "済" : "投票"}
+                              </Button>
+                            </div>
+                          )}
                         </div>
-
-                        {entry.caption && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                            {entry.caption}
-                          </p>
-                        )}
-
-                        {!isEnded && !isMyEntry && user && (
-                          <Button
-                            variant={isMyVote ? "default" : "outline"}
-                            size="sm"
-                            className="w-full gap-2"
-                            onClick={() => handleVote(entry.id)}
-                            disabled={voteForEntry.isPending}
-                          >
-                            <Vote className="h-4 w-4" />
-                            {isMyVote ? "投票済み" : "投票する"}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
               </div>
             )}
           </ScrollArea>
