@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImageSection, type AnalysisResult } from "./admin-item-form/ImageSection";
@@ -19,6 +19,7 @@ export function AdminItemForm() {
   const [step1Completed, setStep1Completed] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Array<{ url: string; title: string | null }>>([]);
   const [isMultipleMode, setIsMultipleMode] = useState(false);
+  const bulkSubmittingRef = useRef(false);
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -213,98 +214,119 @@ export function AdminItemForm() {
                   <MultipleItemsForm
                     images={selectedImages}
                     onSubmit={async (items) => {
+                      if (bulkSubmittingRef.current) return;
+                      bulkSubmittingRef.current = true;
+
                       const user = (await supabase.auth.getUser()).data.user;
-                      if (!user) {
-                        toast({
-                          title: t("common.error"),
-                          description: t("addItem.loginRequired"),
-                          variant: "destructive",
-                        });
-                        return;
-                      }
+                      try {
+                        if (!user) {
+                          toast({
+                            title: t("common.error"),
+                            description: t("addItem.loginRequired"),
+                            variant: "destructive",
+                          });
+                          return;
+                        }
 
-                      let successCount = 0;
-                      let errorCount = 0;
+                        let successCount = 0;
+                        let errorCount = 0;
 
-                      for (const item of items) {
-                        try {
-                          const response = await fetch(item.imageUrl);
-                          const blob = await response.blob();
-                          const file = new File([blob], `item-${Date.now()}.jpg`, { type: blob.type });
-                          
-                          const fileExt = file.name.split('.').pop();
-                          const fileName = `${Math.random()}.${fileExt}`;
-                          const filePath = `${user.id}/${fileName}`;
-
-                          const { error: uploadError } = await supabase.storage
-                            .from('kuji_images')
-                            .upload(filePath, file);
-
-                          if (uploadError) throw uploadError;
-
-                          const { data: { publicUrl } } = supabase.storage
-                            .from('kuji_images')
-                            .getPublicUrl(filePath);
-
-                          const { data: newItem, error: insertError } = await supabase
-                            .from('official_items')
-                            .insert({
-                              title: item.title,
-                              description: item.description || null,
-                              image: publicUrl,
-                              price: item.price,
-                              content_name: item.content_name || null,
-                              created_by: user.id,
-                              release_date: new Date().toISOString(),
-                              item_type: item.item_type || 'official',
-                            })
-                            .select()
-                            .single();
-
-                          if (insertError) throw insertError;
-
-                          if (newItem) {
-                            // タグIDを直接使用してitem_tagsに挿入
-                            const tagIds = [
-                              item.characterTagId,
-                              item.typeTagId,
-                              item.seriesTagId
-                            ].filter(Boolean) as string[];
+                        for (const item of items) {
+                          try {
+                            const response = await fetch(item.imageUrl);
+                            const blob = await response.blob();
+                            const file = new File([blob], `item-${Date.now()}.jpg`, { type: blob.type });
                             
-                            if (tagIds.length > 0) {
-                              const tagInserts = tagIds.map(tagId => ({
-                                official_item_id: newItem.id,
-                                tag_id: tagId,
-                              }));
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `${Math.random()}.${fileExt}`;
+                            const filePath = `${user.id}/${fileName}`;
 
-                              const { error: tagError } = await supabase.from('item_tags').insert(tagInserts);
-                              if (tagError) {
-                                console.error('Error inserting tags:', tagError);
-                              } else {
-                                console.log(`Successfully inserted ${tagIds.length} tags for item ${newItem.id}`);
+                            const { error: uploadError } = await supabase.storage
+                              .from('kuji_images')
+                              .upload(filePath, file);
+
+                            if (uploadError) throw uploadError;
+
+                            const { data: { publicUrl } } = supabase.storage
+                              .from('kuji_images')
+                              .getPublicUrl(filePath);
+
+                            const { data: newItem, error: insertError } = await supabase
+                              .from('official_items')
+                              .insert({
+                                title: item.title,
+                                description: item.description || null,
+                                image: publicUrl,
+                                price: item.price,
+                                content_name: item.content_name || null,
+                                created_by: user.id,
+                                release_date: new Date().toISOString(),
+                                item_type: item.item_type || 'official',
+                              })
+                              .select()
+                              .single();
+
+                            if (insertError) throw insertError;
+
+                            if (newItem) {
+                              // タグIDを直接使用してitem_tagsに挿入（重複を除外）
+                              const tagIds = [
+                                item.characterTagId,
+                                item.typeTagId,
+                                item.seriesTagId
+                              ].filter(Boolean) as string[];
+
+                              const uniqueTagIds = Array.from(new Set(tagIds));
+                              if (uniqueTagIds.length > 0) {
+                                const { data: existingTagRows, error: existingTagsError } = await supabase
+                                  .from('item_tags')
+                                  .select('tag_id')
+                                  .eq('official_item_id', newItem.id)
+                                  .in('tag_id', uniqueTagIds);
+
+                                if (existingTagsError) {
+                                  console.error('Error checking existing tags:', existingTagsError);
+                                } else {
+                                  const existingSet = new Set((existingTagRows || []).map(r => r.tag_id));
+                                  const missingTagIds = uniqueTagIds.filter(id => !existingSet.has(id));
+
+                                  if (missingTagIds.length > 0) {
+                                    const tagInserts = missingTagIds.map(tagId => ({
+                                      official_item_id: newItem.id,
+                                      tag_id: tagId,
+                                    }));
+
+                                    const { error: tagError } = await supabase.from('item_tags').insert(tagInserts);
+                                    if (tagError) {
+                                      console.error('Error inserting tags:', tagError);
+                                    }
+                                  }
+                                }
                               }
                             }
+
+                            successCount++;
+                          } catch (error) {
+                            console.error('Error creating item:', error);
+                            errorCount++;
                           }
-
-                          successCount++;
-                        } catch (error) {
-                          console.error('Error creating item:', error);
-                          errorCount++;
                         }
-                      }
 
-                      if (successCount > 0) {
-                        toast({
-                          title: t("addItem.registrationComplete"),
-                          description: `${successCount}${t("addItem.itemsRegistered")}${errorCount > 0 ? `（${errorCount}${t("addItem.itemsFailed")}）` : ''}`,
-                        });
-                        resetForm();
-                      } else {
-                        toast({
-                          title: t("common.error"),
-                          description: t("addItem.registrationError"),
-                          variant: "destructive",
-                        });
+                        if (successCount > 0) {
+                          toast({
+                            title: t("addItem.registrationComplete"),
+                            description: `${successCount}${t("addItem.itemsRegistered")}${errorCount > 0 ? `（${errorCount}${t("addItem.itemsFailed")}）` : ''}`,
+                          });
+                          resetForm();
+                        } else {
+                          toast({
+                            title: t("common.error"),
+                            description: t("addItem.registrationError"),
+                            variant: "destructive",
+                          });
+                        }
+                      } finally {
+                        bulkSubmittingRef.current = false;
                       }
                     }}
                     onBack={() => {

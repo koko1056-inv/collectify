@@ -52,6 +52,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const submitLockRef = useRef(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -129,6 +130,9 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
   const handleSubmit = async () => {
     if (!user || !imageFile || !editedData) return;
 
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+
     setIsSubmitting(true);
     try {
       // 画像をアップロード
@@ -163,23 +167,42 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
 
       if (officialInsertError) throw officialInsertError;
 
-      // 2. タグを保存
+      // 2. タグを保存（item_tagsの重複を除外）
+      const tagIds: string[] = [];
       for (const [category, tagName] of Object.entries(selectedTags)) {
-        if (tagName) {
-          // タグIDを取得
-          const { data: tagData } = await supabase
-            .from('tags')
-            .select('id')
-            .eq('name', tagName)
-            .eq('category', category)
-            .single();
+        if (!tagName) continue;
 
-          if (tagData) {
-            await supabase.from('item_tags').insert({
+        const { data: tagData } = await supabase
+          .from('tags')
+          .select('id')
+          .eq('name', tagName)
+          .eq('category', category)
+          .single();
+
+        if (tagData?.id) tagIds.push(tagData.id);
+      }
+
+      const uniqueTagIds = Array.from(new Set(tagIds));
+      if (uniqueTagIds.length > 0) {
+        const { data: existingTagRows, error: existingTagsError } = await supabase
+          .from('item_tags')
+          .select('tag_id')
+          .eq('official_item_id', officialItem.id)
+          .in('tag_id', uniqueTagIds);
+
+        if (existingTagsError) throw existingTagsError;
+
+        const existingSet = new Set((existingTagRows || []).map(r => r.tag_id));
+        const missingTagIds = uniqueTagIds.filter(id => !existingSet.has(id));
+
+        if (missingTagIds.length > 0) {
+          const { error: insertTagsError } = await supabase
+            .from('item_tags')
+            .insert(missingTagIds.map(tagId => ({
               official_item_id: officialItem.id,
-              tag_id: tagData.id,
-            });
-          }
+              tag_id: tagId,
+            })));
+          if (insertTagsError) throw insertTagsError;
         }
       }
 
@@ -236,6 +259,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
       });
     } finally {
       setIsSubmitting(false);
+      submitLockRef.current = false;
     }
   };
 
