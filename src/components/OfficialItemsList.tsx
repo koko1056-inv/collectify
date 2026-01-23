@@ -1,4 +1,3 @@
-
 import { OfficialItem } from "@/types";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -7,7 +6,7 @@ import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
 import { useItemCounts } from "./official-goods/hooks/useItemCounts";
 import { useSortedItems } from "./official-goods/hooks/useSortedItems";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { 
   Drawer,
   DrawerClose,
@@ -17,6 +16,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FilterBar } from "./FilterBar";
 import { Tag } from "@/types";
+import { Button } from "@/components/ui/button";
+import { BulkImportModal } from "./admin/BulkImportModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface OfficialItemsListProps {
   items: OfficialItem[];
@@ -42,9 +44,12 @@ export function OfficialItemsList({
   tags = []
 }: OfficialItemsListProps) {
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [visibleCount, setVisibleCount] = useState(isMobile ? 21 : 24);
   const { wishlistCounts, ownerCounts } = useItemCounts();
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   
   // 選択したタグでフィルタリングされたアイテムを取得
   const filteredByTagsItems = items.filter(item => {
@@ -68,7 +73,6 @@ export function OfficialItemsList({
   const loaderRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const loadMoreItems = useCallback(() => {
     if (visibleCount >= sortedItems.length || isLoading) return;
@@ -129,19 +133,32 @@ export function OfficialItemsList({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <OfficialItemsHeader 
-        sortBy={sortBy} 
-        onSortChange={setSortBy} 
-        totalItems={sortedItems.length}
-        onFilterClick={handleFilterClick}
-      />
+      <div className="flex items-center justify-between">
+        <OfficialItemsHeader 
+          sortBy={sortBy} 
+          onSortChange={setSortBy} 
+          totalItems={sortedItems.length}
+          onFilterClick={handleFilterClick}
+        />
+        {user && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsBulkImportOpen(true)}
+            className="shrink-0"
+          >
+            <Upload className="h-4 w-4 mr-1" />
+            一括追加
+          </Button>
+        )}
+      </div>
       
       <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <DrawerContent className="max-h-[90vh] px-4 pt-4 pb-8">
           <div className="mx-auto w-full max-w-sm">
             <DrawerTitle className="text-center font-medium mb-4">フィルター</DrawerTitle>
             <DrawerClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none">
-              <button className="text-sm text-gray-600">
+              <button className="text-sm text-muted-foreground">
                 完了
               </button>
             </DrawerClose>
@@ -160,6 +177,11 @@ export function OfficialItemsList({
         </DrawerContent>
       </Drawer>
       
+      <BulkImportModal 
+        isOpen={isBulkImportOpen} 
+        onClose={() => setIsBulkImportOpen(false)} 
+      />
+      
       <OfficialItemsGrid items={currentItems} />
       
       {visibleCount < sortedItems.length && (
@@ -169,8 +191,8 @@ export function OfficialItemsList({
         >
           {isLoading ? (
             <div className="flex flex-col items-center">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-              <p className="text-sm text-gray-500 mt-2">読み込み中...</p>
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground mt-2">読み込み中...</p>
             </div>
           ) : (
             <div className="h-8" />
