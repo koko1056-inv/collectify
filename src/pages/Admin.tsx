@@ -13,28 +13,34 @@ const Admin = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
+  // user_rolesテーブルでadminロールを確認（has_role関数を使用）
+  const { data: isAdmin, isLoading } = useQuery({
+    queryKey: ["admin-role", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user?.id)
-        .single();
+        .rpc('has_role', { _user_id: user!.id, _role: 'admin' });
 
       if (error) throw error;
-      return data;
+      return data === true;
     },
     enabled: !!user,
   });
 
   useEffect(() => {
-    if (!profile?.is_admin) {
+    if (!isLoading && !isAdmin) {
       navigate("/");
     }
-  }, [profile, navigate]);
+  }, [isAdmin, isLoading, navigate]);
 
-  if (!profile?.is_admin) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-accent flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
     return null;
   }
 

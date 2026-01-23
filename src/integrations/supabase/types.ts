@@ -47,24 +47,6 @@ export type Database = {
         }
         Relationships: []
       }
-      admin_accounts: {
-        Row: {
-          created_at: string
-          id: string
-          is_admin: boolean
-        }
-        Insert: {
-          created_at?: string
-          id: string
-          is_admin?: boolean
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_admin?: boolean
-        }
-        Relationships: []
-      }
       avatar_gallery: {
         Row: {
           created_at: string
