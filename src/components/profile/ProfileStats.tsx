@@ -32,41 +32,52 @@ export function ProfileStats({ userId }: ProfileStatsProps) {
     refetchOnWindowFocus: true,
   });
 
-  const { data: collectionCount = 0 } = useQuery({
+  const { data: collectionData } = useQuery({
     queryKey: ["collection-count", userId],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from("user_items")
-        .select("*", { count: 'exact', head: true })
+        .select("quantity")
         .eq("user_id", userId);
       
       if (error) throw error;
-      return count || 0;
+      
+      const itemCount = data?.length || 0;
+      const totalQuantity = data?.reduce((sum, item) => sum + (item.quantity || 1), 0) || 0;
+      
+      return { itemCount, totalQuantity };
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
   });
 
+  const collectionCount = collectionData?.itemCount || 0;
+  const totalQuantity = collectionData?.totalQuantity || 0;
+
   return (
     <div className="w-full mb-6">
-      <div className="grid grid-cols-3 gap-2 text-center mb-4">
+      <div className="grid grid-cols-4 gap-2 text-center mb-4">
         <div 
           className="flex flex-col cursor-pointer hover:opacity-75 transition-opacity"
           onClick={() => setShowFollowingModal(true)}
         >
           <span className="text-xl font-bold">{profile?.following_count || 0}</span>
-          <span className="text-sm text-gray-600">{t("profile.following")}</span>
+          <span className="text-xs text-muted-foreground">{t("profile.following")}</span>
         </div>
         <div 
           className="flex flex-col cursor-pointer hover:opacity-75 transition-opacity"
           onClick={() => setShowFollowersModal(true)}
         >
           <span className="text-xl font-bold">{profile?.followers_count || 0}</span>
-          <span className="text-sm text-gray-600">{t("profile.followers")}</span>
+          <span className="text-xs text-muted-foreground">{t("profile.followers")}</span>
         </div>
         <div className="flex flex-col">
           <span className="text-xl font-bold">{collectionCount}</span>
-          <span className="text-sm text-gray-600">{t("nav.collection")}</span>
+          <span className="text-xs text-muted-foreground">{t("nav.collection")}</span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-xl font-bold">{totalQuantity}</span>
+          <span className="text-xs text-muted-foreground">グッズ数</span>
         </div>
       </div>
 
