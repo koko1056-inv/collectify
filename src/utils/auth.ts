@@ -12,13 +12,11 @@ export const handleAdminLogin = async (password: string) => {
     throw new Error("管理者ログインに失敗しました");
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', data.user.id)
-    .single();
+  // user_rolesテーブルでadminロールを確認（has_role関数を使用）
+  const { data: roleCheck, error: roleError } = await supabase
+    .rpc('has_role', { _user_id: data.user.id, _role: 'admin' });
 
-  if (profileError || !profile?.is_admin) {
+  if (roleError || !roleCheck) {
     await supabase.auth.signOut();
     throw new Error("管理者権限がありません");
   }

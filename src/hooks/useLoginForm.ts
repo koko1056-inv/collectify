@@ -22,11 +22,22 @@ export function useLoginForm() {
 
     try {
       if (isLogin) {
-        if (formData.username === 'admin') {
-          await handleAdminLogin(formData.password);
-          navigate("/admin");
+        // ユーザー名に関係なく通常のログイン処理を実行
+        // 管理者かどうかはログイン後にuser_rolesテーブルで判定
+        await handleUserLogin(formData);
+        
+        // ログイン後に管理者ロールを確認
+        const { data: { user } } = await (await import("@/integrations/supabase/client")).supabase.auth.getUser();
+        if (user) {
+          const { data: isAdmin } = await (await import("@/integrations/supabase/client")).supabase
+            .rpc('has_role', { _user_id: user.id, _role: 'admin' });
+          
+          if (isAdmin) {
+            navigate("/admin");
+          } else {
+            navigate("/");
+          }
         } else {
-          await handleUserLogin(formData);
           navigate("/");
         }
         
