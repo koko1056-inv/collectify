@@ -13,7 +13,7 @@ interface CategoryTagSelectProps {
   category: string;
   label: string;
   value: string | null;
-  onChange: (value: string | null) => void;
+  onChange: (value: string | null, tagId?: string | null) => void;
   contentId?: string | null;
   disabled?: boolean;
 }
@@ -189,17 +189,17 @@ export function CategoryTagSelect({
       const matchingTag = tags.find(tag => tag.id === selectedValue);
       if (matchingTag) {
         console.log(`[CategoryTagSelect] Converting UUID ${selectedValue} to tag name: ${matchingTag.name}`);
-        console.log(`[CategoryTagSelect] Calling onChange with tag name: ${matchingTag.name}`);
-        onChange(matchingTag.name);
+        console.log(`[CategoryTagSelect] Calling onChange with tag name: ${matchingTag.name} and id: ${matchingTag.id}`);
+        onChange(matchingTag.name, matchingTag.id);
       } else {
         console.warn(`[CategoryTagSelect] No tag found for UUID: ${selectedValue}`);
-        onChange(null);
+        onChange(null, null);
       }
     } else {
-      // タグ名が直接来た場合はそのまま使用
-      console.log(`[CategoryTagSelect] Using tag name directly: ${selectedValue}`);
-      console.log(`[CategoryTagSelect] Calling onChange with tag name: ${selectedValue}`);
-      onChange(selectedValue);
+      // タグ名が直接来た場合は対応するIDも探す
+      const matchingTag = tags.find(tag => tag.name === selectedValue);
+      console.log(`[CategoryTagSelect] Using tag name directly: ${selectedValue}, id: ${matchingTag?.id}`);
+      onChange(selectedValue, matchingTag?.id || null);
     }
   };
 

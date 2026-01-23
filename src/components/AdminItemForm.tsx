@@ -264,26 +264,24 @@ export function AdminItemForm() {
                           if (insertError) throw insertError;
 
                           if (newItem) {
-                            // タグ名からタグIDを取得してitem_tagsに挿入
-                            const tagNames = [item.characterTag, item.typeTag, item.seriesTag].filter(Boolean);
+                            // タグIDを直接使用してitem_tagsに挿入
+                            const tagIds = [
+                              item.characterTagId,
+                              item.typeTagId,
+                              item.seriesTagId
+                            ].filter(Boolean) as string[];
                             
-                            if (tagNames.length > 0) {
-                              // タグ名からタグIDを取得
-                              const { data: tagData } = await supabase
-                                .from('tags')
-                                .select('id, name')
-                                .in('name', tagNames);
-                              
-                              if (tagData && tagData.length > 0) {
-                                const tagInserts = tagData.map(tag => ({
-                                  official_item_id: newItem.id,
-                                  tag_id: tag.id,
-                                }));
+                            if (tagIds.length > 0) {
+                              const tagInserts = tagIds.map(tagId => ({
+                                official_item_id: newItem.id,
+                                tag_id: tagId,
+                              }));
 
-                                const { error: tagError } = await supabase.from('item_tags').insert(tagInserts);
-                                if (tagError) {
-                                  console.error('Error inserting tags:', tagError);
-                                }
+                              const { error: tagError } = await supabase.from('item_tags').insert(tagInserts);
+                              if (tagError) {
+                                console.error('Error inserting tags:', tagError);
+                              } else {
+                                console.log(`Successfully inserted ${tagIds.length} tags for item ${newItem.id}`);
                               }
                             }
                           }

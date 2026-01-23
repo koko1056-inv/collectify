@@ -23,6 +23,9 @@ interface ItemFormData {
   characterTag?: string | null;
   typeTag?: string | null;
   seriesTag?: string | null;
+  characterTagId?: string | null;
+  typeTagId?: string | null;
+  seriesTagId?: string | null;
   price: string;
   item_type: string;
 }
@@ -45,15 +48,31 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
       characterTag: null,
       typeTag: null,
       seriesTag: null,
+      characterTagId: null,
+      typeTagId: null,
+      seriesTagId: null,
       price: "",
       item_type: "official",
     }))
   );
   const [loading, setLoading] = useState(false);
 
-  const updateItem = (index: number, field: keyof ItemFormData, value: string) => {
+  const updateItem = (index: number, field: keyof ItemFormData, value: string | null) => {
     setItems((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const updateItemWithTagId = (index: number, category: string, tagName: string | null, tagId: string | null) => {
+    setItems((prev) =>
+      prev.map((item, i) => {
+        if (i !== index) return item;
+        return {
+          ...item,
+          [`${category}Tag`]: tagName,
+          [`${category}TagId`]: tagId,
+        };
+      })
     );
   };
 
@@ -142,8 +161,8 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
                     typeTag={item.typeTag}
                     seriesTag={item.seriesTag}
                     contentName={item.content_name}
-                    onTagChange={(category, value) => {
-                      updateItem(index, `${category}Tag` as keyof ItemFormData, value);
+                    onTagChange={(category, value, tagId) => {
+                      updateItemWithTagId(index, category, value, tagId || null);
                     }}
                   />
                 </div>
