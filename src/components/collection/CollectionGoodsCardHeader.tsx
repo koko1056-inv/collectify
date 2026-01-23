@@ -4,12 +4,13 @@ import { CardImage } from "./CardImage";
 interface CollectionGoodsCardHeaderProps {
   title: string;
   image: string;
+  quantity?: number;
 }
 
-export function CollectionGoodsCardHeader({ title, image }: CollectionGoodsCardHeaderProps) {
+export function CollectionGoodsCardHeader({ title, image, quantity }: CollectionGoodsCardHeaderProps) {
   return (
     <UICardHeader className="p-0">
-      <CardImage title={title} image={image} />
+      <CardImage title={title} image={image} quantity={quantity} />
     </UICardHeader>
   );
 }
