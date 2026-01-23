@@ -67,20 +67,12 @@ export function CollectionGoodsCardWrapper({
   }, []);
 
   return <>
-      <Card className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative group" onClick={handleCardClick}>
+      <Card className="hover-scale card-shadow bg-card border border-border cursor-pointer relative group" onClick={handleCardClick}>
         <CardHeader className="p-0">
-          <CollectionGoodsCardHeader title={title} image={image} />
+          <CollectionGoodsCardHeader title={title} image={image} quantity={quantity} />
         </CardHeader>
         <CardContent className="p-2 relative">
-          <h3 className="font-medium text-gray-900 truncate text-xs">{title}</h3>
-          {quantity >= 1 && (
-            <button 
-              onClick={handleQuantityClick}
-              className="absolute -top-6 right-1 bg-white border-2 border-blue-500 text-blue-500 font-semibold px-2 rounded-full text-xs shadow-sm py-0 my-0 md:-top-8 hover:bg-blue-50 transition-colors"
-            >
-              ×{quantity}
-            </button>
-          )}
+          <h3 className="font-medium text-foreground truncate text-xs">{title}</h3>
         </CardContent>
         
         <CollectionGoodsCardFooter id={id} onMemoriesClick={handleMemoriesClick} onTagManageClick={handleTagManageClick} onDeleteClick={handleDeleteClick} onCreatePostClick={handleCreatePostClick} />

@@ -8,18 +8,22 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { LazyImage } from "../ui/lazy-image";
 
+import { Badge } from "../ui/badge";
+
 interface CardImageProps {
   image: string;
   title: string;
   itemId?: string;
   isEditable?: boolean;
+  quantity?: number;
 }
 
 const CardImage = memo(function CardImage({
   image,
   title,
   itemId,
-  isEditable = false
+  isEditable = false,
+  quantity
 }: CardImageProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -94,6 +98,13 @@ const CardImage = memo(function CardImage({
         className="w-full h-full transition-all duration-300 hover:scale-105 object-cover"
         skeletonClassName="aspect-square"
       />
+      {quantity && quantity >= 1 && (
+        <Badge 
+          className="absolute bottom-2 right-2 bg-background/90 text-foreground border border-border shadow-sm font-semibold text-xs px-2 py-0.5"
+        >
+          ×{quantity}
+        </Badge>
+      )}
       {isEditable}
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
