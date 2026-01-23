@@ -8,7 +8,7 @@ interface TagsSectionProps {
   typeTag: string | null;
   seriesTag: string | null;
   contentName: string | null;
-  onTagChange: (category: string, value: string | null) => void;
+  onTagChange: (category: string, value: string | null, tagId?: string | null) => void;
 }
 
 export function TagsSection({
@@ -48,7 +48,7 @@ export function TagsSection({
         category="character"
         label="キャラクター・人物名"
         value={characterTag}
-        onChange={(value) => onTagChange('character', value)}
+        onChange={(value, tagId) => onTagChange('character', value, tagId)}
         contentId={contentId}
         disabled={!contentName}
       />
@@ -57,14 +57,14 @@ export function TagsSection({
         category="type"
         label="グッズタイプ"
         value={typeTag}
-        onChange={(value) => onTagChange('type', value)}
+        onChange={(value, tagId) => onTagChange('type', value, tagId)}
       />
 
       <CategoryTagSelect
         category="series"
         label="グッズシリーズ"
         value={seriesTag}
-        onChange={(value) => onTagChange('series', value)}
+        onChange={(value, tagId) => onTagChange('series', value, tagId)}
         contentId={contentId}
         disabled={!contentName}
       />
