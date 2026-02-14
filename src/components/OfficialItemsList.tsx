@@ -133,7 +133,7 @@ export function OfficialItemsList({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-1">
         <OfficialItemsHeader 
           sortBy={sortBy} 
           onSortChange={setSortBy} 
@@ -145,10 +145,11 @@ export function OfficialItemsList({
             variant="outline"
             size="sm"
             onClick={() => setIsBulkImportOpen(true)}
-            className="shrink-0"
+            className="shrink-0 h-7 sm:h-9 px-1.5 sm:px-3 text-[10px] sm:text-sm"
           >
-            <Upload className="h-4 w-4 mr-1" />
-            一括追加
+            <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" />
+            <span className="hidden sm:inline">一括追加</span>
+            <span className="sm:hidden">一括</span>
           </Button>
         )}
       </div>
