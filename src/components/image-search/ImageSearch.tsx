@@ -1,53 +1,57 @@
-
 import React, { useState } from 'react';
 import { ImageSearchUpload } from './ImageSearchUpload';
 import { ImageSearchResults } from './ImageSearchResults';
-import { analyzeImageFile } from '@/utils/image-search';
-import { Loader2 } from 'lucide-react';
+import { analyzeImageFile, ImageAnalysisResult, WebSearchResult } from '@/utils/image-search';
+import { Loader2, ScanSearch } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { OfficialItem } from '@/types';
 
 export function ImageSearch() {
   const [results, setResults] = useState<OfficialItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [detectedObjects, setDetectedObjects] = useState<string[]>([]);
-  const [imageCaption, setImageCaption] = useState<string>('');
+  const [labels, setLabels] = useState<Array<{ description: string; score: number }>>([]);
+  const [imageCaption, setImageCaption] = useState('');
+  const [webResults, setWebResults] = useState<WebSearchResult | undefined>();
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const handleImageUpload = async (file: File) => {
     try {
       setLoading(true);
       setResults([]);
-      setDetectedObjects([]);
+      setLabels([]);
       setImageCaption('');
+      setWebResults(undefined);
 
-      const analysisResult = await analyzeImageFile(file);
+      // プレビュー画像を表示
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+
+      const analysisResult: ImageAnalysisResult = await analyzeImageFile(file);
       
-      // 検出オブジェクトを設定
-      const objects = analysisResult.detection.objects
-        .sort((a: any, b: any) => b.score - a.score)
-        .map((obj: any) => `${obj.label} (${Math.round(obj.score * 100)}%)`);
-      
-      setDetectedObjects(objects);
+      setLabels(analysisResult.detection.labels || []);
       setImageCaption(analysisResult.detection.caption);
       setResults(analysisResult.items);
+      setWebResults(analysisResult.webResults);
       
-      if (analysisResult.items.length === 0) {
+      const totalResults = (analysisResult.items?.length || 0) + 
+        (analysisResult.webResults?.visuallySimilarImages?.length || 0);
+
+      if (totalResults === 0) {
         toast({
           title: "検索結果",
           description: "類似アイテムが見つかりませんでした",
         });
       } else {
         toast({
-          title: "検索結果",
-          description: `${analysisResult.items.length}件の関連アイテムが見つかりました`,
-          variant: "default",
+          title: "検索完了",
+          description: `${totalResults}件の関連結果が見つかりました`,
         });
       }
     } catch (error) {
       console.error('画像アップロードエラー:', error);
       toast({
         title: "エラー",
-        description: "画像の解析中にエラーが発生しました",
+        description: "画像の解析中にエラーが発生しました。しばらくしてから再度お試しください。",
         variant: "destructive",
       });
     } finally {
@@ -56,52 +60,50 @@ export function ImageSearch() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold mb-2">画像検索</h1>
-        <p className="text-gray-600">
-          画像をアップロードして、類似したグッズを探しましょう
+    <div className="container mx-auto py-4 space-y-5 max-w-2xl">
+      <div className="text-center mb-4">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <ScanSearch className="h-7 w-7 text-primary" />
+          <h1 className="text-2xl font-bold text-foreground">画像でグッズ検索</h1>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          カメラで撮影するか画像をアップロードして、類似したグッズを探しましょう
         </p>
       </div>
 
       <ImageSearchUpload onImageSelect={handleImageUpload} />
 
-      {loading && (
+      {/* プレビュー画像 */}
+      {previewUrl && (
+        <div className="flex justify-center">
+          <div className="relative w-48 h-48 rounded-xl overflow-hidden border border-border shadow-sm">
+            <img
+              src={previewUrl}
+              alt="検索画像"
+              className="w-full h-full object-cover"
+            />
+            {loading && (
+              <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {loading && !previewUrl && (
         <div className="flex justify-center items-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-lg">画像を解析中...</span>
+          <span className="ml-2 text-lg text-foreground">画像を解析中...</span>
         </div>
       )}
 
-      {detectedObjects.length > 0 && (
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="font-medium mb-2">検出されたオブジェクト:</h3>
-          <div className="flex flex-wrap gap-2">
-            {detectedObjects.slice(0, 5).map((obj, index) => (
-              <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-                {obj}
-              </span>
-            ))}
-          </div>
-          {imageCaption && (
-            <div className="mt-3">
-              <h3 className="font-medium mb-1">画像の説明:</h3>
-              <p className="text-gray-700 italic">"{imageCaption}"</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {results.length > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">検索結果 ({results.length}件)</h2>
-          <ImageSearchResults 
-            items={results}
-            detectedObjects={detectedObjects}
-            caption={imageCaption}
-          />
-        </div>
-      )}
+      <ImageSearchResults 
+        items={results}
+        labels={labels}
+        caption={imageCaption}
+        webResults={webResults}
+      />
     </div>
   );
 }

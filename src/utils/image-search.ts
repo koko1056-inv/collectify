@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -18,15 +17,37 @@ const convertImageToBase64 = (file: File): Promise<string> => {
   });
 };
 
+export interface WebSearchResult {
+  webEntities: Array<{ description: string; score: number }>;
+  bestGuessLabels: string[];
+  visuallySimilarImages: Array<{ url: string; score?: number }>;
+  pagesWithMatchingImages: Array<{
+    url: string;
+    pageTitle?: string;
+    fullMatchingImages?: Array<{ url: string }>;
+    partialMatchingImages?: Array<{ url: string }>;
+  }>;
+}
+
+export interface ImageAnalysisResult {
+  detection: {
+    objects: Array<{ label: string; score: number }>;
+    labels: Array<{ description: string; score: number }>;
+    caption: string;
+    detectedTexts: string[];
+  };
+  webResults: WebSearchResult;
+  keywords: string[];
+  items: any[];
+}
+
 /**
  * 画像ファイルを解析してSupabase Edge Functionを呼び出す
  */
-export const analyzeImageFile = async (file: File) => {
+export const analyzeImageFile = async (file: File): Promise<ImageAnalysisResult> => {
   try {
-    // 1. 画像をBase64に変換
     const base64Image = await convertImageToBase64(file);
     
-    // 2. Supabase Edge Functionに送信
     const { data, error } = await supabase.functions.invoke("analyze-image", {
       body: { imageUrl: base64Image },
     });
