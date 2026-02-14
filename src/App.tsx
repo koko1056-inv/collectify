@@ -30,6 +30,7 @@ const RoomExplore = lazy(() => import("./pages/RoomExplore").catch(() => ({ defa
 const RoomView = lazy(() => import("./pages/RoomView").catch(() => ({ default: () => <div>Error loading page</div> })));
 const PointShop = lazy(() => import("./pages/PointShop").catch(() => ({ default: () => <div>Error loading page</div> })));
 const HowToUse = lazy(() => import("./pages/HowToUse").catch(() => ({ default: () => <div>Error loading page</div> })));
+const ImageSearch = lazy(() => import("./pages/ImageSearch").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -99,6 +100,7 @@ const App: React.FC = () => {
                       <Route path="/room/:roomId" element={<RoomView />} />
                       <Route path="/shop" element={<PointShop />} />
                       <Route path="/how-to-use" element={<HowToUse />} />
+                      <Route path="/image-search" element={<ImageSearch />} />
                       <Route path="*" element={<Navigate to="/my-room" replace />} />
                     </Routes>
                   </Suspense>
