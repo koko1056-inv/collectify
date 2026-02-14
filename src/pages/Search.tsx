@@ -2,7 +2,6 @@ import React from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { FilterBar } from "@/components/FilterBar";
-import { SlideFilterBar } from "@/components/SlideFilterBar";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
 import { FriendSearch } from "@/components/search/FriendSearch";
 import { TradeMatchingSection } from "@/components/trade/TradeMatchingSection";
@@ -11,16 +10,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { Package, Users, Plus, ArrowLeftRight, Heart } from "lucide-react";
+import { Package, Users, Plus, ArrowLeftRight, Heart, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SearchBar } from "@/components/SearchBar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerClose,
+} from "@/components/ui/drawer";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Search = () => {
   const navigate = useNavigate();
@@ -29,60 +37,37 @@ const Search = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedContent, setSelectedContent] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const location = useLocation();
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { profile } = useProfile(user?.id);
   const queryClient = useQueryClient();
-  const {
-    data: items = []
-  } = useOfficialItems();
-  const {
-    data: allTags = []
-  } = useTags(selectedContent);
+  const { data: items = [] } = useOfficialItems();
+  const { data: allTags = [] } = useTags(selectedContent);
 
   // Supabase Realtimeでofficial_itemsの変更を監視
   useEffect(() => {
     const channel = supabase
       .channel('official-items-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*', // INSERT, UPDATE, DELETEすべてを監視
-          schema: 'public',
-          table: 'official_items'
-        },
-        (payload) => {
-          console.log('[Search] official_items changed:', payload);
-          // official-itemsクエリを無効化して再フェッチ
-          queryClient.invalidateQueries({ queryKey: ['official-items'] });
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'official_items' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['official-items'] });
+      })
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
 
-  // URLからタブの状態を取得
   const currentTab = searchParams.get("tab") || "goods";
 
-  // タブ切り替え時にURLを更新
   const handleTabChange = (tab: string) => {
     setSearchParams({ tab });
   };
 
   // ユーザーの興味のあるコンテンツをデフォルトで設定
   useEffect(() => {
-    console.log("Search page profile:", profile);
-    console.log("Search page profile.interests:", profile?.interests);
-    
     if (profile?.interests && Array.isArray(profile.interests) && profile.interests.length > 0 && !selectedContent && currentTab === "goods") {
-      // 最初の興味のあるコンテンツをデフォルトで選択
       const firstInterestItem = profile.interests[0];
       let firstInterest: string;
-      
       if (typeof firstInterestItem === 'string') {
         firstInterest = firstInterestItem;
       } else if (firstInterestItem && typeof firstInterestItem === 'object' && 'name' in firstInterestItem) {
@@ -90,23 +75,17 @@ const Search = () => {
       } else {
         firstInterest = String(firstInterestItem);
       }
-      
-      console.log("Setting selected content to:", firstInterest);
       setSelectedContent(firstInterest);
     }
   }, [profile, selectedContent, currentTab]);
 
-  // URLクエリパラメータを処理
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const itemId = searchParams.get('item');
-    
     if (itemId && items.length > 0) {
-      // 指定されたアイテムを検索して、そのタイトルを検索クエリにセット
       const targetItem = items.find(item => item.id === itemId);
       if (targetItem) {
         setSearchQuery(targetItem.title);
-        // アイテム検索の場合は自動的にグッズタブに切り替え
         setSearchParams({ tab: "goods" });
       }
     }
@@ -119,12 +98,18 @@ const Search = () => {
     return matchesSearch && matchesTags && matchesContent;
   });
 
+  const activeFilterCount = (selectedContent && selectedContent !== "all" ? 1 : 0) + selectedTags.length;
+
+  const clearAllFilters = useCallback(() => {
+    setSelectedContent("all");
+    setSelectedTags([]);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-2 pt-16 pb-24 sm:px-4 sm:pt-24 sm:pb-8">
-        <div className="space-y-4 sm:space-y-6">
-          {/* タブ */}
+        <div className="space-y-3 sm:space-y-6">
           <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-4 max-w-lg mx-auto">
               <TabsTrigger value="goods" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
@@ -145,26 +130,59 @@ const Search = () => {
               </TabsTrigger>
             </TabsList>
 
-            {/* グッズ検索タブ */}
-            <TabsContent value="goods" className="space-y-4 sm:space-y-6">
-              <SlideFilterBar
-                selectedContent={selectedContent}
-                onContentChange={setSelectedContent}
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-                tags={allTags}
-              />
-              <div className="z-10 bg-gray-50 pb-2">
-                <FilterBar
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  selectedTags={selectedTags}
-                  onTagsChange={setSelectedTags}
-                  selectedContent={selectedContent}
-                  onContentChange={setSelectedContent}
-                  tags={allTags}
-                />
+            {/* グッズ検索タブ - コンパクトフィルター */}
+            <TabsContent value="goods" className="space-y-3">
+              {/* 検索バー + フィルターボタン */}
+              <div className="flex items-center gap-2 sticky top-14 sm:top-20 z-20 bg-background py-2">
+                <div className="flex-1">
+                  <SearchBar
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    selectedTags={selectedTags}
+                    onTagsChange={setSelectedTags}
+                    tags={allTags}
+                    selectedContent={selectedContent}
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsFilterDrawerOpen(true)}
+                  className="shrink-0 h-9 px-3 relative"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
               </div>
+
+              {/* アクティブフィルターチップ */}
+              {activeFilterCount > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap px-1">
+                  {selectedContent && selectedContent !== "all" && (
+                    <Badge variant="secondary" className="text-xs gap-1 pr-1">
+                      {selectedContent}
+                      <button onClick={() => setSelectedContent("all")} className="ml-0.5 hover:bg-muted rounded-full p-0.5">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {selectedTags.map(tag => (
+                    <Badge key={tag} variant="outline" className="text-xs gap-1 pr-1">
+                      #{tag}
+                      <button onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))} className="ml-0.5 hover:bg-muted rounded-full p-0.5">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                  <button onClick={clearAllFilters} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    すべてクリア
+                  </button>
+                </div>
+              )}
 
               <OfficialItemsList
                 items={filteredItems}
@@ -176,19 +194,39 @@ const Search = () => {
                 onContentChange={setSelectedContent}
                 tags={allTags}
               />
+
+              {/* フィルターDrawer */}
+              <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
+                <DrawerContent className="max-h-[85vh] px-4 pt-4 pb-8">
+                  <div className="mx-auto w-full max-w-sm">
+                    <DrawerTitle className="text-center font-medium mb-4">フィルター</DrawerTitle>
+                    <DrawerClose className="absolute right-4 top-4">
+                      <button className="text-sm text-primary font-medium">完了</button>
+                    </DrawerClose>
+                    <ScrollArea className="h-[65vh] pr-4">
+                      <FilterBar
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        selectedTags={selectedTags}
+                        onTagsChange={setSelectedTags}
+                        selectedContent={selectedContent}
+                        onContentChange={setSelectedContent}
+                        tags={allTags}
+                      />
+                    </ScrollArea>
+                  </div>
+                </DrawerContent>
+              </Drawer>
             </TabsContent>
 
-            {/* 人気コレクションタブ */}
             <TabsContent value="collections" className="space-y-4 sm:space-y-6">
               <PublicCollectionView />
             </TabsContent>
 
-            {/* 交換マッチングタブ */}
             <TabsContent value="trade" className="space-y-4 sm:space-y-6">
               <TradeMatchingSection />
             </TabsContent>
 
-            {/* フレンド検索タブ */}
             <TabsContent value="friends" className="space-y-4 sm:space-y-6">
               <FriendSearch 
                 userInterests={
@@ -206,7 +244,6 @@ const Search = () => {
         </div>
       </main>
       
-      {/* フローティング追加ボタン */}
       {currentTab === "goods" && (
         <Button
           onClick={() => navigate("/add-item")}
