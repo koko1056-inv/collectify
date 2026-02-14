@@ -122,13 +122,17 @@ export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", o
         className="w-full"
         style={{
           columnCount: isMobile ? 2 : 4,
-          columnGap: '8px',
+          columnGap: '12px',
         }}
       >
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="break-inside-avoid mb-2">
-            <div className="rounded-lg border overflow-hidden">
-              <div className="w-full h-64 bg-skeleton-base animate-pulse" />
+        {[...Array(isMobile ? 4 : 8)].map((_, i) => (
+          <div key={i} className="break-inside-avoid mb-3">
+            <div className="rounded-xl border border-border/50 overflow-hidden">
+              <div className="w-full bg-muted animate-pulse" style={{ height: `${150 + Math.random() * 100}px` }} />
+              <div className="p-2.5 space-y-1.5">
+                <div className="h-3 bg-muted rounded animate-pulse w-2/3" />
+                <div className="h-2.5 bg-muted rounded animate-pulse w-1/2" />
+              </div>
             </div>
           </div>
         ))}
@@ -157,12 +161,12 @@ export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", o
 
   return (
     <>
-      {/* 2列固定のマソンリーレイアウト */}
+      {/* Masonryレイアウト */}
       <div 
         className="w-full"
         style={{
           columnCount: isMobile ? 2 : 4,
-          columnGap: '8px',
+          columnGap: '12px',
         }}
       >
         {sortedPosts.map((post) => (
@@ -183,13 +187,13 @@ export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", o
           className="w-full mt-4"
           style={{
             columnCount: isMobile ? 2 : 4,
-            columnGap: '8px',
+            columnGap: '12px',
           }}
         >
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="break-inside-avoid mb-2">
-              <div className="rounded-lg border overflow-hidden">
-                <div className="w-full h-64 bg-skeleton-base animate-pulse" />
+            <div key={i} className="break-inside-avoid mb-3">
+              <div className="rounded-xl border border-border/50 overflow-hidden">
+                <div className="w-full bg-muted animate-pulse" style={{ height: `${150 + Math.random() * 100}px` }} />
               </div>
             </div>
           ))}

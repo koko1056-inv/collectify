@@ -2,13 +2,17 @@ import { Card } from "@/components/ui/card";
 import { WishlistModal } from "./WishlistModal";
 import { WishlistUsersModal } from "./WishlistUsersModal";
 import { TagManageModal } from "./tag/TagManageModal";
-import { OfficialGoodsCardHeader } from "./official-goods/OfficialGoodsCardHeader";
-import { OfficialGoodsCardContent } from "./official-goods/OfficialGoodsCardContent";
-import { OfficialGoodsCardFooter } from "./official-goods/OfficialGoodsCardFooter";
 import { useOfficialGoodsCard } from "./official-goods/useOfficialGoodsCard";
 import { ItemDetailsModal } from "./ItemDetailsModal";
 import { useState } from "react";
 import { Badge } from "./ui/badge";
+import { LazyImage } from "./ui/lazy-image";
+import { CardContent, CardTitle } from "./ui/card";
+import { Button } from "./ui/button";
+import { Heart, Users, Tags, Plus, Check } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface OfficialGoodsCardProps {
   title: string;
@@ -37,6 +41,7 @@ export function OfficialGoodsCard({
   createdBy,
   contentName,
 }: OfficialGoodsCardProps) {
+  const { user } = useAuth();
   const {
     isInCollection,
     wishlistCount,
@@ -50,51 +55,122 @@ export function OfficialGoodsCard({
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isWishlistUsersModalOpen, setIsWishlistUsersModalOpen] = useState(false);
 
+  const { data: ownersCount = 0 } = useQuery({
+    queryKey: ["item-owners-count", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("user_id")
+        .eq("official_item_id", id);
+      if (error) return 0;
+      return new Set(data.map(item => item.user_id)).size;
+    },
+  });
+
   return (
     <>
       <Card 
-        className="hover-scale card-shadow bg-white border border-gray-200 cursor-pointer relative overflow-hidden flex flex-col h-full"
+        className="group relative overflow-hidden border border-border bg-card cursor-pointer flex flex-col h-full transition-shadow duration-300 hover:shadow-lg"
         onClick={(e) => {
-          if ((e.target as HTMLElement).tagName === 'BUTTON') {
-            e.stopPropagation();
-            return;
-          }
+          if ((e.target as HTMLElement).closest('button')) return;
           setIsDetailsModalOpen(true);
         }}
       >
-        {quantity > 1 && (
-          <Badge 
-            className="absolute top-2 right-2 z-10 bg-purple-500 hover:bg-purple-500"
-          >
-            ×{quantity}
-          </Badge>
-        )}
-        <OfficialGoodsCardHeader image={image} title={title} />
-        <OfficialGoodsCardContent
-          title={title}
-          artist={artist}
-          itemId={id}
-        />
-        <div className="mt-auto">
-          <OfficialGoodsCardFooter
-            isInCollection={isInCollection}
-            wishlistCount={wishlistCount}
-            onAddToCollection={(e) => {
+        {/* 画像エリア */}
+        <div className="aspect-square relative overflow-hidden">
+          <LazyImage
+            src={image}
+            alt={title}
+            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+            skeletonClassName="aspect-square"
+          />
+          
+          {quantity > 1 && (
+            <Badge className="absolute top-1.5 right-1.5 z-10 bg-primary/90 text-primary-foreground text-[10px] px-1.5">
+              ×{quantity}
+            </Badge>
+          )}
+
+          {/* ホバーオーバーレイ（デスクトップ） */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 hidden sm:flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">
+            <div className="flex gap-1.5">
+              <Button
+                size="sm"
+                variant={isInCollection ? "secondary" : "default"}
+                className="h-8 text-xs gap-1 shadow-md"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCollection();
+                }}
+                disabled={isInCollection}
+              >
+                {isInCollection ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                {isInCollection ? "追加済み" : "追加"}
+              </Button>
+              <Button
+                size="icon"
+                variant="secondary"
+                className="h-8 w-8 shadow-md"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsWishlistUsersModalOpen(true);
+                }}
+              >
+                <Heart className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* コンテンツ */}
+        <CardContent className="p-2 sm:p-3 flex-1 flex flex-col">
+          <CardTitle className="text-[11px] sm:text-sm font-medium line-clamp-2 text-card-foreground leading-snug min-h-[2.2em]">
+            {title}
+          </CardTitle>
+          
+          {/* 統計アイコン行 */}
+          <div className="flex items-center gap-2 mt-auto pt-1.5">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsWishlistUsersModalOpen(true);
+              }}
+              className="flex items-center gap-0.5 text-muted-foreground hover:text-primary transition-colors"
+            >
+              <Heart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <span className="text-[10px] sm:text-xs">{wishlistCount}</span>
+            </button>
+            <span className="flex items-center gap-0.5 text-muted-foreground">
+              <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <span className="text-[10px] sm:text-xs">{ownersCount}</span>
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsTagModalOpen(true);
+              }}
+              className="flex items-center text-muted-foreground hover:text-primary transition-colors ml-auto"
+            >
+              <Tags className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+            </button>
+          </div>
+        </CardContent>
+
+        {/* モバイル用追加ボタン */}
+        <div className="sm:hidden px-2 pb-2">
+          <Button
+            size="sm"
+            variant={isInCollection ? "secondary" : "default"}
+            className={`w-full h-7 text-[10px] gap-1 ${isInCollection ? 'text-muted-foreground' : ''}`}
+            onClick={(e) => {
               e.stopPropagation();
               handleAddToCollection();
             }}
-            onTagManageClick={(e) => {
-              e.stopPropagation();
-              setIsTagModalOpen(true);
-            }}
-            onWishlistClick={(e) => {
-              e.stopPropagation();
-              setIsWishlistUsersModalOpen(true);
-            }}
-            itemId={id}
-            itemTitle={title}
-            itemImage={image}
-          />
+            disabled={isInCollection}
+          >
+            {isInCollection ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+            {isInCollection ? "追加済み" : "コレクションに追加"}
+          </Button>
         </div>
       </Card>
 

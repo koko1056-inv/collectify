@@ -1,13 +1,12 @@
 import { GoodsPost } from "@/types/posts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Package } from "lucide-react";
+import { Heart, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToggleLike } from "@/hooks/posts";
 import { useState, memo } from "react";
 import { CommentsModal } from "./CommentsModal";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Badge } from "@/components/ui/badge";
 
 interface PostCardProps {
   post: GoodsPost;
@@ -27,11 +26,7 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user) return;
-    
-    await toggleLike.mutateAsync({
-      postId: post.id,
-      isLiked,
-    });
+    await toggleLike.mutateAsync({ postId: post.id, isLiked });
   };
 
   const handleCommentClick = (e: React.MouseEvent) => {
@@ -42,10 +37,11 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
   return (
     <>
       <div 
-        className="group cursor-pointer break-inside-avoid mb-2"
+        className="group cursor-pointer break-inside-avoid mb-3"
         onClick={onClick}
       >
-        <div className="relative overflow-hidden rounded-lg bg-background border hover:shadow-lg transition-all duration-300">
+        <div className="relative overflow-hidden rounded-xl bg-card border border-border/50 shadow-sm hover:shadow-md transition-all duration-300">
+          {/* 画像 */}
           <LazyImage
             src={post.image_url}
             alt={post.caption || t("posts.postImage")}
@@ -53,134 +49,64 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
             skeletonClassName="aspect-square"
           />
           
-          {/* モバイル用: 常時表示のユーザー情報とアクション */}
-          <div className="p-2 space-y-2 lg:hidden">
+          {/* デスクトップ: ホバーオーバーレイ */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden lg:flex flex-col justify-end p-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Avatar className="h-6 w-6">
+                <Avatar className="h-7 w-7 border-2 border-white/80">
                   <AvatarImage src={post.profiles?.avatar_url} />
-                  <AvatarFallback className="text-[10px]">
+                  <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
                     {post.profiles?.username?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-xs font-medium truncate max-w-[80px]">
+                <span className="text-white text-sm font-medium drop-shadow-sm">
+                  {post.profiles?.username}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 text-white">
+                <button onClick={handleLike} disabled={!user} className="flex items-center gap-1 hover:scale-110 transition-transform">
+                  <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-400 text-red-400' : ''}`} />
+                  <span className="text-xs">{likesCount}</span>
+                </button>
+                <button onClick={handleCommentClick} className="flex items-center gap-1 hover:scale-110 transition-transform">
+                  <MessageCircle className="w-4 h-4" />
+                  <span className="text-xs">{commentsCount}</span>
+                </button>
+              </div>
+            </div>
+            {post.caption && (
+              <p className="text-white/90 text-xs mt-1.5 line-clamp-2 drop-shadow-sm">{post.caption}</p>
+            )}
+          </div>
+
+          {/* モバイル: 下部情報 */}
+          <div className="p-2.5 space-y-1.5 lg:hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Avatar className="h-5 w-5">
+                  <AvatarImage src={post.profiles?.avatar_url} />
+                  <AvatarFallback className="text-[9px] bg-primary text-primary-foreground">
+                    {post.profiles?.username?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-[11px] font-medium text-card-foreground truncate max-w-[80px]">
                   {post.profiles?.username}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={handleLike}
-                  className="flex items-center gap-1 text-xs"
-                  disabled={!user}
-                >
-                  <Heart 
-                    className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`}
-                  />
-                  <span className="text-muted-foreground">{likesCount}</span>
+                <button onClick={handleLike} disabled={!user} className="flex items-center gap-0.5">
+                  <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+                  <span className="text-[10px] text-muted-foreground">{likesCount}</span>
                 </button>
-                <button
-                  onClick={handleCommentClick}
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <MessageCircle className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{commentsCount}</span>
+                <button onClick={handleCommentClick} className="flex items-center gap-0.5">
+                  <MessageCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">{commentsCount}</span>
                 </button>
               </div>
             </div>
-            {/* グッズ情報 */}
-            {post.user_items && (
-              <div className="flex items-center gap-2 p-1.5 bg-muted/50 rounded">
-                {post.user_items.image && (
-                  <img 
-                    src={post.user_items.image} 
-                    alt={post.user_items.title || ""} 
-                    className="w-6 h-6 rounded object-cover"
-                  />
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-medium truncate">
-                    {post.user_items.title}
-                  </p>
-                  {post.user_items.content_name && (
-                    <p className="text-[9px] text-muted-foreground truncate">
-                      {post.user_items.content_name}
-                    </p>
-                  )}
-                </div>
-                <Package className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              </div>
-            )}
             {post.caption && (
-              <p className="text-xs text-muted-foreground line-clamp-2">
-                {post.caption}
-              </p>
+              <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{post.caption}</p>
             )}
-            {/* タグ表示 */}
-            {post.user_items?.user_item_tags && post.user_items.user_item_tags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {post.user_items.user_item_tags.slice(0, 3).map((tagItem, index) => (
-                  tagItem.tags && (
-                    <Badge 
-                      key={tagItem.tags.id || index} 
-                      variant="secondary" 
-                      className="text-[9px] px-1.5 py-0"
-                    >
-                      #{tagItem.tags.name}
-                    </Badge>
-                  )
-                ))}
-                {post.user_items.user_item_tags.length > 3 && (
-                  <Badge variant="outline" className="text-[9px] px-1.5 py-0">
-                    +{post.user_items.user_item_tags.length - 3}
-                  </Badge>
-                )}
-              </div>
-            )}
-          </div>
-          
-          {/* デスクトップ用: ホバー時のオーバーレイ */}
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-col justify-between p-3 hidden lg:flex">
-            {/* トップエリア：アクションボタン */}
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={handleLike}
-                className="p-2 rounded-full bg-white/90 hover:bg-white transition-colors backdrop-blur-sm"
-                disabled={!user}
-              >
-                <Heart 
-                  className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-700'}`}
-                />
-              </button>
-              <button
-                onClick={handleCommentClick}
-                className="p-2 rounded-full bg-white/90 hover:bg-white transition-colors backdrop-blur-sm"
-              >
-                <MessageCircle className="w-5 h-5 text-gray-700" />
-              </button>
-            </div>
-
-            {/* ボトムエリア：ユーザー情報と統計 */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-white text-sm">
-                <div className="flex items-center gap-1">
-                  <Heart className="w-4 h-4" />
-                  <span>{likesCount}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{commentsCount}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8 border-2 border-white">
-                  <AvatarImage src={post.profiles?.avatar_url} />
-                  <AvatarFallback className="text-xs">
-                    {post.profiles?.username?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <p className="text-white text-sm font-medium">{post.profiles?.username}</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
