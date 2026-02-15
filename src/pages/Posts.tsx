@@ -15,10 +15,10 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Badge } from "@/components/ui/badge";
 
 // Lazy load heavy components
-const CreatePostFromCollectionModal = lazy(() => import("@/components/posts/CreatePostFromCollectionModal").then(module => ({
+const CreatePostFromCollectionModal = lazy(() => import("@/components/posts/CreatePostFromCollectionModal").then((module) => ({
   default: module.CreatePostFromCollectionModal
 })));
-const PostsSidebar = lazy(() => import("@/components/posts/PostsSidebar").then(module => ({
+const PostsSidebar = lazy(() => import("@/components/posts/PostsSidebar").then((module) => ({
   default: module.PostsSidebar
 })));
 
@@ -36,8 +36,8 @@ const Posts = memo(function Posts() {
     selectedItemIds: [] as string[]
   });
   const [sortBy, setSortBy] = useState<"newest" | "popular" | "likes">("newest");
-  
-  const handleFiltersChange = useCallback((newFilters: { selectedTags: string[]; selectedContent: string; searchQuery: string; selectedItemIds: string[] }) => {
+
+  const handleFiltersChange = useCallback((newFilters: {selectedTags: string[];selectedContent: string;searchQuery: string;selectedItemIds: string[];}) => {
     setFilters(newFilters);
   }, []);
 
@@ -90,7 +90,7 @@ const Posts = memo(function Posts() {
                     <TabsTrigger value="posts" className="flex-1">{t("tabs.posts")}</TabsTrigger>
                     <TabsTrigger value="polls" className="flex-1">{t("tabs.polls")}</TabsTrigger>
                     <TabsTrigger value="challenges" className="flex-1 gap-1">
-                      <Trophy className="h-3.5 w-3.5" />
+                      
                       ランキング
                     </TabsTrigger>
                   </TabsList>
@@ -101,18 +101,18 @@ const Posts = memo(function Posts() {
                         variant="outline"
                         size="sm"
                         onClick={() => setIsFilterSheetOpen(true)}
-                        className="gap-2 lg:hidden flex-shrink-0 relative"
-                      >
+                        className="gap-2 lg:hidden flex-shrink-0 relative">
+
                         <Filter className="h-4 w-4" />
                         {t("search.filter")}
-                        {activeFilterCount > 0 && (
-                          <Badge 
-                            variant="default" 
-                            className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
-                          >
+                        {activeFilterCount > 0 &&
+                        <Badge
+                          variant="default"
+                          className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+
                             {activeFilterCount}
                           </Badge>
-                        )}
+                        }
                       </Button>
                       <Select value={sortBy} onValueChange={(value: "newest" | "popular" | "likes") => setSortBy(value)}>
                         <SelectTrigger className="w-[140px] sm:w-[180px]">
@@ -125,11 +125,11 @@ const Posts = memo(function Posts() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <PostsGrid 
-                      filters={filters} 
-                      sortBy={sortBy} 
-                      onCreatePost={() => setIsCreateModalOpen(true)}
-                    />
+                    <PostsGrid
+                      filters={filters}
+                      sortBy={sortBy}
+                      onCreatePost={() => setIsCreateModalOpen(true)} />
+
                   </TabsContent>
                   
                   <TabsContent value="polls">
@@ -167,11 +167,11 @@ const Posts = memo(function Posts() {
       <Footer />
 
       {/* フローティングアクションボタン */}
-      <button 
-        onClick={handleCreateAction} 
-        className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 group" 
-        aria-label={activeTab === "posts" ? t("common.newPost") : activeTab === "polls" ? "新規投票" : "新規チャレンジ"}
-      >
+      <button
+        onClick={handleCreateAction}
+        className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 group"
+        aria-label={activeTab === "posts" ? t("common.newPost") : activeTab === "polls" ? "新規投票" : "新規チャレンジ"}>
+
         {getCreateIcon()}
       </button>
 
@@ -185,8 +185,8 @@ const Posts = memo(function Posts() {
 
       {/* チャレンジ作成モーダル */}
       <CreateChallengeModal isOpen={isCreateChallengeModalOpen} onClose={() => setIsCreateChallengeModalOpen(false)} />
-    </div>
-  );
+    </div>);
+
 });
 
 export default Posts;
