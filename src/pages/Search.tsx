@@ -134,7 +134,7 @@ const Search = () => {
             <TabsContent value="goods" className="space-y-3">
               {/* 検索バー + フィルターボタン */}
               <div className="flex items-center gap-2 sticky top-14 sm:top-20 z-20 bg-background py-2">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <SearchBar
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}
@@ -146,9 +146,9 @@ const Search = () => {
                 </div>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
                   onClick={() => setIsFilterDrawerOpen(true)}
-                  className="shrink-0 h-9 px-3 relative"
+                  className="shrink-0 h-9 w-9 relative"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                   {activeFilterCount > 0 && (
