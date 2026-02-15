@@ -157,19 +157,19 @@ export function OfficialGoodsCard({
         </CardContent>
 
         {/* モバイル用追加ボタン */}
-        <div className="sm:hidden px-2 pb-2">
+        <div className="sm:hidden px-1.5 pb-1.5">
           <Button
             size="sm"
             variant={isInCollection ? "secondary" : "default"}
-            className={`w-full h-7 text-[10px] gap-1 ${isInCollection ? 'text-muted-foreground' : ''}`}
+            className={`w-full h-6 text-[10px] gap-0.5 px-1 ${isInCollection ? 'text-muted-foreground' : ''}`}
             onClick={(e) => {
               e.stopPropagation();
               handleAddToCollection();
             }}
             disabled={isInCollection}
           >
-            {isInCollection ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-            {isInCollection ? "追加済み" : "コレクションに追加"}
+            {isInCollection ? <Check className="h-3 w-3 shrink-0" /> : <Plus className="h-3 w-3 shrink-0" />}
+            <span className="truncate">{isInCollection ? "追加済み" : "追加"}</span>
           </Button>
         </div>
       </Card>
