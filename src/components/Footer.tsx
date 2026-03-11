@@ -47,12 +47,6 @@ export function Footer() {
           <span className="text-[10px] font-medium">ホーム</span>
         </Link>
 
-        {/* 中央FAB用のスペース */}
-        <div className="flex-1 flex justify-center">
-          <div className="relative -mt-8">
-            <FloatingActionButton />
-          </div>
-        </div>
 
         {/* コミュニティタブ */}
         <Link
