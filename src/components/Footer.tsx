@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Search, User, Compass, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { FloatingActionButton } from "./navigation/FloatingActionButton";
+
 
 export function Footer() {
   const location = useLocation();
