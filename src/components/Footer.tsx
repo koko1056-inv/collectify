@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Search, User, Compass, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { FloatingActionButton } from "./navigation/FloatingActionButton";
+
 
 export function Footer() {
   const location = useLocation();
@@ -47,12 +47,6 @@ export function Footer() {
           <span className="text-[10px] font-medium">ホーム</span>
         </Link>
 
-        {/* 中央FAB用のスペース */}
-        <div className="flex-1 flex justify-center">
-          <div className="relative -mt-8">
-            <FloatingActionButton />
-          </div>
-        </div>
 
         {/* コミュニティタブ */}
         <Link
