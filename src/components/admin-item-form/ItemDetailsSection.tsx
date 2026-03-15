@@ -1,9 +1,11 @@
 
+
 import React from 'react';
 import { TitleSection } from './sections/TitleSection';
 import { ContentSection } from './sections/ContentSection';
 import { ItemTypeSection } from './sections/ItemTypeSection';
 import { TagsSection } from './sections/TagsSection';
+import { TagInput } from '@/components/TagInput';
 
 interface ItemFormData {
   title: string;
@@ -14,15 +16,17 @@ interface ItemFormData {
   typeTag?: string | null;
   seriesTag?: string | null;
   price: string;
-  [key: string]: any; // 追加のプロパティに対応するため
+  [key: string]: any;
 }
 
 interface ItemDetailsSectionProps {
   formData: ItemFormData;
   onUpdate: (updates: Partial<ItemFormData>) => void;
+  selectedTags?: string[];
+  onTagsChange?: (tags: string[]) => void;
 }
 
-export function ItemDetailsSection({ formData, onUpdate }: ItemDetailsSectionProps) {
+export function ItemDetailsSection({ formData, onUpdate, selectedTags = [], onTagsChange }: ItemDetailsSectionProps) {
   return (
     <div className="space-y-6">
       <TitleSection 
@@ -48,6 +52,14 @@ export function ItemDetailsSection({ formData, onUpdate }: ItemDetailsSectionPro
           onUpdate(update);
         }}
       />
+      {onTagsChange && (
+        <div className="pt-2 border-t border-border">
+          <TagInput
+            selectedTags={selectedTags}
+            onTagsChange={onTagsChange}
+          />
+        </div>
+      )}
     </div>
   );
 }
