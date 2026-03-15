@@ -360,6 +360,8 @@ export function AdminItemForm() {
                     <ItemDetailsSection
                       formData={formData}
                       onUpdate={handleFormUpdate}
+                      selectedTags={selectedTags}
+                      onTagsChange={setSelectedTags}
                     />
 
                     <div className="flex justify-between pt-4 border-t">
