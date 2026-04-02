@@ -19,7 +19,7 @@ import { Package, Users, Plus, ArrowLeftRight, Heart, SlidersHorizontal, X } fro
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SearchBar } from "@/components/SearchBar";
 import { Badge } from "@/components/ui/badge";
