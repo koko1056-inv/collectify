@@ -7,8 +7,8 @@ verify_jwt = true
 
 [[functions]]
 name = "analyze-image"
-verify_jwt = false
+verify_jwt = true
 
 [[functions]]
 name = "generate-avatar"
-verify_jwt = false
+verify_jwt = true
