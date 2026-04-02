@@ -36,6 +36,7 @@ export function FilterBar({
   tags,
   selectedPersonalTag,
   onPersonalTagChange,
+  contentNames: contentNamesProp,
 }: FilterBarProps) {
   const { user } = useAuth();
   const [contentSearchQuery, setContentSearchQuery] = useState("");
