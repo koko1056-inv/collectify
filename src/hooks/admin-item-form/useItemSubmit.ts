@@ -45,16 +45,6 @@ export function useItemSubmit({
       return false;
     }
 
-    // カテゴリータグのバリデーション
-    if (!formData.characterTag || !formData.typeTag || !formData.seriesTag) {
-      toast({
-        title: "エラー",
-        description: "キャラクター、グッズタイプ、グッズシリーズをすべて選択してください。",
-        variant: "destructive",
-      });
-      return false;
-    }
-
     return true;
   };
 
