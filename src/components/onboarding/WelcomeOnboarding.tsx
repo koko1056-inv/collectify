@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ChevronRight, Sparkles } from 'lucide-react';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { InitialInterestSelection } from '@/components/InitialInterestSelection';
+import { useNavigate } from 'react-router-dom';
+import { startOnboardingGuide } from './OnboardingGuide';
 
 import onboardingCollectImg from '@/assets/onboarding-collect.png';
 import onboardingCommunityImg from '@/assets/onboarding-community.png';
@@ -54,6 +56,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const [showInterests, setShowInterests] = useState(false);
   const [direction, setDirection] = useState(1);
   const { completeWalkthrough } = useOnboarding();
+  const navigate = useNavigate();
 
   const goNext = useCallback(() => {
     if (currentSlide < slides.length - 1) {
@@ -71,7 +74,10 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const handleInterestComplete = useCallback(() => {
     completeWalkthrough();
     onComplete();
-  }, [completeWalkthrough, onComplete]);
+    // Start the guided flow and navigate to search
+    startOnboardingGuide();
+    navigate('/search');
+  }, [completeWalkthrough, onComplete, navigate]);
 
   // Touch swipe handling
   const [touchStart, setTouchStart] = useState<number | null>(null);

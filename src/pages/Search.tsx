@@ -1,4 +1,5 @@
 import React from "react";
+import { OnboardingGuide } from "@/components/onboarding/OnboardingGuide";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { FilterBar } from "@/components/FilterBar";
@@ -108,6 +109,7 @@ const Search = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <OnboardingGuide />
       <main className="container mx-auto px-2 pt-16 pb-24 sm:px-4 sm:pt-24 sm:pb-8">
         <div className="space-y-3 sm:space-y-6">
           <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">

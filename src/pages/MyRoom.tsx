@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MyRoomHome } from "@/components/home/MyRoomHome";
@@ -12,8 +11,7 @@ import { ensureProfileImagesPublicUrl, setCurrentAvatar } from "@/utils/avatar-s
 export default function MyRoom() {
   const { user } = useAuth();
   const { profile, refetchProfile } = useProfile(user?.id);
-  const { onboardingState } = useOnboarding();
-  const [welcomeDone, setWelcomeDone] = useState(false);
+  const { onboardingState, completeWelcome } = useOnboarding();
 
   const handleAvatarGenerated = async ({ imageUrl, prompt }: AvatarGenerationResult) => {
     if (!user?.id) return;
@@ -24,10 +22,10 @@ export default function MyRoom() {
   };
 
   // Show welcome onboarding for new users who haven't completed it
-  const showWelcome = !!user && !onboardingState.hasCompletedWelcome && !welcomeDone;
+  const showWelcome = !!user && !onboardingState.hasCompletedWelcome;
 
   if (showWelcome) {
-    return <WelcomeOnboarding onComplete={() => setWelcomeDone(true)} />;
+    return <WelcomeOnboarding onComplete={() => completeWelcome()} />;
   }
 
   return (
