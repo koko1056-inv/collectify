@@ -27,6 +27,7 @@ const STORAGE_KEY_PREFIX = 'collectify_onboarding_state';
 
 const defaultState: OnboardingState = {
   hasCompletedWalkthrough: false,
+  hasCompletedWelcome: false,
   shownTooltips: {
     search: false,
     collection: false,
