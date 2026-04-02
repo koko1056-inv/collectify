@@ -111,6 +111,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       value={{
         onboardingState,
         completeWalkthrough,
+        completeWelcome,
         markTooltipShown,
         shouldShowTooltip,
         resetOnboarding,
