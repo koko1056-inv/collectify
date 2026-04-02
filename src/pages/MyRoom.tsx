@@ -12,8 +12,7 @@ import { ensureProfileImagesPublicUrl, setCurrentAvatar } from "@/utils/avatar-s
 export default function MyRoom() {
   const { user } = useAuth();
   const { profile, refetchProfile } = useProfile(user?.id);
-  const { onboardingState } = useOnboarding();
-  const [welcomeDone, setWelcomeDone] = useState(false);
+  const { onboardingState, completeWelcome } = useOnboarding();
 
   const handleAvatarGenerated = async ({ imageUrl, prompt }: AvatarGenerationResult) => {
     if (!user?.id) return;
