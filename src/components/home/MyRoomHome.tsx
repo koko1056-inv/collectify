@@ -198,7 +198,7 @@ export function MyRoomHome({
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  onClick={() => navigate(`/user/${profile.username}`)}
+                  onClick={() => navigate(`/user/${profile.id}`)}
                   className="shrink-0 h-9 w-9 rounded-xl"
                 >
                   <ChevronRight className="w-4 h-4" />
