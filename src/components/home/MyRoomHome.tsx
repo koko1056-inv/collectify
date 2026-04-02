@@ -294,6 +294,39 @@ export function MyRoomHome({
   );
 }
 
+// ミニ統計コンポーネント - 棚に並ぶグッズ数
+function MiniStat({ icon: Icon, label, userId, type }: { 
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  userId: string | undefined;
+  type: 'items' | 'wishlists' | 'favorites';
+}) {
+  const { data: count = 0 } = useQuery({
+    queryKey: ['mini-stat', userId, type],
+    queryFn: async () => {
+      if (!userId) return 0;
+      const table = type === 'items' ? 'user_items' : type === 'wishlists' ? 'wishlists' : 'collection_likes';
+      const column = type === 'favorites' ? 'user_id' : 'user_id';
+      const { count, error } = await supabase
+        .from(table)
+        .select('id', { count: 'exact', head: true })
+        .eq(column, userId);
+      if (error) return 0;
+      return count || 0;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return (
+    <div className="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-muted/40 border border-border/20">
+      <Icon className="w-4 h-4 text-primary/70" />
+      <span className="text-base font-bold text-foreground">{count}</span>
+      <span className="text-[10px] text-muted-foreground leading-none">{label}</span>
+    </div>
+  );
+}
+
 // 3Dルーム表示コンポーネント
 interface Room3DViewProps {
   mainRoom: any;
