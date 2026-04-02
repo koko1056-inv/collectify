@@ -23,6 +23,7 @@ interface FilterBarProps {
   tags: Tag[];
   selectedPersonalTag?: string;
   onPersonalTagChange?: (tag: string) => void;
+  contentNames?: { id: string; name: string }[];
 }
 
 export function FilterBar({

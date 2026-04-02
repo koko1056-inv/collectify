@@ -227,6 +227,7 @@ const Search = () => {
                         selectedContent={selectedContent}
                         onContentChange={setSelectedContent}
                         tags={allTags}
+                        contentNames={contentNames}
                       />
                     </ScrollArea>
                   </div>
