@@ -1,22 +1,22 @@
 project_id = "dmgrgzysrzzgsajwqyrh"
 
 [functions.analyze-item-image]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-background]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-3d-model]
-verify_jwt = false
+verify_jwt = true
 
 [functions.search-item-prices]
-verify_jwt = false
+verify_jwt = true
 
 [functions.proxy-image]
 verify_jwt = false
 
 [functions.add-item-chat]
-verify_jwt = false
+verify_jwt = true
 
 [functions.delete-official-item]
-verify_jwt = false
+verify_jwt = true

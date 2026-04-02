@@ -34,6 +34,15 @@ serve(async (req) => {
   }
 
   try {
+    // 認証チェック
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
+    }
+
     const apiKey = Deno.env.get('GOOGLE_CLOUD_VISION_API_KEY')
     if (!apiKey) {
       throw new Error('GOOGLE_CLOUD_VISION_API_KEY is not configured')
@@ -43,6 +52,14 @@ serve(async (req) => {
     
     if (!imageUrl) {
       throw new Error('Image URL is required')
+    }
+
+    // 入力サイズ制限（Base64で10MB以内）
+    if (typeof imageUrl === 'string' && imageUrl.length > 10 * 1024 * 1024) {
+      return new Response(
+        JSON.stringify({ error: 'Image data too large (max 10MB)' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
     }
 
     console.log('Starting Google Cloud Vision analysis, mode:', searchMode || 'all');
