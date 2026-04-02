@@ -29,9 +29,19 @@ export default function MyRoom() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
+      {/* 部屋感のある背景テクスチャ */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.03)_0%,transparent_60%)]" />
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-muted/30 to-transparent" />
+        {/* 微細なドットパターン（棚の壁紙イメージ） */}
+        <div 
+          className="absolute inset-0 opacity-[0.015]"
+          style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }}
+        />
+      </div>
       <Navbar />
-      <main className="w-full pt-16 pb-24">
+      <main className="relative z-10 w-full pt-16 pb-24">
         <MyRoomHome 
           profile={profile} 
           onAvatarGenerated={handleAvatarGenerated} 

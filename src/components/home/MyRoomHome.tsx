@@ -1,9 +1,10 @@
 import { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Maximize2, Compass, Package, ArrowRight, TrendingUp, ChevronRight } from "lucide-react";
+import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Maximize2, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen } from "lucide-react";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Profile } from "@/types";
@@ -15,6 +16,8 @@ import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AvatarSocialSection } from "./AvatarSocialSection";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MyRoomHomeProps {
   profile: Profile | undefined;
@@ -163,39 +166,60 @@ export function MyRoomHome({
         </div>
       </div>
 
-      {/* ヘッダー - ユーザー情報 */}
-      <div className="px-4 sm:px-6 lg:px-8 mb-4">
+      {/* ヘッダー - コレクターの部屋感 */}
+      <div className="px-4 sm:px-6 lg:px-8 mb-5">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/30">
-            <Avatar className="w-14 h-14 border-2 border-primary/20 shadow-lg">
-              <AvatarImage src={profile.avatar_url || undefined} className="object-cover" />
-              <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                {profile.username?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold text-foreground truncate">
-                {profile.display_name || profile.username}
-              </h1>
-              <p className="text-sm text-muted-foreground">@{profile.username}</p>
+          <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card via-card to-muted/30 shadow-sm">
+            {/* 装飾: コーナーの棚イメージ */}
+            <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-bl-[3rem]" />
+            <div className="absolute bottom-0 left-0 w-16 h-16 bg-primary/3 rounded-tr-[2rem]" />
+
+            <div className="relative p-5">
+              {/* ユーザー情報行 */}
+              <div className="flex items-center gap-4 mb-4">
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-primary/10 rounded-full blur-md" />
+                  <Avatar className="relative w-14 h-14 border-2 border-primary/20 shadow-lg ring-2 ring-background">
+                    <AvatarImage src={profile.avatar_url || undefined} className="object-cover" />
+                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
+                      {profile.username?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-lg font-bold text-foreground truncate">
+                    {profile.display_name || profile.username}の部屋
+                  </h1>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <BookOpen className="w-3 h-3" />
+                    コレクター
+                  </p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => navigate(`/user/${profile.username}`)}
+                  className="shrink-0 h-9 w-9 rounded-xl"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* ミニ統計 - 棚に並ぶグッズ風 */}
+              <div className="grid grid-cols-3 gap-2">
+                <MiniStat icon={Package} label="グッズ" userId={user?.id} type="items" />
+                <MiniStat icon={Heart} label="ウィッシュ" userId={user?.id} type="wishlists" />
+                <MiniStat icon={Star} label="お気に入り" userId={user?.id} type="favorites" />
+              </div>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate(`/user/${profile.username}`)}
-              className="gap-1 hidden sm:flex"
-            >
-              プロフィール
-              <ChevronRight className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       </div>
 
-      {/* タブナビゲーション */}
+      {/* タブナビゲーション - 部屋のエリア切り替え */}
       <div className="px-4 sm:px-6 lg:px-8 mb-6">
         <div className="max-w-4xl mx-auto">
-          <div className="flex gap-2 p-1.5 rounded-2xl bg-muted/50 backdrop-blur-sm border border-border/30">
+          <div className="flex gap-1.5 p-1 rounded-2xl bg-muted/40 border border-border/30">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -204,20 +228,19 @@ export function MyRoomHome({
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-200 relative",
+                    "flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-sm font-medium transition-all duration-200 relative",
                     isActive 
-                      ? "bg-background text-primary shadow-md" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                      ? "bg-card text-primary shadow-md border border-border/50" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                   )}
                 >
                   <div className="relative">
                     <Icon className={cn("w-4 h-4", isActive && "text-primary")} />
-                    {/* バッジドット - 1つだけ表示 */}
                     {tab.badge && !isActive && (
                       <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
                     )}
                   </div>
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="text-xs sm:text-sm">{tab.label}</span>
                 </button>
               );
             })}
@@ -270,6 +293,39 @@ export function MyRoomHome({
           onAvatarGenerated={onAvatarGenerated}
         />
       )}
+    </div>
+  );
+}
+
+// ミニ統計コンポーネント - 棚に並ぶグッズ数
+function MiniStat({ icon: Icon, label, userId, type }: { 
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  userId: string | undefined;
+  type: 'items' | 'wishlists' | 'favorites';
+}) {
+  const { data: count = 0 } = useQuery({
+    queryKey: ['mini-stat', userId, type],
+    queryFn: async () => {
+      if (!userId) return 0;
+      const table = type === 'items' ? 'user_items' : type === 'wishlists' ? 'wishlists' : 'collection_likes';
+      const column = type === 'favorites' ? 'user_id' : 'user_id';
+      const { count, error } = await supabase
+        .from(table)
+        .select('id', { count: 'exact', head: true })
+        .eq(column, userId);
+      if (error) return 0;
+      return count || 0;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return (
+    <div className="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-muted/40 border border-border/20">
+      <Icon className="w-4 h-4 text-primary/70" />
+      <span className="text-base font-bold text-foreground">{count}</span>
+      <span className="text-[10px] text-muted-foreground leading-none">{label}</span>
     </div>
   );
 }
