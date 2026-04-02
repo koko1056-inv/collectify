@@ -14,6 +14,7 @@ import { Room3DEditor } from "@/components/room3d/Room3DEditor";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AvatarSocialSection } from "./AvatarSocialSection";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 
 interface MyRoomHomeProps {
   profile: Profile | undefined;
