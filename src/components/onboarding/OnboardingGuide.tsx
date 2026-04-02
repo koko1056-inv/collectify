@@ -110,7 +110,7 @@ export function OnboardingGuide() {
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                 {isGoodsStep
-                  ? 'グッズを見つけて「持ってる」ボタンを押すだけ！コレクションに追加されます。'
+                  ? 'グッズを見つけて「追加」ボタンを押すだけ！コレクションに追加されます。'
                   : '気になるグッズの「欲しい」ボタンを押して、ウィッシュリストに追加しましょう。'}
               </p>
 
