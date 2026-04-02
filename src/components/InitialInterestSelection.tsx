@@ -12,9 +12,16 @@ import { ContentInfo } from "@/utils/tag/types";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { 
   BookOpen, Gamepad2, Music, Film, Tv, Heart, Star, Zap, 
-  Award, Users, Boxes, PenTool, Palette, BookMarked, Pin
+  Award, Users, Boxes, PenTool, Palette, BookMarked, Pin, PlusCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Input as ShadInput } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent as ShadDialogContent,
+  DialogHeader as ShadDialogHeader,
+  DialogTitle as ShadDialogTitle,
+} from "@/components/ui/dialog";
 
 const ICON_MAP: Record<string, any> = {
   BookOpen,
