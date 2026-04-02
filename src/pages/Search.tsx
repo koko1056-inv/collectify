@@ -1,4 +1,5 @@
 import React from "react";
+import { OnboardingGuide } from "@/components/onboarding/OnboardingGuide";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { FilterBar } from "@/components/FilterBar";

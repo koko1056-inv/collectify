@@ -340,6 +340,17 @@ export function InitialInterestSelection({
                 </Button>
               );
             })}
+            {/* その他ボタン */}
+            {!searchQuery && (
+              <Button
+                variant="outline"
+                className="h-auto min-h-[5rem] px-4 py-6 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-xl shadow-sm bg-muted/30 hover:bg-muted/60 border-dashed border-2 border-muted-foreground/20 hover:border-primary/40"
+                onClick={() => setShowNewContentDialog(true)}
+              >
+                <PlusCircle className="h-6 w-6 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">その他</span>
+              </Button>
+            )}
           </div>
         </ScrollArea>
         
