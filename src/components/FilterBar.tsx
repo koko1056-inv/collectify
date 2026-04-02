@@ -119,32 +119,27 @@ export function FilterBar({
           <ChevronDown className="h-3 w-3 opacity-50 ml-2 flex-shrink-0" />
         </Button>
 
-        <div className="relative w-full">
-          <ScrollArea className="w-full whitespace-nowrap">
-            <div className="flex w-max gap-1.5 pb-2">
-              <Button
-                key="all"
-                variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
-                size="sm"
-                className="text-xs h-6 px-2 shrink-0"
-                onClick={() => onContentChange("all")}
-              >
-                すべて
-              </Button>
-              {popularContentNames.map((content) => (
-                <Button
-                  key={content.id}
-                  variant={selectedContent === content.name ? "default" : "outline"}
-                  size="sm"
-                  className="text-xs h-6 px-2 shrink-0"
-                  onClick={handleContentSelect.bind(null, content.name)}
-                >
-                  {content.name}
-                </Button>
-              ))}
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+        <div className="flex flex-wrap gap-1.5">
+          <Button
+            key="all"
+            variant={!selectedContent || selectedContent === "all" ? "default" : "outline"}
+            size="sm"
+            className="text-xs h-7 px-3"
+            onClick={() => onContentChange("all")}
+          >
+            すべて
+          </Button>
+          {contentNames.map((content) => (
+            <Button
+              key={content.id}
+              variant={selectedContent === content.name ? "default" : "outline"}
+              size="sm"
+              className="text-xs h-7 px-3"
+              onClick={handleContentSelect.bind(null, content.name)}
+            >
+              {content.name}
+            </Button>
+          ))}
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
