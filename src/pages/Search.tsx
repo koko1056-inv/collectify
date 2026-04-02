@@ -19,7 +19,7 @@ import { Package, Users, Plus, ArrowLeftRight, Heart, SlidersHorizontal, X } fro
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SearchBar } from "@/components/SearchBar";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +46,19 @@ const Search = () => {
   const queryClient = useQueryClient();
   const { data: items = [] } = useOfficialItems();
   const { data: allTags = [] } = useTags(selectedContent);
+
+  // コンテンツ名を早期に取得
+  const { data: contentNames = [] } = useQuery({
+    queryKey: ["content-names"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("content_names")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   // Supabase Realtimeでofficial_itemsの変更を監視
   useEffect(() => {
@@ -214,6 +227,7 @@ const Search = () => {
                         selectedContent={selectedContent}
                         onContentChange={setSelectedContent}
                         tags={allTags}
+                        contentNames={contentNames}
                       />
                     </ScrollArea>
                   </div>

@@ -23,6 +23,7 @@ interface FilterBarProps {
   tags: Tag[];
   selectedPersonalTag?: string;
   onPersonalTagChange?: (tag: string) => void;
+  contentNames?: { id: string; name: string }[];
 }
 
 export function FilterBar({
@@ -35,6 +36,7 @@ export function FilterBar({
   tags,
   selectedPersonalTag,
   onPersonalTagChange,
+  contentNames: contentNamesProp,
 }: FilterBarProps) {
   const { user } = useAuth();
   const [contentSearchQuery, setContentSearchQuery] = useState("");
@@ -73,7 +75,7 @@ export function FilterBar({
     setIsDialogOpen(false);
   }, [onContentChange]);
 
-  const { data: contentNames = [] } = useQuery({
+  const { data: fetchedContentNames = [] } = useQuery({
     queryKey: ["content-names"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -83,7 +85,10 @@ export function FilterBar({
       if (error) throw error;
       return data;
     },
+    enabled: !contentNamesProp,
   });
+
+  const contentNames = contentNamesProp || fetchedContentNames;
 
   const filteredContentNames = useMemo(() => 
     contentNames.filter(content =>
