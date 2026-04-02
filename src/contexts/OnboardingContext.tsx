@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 
 interface OnboardingState {
   hasCompletedWalkthrough: boolean;
+  hasCompletedWelcome: boolean;
   shownTooltips: {
     search: boolean;
     collection: boolean;
