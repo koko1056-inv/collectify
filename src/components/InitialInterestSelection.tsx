@@ -321,25 +321,25 @@ export function InitialInterestSelection({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg bg-white border border-gray-300 shadow-lg">
+      <DialogContent className="max-w-lg bg-card border-border shadow-lg">
         <DialogHeader className="pb-2">
-          <DialogTitle className="text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+          <DialogTitle className="text-2xl font-bold text-center text-foreground">
             興味のあるコンテンツ
           </DialogTitle>
         </DialogHeader>
         
-        <div className="text-center text-gray-600 mb-4 px-4 text-sm">
+        <p className="text-center text-muted-foreground mb-4 px-4 text-sm">
           好みに合わせたグッズを表示するために、興味のあるコンテンツを選んでください
-        </div>
+        </p>
         
         <div className="relative px-4">
           <Input
             placeholder="コンテンツを検索..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="mb-4 pl-10 bg-white border border-gray-200 rounded-full focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+            className="mb-4 pl-10 bg-card border-border rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary"
           />
-          <div className="absolute top-3 left-7 text-gray-400">
+          <div className="absolute top-1/2 -translate-y-1/2 left-7 text-muted-foreground" style={{ marginTop: '-8px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           </div>
         </div>
@@ -354,37 +354,57 @@ export function InitialInterestSelection({
               const isSelected = selectedContents.includes(content.name);
               
               return (
-                <Button
+                <button
                   key={content.id}
-                  variant={isSelected ? "default" : "outline"}
                   className={cn(
-                    "h-auto min-h-[5rem] px-4 py-6 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-xl shadow-sm",
+                    "relative h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-2xl border-2 overflow-hidden",
                     isSelected 
-                      ? "bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white animate-scale-in"
-                      : "bg-white hover:bg-gray-50 border-gray-200 hover:border-purple-300 hover:shadow"
+                      ? "border-primary bg-primary/10 shadow-md ring-1 ring-primary/20"
+                      : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
                   )}
                   onClick={() => handleContentToggle(content.name)}
                 >
-                  <IconComponent className={cn(
-                    "h-6 w-6",
-                    isSelected ? "text-white" : "text-purple-500"
-                  )} />
-                  <span className="text-sm font-medium break-words text-center w-full line-clamp-2">
+                  {isSelected && (
+                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                  )}
+
+                  {content.image_url ? (
+                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted/50 flex items-center justify-center">
+                      <img src={content.image_url} alt={content.name} className="w-full h-full object-contain" />
+                    </div>
+                  ) : (
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center",
+                      isSelected ? "bg-primary/20" : "bg-muted/60"
+                    )}>
+                      <IconComponent className={cn(
+                        "h-5 w-5",
+                        isSelected ? "text-primary" : "text-muted-foreground"
+                      )} />
+                    </div>
+                  )}
+
+                  <span className={cn(
+                    "text-sm font-medium break-words text-center w-full line-clamp-2 leading-tight",
+                    isSelected ? "text-primary" : "text-foreground"
+                  )}>
                     {content.name}
                   </span>
-                </Button>
+                </button>
               );
             })}
-            {/* その他ボタン */}
             {!searchQuery && (
-              <Button
-                variant="outline"
-                className="h-auto min-h-[5rem] px-4 py-6 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-xl shadow-sm bg-muted/30 hover:bg-muted/60 border-dashed border-2 border-muted-foreground/20 hover:border-primary/40"
+              <button
+                className="h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/20 hover:border-primary/30 hover:bg-muted/40"
                 onClick={() => setShowNewContentDialog(true)}
               >
-                <PlusCircle className="h-6 w-6 text-muted-foreground" />
+                <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center">
+                  <PlusCircle className="h-5 w-5 text-muted-foreground" />
+                </div>
                 <span className="text-sm font-medium text-muted-foreground">その他</span>
-              </Button>
+              </button>
             )}
           </div>
         </ScrollArea>
@@ -392,7 +412,8 @@ export function InitialInterestSelection({
         <div className="flex justify-center mt-4 px-4">
           <Button 
             onClick={handleConfirm} 
-            className="w-full max-w-xs bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium py-2.5 rounded-full shadow-md hover:shadow-lg transition-all duration-200"
+            size="lg"
+            className="w-full h-12 text-base font-semibold rounded-2xl shadow-lg"
             disabled={saving}
           >
             {saving ? "保存中..." : selectedContents.length > 0 ? "設定を保存する" : "スキップする"}
