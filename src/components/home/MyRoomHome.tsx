@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Maximize2, Compass, Package, ArrowRight, TrendingUp, ChevronRight } from "lucide-react";
+import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Maximize2, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen } from "lucide-react";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Profile } from "@/types";
