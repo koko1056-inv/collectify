@@ -15,6 +15,7 @@ interface OnboardingState {
 interface OnboardingContextType {
   onboardingState: OnboardingState;
   completeWalkthrough: () => void;
+  completeWelcome: () => void;
   markTooltipShown: (tooltipId: keyof OnboardingState['shownTooltips']) => void;
   shouldShowTooltip: (tooltipId: keyof OnboardingState['shownTooltips']) => boolean;
   resetOnboarding: () => void;
