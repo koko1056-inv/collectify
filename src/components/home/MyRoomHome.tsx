@@ -153,7 +153,6 @@ export function MyRoomHome({
 
   const tabs = [
     { id: "collection" as const, icon: Package, label: "コレクション", badge: tabBadges.collection },
-    { id: "room" as const, icon: Home, label: "ルーム", badge: tabBadges.room },
     { id: "avatar" as const, icon: User, label: "アバター", badge: tabBadges.avatar },
   ];
 
@@ -251,24 +250,7 @@ export function MyRoomHome({
       {/* メインコンテンツ */}
       <div className="flex-1 w-full px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          {activeTab === "room" ? (
-            <Room3DView 
-              mainRoom={mainRoom} 
-              roomItems={roomItems} 
-              likeCount={likeCount} 
-              isLiked={isLiked} 
-              isLoading={isLoading} 
-              isOwnRoom={isOwnRoom} 
-              profile={profile} 
-              user={user} 
-              onEditRoom={handleEditRoom} 
-              onCreateRoom={() => createMainRoom.mutate(t("room.myRoom"))} 
-              onToggleLike={() => toggleLike.mutate()} 
-              onOpenFullscreen={() => setShowFullscreenRoom(true)} 
-              createRoomPending={createMainRoom.isPending} 
-              t={t} 
-            />
-          ) : activeTab === "collection" ? (
+          {activeTab === "collection" ? (
             <div className="w-full animate-fade-in">
               {user?.id && <ProfileCollection userId={user.id} />}
             </div>
