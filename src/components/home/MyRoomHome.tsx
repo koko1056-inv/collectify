@@ -16,6 +16,8 @@ import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AvatarSocialSection } from "./AvatarSocialSection";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MyRoomHomeProps {
   profile: Profile | undefined;
