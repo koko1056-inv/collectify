@@ -75,7 +75,7 @@ export function FilterBar({
     setIsDialogOpen(false);
   }, [onContentChange]);
 
-  const { data: contentNames = [] } = useQuery({
+  const { data: fetchedContentNames = [] } = useQuery({
     queryKey: ["content-names"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -85,7 +85,10 @@ export function FilterBar({
       if (error) throw error;
       return data;
     },
+    enabled: !contentNamesProp,
   });
+
+  const contentNames = contentNamesProp || fetchedContentNames;
 
   const filteredContentNames = useMemo(() => 
     contentNames.filter(content =>
