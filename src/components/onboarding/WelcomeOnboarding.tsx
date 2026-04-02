@@ -74,7 +74,10 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const handleInterestComplete = useCallback(() => {
     completeWalkthrough();
     onComplete();
-  }, [completeWalkthrough, onComplete]);
+    // Start the guided flow and navigate to search
+    startOnboardingGuide();
+    navigate('/search');
+  }, [completeWalkthrough, onComplete, navigate]);
 
   // Touch swipe handling
   const [touchStart, setTouchStart] = useState<number | null>(null);
