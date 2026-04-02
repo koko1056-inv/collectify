@@ -15,13 +15,7 @@ import {
   Award, Users, Boxes, PenTool, Palette, BookMarked, Pin, PlusCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Input as ShadInput } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent as ShadDialogContent,
-  DialogHeader as ShadDialogHeader,
-  DialogTitle as ShadDialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog } from "@/components/ui/dialog";
 
 const ICON_MAP: Record<string, any> = {
   BookOpen,
