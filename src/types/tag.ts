@@ -125,6 +125,7 @@ export interface ContentInfo {
   created_at?: string;
   created_by?: string;
   icon_name?: string;
+  image_url?: string | null;
 }
 
 // ============= ユーザーアイテム関連 =============

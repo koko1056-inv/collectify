@@ -1,0 +1,1 @@
+ALTER TABLE public.content_names ADD COLUMN IF NOT EXISTS image_url text;
