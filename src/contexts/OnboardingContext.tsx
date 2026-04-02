@@ -77,6 +77,13 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const completeWelcome = () => {
+    setOnboardingState(prev => ({
+      ...prev,
+      hasCompletedWelcome: true,
+    }));
+  };
+
   const markTooltipShown = (tooltipId: keyof OnboardingState['shownTooltips']) => {
     setOnboardingState(prev => ({
       ...prev,
