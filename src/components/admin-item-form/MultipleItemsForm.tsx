@@ -86,7 +86,7 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
   };
 
   const allItemsValid = items.every(
-    (item) => item.title.trim() !== "" && item.characterTag && item.typeTag && item.seriesTag
+    (item) => item.title.trim() !== ""
   );
 
   return (
