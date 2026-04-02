@@ -232,8 +232,44 @@ export function InitialInterestSelection({
                 </Button>
               );
             })}
+            {/* その他ボタン */}
+            {!searchQuery && (
+              <Button
+                variant="outline"
+                className="h-auto min-h-[5rem] px-4 py-6 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-xl shadow-sm bg-muted/30 hover:bg-muted/60 border-dashed border-2 border-muted-foreground/20 hover:border-primary/40"
+                onClick={() => setShowNewContentDialog(true)}
+              >
+                <PlusCircle className="h-6 w-6 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">その他</span>
+              </Button>
+            )}
           </div>
         </ScrollArea>
+
+        {/* 新規コンテンツ作成ダイアログ */}
+        <Dialog open={showNewContentDialog} onOpenChange={setShowNewContentDialog}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>新しいコンテンツを追加</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <Input
+                placeholder="コンテンツ名を入力..."
+                value={newContentName}
+                onChange={(e) => setNewContentName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateNewContent()}
+              />
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => setShowNewContentDialog(false)}>
+                  キャンセル
+                </Button>
+                <Button size="sm" onClick={handleCreateNewContent} disabled={!newContentName.trim() || creatingContent}>
+                  {creatingContent ? '追加中...' : '追加する'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
         
         <div className="flex justify-center mt-4">
           <Button 
