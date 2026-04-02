@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ChevronRight, Sparkles } from 'lucide-react';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { InitialInterestSelection } from '@/components/InitialInterestSelection';
+import { useNavigate } from 'react-router-dom';
+import { startOnboardingGuide } from './OnboardingGuide';
 
 import onboardingCollectImg from '@/assets/onboarding-collect.png';
 import onboardingCommunityImg from '@/assets/onboarding-community.png';
