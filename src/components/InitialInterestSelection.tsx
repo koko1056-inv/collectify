@@ -12,7 +12,7 @@ import { ContentInfo } from "@/utils/tag/types";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { 
   BookOpen, Gamepad2, Music, Film, Tv, Heart, Star, Zap, 
-  Award, Users, Boxes, PenTool, Palette, BookMarked, Pin, PlusCircle
+  Award, Users, Boxes, PenTool, Palette, BookMarked, Pin, PlusCircle, ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Dialog } from "@/components/ui/dialog";
