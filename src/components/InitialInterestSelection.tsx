@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentInfo } from "@/utils/tag/types";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { 
