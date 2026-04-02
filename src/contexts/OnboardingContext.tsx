@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 
 interface OnboardingState {
   hasCompletedWalkthrough: boolean;
+  hasCompletedWelcome: boolean;
   shownTooltips: {
     search: boolean;
     collection: boolean;
@@ -14,6 +15,7 @@ interface OnboardingState {
 interface OnboardingContextType {
   onboardingState: OnboardingState;
   completeWalkthrough: () => void;
+  completeWelcome: () => void;
   markTooltipShown: (tooltipId: keyof OnboardingState['shownTooltips']) => void;
   shouldShowTooltip: (tooltipId: keyof OnboardingState['shownTooltips']) => boolean;
   resetOnboarding: () => void;
@@ -25,6 +27,7 @@ const STORAGE_KEY_PREFIX = 'collectify_onboarding_state';
 
 const defaultState: OnboardingState = {
   hasCompletedWalkthrough: false,
+  hasCompletedWelcome: false,
   shownTooltips: {
     search: false,
     collection: false,
@@ -74,6 +77,13 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }));
   };
 
+  const completeWelcome = () => {
+    setOnboardingState(prev => ({
+      ...prev,
+      hasCompletedWelcome: true,
+    }));
+  };
+
   const markTooltipShown = (tooltipId: keyof OnboardingState['shownTooltips']) => {
     setOnboardingState(prev => ({
       ...prev,
@@ -101,6 +111,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       value={{
         onboardingState,
         completeWalkthrough,
+        completeWelcome,
         markTooltipShown,
         shouldShowTooltip,
         resetOnboarding,

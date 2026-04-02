@@ -14,6 +14,7 @@ import { Room3DEditor } from "@/components/room3d/Room3DEditor";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AvatarSocialSection } from "./AvatarSocialSection";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 
 interface MyRoomHomeProps {
   profile: Profile | undefined;
@@ -155,6 +156,13 @@ export function MyRoomHome({
 
   return (
     <div className="min-h-[60vh] flex flex-col pb-24 animate-fade-in">
+      {/* オンボーディングチェックリスト */}
+      <div className="px-4 sm:px-6 lg:px-8 mb-4">
+        <div className="max-w-4xl mx-auto">
+          <OnboardingChecklist />
+        </div>
+      </div>
+
       {/* ヘッダー - ユーザー情報 */}
       <div className="px-4 sm:px-6 lg:px-8 mb-4">
         <div className="max-w-4xl mx-auto">
