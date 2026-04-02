@@ -56,6 +56,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const [showInterests, setShowInterests] = useState(false);
   const [direction, setDirection] = useState(1);
   const { completeWalkthrough } = useOnboarding();
+  const navigate = useNavigate();
 
   const goNext = useCallback(() => {
     if (currentSlide < slides.length - 1) {
