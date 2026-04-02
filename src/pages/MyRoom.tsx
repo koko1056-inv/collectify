@@ -23,10 +23,10 @@ export default function MyRoom() {
   };
 
   // Show welcome onboarding for new users who haven't completed it
-  const showWelcome = !!user && !onboardingState.hasCompletedWelcome && !welcomeDone;
+  const showWelcome = !!user && !onboardingState.hasCompletedWelcome;
 
   if (showWelcome) {
-    return <WelcomeOnboarding onComplete={() => setWelcomeDone(true)} />;
+    return <WelcomeOnboarding onComplete={() => completeWelcome()} />;
   }
 
   return (
