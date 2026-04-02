@@ -156,6 +156,13 @@ export function MyRoomHome({
 
   return (
     <div className="min-h-[60vh] flex flex-col pb-24 animate-fade-in">
+      {/* オンボーディングチェックリスト */}
+      <div className="px-4 sm:px-6 lg:px-8 mb-4">
+        <div className="max-w-4xl mx-auto">
+          <OnboardingChecklist />
+        </div>
+      </div>
+
       {/* ヘッダー - ユーザー情報 */}
       <div className="px-4 sm:px-6 lg:px-8 mb-4">
         <div className="max-w-4xl mx-auto">
