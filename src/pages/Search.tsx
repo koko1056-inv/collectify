@@ -47,6 +47,19 @@ const Search = () => {
   const { data: items = [] } = useOfficialItems();
   const { data: allTags = [] } = useTags(selectedContent);
 
+  // コンテンツ名を早期に取得
+  const { data: contentNames = [] } = useQuery({
+    queryKey: ["content-names"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("content_names")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Supabase Realtimeでofficial_itemsの変更を監視
   useEffect(() => {
     const channel = supabase
