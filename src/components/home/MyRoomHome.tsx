@@ -153,7 +153,6 @@ export function MyRoomHome({
 
   const tabs = [
     { id: "collection" as const, icon: Package, label: "コレクション", badge: tabBadges.collection },
-    { id: "room" as const, icon: Home, label: "ルーム", badge: tabBadges.room },
     { id: "avatar" as const, icon: User, label: "アバター", badge: tabBadges.avatar },
   ];
 
