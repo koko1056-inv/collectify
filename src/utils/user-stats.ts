@@ -82,28 +82,13 @@ export async function calculateAndAwardHistoricalPoints(userId: string) {
 
       if (insertError) throw insertError;
 
-      // 総ポイント数を更新
-      const { data: currentPoints } = await supabase
-        .from("user_points")
-        .select("total_points")
-        .eq("user_id", userId)
-        .single();
-
-      const newTotal = (currentPoints?.total_points || 0) + totalPointsToAdd;
-
-      if (!currentPoints) {
-        await supabase
-          .from("user_points")
-          .insert({
-            user_id: userId,
-            total_points: newTotal
-          });
-      } else {
-        await supabase
-          .from("user_points")
-          .update({ total_points: newTotal })
-          .eq("user_id", userId);
-      }
+      // 総ポイント数を更新（サーバーサイド関数使用）
+      await supabase.rpc('add_user_points', {
+        _user_id: userId,
+        _points: totalPointsToAdd,
+        _transaction_type: 'retroactive_calc',
+        _description: '過去ポイント一括計算'
+      });
     }
 
     return {
