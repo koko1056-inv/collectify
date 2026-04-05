@@ -25,12 +25,7 @@ const awardLoginBonus = async (userId: string) => {
     }
     
     console.log("[AuthContext] Login bonus awarded successfully");
-    // Note: streak bonus logic is now handled server-side
-          description: `7日連続ログインボーナス！`
-        });
-    }
-      
-    console.log("[AuthContext] Login bonus process completed:", { totalBonus, newStreak, streakBonus });
+    console.log("[AuthContext] Login bonus process completed");
   } catch (error) {
     console.error("[AuthContext] ログインボーナス付与エラー:", error);
   }
