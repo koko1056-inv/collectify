@@ -240,7 +240,7 @@ export function useDeductPoints() {
     }) => {
       if (!user?.id) throw new Error("User not authenticated");
       
-      // 現在のポイント残高を取得
+      // Check current balance first
       const { data: currentPoints, error: fetchError } = await supabase
         .from("user_points")
         .select("total_points")
@@ -248,42 +248,29 @@ export function useDeductPoints() {
         .single();
         
       if (fetchError) {
-        // レコードがない場合は作成
         if (fetchError.code === 'PGRST116') {
-          await supabase
-            .from("user_points")
-            .insert({ user_id: user.id, total_points: 0 });
           throw new Error("ポイントが不足しています");
         }
         throw fetchError;
       }
       
       const currentTotal = currentPoints?.total_points || 0;
-      
-      // ポイント残高チェック
       if (currentTotal < points) {
         throw new Error(`ポイントが不足しています（現在: ${currentTotal}pt、必要: ${points}pt）`);
       }
       
+      // Use server-side RPC for deduction (negative points)
+      const { error } = await supabase.rpc('add_user_points', {
+        _user_id: user.id,
+        _points: -points,
+        _transaction_type: transactionType,
+        _description: description || null,
+        _reference_id: referenceId || null
+      });
+      
+      if (error) throw error;
+      
       const newTotal = currentTotal - points;
-      
-      // ポイント残高を更新
-      await supabase
-        .from("user_points")
-        .update({ total_points: newTotal })
-        .eq("user_id", user.id);
-      
-      // ポイント履歴に記録（消費なのでマイナス値で記録）
-      await supabase
-        .from("point_transactions")
-        .insert({
-          user_id: user.id,
-          points: -points,
-          transaction_type: transactionType,
-          description,
-          reference_id: referenceId
-        });
-      
       return { points, newTotal };
     },
     onSuccess: (data) => {

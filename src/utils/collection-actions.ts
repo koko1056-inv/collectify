@@ -115,37 +115,13 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
 // コンテンツ追加時のポイント付与（10pt）
 export async function awardContentAddPoints(userId: string, contentId: string, contentName: string) {
   try {
-    // ポイント更新
-    const { data: userPoints } = await supabase
-      .from("user_points")
-      .select("total_points")
-      .eq("user_id", userId)
-      .single();
-    
-    const currentPoints = userPoints?.total_points || 0;
-    const newPoints = currentPoints + 10;
-    
-    if (userPoints) {
-      await supabase
-        .from("user_points")
-        .update({ total_points: newPoints })
-        .eq("user_id", userId);
-    } else {
-      await supabase
-        .from("user_points")
-        .insert({ user_id: userId, total_points: 10 });
-    }
-    
-    // ポイント履歴に記録
-    await supabase
-      .from("point_transactions")
-      .insert({
-        user_id: userId,
-        points: 10,
-        transaction_type: "content_add",
-        description: `コンテンツ追加: ${contentName}`,
-        reference_id: contentId
-      });
+    await supabase.rpc('add_user_points', {
+      _user_id: userId,
+      _points: 10,
+      _transaction_type: 'content_add',
+      _description: `コンテンツ追加: ${contentName}`,
+      _reference_id: contentId
+    });
     
     return { success: true, pointsAwarded: 10 };
   } catch (error) {
