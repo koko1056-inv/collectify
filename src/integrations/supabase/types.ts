@@ -2466,6 +2466,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_user_points: {
+        Args: {
+          _description?: string
+          _points: number
+          _reference_id?: string
+          _transaction_type: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
