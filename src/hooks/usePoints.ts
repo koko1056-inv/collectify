@@ -169,51 +169,34 @@ export function useAwardPoints() {
     }) => {
       if (!user?.id) throw new Error("User not authenticated");
       
-      // ログインボーナスの場合は1日1回の制限をチェック
+      // ログインボーナスの場合はclaim_login_bonusを使用
       if (transactionType === 'login_bonus') {
-        const today = new Date().toISOString().split('T')[0];
-        const { data: userPoints } = await supabase
-          .from("user_points")
-          .select("last_login_bonus_date")
-          .eq("user_id", user.id)
-          .single();
-          
-        if (userPoints?.last_login_bonus_date === today) {
-          throw new Error("今日は既にログインボーナスを受け取りました");
-        }
+        const { data: claimed, error } = await supabase
+          .rpc('claim_login_bonus', { _user_id: user.id });
+        if (error) throw error;
+        if (!claimed) throw new Error("今日は既にログインボーナスを受け取りました");
+        return { points, newTotal: 0 }; // newTotal will be refreshed by invalidation
       }
       
-      // ポイント残高を更新
-      const { data: currentPoints } = await supabase
+      // Use server-side RPC for point changes
+      const { error } = await supabase.rpc('add_user_points', {
+        _user_id: user.id,
+        _points: points,
+        _transaction_type: transactionType,
+        _description: description || null,
+        _reference_id: referenceId || null
+      });
+      
+      if (error) throw error;
+      
+      // 称号チェック
+      const { data: updatedPoints } = await supabase
         .from("user_points")
         .select("total_points")
         .eq("user_id", user.id)
         .single();
-        
-      const newTotal = (currentPoints?.total_points || 0) + points;
       
-      const updateData: any = { total_points: newTotal };
-      if (transactionType === 'login_bonus') {
-        updateData.last_login_bonus_date = new Date().toISOString().split('T')[0];
-      }
-      
-      await supabase
-        .from("user_points")
-        .update(updateData)
-        .eq("user_id", user.id);
-      
-      // ポイント履歴に記録
-      await supabase
-        .from("point_transactions")
-        .insert({
-          user_id: user.id,
-          points,
-          transaction_type: transactionType,
-          description,
-          reference_id: referenceId
-        });
-        
-      // 称号チェック
+      const newTotal = updatedPoints?.total_points || 0;
       await checkAndAwardAchievements(user.id, newTotal, transactionType);
       
       return { points, newTotal };
