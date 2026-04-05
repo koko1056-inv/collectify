@@ -62,6 +62,21 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
   throw lastError || new Error("Failed after retries");
 }
 
+// SSRF protection
+const isInternalUrl = (urlString: string): boolean => {
+  try {
+    const parsed = new URL(urlString);
+    const hostname = parsed.hostname.toLowerCase();
+    return ['localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254', '::1'].includes(hostname) ||
+      hostname.endsWith('.internal') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('192.168.') ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname);
+  } catch {
+    return true;
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -78,6 +93,14 @@ serve(async (req) => {
     if (!targetUrl) {
       return new Response(
         JSON.stringify({ error: "URL is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // SSRF protection
+    if (isInternalUrl(targetUrl)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid URL: internal addresses are not allowed" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
