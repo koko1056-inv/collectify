@@ -62,19 +62,21 @@ export function useUserPoints() {
       if (error) {
         // ユーザーポイントレコードが存在しない場合は作成
         if (error.code === 'PGRST116') {
-          console.log("[useUserPoints] Creating new user points record");
-          const { data: newRecord, error: insertError } = await supabase
+          console.log("[useUserPoints] No user points record found, initializing via RPC");
+          await supabase.rpc('add_user_points', {
+            _user_id: user.id,
+            _points: 0,
+            _transaction_type: 'init',
+            _description: '初期化'
+          });
+          // Re-fetch after init
+          const { data: newData, error: refetchError } = await supabase
             .from("user_points")
-            .insert({ 
-              user_id: user.id,
-              total_points: 0
-            })
-            .select()
+            .select("*")
+            .eq("user_id", user.id)
             .single();
-            
-          console.log("[useUserPoints] New record created:", { newRecord, insertError });
-          if (insertError) throw insertError;
-          return newRecord;
+          if (refetchError) throw refetchError;
+          return newData;
         }
         throw error;
       }
