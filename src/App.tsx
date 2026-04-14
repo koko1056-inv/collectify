@@ -98,7 +98,7 @@ const App: React.FC = () => {
                       <Route path="/my-room" element={<MyRoom />} />
                       <Route path="/rooms/explore" element={<RoomExplore />} />
                       <Route path="/room/:roomId" element={<RoomView />} />
-                      <Route path="/shop" element={<PointShop />} />
+                      {/* ポイントショップは一旦非表示（サブスク移行予定） */}
                       <Route path="/how-to-use" element={<HowToUse />} />
                       <Route path="/image-search" element={<ImageSearch />} />
                       <Route path="*" element={<Navigate to="/my-room" replace />} />
