@@ -322,10 +322,6 @@ export default function HowToUse() {
                       </div>
                     </div>
                   </div>
-                  <Button onClick={() => navigate("/shop")} size="lg" className="shrink-0">
-                    ショップへ
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
                 </div>
               </div>
             </Card>
