@@ -28,7 +28,7 @@ const EditProfile = lazy(() => import("./pages/EditProfile").catch(() => ({ defa
 const Messages = lazy(() => import("./pages/Messages").catch(() => ({ default: () => <div>Error loading page</div> })));
 const RoomExplore = lazy(() => import("./pages/RoomExplore").catch(() => ({ default: () => <div>Error loading page</div> })));
 const RoomView = lazy(() => import("./pages/RoomView").catch(() => ({ default: () => <div>Error loading page</div> })));
-const PointShop = lazy(() => import("./pages/PointShop").catch(() => ({ default: () => <div>Error loading page</div> })));
+// const PointShop = lazy(() => import("./pages/PointShop")); // サブスク移行予定のため一旦非表示
 const HowToUse = lazy(() => import("./pages/HowToUse").catch(() => ({ default: () => <div>Error loading page</div> })));
 const ImageSearch = lazy(() => import("./pages/ImageSearch").catch(() => ({ default: () => <div>Error loading page</div> })));
 

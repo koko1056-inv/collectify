@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { NotificationBell } from "./notifications/NotificationBell";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/useProfile";
-import { PointsNavButton } from "./shop/PointsNavButton";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
