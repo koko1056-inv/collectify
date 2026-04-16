@@ -35,7 +35,7 @@ export function ItemDetailsActions({
           </Button>
           <Button
             variant="outline"
-            className="flex-1 border-gray-300 hover:bg-gray-50"
+            className="flex-1 border-border hover:bg-accent"
             onClick={onEdit}
           >
             編集

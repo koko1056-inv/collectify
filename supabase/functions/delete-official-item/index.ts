@@ -12,8 +12,45 @@ serve(async (req) => {
   }
 
   try {
+    // 認証チェック: JWTトークンからユーザーを検証
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authorization header is required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    // ユーザー認証用クライアント（anon key + ユーザーのJWT）
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // admin権限チェック
+    const { data: hasAdmin, error: roleError } = await userClient.rpc("has_role", {
+      _user_id: user.id,
+      _role: "admin",
+    });
+    if (roleError || !hasAdmin) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: admin role required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { itemId } = await req.json();
-    
+
     if (!itemId) {
       return new Response(
         JSON.stringify({ error: "itemId is required" }),
@@ -21,11 +58,10 @@ serve(async (req) => {
       );
     }
 
-    console.log("Deleting official item:", itemId);
+    console.log("Deleting official item:", itemId, "by admin:", user.id);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // SERVICE_ROLE_KEYはadmin認証後のみ使用
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // まず関連するタグを削除
     const { error: tagError } = await supabase

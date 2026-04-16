@@ -30,7 +30,7 @@ export function ItemDetailInfo({
       {price && <ItemLabelValue icon="price" label="価格" value={`¥${price}`} />}
 
       {description && <div className="space-y-1">
-          <span className="text-xs text-gray-500">説明</span>
+          <span className="text-xs text-muted-foreground">説明</span>
           <p className="text-sm whitespace-pre-wrap">{description}</p>
         </div>}
     </div>

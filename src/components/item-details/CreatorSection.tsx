@@ -77,10 +77,10 @@ export function CreatorSection({
       </div>
 
       <div className="text-sm space-y-2">
-        <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
           <div>
             <div className="font-medium">アイテム情報</div>
-            <div className="text-gray-600">
+            <div className="text-muted-foreground">
               このアイテムは
               {createdBy ? (
                 isProfileLoading ? (

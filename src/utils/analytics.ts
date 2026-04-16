@@ -2,7 +2,12 @@ import mixpanel from 'mixpanel-browser';
 import { supabase } from "@/integrations/supabase/client";
 
 // Initialize Mixpanel
-mixpanel.init('4bc4d60b2405ad26a1c8851be3bbfdcd');
+const MIXPANEL_TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN;
+if (MIXPANEL_TOKEN) {
+  mixpanel.init(MIXPANEL_TOKEN);
+} else {
+  console.warn('VITE_MIXPANEL_TOKEN is not set. Analytics will not be tracked.');
+}
 
 export const trackLogin = async (userId: string, method: string = 'email') => {
   try {
@@ -83,6 +88,24 @@ export const trackAddToCollection = (itemId: string, itemTitle: string, userId?:
     distinct_id: userId || 'anonymous',
     itemId,
     itemTitle,
+    timestamp: new Date().toISOString()
+  });
+};
+
+export const trackRoomView = (roomId: string, ownerId: string, userId?: string) => {
+  mixpanel.track('Room View', {
+    distinct_id: userId || 'anonymous',
+    roomId,
+    ownerId,
+    timestamp: new Date().toISOString()
+  });
+};
+
+export const trackRoomShare = (roomId: string, roomTitle: string, userId?: string) => {
+  mixpanel.track('Room Share', {
+    distinct_id: userId || 'anonymous',
+    roomId,
+    roomTitle,
     timestamp: new Date().toISOString()
   });
 };

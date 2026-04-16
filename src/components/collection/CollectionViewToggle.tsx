@@ -21,16 +21,16 @@ export function CollectionViewToggle({
 }: CollectionViewToggleProps) {
   return (
     <Tabs defaultValue="grid" className="w-full">
-      <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-white border border-gray-200 rounded-full mb-4">
+      <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-card border border-border rounded-full mb-4">
         <TabsTrigger
           value="grid"
-          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+          className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full"
         >
           通常表示
         </TabsTrigger>
         <TabsTrigger
           value="wishlist"
-          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+          className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full"
         >
           欲しい物リスト
         </TabsTrigger>

@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,12 +9,17 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ArrowLeft, Heart, Eye, Share2, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RoomItem } from "@/hooks/useMyRoom";
+import { useRoomFurniture } from "@/hooks/useRoomFurniture";
+import { useRoomScreenshot } from "@/hooks/useRoomScreenshot";
 import { toast } from "sonner";
+import { trackRoomView, trackRoomShare } from "@/utils/analytics";
 
 export default function RoomView() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { furniture } = useRoomFurniture(roomId);
+  const { shareScreenshot } = useRoomScreenshot();
 
   // ルーム情報を取得
   const { data: room, isLoading: loadingRoom } = useQuery({
@@ -130,6 +136,34 @@ export default function RoomView() {
     enabled: !!roomId && !!user?.id,
   });
 
+  // 訪問を記録（1回だけ）
+  const visitRecorded = useRef(false);
+  useEffect(() => {
+    if (!room || !roomId || visitRecorded.current) return;
+    visitRecorded.current = true;
+
+    // Analytics
+    trackRoomView(roomId, room.user_id, user?.id);
+
+    // visit_count をインクリメント
+    supabase.rpc("increment_visit_count", { page_id: roomId }).catch(() => {
+      // RPC がなければ直接更新
+      supabase
+        .from("binder_pages")
+        .update({ visit_count: (room.visit_count || 0) + 1 })
+        .eq("id", roomId)
+        .then();
+    });
+
+    // room_visits テーブルに記録（自分以外）
+    if (user && room.user_id !== user.id) {
+      supabase
+        .from("room_visits")
+        .insert({ room_id: roomId, visitor_id: user.id })
+        .then();
+    }
+  }, [room, roomId, user]);
+
   const handleToggleLike = async () => {
     if (!roomId || !user?.id) return;
 
@@ -198,6 +232,10 @@ export default function RoomView() {
             <Button
               variant="ghost"
               size="icon"
+              onClick={() => {
+                trackRoomShare(roomId!, room.title, user?.id);
+                shareScreenshot(room.title);
+              }}
               className="text-white hover:bg-white/10"
             >
               <Share2 className="w-5 h-5" />
@@ -210,6 +248,7 @@ export default function RoomView() {
       <div className="h-screen">
         <Room3DScene
           roomItems={roomItems}
+          roomFurniture={furniture}
           backgroundImage={room.background_image}
           backgroundColor={room.background_color}
           roomTitle={room.title}

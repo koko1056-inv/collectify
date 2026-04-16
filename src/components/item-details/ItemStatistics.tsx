@@ -14,19 +14,19 @@ export function ItemStatistics({
   tradesCount
 }: ItemStatisticsProps) {
   return (
-    <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100">
+    <div className="flex justify-between items-center px-4 py-3 border-t border-border">
       <div className="flex space-x-6">
         <div className="text-center">
           <div className="text-sm font-medium">{likesCount}</div>
-          <div className="text-xs text-gray-500">いいね</div>
+          <div className="text-xs text-muted-foreground">いいね</div>
         </div>
         <div className="text-center">
           <div className="text-sm font-medium">{ownersCount}</div>
-          <div className="text-xs text-gray-500">オーナー</div>
+          <div className="text-xs text-muted-foreground">オーナー</div>
         </div>
         <div className="text-center">
           <div className="text-sm font-medium">{tradesCount}</div>
-          <div className="text-xs text-gray-500">トレード</div>
+          <div className="text-xs text-muted-foreground">トレード</div>
         </div>
       </div>
       <Button variant="ghost" size="sm" className="rounded-full p-2 h-8 w-8">

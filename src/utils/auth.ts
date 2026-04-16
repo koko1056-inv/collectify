@@ -103,6 +103,12 @@ export const handleUserSignup = async (formData: LoginFormData) => {
   // Wait for the profile creation trigger
   await new Promise(resolve => setTimeout(resolve, 1000));
 
+  // Track signup event
+  if (data.user) {
+    const { trackSignup } = await import("./analytics");
+    trackSignup(data.user.id, "email");
+  }
+
   return data;
 };
 

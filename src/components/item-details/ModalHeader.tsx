@@ -8,14 +8,14 @@ interface ModalHeaderProps {
 
 export function ModalHeader({ onClose, children }: ModalHeaderProps) {
   return (
-    <div className="flex justify-between items-center p-2 border-b border-gray-100">
+    <div className="flex justify-between items-center p-2 border-b border-border">
       <div className="flex-1"></div>
       <div className="flex-1 flex justify-center">
         <h3 className="font-semibold text-sm">アイテム詳細</h3>
       </div>
       <div className="flex-1 flex justify-end">
         {typeof onClose === 'function' ? (
-          <button onClick={onClose} className="text-gray-400">
+          <button onClick={onClose} className="text-muted-foreground">
             &times;
           </button>
         ) : (

@@ -11,6 +11,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // Import main pages directly for faster navigation
 import Search from "./pages/Search";
@@ -86,21 +87,23 @@ const App: React.FC = () => {
                     <Routes>
                       <Route path="/" element={<Navigate to="/my-room" replace />} />
                       <Route path="/login" element={<Login />} />
-                      <Route path="/admin" element={<Admin />} />
-                      <Route path="/add-item" element={<AddItem />} />
-                      <Route path="/quick-add" element={<QuickAdd />} />
+                      {/* Public routes */}
                       <Route path="/user/:userId" element={<UserProfile />} />
-                      <Route path="/edit-profile" element={<EditProfile />} />
-                      <Route path="/messages" element={<Messages />} />
-                      <Route path="/posts" element={<Posts />} />
-                      <Route path="/search" element={<Search />} />
-                      <Route path="/collection" element={<Collection />} />
-                      <Route path="/my-room" element={<MyRoom />} />
                       <Route path="/rooms/explore" element={<RoomExplore />} />
                       <Route path="/room/:roomId" element={<RoomView />} />
-                      {/* ポイントショップは一旦非表示（サブスク移行予定） */}
                       <Route path="/how-to-use" element={<HowToUse />} />
-                      <Route path="/image-search" element={<ImageSearch />} />
+                      {/* Protected routes — require authentication */}
+                      <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                      <Route path="/add-item" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
+                      <Route path="/quick-add" element={<ProtectedRoute><QuickAdd /></ProtectedRoute>} />
+                      <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+                      <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                      <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
+                      <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+                      <Route path="/collection" element={<ProtectedRoute><Collection /></ProtectedRoute>} />
+                      <Route path="/my-room" element={<ProtectedRoute><MyRoom /></ProtectedRoute>} />
+                      <Route path="/image-search" element={<ProtectedRoute><ImageSearch /></ProtectedRoute>} />
+                      {/* ポイントショップは一旦非表示（サブスク移行予定） */}
                       <Route path="*" element={<Navigate to="/my-room" replace />} />
                     </Routes>
                   </Suspense>

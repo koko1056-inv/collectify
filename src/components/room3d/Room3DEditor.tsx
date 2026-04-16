@@ -32,31 +32,19 @@ import { cn } from "@/lib/utils";
 import { Room3DScene } from "./Room3DScene";
 import { RoomFurniture } from "./FurnitureItem3D";
 import { FURNITURE_PRESETS, FURNITURE_CATEGORIES, FurniturePreset } from "./furniturePresets";
+import { ROOM_THEMES, THEME_CATEGORIES } from "./roomThemes";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRoomFurniture } from "@/hooks/useRoomFurniture";
+import { useRoomScreenshot } from "@/hooks/useRoomScreenshot";
 
 
-// 背景プリセット
-const BACKGROUND_PRESETS = [
-  // ダークテーマ
-  { id: 'cyber', name: 'サイバー', color: '#1a1a2e', gradient: 'from-[#1a1a2e] to-[#0f0f23]', theme: 'dark' },
-  { id: 'sunset', name: 'サンセット', color: '#3d1a1a', gradient: 'from-[#3d1a1a] to-[#1a0a0f]', theme: 'dark' },
-  { id: 'forest', name: 'フォレスト', color: '#1a3d1a', gradient: 'from-[#1a3d1a] to-[#0a1a0f]', theme: 'dark' },
-  { id: 'ocean', name: 'オーシャン', color: '#1a2a3d', gradient: 'from-[#1a2a3d] to-[#0a0f1a]', theme: 'dark' },
-  { id: 'pink', name: 'ピンク', color: '#3d1a3d', gradient: 'from-[#3d1a3d] to-[#1a0a1a]', theme: 'dark' },
-  { id: 'midnight', name: 'ミッドナイト', color: '#101025', gradient: 'from-[#101025] to-[#050510]', theme: 'dark' },
-  // ライトテーマ
-  { id: 'white', name: 'ホワイト', color: '#f5f5f5', gradient: 'from-[#f5f5f5] to-[#e0e0e0]', theme: 'light' },
-  { id: 'cream', name: 'クリーム', color: '#faf8f0', gradient: 'from-[#faf8f0] to-[#f0ebe0]', theme: 'light' },
-  { id: 'sky', name: 'スカイ', color: '#e8f4fc', gradient: 'from-[#e8f4fc] to-[#d0e8f8]', theme: 'light' },
-  { id: 'mint', name: 'ミント', color: '#e8f8f0', gradient: 'from-[#e8f8f0] to-[#d0f0e0]', theme: 'light' },
-  { id: 'lavender', name: 'ラベンダー', color: '#f0e8f8', gradient: 'from-[#f0e8f8] to-[#e0d0f0]', theme: 'light' },
-  { id: 'peach', name: 'ピーチ', color: '#fff0e8', gradient: 'from-[#fff0e8] to-[#ffe0d0]', theme: 'light' },
-];
+// Theme ID is stored in background_color as "theme:<id>" format
+const THEME_PREFIX = "theme:";
 
 interface Room3DEditorProps {
   profile: Profile | undefined;
@@ -81,76 +69,27 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     message: string;
   } | null>(null);
   const [itemRotations, setItemRotations] = useState<Record<string, number>>({});
-  const [roomFurniture, setRoomFurniture] = useState<RoomFurniture[]>(() => {
-    // デフォルトの装飾家具を初期配置
-    return [
-      {
-        id: 'default_bookshelf',
-        furniture_id: 'shelf_bookshelf',
-        position_x: 15,
-        position_y: 15,
-        placement: 'floor' as PlacementType,
-        scale: 1.2,
-        rotation_y: 0,
-      },
-      {
-        id: 'default_desk',
-        furniture_id: 'table_desk',
-        position_x: 70,
-        position_y: 50,
-        placement: 'floor' as PlacementType,
-        scale: 1,
-        rotation_y: 0,
-      },
-      {
-        id: 'default_chair',
-        furniture_id: 'chair_gaming',
-        position_x: 65,
-        position_y: 60,
-        placement: 'floor' as PlacementType,
-        scale: 0.9,
-        rotation_y: 0,
-      },
-      {
-        id: 'default_plant',
-        furniture_id: 'deco_plant',
-        position_x: 85,
-        position_y: 25,
-        placement: 'floor' as PlacementType,
-        scale: 1,
-        rotation_y: 0,
-      },
-      {
-        id: 'default_lamp',
-        furniture_id: 'lamp_floor',
-        position_x: 20,
-        position_y: 70,
-        placement: 'floor' as PlacementType,
-        scale: 1,
-        rotation_y: 0,
-      },
-      {
-        id: 'default_poster',
-        furniture_id: 'deco_poster',
-        position_x: 50,
-        position_y: 60,
-        placement: 'back_wall' as PlacementType,
-        scale: 1.5,
-        rotation_y: 0,
-      },
-    ];
-  });
   
-  const { 
-    mainRoom, 
-    roomItems, 
-    likeCount, 
-    isLiked, 
-    isLoading, 
+  const {
+    mainRoom,
+    roomItems,
+    likeCount,
+    isLiked,
+    isLoading,
     createMainRoom,
     toggleLike,
     isOwnRoom
   } = useMyRoom();
+
+  const {
+    furniture: roomFurniture,
+    addFurniture: addFurnitureMutation,
+    updateFurniture: updateFurnitureMutation,
+    deleteFurniture: deleteFurnitureMutation,
+    seedDefaults,
+  } = useRoomFurniture(mainRoom?.id);
+
+  const { shareScreenshot, downloadScreenshot } = useRoomScreenshot();
 
   // ユーザーのコレクションアイテムを取得
   const { data: userItems = [] } = useQuery({
@@ -185,74 +124,55 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
   }, []);
 
   const handleAddFurniture = useCallback((preset: FurniturePreset, placement: PlacementType) => {
-    const newFurniture: RoomFurniture = {
-      id: `furniture_${Date.now()}`,
+    addFurnitureMutation.mutate({
       furniture_id: preset.id,
       position_x: Math.random() * 60 + 20,
       position_y: Math.random() * 60 + 20,
       placement,
       scale: preset.defaultScale,
       rotation_y: 0,
-    };
-    setRoomFurniture(prev => [...prev, newFurniture]);
+    });
     toast.success(`${preset.name}を追加しました！`);
     setShowFurniturePalette(false);
-  }, []);
+  }, [addFurnitureMutation]);
 
   const handleDeleteFurniture = useCallback((furnitureId: string) => {
-    setRoomFurniture(prev => prev.filter(f => f.id !== furnitureId));
+    deleteFurnitureMutation.mutate(furnitureId);
     setSelectedFurniture(null);
-    toast.success("家具を削除しました");
-  }, []);
+  }, [deleteFurnitureMutation]);
 
   const handleMoveFurniture = useCallback((furnitureId: string, posX: number, posY: number) => {
-    setRoomFurniture(prev => prev.map(f => 
-      f.id === furnitureId ? { ...f, position_x: posX, position_y: posY } : f
-    ));
-  }, []);
+    updateFurnitureMutation.mutate({ id: furnitureId, position_x: posX, position_y: posY });
+  }, [updateFurnitureMutation]);
 
   const handleScaleFurniture = useCallback((furnitureId: string, delta: number) => {
-    setRoomFurniture(prev => prev.map(f => {
-      if (f.id !== furnitureId) return f;
-      const newScale = Math.max(0.3, Math.min(3, f.scale + delta));
-      return { ...f, scale: newScale };
-    }));
-    // 選択中の家具も更新
+    const f = roomFurniture.find(f => f.id === furnitureId);
+    if (!f) return;
+    const newScale = Math.max(0.3, Math.min(3, f.scale + delta));
+    updateFurnitureMutation.mutate({ id: furnitureId, scale: newScale });
     setSelectedFurniture(prev => {
       if (!prev || prev.id !== furnitureId) return prev;
-      const newScale = Math.max(0.3, Math.min(3, prev.scale + delta));
       return { ...prev, scale: newScale };
     });
-  }, []);
+  }, [roomFurniture, updateFurnitureMutation]);
 
   // 家具の位置をX/Y軸で調整
   const handleAdjustFurniturePosition = useCallback((
-    furnitureId: string, 
-    axis: 'x' | 'y', 
+    furnitureId: string,
+    axis: 'x' | 'y',
     delta: number
   ) => {
-    setRoomFurniture(prev => prev.map(f => {
-      if (f.id !== furnitureId) return f;
-      if (axis === 'x') {
-        const newX = Math.max(0, Math.min(100, f.position_x + delta));
-        return { ...f, position_x: newX };
-      } else {
-        const newY = Math.max(0, Math.min(100, f.position_y + delta));
-        return { ...f, position_y: newY };
-      }
-    }));
-    // 選択中の家具も更新
+    const f = roomFurniture.find(f => f.id === furnitureId);
+    if (!f) return;
+    const updates = axis === 'x'
+      ? { position_x: Math.max(0, Math.min(100, f.position_x + delta)) }
+      : { position_y: Math.max(0, Math.min(100, f.position_y + delta)) };
+    updateFurnitureMutation.mutate({ id: furnitureId, ...updates });
     setSelectedFurniture(prev => {
       if (!prev || prev.id !== furnitureId) return prev;
-      if (axis === 'x') {
-        const newX = Math.max(0, Math.min(100, prev.position_x + delta));
-        return { ...prev, position_x: newX };
-      } else {
-        const newY = Math.max(0, Math.min(100, prev.position_y + delta));
-        return { ...prev, position_y: newY };
-      }
+      return { ...prev, ...updates };
     });
-  }, []);
+  }, [roomFurniture, updateFurnitureMutation]);
 
   const queryClient = useQueryClient();
 
@@ -691,7 +611,12 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           >
             <Heart className={cn("w-5 h-5", isLiked && "fill-current text-red-400")} />
           </Button>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white hover:bg-white/10"
+            onClick={() => shareScreenshot(mainRoom?.title)}
+          >
             <Share2 className="w-5 h-5" />
           </Button>
         </div>
@@ -1013,75 +938,72 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
         </SheetContent>
       </Sheet>
 
-      {/* 背景選択シート */}
+      {/* 背景テーマ選択シート */}
       <Sheet open={showBackgroundPicker} onOpenChange={setShowBackgroundPicker}>
-        <SheetContent side="bottom" className="h-[55vh]">
+        <SheetContent side="bottom" className="h-[65vh]">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <Palette className="w-5 h-5" />
-              背景テーマを選択
+              ルームテーマを選択
             </SheetTitle>
           </SheetHeader>
-          
+
           <Tabs defaultValue="dark" className="mt-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="dark">🌙 ダーク</TabsTrigger>
-              <TabsTrigger value="light">☀️ ライト</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4">
+              {THEME_CATEGORIES.map((cat) => (
+                <TabsTrigger key={cat.id} value={cat.id} className="text-xs gap-1">
+                  <span>{cat.icon}</span>
+                  {cat.name}
+                </TabsTrigger>
+              ))}
             </TabsList>
-            
-            <TabsContent value="dark" className="mt-4">
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-                {BACKGROUND_PRESETS.filter(p => p.theme === 'dark').map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() => updateBackground.mutate(preset.color)}
-                    disabled={updateBackground.isPending}
-                    className={cn(
-                      "aspect-square rounded-xl overflow-hidden border-2 transition-all hover:scale-105 flex flex-col items-center justify-center",
-                      mainRoom?.background_color === preset.color 
-                        ? "border-primary ring-2 ring-primary/50" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-full h-full bg-gradient-to-br flex items-center justify-center",
-                      preset.gradient
-                    )}>
-                      <span className="text-white/80 text-xs font-medium drop-shadow-lg">
-                        {preset.name}
-                      </span>
+
+            {THEME_CATEGORIES.map((cat) => (
+              <TabsContent key={cat.id} value={cat.id} className="mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[calc(65vh-180px)] overflow-y-auto p-1">
+                  {ROOM_THEMES.filter(t => t.category === cat.id).map((theme) => {
+                    const isSelected = mainRoom?.background_color === `${THEME_PREFIX}${theme.id}`;
+                    return (
+                      <button
+                        key={theme.id}
+                        onClick={() => updateBackground.mutate(`${THEME_PREFIX}${theme.id}`)}
+                        disabled={updateBackground.isPending}
+                        className={cn(
+                          "rounded-xl overflow-hidden border-2 transition-all hover:scale-[1.03] text-left",
+                          isSelected
+                            ? "border-primary ring-2 ring-primary/50"
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        <div
+                          className="aspect-[4/3] w-full flex flex-col items-center justify-center relative"
+                          style={{
+                            background: `linear-gradient(135deg, ${theme.floorColor}, ${theme.wallColor})`,
+                          }}
+                        >
+                          <span className="text-3xl mb-1">{theme.icon}</span>
+                          <div
+                            className="absolute inset-0 opacity-30"
+                            style={{
+                              background: `radial-gradient(circle at 30% 40%, ${theme.accentColor}40, transparent 60%)`,
+                            }}
+                          />
+                        </div>
+                        <div className="p-2.5 bg-card">
+                          <p className="text-sm font-medium text-foreground">{theme.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{theme.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                  {ROOM_THEMES.filter(t => t.category === cat.id).length === 0 && (
+                    <div className="col-span-full text-center py-8 text-muted-foreground">
+                      <p>Coming soon...</p>
                     </div>
-                  </button>
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="light" className="mt-4">
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-                {BACKGROUND_PRESETS.filter(p => p.theme === 'light').map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() => updateBackground.mutate(preset.color)}
-                    disabled={updateBackground.isPending}
-                    className={cn(
-                      "aspect-square rounded-xl overflow-hidden border-2 transition-all hover:scale-105 flex flex-col items-center justify-center",
-                      mainRoom?.background_color === preset.color 
-                        ? "border-primary ring-2 ring-primary/50" 
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-full h-full bg-gradient-to-br flex items-center justify-center",
-                      preset.gradient
-                    )}>
-                      <span className="text-gray-700 text-xs font-medium">
-                        {preset.name}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </TabsContent>
+                  )}
+                </div>
+              </TabsContent>
+            ))}
           </Tabs>
         </SheetContent>
       </Sheet>

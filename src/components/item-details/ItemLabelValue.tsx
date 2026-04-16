@@ -10,14 +10,14 @@ export function ItemLabelValue({
   value
 }: ItemLabelValueProps) {
   return <div className="flex items-center gap-2 py-0">
-      {icon === "calendar" && <Calendar className="h-4 w-4 text-gray-500" />}
-      {icon === "tag" && <Tag className="h-4 w-4 text-gray-500" />}
-      {icon === "star" && <Star className="h-4 w-4 text-gray-500" />}
-      {icon === "price" && <CircleDollarSign className="h-4 w-4 text-gray-500" />}
-      {icon === "bookmark" && <Bookmark className="h-4 w-4 text-gray-500" />}
-      {icon === "layers" && <Layers className="h-4 w-4 text-gray-500" />}
+      {icon === "calendar" && <Calendar className="h-4 w-4 text-muted-foreground" />}
+      {icon === "tag" && <Tag className="h-4 w-4 text-muted-foreground" />}
+      {icon === "star" && <Star className="h-4 w-4 text-muted-foreground" />}
+      {icon === "price" && <CircleDollarSign className="h-4 w-4 text-muted-foreground" />}
+      {icon === "bookmark" && <Bookmark className="h-4 w-4 text-muted-foreground" />}
+      {icon === "layers" && <Layers className="h-4 w-4 text-muted-foreground" />}
       <div>
-        <span className="text-xs text-gray-500">{label}</span>
+        <span className="text-xs text-muted-foreground">{label}</span>
         <p className="text-sm font-medium">{value}</p>
       </div>
     </div>;

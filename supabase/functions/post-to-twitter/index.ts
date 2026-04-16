@@ -41,10 +41,6 @@ function generateOAuthSignature(
   const hmacSha1 = createHmac("sha1", signingKey);
   const signature = hmacSha1.update(signatureBaseString).digest("base64");
 
-  console.log("Signature Base String:", signatureBaseString);
-  console.log("Signing Key:", signingKey);
-  console.log("Generated Signature:", signature);
-
   return signature;
 }
 
@@ -108,7 +104,6 @@ async function uploadMedia(imageUrl: string): Promise<string> {
   });
 
   const responseText = await response.text();
-  console.log("Media Upload Response:", responseText);
 
   if (!response.ok) {
     throw new Error(
@@ -130,7 +125,6 @@ async function sendTweet(tweetText: string, mediaId?: string): Promise<any> {
   }
 
   const oauthHeader = generateOAuthHeader(method, url);
-  console.log("OAuth Header:", oauthHeader);
 
   const response = await fetch(url, {
     method: method,
@@ -142,7 +136,6 @@ async function sendTweet(tweetText: string, mediaId?: string): Promise<any> {
   });
 
   const responseText = await response.text();
-  console.log("Response Body:", responseText);
 
   if (!response.ok) {
     throw new Error(
