@@ -12,7 +12,6 @@ import {
   Text3D,
   Center,
 } from "@react-three/drei";
-import { EffectComposer, Bloom, N8AO } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { FurnitureItem3D, RoomFurniture } from "./FurnitureItem3D";
@@ -696,7 +695,6 @@ export function Room3DScene(props: Room3DSceneProps) {
   }, [props.backgroundColor]);
 
   const bgColor = theme?.floorColor || (props.backgroundColor?.startsWith(THEME_PREFIX) ? "#0f0f23" : props.backgroundColor) || "#0f0f23";
-  const bloomIntensity = theme?.bloomIntensity ?? 0.3;
 
   return (
     <div
@@ -712,20 +710,6 @@ export function Room3DScene(props: Room3DSceneProps) {
           camera={{ position: [10, 10, 10], fov: 45, near: 0.1, far: 100 }}
         >
           <Scene {...props} />
-          {/* Post-processing */}
-          <EffectComposer>
-            <Bloom
-              luminanceThreshold={0.8}
-              luminanceSmoothing={0.9}
-              intensity={bloomIntensity}
-              mipmapBlur
-            />
-            <N8AO
-              aoRadius={0.5}
-              intensity={1}
-              distanceFalloff={0.5}
-            />
-          </EffectComposer>
         </Canvas>
       </Suspense>
     </div>
