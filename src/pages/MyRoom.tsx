@@ -11,7 +11,7 @@ import { ensureProfileImagesPublicUrl, setCurrentAvatar } from "@/utils/avatar-s
 export default function MyRoom() {
   const { user } = useAuth();
   const { profile, refetchProfile } = useProfile(user?.id);
-  const { onboardingState, completeWelcome } = useOnboarding();
+  const { onboardingState, isInitialized, completeWelcome } = useOnboarding();
 
   const handleAvatarGenerated = async ({ imageUrl, prompt }: AvatarGenerationResult) => {
     if (!user?.id) return;
@@ -20,6 +20,15 @@ export default function MyRoom() {
     await setCurrentAvatar({ userId: user.id, avatarUrl: publicUrl, prompt, itemIds: null, skipGalleryInsert: true });
     await refetchProfile();
   };
+
+  // DB同期が完了するまで何も表示しない（オンボーディングのちらつき防止）
+  if (user && !isInitialized) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   // Show welcome onboarding for new users who haven't completed it
   const showWelcome = !!user && !onboardingState.hasCompletedWelcome;

@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface OnboardingState {
   hasCompletedWalkthrough: boolean;
@@ -14,8 +15,9 @@ interface OnboardingState {
 
 interface OnboardingContextType {
   onboardingState: OnboardingState;
+  isInitialized: boolean;
   completeWalkthrough: () => void;
-  completeWelcome: () => void;
+  completeWelcome: () => Promise<void>;
   markTooltipShown: (tooltipId: keyof OnboardingState['shownTooltips']) => void;
   shouldShowTooltip: (tooltipId: keyof OnboardingState['shownTooltips']) => boolean;
   resetOnboarding: () => void;
@@ -39,77 +41,126 @@ const defaultState: OnboardingState = {
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [onboardingState, setOnboardingState] = useState<OnboardingState>(defaultState);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // ユーザーIDに基づいてストレージキーを生成
-  const getStorageKey = () => {
+  const getStorageKey = useCallback(() => {
     return user?.id ? `${STORAGE_KEY_PREFIX}_${user.id}` : STORAGE_KEY_PREFIX;
-  };
+  }, [user?.id]);
 
-  // ユーザーが変わったときにオンボーディング状態をロード
+  // ユーザー変更時: ローカル + DB 両方からオンボーディング状態を復元
   useEffect(() => {
-    if (user) {
+    let cancelled = false;
+    const load = async () => {
+      if (!user?.id) {
+        setIsInitialized(false);
+        return;
+      }
+
+      // 1. ローカル保存状態を即時反映（FOUC防止）
       const storageKey = getStorageKey();
+      let localState: OnboardingState = defaultState;
       const stored = localStorage.getItem(storageKey);
       if (stored) {
         try {
-          setOnboardingState(JSON.parse(stored));
+          localState = { ...defaultState, ...JSON.parse(stored) };
         } catch {
-          setOnboardingState(defaultState);
+          /* ignore */
         }
-      } else {
-        setOnboardingState(defaultState);
+      }
+
+      // 2. DBから真の状態を取得（デバイス間で同期）
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('onboarded_at')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (cancelled) return;
+
+        const dbCompleted = !error && !!data?.onboarded_at;
+        const merged: OnboardingState = {
+          ...localState,
+          // DBに完了記録があれば確実に完了扱い（ローカル未完了でも上書き）
+          hasCompletedWelcome: dbCompleted || localState.hasCompletedWelcome,
+          hasCompletedWalkthrough: dbCompleted || localState.hasCompletedWalkthrough,
+        };
+        setOnboardingState(merged);
+        localStorage.setItem(storageKey, JSON.stringify(merged));
+      } catch {
+        if (!cancelled) setOnboardingState(localState);
+      } finally {
+        if (!cancelled) setIsInitialized(true);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, getStorageKey]);
+
+  // 状態変更時にローカル保存
+  useEffect(() => {
+    if (user?.id && isInitialized) {
+      const storageKey = getStorageKey();
+      localStorage.setItem(storageKey, JSON.stringify(onboardingState));
+    }
+  }, [onboardingState, user?.id, isInitialized, getStorageKey]);
+
+  const completeWalkthrough = useCallback(() => {
+    setOnboardingState((prev) => ({ ...prev, hasCompletedWalkthrough: true }));
+  }, []);
+
+  const completeWelcome = useCallback(async () => {
+    setOnboardingState((prev) => ({ ...prev, hasCompletedWelcome: true }));
+
+    // DBに永続化 — これで端末が変わっても再表示されない
+    if (user?.id) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ onboarded_at: new Date().toISOString() })
+          .eq('id', user.id);
+      } catch (e) {
+        console.error('Failed to persist onboarded_at:', e);
       }
     }
   }, [user?.id]);
 
-  // オンボーディング状態が変わったときに保存
-  useEffect(() => {
-    if (user) {
-      const storageKey = getStorageKey();
-      localStorage.setItem(storageKey, JSON.stringify(onboardingState));
-    }
-  }, [onboardingState, user?.id]);
-
-  const completeWalkthrough = () => {
-    setOnboardingState(prev => ({
+  const markTooltipShown = useCallback((tooltipId: keyof OnboardingState['shownTooltips']) => {
+    setOnboardingState((prev) => ({
       ...prev,
-      hasCompletedWalkthrough: true,
+      shownTooltips: { ...prev.shownTooltips, [tooltipId]: true },
     }));
-  };
+  }, []);
 
-  const completeWelcome = () => {
-    setOnboardingState(prev => ({
-      ...prev,
-      hasCompletedWelcome: true,
-    }));
-  };
+  const shouldShowTooltip = useCallback(
+    (tooltipId: keyof OnboardingState['shownTooltips']) => {
+      return onboardingState.hasCompletedWalkthrough && !onboardingState.shownTooltips[tooltipId];
+    },
+    [onboardingState]
+  );
 
-  const markTooltipShown = (tooltipId: keyof OnboardingState['shownTooltips']) => {
-    setOnboardingState(prev => ({
-      ...prev,
-      shownTooltips: {
-        ...prev.shownTooltips,
-        [tooltipId]: true,
-      },
-    }));
-  };
-
-  const shouldShowTooltip = (tooltipId: keyof OnboardingState['shownTooltips']) => {
-    return onboardingState.hasCompletedWalkthrough && !onboardingState.shownTooltips[tooltipId];
-  };
-
-  const resetOnboarding = () => {
+  const resetOnboarding = useCallback(() => {
     setOnboardingState(defaultState);
-    if (user) {
+    if (user?.id) {
       const storageKey = getStorageKey();
       localStorage.removeItem(storageKey);
+      // DBからもクリア（開発用）
+      supabase
+        .from('profiles')
+        .update({ onboarded_at: null })
+        .eq('id', user.id)
+        .then(() => {}, () => {});
     }
-  };
+  }, [user?.id, getStorageKey]);
 
   return (
     <OnboardingContext.Provider
       value={{
         onboardingState,
+        isInitialized,
         completeWalkthrough,
         completeWelcome,
         markTooltipShown,
