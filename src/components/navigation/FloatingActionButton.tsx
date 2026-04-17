@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Camera, FolderOpen, FileText, X, Sparkles } from "lucide-react";
+import { Plus, Camera, FileText, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,18 +14,11 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
 
   const actions = [
     {
-      icon: Sparkles,
-      label: "クイック追加",
-      onClick: () => navigate("/quick-add"),
-      color: "bg-gradient-to-r from-pink-500 to-purple-500",
-      description: "AI自動認識",
-    },
-    {
       icon: Camera,
-      label: "詳細追加",
+      label: "グッズを追加",
       onClick: () => navigate("/add-item"),
-      color: "bg-blue-500",
-      description: "手動入力",
+      color: "bg-gradient-to-r from-pink-500 to-purple-500",
+      description: "フォームで登録",
     },
     {
       icon: FileText,

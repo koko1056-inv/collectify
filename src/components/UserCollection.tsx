@@ -206,9 +206,9 @@ export function UserCollection({
 
             {/* CTAボタン */}
             <div className="space-y-3">
-              <Button 
-                size="lg" 
-                onClick={() => navigate("/quick-add")} 
+              <Button
+                size="lg"
+                onClick={() => navigate("/add-item")}
                 className="gap-2 w-full h-12 hover-scale shadow-lg"
               >
                 <Plus className="w-5 h-5" />

@@ -2,6 +2,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProfileCard } from "./ProfileCard";
+import { PointBalanceCard } from "./PointBalanceCard";
 import { ShareModal } from "@/components/ShareModal";
 import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -21,7 +22,10 @@ export function ProfilePage() {
             onShare={() => setIsShareModalOpen(true)}
             setUsername={setUsername}
           />
-          <div className={`${isMobile ? 'px-4' : ''} bg-card rounded-xl border border-border p-6`}>
+          <div className={`${isMobile ? 'mx-4' : ''} bg-card rounded-xl border border-border p-6`}>
+            <PointBalanceCard />
+          </div>
+          <div className={`${isMobile ? 'mx-4' : ''} bg-card rounded-xl border border-border p-6`}>
             <InviteCodeSection />
           </div>
         </div>
