@@ -128,14 +128,14 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   }, []);
 
   const handleFinish = useCallback(async () => {
-    // Welcome Gift: 50pt を付与
+    // Welcome Gift: 50pt を付与 (RPCでuser_pointsと原子的に同期)
     if (user?.id) {
       try {
-        await supabase.from("point_transactions").insert({
-          user_id: user.id,
-          amount: 50,
-          type: "welcome_bonus",
-          description: "ようこそボーナス",
+        await supabase.rpc("add_user_points", {
+          _user_id: user.id,
+          _points: 50,
+          _transaction_type: "welcome_bonus",
+          _description: "ようこそボーナス",
         });
       } catch (e) {
         console.error("Failed to grant welcome bonus:", e);

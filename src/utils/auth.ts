@@ -130,21 +130,21 @@ export const handleUserSignup = async (formData: LoginFormData) => {
             .update({ referred_by: invite.creator_id })
             .eq("id", data.user.id);
 
-          // 双方に50ポイント
-          await supabase.from("point_transactions").insert([
-            {
-              user_id: invite.creator_id,
-              amount: 50,
-              type: "referral_bonus",
-              description: "招待ボーナス",
-            },
-            {
-              user_id: data.user.id,
-              amount: 50,
-              type: "referral_bonus",
-              description: "招待コード使用ボーナス",
-            },
-          ]);
+          // 双方に50ポイント (RPC経由でuser_pointsと原子的に同期)
+          await supabase.rpc("add_user_points", {
+            _user_id: invite.creator_id,
+            _points: 50,
+            _transaction_type: "referral_bonus",
+            _description: "招待ボーナス",
+            _reference_id: invite.id,
+          });
+          await supabase.rpc("add_user_points", {
+            _user_id: data.user.id,
+            _points: 50,
+            _transaction_type: "referral_bonus",
+            _description: "招待コード使用ボーナス",
+            _reference_id: invite.id,
+          });
         }
       } catch (err) {
         console.error("Invite redemption failed:", err);

@@ -210,22 +210,15 @@ export function usePurchaseShopItem() {
           break;
       }
       
-      // ポイントを減らす
-      await supabase
-        .from("user_points")
-        .update({ total_points: currentPoints - item.points_cost })
-        .eq("user_id", user.id);
-      
-      // ポイント履歴に記録
-      await supabase
-        .from("point_transactions")
-        .insert({
-          user_id: user.id,
-          points: -item.points_cost,
-          transaction_type: "shop_purchase",
-          description: `${item.name}を購入`,
-          reference_id: item.id
-        });
+      // ポイント減算 + 履歴記録を RPC で原子化 (user_points と point_transactions の不整合防止)
+      const { error: deductError } = await supabase.rpc("add_user_points", {
+        _user_id: user.id,
+        _points: -item.points_cost,
+        _transaction_type: "shop_purchase",
+        _description: `${item.name}を購入`,
+        _reference_id: item.id,
+      });
+      if (deductError) throw deductError;
       
       // 上限を更新
       if (Object.keys(updateData).length > 0) {

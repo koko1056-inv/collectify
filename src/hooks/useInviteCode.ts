@@ -109,21 +109,23 @@ export function useInviteCode() {
         .eq("id", user.id);
 
       // Award bonus points to both users (50 points each)
+      // point_transactions へ直接INSERTすると user_points と整合しないので
+      // 専用RPC add_user_points を使う（原子的に両方更新）
       const bonusPoints = 50;
-      await supabase.from("point_transactions").insert([
-        {
-          user_id: invite.creator_id,
-          amount: bonusPoints,
-          type: "referral_bonus",
-          description: "招待ボーナス",
-        },
-        {
-          user_id: user.id,
-          amount: bonusPoints,
-          type: "referral_bonus",
-          description: "招待コード使用ボーナス",
-        },
-      ]);
+      await supabase.rpc("add_user_points", {
+        _user_id: invite.creator_id,
+        _points: bonusPoints,
+        _transaction_type: "referral_bonus",
+        _description: "招待ボーナス",
+        _reference_id: invite.id,
+      });
+      await supabase.rpc("add_user_points", {
+        _user_id: user.id,
+        _points: bonusPoints,
+        _transaction_type: "referral_bonus",
+        _description: "招待コード使用ボーナス",
+        _reference_id: invite.id,
+      });
 
       return invite;
     },
