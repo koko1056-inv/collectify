@@ -29,14 +29,17 @@ import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Profile } from "@/types";
 import { cn } from "@/lib/utils";
-import { Room3DScene } from "./Room3DScene";
+import { ShelfView } from "@/components/room2d/ShelfView";
 import { RoomFurniture } from "./FurnitureItem3D";
-import { FURNITURE_PRESETS, FURNITURE_CATEGORIES, FurniturePreset } from "./furniturePresets";
-import { ROOM_THEMES, THEME_CATEGORIES } from "./roomThemes";
+import {
+  DISPLAY_FURNITURE,
+  FURNITURE_CATEGORY_LABELS,
+  DisplayFurniturePreset,
+} from "@/components/room2d/displayFurniturePresets";
+import { WALLPAPERS, WALLPAPER_CATEGORY_LABELS } from "@/components/room2d/wallpapers";
 import { DisplayStylePicker } from "./DisplayStylePicker";
 import { PaywallModal } from "@/components/premium/PaywallModal";
 import { useSubscription } from "@/hooks/useSubscription";
-import { canUseTheme } from "@/lib/planLimits";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +51,6 @@ import { useRoomScreenshot } from "@/hooks/useRoomScreenshot";
 
 
 // Theme ID is stored in background_color as "theme:<id>" format
-const THEME_PREFIX = "theme:";
 
 interface Room3DEditorProps {
   profile: Profile | undefined;
@@ -73,7 +75,6 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     message: string;
   } | null>(null);
   const [itemRotations, setItemRotations] = useState<Record<string, number>>({});
-  const [isometric, setIsometric] = useState(false);
   const [showDisplayPicker, setShowDisplayPicker] = useState(false);
   const [paywallReason, setPaywallReason] = useState<string | null>(null);
   const { plan, limits } = useSubscription();
@@ -127,11 +128,11 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
   const handleFurnitureClick = useCallback((furniture: RoomFurniture) => {
     setSelectedFurniture(furniture);
     setSelectedItem(null);
-    const preset = FURNITURE_PRESETS.find(p => p.id === furniture.furniture_id);
+    const preset = DISPLAY_FURNITURE.find(p => p.id === furniture.furniture_id);
     toast.info(`${preset?.name || "家具"}を選択しました`);
   }, []);
 
-  const handleAddFurniture = useCallback((preset: FurniturePreset, placement: PlacementType) => {
+  const handleAddFurniture = useCallback((preset: DisplayFurniturePreset, placement: PlacementType) => {
     // 家具スロット制限チェック
     if (roomFurniture.length >= limits.furnitureSlots) {
       setPaywallReason(
@@ -615,18 +616,6 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
               >
                 <Palette className="w-5 h-5" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "text-white hover:bg-white/10",
-                  isometric && "bg-white/20"
-                )}
-                onClick={() => setIsometric((v) => !v)}
-                title="アイソメ視点"
-              >
-                <Box className="w-5 h-5" />
-              </Button>
             </>
           )}
           <Button 
@@ -649,16 +638,15 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
         </div>
       </div>
 
-      {/* 3Dシーン */}
+      {/* 2Dシェルフビュー */}
       <div className="flex-1 relative">
-        <Room3DScene
+        <ShelfView
           roomItems={roomItems}
           roomFurniture={roomFurniture}
           backgroundImage={mainRoom?.background_image}
           backgroundColor={mainRoom?.background_color}
           roomTitle={mainRoom?.title}
           isEditing={isOwnRoom}
-          isometric={isometric}
           onItemClick={handleItemClick}
           onItemMove={handleMoveItem}
           onFurnitureClick={handleFurnitureClick}
@@ -666,7 +654,10 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           avatarUrl={profile?.avatar_url}
           selectedItemId={selectedItem?.id}
           selectedFurnitureId={selectedFurniture?.id}
-          itemRotations={itemRotations}
+          onBackgroundClick={() => {
+            setSelectedItem(null);
+            setSelectedFurniture(null);
+          }}
         />
       </div>
 
@@ -674,7 +665,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       {isOwnRoom && selectedFurniture && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex flex-wrap items-center justify-center gap-2 bg-black/80 backdrop-blur-md rounded-2xl px-4 py-3 shadow-xl max-w-[95vw]">
           <span className="text-white text-sm mr-2">
-            {FURNITURE_PRESETS.find(p => p.id === selectedFurniture.furniture_id)?.name}
+            {DISPLAY_FURNITURE.find(p => p.id === selectedFurniture.furniture_id)?.name}
           </span>
           <div className="w-px h-8 bg-white/20" />
           
@@ -979,41 +970,43 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
         </SheetContent>
       </Sheet>
 
-      {/* 背景テーマ選択シート */}
+      {/* 壁紙選択シート */}
       <Sheet open={showBackgroundPicker} onOpenChange={setShowBackgroundPicker}>
         <SheetContent side="bottom" className="h-[65vh]">
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               <Palette className="w-5 h-5" />
-              ルームテーマを選択
+              壁紙を選択
             </SheetTitle>
           </SheetHeader>
 
-          <Tabs defaultValue="dark" className="mt-4">
-            <TabsList className="grid w-full grid-cols-4">
-              {THEME_CATEGORIES.map((cat) => (
-                <TabsTrigger key={cat.id} value={cat.id} className="text-xs gap-1">
-                  <span>{cat.icon}</span>
-                  {cat.name}
+          <Tabs defaultValue="clean" className="mt-4">
+            <TabsList className="grid w-full grid-cols-5">
+              {Object.entries(WALLPAPER_CATEGORY_LABELS).map(([id, { label, icon }]) => (
+                <TabsTrigger key={id} value={id} className="text-xs gap-1">
+                  <span>{icon}</span>
+                  {label}
                 </TabsTrigger>
               ))}
             </TabsList>
 
-            {THEME_CATEGORIES.map((cat) => (
-              <TabsContent key={cat.id} value={cat.id} className="mt-4">
+            {Object.entries(WALLPAPER_CATEGORY_LABELS).map(([id]) => (
+              <TabsContent key={id} value={id} className="mt-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[calc(65vh-180px)] overflow-y-auto p-1">
-                  {ROOM_THEMES.filter(t => t.category === cat.id).map((theme) => {
-                    const isSelected = mainRoom?.background_color === `${THEME_PREFIX}${theme.id}`;
-                    const locked = !canUseTheme(plan, theme.id);
+                  {WALLPAPERS.filter(w => w.category === id).map((wp) => {
+                    const isSelected = mainRoom?.background_color === `wp:${wp.id}`;
+                    // Premium限定: cute, elegant, vivid, themed カテゴリは一部プレミアム
+                    const isPremium = wp.category === "themed" || wp.category === "vivid";
+                    const locked = isPremium && plan === "free";
                     return (
                       <button
-                        key={theme.id}
+                        key={wp.id}
                         onClick={() => {
                           if (locked) {
-                            setPaywallReason(`「${theme.name}」はプレミアム限定テーマです`);
+                            setPaywallReason(`「${wp.name}」はプレミアム限定壁紙です`);
                             return;
                           }
-                          updateBackground.mutate(`${THEME_PREFIX}${theme.id}`);
+                          updateBackground.mutate(`wp:${wp.id}`);
                         }}
                         disabled={updateBackground.isPending}
                         className={cn(
@@ -1025,36 +1018,27 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
                         )}
                       >
                         {locked && (
-                          <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
                             👑 PREMIUM
                           </div>
                         )}
                         <div
-                          className="aspect-[4/3] w-full flex flex-col items-center justify-center relative"
-                          style={{
-                            background: `linear-gradient(135deg, ${theme.floorColor}, ${theme.wallColor})`,
-                          }}
+                          className="aspect-[4/3] w-full relative"
+                          style={{ background: wp.wallGradient }}
                         >
-                          <span className="text-3xl mb-1">{theme.icon}</span>
                           <div
-                            className="absolute inset-0 opacity-30"
-                            style={{
-                              background: `radial-gradient(circle at 30% 40%, ${theme.accentColor}40, transparent 60%)`,
-                            }}
+                            className="absolute left-0 right-0 bottom-0 h-1/4"
+                            style={{ background: wp.floorGradient }}
                           />
+                          <span className="absolute top-3 left-3 text-2xl">{wp.icon}</span>
                         </div>
                         <div className="p-2.5 bg-card">
-                          <p className="text-sm font-medium text-foreground">{theme.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{theme.description}</p>
+                          <p className="text-sm font-medium text-foreground">{wp.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{wp.description}</p>
                         </div>
                       </button>
                     );
                   })}
-                  {ROOM_THEMES.filter(t => t.category === cat.id).length === 0 && (
-                    <div className="col-span-full text-center py-8 text-muted-foreground">
-                      <p>Coming soon...</p>
-                    </div>
-                  )}
                 </div>
               </TabsContent>
             ))}
@@ -1074,27 +1058,27 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           
           <Tabs value={selectedFurnitureCategory} onValueChange={setSelectedFurnitureCategory} className="mt-4">
             <TabsList className="flex flex-wrap h-auto gap-1">
-              {FURNITURE_CATEGORIES.map((cat) => (
-                <TabsTrigger key={cat.id} value={cat.id} className="text-xs gap-1">
-                  <span>{cat.icon}</span>
-                  {cat.name}
+              {Object.entries(FURNITURE_CATEGORY_LABELS).map(([id, { label, icon }]) => (
+                <TabsTrigger key={id} value={id} className="text-xs gap-1">
+                  <span>{icon}</span>
+                  {label}
                 </TabsTrigger>
               ))}
             </TabsList>
-            
-            {FURNITURE_CATEGORIES.map((cat) => (
-              <TabsContent key={cat.id} value={cat.id} className="mt-4">
+
+            {Object.entries(FURNITURE_CATEGORY_LABELS).map(([id]) => (
+              <TabsContent key={id} value={id} className="mt-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[calc(70vh-180px)] overflow-y-auto p-1">
-                  {FURNITURE_PRESETS.filter(f => f.category === cat.id).map((preset) => (
+                  {DISPLAY_FURNITURE.filter(f => f.category === id).map((preset) => (
                     <button
                       key={preset.id}
-                      onClick={() => handleAddFurniture(preset, preset.allowedPlacements[0])}
+                      onClick={() => handleAddFurniture(preset, 'floor')}
                       className="flex flex-col rounded-lg overflow-hidden border border-border hover:border-primary transition-all hover:scale-[1.02] bg-card shadow-sm p-4"
                     >
                       <div className="text-4xl text-center mb-2">{preset.icon}</div>
                       <p className="text-sm font-medium text-center text-foreground">{preset.name}</p>
-                      <p className="text-xs text-muted-foreground text-center mt-1">
-                        {preset.allowedPlacements.includes('floor') ? '床' : '壁'}に設置
+                      <p className="text-xs text-muted-foreground text-center mt-1 line-clamp-2">
+                        {preset.description}
                       </p>
                     </button>
                   ))}

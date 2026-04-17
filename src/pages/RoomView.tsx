@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Room3DScene } from "@/components/room3d/Room3DScene";
+import { ShelfView } from "@/components/room2d/ShelfView";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Heart, Eye, Share2, UserPlus, Camera, Music, Music2, Box } from "lucide-react";
+import { ArrowLeft, Heart, Eye, Share2, UserPlus, Camera, Music, Music2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RoomItem } from "@/hooks/useMyRoom";
 import { useRoomFurniture } from "@/hooks/useRoomFurniture";
@@ -25,7 +25,6 @@ export default function RoomView() {
   const { furniture } = useRoomFurniture(roomId);
   const { shareScreenshot } = useRoomScreenshot();
   const { floatingReactions, sendReaction } = useRoomReactions(roomId);
-  const [isometric, setIsometric] = useState(false);
   const [bgmEnabled, setBgmEnabled] = useState(false);
 
 
@@ -243,19 +242,6 @@ export default function RoomView() {
           </Button>
 
           <div className="flex items-center gap-2">
-            {/* Isometric toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsometric((v) => !v)}
-              className={cn(
-                "text-white hover:bg-white/10",
-                isometric && "bg-white/20"
-              )}
-              title={isometric ? "自由視点" : "アイソメ視点"}
-            >
-              <Box className="w-5 h-5" />
-            </Button>
             {/* BGM toggle */}
             {hasBgm && (
               <Button
@@ -304,16 +290,15 @@ export default function RoomView() {
         </div>
       </div>
 
-      {/* 3Dシーン */}
+      {/* 2Dシェルフビュー */}
       <div className="h-screen relative">
-        <Room3DScene
+        <ShelfView
           roomItems={roomItems}
           roomFurniture={furniture}
           backgroundImage={room.background_image}
           backgroundColor={room.background_color}
           roomTitle={room.title}
           avatarUrl={ownerProfile?.avatar_url}
-          isometric={isometric}
         />
         <FloatingReactions reactions={floatingReactions} />
       </div>
