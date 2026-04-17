@@ -153,6 +153,7 @@ export function MyRoomHome({
 
   const tabs = [
     { id: "collection" as const, icon: Package, label: "コレクション", badge: tabBadges.collection },
+    { id: "room" as const, icon: Home, label: "ルーム", badge: tabBadges.room },
     { id: "avatar" as const, icon: User, label: "アバター", badge: tabBadges.avatar },
   ];
 
@@ -248,18 +249,42 @@ export function MyRoomHome({
       </div>
 
       {/* メインコンテンツ */}
-      <div className="flex-1 w-full px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          {activeTab === "collection" ? (
+      <div className="flex-1 w-full">
+        <div className={cn(activeTab === "room" ? "w-full" : "max-w-4xl mx-auto px-4 sm:px-6 lg:px-8")}>
+          {activeTab === "collection" && (
             <div className="w-full animate-fade-in">
               {user?.id && <ProfileCollection userId={user.id} />}
             </div>
-          ) : (
-            <AvatarView 
-              profile={profile} 
-              userId={user?.id} 
+          )}
+          {activeTab === "room" && (
+            <div className="w-full animate-fade-in">
+              {/* 拡大ボタン */}
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-2 flex justify-end">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFullscreenRoom(true)}
+                  className="gap-2"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                  フルスクリーンで編集
+                </Button>
+              </div>
+              {/* 埋め込みの2D棚エディタ */}
+              <div
+                className="relative w-full bg-muted/20 border-y sm:border sm:rounded-2xl sm:mx-auto sm:max-w-5xl overflow-hidden"
+                style={{ height: "70vh" }}
+              >
+                <Room3DEditor profile={profile} isFullScreen={false} />
+              </div>
+            </div>
+          )}
+          {activeTab === "avatar" && (
+            <AvatarView
+              profile={profile}
+              userId={user?.id}
               onOpenAvatarStudio={() => setShowAvatarStudio(true)}
-              t={t} 
+              t={t}
             />
           )}
         </div>
