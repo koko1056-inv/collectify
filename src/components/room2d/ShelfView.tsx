@@ -62,11 +62,7 @@ export function ShelfView(props: ShelfViewProps) {
   })();
 
   return (
-    <div
-      ref={containerRef}
-      className="relative w-full h-full overflow-hidden select-none"
-      onClick={() => props.onBackgroundClick?.()}
-    >
+    <div className="relative w-full h-full overflow-hidden select-none">
       {/* === 背景: 壁 === */}
       <div
         className="absolute inset-0"
@@ -84,16 +80,15 @@ export function ShelfView(props: ShelfViewProps) {
       )}
 
       {/* パターン（桜・ドットなど） */}
-      {wallpaper?.pattern && <PatternOverlay pattern={wallpaper.pattern} color={wallpaper.patternColor || "#fff"} />}
+      {wallpaper?.pattern && (
+        <PatternOverlay pattern={wallpaper.pattern} color={wallpaper.patternColor || "#fff"} />
+      )}
 
       {/* === 床 === */}
       <div
         className="absolute left-0 right-0 bottom-0 h-[22%]"
-        style={{
-          background: wallpaper?.floorGradient || "#d8dde3",
-        }}
+        style={{ background: wallpaper?.floorGradient || "#d8dde3" }}
       >
-        {/* 床の前端にある影 */}
         <div
           className="absolute left-0 right-0 top-0 h-4 pointer-events-none"
           style={{
@@ -102,38 +97,61 @@ export function ShelfView(props: ShelfViewProps) {
         />
       </div>
 
-      {/* === 家具レイヤー === */}
-      {(props.roomFurniture || []).map((f) => {
-        const preset = getFurnitureById(f.furniture_id);
-        if (!preset) return null;
-        return (
-          <DraggableFurniture
-            key={f.id}
-            furniture={f}
-            preset={preset}
+      {/* === インタラクティブ領域（ヘッダー/フッターを避けるための安全エリア） === */}
+      {/* pt-16 で上部16%をヘッダー用に確保、pb-2 で下部2%確保 */}
+      <div
+        ref={containerRef}
+        className="absolute inset-0 pt-[12%] pb-[2%]"
+        onClick={() => props.onBackgroundClick?.()}
+      >
+        {/* === 家具レイヤー === */}
+        {(props.roomFurniture || []).map((f) => {
+          const preset = getFurnitureById(f.furniture_id);
+          if (!preset) return null;
+          return (
+            <DraggableFurniture
+              key={f.id}
+              furniture={f}
+              preset={preset}
+              containerRef={containerRef}
+              isEditing={props.isEditing}
+              isSelected={props.selectedFurnitureId === f.id}
+              onClick={() => props.onFurnitureClick?.(f)}
+              onMove={(px, py) => props.onFurnitureMove?.(f.id, px, py)}
+            />
+          );
+        })}
+
+        {/* === アイテムレイヤー === */}
+        {props.roomItems.map((item) => (
+          <Item2D
+            key={item.id}
+            item={item}
             containerRef={containerRef}
             isEditing={props.isEditing}
-            isSelected={props.selectedFurnitureId === f.id}
-            onClick={() => props.onFurnitureClick?.(f)}
-            onMove={(px, py) => props.onFurnitureMove?.(f.id, px, py)}
+            isSelected={props.selectedItemId === item.id}
+            onClick={props.onItemClick}
+            onMove={props.onItemMove}
           />
-        );
-      })}
+        ))}
 
-      {/* === アイテムレイヤー === */}
-      {props.roomItems.map((item) => (
-        <Item2D
-          key={item.id}
-          item={item}
-          containerRef={containerRef}
-          isEditing={props.isEditing}
-          isSelected={props.selectedItemId === item.id}
-          onClick={props.onItemClick}
-          onMove={props.onItemMove}
-        />
-      ))}
+        {/* === 編集モード時のグリッドガイド === */}
+        {props.isEditing && (
+          <div
+            className="absolute inset-0 pointer-events-none opacity-20"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, currentColor 1px, transparent 1px),
+                linear-gradient(to bottom, currentColor 1px, transparent 1px)
+              `,
+              backgroundSize: "5% 5%",
+              color: wallpaper?.accentColor || "#64748b",
+            }}
+          />
+        )}
+      </div>
 
-      {/* === アバター（左下） === */}
+      {/* === アバター（左下、インタラクティブ外） === */}
       {props.avatarUrl && (
         <div className="absolute bottom-[3%] left-[3%] pointer-events-none z-[60]">
           <div
@@ -144,23 +162,18 @@ export function ShelfView(props: ShelfViewProps) {
           </div>
         </div>
       )}
-
-      {/* === 編集モード時のグリッドガイド === */}
-      {props.isEditing && (
-        <div
-          className="absolute inset-0 pointer-events-none opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, currentColor 1px, transparent 1px),
-              linear-gradient(to bottom, currentColor 1px, transparent 1px)
-            `,
-            backgroundSize: "5% 5%",
-            color: wallpaper?.accentColor || "#64748b",
-          }}
-        />
-      )}
     </div>
   );
+}
+
+// 画面端見切れ防止のセーフ範囲
+const FURN_SAFE_MIN_X = 6;
+const FURN_SAFE_MAX_X = 94;
+const FURN_SAFE_MIN_Y = 15; // ヘッダー/壁上部を避ける
+const FURN_SAFE_MAX_Y = 98; // 床ぎりぎりまでOK
+
+function clamp2(v: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, v));
 }
 
 // === ドラッグ対応の家具ラッパー ===
@@ -189,16 +202,17 @@ function DraggableFurniture({
     const rect = containerRef.current.getBoundingClientRect();
     const newX = ((info.point.x - rect.left) / rect.width) * 100;
     const newY = ((info.point.y - rect.top) / rect.height) * 100;
-    const clampedX = Math.max(0, Math.min(100, newX));
-    const clampedY = Math.max(0, Math.min(100, newY));
+    const clampedX = clamp2(newX, FURN_SAFE_MIN_X, FURN_SAFE_MAX_X);
+    const clampedY = clamp2(newY, FURN_SAFE_MIN_Y, FURN_SAFE_MAX_Y);
     onMove(clampedX, clampedY);
   };
 
-  // preset has widthVw/heightVw
   const style = ((furniture as any).style as FurnitureStyle) || preset!.defaultStyle;
 
   return (
+    // keyベースのリマウントで drag state をリセット → ジャンプ防止
     <motion.div
+      key={`${furniture.id}-${furniture.position_x.toFixed(2)}-${furniture.position_y.toFixed(2)}`}
       drag={isEditing}
       dragMomentum={false}
       dragElastic={0}
@@ -209,16 +223,18 @@ function DraggableFurniture({
         e.stopPropagation();
         onClick?.();
       }}
-      whileHover={isEditing ? { scale: 1.02 } : {}}
+      whileHover={isEditing && !isDragging ? { scale: 1.02 } : {}}
+      whileDrag={{ scale: 1.04, zIndex: 100 }}
       className={cn(
         "absolute pointer-events-auto",
-        isEditing && "cursor-grab active:cursor-grabbing",
-        isDragging && "z-50"
+        isEditing && "cursor-grab active:cursor-grabbing"
       )}
       style={{
         left: `${furniture.position_x}%`,
         top: `${furniture.position_y}%`,
-        transform: "translate(-50%, -100%)",
+        // 底中央を(x,y)に配置
+        translateX: "-50%",
+        translateY: "-100%",
         width: `${preset!.widthVw * (furniture.scale || 1)}vw`,
         height: `${preset!.heightVw * (furniture.scale || 1)}vw`,
         maxWidth: "60vw",
