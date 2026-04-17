@@ -1,11 +1,15 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { LoginFormData } from "@/types/auth";
 import { handleAdminLogin, handleUserLogin, handleUserSignup } from "@/utils/auth";
 
 export function useLoginForm() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const inviteCodeFromUrl = searchParams.get("invite")?.toUpperCase() || "";
+  // URLに招待コードがあれば、初期状態をサインアップモードにする
+  const [isLogin, setIsLogin] = useState(!inviteCodeFromUrl);
+  const [inviteCode, setInviteCode] = useState(inviteCodeFromUrl);
   const { toast } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -14,6 +18,13 @@ export function useLoginForm() {
     username: "",
     password: "",
   });
+
+  // セッションストレージに招待コードを保存（サインアップ完了後にredeem）
+  useEffect(() => {
+    if (inviteCodeFromUrl) {
+      sessionStorage.setItem("pending_invite_code", inviteCodeFromUrl);
+    }
+  }, [inviteCodeFromUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,5 +91,8 @@ export function useLoginForm() {
     setFormData,
     handleSubmit,
     toggleMode,
+    inviteCode,
+    setInviteCode,
+    hasInviteFromUrl: !!inviteCodeFromUrl,
   };
 }

@@ -1,16 +1,20 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Room3DScene } from "@/components/room3d/Room3DScene";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Heart, Eye, Share2, UserPlus } from "lucide-react";
+import { ArrowLeft, Heart, Eye, Share2, UserPlus, Camera, Music, Music2, Box } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RoomItem } from "@/hooks/useMyRoom";
 import { useRoomFurniture } from "@/hooks/useRoomFurniture";
 import { useRoomScreenshot } from "@/hooks/useRoomScreenshot";
+import { useRoomReactions } from "@/hooks/useRoomReactions";
+import { useRoomBgm } from "@/hooks/useRoomBgm";
+import { FloatingReactions } from "@/components/room3d/FloatingReactions";
+import { ReactionPicker } from "@/components/room3d/ReactionPicker";
 import { toast } from "sonner";
 import { trackRoomView, trackRoomShare } from "@/utils/analytics";
 
@@ -20,6 +24,9 @@ export default function RoomView() {
   const { user } = useAuth();
   const { furniture } = useRoomFurniture(roomId);
   const { shareScreenshot } = useRoomScreenshot();
+  const { floatingReactions, sendReaction } = useRoomReactions(roomId);
+  const [isometric, setIsometric] = useState(false);
+  const [bgmEnabled, setBgmEnabled] = useState(false);
 
   // ルーム情報を取得
   const { data: room, isLoading: loadingRoom } = useQuery({
@@ -186,6 +193,18 @@ export default function RoomView() {
     }
   };
 
+  // BGM (themeやbgm_presetに応じて再生)
+  const themeId = room?.background_color?.startsWith("theme:")
+    ? room.background_color.slice("theme:".length)
+    : undefined;
+  const { isPlaying, togglePlay, hasBgm } = useRoomBgm({
+    themeId,
+    bgmPreset: room?.bgm_preset,
+    bgmUrl: room?.bgm_url,
+    volume: room?.bgm_volume ?? 0.3,
+    enabled: bgmEnabled,
+  });
+
   if (loadingRoom) {
     return (
       <div className="min-h-screen bg-[#0f0f23] flex items-center justify-center">
@@ -220,6 +239,43 @@ export default function RoomView() {
           </Button>
 
           <div className="flex items-center gap-2">
+            {/* Isometric toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsometric((v) => !v)}
+              className={cn(
+                "text-white hover:bg-white/10",
+                isometric && "bg-white/20"
+              )}
+              title={isometric ? "自由視点" : "アイソメ視点"}
+            >
+              <Box className="w-5 h-5" />
+            </Button>
+            {/* BGM toggle */}
+            {hasBgm && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setBgmEnabled((v) => !v);
+                  setTimeout(togglePlay, 100);
+                }}
+                className={cn(
+                  "text-white hover:bg-white/10",
+                  bgmEnabled && isPlaying && "bg-white/20"
+                )}
+                title={bgmEnabled ? "BGMオフ" : "BGMオン"}
+              >
+                {bgmEnabled && isPlaying ? (
+                  <Music className="w-5 h-5" />
+                ) : (
+                  <Music2 className="w-5 h-5" />
+                )}
+              </Button>
+            )}
+            {/* Emoji reactions */}
+            <ReactionPicker onSend={sendReaction} disabled={!user} />
             <Button
               variant="ghost"
               size="icon"
@@ -245,7 +301,7 @@ export default function RoomView() {
       </div>
 
       {/* 3Dシーン */}
-      <div className="h-screen">
+      <div className="h-screen relative">
         <Room3DScene
           roomItems={roomItems}
           roomFurniture={furniture}
@@ -253,7 +309,9 @@ export default function RoomView() {
           backgroundColor={room.background_color}
           roomTitle={room.title}
           avatarUrl={ownerProfile?.avatar_url}
+          isometric={isometric}
         />
+        <FloatingReactions reactions={floatingReactions} />
       </div>
 
       {/* フッター - オーナー情報 */}

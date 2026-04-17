@@ -107,6 +107,51 @@ export const handleUserSignup = async (formData: LoginFormData) => {
   if (data.user) {
     const { trackSignup } = await import("./analytics");
     trackSignup(data.user.id, "email");
+
+    // 招待コードがあれば適用
+    const pendingInvite = sessionStorage.getItem("pending_invite_code");
+    if (pendingInvite) {
+      try {
+        const { data: invite } = await supabase
+          .from("invite_codes")
+          .select("*")
+          .eq("code", pendingInvite)
+          .is("used_by", null)
+          .maybeSingle();
+
+        if (invite && invite.creator_id !== data.user.id) {
+          await supabase
+            .from("invite_codes")
+            .update({ used_by: data.user.id, used_at: new Date().toISOString() })
+            .eq("id", invite.id);
+
+          await supabase
+            .from("profiles")
+            .update({ referred_by: invite.creator_id })
+            .eq("id", data.user.id);
+
+          // 双方に50ポイント
+          await supabase.from("point_transactions").insert([
+            {
+              user_id: invite.creator_id,
+              amount: 50,
+              type: "referral_bonus",
+              description: "招待ボーナス",
+            },
+            {
+              user_id: data.user.id,
+              amount: 50,
+              type: "referral_bonus",
+              description: "招待コード使用ボーナス",
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error("Invite redemption failed:", err);
+      } finally {
+        sessionStorage.removeItem("pending_invite_code");
+      }
+    }
   }
 
   return data;

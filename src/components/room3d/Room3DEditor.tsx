@@ -23,7 +23,8 @@ import {
   Armchair,
   MoveHorizontal,
   MoveVertical,
-  Move3d
+  Move3d,
+  Box,
 } from "lucide-react";
 import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +34,10 @@ import { Room3DScene } from "./Room3DScene";
 import { RoomFurniture } from "./FurnitureItem3D";
 import { FURNITURE_PRESETS, FURNITURE_CATEGORIES, FurniturePreset } from "./furniturePresets";
 import { ROOM_THEMES, THEME_CATEGORIES } from "./roomThemes";
+import { DisplayStylePicker } from "./DisplayStylePicker";
+import { PaywallModal } from "@/components/premium/PaywallModal";
+import { useSubscription } from "@/hooks/useSubscription";
+import { canUseTheme } from "@/lib/planLimits";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -69,6 +74,10 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     message: string;
   } | null>(null);
   const [itemRotations, setItemRotations] = useState<Record<string, number>>({});
+  const [isometric, setIsometric] = useState(false);
+  const [showDisplayPicker, setShowDisplayPicker] = useState(false);
+  const [paywallReason, setPaywallReason] = useState<string | null>(null);
+  const { plan, limits } = useSubscription();
   
   const {
     mainRoom,
@@ -124,6 +133,13 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
   }, []);
 
   const handleAddFurniture = useCallback((preset: FurniturePreset, placement: PlacementType) => {
+    // 家具スロット制限チェック
+    if (roomFurniture.length >= limits.furnitureSlots) {
+      setPaywallReason(
+        `家具スロットの上限（${limits.furnitureSlots}個）に達しました。プレミアムで増やしましょう！`
+      );
+      return;
+    }
     addFurnitureMutation.mutate({
       furniture_id: preset.id,
       position_x: Math.random() * 60 + 20,
@@ -134,7 +150,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     });
     toast.success(`${preset.name}を追加しました！`);
     setShowFurniturePalette(false);
-  }, [addFurnitureMutation]);
+  }, [addFurnitureMutation, roomFurniture.length, limits.furnitureSlots]);
 
   const handleDeleteFurniture = useCallback((furnitureId: string) => {
     deleteFurnitureMutation.mutate(furnitureId);
@@ -600,6 +616,18 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
               >
                 <Palette className="w-5 h-5" />
               </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "text-white hover:bg-white/10",
+                  isometric && "bg-white/20"
+                )}
+                onClick={() => setIsometric((v) => !v)}
+                title="アイソメ視点"
+              >
+                <Box className="w-5 h-5" />
+              </Button>
             </>
           )}
           <Button 
@@ -631,6 +659,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           backgroundColor={mainRoom?.background_color}
           roomTitle={mainRoom?.title}
           isEditing={isOwnRoom}
+          isometric={isometric}
           onItemClick={handleItemClick}
           onItemMove={handleMoveItem}
           onFurnitureClick={handleFurnitureClick}
@@ -835,11 +864,24 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           </div>
           
           <div className="w-px h-8 bg-white/20" />
-          
+
+          {/* ディスプレイスタイル変換 */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-3 text-xs gap-1.5 rounded-lg text-purple-300 hover:bg-purple-500/20 hover:text-purple-200"
+            onClick={() => setShowDisplayPicker(true)}
+          >
+            ✨
+            飾り方
+          </Button>
+
+          <div className="w-px h-8 bg-white/20" />
+
           {/* 削除ボタン */}
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="h-8 px-3 text-xs gap-1.5 rounded-lg text-red-400 hover:bg-red-500/20 hover:text-red-300"
             onClick={() => handleDeleteItem(selectedItem.id)}
           >
@@ -963,18 +1005,31 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[calc(65vh-180px)] overflow-y-auto p-1">
                   {ROOM_THEMES.filter(t => t.category === cat.id).map((theme) => {
                     const isSelected = mainRoom?.background_color === `${THEME_PREFIX}${theme.id}`;
+                    const locked = !canUseTheme(plan, theme.id);
                     return (
                       <button
                         key={theme.id}
-                        onClick={() => updateBackground.mutate(`${THEME_PREFIX}${theme.id}`)}
+                        onClick={() => {
+                          if (locked) {
+                            setPaywallReason(`「${theme.name}」はプレミアム限定テーマです`);
+                            return;
+                          }
+                          updateBackground.mutate(`${THEME_PREFIX}${theme.id}`);
+                        }}
                         disabled={updateBackground.isPending}
                         className={cn(
-                          "rounded-xl overflow-hidden border-2 transition-all hover:scale-[1.03] text-left",
+                          "rounded-xl overflow-hidden border-2 transition-all hover:scale-[1.03] text-left relative",
                           isSelected
                             ? "border-primary ring-2 ring-primary/50"
-                            : "border-border hover:border-primary/50"
+                            : "border-border hover:border-primary/50",
+                          locked && "opacity-70"
                         )}
                       >
+                        {locked && (
+                          <div className="absolute top-2 right-2 z-10 bg-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                            👑 PREMIUM
+                          </div>
+                        )}
                         <div
                           className="aspect-[4/3] w-full flex flex-col items-center justify-center relative"
                           style={{
@@ -1050,6 +1105,24 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
           </Tabs>
         </SheetContent>
       </Sheet>
+
+      {/* Paywall modal */}
+      <PaywallModal
+        open={!!paywallReason}
+        onOpenChange={(o) => !o && setPaywallReason(null)}
+        reason={paywallReason ?? undefined}
+      />
+
+      {/* Display style picker */}
+      {selectedItem && (
+        <DisplayStylePicker
+          open={showDisplayPicker}
+          onOpenChange={setShowDisplayPicker}
+          itemId={selectedItem.id}
+          currentStyle={(selectedItem as any).display_style ?? "poster"}
+          onPaywall={(reason) => setPaywallReason(reason)}
+        />
+      )}
     </div>
   );
 }

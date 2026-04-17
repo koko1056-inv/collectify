@@ -3,7 +3,7 @@ export interface FurniturePreset {
   id: string;
   name: string;
   nameEn: string;
-  category: 'chair' | 'table' | 'shelf' | 'sofa' | 'lamp' | 'decoration';
+  category: 'chair' | 'table' | 'shelf' | 'sofa' | 'lamp' | 'decoration' | 'bed' | 'gaming' | 'kawaii';
   icon: string;
   // 3Dジオメトリ定義
   geometry: {
@@ -288,6 +288,312 @@ export const FURNITURE_PRESETS: FurniturePreset[] = [
     defaultScale: 1,
     allowedPlacements: ['floor'],
   },
+  // === ベッド ===
+  {
+    id: 'bed_single',
+    name: 'シングルベッド',
+    nameEn: 'Single Bed',
+    category: 'bed',
+    icon: '🛏️',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'box', position: [0, 0.25, 0], args: [1.0, 0.3, 2.0], color: '#f5e6d3' },
+        { type: 'box', position: [0, 0.5, 0], args: [0.95, 0.15, 1.95], color: '#fff5e8' },
+        { type: 'box', position: [0, 0.4, -0.85], args: [0.9, 0.2, 0.3], color: '#f9c5c5' },
+        { type: 'box', position: [0, 0.75, -0.95], args: [1.05, 0.8, 0.08], color: '#8a6a5a' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  {
+    id: 'bed_canopy',
+    name: '天蓋ベッド',
+    nameEn: 'Canopy Bed',
+    category: 'bed',
+    icon: '👸',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'box', position: [0, 0.25, 0], args: [1.2, 0.3, 2.2], color: '#fce7f3' },
+        { type: 'box', position: [0, 0.55, 0], args: [1.15, 0.2, 2.15], color: '#fff0f6' },
+        { type: 'cylinder', position: [-0.55, 1.3, -1.0], args: [0.04, 0.04, 1.8], color: '#a855f7' },
+        { type: 'cylinder', position: [0.55, 1.3, -1.0], args: [0.04, 0.04, 1.8], color: '#a855f7' },
+        { type: 'cylinder', position: [-0.55, 1.3, 1.0], args: [0.04, 0.04, 1.8], color: '#a855f7' },
+        { type: 'cylinder', position: [0.55, 1.3, 1.0], args: [0.04, 0.04, 1.8], color: '#a855f7' },
+        { type: 'box', position: [0, 2.2, 0], args: [1.25, 0.04, 2.25], color: '#f9a8d4' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  // === ゲーミング系 ===
+  {
+    id: 'gaming_setup',
+    name: 'ゲーミングPC',
+    nameEn: 'Gaming PC',
+    category: 'gaming',
+    icon: '💻',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'box', position: [-0.2, 0.35, 0], args: [0.25, 0.5, 0.4], color: '#111' },
+        { type: 'box', position: [-0.2, 0.35, 0.21], args: [0.23, 0.48, 0.005], color: '#a855f7' },
+        { type: 'box', position: [0.3, 0.35, 0], args: [0.6, 0.35, 0.04], color: '#0a0a0a' },
+        { type: 'box', position: [0.3, 0.35, -0.02], args: [0.55, 0.31, 0.01], color: '#4338ca' },
+        { type: 'cylinder', position: [0.3, 0.1, 0], args: [0.08, 0.1, 0.03], color: '#222' },
+        { type: 'box', position: [0.35, 0.06, 0.15], args: [0.35, 0.02, 0.12], color: '#1a1a2e' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  {
+    id: 'gaming_console',
+    name: 'ゲーム機',
+    nameEn: 'Game Console',
+    category: 'gaming',
+    icon: '🎮',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'box', position: [0, 0.05, 0], args: [0.35, 0.1, 0.25], color: '#1a1a2e' },
+        { type: 'box', position: [0, 0.05, 0.13], args: [0.3, 0.06, 0.01], color: '#22c55e' },
+        { type: 'box', position: [-0.1, 0.15, 0.05], args: [0.16, 0.04, 0.1], color: '#333' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  {
+    id: 'gaming_arcade',
+    name: 'アーケード筐体',
+    nameEn: 'Arcade Cabinet',
+    category: 'gaming',
+    icon: '🕹️',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'box', position: [0, 0.75, 0], args: [0.7, 1.5, 0.6], color: '#ef4444' },
+        { type: 'box', position: [0, 1.2, 0.32], args: [0.55, 0.5, 0.02], color: '#0a0a0a' },
+        { type: 'box', position: [0, 1.2, 0.33], args: [0.5, 0.45, 0.005], color: '#fbbf24' },
+        { type: 'box', position: [0, 0.8, 0.31], args: [0.5, 0.15, 0.04], color: '#1a1a1a' },
+        { type: 'cylinder', position: [-0.12, 0.82, 0.36], args: [0.03, 0.03, 0.06], color: '#dc2626' },
+        { type: 'cylinder', position: [0.12, 0.82, 0.36], args: [0.03, 0.03, 0.06], color: '#3b82f6' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  // === かわいい系 ===
+  {
+    id: 'kawaii_plush_pile',
+    name: 'ぬいぐるみ山',
+    nameEn: 'Plush Pile',
+    category: 'kawaii',
+    icon: '🧸',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'sphere', position: [0, 0.15, 0], args: [0.15], color: '#f9a8d4' },
+        { type: 'sphere', position: [0.18, 0.12, 0.1], args: [0.13], color: '#fcd34d' },
+        { type: 'sphere', position: [-0.15, 0.14, -0.08], args: [0.14], color: '#93c5fd' },
+        { type: 'sphere', position: [0.05, 0.32, 0], args: [0.12], color: '#c4b5fd' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  {
+    id: 'kawaii_cat_bed',
+    name: '猫のベッド',
+    nameEn: 'Cat Bed',
+    category: 'kawaii',
+    icon: '🐱',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'cylinder', position: [0, 0.08, 0], args: [0.3, 0.3, 0.16], color: '#fce7f3' },
+        { type: 'cylinder', position: [0, 0.14, 0], args: [0.22, 0.22, 0.04], color: '#fbcfe8' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  {
+    id: 'kawaii_donut_chair',
+    name: 'ドーナツチェア',
+    nameEn: 'Donut Chair',
+    category: 'kawaii',
+    icon: '🍩',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'cylinder', position: [0, 0.2, 0], args: [0.45, 0.45, 0.25], color: '#fbbf24' },
+        { type: 'cylinder', position: [0, 0.2, 0], args: [0.18, 0.18, 0.26], color: '#1e1e30' },
+        { type: 'cylinder', position: [0, 0.35, 0], args: [0.43, 0.43, 0.04], color: '#f9a8d4' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  {
+    id: 'kawaii_balloon',
+    name: 'バルーン',
+    nameEn: 'Balloon',
+    category: 'kawaii',
+    icon: '🎈',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'sphere', position: [0, 1.2, 0], args: [0.2], color: '#ef4444' },
+        { type: 'cylinder', position: [0, 0.5, 0], args: [0.005, 0.005, 1.3], color: '#888' },
+        { type: 'box', position: [0, 0, 0], args: [0.08, 0.02, 0.08], color: '#666' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  // === 追加の装飾 ===
+  {
+    id: 'deco_tv',
+    name: 'テレビ',
+    nameEn: 'TV',
+    category: 'decoration',
+    icon: '📺',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'box', position: [0, 0, 0], args: [1.0, 0.6, 0.06], color: '#0a0a0a' },
+        { type: 'box', position: [0, 0, 0.035], args: [0.93, 0.53, 0.005], color: '#1a1a3e' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['back_wall', 'left_wall'],
+  },
+  {
+    id: 'deco_clock',
+    name: '壁掛け時計',
+    nameEn: 'Wall Clock',
+    category: 'decoration',
+    icon: '🕐',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'cylinder', position: [0, 0, 0], args: [0.2, 0.2, 0.04], color: '#f5f5f5' },
+        { type: 'cylinder', position: [0, 0, 0.025], args: [0.17, 0.17, 0.005], color: '#1a1a1a' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['back_wall', 'left_wall'],
+  },
+  {
+    id: 'deco_vinyl',
+    name: 'レコード',
+    nameEn: 'Vinyl Record',
+    category: 'decoration',
+    icon: '💿',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'cylinder', position: [0, 0, 0], args: [0.25, 0.25, 0.02], color: '#0a0a0a' },
+        { type: 'cylinder', position: [0, 0, 0.015], args: [0.08, 0.08, 0.005], color: '#ef4444' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['back_wall', 'left_wall'],
+  },
+  {
+    id: 'deco_neon_sign',
+    name: 'ネオンサイン',
+    nameEn: 'Neon Sign',
+    category: 'decoration',
+    icon: '💡',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'box', position: [0, 0, 0], args: [0.7, 0.3, 0.04], color: '#0a0a0a' },
+        { type: 'box', position: [0, 0, 0.025], args: [0.65, 0.25, 0.01], color: '#ec4899' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['back_wall', 'left_wall'],
+  },
+  {
+    id: 'deco_aquarium',
+    name: '水槽',
+    nameEn: 'Aquarium',
+    category: 'decoration',
+    icon: '🐠',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'box', position: [0, 0.25, 0], args: [0.8, 0.5, 0.3], color: '#bae6fd' },
+        { type: 'box', position: [0, 0.05, 0], args: [0.82, 0.1, 0.32], color: '#0c4a6e' },
+        { type: 'sphere', position: [-0.15, 0.2, 0], args: [0.04], color: '#f97316' },
+        { type: 'sphere', position: [0.1, 0.3, 0.05], args: [0.03], color: '#fbbf24' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  {
+    id: 'lamp_neon',
+    name: 'ネオンランプ',
+    nameEn: 'Neon Lamp',
+    category: 'lamp',
+    icon: '🌈',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'cylinder', position: [0, 0.03, 0], args: [0.15, 0.15, 0.04], color: '#0a0a0a' },
+        { type: 'cylinder', position: [0, 0.5, 0], args: [0.02, 0.02, 1.0], color: '#a855f7' },
+        { type: 'sphere', position: [0, 1.0, 0], args: [0.08], color: '#ec4899' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  {
+    id: 'table_coffee',
+    name: 'コーヒーテーブル',
+    nameEn: 'Coffee Table',
+    category: 'table',
+    icon: '☕',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'box', position: [0, 0.4, 0], args: [1.0, 0.06, 0.5], color: '#c8a978' },
+        { type: 'cylinder', position: [-0.4, 0.2, 0.2], args: [0.03, 0.03, 0.38], color: '#222' },
+        { type: 'cylinder', position: [0.4, 0.2, 0.2], args: [0.03, 0.03, 0.38], color: '#222' },
+        { type: 'cylinder', position: [-0.4, 0.2, -0.2], args: [0.03, 0.03, 0.38], color: '#222' },
+        { type: 'cylinder', position: [0.4, 0.2, -0.2], args: [0.03, 0.03, 0.38], color: '#222' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
+  {
+    id: 'shelf_display',
+    name: 'ディスプレイケース',
+    nameEn: 'Display Case',
+    category: 'shelf',
+    icon: '🏆',
+    geometry: {
+      type: 'composite',
+      parts: [
+        { type: 'box', position: [0, 0.9, 0], args: [0.8, 1.8, 0.35], color: '#d4d4d8' },
+        { type: 'box', position: [0, 0.9, 0.17], args: [0.75, 1.75, 0.01], color: '#dbeafe' },
+        { type: 'box', position: [0, 0.3, 0], args: [0.72, 0.04, 0.32], color: '#a1a1aa' },
+        { type: 'box', position: [0, 0.75, 0], args: [0.72, 0.04, 0.32], color: '#a1a1aa' },
+        { type: 'box', position: [0, 1.2, 0], args: [0.72, 0.04, 0.32], color: '#a1a1aa' },
+        { type: 'box', position: [0, 1.65, 0], args: [0.72, 0.04, 0.32], color: '#a1a1aa' },
+      ],
+    },
+    defaultScale: 1,
+    allowedPlacements: ['floor'],
+  },
 ];
 
 // カテゴリ別にグループ化
@@ -296,7 +602,10 @@ export const FURNITURE_CATEGORIES = [
   { id: 'table', name: 'テーブル', nameEn: 'Tables', icon: '🖥️' },
   { id: 'shelf', name: '棚', nameEn: 'Shelves', icon: '📚' },
   { id: 'sofa', name: 'ソファ', nameEn: 'Sofas', icon: '🛋️' },
+  { id: 'bed', name: 'ベッド', nameEn: 'Beds', icon: '🛏️' },
   { id: 'lamp', name: 'ランプ', nameEn: 'Lamps', icon: '💡' },
+  { id: 'gaming', name: 'ゲーミング', nameEn: 'Gaming', icon: '🎮' },
+  { id: 'kawaii', name: 'かわいい', nameEn: 'Kawaii', icon: '🎀' },
   { id: 'decoration', name: '装飾', nameEn: 'Decorations', icon: '🪴' },
 ] as const;
 

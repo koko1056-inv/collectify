@@ -17,6 +17,7 @@ import { RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { FurnitureItem3D, RoomFurniture } from "./FurnitureItem3D";
 import { FURNITURE_PRESETS } from "./furniturePresets";
 import { getThemeById, RoomTheme } from "./roomThemes";
+import { getDisplayStyle } from "./displayStyles";
 
 const THEME_PREFIX = "theme:";
 
@@ -43,6 +44,7 @@ export interface Room3DSceneProps {
   selectedFurnitureId?: string | null;
   itemRotations?: Record<string, number>;
   roomTheme?: string;
+  isometric?: boolean;
 }
 
 // --- Utility ---
@@ -246,6 +248,7 @@ function ItemCard({
   const [hovered, setHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const [dropBounce, setDropBounce] = useState(0); // 0..1 bounce animation progress
   const { camera, gl, raycaster } = useThree();
 
   const intersectionPoint = useRef(new THREE.Vector3());
@@ -287,14 +290,32 @@ function ItemCard({
     }
   }, [placement]);
 
-  // Floating + hover animation
-  useFrame((state) => {
-    if (!groupRef.current || isDragging) return;
-    if (placement === "floor") {
-      groupRef.current.position.y = 0.6 + Math.sin(state.clock.elapsedTime * 0.8 + pos[0]) * 0.08;
+  // Floating + hover + drop-bounce animation
+  useFrame((state, delta) => {
+    if (!groupRef.current) return;
+    // Drop bounce decay
+    if (dropBounce > 0) {
+      setDropBounce((v) => Math.max(0, v - delta * 4));
     }
-    if (meshRef.current && hovered) {
-      meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 3) * 0.03;
+
+    if (isDragging) return;
+
+    if (placement === "floor") {
+      // Subtle float
+      const baseY = 0.6 + Math.sin(state.clock.elapsedTime * 0.8 + pos[0]) * 0.08;
+      // Add bounce on drop
+      const bounceOffset = dropBounce * Math.sin(dropBounce * Math.PI * 3) * 0.3;
+      groupRef.current.position.y = baseY + bounceOffset;
+    }
+    // Scale pulse on hover/drop
+    const bouncePulse = 1 + dropBounce * 0.15 * Math.sin(dropBounce * Math.PI);
+    if (meshRef.current) {
+      if (hovered) {
+        meshRef.current.rotation.z = Math.sin(state.clock.elapsedTime * 3) * 0.03;
+      }
+    }
+    if (groupRef.current) {
+      groupRef.current.scale.setScalar(bouncePulse);
     }
   });
 
@@ -360,6 +381,8 @@ function ItemCard({
     const onUp = () => {
       setIsDragging(false);
       gl.domElement.style.cursor = "auto";
+      // Trigger drop-bounce animation
+      setDropBounce(1);
       const v = new THREE.Vector3(...pos);
       const [nx, ny] = worldToNormalized(v, placement);
       onMove?.(Math.round(nx), Math.round(ny));
@@ -375,13 +398,32 @@ function ItemCard({
 
   const cardScale = isDragging ? scale * 1.15 : hovered ? scale * 1.08 : scale;
 
+  // Display style support — wraps the item in a figure/poster/plushie style
+  const style = getDisplayStyle(item.display_style || "poster");
+  const frameDims: [number, number, number] = style
+    ? [style.frame.scale[0] * 2.5, style.frame.scale[1] * 2.5, style.frame.scale[2] * 2.5]
+    : [2, 2, 0.08];
+  const cornerRadius = style?.frame.cornerRadius ?? 0.08;
+  const frameColor = style?.frame.baseColor || "#333";
+  const accentColor = style?.frame.accentColor || "#a855f7";
+  const hasBase = style?.frame.hasBase && placement === "floor";
+  const glowIntensity = style?.frame.glow ?? 0;
+
   return (
     <group ref={groupRef} position={pos} rotation={rotation}>
-      {/* Card backing with rounded corners */}
+      {/* Base / pedestal for standing items */}
+      {hasBase && (
+        <mesh position={[0, -frameDims[1] / 2 - 0.1, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[frameDims[0] * 0.45, frameDims[0] * 0.55, 0.2, 24]} />
+          <meshStandardMaterial color={accentColor} roughness={0.4} metalness={0.5} />
+        </mesh>
+      )}
+
+      {/* Outer frame (padding around image) */}
       <RoundedBox
         ref={meshRef}
-        args={[2, 2, 0.08]}
-        radius={0.08}
+        args={frameDims}
+        radius={cornerRadius}
         smoothness={4}
         scale={cardScale}
         onClick={(e) => { if (!isDragging) { e.stopPropagation(); onClick?.(); } }}
@@ -390,18 +432,42 @@ function ItemCard({
         onPointerOut={() => { setHovered(false); if (!isDragging) gl.domElement.style.cursor = "auto"; }}
         castShadow
       >
-        {texture ? (
+        <meshStandardMaterial
+          color={frameColor}
+          roughness={style?.id === "acrylic_stand" ? 0.1 : 0.4}
+          metalness={style?.id === "trophy" ? 0.8 : 0.2}
+          transparent={style?.id === "acrylic_stand"}
+          opacity={style?.id === "acrylic_stand" ? 0.85 : 1}
+        />
+      </RoundedBox>
+
+      {/* Image plane inset slightly into the frame */}
+      {texture && (
+        <mesh
+          position={[0, 0, frameDims[2] / 2 + 0.002]}
+          scale={[cardScale * 0.92, cardScale * 0.92, 1]}
+        >
+          <planeGeometry args={[frameDims[0], frameDims[1]]} />
           <meshStandardMaterial
             map={texture}
             side={THREE.DoubleSide}
             transparent
-            roughness={0.3}
-            metalness={0.1}
+            roughness={0.25}
+            metalness={0.05}
+            emissive={glowIntensity > 0 ? accentColor : undefined}
+            emissiveIntensity={glowIntensity * 0.3}
+            emissiveMap={glowIntensity > 0 ? texture : undefined}
           />
-        ) : (
-          <meshStandardMaterial color="#555" roughness={0.4} />
-        )}
-      </RoundedBox>
+        </mesh>
+      )}
+
+      {/* Accent trim for framed/trophy styles */}
+      {style?.id === "framed" && (
+        <mesh position={[0, 0, frameDims[2] / 2 + 0.001]} scale={cardScale}>
+          <ringGeometry args={[frameDims[0] * 0.46, frameDims[0] * 0.5, 4]} />
+          <meshStandardMaterial color={accentColor} side={THREE.DoubleSide} metalness={0.9} roughness={0.2} />
+        </mesh>
+      )}
 
       {/* Selection ring */}
       {isSelected && (
@@ -412,10 +478,10 @@ function ItemCard({
       )}
 
       {/* Hover glow */}
-      {(hovered || isSelected) && (
+      {(hovered || isSelected || glowIntensity > 0) && (
         <pointLight
-          color={isSelected ? "#22c55e" : "#a855f7"}
-          intensity={3}
+          color={isSelected ? "#22c55e" : accentColor}
+          intensity={isSelected ? 3 : hovered ? 2 : glowIntensity * 1.5}
           distance={4}
           decay={2}
         />
@@ -530,16 +596,26 @@ function Avatar3D({ avatarUrl }: { avatarUrl: string }) {
 }
 
 // --- Camera ---
-function CameraController() {
+function CameraController({ isometric = false }: { isometric?: boolean }) {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    if (isometric) {
+      // Fixed isometric view: camera at (14, 12, 14) looking at origin
+      camera.position.set(14, 12, 14);
+      camera.lookAt(0, 2, 0);
+    }
+  }, [isometric, camera]);
+
   return (
     <OrbitControls
-      enablePan
+      enablePan={!isometric}
       enableZoom
-      enableRotate
+      enableRotate={!isometric}
       minDistance={4}
       maxDistance={22}
-      minPolarAngle={Math.PI / 8}
-      maxPolarAngle={Math.PI / 2.2}
+      minPolarAngle={isometric ? Math.PI / 4.5 : Math.PI / 8}
+      maxPolarAngle={isometric ? Math.PI / 4.5 : Math.PI / 2.2}
       dampingFactor={0.08}
       enableDamping
       panSpeed={0.5}
@@ -667,7 +743,7 @@ function Scene(props: Room3DSceneProps) {
       {avatarUrl && <Avatar3D avatarUrl={avatarUrl} />}
 
       {/* Camera */}
-      <CameraController />
+      <CameraController isometric={props.isometric} />
     </>
   );
 }

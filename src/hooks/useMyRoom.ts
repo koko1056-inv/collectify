@@ -36,6 +36,7 @@ export interface RoomItem {
   rotation: number;
   z_index: number;
   placement?: PlacementType;
+  display_style?: 'poster' | 'figure' | 'plush' | 'acrylic_stand' | 'trophy' | 'framed';
   item_data?: {
     id: string;
     title: string;
