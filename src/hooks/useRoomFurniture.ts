@@ -5,14 +5,11 @@ import { toast } from "sonner";
 import { RoomFurniture } from "@/components/room3d/FurnitureItem3D";
 import { PlacementType } from "@/hooks/useMyRoom";
 
-// Default furniture for new rooms
+// Default furniture for new rooms (2D shelf layout)
+// 棚+台座を置いた簡素な初期状態
 const DEFAULT_FURNITURE: Omit<RoomFurniture, "id">[] = [
-  { furniture_id: "shelf_bookshelf", position_x: 15, position_y: 15, placement: "floor", scale: 1.2, rotation_y: 0 },
-  { furniture_id: "table_desk", position_x: 70, position_y: 50, placement: "floor", scale: 1, rotation_y: 0 },
-  { furniture_id: "chair_gaming", position_x: 65, position_y: 60, placement: "floor", scale: 0.9, rotation_y: 0 },
-  { furniture_id: "deco_plant", position_x: 85, position_y: 25, placement: "floor", scale: 1, rotation_y: 0 },
-  { furniture_id: "lamp_floor", position_x: 20, position_y: 70, placement: "floor", scale: 1, rotation_y: 0 },
-  { furniture_id: "deco_poster", position_x: 50, position_y: 60, placement: "back_wall", scale: 1.5, rotation_y: 0 },
+  { furniture_id: "shelf_tier2", position_x: 30, position_y: 85, placement: "floor", scale: 1, rotation_y: 0 },
+  { furniture_id: "stand_pedestal", position_x: 65, position_y: 85, placement: "floor", scale: 1, rotation_y: 0 },
 ];
 
 export function useRoomFurniture(roomId: string | undefined) {

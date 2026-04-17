@@ -16,7 +16,6 @@ import {
   PanelTop,
   Palette,
   Maximize2,
-  Box,
   Loader2,
   RotateCcw,
   RotateCw,
@@ -140,12 +139,18 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       );
       return;
     }
+    // 配置位置: 床家具(shelf/stand/case/altar)は床の上(y=78-92)、壁系(board/hanging)は中央寄り(y=30-55)
+    const isFloorFurniture = ["shelf", "stand", "case", "altar"].includes(preset.category);
+    const posY = isFloorFurniture
+      ? 80 + Math.random() * 10
+      : 25 + Math.random() * 25;
+    const posX = 25 + Math.random() * 50;
     addFurnitureMutation.mutate({
       furniture_id: preset.id,
-      position_x: Math.random() * 60 + 20,
-      position_y: Math.random() * 60 + 20,
+      position_x: posX,
+      position_y: posY,
       placement,
-      scale: preset.defaultScale,
+      scale: 1,
       rotation_y: 0,
     });
     toast.success(`${preset.name}を追加しました！`);
@@ -193,40 +198,34 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
   const queryClient = useQueryClient();
 
   const handleAddItem = useCallback(async (userItem: typeof userItems[0], placement: PlacementType) => {
-    if (!mainRoom?.id) return;
-    
-    // 配置場所に応じた初期位置を設定
-    const getInitialPosition = () => {
-      switch (placement) {
-        case 'back_wall':
-          return { x: Math.random() * 60 + 20, y: Math.random() * 60 + 20 };
-        case 'left_wall':
-          return { x: Math.random() * 60 + 20, y: Math.random() * 60 + 20 };
-        default:
-          return { x: Math.random() * 60 + 20, y: Math.random() * 60 + 20 };
-      }
-    };
-    
-    const pos = getInitialPosition();
-    
+    if (!mainRoom?.id) {
+      toast.error("ルームが見つかりません");
+      return;
+    }
+
+    // 2Dレイアウト: 壁アイテム(y=25-50)、床アイテム(y=60-78)
+    const posX = 20 + Math.random() * 60;
+    const posY = placement === "floor"
+      ? 60 + Math.random() * 18
+      : 25 + Math.random() * 25;
+
     try {
-      // Note: placement will be stored in a JSON field or we use z_index as a workaround
-      // For now, encoding placement in the rotation field (0=floor, 90=back_wall, 180=left_wall)
+      // rotation field は旧3D互換のためplacementエンコードで残す
       const placementRotation = placement === 'floor' ? 0 : placement === 'back_wall' ? 90 : 180;
-      
+
       const { error } = await supabase
         .from("binder_items")
         .insert({
           binder_page_id: mainRoom.id,
           user_item_id: userItem.id,
-          position_x: pos.x,
-          position_y: pos.y,
+          position_x: posX,
+          position_y: posY,
           width: 100,
           height: 100,
           rotation: placementRotation,
           z_index: roomItems.length,
         });
-      
+
       if (error) throw error;
       
       const placementNames = { floor: '床', back_wall: '後ろの壁', left_wall: '左の壁' };
