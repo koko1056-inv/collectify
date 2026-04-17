@@ -28,6 +28,7 @@ export default function RoomView() {
   const [isometric, setIsometric] = useState(false);
   const [bgmEnabled, setBgmEnabled] = useState(false);
 
+
   // ルーム情報を取得
   const { data: room, isLoading: loadingRoom } = useQuery({
     queryKey: ["room-view", roomId],
@@ -143,31 +144,34 @@ export default function RoomView() {
     enabled: !!roomId && !!user?.id,
   });
 
-  // 訪問を記録（1回だけ）
+  // 訪問を記録（一時的に簡素化）
   const visitRecorded = useRef(false);
   useEffect(() => {
     if (!room || !roomId || visitRecorded.current) return;
     visitRecorded.current = true;
 
     // Analytics
-    trackRoomView(roomId, room.user_id, user?.id);
+    try {
+      trackRoomView(roomId, room.user_id, user?.id);
+    } catch (e) {
+      console.error("analytics error:", e);
+    }
 
-    // visit_count をインクリメント
-    supabase.rpc("increment_visit_count", { page_id: roomId }).catch(() => {
-      // RPC がなければ直接更新
-      supabase
-        .from("binder_pages")
-        .update({ visit_count: (room.visit_count || 0) + 1 })
-        .eq("id", roomId)
-        .then();
+    // visit_count をアトミックにインクリメント
+    supabase.rpc("increment_visit_count", { page_id: roomId }).then(() => {
+      // success
+    }, (err) => {
+      console.warn("increment_visit_count failed:", err);
     });
 
-    // room_visits テーブルに記録（自分以外）
+    // room_visits テーブルに記録（自分以外、ログイン時のみ）
     if (user && room.user_id !== user.id) {
       supabase
         .from("room_visits")
         .insert({ room_id: roomId, visitor_id: user.id })
-        .then();
+        .then(() => {}, (err) => {
+          console.warn("record visit failed:", err);
+        });
     }
   }, [room, roomId, user]);
 
@@ -193,7 +197,7 @@ export default function RoomView() {
     }
   };
 
-  // BGM (themeやbgm_presetに応じて再生)
+  // BGM
   const themeId = room?.background_color?.startsWith("theme:")
     ? room.background_color.slice("theme:".length)
     : undefined;

@@ -12,8 +12,8 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
+    // lovable-tagger は JSX 要素に data-lov-* 属性を挿入するが、
+    // @react-three/fiber の applyProps と衝突するため無効化
   ].filter(Boolean),
   resolve: {
     alias: {
