@@ -242,6 +242,18 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
     setIsLoading(true);
     let successCount = 0;
 
+    // 未登録のコンテンツ名をcontent_namesに自動登録
+    const uniqueContentNames = Array.from(
+      new Set(itemsToImport.map((i) => i.contentName?.trim()).filter(Boolean))
+    ) as string[];
+    for (const name of uniqueContentNames) {
+      if (!contentSuggestions.includes(name)) {
+        await supabase
+          .from("content_names")
+          .insert({ name, type: "other", created_by: user?.id });
+      }
+    }
+
     for (let i = 0; i < itemsToImport.length; i++) {
       const item = itemsToImport[i];
 
