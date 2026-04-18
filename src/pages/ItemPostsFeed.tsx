@@ -181,6 +181,24 @@ export default function ItemPostsFeed() {
         initialPost={selectedPost}
       />
 
+      <SelectItemForPostModal
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onSelect={(target, title, image) =>
+          setCreateCtx({ target, title, image })
+        }
+      />
+
+      {createCtx && (
+        <CreateItemPostModal
+          open={!!createCtx}
+          onOpenChange={(o) => !o && setCreateCtx(null)}
+          target={createCtx.target}
+          itemTitle={createCtx.title}
+          itemImage={createCtx.image}
+        />
+      )}
+
       <Footer />
     </div>
   );
