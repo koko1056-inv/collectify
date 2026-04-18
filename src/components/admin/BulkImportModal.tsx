@@ -285,7 +285,28 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
     setAnalyzeProgress(0);
     setImportProgress(0);
     setIsLoading(false);
+    setBulkContentName("");
     onClose();
+  };
+
+  const loadContentSuggestions = async () => {
+    const { data } = await supabase
+      .from("content_names")
+      .select("name")
+      .order("name");
+    setContentSuggestions((data || []).map((c: any) => c.name));
+  };
+
+  const applyBulkContentName = () => {
+    const name = bulkContentName.trim();
+    if (!name) return;
+    setAnalyzedItems((prev) =>
+      prev.map((item) => ({ ...item, contentName: name }))
+    );
+    toast({
+      title: "適用しました",
+      description: `全${analyzedItems.length}件のコンテンツを「${name}」に設定しました`,
+    });
   };
 
   return (
