@@ -97,11 +97,10 @@ export function ShelfView(props: ShelfViewProps) {
         />
       </div>
 
-      {/* === インタラクティブ領域（ヘッダー/フッターを避けるための安全エリア） === */}
-      {/* pt-16 で上部16%をヘッダー用に確保、pb-2 で下部2%確保 */}
+      {/* === インタラクティブ領域（フル領域・自由配置可能） === */}
       <div
         ref={containerRef}
-        className="absolute inset-0 pt-[12%] pb-[2%]"
+        className="absolute inset-0"
         onClick={() => props.onBackgroundClick?.()}
       >
         {/* === 家具レイヤー === */}
@@ -167,10 +166,10 @@ export function ShelfView(props: ShelfViewProps) {
 }
 
 // 画面端見切れ防止のセーフ範囲
-const FURN_SAFE_MIN_X = 6;
-const FURN_SAFE_MAX_X = 94;
-const FURN_SAFE_MIN_Y = 15; // ヘッダー/壁上部を避ける
-const FURN_SAFE_MAX_Y = 98; // 床ぎりぎりまでOK
+const FURN_SAFE_MIN_X = 3;
+const FURN_SAFE_MAX_X = 97;
+const FURN_SAFE_MIN_Y = 5;
+const FURN_SAFE_MAX_Y = 100;
 
 function clamp2(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v));
