@@ -56,6 +56,8 @@ export interface GenerateInput {
   itemImageUrls: string[];
   stylePrompt: string;
   stylePreset?: string;
+  visualStyle?: string;
+  visualStylePrompt?: string;
   customPrompt?: string;
   title?: string;
 }

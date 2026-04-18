@@ -11,6 +11,8 @@ interface GenerateAiRoomInput {
   itemImageUrls: string[]; // 最大3枚
   stylePrompt: string; // 部屋スタイルのプロンプト
   stylePreset?: string; // 任意: "pastel_kawaii" など
+  visualStyle?: string; // 任意: "anime" / "realistic" など
+  visualStylePrompt?: string; // 任意: 描画スタイルの追加指示
   customPrompt?: string; // 任意: ユーザーのフリーテキスト
   title?: string;
 }
@@ -40,7 +42,15 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: "Unauthorized" }, 401);
 
     const body = (await req.json()) as GenerateAiRoomInput;
-    const { itemImageUrls, stylePrompt, stylePreset, customPrompt, title } = body;
+    const {
+      itemImageUrls,
+      stylePrompt,
+      stylePreset,
+      visualStyle,
+      visualStylePrompt,
+      customPrompt,
+      title,
+    } = body;
 
     if (!itemImageUrls || itemImageUrls.length === 0) {
       return json({ error: "アイテム画像が必要です" }, 400);
@@ -59,16 +69,18 @@ Deno.serve(async (req) => {
 【部屋スタイル】
 ${stylePrompt}
 
+${visualStylePrompt ? `【描画スタイル】\n${visualStylePrompt}\n` : ""}
 【配置するアイテム】
 ${itemCount}つの画像で示されたグッズを、この部屋の中に自然な形で配置してください。棚の上、壁、ディスプレイケース、台座など、アイテムの種類に応じて最も映える場所に置きます。
 
 【重要な要件】
 - 参考画像のグッズ(キャラクター、ロゴ、デザイン)を**忠実に再現**して配置する
-- 高品質でカラフル、温かみのあるイラスト調
+- 高品質で立体感のある仕上がり
 - 16:9の横長アスペクト比
 - コレクターが見て"これは自分の部屋だ"と感じられる、愛着が湧くシーン
 - 柔らかい光、適度な影、立体感
 - 1枚の画像として完成させる
+- 上記の【描画スタイル】を厳格に守ること
 
 ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
 
@@ -86,7 +98,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
       },
     ];
 
-    console.log("Generating AI room with", itemCount, "items. Style:", stylePreset);
+    console.log("Generating AI room with", itemCount, "items. Style:", stylePreset, "Visual:", visualStyle);
 
     const aiRes = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",

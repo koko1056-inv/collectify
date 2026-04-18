@@ -9,11 +9,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ROOM_STYLE_PRESETS, getStylePresetById } from "./roomStylePresets";
+import {
+  ROOM_VISUAL_STYLES,
+  getVisualStyleById,
+  DEFAULT_VISUAL_STYLE_ID,
+} from "./roomVisualStyles";
 import { useGenerateAiRoom, AiGeneratedRoom } from "@/hooks/ai-room/useAiRooms";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Step = "items" | "style" | "generating" | "result";
+type Step = "items" | "style" | "visual" | "generating" | "result";
 
 interface AiRoomCreateWizardProps {
   open: boolean;
@@ -28,19 +33,20 @@ interface UserItemLite {
 }
 
 const MAX_ITEMS = 3;
+const TOTAL_STEPS = 3;
 
 export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCreateWizardProps) {
   const { user } = useAuth();
   const [step, setStep] = useState<Step>("items");
   const [selectedItems, setSelectedItems] = useState<UserItemLite[]>([]);
   const [stylePresetId, setStylePresetId] = useState<string | null>(null);
+  const [visualStyleId, setVisualStyleId] = useState<string>(DEFAULT_VISUAL_STYLE_ID);
   const [customPrompt, setCustomPrompt] = useState("");
   const [title, setTitle] = useState("");
   const [resultRoom, setResultRoom] = useState<AiGeneratedRoom | null>(null);
 
   const generateMutation = useGenerateAiRoom();
 
-  // 自分のグッズを取得
   const { data: items = [] } = useQuery({
     queryKey: ["user-items-for-ai-room", user?.id],
     queryFn: async () => {
@@ -49,7 +55,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         .from("user_items")
         .select("id, title, image")
         .eq("user_id", user.id)
-        .neq("quantity", 0) // wishlistを除外
+        .neq("quantity", 0)
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
@@ -60,11 +66,11 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
 
   useEffect(() => {
     if (!open) {
-      // モーダル閉じたらリセット
       setTimeout(() => {
         setStep("items");
         setSelectedItems([]);
         setStylePresetId(null);
+        setVisualStyleId(DEFAULT_VISUAL_STYLE_ID);
         setCustomPrompt("");
         setTitle("");
         setResultRoom(null);
@@ -76,9 +82,16 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
     () => (stylePresetId ? getStylePresetById(stylePresetId) : null),
     [stylePresetId]
   );
+  const selectedVisual = useMemo(
+    () => getVisualStyleById(visualStyleId),
+    [visualStyleId]
+  );
 
   const canProceedFromItems = selectedItems.length > 0;
   const canProceedFromStyle = !!stylePresetId || customPrompt.trim().length > 5;
+  const canProceedFromVisual = !!visualStyleId;
+
+  const stepIndex = step === "items" ? 1 : step === "style" ? 2 : step === "visual" ? 3 : 0;
 
   const toggleItem = (item: UserItemLite) => {
     setSelectedItems((prev) => {
@@ -102,6 +115,8 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         itemImageUrls: selectedItems.map((i) => i.image),
         stylePrompt,
         stylePreset: stylePresetId || undefined,
+        visualStyle: visualStyleId,
+        visualStylePrompt: selectedVisual?.prompt,
         customPrompt: customPrompt.trim() || undefined,
         title: title.trim() || undefined,
       });
@@ -109,7 +124,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
       setStep("result");
       onCreated?.(room);
     } catch {
-      setStep("style");
+      setStep("visual");
     }
   };
 
@@ -118,7 +133,6 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
     const text = `AIで作った推し部屋 🏠✨\n#Collectify`;
     try {
       if (navigator.share) {
-        // 画像を Blob として添付できるなら添付
         try {
           const res = await fetch(resultRoom.image_url);
           const blob = await res.blob();
@@ -133,9 +147,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         await navigator.clipboard.writeText(resultRoom.image_url);
         toast.success("画像URLをコピーしました");
       }
-    } catch {
-      // user cancelled
-    }
+    } catch {}
   };
 
   const handleDownload = () => {
@@ -156,9 +168,9 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
           <DialogTitle className="flex items-center gap-2">
             <Wand2 className="w-5 h-5 text-primary" />
             AIで推しルームを作る
-            {step !== "generating" && step !== "result" && (
+            {stepIndex > 0 && (
               <span className="ml-auto text-xs font-normal text-muted-foreground">
-                Step {step === "items" ? 1 : 2}/2
+                Step {stepIndex}/{TOTAL_STEPS}
               </span>
             )}
           </DialogTitle>
@@ -255,7 +267,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                         >
                           <span className="text-4xl drop-shadow-md">{p.emoji}</span>
                           {active && (
-                            <div className="absolute top-1 right-1 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md">
+                            <div className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background flex items-center justify-center shadow-md">
                               <Check className="w-3.5 h-3.5 text-primary" strokeWidth={3} />
                             </div>
                           )}
@@ -302,6 +314,56 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
               </motion.div>
             )}
 
+            {step === "visual" && (
+              <motion.div
+                key="visual"
+                initial={{ opacity: 0, x: 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -40 }}
+                className="p-5 space-y-4"
+              >
+                <div>
+                  <h3 className="text-base font-semibold mb-1">絵柄スタイル</h3>
+                  <p className="text-xs text-muted-foreground">
+                    部屋をどんなタッチで描くか選びましょう
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {ROOM_VISUAL_STYLES.map((v) => {
+                    const active = visualStyleId === v.id;
+                    return (
+                      <button
+                        key={v.id}
+                        onClick={() => setVisualStyleId(v.id)}
+                        className={cn(
+                          "relative rounded-xl overflow-hidden border-2 transition-all text-left p-3 bg-card",
+                          active
+                            ? "border-primary scale-[0.98] shadow-md ring-2 ring-primary/20"
+                            : "border-border hover:border-primary/40"
+                        )}
+                      >
+                        <div className="flex items-start gap-2">
+                          <span className="text-2xl shrink-0">{v.emoji}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-semibold flex items-center gap-1">
+                              {v.name}
+                              {active && (
+                                <Check className="w-3.5 h-3.5 text-primary" strokeWidth={3} />
+                              )}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground line-clamp-2 mt-0.5">
+                              {v.description}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
             {step === "generating" && (
               <motion.div
                 key="generating"
@@ -313,11 +375,10 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                   <motion.div
                     animate={{ scale: [1, 1.15, 1], rotate: [0, 15, 0] }}
                     transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-400 via-purple-500 to-orange-400 flex items-center justify-center shadow-2xl"
+                    className="w-24 h-24 rounded-full bg-primary flex items-center justify-center shadow-2xl"
                   >
-                    <Wand2 className="w-10 h-10 text-white" />
+                    <Wand2 className="w-10 h-10 text-primary-foreground" />
                   </motion.div>
-                  {/* 周囲のスパークル */}
                   {[0, 1, 2, 3, 4].map((i) => (
                     <motion.div
                       key={i}
@@ -329,7 +390,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                       animate={{ scale: [0, 1, 0], opacity: [0, 1, 0], rotate: [0, 180, 360] }}
                       transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
                     >
-                      <Sparkles className="w-4 h-4 text-pink-400" />
+                      <Sparkles className="w-4 h-4 text-primary" />
                     </motion.div>
                   ))}
                 </div>
@@ -378,13 +439,22 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
           </AnimatePresence>
         </div>
 
-        {/* フッター */}
         {step !== "generating" && step !== "result" && (
           <div className="border-t p-3 flex gap-2 shrink-0">
             {step === "style" && (
               <Button
                 variant="outline"
                 onClick={() => setStep("items")}
+                className="gap-1.5"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                戻る
+              </Button>
+            )}
+            {step === "visual" && (
+              <Button
+                variant="outline"
+                onClick={() => setStep("style")}
                 className="gap-1.5"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -404,9 +474,19 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
             )}
             {step === "style" && (
               <Button
+                onClick={() => setStep("visual")}
+                disabled={!canProceedFromStyle}
+                className="gap-1.5"
+              >
+                次へ
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            )}
+            {step === "visual" && (
+              <Button
                 onClick={handleGenerate}
-                disabled={!canProceedFromStyle || generateMutation.isPending}
-                className="gap-1.5 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 hover:opacity-95"
+                disabled={!canProceedFromVisual || generateMutation.isPending}
+                className="gap-1.5"
               >
                 {generateMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
