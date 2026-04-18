@@ -4,15 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Maximize2, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy } from "lucide-react";
+import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Profile } from "@/types";
 import { cn } from "@/lib/utils";
 import { AvatarStudioModal } from "@/components/avatar";
-import { IsometricRoomPreview } from "@/components/room3d/IsometricRoomPreview";
-import { Room3DEditor } from "@/components/room3d/Room3DEditor";
+import { MyRoomScene } from "@/components/myroom/MyRoomScene";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AvatarSocialSection } from "./AvatarSocialSection";
@@ -34,7 +33,6 @@ export function MyRoomHome({
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"room" | "collection" | "avatar">("collection");
   const [showAvatarStudio, setShowAvatarStudio] = useState(false);
-  const [showFullscreenRoom, setShowFullscreenRoom] = useState(false);
   const {
     mainRoom,
     roomItems,
@@ -136,13 +134,8 @@ export function MyRoomHome({
   }
 
   const handleEditRoom = () => {
-    setShowFullscreenRoom(true);
+    setActiveTab("room");
   };
-
-  // フルスクリーン3Dルームモード
-  if (showFullscreenRoom) {
-    return <Room3DEditor profile={profile} isFullScreen={true} onClose={() => setShowFullscreenRoom(false)} />;
-  }
 
   // タブバッジの状態（新着があるかどうか）
   // 実際のアプリではこれをSupabaseから取得
@@ -222,24 +215,8 @@ export function MyRoomHome({
             </div>
           )}
           {activeTab === "room" && (
-            <div className="w-full animate-fade-in">
-              {/* 埋め込みの2D棚エディタ */}
-              <div
-                className="relative w-full bg-muted/20 border-y sm:border sm:rounded-2xl sm:mx-auto sm:max-w-5xl overflow-hidden"
-                style={{ height: "75vh", minHeight: "560px" }}
-              >
-                <Room3DEditor profile={profile} isFullScreen={false} />
-                {/* フルスクリーンFAB */}
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  onClick={() => setShowFullscreenRoom(true)}
-                  className="absolute bottom-3 left-3 z-20 h-9 w-9 rounded-full bg-background/80 backdrop-blur-md border border-border/40 shadow-md hover:bg-background"
-                  title="フルスクリーンで編集"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                </Button>
-              </div>
+            <div className="w-full animate-fade-in py-2">
+              <MyRoomScene profile={profile} />
             </div>
           )}
           {activeTab === "avatar" && (
@@ -476,188 +453,7 @@ function MiniStat({ icon: Icon, label, userId, type }: {
   );
 }
 
-// 3Dルーム表示コンポーネント
-interface Room3DViewProps {
-  mainRoom: any;
-  roomItems: RoomItem[];
-  likeCount: number;
-  isLiked: boolean;
-  isLoading: boolean;
-  isOwnRoom: boolean;
-  profile: Profile;
-  user: any;
-  onEditRoom: () => void;
-  onCreateRoom: () => void;
-  onToggleLike: () => void;
-  onOpenFullscreen: () => void;
-  createRoomPending: boolean;
-  t: (key: string) => string;
-}
-
-function Room3DView({
-  mainRoom,
-  roomItems,
-  likeCount,
-  isLiked,
-  isLoading,
-  isOwnRoom,
-  profile,
-  user,
-  onEditRoom,
-  onCreateRoom,
-  onToggleLike,
-  onOpenFullscreen,
-  createRoomPending,
-  t
-}: Room3DViewProps) {
-  const navigate = useNavigate();
-
-  // ルームがない場合の作成画面
-  if (!isLoading && !mainRoom && user) {
-    return (
-      <div className="flex flex-col items-center justify-center animate-fade-in">
-        <Card className="max-w-md w-full border-dashed border-2 bg-gradient-to-br from-muted/20 to-muted/5">
-          <CardContent className="pt-10 pb-10 text-center space-y-6">
-            <div className="w-24 h-24 mx-auto relative">
-              <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
-              <div className="relative w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center border border-primary/20">
-                <Home className="w-12 h-12 text-primary" />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-foreground">
-                {t("room.createTitle")}
-              </h2>
-              <p className="text-muted-foreground text-sm px-4">
-                {t("room.createDesc")}
-              </p>
-            </div>
-
-            <Button 
-              size="lg" 
-              onClick={onCreateRoom} 
-              disabled={createRoomPending} 
-              className="gap-2 w-full max-w-xs h-12 hover-scale"
-            >
-              <Plus className="w-5 h-5" />
-              {t("room.create")}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // ローディング
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="w-14 h-14 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-muted-foreground">{t("room.preparing")}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-4 animate-fade-in">
-      {/* 3Dルームプレビュー */}
-      <div className="relative w-full group">
-        <Card className="overflow-hidden border-0 shadow-xl rounded-2xl">
-          <IsometricRoomPreview 
-            roomItems={roomItems} 
-            backgroundImage={mainRoom?.background_image} 
-            backgroundColor={mainRoom?.background_color} 
-            onClick={onOpenFullscreen} 
-            className="aspect-[4/3] cursor-pointer" 
-          />
-        </Card>
-        
-        {/* オーバーレイボタン */}
-        <div className="absolute top-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
-          <Button 
-            variant="secondary" 
-            size="icon" 
-            className="bg-background/80 backdrop-blur-sm shadow-lg h-9 w-9" 
-            onClick={e => {
-              e.stopPropagation();
-              onOpenFullscreen();
-            }}
-          >
-            <Maximize2 className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* アイテムがない場合のヒント */}
-        {roomItems.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="text-center space-y-2 bg-background/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border">
-              <Sparkles className="w-8 h-8 mx-auto text-primary" />
-              <p className="text-sm text-foreground font-medium">
-                {t("room.tapToEdit")}
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ルーム情報カード */}
-      <Card className="w-full border-border/50 rounded-2xl shadow-sm">
-        <CardContent className="py-4 px-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold text-foreground">
-                {mainRoom?.title || t("room.myRoom")}
-              </h2>
-              <span className="text-[10px] px-2 py-0.5 bg-primary/10 text-primary font-medium rounded-full">
-                3D
-              </span>
-            </div>
-            
-            {/* 統計情報 */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Eye className="w-4 h-4" />
-                <span className="text-sm font-medium">{mainRoom?.visit_count || 0}</span>
-              </div>
-              
-              <button 
-                onClick={e => {
-                  e.stopPropagation();
-                  if (user && !isOwnRoom) {
-                    onToggleLike();
-                  }
-                }} 
-                className={cn(
-                  "flex items-center gap-1.5 transition-colors", 
-                  isLiked ? "text-red-500" : "text-muted-foreground hover:text-red-500"
-                )} 
-                disabled={!user || isOwnRoom}
-              >
-                <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-                <span className="text-sm font-medium">{likeCount}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* アクションボタン */}
-          {isOwnRoom && (
-            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/50">
-              <Button variant="default" size="sm" className="gap-2 flex-1" onClick={onEditRoom}>
-                <Pencil className="w-4 h-4" />
-                {t("room.edit")}
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/rooms/explore")}>
-                <TrendingUp className="w-4 h-4" />
-                {t("room.popular")}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+// (旧Room3DView コンポーネントは MyRoomScene に置き換えたため削除)
 
 // アバター表示コンポーネント
 interface AvatarViewProps {
