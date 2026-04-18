@@ -494,7 +494,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                 ) : (
                   <Wand2 className="w-4 h-4" />
                 )}
-                生成する
+                生成する (50pt)
               </Button>
             )}
           </div>
