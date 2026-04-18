@@ -134,13 +134,8 @@ export function MyRoomHome({
   }
 
   const handleEditRoom = () => {
-    setShowFullscreenRoom(true);
+    setActiveTab("room");
   };
-
-  // フルスクリーン3Dルームモード
-  if (showFullscreenRoom) {
-    return <Room3DEditor profile={profile} isFullScreen={true} onClose={() => setShowFullscreenRoom(false)} />;
-  }
 
   // タブバッジの状態（新着があるかどうか）
   // 実際のアプリではこれをSupabaseから取得
@@ -220,24 +215,8 @@ export function MyRoomHome({
             </div>
           )}
           {activeTab === "room" && (
-            <div className="w-full animate-fade-in">
-              {/* 埋め込みの2D棚エディタ */}
-              <div
-                className="relative w-full bg-muted/20 border-y sm:border sm:rounded-2xl sm:mx-auto sm:max-w-5xl overflow-hidden"
-                style={{ height: "75vh", minHeight: "560px" }}
-              >
-                <Room3DEditor profile={profile} isFullScreen={false} />
-                {/* フルスクリーンFAB */}
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  onClick={() => setShowFullscreenRoom(true)}
-                  className="absolute bottom-3 left-3 z-20 h-9 w-9 rounded-full bg-background/80 backdrop-blur-md border border-border/40 shadow-md hover:bg-background"
-                  title="フルスクリーンで編集"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                </Button>
-              </div>
+            <div className="w-full animate-fade-in py-2">
+              <MyRoomScene profile={profile} />
             </div>
           )}
           {activeTab === "avatar" && (
