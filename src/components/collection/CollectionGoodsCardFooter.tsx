@@ -58,7 +58,7 @@ export function CollectionGoodsCardFooter({
   }, [id, refetch]);
 
   return (
-    <CardFooter className="px-2 pt-1 pb-2 border-t border-border/40">
+    <CardFooter className="px-2 py-1.5 border-t border-border/40 bg-muted/20">
       <CardActions
         onMemoriesClick={onMemoriesClick}
         onTagManageClick={onTagManageClick}
