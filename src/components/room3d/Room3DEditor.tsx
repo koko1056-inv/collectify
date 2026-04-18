@@ -23,6 +23,10 @@ import {
   MoveHorizontal,
   MoveVertical,
   Move3d,
+  ArrowUpToLine,
+  ArrowDownToLine,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
