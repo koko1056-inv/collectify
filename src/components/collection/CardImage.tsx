@@ -90,20 +90,21 @@ const CardImage = memo(function CardImage({
       });
     }
   };
-  return <div className="aspect-square relative overflow-hidden rounded-t-lg group">
+  return <div className="aspect-square relative overflow-hidden rounded-t-xl group bg-muted/40">
       <LazyImage 
         key={`${image}-${Date.now()}`} 
         src={image} 
         alt={title} 
-        className="w-full h-full transition-all duration-300 hover:scale-105 object-cover"
+        className="w-full h-full transition-transform duration-500 group-hover:scale-110 object-cover"
         skeletonClassName="aspect-square"
       />
-      {quantity && quantity >= 1 && (
-        <Badge 
-          className="absolute bottom-2 right-2 bg-background/90 text-foreground border border-border shadow-sm font-semibold text-xs px-2 py-0.5"
-        >
-          ×{quantity}
-        </Badge>
+      {/* グラデーションオーバーレイ（タイトル可読性向上） */}
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+      {/* 数量バッジ（2個以上の時のみ表示） */}
+      {quantity && quantity > 1 && (
+        <div className="absolute top-2 right-2 min-w-[26px] h-[26px] px-1.5 rounded-full bg-background/95 backdrop-blur-sm border border-border/50 shadow-md flex items-center justify-center">
+          <span className="text-[11px] font-bold text-foreground leading-none">×{quantity}</span>
+        </div>
       )}
       {isEditable}
 
