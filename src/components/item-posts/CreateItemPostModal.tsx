@@ -88,6 +88,7 @@ export function CreateItemPostModal({
     images.forEach((img) => URL.revokeObjectURL(img.preview));
     setImages([]);
     setCaption("");
+    setAiPrompt("");
   };
 
   const handleClose = () => {
