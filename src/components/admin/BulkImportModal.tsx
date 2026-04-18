@@ -213,6 +213,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
       setAnalyzeProgress(((i + 1) / items.length) * 100);
     }
 
+    await loadContentSuggestions();
     setStep("import");
   };
 
