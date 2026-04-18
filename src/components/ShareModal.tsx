@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Share2, Facebook, Instagram } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -10,9 +11,10 @@ interface ShareModalProps {
   title: string;
   url: string;
   image: string;
+  showInviteCode?: boolean;
 }
 
-export function ShareModal({ isOpen, onClose, title, url, image }: ShareModalProps) {
+export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode = false }: ShareModalProps) {
   const { toast } = useToast();
 
   const handleShare = async (platform: string) => {
