@@ -15,6 +15,7 @@ import { isUUID } from "@/utils/tag/tag-core";
 import { Link } from "react-router-dom";
 import { SimpleItemTag } from "@/utils/tag/types";
 import { Item3DPreview } from "./Item3DPreview";
+import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
 
 interface ItemDetailsWrapperProps {
   itemId: string;
@@ -387,6 +388,15 @@ export function ItemDetailsWrapper({
               シェア
             </Button>
           </div>
+        </div>
+
+        {/* みんなの投稿セクション */}
+        <div className="mt-6 pt-6 border-t border-border">
+          <ItemPostsSection
+            target={{ type: "official", id: itemId }}
+            itemTitle={itemDetails?.title || itemTitle}
+            itemImage={itemDetails?.image || itemImage}
+          />
         </div>
       </div>
       <TagManageModal

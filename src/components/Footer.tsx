@@ -48,18 +48,18 @@ export function Footer() {
         </Link>
 
 
-        {/* コミュニティタブ */}
+        {/* コミュニティタブ (新: item-posts フィード) */}
         <Link
-          to="/posts"
+          to="/item-posts"
           className={cn(
             "flex flex-col items-center justify-center flex-1 py-2",
-            isActive("/posts") ? "text-primary" : "text-muted-foreground"
+            isActive("/item-posts") ? "text-primary" : "text-muted-foreground"
           )}
         >
           <svg 
             className={cn(
               "h-6 w-6 mb-0.5 transition-all",
-              isActive("/posts") && "scale-110"
+              isActive("/item-posts") && "scale-110"
             )} 
             viewBox="0 0 24 24" 
             fill="none" 

@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { PersonalTagsSection } from "@/components/personal-tags/PersonalTagsSection";
+import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
 
 interface UserItemDetailsModalProps {
   isOpen: boolean;
@@ -398,6 +399,15 @@ export function UserItemDetailsModal({
                   まだ思い出がありません
                 </p>
               )}
+            </div>
+
+            {/* みんなの投稿セクション */}
+            <div className="pt-4 border-t border-border">
+              <ItemPostsSection
+                target={{ type: "user_item", id: itemId }}
+                itemTitle={title}
+                itemImage={itemDetails?.image || image}
+              />
             </div>
           </div>
         )}

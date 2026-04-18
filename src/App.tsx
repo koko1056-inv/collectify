@@ -18,6 +18,7 @@ import Search from "./pages/Search";
 import Collection from "./pages/Collection";
 import Posts from "./pages/Posts";
 import MyRoom from "./pages/MyRoom";
+import ItemPostsFeed from "./pages/ItemPostsFeed";
 
 // Lazy load only rarely used pages
 const Login = lazy(() => import("./pages/Login").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -99,6 +100,8 @@ const App: React.FC = () => {
                       <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
                       <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                       <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
+                      <Route path="/item-posts" element={<ProtectedRoute><ItemPostsFeed /></ProtectedRoute>} />
+                      <Route path="/post/:postId" element={<ProtectedRoute><ItemPostsFeed /></ProtectedRoute>} />
                       <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
                       <Route path="/collection" element={<ProtectedRoute><Collection /></ProtectedRoute>} />
                       <Route path="/my-room" element={<ProtectedRoute><MyRoom /></ProtectedRoute>} />

@@ -3,13 +3,16 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProfileCard } from "./ProfileCard";
 import { PointBalanceCard } from "./PointBalanceCard";
+import { ProfileItemPosts } from "./ProfileItemPosts";
 import { ShareModal } from "@/components/ShareModal";
 import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
+import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useState } from "react";
 
 export function ProfilePage() {
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [username, setUsername] = useState("");
 
@@ -25,6 +28,11 @@ export function ProfilePage() {
           <div className={`${isMobile ? 'mx-4' : ''} bg-card rounded-xl border border-border p-6`}>
             <PointBalanceCard />
           </div>
+          {user?.id && (
+            <div className={`${isMobile ? 'mx-4' : ''} bg-card rounded-xl border border-border p-6`}>
+              <ProfileItemPosts userId={user.id} />
+            </div>
+          )}
           <div className={`${isMobile ? 'mx-4' : ''} bg-card rounded-xl border border-border p-6`}>
             <InviteCodeSection />
           </div>
