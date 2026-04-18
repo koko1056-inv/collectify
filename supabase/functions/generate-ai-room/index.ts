@@ -64,9 +64,9 @@ Deno.serve(async (req) => {
       return json({ error: "スタイルが必要です" }, 400);
     }
 
-    // ポイント消費 (50pt) — service role で原子的に処理
+    // ポイント消費 (100pt) — service role で原子的に処理
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const ROOM_GENERATION_COST = 50;
+    const ROOM_GENERATION_COST = 100;
 
     const { data: pointsRow, error: pointsErr } = await adminClient
       .from("user_points")

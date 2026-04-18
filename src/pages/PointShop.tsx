@@ -5,26 +5,23 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Star, 
-  Package, 
-  Home, 
-  Users, 
-  Tag, 
-  Sparkles, 
-  ShoppingCart,
+import {
+  Star,
   ArrowLeft,
   Gift,
-  Crown,
-  Zap
+  Sparkles,
+  Coins,
+  Info,
+  Tag as TagIcon,
+  Package,
+  Home,
+  ImageIcon,
 } from "lucide-react";
-import { usePointShopItems, useUserLimits, usePurchaseShopItem, PointShopItem } from "@/hooks/usePointShop";
+import { usePointPackages, PointPackage } from "@/hooks/usePointShop";
 import { useUserPoints } from "@/hooks/usePoints";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -34,34 +31,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  package: Package,
-  home: Home,
-  users: Users,
-  tag: Tag,
-  sparkles: Sparkles,
-  "user-plus": Users,
-};
-
-const categoryInfo = {
-  collection: { label: "コレクション", icon: Package, color: "text-blue-500" },
-  room: { label: "マイルーム", icon: Home, color: "text-green-500" },
-  community: { label: "コミュニティ", icon: Users, color: "text-purple-500" },
-  ai: { label: "AI機能", icon: Sparkles, color: "text-amber-500" },
-  special: { label: "特別", icon: Crown, color: "text-pink-500" },
-};
+const SPEND_GUIDE = [
+  { icon: TagIcon, label: "カスタムタグを新規発行", cost: 10 },
+  { icon: Package, label: "コレクション枠 +10 拡張", cost: 30 },
+  { icon: ImageIcon, label: "AI画像生成 / 投稿画像生成", cost: 50 },
+  { icon: Home, label: "AIマイルーム生成", cost: 100 },
+];
 
 export default function PointShop() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [selectedCategory, setSelectedCategory] = useState<string>("collection");
-  const [confirmItem, setConfirmItem] = useState<PointShopItem | null>(null);
-  
-  const { data: shopItems, isLoading: itemsLoading } = usePointShopItems();
+  const { toast } = useToast();
+  const [confirmPack, setConfirmPack] = useState<PointPackage | null>(null);
+
+  const { data: packages, isLoading: packagesLoading } = usePointPackages();
   const { data: userPoints, isLoading: pointsLoading } = useUserPoints();
-  const { data: userLimits, isLoading: limitsLoading } = useUserLimits();
-  const purchaseMutation = usePurchaseShopItem();
 
   if (!user) {
     return (
@@ -77,218 +63,206 @@ export default function PointShop() {
     );
   }
 
-  const filteredItems = shopItems?.filter(item => item.category === selectedCategory) || [];
-  const currentPoints = userPoints?.total_points || 0;
+  const currentPoints = userPoints?.total_points ?? 0;
 
-  const handlePurchase = (item: PointShopItem) => {
-    setConfirmItem(item);
-  };
-
-  const confirmPurchase = () => {
-    if (confirmItem) {
-      purchaseMutation.mutate(confirmItem);
-      setConfirmItem(null);
-    }
-  };
-
-  const getItemIcon = (iconName: string | null) => {
-    if (!iconName) return Package;
-    return iconMap[iconName] || Package;
+  const handleConfirmPurchase = () => {
+    // 決済は未接続。準備中の通知のみ。
+    toast({
+      title: "決済機能は準備中です",
+      description: "ポイント購入機能はまもなく公開予定です。今しばらくお待ちください。",
+    });
+    setConfirmPack(null);
   };
 
   return (
     <div className="min-h-screen bg-background pb-24">
       <Navbar />
-      
+
       <div className="container max-w-4xl mx-auto px-4 py-6 pt-16 sm:pt-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/my-room")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
             <h1 className="text-2xl font-bold flex items-center gap-2">
-              <ShoppingCart className="w-6 h-6 text-primary" />
-              ポイントショップ
+              <Coins className="w-6 h-6 text-primary" />
+              ポイント
             </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              ポイントパックを購入したり、無料で貯めたポイントを各機能で使えます
+            </p>
           </div>
         </div>
 
-        {/* Points & Limits Summary */}
+        {/* Current Balance */}
         <Card className="mb-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-              {/* Current Points */}
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                  <Star className="w-6 h-6 text-primary fill-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">保有ポイント</p>
-                  {pointsLoading ? (
-                    <Skeleton className="h-8 w-24" />
-                  ) : (
-                    <p className="text-2xl font-bold">{currentPoints.toLocaleString()} <span className="text-base font-normal text-muted-foreground">pt</span></p>
-                  )}
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <Star className="w-6 h-6 text-primary fill-primary" />
               </div>
-
-              {/* Current Limits */}
-              {limitsLoading ? (
-                <Skeleton className="h-16 w-48" />
-              ) : userLimits && (
-                <div className="flex gap-4 text-sm">
-                  <div className="text-center">
-                    <p className="text-muted-foreground">コレクション枠</p>
-                    <p className="font-semibold text-lg">{userLimits.collection_slots}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-muted-foreground">ルーム数</p>
-                    <p className="font-semibold text-lg">{userLimits.room_slots}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-muted-foreground">タグ枠</p>
-                    <p className="font-semibold text-lg">{userLimits.custom_tag_slots}</p>
-                  </div>
-                </div>
-              )}
+              <div>
+                <p className="text-sm text-muted-foreground">保有ポイント</p>
+                {pointsLoading ? (
+                  <Skeleton className="h-8 w-24" />
+                ) : (
+                  <p className="text-2xl font-bold">
+                    {currentPoints.toLocaleString()}
+                    <span className="text-base font-normal text-muted-foreground"> pt</span>
+                  </p>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Category Tabs */}
-        <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
-          <TabsList className="w-full grid grid-cols-3 mb-6">
-            <TabsTrigger value="collection" className="gap-1">
-              <Package className="w-4 h-4" />
-              <span className="hidden sm:inline">コレクション</span>
-            </TabsTrigger>
-            <TabsTrigger value="room" className="gap-1">
-              <Home className="w-4 h-4" />
-              <span className="hidden sm:inline">ルーム</span>
-            </TabsTrigger>
-            <TabsTrigger value="community" className="gap-1">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">コミュニティ</span>
-            </TabsTrigger>
-          </TabsList>
+        {/* Point Packages */}
+        <section className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              ポイントパック
+            </h2>
+            <Badge variant="outline" className="text-[10px]">決済機能 準備中</Badge>
+          </div>
 
-          {/* Shop Items Grid */}
-          <TabsContent value={selectedCategory} className="mt-0">
-            {itemsLoading ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[1, 2, 3].map(i => (
-                  <Skeleton key={i} className="h-48" />
-                ))}
-              </div>
-            ) : filteredItems.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Gift className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>このカテゴリにはアイテムがありません</p>
-              </div>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {filteredItems.map(item => {
-                  const Icon = getItemIcon(item.icon);
-                  const canAfford = currentPoints >= item.points_cost;
-                  const categoryData = categoryInfo[item.category as keyof typeof categoryInfo];
-                  
-                  return (
-                    <Card 
-                      key={item.id} 
-                      className={`transition-all ${canAfford ? 'hover:shadow-md hover:border-primary/30' : 'opacity-60'}`}
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className={`w-10 h-10 rounded-lg bg-muted flex items-center justify-center ${categoryData?.color}`}>
-                            <Icon className="w-5 h-5" />
-                          </div>
-                          <Badge variant="secondary" className="gap-1">
-                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                            {item.points_cost}
+          {packagesLoading ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-32" />
+              ))}
+            </div>
+          ) : !packages || packages.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                <Gift className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                ポイントパックはまもなく登場します
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {packages.map((pack) => {
+                const totalPoints = pack.points + pack.bonus_points;
+                const hasBonus = pack.bonus_points > 0;
+                return (
+                  <Card key={pack.id} className="hover:shadow-md hover:border-primary/30 transition-all">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-base">{pack.name}</CardTitle>
+                        {hasBonus && (
+                          <Badge className="bg-amber-500/15 text-amber-700 border-amber-500/30 dark:text-amber-300">
+                            +{pack.bonus_points}pt ボーナス
                           </Badge>
-                        </div>
-                        <CardTitle className="text-lg mt-2">{item.name}</CardTitle>
-                        {item.description && (
-                          <CardDescription>{item.description}</CardDescription>
                         )}
-                      </CardHeader>
-                      <CardFooter>
-                        <Button 
-                          className="w-full gap-2"
-                          disabled={!canAfford || purchaseMutation.isPending}
-                          onClick={() => handlePurchase(item)}
-                        >
-                          {canAfford ? (
-                            <>
-                              <Zap className="w-4 h-4" />
-                              購入する
-                            </>
-                          ) : (
-                            "ポイント不足"
-                          )}
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                      </div>
+                      <CardDescription className="flex items-baseline gap-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xl font-bold text-foreground">
+                          {totalPoints.toLocaleString()}
+                        </span>
+                        <span className="text-xs">pt</span>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardFooter className="pt-2 flex items-center justify-between">
+                      <span className="text-base font-semibold">¥{pack.price.toLocaleString()}</span>
+                      <Button size="sm" onClick={() => setConfirmPack(pack)}>
+                        購入する
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
-        {/* Free Points Info */}
-        <Card className="mt-8 bg-muted/30">
+        {/* Spend Guide */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
+            <Info className="w-5 h-5 text-primary" />
+            ポイントの使いみち
+          </h2>
+          <Card>
+            <CardContent className="pt-4 space-y-2">
+              {SPEND_GUIDE.map((g) => {
+                const Icon = g.icon;
+                return (
+                  <div key={g.label} className="flex items-center justify-between py-2 border-b last:border-b-0">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Icon className="w-4 h-4 text-muted-foreground" />
+                      <span>{g.label}</span>
+                    </div>
+                    <Badge variant="secondary" className="gap-1">
+                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      {g.cost}pt
+                    </Badge>
+                  </div>
+                );
+              })}
+              <p className="text-[11px] text-muted-foreground pt-2">
+                各機能を使うときに、その場で確認の上ポイントが消費されます。
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Free Points */}
+        <Card className="bg-muted/30">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Gift className="w-5 h-5 text-green-500" />
               無料でポイントを獲得
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">ログインボーナス</span>
-              <span className="font-medium">+3pt / 日</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">グッズ登録</span>
-              <span className="font-medium">+5pt</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">コンテンツ追加</span>
-              <span className="font-medium">+10pt</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">7日連続ログイン</span>
-              <span className="font-medium">+50pt ボーナス</span>
-            </div>
+          <CardContent className="space-y-2 text-sm">
+            <Row label="ログインボーナス" value="+10pt / 日" />
+            <Row label="グッズ登録" value="+1pt" />
+            <Row label="コンテンツ追加" value="+10pt" />
+            <Row label="連続ログインボーナス" value="ストリーク数に応じて加算" />
           </CardContent>
         </Card>
       </div>
 
-      {/* Purchase Confirmation Dialog */}
-      <AlertDialog open={!!confirmItem} onOpenChange={() => setConfirmItem(null)}>
+      {/* Purchase Confirmation */}
+      <AlertDialog open={!!confirmPack} onOpenChange={(o) => !o && setConfirmPack(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>購入確認</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p><strong>{confirmItem?.name}</strong>を購入しますか？</p>
-              <p className="flex items-center gap-1">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                <span>{confirmItem?.points_cost}ポイント</span>を消費します
-              </p>
+            <AlertDialogTitle>{confirmPack?.name}</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm">
+                <p>
+                  <strong>¥{confirmPack?.price.toLocaleString()}</strong> で{" "}
+                  <strong>
+                    {((confirmPack?.points ?? 0) + (confirmPack?.bonus_points ?? 0)).toLocaleString()}pt
+                  </strong>{" "}
+                  を獲得します。
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  ※ 現在 決済機能は準備中です。実際の購入は近日中に開放予定です。
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmPurchase}>
-              購入する
+            <AlertDialogAction onClick={handleConfirmPurchase}>
+              続ける
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <Footer />
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium">{value}</span>
     </div>
   );
 }
