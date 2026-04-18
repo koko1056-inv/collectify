@@ -54,6 +54,7 @@ export function usePublicAiRooms(limit = 30) {
 
 export interface GenerateInput {
   itemImageUrls: string[];
+  itemIds?: string[];
   stylePrompt: string;
   stylePreset?: string;
   visualStyle?: string;
