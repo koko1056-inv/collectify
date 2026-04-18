@@ -1040,6 +1040,171 @@ export type Database = {
           },
         ]
       }
+      item_post_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "item_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_post_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_post_images: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_post_images_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "item_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "item_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_post_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_posts: {
+        Row: {
+          caption: string | null
+          comment_count: number
+          created_at: string
+          id: string
+          like_count: number
+          official_item_id: string | null
+          updated_at: string
+          user_id: string
+          user_item_id: string | null
+        }
+        Insert: {
+          caption?: string | null
+          comment_count?: number
+          created_at?: string
+          id?: string
+          like_count?: number
+          official_item_id?: string | null
+          updated_at?: string
+          user_id: string
+          user_item_id?: string | null
+        }
+        Update: {
+          caption?: string | null
+          comment_count?: number
+          created_at?: string
+          id?: string
+          like_count?: number
+          official_item_id?: string | null
+          updated_at?: string
+          user_id?: string
+          user_item_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_posts_official_item_id_fkey"
+            columns: ["official_item_id"]
+            isOneToOne: false
+            referencedRelation: "official_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "item_posts_user_item_id_fkey"
+            columns: ["user_item_id"]
+            isOneToOne: false
+            referencedRelation: "user_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       item_submissions: {
         Row: {
           content_name: string | null
