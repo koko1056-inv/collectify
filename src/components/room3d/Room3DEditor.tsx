@@ -595,60 +595,67 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       {/* ヘッダー */}
       <div
         className={cn(
-          "absolute left-0 right-0 z-20 px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2 bg-gradient-to-b from-black/60 via-black/30 to-transparent",
-          isFullScreen ? "top-0 pt-[max(0.5rem,env(safe-area-inset-top))]" : "top-0"
+          "absolute left-0 right-0 z-20 px-3 sm:px-4 flex items-center justify-between gap-2",
+          isFullScreen ? "top-0 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 bg-gradient-to-b from-black/50 to-transparent" : "top-3"
         )}
       >
+        {/* タイトルピル */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {isFullScreen && onClose && (
-            <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10 shrink-0 h-9 w-9">
-              <X className="w-5 h-5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="h-9 w-9 rounded-full bg-background/70 backdrop-blur-md border border-border/40 text-foreground hover:bg-background/90 shrink-0 shadow-sm"
+            >
+              <X className="w-4 h-4" />
             </Button>
           )}
-          <div className="min-w-0">
-            <h2 className="text-white font-bold text-sm sm:text-lg truncate">{mainRoom?.title || "マイルーム"}</h2>
-            <div className="flex items-center gap-3 text-white/70 text-xs">
-              <span className="flex items-center gap-1">
+          <div className="flex items-center gap-2 min-w-0 px-3 h-9 rounded-full bg-background/70 backdrop-blur-md border border-border/40 shadow-sm">
+            <h2 className="text-foreground font-semibold text-sm truncate">{mainRoom?.title || "マイルーム"}</h2>
+            <div className="flex items-center gap-2 text-muted-foreground text-[11px] shrink-0">
+              <span className="flex items-center gap-0.5">
                 <Eye className="w-3 h-3" />
                 {mainRoom?.visit_count || 0}
               </span>
-              <span className="flex items-center gap-1">
-                <Heart className={cn("w-3 h-3", isLiked && "fill-current text-red-400")} />
+              <span className="flex items-center gap-0.5">
+                <Heart className={cn("w-3 h-3", isLiked && "fill-current text-red-500")} />
                 {likeCount}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+        {/* アクションピル */}
+        <div className="flex items-center gap-1 shrink-0 px-1 h-9 rounded-full bg-background/70 backdrop-blur-md border border-border/40 shadow-sm">
           {isOwnRoom && (
             <>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/10 h-9 w-9"
+                className="h-7 w-7 rounded-full text-foreground hover:bg-muted"
                 onClick={() => setShowItemPalette(true)}
                 title="グッズを追加"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/10 h-9 w-9"
+                className="h-7 w-7 rounded-full text-foreground hover:bg-muted"
                 onClick={() => setShowFurniturePalette(true)}
                 title="家具を追加"
               >
-                <Armchair className="w-5 h-5" />
+                <Armchair className="w-4 h-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/10 h-9 w-9"
+                className="h-7 w-7 rounded-full text-foreground hover:bg-muted"
                 onClick={() => setShowBackgroundPicker(true)}
                 title="壁紙を変更"
               >
-                <Palette className="w-5 h-5" />
+                <Palette className="w-4 h-4" />
               </Button>
             </>
           )}
@@ -656,22 +663,22 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/10 h-9 w-9"
+              className="h-7 w-7 rounded-full text-foreground hover:bg-muted"
               onClick={() => toggleLike.mutate()}
               disabled={!user}
               title="いいね"
             >
-              <Heart className={cn("w-5 h-5", isLiked && "fill-current text-red-400")} />
+              <Heart className={cn("w-4 h-4", isLiked && "fill-current text-red-500")} />
             </Button>
           )}
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/10 h-9 w-9"
+            className="h-7 w-7 rounded-full text-foreground hover:bg-muted"
             onClick={() => shareScreenshot(mainRoom?.title)}
             title="共有"
           >
-            <Share2 className="w-5 h-5" />
+            <Share2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
