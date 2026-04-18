@@ -51,6 +51,23 @@ export function OfficialItemsList({
   const { wishlistCounts, ownerCounts } = useItemCounts();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkTagOpen, setIsBulkTagOpen] = useState(false);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const exitSelectionMode = useCallback(() => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  }, []);
   
   // 選択したタグでフィルタリングされたアイテムを取得
   const filteredByTagsItems = items.filter(item => {
