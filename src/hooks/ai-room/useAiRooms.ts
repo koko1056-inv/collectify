@@ -8,7 +8,7 @@ export interface AiGeneratedRoom {
   user_id: string;
   image_url: string;
   style_preset: string | null;
-  style_prompt: string;
+  style_prompt: string | null;
   custom_prompt: string | null;
   source_item_images: string[] | null;
   title: string | null;
