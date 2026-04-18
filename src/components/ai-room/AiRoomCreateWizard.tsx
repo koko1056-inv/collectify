@@ -328,6 +328,10 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                   <p className="text-xs text-muted-foreground">
                     部屋をどんなタッチで描くか選びましょう
                   </p>
+                  <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
+                    <Sparkles className="w-3 h-3" />
+                    1回の生成に 50pt 消費します
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -494,7 +498,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                 ) : (
                   <Wand2 className="w-4 h-4" />
                 )}
-                生成する
+                生成する (50pt)
               </Button>
             )}
           </div>

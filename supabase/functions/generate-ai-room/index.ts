@@ -64,6 +64,56 @@ Deno.serve(async (req) => {
       return json({ error: "スタイルが必要です" }, 400);
     }
 
+    // ポイント消費 (50pt) — service role で原子的に処理
+    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const ROOM_GENERATION_COST = 50;
+
+    const { data: pointsRow, error: pointsErr } = await adminClient
+      .from("user_points")
+      .select("total_points")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (pointsErr) {
+      console.error("Points lookup error:", pointsErr);
+      return json({ error: "ポイント残高の確認に失敗しました" }, 500);
+    }
+
+    const currentPoints = pointsRow?.total_points ?? 0;
+    if (currentPoints < ROOM_GENERATION_COST) {
+      return json(
+        {
+          error: `ポイントが不足しています（現在: ${currentPoints}pt / 必要: ${ROOM_GENERATION_COST}pt）`,
+          code: "INSUFFICIENT_POINTS",
+        },
+        402
+      );
+    }
+
+    const { error: deductErr } = await adminClient.rpc("add_user_points", {
+      _user_id: user.id,
+      _points: -ROOM_GENERATION_COST,
+      _transaction_type: "ai_room_generation",
+      _description: "AI推しルーム生成",
+    });
+    if (deductErr) {
+      console.error("Points deduction error:", deductErr);
+      return json({ error: "ポイント消費に失敗しました" }, 500);
+    }
+
+    const refundPoints = async (reason: string) => {
+      try {
+        await adminClient.rpc("add_user_points", {
+          _user_id: user.id,
+          _points: ROOM_GENERATION_COST,
+          _transaction_type: "ai_room_refund",
+          _description: `AIルーム生成失敗の返金: ${reason}`,
+        });
+      } catch (e) {
+        console.error("Refund failed:", e);
+      }
+    };
+
     // 最終プロンプト構築: グッズを "自然に配置された" 状態で描画するよう指示
     const itemCount = itemImageUrls.length;
     const fullPrompt = `あなたは推し活コレクターの部屋を描くアーティストです。
@@ -121,6 +171,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
     if (!aiRes.ok) {
       const errorText = await aiRes.text();
       console.error("AI Gateway error:", aiRes.status, errorText);
+      await refundPoints(`AI Gateway ${aiRes.status}`);
       if (aiRes.status === 429) {
         return json({ error: "レート制限に達しました。しばらく待って再試行してください" }, 429);
       }
@@ -136,11 +187,11 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
 
     if (!imageDataUrl) {
       console.error("No image in response:", JSON.stringify(aiData).slice(0, 500));
+      await refundPoints("画像なし");
       return json({ error: "画像が生成できませんでした" }, 500);
     }
 
     // data:image/png;base64,xxx → Buffer に変換して storage にアップロード
-    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const match = imageDataUrl.match(/^data:(image\/[^;]+);base64,(.+)$/);
     let finalImageUrl = imageDataUrl;
 
@@ -183,6 +234,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
 
     if (insertError) {
       console.error("DB insert error:", insertError);
+      await refundPoints("DB保存失敗");
       return json({ error: "保存に失敗しました", imageUrl: finalImageUrl }, 500);
     }
 

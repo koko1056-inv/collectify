@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -14,6 +14,8 @@ import {
   Pencil,
   LogOut,
   MessageCircle,
+  ImagePlus,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Profile } from "@/types";
@@ -23,6 +25,7 @@ import { FollowButton } from "./FollowButton";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChatModal } from "@/components/chat/ChatModal";
+import { toast } from "sonner";
 
 interface ProfileHeroProps {
   profile: Profile;
@@ -52,9 +55,53 @@ export function ProfileHero({
   onLogout,
 }: ProfileHeroProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+  const handleCoverUpload = async (file: File) => {
+    if (!isOwnProfile || !user?.id) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("画像は5MB以下にしてください");
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      toast.error("JPEG / PNG / WebP / GIF のみ対応しています");
+      return;
+    }
+    setCoverUploading(true);
+    const localUrl = URL.createObjectURL(file);
+    setCoverPreview(localUrl);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+      const path = `${user.id}/cover-${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("profile_images")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage
+        .from("profile_images")
+        .getPublicUrl(path);
+      const publicUrl = urlData.publicUrl;
+      const { error: updErr } = await supabase
+        .from("profiles")
+        .update({ cover_image_url: publicUrl })
+        .eq("id", user.id);
+      if (updErr) throw updErr;
+      setCoverPreview(publicUrl);
+      await queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      toast.success("カバー画像を更新しました");
+    } catch (e) {
+      console.error("Cover upload error:", e);
+      toast.error("アップロードに失敗しました");
+      setCoverPreview(null);
+    } finally {
+      setCoverUploading(false);
+    }
+  };
 
   // 統計
   const { data: stats } = useQuery({
@@ -99,44 +146,91 @@ export function ProfileHero({
 
   const displayName = profile.display_name || profile.username || "コレクター";
   const avatarSrc = previewUrl || profile.avatar_url || undefined;
+  const coverSrc = coverPreview || profile.cover_image_url || null;
+  const hasCustomCover = !!coverSrc;
 
   return (
     <>
       <div className="relative overflow-hidden rounded-b-3xl sm:rounded-3xl">
-        {/* カバーグラデーション */}
-        <div className={cn("relative h-32 sm:h-40 bg-gradient-to-br", rank.color)}>
-          {/* デコレーションパーティクル */}
-          <div className="absolute inset-0 overflow-hidden">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <motion.div
-                key={i}
-                className="absolute text-white/30"
-                style={{
-                  left: `${[10, 30, 55, 75, 90][i]}%`,
-                  top: `${[20, 50, 30, 60, 35][i]}%`,
-                  fontSize: `${14 + (i % 3) * 4}px`,
-                }}
-                animate={{ y: [0, -8, 0], rotate: [0, 20, 0] }}
-                transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: "easeInOut" }}
+        {/* カバー: カスタム画像 or グラデーション */}
+        <div
+          className={cn(
+            "relative h-32 sm:h-44 overflow-hidden",
+            !hasCustomCover && "bg-gradient-to-br",
+            !hasCustomCover && rank.color
+          )}
+        >
+          {hasCustomCover && (
+            <>
+              <img
+                src={coverSrc!}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="eager"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20" />
+            </>
+          )}
+          {!hasCustomCover && (
+            <div className="absolute inset-0 overflow-hidden">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <motion.div
+                  key={i}
+                  className="absolute text-white/30"
+                  style={{
+                    left: `${[10, 30, 55, 75, 90][i]}%`,
+                    top: `${[20, 50, 30, 60, 35][i]}%`,
+                    fontSize: `${14 + (i % 3) * 4}px`,
+                  }}
+                  animate={{ y: [0, -8, 0], rotate: [0, 20, 0] }}
+                  transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  {["✨", "💖", "🌸", "⭐", "🎀"][i]}
+                </motion.div>
+              ))}
+            </div>
+          )}
+
+          <div className="absolute top-3 right-3 flex gap-1 z-10">
+            {isOwnProfile && (
+              <label
+                className={cn(
+                  "w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center cursor-pointer transition-colors",
+                  coverUploading && "pointer-events-none opacity-70"
+                )}
+                aria-label="カバー画像を変更"
+                title="カバー画像を変更"
               >
-                {["✨", "💖", "🌸", "⭐", "🎀"][i]}
-              </motion.div>
-            ))}
-          </div>
-          {/* 右上: 自分 → 設定/ログアウト / 他人 → 共有 */}
-          <div className="absolute top-3 right-3 flex gap-1">
+                {coverUploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ImagePlus className="w-4 h-4" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  disabled={coverUploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleCoverUpload(f);
+                    e.currentTarget.value = "";
+                  }}
+                />
+              </label>
+            )}
             {isOwnProfile ? (
               <>
                 <button
                   onClick={onOpenSettings}
-                  className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white backdrop-blur-sm flex items-center justify-center"
+                  className="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
                   aria-label="設定"
                 >
                   <Settings className="w-4 h-4" />
                 </button>
                 <button
                   onClick={onLogout}
-                  className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white backdrop-blur-sm flex items-center justify-center"
+                  className="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
                   aria-label="ログアウト"
                 >
                   <LogOut className="w-4 h-4" />
@@ -145,7 +239,7 @@ export function ProfileHero({
             ) : (
               <button
                 onClick={onShare}
-                className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white backdrop-blur-sm flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
                 aria-label="共有"
               >
                 <Share2 className="w-4 h-4" />

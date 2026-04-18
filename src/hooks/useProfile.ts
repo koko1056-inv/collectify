@@ -16,6 +16,7 @@ export function useProfile(userId: string | undefined) {
           username,
           display_name,
           avatar_url,
+          cover_image_url,
           bio,
           created_at,
           favorite_contents,
