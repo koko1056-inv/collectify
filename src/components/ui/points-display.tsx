@@ -1,14 +1,17 @@
 import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useUserPoints } from "@/hooks/usePoints";
+import { useNavigate } from "react-router-dom";
 
 interface PointsDisplayProps {
   size?: "sm" | "md" | "lg";
   showIcon?: boolean;
+  clickable?: boolean;
 }
 
-export function PointsDisplay({ size = "md", showIcon = true }: PointsDisplayProps) {
+export function PointsDisplay({ size = "md", showIcon = true, clickable = true }: PointsDisplayProps) {
   const { data: userPoints, isLoading, error } = useUserPoints();
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -28,10 +31,11 @@ export function PointsDisplay({ size = "md", showIcon = true }: PointsDisplayPro
   const totalPoints = userPoints?.total_points || 0;
 
   return (
-    <Badge 
-      variant="secondary" 
-      className={`flex items-center gap-1 ${
-        size === "sm" ? "text-xs px-2 py-1" : 
+    <Badge
+      variant="secondary"
+      onClick={clickable ? () => navigate("/point-shop") : undefined}
+      className={`flex items-center gap-1 ${clickable ? "cursor-pointer hover:bg-secondary/80 transition-colors" : ""} ${
+        size === "sm" ? "text-xs px-2 py-1" :
         size === "lg" ? "text-base px-3 py-2" : "text-sm px-2.5 py-1.5"
       }`}
     >
