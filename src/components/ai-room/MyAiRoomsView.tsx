@@ -93,7 +93,7 @@ export function MyAiRoomsView() {
           <div className="flex items-center gap-1.5">
             <Wand2 className="w-4 h-4 text-primary" />
             <h2 className="text-base font-bold">AI推しルーム</h2>
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
               NEW
             </span>
           </div>
@@ -105,7 +105,7 @@ export function MyAiRoomsView() {
           <Button
             onClick={() => setWizardOpen(true)}
             size="sm"
-            className="shrink-0 gap-1.5 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 text-white hover:opacity-95 shadow-md"
+            className="shrink-0 gap-1.5 shadow-md"
           >
             <Plus className="w-4 h-4" />
             新規
@@ -285,18 +285,18 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
       animate={{ opacity: 1, y: 0 }}
       className="relative rounded-3xl overflow-hidden border border-border/40 shadow-sm"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 via-purple-500/15 to-orange-400/20" />
-      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-pink-400/30 blur-3xl" />
-      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-purple-400/30 blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/30 to-primary/10" />
+      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-primary/20 blur-3xl" />
+      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-primary/15 blur-3xl" />
 
       <div className="relative p-6 sm:p-10 text-center space-y-5">
         <div className="relative w-20 h-20 mx-auto">
           <motion.div
             animate={{ rotate: [0, 15, -10, 0], scale: [1, 1.08, 1] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full h-full rounded-full bg-gradient-to-br from-pink-400 via-purple-500 to-orange-400 flex items-center justify-center shadow-xl"
+            className="w-full h-full rounded-full bg-primary flex items-center justify-center shadow-xl"
           >
-            <Wand2 className="w-9 h-9 text-white" />
+            <Wand2 className="w-9 h-9 text-primary-foreground" />
           </motion.div>
           {[0, 1, 2].map((i) => (
             <motion.div
@@ -309,7 +309,7 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
               animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
               transition={{ duration: 2, repeat: Infinity, delay: i * 0.5 }}
             >
-              <Sparkles className="w-4 h-4 text-pink-500" />
+              <Sparkles className="w-4 h-4 text-primary" />
             </motion.div>
           ))}
         </div>
@@ -328,7 +328,7 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
         <Button
           size="lg"
           onClick={onStart}
-          className="gap-2 h-12 px-6 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 text-white hover:opacity-95 shadow-lg"
+          className="gap-2 h-12 px-6 shadow-lg"
         >
           <Wand2 className="w-5 h-5" />
           はじめて作る
@@ -439,7 +439,7 @@ function HeroRoom({
         <Button
           size="sm"
           onClick={onShare}
-          className="text-xs h-9 gap-1.5 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 text-white hover:opacity-95"
+          className="text-xs h-9 gap-1.5"
         >
           <Share2 className="w-3.5 h-3.5" />
           シェア
