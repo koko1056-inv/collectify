@@ -497,6 +497,38 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
                 インポートするアイテムを確認してチェックを入れてください
               </div>
 
+              {/* コンテンツ一括設定 */}
+              <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
+                <Label htmlFor="bulk-content" className="text-sm font-medium">
+                  コンテンツを一括設定
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="bulk-content"
+                    list="bulk-content-suggestions"
+                    placeholder="例: ミセスグリーンアップル"
+                    value={bulkContentName}
+                    onChange={(e) => setBulkContentName(e.target.value)}
+                    className="flex-1"
+                  />
+                  <datalist id="bulk-content-suggestions">
+                    {contentSuggestions.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
+                  <Button
+                    variant="outline"
+                    onClick={applyBulkContentName}
+                    disabled={!bulkContentName.trim()}
+                  >
+                    全件に適用
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  入力したコンテンツ名を全アイテムに一括で適用します。新しいコンテンツ名は自動で登録されます。
+                </p>
+              </div>
+
               {isLoading && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
