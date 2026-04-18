@@ -271,6 +271,7 @@ export type Database = {
           is_public: boolean | null
           layout_config: Json | null
           page_order: number
+          scene_avatar_url: string | null
           title: string
           updated_at: string
           user_id: string
@@ -290,6 +291,7 @@ export type Database = {
           is_public?: boolean | null
           layout_config?: Json | null
           page_order?: number
+          scene_avatar_url?: string | null
           title?: string
           updated_at?: string
           user_id: string
@@ -309,6 +311,7 @@ export type Database = {
           is_public?: boolean | null
           layout_config?: Json | null
           page_order?: number
+          scene_avatar_url?: string | null
           title?: string
           updated_at?: string
           user_id?: string

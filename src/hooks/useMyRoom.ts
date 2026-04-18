@@ -15,6 +15,10 @@ export interface MyRoom {
   visit_count: number;
   binder_type: string;
   layout_config: Record<string, any>;
+  bgm_preset: string | null;
+  bgm_url: string | null;
+  bgm_volume: number | null;
+  scene_avatar_url: string | null;
   created_at: string;
   updated_at: string;
 }

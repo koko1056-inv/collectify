@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Palette, Shuffle, Heart, Eye, Loader2, Trash2 } from "lucide-react";
+import { Plus, Palette, Shuffle, Heart, Eye, Loader2, Trash2, Play, Pause, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Profile } from "@/types";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
+import { useRoomBgm } from "@/hooks/useRoomBgm";
 import { IsometricRoomScene } from "./IsometricRoomScene";
 import { PlaceItemSheet } from "./PlaceItemSheet";
-import { ThemePickerSheet } from "./ThemePickerSheet";
+import { SceneEditorSheet } from "./SceneEditorSheet";
 import { getRoomTheme, getTimeOfDay, getTimeFilter } from "./roomThemes";
 import { TOTAL_SLOTS } from "./roomSlots";
 import { shuffleRoom, removeFromRoom } from "./autoPlace";
@@ -29,13 +30,26 @@ export function MyRoomScene({ profile }: MyRoomSceneProps) {
   } = useMyRoom();
 
   const [showPlace, setShowPlace] = useState(false);
-  const [showTheme, setShowTheme] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
   const [shuffling, setShuffling] = useState(false);
   const [selected, setSelected] = useState<RoomItem | null>(null);
+  const [bgmEnabled, setBgmEnabled] = useState(false);
 
   const tod = getTimeOfDay();
   const timeMeta = getTimeFilter(tod);
   const theme = getRoomTheme(mainRoom?.background_color);
+
+  const themeId = (mainRoom?.background_color ?? "").startsWith("theme:")
+    ? mainRoom!.background_color!.slice(6)
+    : "natural";
+
+  const bgm = useRoomBgm({
+    themeId,
+    bgmPreset: mainRoom?.bgm_preset ?? null,
+    bgmUrl: mainRoom?.bgm_url ?? null,
+    volume: mainRoom?.bgm_volume ?? 0.3,
+    enabled: bgmEnabled,
+  });
 
   // 部屋がない場合
   if (!isLoading && !mainRoom) {
@@ -97,9 +111,6 @@ export function MyRoomScene({ profile }: MyRoomSceneProps) {
   };
 
   const occupied = roomItems.length;
-  const themeId = (mainRoom.background_color ?? "").startsWith("theme:")
-    ? mainRoom.background_color!.slice(6)
-    : "natural";
 
   return (
     <div className="w-full max-w-5xl mx-auto px-3 sm:px-4">
@@ -117,6 +128,26 @@ export function MyRoomScene({ profile }: MyRoomSceneProps) {
           <Heart className="w-3.5 h-3.5 text-rose-500" />
           <span className="font-medium tabular-nums">{likeCount}</span>
         </div>
+        {bgm.hasBgm && (
+          <button
+            onClick={() => {
+              if (bgmEnabled) {
+                bgm.togglePlay();
+              } else {
+                setBgmEnabled(true);
+              }
+            }}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 hover:bg-primary/20 transition-colors"
+            title="BGM"
+          >
+            {bgm.isPlaying ? (
+              <Pause className="w-3.5 h-3.5 text-primary" />
+            ) : (
+              <Play className="w-3.5 h-3.5 text-primary" />
+            )}
+            <Music className="w-3 h-3 text-primary" />
+          </button>
+        )}
         <div className="ml-auto text-[10px] text-muted-foreground tabular-nums">
           {occupied}/{TOTAL_SLOTS}
         </div>
@@ -129,7 +160,7 @@ export function MyRoomScene({ profile }: MyRoomSceneProps) {
             items={roomItems}
             theme={theme}
             timeOfDay={tod}
-            avatarUrl={profile.avatar_url}
+            avatarUrl={mainRoom.scene_avatar_url ?? profile.avatar_url}
             onItemClick={isOwnRoom ? setSelected : undefined}
             className="absolute inset-0"
           />
@@ -175,11 +206,11 @@ export function MyRoomScene({ profile }: MyRoomSceneProps) {
           <Button
             size="lg"
             variant="secondary"
-            onClick={() => setShowTheme(true)}
+            onClick={() => setShowEditor(true)}
             className="h-14 rounded-2xl text-base font-semibold gap-2 shadow-md"
           >
             <Palette className="w-5 h-5" />
-            模様替え
+            シーン編集
           </Button>
         </div>
       )}
@@ -191,11 +222,13 @@ export function MyRoomScene({ profile }: MyRoomSceneProps) {
         roomId={mainRoom.id}
         roomItems={roomItems}
       />
-      <ThemePickerSheet
-        open={showTheme}
-        onOpenChange={setShowTheme}
+      <SceneEditorSheet
+        open={showEditor}
+        onOpenChange={setShowEditor}
         roomId={mainRoom.id}
         currentThemeId={themeId}
+        currentAvatarUrl={mainRoom.scene_avatar_url ?? null}
+        currentBgmId={mainRoom.bgm_preset ?? null}
       />
 
       {/* アイテム選択シート */}
