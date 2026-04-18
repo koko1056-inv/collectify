@@ -71,7 +71,7 @@ const Posts = memo(function Posts() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="flex min-h-[calc(100vh-4rem)] pt-16">
+      <div className="flex min-h-[calc(100vh-4rem)]">
         {/* サイドバー（デスクトップ） */}
         <aside className="hidden lg:block w-64 border-r border-border overflow-y-auto">
           <Suspense fallback={<Skeleton className="w-full h-96" />}>

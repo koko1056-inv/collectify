@@ -149,7 +149,7 @@ export default function HowToUse() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
       <Navbar />
-      <main className={`${isMobile ? 'pt-20 pb-24' : 'pt-24 pb-8'}`}>
+      <main className={`${isMobile ? 'pb-24' : 'pt-4 pb-8'}`}>
         <div className="max-w-6xl mx-auto px-4 space-y-16">
           
           {/* ヒーローセクション */}

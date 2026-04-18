@@ -98,7 +98,7 @@ export function Navbar() {
       });
     }
   };
-  return <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b shadow-sm">
+  return <nav className="relative z-50 bg-background border-b shadow-sm">
       {/* モバイル版のロゴ (sm未満でのみ表示) */}
       <div className="flex sm:hidden items-center h-12 bg-background px-4">
         <div className="w-20 flex-shrink-0" /> {/* Left spacer for balance */}

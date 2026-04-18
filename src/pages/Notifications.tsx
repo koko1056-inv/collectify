@@ -38,7 +38,7 @@ export default function Notifications() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className={`container mx-auto ${isMobile ? 'pt-20 pb-20 px-2' : 'pt-28 pb-8 px-4'}`}>
+      <main className={`container mx-auto ${isMobile ? 'pt-4 pb-20 px-2' : 'pt-6 pb-8 px-4'}`}>
         <div className={`${isMobile ? '' : 'max-w-4xl mx-auto'} space-y-6`}>
           {/* ヘッダー */}
           <div className="flex items-center justify-between">

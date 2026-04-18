@@ -45,7 +45,7 @@ export default function UserProfile() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container mx-auto pt-20 pb-20 px-4">
+        <main className="container mx-auto pb-20 px-4 pt-6">
           <div className="max-w-3xl mx-auto space-y-4">
             <Skeleton className="h-48 w-full rounded-3xl" />
             <Skeleton className="h-10 w-full" />
@@ -59,7 +59,7 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="w-full pt-14 pb-24">
+      <main className="w-full pb-24">
         <div className="max-w-3xl mx-auto">
           {/* 戻るボタン */}
           <div className="px-4 py-2">

@@ -78,7 +78,7 @@ export default function PointShop() {
     <div className="min-h-screen bg-background pb-24">
       <Navbar />
 
-      <div className="container max-w-4xl mx-auto px-4 py-6 pt-16 sm:pt-6">
+      <div className="container max-w-4xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>

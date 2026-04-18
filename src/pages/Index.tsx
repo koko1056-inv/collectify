@@ -42,7 +42,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container mx-auto px-1 py-4 pt-0 pb-24 sm:px-2 sm:py-8 sm:pt-20 sm:pb-8">
+        <main className="container mx-auto px-1 py-4 pt-0 pb-24 sm:px-2 sm:py-8 sm:pb-8">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -58,7 +58,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="container mx-auto px-1 py-4 pt-0 pb-24 sm:px-2 sm:py-8 sm:pt-20 sm:pb-8">
+      <main className="container mx-auto px-1 py-4 pt-0 pb-24 sm:px-2 sm:py-8 sm:pb-8">
         <div className={`space-y-4 sm:space-y-6 ${isMobile ? "pt-2" : ""}`}>
           {showUserCollection ? (
             <UserProfileCollection 

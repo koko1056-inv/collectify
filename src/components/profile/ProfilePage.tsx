@@ -53,7 +53,7 @@ export function ProfilePage() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container mx-auto pt-20 pb-20 px-4">
+        <main className="container mx-auto pt-6 pb-20 px-4">
           <div className="max-w-3xl mx-auto space-y-4">
             <Skeleton className="h-48 w-full rounded-3xl" />
             <Skeleton className="h-10 w-full" />

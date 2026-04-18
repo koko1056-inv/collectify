@@ -75,7 +75,7 @@ export default function ItemPostsFeed() {
   return (
     <div className="min-h-screen bg-background pb-24">
       <Navbar />
-      <main className="container mx-auto px-4 pt-20">
+      <main className="container mx-auto px-4 pt-4">
         <div className="max-w-4xl mx-auto space-y-4">
           {/* タイトル */}
           <div className="flex items-center justify-between gap-3">

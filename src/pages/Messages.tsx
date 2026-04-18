@@ -20,7 +20,7 @@ export default function Messages() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="container mx-auto pt-16 pb-20 px-0 sm:pt-20 sm:pb-8 sm:px-4">
+      <main className="container mx-auto pb-20 px-0 sm:pb-8 sm:px-4">
         <div className="max-w-2xl mx-auto">
           <ConversationList />
         </div>

@@ -50,7 +50,7 @@ export default function MyRoom() {
         />
       </div>
       <Navbar />
-      <main className="relative z-10 w-full pt-16 pb-24">
+      <main className="relative z-10 w-full pb-24">
         <MyRoomHome 
           profile={profile} 
           onAvatarGenerated={handleAvatarGenerated} 
