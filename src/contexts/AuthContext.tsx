@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
-import { useNavigate } from 'react-router-dom'
+
 import { trackLogin, trackLogout } from '@/utils/analytics'
 
 // ログインボーナス処理のユーティリティ関数（連続ログイン対応）
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
-  const navigate = useNavigate()
+  
 
   useEffect(() => {
     const initializeSession = async () => {
