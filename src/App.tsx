@@ -33,6 +33,7 @@ const RoomView = lazy(() => import("./pages/RoomView").catch(() => ({ default: (
 // const PointShop = lazy(() => import("./pages/PointShop")); // サブスク移行予定のため一旦非表示
 const HowToUse = lazy(() => import("./pages/HowToUse").catch(() => ({ default: () => <div>Error loading page</div> })));
 const ImageSearch = lazy(() => import("./pages/ImageSearch").catch(() => ({ default: () => <div>Error loading page</div> })));
+const AiRooms = lazy(() => import("./pages/AiRooms").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -106,6 +107,7 @@ const App: React.FC = () => {
                       <Route path="/collection" element={<ProtectedRoute><Collection /></ProtectedRoute>} />
                       <Route path="/my-room" element={<ProtectedRoute><MyRoom /></ProtectedRoute>} />
                       <Route path="/image-search" element={<ProtectedRoute><ImageSearch /></ProtectedRoute>} />
+                      <Route path="/ai-rooms" element={<ProtectedRoute><AiRooms /></ProtectedRoute>} />
                       {/* ポイントショップは一旦非表示（サブスク移行予定） */}
                       <Route path="*" element={<Navigate to="/my-room" replace />} />
                     </Routes>

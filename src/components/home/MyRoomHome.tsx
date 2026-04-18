@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy } from "lucide-react";
+import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy, Wand2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -216,6 +216,9 @@ export function MyRoomHome({
           )}
           {activeTab === "room" && (
             <div className="w-full animate-fade-in py-2">
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+                <AiRoomPromoCard onClick={() => navigate("/ai-rooms")} />
+              </div>
               <MyRoomScene profile={profile} />
             </div>
           )}
@@ -241,6 +244,44 @@ export function MyRoomHome({
         />
       )}
     </div>
+  );
+}
+
+// ==================== AIルームプロモカード ====================
+function AiRoomPromoCard({ onClick }: { onClick: () => void }) {
+  return (
+    <motion.button
+      onClick={onClick}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
+      className="relative w-full overflow-hidden rounded-2xl border border-border/40 shadow-sm text-left group"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-pink-500/15 via-purple-500/15 to-orange-400/15" />
+      <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-pink-400/25 blur-3xl" />
+      <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-purple-400/25 blur-3xl" />
+
+      <div className="relative flex items-center gap-3 p-4">
+        <motion.div
+          animate={{ rotate: [0, 12, -8, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-400 via-purple-500 to-orange-400 flex items-center justify-center shadow-md"
+        >
+          <Wand2 className="w-6 h-6 text-white" />
+        </motion.div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <p className="text-sm font-bold">AIで推しルームを描く</p>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+              NEW
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+            グッズを選ぶだけで、あなただけの一度きりの部屋が完成
+          </p>
+        </div>
+        <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
+      </div>
+    </motion.button>
   );
 }
 
