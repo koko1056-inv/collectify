@@ -23,6 +23,10 @@ import {
   MoveHorizontal,
   MoveVertical,
   Move3d,
+  ArrowUpToLine,
+  ArrowDownToLine,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { useMyRoom, RoomItem, PlacementType } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -362,6 +366,31 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     }
   }, [queryClient, selectedItem, roomItems]);
 
+  // レイヤー操作: 最前面 / 最背面
+  const handleSetLayer = useCallback(async (
+    itemId: string,
+    direction: 'front' | 'back'
+  ) => {
+    const maxZ = roomItems.reduce((m, i) => Math.max(m, i.z_index || 0), 0);
+    const minZ = roomItems.reduce((m, i) => Math.min(m, i.z_index || 0), 0);
+    const newZ = direction === 'front' ? Math.min(maxZ + 1, 999) : Math.max(minZ - 1, -999);
+    try {
+      const { error } = await supabase
+        .from("binder_items")
+        .update({ z_index: newZ })
+        .eq("id", itemId);
+      if (error) throw error;
+      if (selectedItem && selectedItem.id === itemId) {
+        setSelectedItem({ ...selectedItem, z_index: newZ });
+      }
+      toast.success(direction === 'front' ? '最前面に移動しました' : '最背面に移動しました');
+      queryClient.invalidateQueries({ queryKey: ["room-items"] });
+    } catch (error) {
+      console.error("Error setting layer:", error);
+      toast.error("レイヤー変更に失敗しました");
+    }
+  }, [queryClient, selectedItem, roomItems]);
+
   // 背景を変更
   const updateBackground = useMutation({
     mutationFn: async (backgroundColor: string) => {
@@ -564,16 +593,21 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       isFullScreen ? "fixed inset-0 z-50" : "min-h-[60vh]"
     )}>
       {/* ヘッダー */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-        <div className="flex items-center gap-3">
+      <div
+        className={cn(
+          "absolute left-0 right-0 z-20 px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2 bg-gradient-to-b from-black/60 via-black/30 to-transparent",
+          isFullScreen ? "top-0 pt-[max(0.5rem,env(safe-area-inset-top))]" : "top-0"
+        )}
+      >
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {isFullScreen && onClose && (
-            <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10 shrink-0 h-9 w-9">
               <X className="w-5 h-5" />
             </Button>
           )}
-          <div>
-            <h2 className="text-white font-bold text-lg">{mainRoom?.title || "マイルーム"}</h2>
-            <div className="flex items-center gap-4 text-white/70 text-sm">
+          <div className="min-w-0">
+            <h2 className="text-white font-bold text-sm sm:text-lg truncate">{mainRoom?.title || "マイルーム"}</h2>
+            <div className="flex items-center gap-3 text-white/70 text-xs">
               <span className="flex items-center gap-1">
                 <Eye className="w-3 h-3" />
                 {mainRoom?.visit_count || 0}
@@ -585,52 +619,57 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             </div>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
           {isOwnRoom && (
             <>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-white hover:bg-white/10"
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/10 h-9 w-9"
                 onClick={() => setShowItemPalette(true)}
                 title="グッズを追加"
               >
                 <Plus className="w-5 h-5" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-white hover:bg-white/10"
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/10 h-9 w-9"
                 onClick={() => setShowFurniturePalette(true)}
                 title="家具を追加"
               >
                 <Armchair className="w-5 h-5" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-white hover:bg-white/10"
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/10 h-9 w-9"
                 onClick={() => setShowBackgroundPicker(true)}
+                title="壁紙を変更"
               >
                 <Palette className="w-5 h-5" />
               </Button>
             </>
           )}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-white hover:bg-white/10"
-            onClick={() => toggleLike.mutate()}
-            disabled={!user || isOwnRoom}
-          >
-            <Heart className={cn("w-5 h-5", isLiked && "fill-current text-red-400")} />
-          </Button>
+          {!isOwnRoom && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/10 h-9 w-9"
+              onClick={() => toggleLike.mutate()}
+              disabled={!user}
+              title="いいね"
+            >
+              <Heart className={cn("w-5 h-5", isLiked && "fill-current text-red-400")} />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/10"
+            className="text-white hover:bg-white/10 h-9 w-9"
             onClick={() => shareScreenshot(mainRoom?.title)}
+            title="共有"
           >
             <Share2 className="w-5 h-5" />
           </Button>
@@ -638,7 +677,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       </div>
 
       {/* 2Dシェルフビュー */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative pt-14 sm:pt-16">
         <ShelfView
           roomItems={roomItems}
           roomFurniture={roomFurniture}
@@ -806,25 +845,45 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             </Button>
           </div>
 
-          {/* Z軸（高さ）調整 */}
+          {/* レイヤー（重なり順） */}
           <div className="flex items-center gap-1">
-            <span className="text-white/60 text-xs">Z:</span>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <span className="text-white/60 text-xs">レイヤー:</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleSetLayer(selectedItem.id, 'back')}
+              title="最背面へ"
+            >
+              <ArrowDownToLine className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
               onClick={() => handleAdjustItemPosition(selectedItem.id, 'z', -1)}
+              title="背面に1つ移動"
             >
-              <Minus className="w-3 h-3" />
+              <ChevronDown className="w-3.5 h-3.5" />
             </Button>
-            <span className="text-white text-xs w-8 text-center">{selectedItem.z_index}</span>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <span className="text-white text-xs w-6 text-center">{selectedItem.z_index}</span>
+            <Button
+              variant="ghost"
+              size="icon"
               className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
               onClick={() => handleAdjustItemPosition(selectedItem.id, 'z', 1)}
+              title="前面に1つ移動"
             >
-              <Plus className="w-3 h-3" />
+              <ChevronUp className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleSetLayer(selectedItem.id, 'front')}
+              title="最前面へ"
+            >
+              <ArrowUpToLine className="w-3.5 h-3.5" />
             </Button>
           </div>
           

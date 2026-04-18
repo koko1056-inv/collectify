@@ -13,12 +13,11 @@ interface Item2DProps {
   onMove?: (itemId: string, posX: number, posY: number) => void;
 }
 
-// 画面端での見切れを防ぐためのセーフパディング（画面%）
-const SAFE_MIN_X = 4;
-const SAFE_MAX_X = 96;
-// 上は画面上部のヘッダーを避ける、下は床+アバターを避ける
-const SAFE_MIN_Y = 8;
-const SAFE_MAX_Y = 92;
+// 自由配置：見切れを最小限に防ぐだけのゆるいセーフパディング
+const SAFE_MIN_X = 2;
+const SAFE_MAX_X = 98;
+const SAFE_MIN_Y = 2;
+const SAFE_MAX_Y = 98;
 
 function clamp(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v));
