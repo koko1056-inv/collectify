@@ -47,6 +47,59 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_generated_rooms: {
+        Row: {
+          created_at: string
+          custom_prompt: string | null
+          id: string
+          image_url: string
+          is_public: boolean
+          like_count: number
+          source_item_ids: string[] | null
+          source_item_images: string[] | null
+          style_preset: string | null
+          style_prompt: string | null
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_prompt?: string | null
+          id?: string
+          image_url: string
+          is_public?: boolean
+          like_count?: number
+          source_item_ids?: string[] | null
+          source_item_images?: string[] | null
+          style_preset?: string | null
+          style_prompt?: string | null
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_prompt?: string | null
+          id?: string
+          image_url?: string
+          is_public?: boolean
+          like_count?: number
+          source_item_ids?: string[] | null
+          source_item_images?: string[] | null
+          style_preset?: string | null
+          style_prompt?: string | null
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_generated_rooms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avatar_gallery: {
         Row: {
           created_at: string
