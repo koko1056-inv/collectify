@@ -6,7 +6,8 @@ import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
 import { useItemCounts } from "./official-goods/hooks/useItemCounts";
 import { useSortedItems } from "./official-goods/hooks/useSortedItems";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, CheckSquare, X, Tags } from "lucide-react";
+import { TagManageModal } from "./tag/TagManageModal";
 import { 
   Drawer,
   DrawerClose,
@@ -50,6 +51,23 @@ export function OfficialItemsList({
   const { wishlistCounts, ownerCounts } = useItemCounts();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkTagOpen, setIsBulkTagOpen] = useState(false);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const exitSelectionMode = useCallback(() => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  }, []);
   
   // 選択したタグでフィルタリングされたアイテムを取得
   const filteredByTagsItems = items.filter(item => {
@@ -141,6 +159,43 @@ export function OfficialItemsList({
         showBulkImport={!!user}
         onBulkImportClick={() => setIsBulkImportOpen(true)}
       />
+
+      {user && (
+        <div className="flex items-center justify-between gap-2 px-2">
+          {selectionMode ? (
+            <>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="ghost" onClick={exitSelectionMode} className="h-8 px-2">
+                  <X className="h-4 w-4 mr-1" />
+                  キャンセル
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  {selectedIds.size}件選択中
+                </span>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => setIsBulkTagOpen(true)}
+                disabled={selectedIds.size === 0}
+                className="h-8"
+              >
+                <Tags className="h-4 w-4 mr-1" />
+                タグ一括編集
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSelectionMode(true)}
+              className="h-8 ml-auto"
+            >
+              <CheckSquare className="h-4 w-4 mr-1" />
+              選択モード
+            </Button>
+          )}
+        </div>
+      )}
       
       <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <DrawerContent className="max-h-[90vh] px-4 pt-4 pb-8">
@@ -170,8 +225,23 @@ export function OfficialItemsList({
         isOpen={isBulkImportOpen} 
         onClose={() => setIsBulkImportOpen(false)} 
       />
+
+      <TagManageModal
+        isOpen={isBulkTagOpen}
+        onClose={() => {
+          setIsBulkTagOpen(false);
+          exitSelectionMode();
+        }}
+        itemIds={Array.from(selectedIds)}
+        isUserItem={false}
+      />
       
-      <OfficialItemsGrid items={currentItems} />
+      <OfficialItemsGrid
+        items={currentItems}
+        selectionMode={selectionMode}
+        selectedIds={selectedIds}
+        onToggleSelect={toggleSelect}
+      />
       
       {visibleCount < sortedItems.length && (
         <div 
