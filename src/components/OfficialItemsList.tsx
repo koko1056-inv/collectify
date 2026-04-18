@@ -6,7 +6,8 @@ import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
 import { useItemCounts } from "./official-goods/hooks/useItemCounts";
 import { useSortedItems } from "./official-goods/hooks/useSortedItems";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, CheckSquare, X, Tags } from "lucide-react";
+import { TagManageModal } from "./tag/TagManageModal";
 import { 
   Drawer,
   DrawerClose,
