@@ -149,10 +149,12 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       trackAddToCollection(id, title, user.id);
 
       await refetchIsInCollection();
-      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
-      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id] });
-      await queryClient.invalidateQueries({ queryKey: ["userPoints"] });
-      await queryClient.invalidateQueries({ queryKey: ["collectionCount"] });
+      // refetchType: "all" で非アクティブなクエリも強制再フェッチ（検索→コレクションタブ遷移時に即反映）
+      await queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" });
+      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", id], refetchType: "all" });
+      await queryClient.invalidateQueries({ queryKey: ["userPoints"], refetchType: "all" });
+      await queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" });
+      await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
 
       // 効果音を再生
       playSuccessSound();

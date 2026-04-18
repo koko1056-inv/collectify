@@ -71,9 +71,10 @@ export function CollectionButton({
         () => {
           // コレクション状態を更新
           refetchIsInCollection();
-          queryClient.invalidateQueries({ queryKey: ["is-in-collection", itemId, user.id] });
-          queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
-          queryClient.invalidateQueries({ queryKey: ["item-owners-count", itemId] });
+          queryClient.invalidateQueries({ queryKey: ["is-in-collection", itemId, user.id], refetchType: "all" });
+          queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" });
+          queryClient.invalidateQueries({ queryKey: ["item-owners-count", itemId], refetchType: "all" });
+          queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
         }
       )
       .subscribe();

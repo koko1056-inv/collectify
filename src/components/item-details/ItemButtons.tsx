@@ -97,10 +97,11 @@ export function ItemButtons({
       // 状態を更新
       await refetchIsInCollection();
       await refetchOwnersCount();
-      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
-      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", itemId] });
-      await queryClient.invalidateQueries({ queryKey: ["userPoints"] });
-      await queryClient.invalidateQueries({ queryKey: ["collectionCount"] });
+      await queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" });
+      await queryClient.invalidateQueries({ queryKey: ["item-owners-count", itemId], refetchType: "all" });
+      await queryClient.invalidateQueries({ queryKey: ["userPoints"], refetchType: "all" });
+      await queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" });
+      await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
       
       toast({
         title: "コレクションに追加しました！",

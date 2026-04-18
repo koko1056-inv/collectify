@@ -74,6 +74,8 @@ export function UserCollection({
       return data || [];
     },
     enabled: !!effectiveUserId,
+    // マウント時に常に再フェッチして、他ページで追加/削除したグッズを即反映する
+    refetchOnMount: "always",
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10
   });

@@ -85,7 +85,8 @@ const OfficialGoodsCardWithSwipe = ({
 
       if (error) throw error;
 
-      await queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
+      await queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" });
+      await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
 
       toast({
         title: "ウィッシュリストに追加しました！",
