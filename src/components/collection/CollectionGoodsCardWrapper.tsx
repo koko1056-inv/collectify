@@ -74,8 +74,8 @@ export function CollectionGoodsCardWrapper({
         <CardHeader className="p-0">
           <CollectionGoodsCardHeader title={title} image={image} quantity={quantity} />
         </CardHeader>
-        <CardContent className="px-3 pt-2.5 pb-2 flex-1">
-          <h3 className="font-medium text-foreground text-[13px] leading-snug line-clamp-2 min-h-[2.6em] tracking-tight">{title}</h3>
+        <CardContent className="px-2.5 pt-2 pb-1.5 flex-1">
+          <h3 className="font-medium text-foreground text-[12px] leading-snug line-clamp-2 min-h-[2.5em] tracking-tight">{title}</h3>
         </CardContent>
 
         <CollectionGoodsCardFooter id={id} onMemoriesClick={handleMemoriesClick} onTagManageClick={handleTagManageClick} onDeleteClick={handleDeleteClick} onCreatePostClick={handleCreatePostClick} />

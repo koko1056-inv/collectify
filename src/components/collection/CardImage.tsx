@@ -90,12 +90,12 @@ const CardImage = memo(function CardImage({
       });
     }
   };
-  return <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-muted/30 to-muted/60 group">
+  return <div className="aspect-square relative overflow-hidden bg-muted/30 group">
       <LazyImage 
         key={`${image}-${Date.now()}`} 
         src={image} 
         alt={title} 
-        className="w-full h-full transition-transform duration-500 group-hover:scale-105 object-cover p-2"
+        className="w-full h-full transition-transform duration-500 group-hover:scale-105 object-cover"
         skeletonClassName="aspect-square"
       />
       {/* 数量バッジ（2個以上の時のみ表示） */}
