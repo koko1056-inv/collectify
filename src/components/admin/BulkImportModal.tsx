@@ -63,6 +63,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
   const [analyzedItems, setAnalyzedItems] = useState<AnalyzedItem[]>([]);
   const [analyzeProgress, setAnalyzeProgress] = useState(0);
   const [importProgress, setImportProgress] = useState(0);
+  const [bulkContentName, setBulkContentName] = useState("");
+  const [contentSuggestions, setContentSuggestions] = useState<string[]>([]);
 
   const handleScrape = async () => {
     if (!url.trim()) {
