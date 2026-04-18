@@ -98,7 +98,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
       },
     ];
 
-    console.log("Generating AI room with", itemCount, "items. Style:", stylePreset);
+    console.log("Generating AI room with", itemCount, "items. Style:", stylePreset, "Visual:", visualStyle);
 
     const aiRes = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
