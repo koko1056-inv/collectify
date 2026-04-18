@@ -88,6 +88,8 @@ export function useGenerateAiRoom() {
       qc.invalidateQueries({ queryKey: ["posts"] });
       qc.invalidateQueries({ queryKey: ["posts-paginated"] });
       qc.invalidateQueries({ queryKey: ["posts-for-item"] });
+      qc.invalidateQueries({ queryKey: ["item-posts"] });
+      qc.invalidateQueries({ queryKey: ["user-item-posts"] });
       toast.success("AIルームを生成し、投稿に反映しました！");
     },
     onError: (e) => {

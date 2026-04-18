@@ -186,24 +186,45 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
       return json({ error: "保存に失敗しました", imageUrl: finalImageUrl }, 500);
     }
 
-    // 投稿(goods_posts)にも反映: 最初の選択アイテムを紐付ける
-    if (itemIds && itemIds.length > 0) {
-      const captionParts: string[] = [];
-      if (title) captionParts.push(title);
-      captionParts.push("AIで作った推しルーム ✨");
-      if (customPrompt) captionParts.push(customPrompt);
-      const caption = captionParts.join("\n");
+    // 投稿にも反映: goods_posts と item_posts(+images) の両方に作成
+    const captionParts: string[] = [];
+    if (title) captionParts.push(title);
+    captionParts.push("AIで作った推しルーム ✨");
+    if (customPrompt) captionParts.push(customPrompt);
+    const caption = captionParts.join("\n");
+    const firstItemId = itemIds && itemIds.length > 0 ? itemIds[0] : null;
 
+    // goods_posts (アイテム紐付けが必須)
+    if (firstItemId) {
       const { error: postErr } = await adminClient.from("goods_posts").insert({
         user_id: user.id,
-        user_item_id: itemIds[0],
+        user_item_id: firstItemId,
         image_url: finalImageUrl,
         caption,
       });
-      if (postErr) {
-        console.error("goods_posts insert error:", postErr);
-        // 投稿失敗でもルーム生成は成功扱い
-      }
+      if (postErr) console.error("goods_posts insert error:", postErr);
+    }
+
+    // item_posts (プロフィール / みんなの投稿で使用)
+    const { data: itemPost, error: itemPostErr } = await adminClient
+      .from("item_posts")
+      .insert({
+        user_id: user.id,
+        user_item_id: firstItemId,
+        caption,
+      })
+      .select()
+      .single();
+
+    if (itemPostErr) {
+      console.error("item_posts insert error:", itemPostErr);
+    } else if (itemPost) {
+      const { error: imgErr } = await adminClient.from("item_post_images").insert({
+        post_id: itemPost.id,
+        image_url: finalImageUrl,
+        display_order: 0,
+      });
+      if (imgErr) console.error("item_post_images insert error:", imgErr);
     }
 
     return json({ room, imageUrl: finalImageUrl });
