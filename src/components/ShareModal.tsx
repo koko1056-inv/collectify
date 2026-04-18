@@ -102,11 +102,16 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>共有</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-4 py-4">
+        {showInviteCode && (
+          <div className="border-b border-border pb-4 mb-2">
+            <InviteCodeSection />
+          </div>
+        )}
+        <div className="flex flex-col gap-4 py-2">
           <Button
             variant="outline"
             className="w-full justify-start gap-2"
