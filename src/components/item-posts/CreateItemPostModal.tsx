@@ -30,8 +30,41 @@ export function CreateItemPostModal({
 }: CreateItemPostModalProps) {
   const [caption, setCaption] = useState("");
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const createMutation = useCreateItemPost();
+
+  const generateAIImage = async () => {
+    if (!aiPrompt.trim()) {
+      toast.error("生成したい画像の説明を入力してください");
+      return;
+    }
+    if (images.length >= MAX_IMAGES) {
+      toast.error(`画像は最大${MAX_IMAGES}枚までです`);
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-post-image", {
+        body: { prompt: aiPrompt, itemTitle, itemImageUrl: itemImage },
+      });
+      if (error) throw error;
+      if (!data?.imageUrl) throw new Error("画像が生成されませんでした");
+
+      const res = await fetch(data.imageUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `ai-${Date.now()}.png`, { type: "image/png" });
+      const preview = URL.createObjectURL(file);
+      setImages((prev) => [...prev, { file, preview }]);
+      setAiPrompt("");
+      toast.success("画像を生成しました");
+    } catch (e) {
+      toast.error((e as Error).message || "画像生成に失敗しました");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
