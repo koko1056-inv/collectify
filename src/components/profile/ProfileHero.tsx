@@ -13,26 +13,29 @@ import {
   Settings,
   Pencil,
   LogOut,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Profile } from "@/types";
 import { useState } from "react";
 import { FollowList } from "./FollowList";
+import { FollowButton } from "./FollowButton";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { ChatModal } from "@/components/chat/ChatModal";
 
 interface ProfileHeroProps {
   profile: Profile;
   bio: string;
   xUsername: string;
   isOwnProfile: boolean;
-  isUploading: boolean;
-  previewUrl: string | null;
-  onAvatarUpload: (file: File) => void;
+  isUploading?: boolean;
+  previewUrl?: string | null;
+  onAvatarUpload?: (file: File) => void;
   onShare: () => void;
-  onEdit: () => void;
-  onOpenSettings: () => void;
-  onLogout: () => void;
+  onEdit?: () => void;
+  onOpenSettings?: () => void;
+  onLogout?: () => void;
 }
 
 export function ProfileHero({
@@ -51,6 +54,7 @@ export function ProfileHero({
   const { user } = useAuth();
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
   // 統計
   const { data: stats } = useQuery({
@@ -119,25 +123,35 @@ export function ProfileHero({
               </motion.div>
             ))}
           </div>
-          {/* 右上: 設定/ログアウト */}
-          {isOwnProfile && (
-            <div className="absolute top-3 right-3 flex gap-1">
+          {/* 右上: 自分 → 設定/ログアウト / 他人 → 共有 */}
+          <div className="absolute top-3 right-3 flex gap-1">
+            {isOwnProfile ? (
+              <>
+                <button
+                  onClick={onOpenSettings}
+                  className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white backdrop-blur-sm flex items-center justify-center"
+                  aria-label="設定"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={onLogout}
+                  className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white backdrop-blur-sm flex items-center justify-center"
+                  aria-label="ログアウト"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
               <button
-                onClick={onOpenSettings}
+                onClick={onShare}
                 className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white backdrop-blur-sm flex items-center justify-center"
-                aria-label="設定"
+                aria-label="共有"
               >
-                <Settings className="w-4 h-4" />
+                <Share2 className="w-4 h-4" />
               </button>
-              <button
-                onClick={onLogout}
-                className="w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white backdrop-blur-sm flex items-center justify-center"
-                aria-label="ログアウト"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* 本体カード */}
@@ -165,7 +179,7 @@ export function ProfileHero({
               >
                 <RankIcon className="w-4 h-4 text-white" strokeWidth={2.5} />
               </div>
-              {isOwnProfile && (
+              {isOwnProfile && onAvatarUpload && (
                 <>
                   <input
                     type="file"
@@ -241,17 +255,33 @@ export function ProfileHero({
           </div>
 
           {/* アクションボタン */}
-          {isOwnProfile && (
-            <div className="flex gap-2 mt-4">
-              <Button variant="outline" onClick={onEdit} className="flex-1 gap-1.5 rounded-full">
-                <Pencil className="w-4 h-4" />
-                プロフィール編集
-              </Button>
-              <Button variant="outline" onClick={onShare} size="icon" className="rounded-full shrink-0" aria-label="共有">
-                <Share2 className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
+          <div className="flex gap-2 mt-4">
+            {isOwnProfile ? (
+              <>
+                <Button variant="outline" onClick={onEdit} className="flex-1 gap-1.5 rounded-full">
+                  <Pencil className="w-4 h-4" />
+                  プロフィール編集
+                </Button>
+                <Button variant="outline" onClick={onShare} size="icon" className="rounded-full shrink-0" aria-label="共有">
+                  <Share2 className="w-4 h-4" />
+                </Button>
+              </>
+            ) : user ? (
+              <>
+                <div className="flex-1">
+                  <FollowButton userId={profile.id} />
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowChat(true)}
+                  className="flex-1 gap-1.5 rounded-full"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  メッセージ
+                </Button>
+              </>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -265,6 +295,15 @@ export function ProfileHero({
           <FollowList userId={profile.id} type="following" />
         </DialogContent>
       </Dialog>
+
+      {/* 他人プロフィールのみ: メッセージモーダル */}
+      {!isOwnProfile && user && (
+        <ChatModal
+          isOpen={showChat}
+          onClose={() => setShowChat(false)}
+          partnerId={profile.id}
+        />
+      )}
     </>
   );
 }
