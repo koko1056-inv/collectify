@@ -67,14 +67,17 @@ export function CollectionGoodsCardWrapper({
   }, []);
 
   return <>
-      <Card className="hover-scale card-shadow bg-card border border-border cursor-pointer relative group" onClick={handleCardClick}>
+      <Card
+        className="group relative bg-card border border-border/60 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-primary/40 hover:shadow-lg hover:-translate-y-0.5"
+        onClick={handleCardClick}
+      >
         <CardHeader className="p-0">
           <CollectionGoodsCardHeader title={title} image={image} quantity={quantity} />
         </CardHeader>
-        <CardContent className="p-2 relative">
-          <h3 className="font-medium text-foreground truncate text-xs">{title}</h3>
+        <CardContent className="px-2.5 pt-2 pb-1">
+          <h3 className="font-medium text-foreground text-xs leading-tight line-clamp-2 min-h-[2.2em]">{title}</h3>
         </CardContent>
-        
+
         <CollectionGoodsCardFooter id={id} onMemoriesClick={handleMemoriesClick} onTagManageClick={handleTagManageClick} onDeleteClick={handleDeleteClick} onCreatePostClick={handleCreatePostClick} />
       </Card>
 
