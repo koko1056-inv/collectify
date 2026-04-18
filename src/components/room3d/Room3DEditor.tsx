@@ -957,10 +957,11 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       )}
 
       {/* 操作ヒント */}
-      <div className="absolute bottom-4 right-4 z-10 text-white/50 text-xs space-y-1">
-        <p>ドラッグ: 移動</p>
-        <p>回転/ズーム: タッチ操作</p>
-      </div>
+      {isOwnRoom && (
+        <div className="absolute bottom-3 right-3 z-10 px-2.5 py-1 rounded-full bg-background/70 backdrop-blur-md border border-border/40 text-muted-foreground text-[10px] shadow-sm pointer-events-none">
+          ドラッグで配置・ピンチで拡大
+        </div>
+      )}
 
       {/* アイテムパレットシート */}
       <Sheet open={showItemPalette} onOpenChange={setShowItemPalette}>
