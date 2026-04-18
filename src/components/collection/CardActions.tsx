@@ -1,25 +1,22 @@
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Trash2, Plus, Tag } from "lucide-react";
+import { MessageSquare, Trash2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CardActionsProps {
   onMemoriesClick: () => void;
-  onTagManageClick: () => void;
+  onTagManageClick?: () => void;
   onDeleteClick: () => void;
   onCreatePostClick: () => void;
   hasMemories: boolean;
-  hasTags: boolean;
+  hasTags?: boolean;
   tagCount?: number;
 }
 
 export function CardActions({
   onMemoriesClick,
-  onTagManageClick,
   onDeleteClick,
   onCreatePostClick,
   hasMemories,
-  hasTags,
-  tagCount = 0,
 }: CardActionsProps) {
   const stop =
     (fn: () => void) =>
@@ -29,59 +26,41 @@ export function CardActions({
     };
 
   return (
-    <div className="flex items-center justify-between w-full gap-1">
-      {/* 左側: タグ */}
-      <button
-        onClick={stop(onTagManageClick)}
+    <div className="flex items-center justify-end w-full">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={stop(onMemoriesClick)}
         className={cn(
-          "flex items-center gap-1 px-2 h-7 rounded-full text-[11px] font-medium transition-colors min-w-0",
-          hasTags
-            ? "bg-primary/10 text-primary hover:bg-primary/15"
-            : "text-muted-foreground/70 hover:bg-muted hover:text-foreground"
+          "h-7 w-7 p-0 rounded-full transition-colors",
+          hasMemories
+            ? "text-primary hover:bg-primary/10"
+            : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
         )}
-        title="タグを編集"
+        title="思い出"
       >
-        <Tag className="h-3 w-3 shrink-0" />
-        <span className="truncate tabular-nums">{hasTags ? tagCount : "タグ"}</span>
-      </button>
+        <MessageSquare className="h-3.5 w-3.5" />
+      </Button>
 
-      {/* 右側: アクションボタン */}
-      <div className="flex items-center">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={stop(onMemoriesClick)}
-          className={cn(
-            "h-7 w-7 p-0 rounded-full transition-colors",
-            hasMemories
-              ? "text-primary hover:bg-primary/10"
-              : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
-          )}
-          title="思い出"
-        >
-          <MessageSquare className="h-3.5 w-3.5" />
-        </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={stop(onCreatePostClick)}
+        className="h-7 w-7 p-0 rounded-full text-muted-foreground/60 hover:text-foreground hover:bg-muted"
+        title="投稿を作成"
+      >
+        <Plus className="h-3.5 w-3.5" />
+      </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={stop(onCreatePostClick)}
-          className="h-7 w-7 p-0 rounded-full text-muted-foreground/60 hover:text-foreground hover:bg-muted"
-          title="投稿を作成"
-        >
-          <Plus className="h-3.5 w-3.5" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={stop(onDeleteClick)}
-          className="h-7 w-7 p-0 rounded-full text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10"
-          title="削除"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
-      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={stop(onDeleteClick)}
+        className="h-7 w-7 p-0 rounded-full text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10"
+        title="削除"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
     </div>
   );
 }
