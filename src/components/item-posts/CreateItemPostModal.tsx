@@ -2,9 +2,12 @@ import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ImagePlus, X, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ImagePlus, X, Loader2, Wand2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PostTarget, useCreateItemPost } from "@/hooks/item-posts/useItemPosts";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CreateItemPostModalProps {
   open: boolean;
