@@ -108,7 +108,8 @@ const App: React.FC = () => {
                       <Route path="/my-room" element={<ProtectedRoute><MyRoom /></ProtectedRoute>} />
                       <Route path="/image-search" element={<ProtectedRoute><ImageSearch /></ProtectedRoute>} />
                       <Route path="/ai-rooms" element={<ProtectedRoute><AiRooms /></ProtectedRoute>} />
-                      {/* ポイントショップは一旦非表示（サブスク移行予定） */}
+                      <Route path="/point-shop" element={<ProtectedRoute><PointShop /></ProtectedRoute>} />
+                      <Route path="/points" element={<Navigate to="/point-shop" replace />} />
                       <Route path="*" element={<Navigate to="/my-room" replace />} />
                     </Routes>
                   </Suspense>
