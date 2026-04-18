@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { PostTarget, useCreateItemPost } from "@/hooks/item-posts/useItemPosts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CreateItemPostModalProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function CreateItemPostModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const createMutation = useCreateItemPost();
+  const qc = useQueryClient();
 
   const generateAIImage = async () => {
     if (!aiPrompt.trim()) {
@@ -49,8 +51,13 @@ export function CreateItemPostModal({
       const { data, error } = await supabase.functions.invoke("generate-post-image", {
         body: { prompt: aiPrompt, itemTitle, itemImageUrl: itemImage },
       });
-      if (error) throw error;
-      if (!data?.imageUrl) throw new Error("画像が生成されませんでした");
+      if (error) {
+        const msg = (error as any)?.context?.responseText
+          ? (() => { try { return JSON.parse((error as any).context.responseText).error; } catch { return null; } })()
+          : null;
+        throw new Error(msg || error.message || "画像生成に失敗しました");
+      }
+      if (!data?.imageUrl) throw new Error(data?.error || "画像が生成されませんでした");
 
       const res = await fetch(data.imageUrl);
       const blob = await res.blob();
@@ -58,7 +65,9 @@ export function CreateItemPostModal({
       const preview = URL.createObjectURL(file);
       setImages((prev) => [...prev, { file, preview }]);
       setAiPrompt("");
-      toast.success("画像を生成しました");
+      qc.invalidateQueries({ queryKey: ["userPoints"] });
+      qc.invalidateQueries({ queryKey: ["pointTransactions"] });
+      toast.success("画像を生成しました (-50pt)");
     } catch (e) {
       toast.error((e as Error).message || "画像生成に失敗しました");
     } finally {
