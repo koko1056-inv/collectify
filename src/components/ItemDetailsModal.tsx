@@ -18,6 +18,8 @@ import { ItemNoteField } from "./item-details/ItemNoteField";
 import { QuantityInput } from "./item-details/QuantityInput";
 import { X } from "lucide-react";
 import { SimpleItemTag } from "@/utils/tag/types";
+import { ItemPostsSection } from "./item-posts/ItemPostsSection";
+import { ScrollArea } from "./ui/scroll-area";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -332,19 +334,20 @@ export function ItemDetailsModal({
             </Button>
           } />
 
+          <ScrollArea className="flex-1">
           {/* メインコンテンツ - itemIdを追加 */}
-          <ItemDetailsContent 
-            image={image} 
-            title={title} 
-            tags={processedOfficialTags} 
-            isUserItem={isUserItem} 
-            isEditing={isEditing} 
-            editedData={editedData} 
-            setEditedData={setEditedData} 
-            contentName={editedData.content_name ?? contentName} 
-            releaseDate={releaseDate} 
-            createdBy={createdBy} 
-            description={description} 
+          <ItemDetailsContent
+            image={image}
+            title={title}
+            tags={processedOfficialTags}
+            isUserItem={isUserItem}
+            isEditing={isEditing}
+            editedData={editedData}
+            setEditedData={setEditedData}
+            contentName={editedData.content_name ?? contentName}
+            releaseDate={releaseDate}
+            createdBy={createdBy}
+            description={description}
             itemId={itemId}
           />
 
@@ -409,19 +412,33 @@ export function ItemDetailsModal({
           )}
 
           {!isUserItem && (
-            <div className="p-4 border-t border-gray-100">
-              <ItemButtons 
-                isInCollection={isInCollection} 
-                itemId={itemId} 
-                title={title} 
-                image={image} 
-                releaseDate={releaseDate} 
-                price={price} 
-                refetchIsInCollection={refetchIsInCollection} 
-                refetchOwnersCount={refetchOwnersCount} 
+            <div className="p-4 border-t border-border">
+              <ItemButtons
+                isInCollection={isInCollection}
+                itemId={itemId}
+                title={title}
+                image={image}
+                releaseDate={releaseDate}
+                price={price}
+                refetchIsInCollection={refetchIsInCollection}
+                refetchOwnersCount={refetchOwnersCount}
               />
             </div>
           )}
+
+          {/* みんなの投稿セクション */}
+          <div className="p-4 border-t border-border">
+            <ItemPostsSection
+              target={
+                isUserItem
+                  ? { type: "user_item", id: itemId }
+                  : { type: "official", id: itemId }
+              }
+              itemTitle={title}
+              itemImage={image}
+            />
+          </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
