@@ -167,14 +167,6 @@ export function ImageSection({
       if (newSet.has(imageUrl)) {
         newSet.delete(imageUrl);
       } else {
-        if (newSet.size >= 10) {
-          toast({
-            title: t("addItem.maxSelection"),
-            description: t("addItem.maxSelectionDesc"),
-            variant: "destructive",
-          });
-          return prev;
-        }
         newSet.add(imageUrl);
       }
       return newSet;
