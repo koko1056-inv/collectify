@@ -183,9 +183,14 @@ export function CreateItemPostModal({
 
         {/* AI画像生成 */}
         <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2">
-          <div className="flex items-center gap-1.5 text-sm font-medium">
-            <Sparkles className="w-4 h-4 text-primary" />
-            AIで画像を生成
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-sm font-medium">
+              <Sparkles className="w-4 h-4 text-primary" />
+              AIで画像を生成
+            </div>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary">
+              50pt / 回
+            </span>
           </div>
           <p className="text-[11px] text-muted-foreground">
             このグッズを使った投稿画像をAIに作ってもらえます
