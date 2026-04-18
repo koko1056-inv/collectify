@@ -234,6 +234,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
 
     if (insertError) {
       console.error("DB insert error:", insertError);
+      await refundPoints("DB保存失敗");
       return json({ error: "保存に失敗しました", imageUrl: finalImageUrl }, 500);
     }
 
