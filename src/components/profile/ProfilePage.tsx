@@ -145,6 +145,7 @@ export function ProfilePage() {
         title={profile.display_name || profile.username || ""}
         url={typeof window !== "undefined" ? window.location.href : ""}
         image={profile.avatar_url || "/placeholder.svg"}
+        showInviteCode
       />
       <ProfileEditSheet
         open={editOpen}
