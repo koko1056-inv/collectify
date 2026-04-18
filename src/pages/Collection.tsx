@@ -5,7 +5,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { UserCollection } from "@/components/UserCollection";
 import { useTags } from "@/hooks/useTags";
 import { useAuth } from "@/contexts/AuthContext";
-import { FilterBar } from "@/components/FilterBar";
+import { FilterSheet } from "@/components/FilterSheet";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -43,13 +43,13 @@ export default function Collection() {
       <main className={`container mx-auto pt-20 transition-all duration-300 ${isMobile ? 'px-1 py-4' : 'px-2 py-4'}`}>
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
           <CollectionLimitBanner type="collection" />
-          <FilterBar 
-            searchQuery={searchQuery} 
-            onSearchChange={handleSearchChange} 
-            selectedTags={selectedTags} 
-            onTagsChange={handleTagsChange} 
-            selectedContent={selectedContent} 
-            onContentChange={handleContentChange} 
+          <FilterSheet
+            searchQuery={searchQuery}
+            onSearchChange={handleSearchChange}
+            selectedTags={selectedTags}
+            onTagsChange={handleTagsChange}
+            selectedContent={selectedContent}
+            onContentChange={handleContentChange}
             tags={allTags}
             selectedPersonalTag={selectedPersonalTag}
             onPersonalTagChange={handlePersonalTagChange}

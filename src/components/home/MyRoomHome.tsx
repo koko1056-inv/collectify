@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Maximize2, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen } from "lucide-react";
+import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Maximize2, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy } from "lucide-react";
+import { motion } from "framer-motion";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Profile } from "@/types";
@@ -166,60 +167,17 @@ export function MyRoomHome({
         </div>
       </div>
 
-      {/* ヘッダー - コレクターの部屋感 */}
+      {/* ヒーローカード - コレクターの部屋感を強化 */}
       <div className="px-4 sm:px-6 lg:px-8 mb-5">
         <div className="max-w-4xl mx-auto">
-          <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-card via-card to-muted/30 shadow-sm">
-            {/* 装飾: コーナーの棚イメージ */}
-            <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-bl-[3rem]" />
-            <div className="absolute bottom-0 left-0 w-16 h-16 bg-primary/3 rounded-tr-[2rem]" />
-
-            <div className="relative p-5">
-              {/* ユーザー情報行 */}
-              <div className="flex items-center gap-4 mb-4">
-                <div className="relative">
-                  <div className="absolute -inset-1 bg-primary/10 rounded-full blur-md" />
-                  <Avatar className="relative w-14 h-14 border-2 border-primary/20 shadow-lg ring-2 ring-background">
-                    <AvatarImage src={profile.avatar_url || undefined} className="object-cover" />
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
-                      {profile.username?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-lg font-bold text-foreground truncate">
-                    {profile.display_name || profile.username}の部屋
-                  </h1>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <BookOpen className="w-3 h-3" />
-                    コレクター
-                  </p>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={() => navigate(`/user/${profile.id}`)}
-                  className="shrink-0 h-9 w-9 rounded-xl"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {/* ミニ統計 - 棚に並ぶグッズ風 */}
-              <div className="grid grid-cols-3 gap-2">
-                <MiniStat icon={Package} label="グッズ" userId={user?.id} type="items" />
-                <MiniStat icon={Heart} label="ウィッシュ" userId={user?.id} type="wishlists" />
-                <MiniStat icon={Star} label="お気に入り" userId={user?.id} type="favorites" />
-              </div>
-            </div>
-          </div>
+          <HeroCard profile={profile} userId={user?.id} />
         </div>
       </div>
 
-      {/* タブナビゲーション - 部屋のエリア切り替え */}
+      {/* タブナビゲーション - 明確なセグメント型 */}
       <div className="px-4 sm:px-6 lg:px-8 mb-6">
         <div className="max-w-4xl mx-auto">
-          <div className="flex gap-1.5 p-1 rounded-2xl bg-muted/40 border border-border/30">
+          <div className="relative flex p-1 rounded-full bg-muted/60 border border-border/30">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -228,19 +186,26 @@ export function MyRoomHome({
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-sm font-medium transition-all duration-200 relative",
-                    isActive 
-                      ? "bg-card text-primary shadow-md border border-border/50" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                    "relative flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-full text-sm font-medium transition-colors duration-200 z-10",
+                    isActive
+                      ? "text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <div className="relative">
-                    <Icon className={cn("w-4 h-4", isActive && "text-primary")} />
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-tab-bg"
+                      className="absolute inset-0 rounded-full bg-primary shadow-md"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative flex items-center gap-1.5">
+                    <Icon className="w-4 h-4" />
+                    <span className="text-xs sm:text-sm">{tab.label}</span>
                     {tab.badge && !isActive && (
-                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
+                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
                     )}
-                  </div>
-                  <span className="text-xs sm:text-sm">{tab.label}</span>
+                  </span>
                 </button>
               );
             })}
@@ -305,7 +270,183 @@ export function MyRoomHome({
 }
 
 // ミニ統計コンポーネント - 棚に並ぶグッズ数
-function MiniStat({ icon: Icon, label, userId, type }: { 
+// ==================== ヒーローカード ====================
+
+/**
+ * コレクターの部屋感を強化したヒーローカード。
+ * - 大きいアバター + グロー + テーマ色グラデ背景
+ * - 時間帯ベースの挨拶 + 動的サブコピー
+ * - コレクターランク（アイテム数で変動）
+ * - ミニ統計を1行のインラインに圧縮
+ */
+function HeroCard({ profile, userId }: { profile: Profile; userId: string | undefined }) {
+  const navigate = useNavigate();
+
+  // 統計を一括取得（MiniStatのクエリを統合）
+  const { data: stats = { items: 0, wishlists: 0, favorites: 0 } } = useQuery({
+    queryKey: ["hero-stats", userId],
+    queryFn: async () => {
+      if (!userId) return { items: 0, wishlists: 0, favorites: 0 };
+      const [items, wishlists, favorites] = await Promise.all([
+        supabase.from("user_items").select("id", { count: "exact", head: true }).eq("user_id", userId),
+        supabase.from("wishlists").select("id", { count: "exact", head: true }).eq("user_id", userId),
+        supabase.from("collection_likes").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      ]);
+      return {
+        items: items.count ?? 0,
+        wishlists: wishlists.count ?? 0,
+        favorites: favorites.count ?? 0,
+      };
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // 時間帯挨拶
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 5) return "こんばんは";
+    if (h < 11) return "おはよう";
+    if (h < 18) return "こんにちは";
+    return "こんばんは";
+  })();
+
+  // コレクターランク（アイテム数で段階）
+  const rank = (() => {
+    const n = stats.items;
+    if (n >= 500) return { label: "Diamond", icon: Crown, color: "from-cyan-400 to-blue-500", textColor: "text-cyan-700 dark:text-cyan-300" };
+    if (n >= 200) return { label: "Gold", icon: Trophy, color: "from-amber-400 to-orange-500", textColor: "text-amber-700 dark:text-amber-300" };
+    if (n >= 50) return { label: "Silver", icon: Award, color: "from-slate-300 to-slate-500", textColor: "text-slate-700 dark:text-slate-300" };
+    if (n >= 10) return { label: "Bronze", icon: Star, color: "from-orange-300 to-rose-400", textColor: "text-orange-700 dark:text-orange-300" };
+    return { label: "Rookie", icon: Sparkles, color: "from-pink-300 to-purple-400", textColor: "text-pink-700 dark:text-pink-300" };
+  })();
+
+  const RankIcon = rank.icon;
+  const displayName = profile.display_name || profile.username || "コレクター";
+
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-border/40 shadow-sm">
+      {/* 背景: ヒーローグラデ + 装飾 */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-card to-card" />
+      <div className="absolute -top-6 -right-6 w-40 h-40 rounded-full bg-gradient-to-br from-primary/15 to-transparent blur-2xl" />
+      <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-gradient-to-tr from-pink-500/10 to-transparent blur-3xl" />
+
+      {/* 装飾: ドットパターン */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle, currentColor 0.5px, transparent 0.5px)",
+          backgroundSize: "20px 20px",
+        }}
+      />
+
+      <div className="relative p-5 sm:p-6">
+        {/* 上段: アバター + 名前 + ランクバッジ */}
+        <div className="flex items-start gap-4 mb-4">
+          {/* アバター */}
+          <button
+            onClick={() => navigate(`/user/${profile.id}`)}
+            className="relative shrink-0 group"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className={cn(
+                "absolute -inset-1 rounded-full blur-md opacity-60 bg-gradient-to-br",
+                rank.color
+              )}
+            />
+            <Avatar className="relative w-[72px] h-[72px] border-2 border-background shadow-xl ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all">
+              <AvatarImage src={profile.avatar_url || undefined} className="object-cover" />
+              <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary font-bold text-xl">
+                {displayName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            {/* ランクアイコン (右下にピン) */}
+            <div
+              className={cn(
+                "absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br border-2 border-background",
+                rank.color
+              )}
+            >
+              <RankIcon className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
+            </div>
+          </button>
+
+          {/* 名前と挨拶 */}
+          <div className="flex-1 min-w-0 pt-1">
+            <p className="text-xs text-muted-foreground mb-0.5">
+              {greeting}、
+            </p>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate leading-tight">
+              {displayName}
+              <span className="text-muted-foreground font-medium text-sm">さん</span>
+            </h1>
+            <div className="flex items-center gap-1.5 mt-1">
+              <div
+                className={cn(
+                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gradient-to-r text-white shadow-sm",
+                  rank.color
+                )}
+              >
+                <RankIcon className="w-3 h-3" />
+                {rank.label}
+              </div>
+              <span className="text-[10px] text-muted-foreground">コレクター</span>
+            </div>
+          </div>
+
+          {/* プロフィールへ */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(`/user/${profile.id}`)}
+            className="shrink-0 h-9 w-9 rounded-xl"
+            title="プロフィールを見る"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* 下段: ステータス 1ライン */}
+        <div className="flex items-center justify-around gap-1 pt-3 border-t border-border/40">
+          <StatInline icon={Package} value={stats.items} label="グッズ" />
+          <div className="w-px h-8 bg-border/60" />
+          <StatInline icon={Heart} value={stats.wishlists} label="ウィッシュ" />
+          <div className="w-px h-8 bg-border/60" />
+          <StatInline icon={Star} value={stats.favorites} label="お気に入り" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatInline({
+  icon: Icon,
+  value,
+  label,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  value: number;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-0.5 flex-1 min-w-0">
+      <div className="flex items-center gap-1">
+        <Icon className="w-3.5 h-3.5 text-primary/70" />
+        <span className="text-base sm:text-lg font-bold text-foreground tabular-nums">
+          {value.toLocaleString()}
+        </span>
+      </div>
+      <span className="text-[10px] text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
+// ==================== MiniStat (旧API、他所から参照されている場合に残す) ====================
+
+function MiniStat({ icon: Icon, label, userId, type }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   userId: string | undefined;
