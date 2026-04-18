@@ -223,24 +223,22 @@ export function MyRoomHome({
           )}
           {activeTab === "room" && (
             <div className="w-full animate-fade-in">
-              {/* 拡大ボタン */}
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-2 flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowFullscreenRoom(true)}
-                  className="gap-2"
-                >
-                  <Maximize2 className="w-4 h-4" />
-                  フルスクリーンで編集
-                </Button>
-              </div>
               {/* 埋め込みの2D棚エディタ */}
               <div
                 className="relative w-full bg-muted/20 border-y sm:border sm:rounded-2xl sm:mx-auto sm:max-w-5xl overflow-hidden"
-                style={{ height: "70vh" }}
+                style={{ height: "75vh", minHeight: "560px" }}
               >
                 <Room3DEditor profile={profile} isFullScreen={false} />
+                {/* フルスクリーンFAB */}
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={() => setShowFullscreenRoom(true)}
+                  className="absolute bottom-3 left-3 z-20 h-9 w-9 rounded-full bg-background/80 backdrop-blur-md border border-border/40 shadow-md hover:bg-background"
+                  title="フルスクリーンで編集"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           )}
