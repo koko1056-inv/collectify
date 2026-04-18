@@ -593,16 +593,21 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       isFullScreen ? "fixed inset-0 z-50" : "min-h-[60vh]"
     )}>
       {/* ヘッダー */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-        <div className="flex items-center gap-3">
+      <div
+        className={cn(
+          "absolute left-0 right-0 z-20 px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-2 bg-gradient-to-b from-black/60 via-black/30 to-transparent",
+          isFullScreen ? "top-0 pt-[max(0.5rem,env(safe-area-inset-top))]" : "top-0"
+        )}
+      >
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {isFullScreen && onClose && (
-            <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/10 shrink-0 h-9 w-9">
               <X className="w-5 h-5" />
             </Button>
           )}
-          <div>
-            <h2 className="text-white font-bold text-lg">{mainRoom?.title || "マイルーム"}</h2>
-            <div className="flex items-center gap-4 text-white/70 text-sm">
+          <div className="min-w-0">
+            <h2 className="text-white font-bold text-sm sm:text-lg truncate">{mainRoom?.title || "マイルーム"}</h2>
+            <div className="flex items-center gap-3 text-white/70 text-xs">
               <span className="flex items-center gap-1">
                 <Eye className="w-3 h-3" />
                 {mainRoom?.visit_count || 0}
@@ -614,52 +619,57 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             </div>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
           {isOwnRoom && (
             <>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-white hover:bg-white/10"
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/10 h-9 w-9"
                 onClick={() => setShowItemPalette(true)}
                 title="グッズを追加"
               >
                 <Plus className="w-5 h-5" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-white hover:bg-white/10"
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/10 h-9 w-9"
                 onClick={() => setShowFurniturePalette(true)}
                 title="家具を追加"
               >
                 <Armchair className="w-5 h-5" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-white hover:bg-white/10"
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-white hover:bg-white/10 h-9 w-9"
                 onClick={() => setShowBackgroundPicker(true)}
+                title="壁紙を変更"
               >
                 <Palette className="w-5 h-5" />
               </Button>
             </>
           )}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-white hover:bg-white/10"
-            onClick={() => toggleLike.mutate()}
-            disabled={!user || isOwnRoom}
-          >
-            <Heart className={cn("w-5 h-5", isLiked && "fill-current text-red-400")} />
-          </Button>
+          {!isOwnRoom && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/10 h-9 w-9"
+              onClick={() => toggleLike.mutate()}
+              disabled={!user}
+              title="いいね"
+            >
+              <Heart className={cn("w-5 h-5", isLiked && "fill-current text-red-400")} />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/10"
+            className="text-white hover:bg-white/10 h-9 w-9"
             onClick={() => shareScreenshot(mainRoom?.title)}
+            title="共有"
           >
             <Share2 className="w-5 h-5" />
           </Button>
@@ -667,7 +677,7 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
       </div>
 
       {/* 2Dシェルフビュー */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative pt-14 sm:pt-16">
         <ShelfView
           roomItems={roomItems}
           roomFurniture={roomFurniture}
