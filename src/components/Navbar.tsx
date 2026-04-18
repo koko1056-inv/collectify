@@ -15,6 +15,7 @@ import { ChatButton } from "./ChatButton";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "./notifications/NotificationBell";
+import { PointsNavButton } from "./shop/PointsNavButton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useProfile } from "@/hooks/useProfile";
 
@@ -106,6 +107,7 @@ export function Navbar() {
         </Link>
         <div className="w-24 flex-shrink-0 flex justify-end">
           {user && <div className="flex items-center gap-1">
+              <PointsNavButton variant="icon" />
               <NotificationBell className="sm:hidden" />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
