@@ -2,9 +2,12 @@ import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ImagePlus, X, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ImagePlus, X, Loader2, Wand2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PostTarget, useCreateItemPost } from "@/hooks/item-posts/useItemPosts";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface CreateItemPostModalProps {
   open: boolean;
@@ -27,8 +30,41 @@ export function CreateItemPostModal({
 }: CreateItemPostModalProps) {
   const [caption, setCaption] = useState("");
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const createMutation = useCreateItemPost();
+
+  const generateAIImage = async () => {
+    if (!aiPrompt.trim()) {
+      toast.error("生成したい画像の説明を入力してください");
+      return;
+    }
+    if (images.length >= MAX_IMAGES) {
+      toast.error(`画像は最大${MAX_IMAGES}枚までです`);
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-post-image", {
+        body: { prompt: aiPrompt, itemTitle, itemImageUrl: itemImage },
+      });
+      if (error) throw error;
+      if (!data?.imageUrl) throw new Error("画像が生成されませんでした");
+
+      const res = await fetch(data.imageUrl);
+      const blob = await res.blob();
+      const file = new File([blob], `ai-${Date.now()}.png`, { type: "image/png" });
+      const preview = URL.createObjectURL(file);
+      setImages((prev) => [...prev, { file, preview }]);
+      setAiPrompt("");
+      toast.success("画像を生成しました");
+    } catch (e) {
+      toast.error((e as Error).message || "画像生成に失敗しました");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -52,6 +88,7 @@ export function CreateItemPostModal({
     images.forEach((img) => URL.revokeObjectURL(img.preview));
     setImages([]);
     setCaption("");
+    setAiPrompt("");
   };
 
   const handleClose = () => {
@@ -144,7 +181,46 @@ export function CreateItemPostModal({
           />
         </div>
 
-        {/* キャプション */}
+        {/* AI画像生成 */}
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2">
+          <div className="flex items-center gap-1.5 text-sm font-medium">
+            <Sparkles className="w-4 h-4 text-primary" />
+            AIで画像を生成
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            このグッズを使った投稿画像をAIに作ってもらえます
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="例: カフェのテーブルに置いた雰囲気で"
+              disabled={isGenerating || createMutation.isPending}
+              maxLength={200}
+              className="h-9"
+            />
+            <Button
+              type="button"
+              size="sm"
+              onClick={generateAIImage}
+              disabled={
+                isGenerating ||
+                createMutation.isPending ||
+                !aiPrompt.trim() ||
+                images.length >= MAX_IMAGES
+              }
+              className="gap-1.5 shrink-0"
+            >
+              {isGenerating ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Wand2 className="w-3.5 h-3.5" />
+              )}
+              生成
+            </Button>
+          </div>
+        </div>
+
         <div>
           <p className="text-sm font-medium mb-2">コメント（任意）</p>
           <Textarea
