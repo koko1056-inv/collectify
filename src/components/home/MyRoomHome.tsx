@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Profile } from "@/types";
 import { cn } from "@/lib/utils";
 import { AvatarStudioModal } from "@/components/avatar";
-import { MyRoomScene } from "@/components/myroom/MyRoomScene";
+import { MyAiRoomsView } from "@/components/ai-room/MyAiRoomsView";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AvatarSocialSection } from "./AvatarSocialSection";
@@ -216,10 +216,7 @@ export function MyRoomHome({
           )}
           {activeTab === "room" && (
             <div className="w-full animate-fade-in py-2">
-              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-                <AiRoomPromoCard onClick={() => navigate("/ai-rooms")} />
-              </div>
-              <MyRoomScene profile={profile} />
+              <MyAiRoomsView />
             </div>
           )}
           {activeTab === "avatar" && (
