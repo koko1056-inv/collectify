@@ -28,3 +28,13 @@ dist-ssr
 *.sln
 *.sw?
 .claude/memory-db/
+
+# iOS / Capacitor (Xcode)
+ios/App/Pods/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/build/
+ios/App/DerivedData/
+ios/capacitor-cordova-ios-plugins/
+**/xcuserdata/
+*.xcuserstate
