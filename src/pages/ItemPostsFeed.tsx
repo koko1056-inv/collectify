@@ -3,14 +3,18 @@ import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
-import { Flame, Sparkles, Users } from "lucide-react";
+import { Flame, Sparkles, Users, Camera } from "lucide-react";
 import { useItemPostsFeed, FeedMode } from "@/hooks/item-posts/useItemPostsFeed";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ItemPostGrid } from "@/components/item-posts/ItemPostGrid";
 import { ItemPostDetailModal } from "@/components/item-posts/ItemPostDetailModal";
-import { ItemPost } from "@/hooks/item-posts/useItemPosts";
+import { ItemPost, PostTarget } from "@/hooks/item-posts/useItemPosts";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { SelectItemForPostModal } from "@/components/item-posts/SelectItemForPostModal";
+import { CreateItemPostModal } from "@/components/item-posts/CreateItemPostModal";
+import { toast } from "sonner";
 
 const MODES: { id: FeedMode; label: string; icon: typeof Flame }[] = [
   { id: "new", label: "新着", icon: Sparkles },
