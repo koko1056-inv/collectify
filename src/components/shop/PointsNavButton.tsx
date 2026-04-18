@@ -24,7 +24,7 @@ export function PointsNavButton({ variant = "full" }: PointsNavButtonProps) {
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => navigate("/shop")}
+        onClick={() => navigate("/point-shop")}
         className="relative p-2"
       >
         <ShoppingCart className="w-5 h-5" />
@@ -36,7 +36,7 @@ export function PointsNavButton({ variant = "full" }: PointsNavButtonProps) {
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => navigate("/shop")}
+      onClick={() => navigate("/point-shop")}
       className="gap-1.5 px-2"
     >
       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
