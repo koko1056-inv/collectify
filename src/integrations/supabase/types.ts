@@ -176,11 +176,15 @@ export type Database = {
           binder_page_id: string
           created_at: string
           custom_image_url: string | null
+          display_converted_at: string | null
+          display_style: string | null
           height: number
           id: string
+          item_rotation: number | null
           model_3d_task_id: string | null
           model_3d_url: string | null
           official_item_id: string | null
+          placement: string | null
           position_x: number
           position_y: number
           rotation: number
@@ -192,11 +196,15 @@ export type Database = {
           binder_page_id: string
           created_at?: string
           custom_image_url?: string | null
+          display_converted_at?: string | null
+          display_style?: string | null
           height?: number
           id?: string
+          item_rotation?: number | null
           model_3d_task_id?: string | null
           model_3d_url?: string | null
           official_item_id?: string | null
+          placement?: string | null
           position_x?: number
           position_y?: number
           rotation?: number
@@ -208,11 +216,15 @@ export type Database = {
           binder_page_id?: string
           created_at?: string
           custom_image_url?: string | null
+          display_converted_at?: string | null
+          display_style?: string | null
           height?: number
           id?: string
+          item_rotation?: number | null
           model_3d_task_id?: string | null
           model_3d_url?: string | null
           official_item_id?: string | null
+          placement?: string | null
           position_x?: number
           position_y?: number
           rotation?: number
@@ -248,6 +260,9 @@ export type Database = {
         Row: {
           background_color: string | null
           background_image: string | null
+          bgm_preset: string | null
+          bgm_url: string | null
+          bgm_volume: number | null
           binder_id: string | null
           binder_type: string
           created_at: string
@@ -264,6 +279,9 @@ export type Database = {
         Insert: {
           background_color?: string | null
           background_image?: string | null
+          bgm_preset?: string | null
+          bgm_url?: string | null
+          bgm_volume?: number | null
           binder_id?: string | null
           binder_type?: string
           created_at?: string
@@ -280,6 +298,9 @@ export type Database = {
         Update: {
           background_color?: string | null
           background_image?: string | null
+          bgm_preset?: string | null
+          bgm_url?: string | null
+          bgm_volume?: number | null
           binder_id?: string | null
           binder_type?: string
           created_at?: string
@@ -941,6 +962,51 @@ export type Database = {
           url?: string
         }
         Relationships: []
+      }
+      invite_codes: {
+        Row: {
+          code: string
+          created_at: string
+          creator_id: string
+          expires_at: string | null
+          id: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          creator_id: string
+          expires_at?: string | null
+          id?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          creator_id?: string
+          expires_at?: string | null
+          id?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invite_codes_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invite_codes_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       item_memories: {
         Row: {
@@ -1636,7 +1702,9 @@ export type Database = {
           id: string
           interests: string[] | null
           is_admin: boolean | null
+          onboarded_at: string | null
           privacy_level: Database["public"]["Enums"]["profile_privacy"]
+          referred_by: string | null
           themes: string[] | null
           username: string
           x_username: string | null
@@ -1654,7 +1722,9 @@ export type Database = {
           id: string
           interests?: string[] | null
           is_admin?: boolean | null
+          onboarded_at?: string | null
           privacy_level?: Database["public"]["Enums"]["profile_privacy"]
+          referred_by?: string | null
           themes?: string[] | null
           username: string
           x_username?: string | null
@@ -1672,12 +1742,22 @@ export type Database = {
           id?: string
           interests?: string[] | null
           is_admin?: boolean | null
+          onboarded_at?: string | null
           privacy_level?: Database["public"]["Enums"]["profile_privacy"]
+          referred_by?: string | null
           themes?: string[] | null
           username?: string
           x_username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recommended_content: {
         Row: {
@@ -1733,6 +1813,56 @@ export type Database = {
         }
         Relationships: []
       }
+      room_furniture: {
+        Row: {
+          created_at: string
+          furniture_id: string
+          id: string
+          placement: string
+          position_x: number
+          position_y: number
+          room_id: string
+          rotation_y: number
+          scale: number
+          updated_at: string
+          z_index: number
+        }
+        Insert: {
+          created_at?: string
+          furniture_id: string
+          id?: string
+          placement?: string
+          position_x?: number
+          position_y?: number
+          room_id: string
+          rotation_y?: number
+          scale?: number
+          updated_at?: string
+          z_index?: number
+        }
+        Update: {
+          created_at?: string
+          furniture_id?: string
+          id?: string
+          placement?: string
+          position_x?: number
+          position_y?: number
+          room_id?: string
+          rotation_y?: number
+          scale?: number
+          updated_at?: string
+          z_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_furniture_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "binder_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       room_likes: {
         Row: {
           created_at: string | null
@@ -1762,6 +1892,45 @@ export type Database = {
           },
           {
             foreignKeyName: "room_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      room_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_reactions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "binder_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_reactions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -2297,6 +2466,38 @@ export type Database = {
         }
         Relationships: []
       }
+      user_monthly_usage: {
+        Row: {
+          count: number
+          id: string
+          period_start: string
+          usage_type: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          id?: string
+          period_start: string
+          usage_type: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          id?: string
+          period_start?: string
+          usage_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_monthly_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_personal_tags: {
         Row: {
           created_at: string
@@ -2419,6 +2620,53 @@ export type Database = {
         }
         Relationships: []
       }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          plan: string
+          platform: string | null
+          started_at: string
+          status: string
+          transaction_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          platform?: string | null
+          started_at?: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          platform?: string | null
+          started_at?: string
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wishlists: {
         Row: {
           created_at: string
@@ -2484,6 +2732,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_usage: {
+        Args: { p_usage_type: string; p_user_id: string }
+        Returns: number
+      }
+      increment_visit_count: { Args: { page_id: string }; Returns: number }
       is_follower: { Args: { target_user_id: string }; Returns: boolean }
     }
     Enums: {
