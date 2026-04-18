@@ -30,13 +30,26 @@ export function MyRoomScene({ profile }: MyRoomSceneProps) {
   } = useMyRoom();
 
   const [showPlace, setShowPlace] = useState(false);
-  const [showTheme, setShowTheme] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
   const [shuffling, setShuffling] = useState(false);
   const [selected, setSelected] = useState<RoomItem | null>(null);
+  const [bgmEnabled, setBgmEnabled] = useState(false);
 
   const tod = getTimeOfDay();
   const timeMeta = getTimeFilter(tod);
   const theme = getRoomTheme(mainRoom?.background_color);
+
+  const themeId = (mainRoom?.background_color ?? "").startsWith("theme:")
+    ? mainRoom!.background_color!.slice(6)
+    : "natural";
+
+  const bgm = useRoomBgm({
+    themeId,
+    bgmPreset: mainRoom?.bgm_preset ?? null,
+    bgmUrl: mainRoom?.bgm_url ?? null,
+    volume: mainRoom?.bgm_volume ?? 0.3,
+    enabled: bgmEnabled,
+  });
 
   // 部屋がない場合
   if (!isLoading && !mainRoom) {
