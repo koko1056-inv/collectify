@@ -171,6 +171,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
     if (!aiRes.ok) {
       const errorText = await aiRes.text();
       console.error("AI Gateway error:", aiRes.status, errorText);
+      await refundPoints(`AI Gateway ${aiRes.status}`);
       if (aiRes.status === 429) {
         return json({ error: "レート制限に達しました。しばらく待って再試行してください" }, 429);
       }
@@ -186,11 +187,11 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
 
     if (!imageDataUrl) {
       console.error("No image in response:", JSON.stringify(aiData).slice(0, 500));
+      await refundPoints("画像なし");
       return json({ error: "画像が生成できませんでした" }, 500);
     }
 
     // data:image/png;base64,xxx → Buffer に変換して storage にアップロード
-    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const match = imageDataUrl.match(/^data:(image\/[^;]+);base64,(.+)$/);
     let finalImageUrl = imageDataUrl;
 
