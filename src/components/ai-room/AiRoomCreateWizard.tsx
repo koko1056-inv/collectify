@@ -113,6 +113,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         selectedStyle?.prompt || customPrompt || "シンプルで清潔な白い部屋";
       const room = await generateMutation.mutateAsync({
         itemImageUrls: selectedItems.map((i) => i.image),
+        itemIds: selectedItems.map((i) => i.id),
         stylePrompt,
         stylePreset: stylePresetId || undefined,
         visualStyle: visualStyleId,

@@ -9,6 +9,7 @@ const corsHeaders = {
 
 interface GenerateAiRoomInput {
   itemImageUrls: string[]; // 最大3枚
+  itemIds?: string[]; // 任意: 選択した user_items の ID 一覧
   stylePrompt: string; // 部屋スタイルのプロンプト
   stylePreset?: string; // 任意: "pastel_kawaii" など
   visualStyle?: string; // 任意: "anime" / "realistic" など
@@ -44,6 +45,7 @@ Deno.serve(async (req) => {
     const body = (await req.json()) as GenerateAiRoomInput;
     const {
       itemImageUrls,
+      itemIds,
       stylePrompt,
       stylePreset,
       visualStyle,
@@ -173,6 +175,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
         style_prompt: stylePrompt,
         custom_prompt: customPrompt || null,
         source_item_images: itemImageUrls,
+        source_item_ids: itemIds && itemIds.length > 0 ? itemIds : null,
         title: title || null,
       })
       .select()
@@ -181,6 +184,26 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
     if (insertError) {
       console.error("DB insert error:", insertError);
       return json({ error: "保存に失敗しました", imageUrl: finalImageUrl }, 500);
+    }
+
+    // 投稿(goods_posts)にも反映: 最初の選択アイテムを紐付ける
+    if (itemIds && itemIds.length > 0) {
+      const captionParts: string[] = [];
+      if (title) captionParts.push(title);
+      captionParts.push("AIで作った推しルーム ✨");
+      if (customPrompt) captionParts.push(customPrompt);
+      const caption = captionParts.join("\n");
+
+      const { error: postErr } = await adminClient.from("goods_posts").insert({
+        user_id: user.id,
+        user_item_id: itemIds[0],
+        image_url: finalImageUrl,
+        caption,
+      });
+      if (postErr) {
+        console.error("goods_posts insert error:", postErr);
+        // 投稿失敗でもルーム生成は成功扱い
+      }
     }
 
     return json({ room, imageUrl: finalImageUrl });

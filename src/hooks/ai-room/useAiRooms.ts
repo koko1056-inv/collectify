@@ -54,6 +54,7 @@ export function usePublicAiRooms(limit = 30) {
 
 export interface GenerateInput {
   itemImageUrls: string[];
+  itemIds?: string[];
   stylePrompt: string;
   stylePreset?: string;
   visualStyle?: string;
@@ -84,7 +85,10 @@ export function useGenerateAiRoom() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["ai-rooms", user?.id] });
       qc.invalidateQueries({ queryKey: ["ai-rooms-public"] });
-      toast.success("AIルームを生成しました！");
+      qc.invalidateQueries({ queryKey: ["posts"] });
+      qc.invalidateQueries({ queryKey: ["posts-paginated"] });
+      qc.invalidateQueries({ queryKey: ["posts-for-item"] });
+      toast.success("AIルームを生成し、投稿に反映しました！");
     },
     onError: (e) => {
       toast.error((e as Error).message || "生成に失敗しました");
