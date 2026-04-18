@@ -835,25 +835,45 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
             </Button>
           </div>
 
-          {/* Z軸（高さ）調整 */}
+          {/* レイヤー（重なり順） */}
           <div className="flex items-center gap-1">
-            <span className="text-white/60 text-xs">Z:</span>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <span className="text-white/60 text-xs">レイヤー:</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleSetLayer(selectedItem.id, 'back')}
+              title="最背面へ"
+            >
+              <ArrowDownToLine className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
               onClick={() => handleAdjustItemPosition(selectedItem.id, 'z', -1)}
+              title="背面に1つ移動"
             >
-              <Minus className="w-3 h-3" />
+              <ChevronDown className="w-3.5 h-3.5" />
             </Button>
-            <span className="text-white text-xs w-8 text-center">{selectedItem.z_index}</span>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <span className="text-white text-xs w-6 text-center">{selectedItem.z_index}</span>
+            <Button
+              variant="ghost"
+              size="icon"
               className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
               onClick={() => handleAdjustItemPosition(selectedItem.id, 'z', 1)}
+              title="前面に1つ移動"
             >
-              <Plus className="w-3 h-3" />
+              <ChevronUp className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-white/70 hover:text-white hover:bg-white/10 rounded-lg"
+              onClick={() => handleSetLayer(selectedItem.id, 'front')}
+              title="最前面へ"
+            >
+              <ArrowUpToLine className="w-3.5 h-3.5" />
             </Button>
           </div>
           
