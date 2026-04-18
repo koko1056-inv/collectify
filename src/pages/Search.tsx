@@ -148,7 +148,7 @@ const Search = () => {
             {/* グッズ検索タブ - コンパクトフィルター */}
             <TabsContent value="goods" className="space-y-3">
               {/* 検索バー + フィルターボタン */}
-              <div className="flex items-center gap-2 sticky top-14 sm:top-20 z-20 bg-background py-2">
+              <div className="flex items-center gap-2 bg-background py-2">
                 <div className="flex-1 min-w-0">
                   <SearchBar
                     searchQuery={searchQuery}
