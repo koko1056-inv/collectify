@@ -92,7 +92,7 @@ export function useGenerateAiRoom() {
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
       qc.invalidateQueries({ queryKey: ["userPoints"] });
       qc.invalidateQueries({ queryKey: ["pointTransactions"] });
-      toast.success("AIルームを生成しました！(-50pt)");
+      toast.success("AIルームを生成しました！(-100pt)");
     },
     onError: (e) => {
       toast.error((e as Error).message || "生成に失敗しました");
