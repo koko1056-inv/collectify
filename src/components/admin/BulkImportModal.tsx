@@ -63,6 +63,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
   const [analyzedItems, setAnalyzedItems] = useState<AnalyzedItem[]>([]);
   const [analyzeProgress, setAnalyzeProgress] = useState(0);
   const [importProgress, setImportProgress] = useState(0);
+  const [bulkContentName, setBulkContentName] = useState("");
+  const [contentSuggestions, setContentSuggestions] = useState<string[]>([]);
 
   const handleScrape = async () => {
     if (!url.trim()) {
@@ -211,6 +213,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
       setAnalyzeProgress(((i + 1) / items.length) * 100);
     }
 
+    await loadContentSuggestions();
     setStep("import");
   };
 
@@ -238,6 +241,18 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
 
     setIsLoading(true);
     let successCount = 0;
+
+    // 未登録のコンテンツ名をcontent_namesに自動登録
+    const uniqueContentNames = Array.from(
+      new Set(itemsToImport.map((i) => i.contentName?.trim()).filter(Boolean))
+    ) as string[];
+    for (const name of uniqueContentNames) {
+      if (!contentSuggestions.includes(name)) {
+        await supabase
+          .from("content_names")
+          .insert({ name, type: "other", created_by: user?.id });
+      }
+    }
 
     for (let i = 0; i < itemsToImport.length; i++) {
       const item = itemsToImport[i];
@@ -283,7 +298,28 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
     setAnalyzeProgress(0);
     setImportProgress(0);
     setIsLoading(false);
+    setBulkContentName("");
     onClose();
+  };
+
+  const loadContentSuggestions = async () => {
+    const { data } = await supabase
+      .from("content_names")
+      .select("name")
+      .order("name");
+    setContentSuggestions((data || []).map((c: any) => c.name));
+  };
+
+  const applyBulkContentName = () => {
+    const name = bulkContentName.trim();
+    if (!name) return;
+    setAnalyzedItems((prev) =>
+      prev.map((item) => ({ ...item, contentName: name }))
+    );
+    toast({
+      title: "適用しました",
+      description: `全${analyzedItems.length}件のコンテンツを「${name}」に設定しました`,
+    });
   };
 
   return (
@@ -459,6 +495,38 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
                 インポートするアイテムを確認してチェックを入れてください
+              </div>
+
+              {/* コンテンツ一括設定 */}
+              <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
+                <Label htmlFor="bulk-content" className="text-sm font-medium">
+                  コンテンツを一括設定
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="bulk-content"
+                    list="bulk-content-suggestions"
+                    placeholder="例: ミセスグリーンアップル"
+                    value={bulkContentName}
+                    onChange={(e) => setBulkContentName(e.target.value)}
+                    className="flex-1"
+                  />
+                  <datalist id="bulk-content-suggestions">
+                    {contentSuggestions.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
+                  <Button
+                    variant="outline"
+                    onClick={applyBulkContentName}
+                    disabled={!bulkContentName.trim()}
+                  >
+                    全件に適用
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  入力したコンテンツ名を全アイテムに一括で適用します。新しいコンテンツ名は自動で登録されます。
+                </p>
               </div>
 
               {isLoading && (
