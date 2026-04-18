@@ -366,6 +366,31 @@ export function Room3DEditor({ profile, isFullScreen = false, onClose }: Room3DE
     }
   }, [queryClient, selectedItem, roomItems]);
 
+  // レイヤー操作: 最前面 / 最背面
+  const handleSetLayer = useCallback(async (
+    itemId: string,
+    direction: 'front' | 'back'
+  ) => {
+    const maxZ = roomItems.reduce((m, i) => Math.max(m, i.z_index || 0), 0);
+    const minZ = roomItems.reduce((m, i) => Math.min(m, i.z_index || 0), 0);
+    const newZ = direction === 'front' ? Math.min(maxZ + 1, 999) : Math.max(minZ - 1, -999);
+    try {
+      const { error } = await supabase
+        .from("binder_items")
+        .update({ z_index: newZ })
+        .eq("id", itemId);
+      if (error) throw error;
+      if (selectedItem && selectedItem.id === itemId) {
+        setSelectedItem({ ...selectedItem, z_index: newZ });
+      }
+      toast.success(direction === 'front' ? '最前面に移動しました' : '最背面に移動しました');
+      queryClient.invalidateQueries({ queryKey: ["room-items"] });
+    } catch (error) {
+      console.error("Error setting layer:", error);
+      toast.error("レイヤー変更に失敗しました");
+    }
+  }, [queryClient, selectedItem, roomItems]);
+
   // 背景を変更
   const updateBackground = useMutation({
     mutationFn: async (backgroundColor: string) => {
