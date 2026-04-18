@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
     const body = (await req.json()) as GenerateAiRoomInput;
     const {
       itemImageUrls,
+      itemIds,
       stylePrompt,
       stylePreset,
       visualStyle,
