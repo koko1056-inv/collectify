@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus, Palette, Shuffle, Heart, Eye, Loader2, Trash2 } from "lucide-react";
+import { Plus, Palette, Shuffle, Heart, Eye, Loader2, Trash2, Play, Pause, Music } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { Profile } from "@/types";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
+import { useRoomBgm } from "@/hooks/useRoomBgm";
 import { IsometricRoomScene } from "./IsometricRoomScene";
 import { PlaceItemSheet } from "./PlaceItemSheet";
-import { ThemePickerSheet } from "./ThemePickerSheet";
+import { SceneEditorSheet } from "./SceneEditorSheet";
 import { getRoomTheme, getTimeOfDay, getTimeFilter } from "./roomThemes";
 import { TOTAL_SLOTS } from "./roomSlots";
 import { shuffleRoom, removeFromRoom } from "./autoPlace";
