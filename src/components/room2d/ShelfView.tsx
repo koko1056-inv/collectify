@@ -7,6 +7,7 @@ import { Item2D } from "./Item2D";
 import { FurniturePiece2D } from "./FurniturePiece2D";
 import { getFurnitureById, FurnitureStyle } from "./displayFurniturePresets";
 import { getWallpaperById, DEFAULT_WALLPAPER_ID } from "./wallpapers";
+import { IsometricRoomFrame, DEFAULT_HORIZON_Y, DEFAULT_FLOOR_INSET } from "./IsometricRoomFrame";
 
 const WALLPAPER_PREFIX = "wp:";
 const THEME_PREFIX = "theme:"; // 後方互換のため、旧テーマIDも壁紙にマッピング
@@ -63,10 +64,16 @@ export function ShelfView(props: ShelfViewProps) {
 
   return (
     <div className="relative w-full h-full overflow-hidden select-none">
-      {/* === 背景: 壁 === */}
-      <div
-        className="absolute inset-0"
-        style={{ background: wallpaper?.wallGradient || "#f5f5f5" }}
+      {/* === アイソメトリック風コーナールーム === */}
+      <IsometricRoomFrame
+        wallpaper={wallpaper}
+        pattern={
+          wallpaper?.pattern ? (
+            <PatternOverlay pattern={wallpaper.pattern} color={wallpaper.patternColor || "#fff"} />
+          ) : null
+        }
+        horizonY={DEFAULT_HORIZON_Y}
+        floorInset={DEFAULT_FLOOR_INSET}
       />
 
       {/* 背景画像オーバーレイ（壁紙画像） */}
@@ -74,28 +81,18 @@ export function ShelfView(props: ShelfViewProps) {
         <img
           src={props.backgroundImage}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-90"
+          className="absolute pointer-events-none opacity-80"
+          style={{
+            top: 0,
+            left: `${DEFAULT_FLOOR_INSET}%`,
+            right: `${DEFAULT_FLOOR_INSET}%`,
+            height: `${DEFAULT_HORIZON_Y}%`,
+            objectFit: "cover",
+            width: `${100 - DEFAULT_FLOOR_INSET * 2}%`,
+          }}
           crossOrigin="anonymous"
         />
       )}
-
-      {/* パターン（桜・ドットなど） */}
-      {wallpaper?.pattern && (
-        <PatternOverlay pattern={wallpaper.pattern} color={wallpaper.patternColor || "#fff"} />
-      )}
-
-      {/* === 床 === */}
-      <div
-        className="absolute left-0 right-0 bottom-0 h-[22%]"
-        style={{ background: wallpaper?.floorGradient || "#d8dde3" }}
-      >
-        <div
-          className="absolute left-0 right-0 top-0 h-4 pointer-events-none"
-          style={{
-            background: `linear-gradient(180deg, ${wallpaper?.floorShadow || "rgba(0,0,0,0.1)"} 0%, transparent 100%)`,
-          }}
-        />
-      </div>
 
       {/* === インタラクティブ領域（フル領域・自由配置可能） === */}
       <div
