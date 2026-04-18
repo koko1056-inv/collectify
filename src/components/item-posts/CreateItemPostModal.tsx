@@ -181,7 +181,46 @@ export function CreateItemPostModal({
           />
         </div>
 
-        {/* キャプション */}
+        {/* AI画像生成 */}
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2">
+          <div className="flex items-center gap-1.5 text-sm font-medium">
+            <Sparkles className="w-4 h-4 text-primary" />
+            AIで画像を生成
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            このグッズを使った投稿画像をAIに作ってもらえます
+          </p>
+          <div className="flex gap-2">
+            <Input
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder="例: カフェのテーブルに置いた雰囲気で"
+              disabled={isGenerating || createMutation.isPending}
+              maxLength={200}
+              className="h-9"
+            />
+            <Button
+              type="button"
+              size="sm"
+              onClick={generateAIImage}
+              disabled={
+                isGenerating ||
+                createMutation.isPending ||
+                !aiPrompt.trim() ||
+                images.length >= MAX_IMAGES
+              }
+              className="gap-1.5 shrink-0"
+            >
+              {isGenerating ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Wand2 className="w-3.5 h-3.5" />
+              )}
+              生成
+            </Button>
+          </div>
+        </div>
+
         <div>
           <p className="text-sm font-medium mb-2">コメント（任意）</p>
           <Textarea
