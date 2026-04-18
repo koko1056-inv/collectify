@@ -232,7 +232,7 @@ function ItemCard({
   item,
   imageUrl,
   onClick,
-  onMove,
+  onMove: onMoveProp,
   isEditing,
   isSelected,
 }: {
@@ -385,7 +385,7 @@ function ItemCard({
       setDropBounce(1);
       const v = new THREE.Vector3(...pos);
       const [nx, ny] = worldToNormalized(v, placement);
-      onMove?.(Math.round(nx), Math.round(ny));
+      onMoveProp?.(Math.round(nx), Math.round(ny));
     };
 
     window.addEventListener("pointermove", onMove);

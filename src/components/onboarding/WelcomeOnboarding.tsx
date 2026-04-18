@@ -318,7 +318,7 @@ function SlidesStep({
 }: {
   slides: Array<{
     id: string;
-    icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+    icon: React.ComponentType<{ className?: string; strokeWidth?: number | string }>;
     title: string;
     description: string;
     gradient: string;
