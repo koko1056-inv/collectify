@@ -3,14 +3,18 @@ import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
-import { Flame, Sparkles, Users } from "lucide-react";
+import { Flame, Sparkles, Users, Camera } from "lucide-react";
 import { useItemPostsFeed, FeedMode } from "@/hooks/item-posts/useItemPostsFeed";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ItemPostGrid } from "@/components/item-posts/ItemPostGrid";
 import { ItemPostDetailModal } from "@/components/item-posts/ItemPostDetailModal";
-import { ItemPost } from "@/hooks/item-posts/useItemPosts";
+import { ItemPost, PostTarget } from "@/hooks/item-posts/useItemPosts";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { SelectItemForPostModal } from "@/components/item-posts/SelectItemForPostModal";
+import { CreateItemPostModal } from "@/components/item-posts/CreateItemPostModal";
+import { toast } from "sonner";
 
 const MODES: { id: FeedMode; label: string; icon: typeof Flame }[] = [
   { id: "new", label: "新着", icon: Sparkles },
@@ -25,6 +29,12 @@ export default function ItemPostsFeed() {
   const hashtag = searchParams.get("tag");
   const contentFilter = searchParams.get("content");
   const [selectedPost, setSelectedPost] = useState<ItemPost | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [createCtx, setCreateCtx] = useState<{
+    target: PostTarget;
+    title: string;
+    image: string | null;
+  } | null>(null);
 
   const { data: posts = [], isLoading } = useItemPostsFeed({
     mode,
@@ -68,11 +78,27 @@ export default function ItemPostsFeed() {
       <main className="container mx-auto px-4 pt-20">
         <div className="max-w-4xl mx-auto space-y-4">
           {/* タイトル */}
-          <div className="flex items-baseline justify-between">
-            <h1 className="text-2xl font-bold">みんなの投稿</h1>
-            {posts.length > 0 && (
-              <span className="text-sm text-muted-foreground">{posts.length}件</span>
-            )}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-2xl font-bold">みんなの投稿</h1>
+              {posts.length > 0 && (
+                <span className="text-sm text-muted-foreground">{posts.length}件</span>
+              )}
+            </div>
+            <Button
+              size="sm"
+              onClick={() => {
+                if (!user) {
+                  toast.error("ログインが必要です");
+                  return;
+                }
+                setPickerOpen(true);
+              }}
+              className="gap-1.5 rounded-full h-9"
+            >
+              <Camera className="w-4 h-4" />
+              投稿する
+            </Button>
           </div>
 
           {/* モードセグメント */}
@@ -154,6 +180,24 @@ export default function ItemPostsFeed() {
         postId={selectedPost?.id ?? null}
         initialPost={selectedPost}
       />
+
+      <SelectItemForPostModal
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onSelect={(target, title, image) =>
+          setCreateCtx({ target, title, image })
+        }
+      />
+
+      {createCtx && (
+        <CreateItemPostModal
+          open={!!createCtx}
+          onOpenChange={(o) => !o && setCreateCtx(null)}
+          target={createCtx.target}
+          itemTitle={createCtx.title}
+          itemImage={createCtx.image}
+        />
+      )}
 
       <Footer />
     </div>
