@@ -55,9 +55,53 @@ export function ProfileHero({
   onLogout,
 }: ProfileHeroProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+  const handleCoverUpload = async (file: File) => {
+    if (!isOwnProfile || !user?.id) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("画像は5MB以下にしてください");
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      toast.error("JPEG / PNG / WebP / GIF のみ対応しています");
+      return;
+    }
+    setCoverUploading(true);
+    const localUrl = URL.createObjectURL(file);
+    setCoverPreview(localUrl);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+      const path = `${user.id}/cover-${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("profile_images")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: urlData } = supabase.storage
+        .from("profile_images")
+        .getPublicUrl(path);
+      const publicUrl = urlData.publicUrl;
+      const { error: updErr } = await supabase
+        .from("profiles")
+        .update({ cover_image_url: publicUrl })
+        .eq("id", user.id);
+      if (updErr) throw updErr;
+      setCoverPreview(publicUrl);
+      await queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+      toast.success("カバー画像を更新しました");
+    } catch (e) {
+      console.error("Cover upload error:", e);
+      toast.error("アップロードに失敗しました");
+      setCoverPreview(null);
+    } finally {
+      setCoverUploading(false);
+    }
+  };
 
   // 統計
   const { data: stats } = useQuery({
