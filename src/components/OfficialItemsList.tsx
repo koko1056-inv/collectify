@@ -151,49 +151,37 @@ export function OfficialItemsList({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <OfficialItemsHeader 
-        sortBy={sortBy} 
-        onSortChange={setSortBy} 
+      <OfficialItemsHeader
+        sortBy={sortBy}
+        onSortChange={setSortBy}
         totalItems={sortedItems.length}
         onFilterClick={handleFilterClick}
         showBulkImport={!!user}
         onBulkImportClick={() => setIsBulkImportOpen(true)}
+        showSelectionMode={!!user}
+        onSelectionModeClick={() => setSelectionMode(true)}
       />
 
-      {user && (
-        <div className="flex items-center justify-between gap-2 px-2">
-          {selectionMode ? (
-            <>
-              <div className="flex items-center gap-2">
-                <Button size="sm" variant="ghost" onClick={exitSelectionMode} className="h-8 px-2">
-                  <X className="h-4 w-4 mr-1" />
-                  キャンセル
-                </Button>
-                <span className="text-xs text-muted-foreground">
-                  {selectedIds.size}件選択中
-                </span>
-              </div>
-              <Button
-                size="sm"
-                onClick={() => setIsBulkTagOpen(true)}
-                disabled={selectedIds.size === 0}
-                className="h-8"
-              >
-                <Tags className="h-4 w-4 mr-1" />
-                タグ一括編集
-              </Button>
-            </>
-          ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setSelectionMode(true)}
-              className="h-8 ml-auto"
-            >
-              <CheckSquare className="h-4 w-4 mr-1" />
-              選択モード
+      {user && selectionMode && (
+        <div className="flex items-center justify-between gap-2 px-2 py-2 bg-muted/50 rounded-md">
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={exitSelectionMode} className="h-8 px-2">
+              <X className="h-4 w-4 mr-1" />
+              キャンセル
             </Button>
-          )}
+            <span className="text-xs text-muted-foreground">
+              {selectedIds.size}件選択中
+            </span>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setIsBulkTagOpen(true)}
+            disabled={selectedIds.size === 0}
+            className="h-8"
+          >
+            <Tags className="h-4 w-4 mr-1" />
+            タグ一括編集
+          </Button>
         </div>
       )}
       
