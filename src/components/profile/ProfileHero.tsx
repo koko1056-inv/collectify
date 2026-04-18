@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -14,6 +14,8 @@ import {
   Pencil,
   LogOut,
   MessageCircle,
+  ImagePlus,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Profile } from "@/types";
@@ -23,6 +25,7 @@ import { FollowButton } from "./FollowButton";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChatModal } from "@/components/chat/ChatModal";
+import { toast } from "sonner";
 
 interface ProfileHeroProps {
   profile: Profile;
