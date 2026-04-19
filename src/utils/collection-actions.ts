@@ -86,17 +86,34 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
     
     if (insertError) throw insertError;
     
-    // 5. ポイント付与（1pt） - サーバーサイド関数を使用
+    // 5. ポイント付与（1pt） - 同じofficial_itemに対しては初回のみ付与
     let pointsAwarded = 0;
-    await supabase.rpc('add_user_points', {
-      _user_id: userId,
-      _points: 1,
-      _transaction_type: 'item_add',
-      _description: `グッズ追加: ${title}`,
-      _reference_id: userItem.id
-    });
-    
-    pointsAwarded = 1;
+    let alreadyAwarded = false;
+
+    if (officialItemId) {
+      // 過去にこのofficial_itemでポイント付与済みかチェック（reference_id = official_item_id）
+      const { data: existingTx } = await supabase
+        .from("point_transactions")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("transaction_type", "item_add")
+        .eq("reference_id", officialItemId)
+        .limit(1)
+        .maybeSingle();
+      alreadyAwarded = !!existingTx;
+    }
+
+    if (!alreadyAwarded) {
+      await supabase.rpc('add_user_points', {
+        _user_id: userId,
+        _points: 1,
+        _transaction_type: 'item_add',
+        _description: `グッズ追加: ${title}`,
+        // 重複付与防止のため official_item_id を基準にする（カスタム品はuser_item.id）
+        _reference_id: officialItemId || userItem.id,
+      });
+      pointsAwarded = 1;
+    }
     
     return {
       success: true,
