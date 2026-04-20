@@ -85,8 +85,9 @@ serve(async (req) => {
   try {
     const requestUrl = new URL(req.url);
 
+    const isReadMethod = req.method === "GET" || req.method === "HEAD";
     const targetUrl =
-      req.method === "GET"
+      isReadMethod
         ? requestUrl.searchParams.get("url")
         : (await req.json())?.url;
 
