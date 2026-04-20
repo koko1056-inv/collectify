@@ -60,6 +60,30 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
     }))
   );
   const [loading, setLoading] = useState(false);
+  const [bulkContent, setBulkContent] = useState<string>("");
+  const [bulkItemType, setBulkItemType] = useState<string>("official");
+
+  const { data: contentNames = [] } = useQuery({
+    queryKey: ["content-names"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("content_names")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const applyToAll = () => {
+    setItems((prev) =>
+      prev.map((item) => ({
+        ...item,
+        content_name: bulkContent || item.content_name,
+        item_type: bulkItemType || item.item_type,
+      }))
+    );
+  };
 
   const updateItem = (index: number, field: keyof ItemFormData, value: string | null) => {
     setItems((prev) =>
