@@ -2,12 +2,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wand2 } from "lucide-react";
 import { TitleSection } from "./sections/TitleSection";
 import { ContentSection } from "./sections/ContentSection";
 import { ItemTypeSection } from "./sections/ItemTypeSection";
 import { TagsSection } from "./sections/TagsSection";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImageData {
   url: string;
