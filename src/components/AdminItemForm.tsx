@@ -233,23 +233,37 @@ export function AdminItemForm() {
 
                         for (const item of items) {
                           try {
-                            const response = await fetch(item.imageUrl);
-                            const blob = await response.blob();
-                            const file = new File([blob], `item-${Date.now()}.jpg`, { type: blob.type });
-                            
-                            const fileExt = file.name.split('.').pop();
-                            const fileName = `${Math.random()}.${fileExt}`;
-                            const filePath = `${user.id}/${fileName}`;
+                            let publicUrl = item.imageUrl;
 
-                            const { error: uploadError } = await supabase.storage
-                              .from('kuji_images')
-                              .upload(filePath, file);
+                            // 既にSupabase Storageにアップロード済みのURLでなければ、フェッチしてアップロードを試みる
+                            const isAlreadyUploaded = item.imageUrl.includes('/storage/v1/object/public/');
+                            if (!isAlreadyUploaded) {
+                              try {
+                                const response = await fetch(item.imageUrl);
+                                if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+                                const blob = await response.blob();
+                                const file = new File([blob], `item-${Date.now()}.jpg`, { type: blob.type });
 
-                            if (uploadError) throw uploadError;
+                                const fileExt = file.name.split('.').pop();
+                                const fileName = `${Math.random()}.${fileExt}`;
+                                const filePath = `${user.id}/${fileName}`;
 
-                            const { data: { publicUrl } } = supabase.storage
-                              .from('kuji_images')
-                              .getPublicUrl(filePath);
+                                const { error: uploadError } = await supabase.storage
+                                  .from('kuji_images')
+                                  .upload(filePath, file);
+
+                                if (uploadError) throw uploadError;
+
+                                const { data: { publicUrl: uploadedUrl } } = supabase.storage
+                                  .from('kuji_images')
+                                  .getPublicUrl(filePath);
+                                publicUrl = uploadedUrl;
+                              } catch (fetchErr) {
+                                // CORSなどでfetch失敗時は元の画像URLをそのまま使用
+                                console.warn('Image fetch failed, using original URL:', fetchErr);
+                                publicUrl = item.imageUrl;
+                              }
+                            }
 
                             const { data: newItem, error: insertError } = await supabase
                               .from('official_items')
