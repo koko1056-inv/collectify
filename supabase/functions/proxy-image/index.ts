@@ -172,8 +172,8 @@ serve(async (req) => {
     const message = error instanceof Error ? error.message : "Failed to fetch image";
     console.error("Error in proxy-image function:", error);
 
-    // GET (imgタグ) の場合は、壊れた画像にならないように 1x1 透明PNGを返す
-    if (req.method === "GET") {
+    // GET/HEAD (imgタグ) の場合は、壊れた画像にならないように 1x1 透明PNGを返す
+    if (req.method === "GET" || req.method === "HEAD") {
       const transparentPngBase64 =
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMBAF3vKxkAAAAASUVORK5CYII=";
       const binary = atob(transparentPngBase64);
