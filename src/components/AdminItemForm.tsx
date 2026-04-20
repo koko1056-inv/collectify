@@ -23,6 +23,7 @@ export function AdminItemForm() {
   const bulkSubmittingRef = useRef(false);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
   const {
     imageFile,
