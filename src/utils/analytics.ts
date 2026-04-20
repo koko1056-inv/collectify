@@ -45,27 +45,23 @@ const safeIdentify = (userId: string) => {
 
 export const trackLogin = async (userId: string, method: string = 'email') => {
   try {
-    // Get username from profiles table
     const { data: profile } = await supabase
       .from('profiles')
       .select('username')
       .eq('id', userId)
       .single();
 
-    mixpanel.identify(userId);
-    
-    // ユーザー基本情報の設定
-    mixpanel.people.set({
+    safeIdentify(userId);
+    safePeopleSet({
       $email: userId,
       $last_login: new Date().toISOString(),
       username: profile?.username,
     });
-
-    mixpanel.track('User Login', {
+    safeTrack('User Login', {
       distinct_id: userId,
-      method: method,
+      method,
       username: profile?.username,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Error tracking login:', error);
@@ -74,28 +70,24 @@ export const trackLogin = async (userId: string, method: string = 'email') => {
 
 export const trackSignup = async (userId: string, method: string = 'email') => {
   try {
-    // Get username from profiles table
     const { data: profile } = await supabase
       .from('profiles')
       .select('username')
       .eq('id', userId)
       .single();
 
-    mixpanel.identify(userId);
-    
-    // ユーザー基本情報の設定
-    mixpanel.people.set({
+    safeIdentify(userId);
+    safePeopleSet({
       $email: userId,
       $created: new Date().toISOString(),
       $last_login: new Date().toISOString(),
       username: profile?.username,
     });
-
-    mixpanel.track('User Signup', {
+    safeTrack('User Signup', {
       distinct_id: userId,
-      method: method,
+      method,
       username: profile?.username,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error('Error tracking signup:', error);
@@ -103,44 +95,44 @@ export const trackSignup = async (userId: string, method: string = 'email') => {
 };
 
 export const trackLogout = (userId: string) => {
-  mixpanel.track('User Logout', {
+  safeTrack('User Logout', {
     distinct_id: userId,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };
 
 export const trackTabChange = (tabName: string, userId?: string) => {
-  mixpanel.track('Tab Change', {
+  safeTrack('Tab Change', {
     distinct_id: userId || 'anonymous',
     tab: tabName,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };
 
 export const trackAddToCollection = (itemId: string, itemTitle: string, userId?: string) => {
-  mixpanel.track('Add to Collection', {
+  safeTrack('Add to Collection', {
     distinct_id: userId || 'anonymous',
     itemId,
     itemTitle,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };
 
 export const trackRoomView = (roomId: string, ownerId: string, userId?: string) => {
-  mixpanel.track('Room View', {
+  safeTrack('Room View', {
     distinct_id: userId || 'anonymous',
     roomId,
     ownerId,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };
 
 export const trackRoomShare = (roomId: string, roomTitle: string, userId?: string) => {
-  mixpanel.track('Room Share', {
+  safeTrack('Room Share', {
     distinct_id: userId || 'anonymous',
     roomId,
     roomTitle,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };
 
@@ -149,22 +141,16 @@ export const updateUserProfile = (userId: string, properties: {
   bio?: string;
   avatar_url?: string;
 }) => {
-  // Update Mixpanel user profile with new properties
-  mixpanel.people.set({
+  safePeopleSet({
     ...properties,
     $last_updated: new Date().toISOString(),
   });
-
-  // If username is being updated, make sure to update it
   if (properties.username) {
-    mixpanel.people.set({
-      username: properties.username
-    });
+    safePeopleSet({ username: properties.username });
   }
-
-  mixpanel.track('Profile Update', {
+  safeTrack('Profile Update', {
     distinct_id: userId,
     ...properties,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };
