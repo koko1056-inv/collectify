@@ -259,17 +259,20 @@ export function TagSuggestSelect({
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[300px] p-0" align="start">
-          <div className="p-2 border-b">
+          <div className="p-2 border-b space-y-1.5">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="検索..."
+                placeholder="検索 / 新しい名前を入力"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
                 autoFocus
               />
             </div>
+            <p className="text-[11px] text-muted-foreground px-1">
+              候補にない場合は名前を入力 → 下の「追加」ボタンが出ます
+            </p>
           </div>
           
           <ScrollArea className="h-[200px]">
@@ -311,8 +314,11 @@ export function TagSuggestSelect({
                   </button>
                 ))
               ) : searchQuery.trim() ? (
-                <div className="p-2 text-sm text-muted-foreground text-center">
-                  該当するタグが見つかりません
+                <div className="p-3 text-sm text-center space-y-1">
+                  <p className="text-muted-foreground">該当するタグはありません</p>
+                  <p className="text-xs text-primary">
+                    👇 下のボタンで新しいタグを追加できます
+                  </p>
                 </div>
               ) : (
                 <div className="p-2 text-sm text-muted-foreground text-center">
@@ -324,17 +330,22 @@ export function TagSuggestSelect({
 
           {/* 提案ボタン（完全一致がない場合のみ表示） */}
           {searchQuery.trim() && !hasExactMatch && user && (
-            <div className="p-2 border-t bg-muted/50">
+            <div className="p-2 border-t bg-primary/5">
               <Button
-                variant="ghost"
+                variant="default"
                 size="sm"
-                className="w-full justify-start gap-2 text-primary"
+                className="w-full justify-center gap-2"
                 onClick={handleSuggest}
                 disabled={suggestMutation.isPending}
               >
                 <Lightbulb className="h-4 w-4" />
-                「{searchQuery.trim()}」を追加提案
+                「{searchQuery.trim()}」を追加する
               </Button>
+            </div>
+          )}
+          {searchQuery.trim() && !hasExactMatch && !user && (
+            <div className="p-2 border-t bg-muted/50 text-xs text-muted-foreground text-center">
+              タグの追加にはログインが必要です
             </div>
           )}
         </PopoverContent>
