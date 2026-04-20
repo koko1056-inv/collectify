@@ -35,36 +35,45 @@ export async function findTagIdByName(
   contentId?: string | null
 ): Promise<string | null> {
   try {
-    const query = supabase
-      .from("tags")
-      .select("id, name, category, content_id")
-      .eq("name", name)
-      .eq("status", "approved");
-    
-    if (category) {
-      query.eq("category", category);
-    }
-    
-    // キャラクターとシリーズの場合、content_idでフィルタリング
+    const buildQuery = (approvedOnly: boolean) => {
+      let q = supabase
+        .from("tags")
+        .select("id, name, category, content_id, status")
+        .eq("name", name);
+      if (approvedOnly) q = q.eq("status", "approved");
+      if (category) q = q.eq("category", category);
+      if ((category === "character" || category === "series") && contentId) {
+        q = q.eq("content_id", contentId);
+      } else if (category === "type") {
+        q = q.is("content_id", null);
+      }
+      return q;
+    };
+
+    // 1. 承認済みを検索
+    const { data: approved } = await buildQuery(true).maybeSingle();
+    if (approved) return approved.id;
+
+    // 2. 任意ステータス（pending等）でも検索
+    const { data: anyStatus } = await buildQuery(false).maybeSingle();
+    if (anyStatus) return anyStatus.id;
+
+    // 3. それでも見つからなければ新規作成（ユーザー追加タグ用）
+    const insertData: any = { name, category: category || null };
     if ((category === "character" || category === "series") && contentId) {
-      query.eq("content_id", contentId);
-    } else if (category === "type") {
-      // タイプは全コンテンツ共通（content_idがnull）
-      query.is("content_id", null);
+      insertData.content_id = contentId;
     }
-    
-    const { data, error } = await query.maybeSingle();
-    
-    if (error) {
-      console.error(`[findTagIdByName] Database error for tag "${name}":`, error);
+    const { data: created, error: createError } = await supabase
+      .from("tags")
+      .insert(insertData)
+      .select("id")
+      .single();
+
+    if (createError) {
+      console.error(`[findTagIdByName] Failed to create tag "${name}":`, createError);
       return null;
     }
-    
-    if (!data) {
-      return null;
-    }
-    
-    return data.id;
+    return created?.id || null;
   } catch (error) {
     console.error(`[findTagIdByName] Exception while searching for tag "${name}":`, error);
     return null;
