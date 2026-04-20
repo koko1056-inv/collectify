@@ -3,11 +3,45 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Initialize Mixpanel
 const MIXPANEL_TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN;
+let mixpanelEnabled = false;
 if (MIXPANEL_TOKEN) {
-  mixpanel.init(MIXPANEL_TOKEN);
+  try {
+    mixpanel.init(MIXPANEL_TOKEN);
+    mixpanelEnabled = true;
+  } catch (e) {
+    console.warn('Failed to initialize Mixpanel:', e);
+  }
 } else {
   console.warn('VITE_MIXPANEL_TOKEN is not set. Analytics will not be tracked.');
 }
+
+// 安全に mixpanel を呼び出すためのヘルパー
+const safeTrack = (event: string, properties?: Record<string, any>) => {
+  if (!mixpanelEnabled) return;
+  try {
+    mixpanel.track(event, properties);
+  } catch (e) {
+    console.warn(`Mixpanel track failed (${event}):`, e);
+  }
+};
+
+const safePeopleSet = (properties: Record<string, any>) => {
+  if (!mixpanelEnabled) return;
+  try {
+    mixpanel.people.set(properties);
+  } catch (e) {
+    console.warn('Mixpanel people.set failed:', e);
+  }
+};
+
+const safeIdentify = (userId: string) => {
+  if (!mixpanelEnabled) return;
+  try {
+    mixpanel.identify(userId);
+  } catch (e) {
+    console.warn('Mixpanel identify failed:', e);
+  }
+};
 
 export const trackLogin = async (userId: string, method: string = 'email') => {
   try {
