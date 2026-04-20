@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function AdminItemForm() {
   const [currentStep, setCurrentStep] = useState("step1");
@@ -22,6 +23,7 @@ export function AdminItemForm() {
   const bulkSubmittingRef = useRef(false);
   const { toast } = useToast();
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
   const {
     imageFile,
@@ -231,11 +233,11 @@ export function AdminItemForm() {
                         let successCount = 0;
                         let errorCount = 0;
 
-                        for (const item of items) {
+                        // 各アイテムを並列で処理
+                        const results = await Promise.all(items.map(async (item) => {
                           try {
                             let publicUrl = item.imageUrl;
 
-                            // 既にSupabase Storageにアップロード済みのURLでなければ、フェッチしてアップロードを試みる
                             const isAlreadyUploaded = item.imageUrl.includes('/storage/v1/object/public/');
                             if (!isAlreadyUploaded) {
                               try {
@@ -259,7 +261,6 @@ export function AdminItemForm() {
                                   .getPublicUrl(filePath);
                                 publicUrl = uploadedUrl;
                               } catch (fetchErr) {
-                                // CORSなどでfetch失敗時は元の画像URLをそのまま使用
                                 console.warn('Image fetch failed, using original URL:', fetchErr);
                                 publicUrl = item.imageUrl;
                               }
@@ -283,7 +284,6 @@ export function AdminItemForm() {
                             if (insertError) throw insertError;
 
                             if (newItem) {
-                              // タグIDを直接使用してitem_tagsに挿入（重複を除外）
                               const tagIds = [
                                 item.characterTagId,
                                 item.typeTagId,
@@ -292,41 +292,30 @@ export function AdminItemForm() {
 
                               const uniqueTagIds = Array.from(new Set(tagIds));
                               if (uniqueTagIds.length > 0) {
-                                const { data: existingTagRows, error: existingTagsError } = await supabase
-                                  .from('item_tags')
-                                  .select('tag_id')
-                                  .eq('official_item_id', newItem.id)
-                                  .in('tag_id', uniqueTagIds);
-
-                                if (existingTagsError) {
-                                  console.error('Error checking existing tags:', existingTagsError);
-                                } else {
-                                  const existingSet = new Set((existingTagRows || []).map(r => r.tag_id));
-                                  const missingTagIds = uniqueTagIds.filter(id => !existingSet.has(id));
-
-                                  if (missingTagIds.length > 0) {
-                                    const tagInserts = missingTagIds.map(tagId => ({
-                                      official_item_id: newItem.id,
-                                      tag_id: tagId,
-                                    }));
-
-                                    const { error: tagError } = await supabase.from('item_tags').insert(tagInserts);
-                                    if (tagError) {
-                                      console.error('Error inserting tags:', tagError);
-                                    }
-                                  }
-                                }
+                                const tagInserts = uniqueTagIds.map(tagId => ({
+                                  official_item_id: newItem.id,
+                                  tag_id: tagId,
+                                }));
+                                const { error: tagError } = await supabase.from('item_tags').insert(tagInserts);
+                                if (tagError) console.error('Error inserting tags:', tagError);
                               }
                             }
 
-                            successCount++;
+                            return { ok: true };
                           } catch (error) {
                             console.error('Error creating item:', error);
-                            errorCount++;
+                            return { ok: false };
                           }
-                        }
+                        }));
+
+                        successCount = results.filter(r => r.ok).length;
+                        errorCount = results.filter(r => !r.ok).length;
 
                         if (successCount > 0) {
+                          // 探すページ等のキャッシュを即時無効化＋再取得
+                          await queryClient.invalidateQueries({ queryKey: ["official-items"] });
+                          await queryClient.refetchQueries({ queryKey: ["official-items"] });
+
                           toast({
                             title: t("addItem.registrationComplete"),
                             description: `${successCount}${t("addItem.itemsRegistered")}${errorCount > 0 ? `（${errorCount}${t("addItem.itemsFailed")}）` : ''}`,
