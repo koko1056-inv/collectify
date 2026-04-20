@@ -6,6 +6,7 @@ export function useOfficialItems() {
   return useQuery<OfficialItem[]>({
     queryKey: ["official-items"],
     staleTime: 0, // 常に最新データを取得
+    refetchOnMount: 'always',
     queryFn: async () => {
       const { data, error } = await supabase
         .from("official_items")
