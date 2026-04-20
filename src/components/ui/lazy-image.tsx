@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Skeleton } from "./skeleton";
 import { cn } from "@/lib/utils";
+import { SUPABASE_URL } from "@/integrations/supabase/client";
 
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -92,7 +93,7 @@ export function LazyImage({
       !src.includes("/functions/v1/proxy-image");
 
     const baseSrc = shouldProxy
-      ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=${encodeURIComponent(src)}`
+      ? `${SUPABASE_URL}/functions/v1/proxy-image?url=${encodeURIComponent(src)}`
       : src;
 
     // リトライ時はキャッシュバスティングパラメータを追加
