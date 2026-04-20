@@ -5,7 +5,7 @@ import { ItemImageUpload } from "@/components/item/ItemImageUpload";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { SUPABASE_URL, supabase } from "@/integrations/supabase/client";
 
 interface ItemImageEditorProps {
   image: string;
@@ -55,7 +55,7 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
 
   const displayImageUrl =
     image && image.startsWith("http") && !image.includes("supabase.co/storage")
-      ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-image?url=${encodeURIComponent(image)}`
+      ? `${SUPABASE_URL}/functions/v1/proxy-image?url=${encodeURIComponent(image)}`
       : image;
 
   return (
