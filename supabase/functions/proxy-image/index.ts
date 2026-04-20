@@ -119,12 +119,15 @@ serve(async (req) => {
       );
     }
 
-    // For <img src> usage (GET)
+    // For <img src> usage (GET) - バッファリングしてから返す
+    // (ストリーミングで返すと "connection closed before message completed" が発生することがある)
     if (req.method === "GET") {
-      return new Response(imageResponse.body, {
+      const buf = await imageResponse.arrayBuffer();
+      return new Response(buf, {
         headers: {
           ...corsHeaders,
           "Content-Type": contentType,
+          "Content-Length": String(buf.byteLength),
           "Cache-Control": "public, max-age=86400",
         },
       });
