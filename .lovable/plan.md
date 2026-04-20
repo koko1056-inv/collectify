@@ -1,119 +1,54 @@
 
+## やること
 
-## マイルームv2: 「自分だけのシーンを作る」
+ユーザーから2つの要望:
+1. **登録したグッズが探すページに反映されるのが遅い** → キャッシュ戦略の改善
+2. **一括登録時にコンテンツを全アイテム共通でまとめて選択したい** → MultipleItemsForm に「全件まとめて適用」機能追加
 
-### コンセプト
+---
 
-参考画像のように、**ビビッドでポップなアイソメ空間**に推しグッズ・アバター・BGMを組み合わせて、**自分だけの“シーン”**を作る体験へ。
+## 1. 探すページへの反映を高速化
 
-3つの要素を選ぶだけで完成：
-1. **ルームスタイル** (壁・床・小物の世界観セット)
-2. **飾るグッズ** (コレクションから複数選択)
-3. **アバター** (ギャラリーから選択 / なしも可)
+### 現状の問題
+- `useOfficialItems` は `staleTime: 0` だが、Search.tsx の Realtime 購読は `official-items` キャッシュキーを invalidate しているのに対し、フックは `official-items`（同一）を使用しているのでキー自体は一致している
+- ただし、登録直後の画面遷移（AdminItemForm → Search）後、React Query がバックグラウンドフェッチ中の間に古いキャッシュを表示してしまう
+- `MultipleItemsForm` の onSubmit はループで1件ずつ insert しているが、完了時にクライアント側で `queryClient.invalidateQueries(['official-items'])` を呼んでいない（Realtime 任せ）
 
-さらに **BGM** を設定できて、訪問者にも音と一緒にシーンが届く。
+### 改善策
+- **AdminItemForm.tsx (単一/複数登録 両方)**: 登録成功直後に `queryClient.invalidateQueries({ queryKey: ['official-items'] })` と `refetchQueries` を明示的に実行
+- **useOfficialItems.ts**: `staleTime: 0` のままだが `refetchOnMount: 'always'` を追加。Search ページに戻った瞬間に必ず再取得
+- **MultipleItemsForm の onSubmit**: ループ内 insert を `Promise.all` で並列化（Storage アップロードを含めて速度向上）。さらに insert を1回の bulk insert にまとめられる部分はまとめる
 
-### 新しいルームスタイル（参考画像の方向性に刷新）
+---
 
-現在の8テーマを **テーマカテゴリ + アクセントカラー** の2軸構成に変更し、よりキャラのある世界観に：
+## 2. コンテンツの一括選択機能
 
-| テーマカテゴリ | 例 | アクセント |
-|---|---|---|
-| 🍔 ファストフード店 | オレンジ×白の市松床、看板、カウンター | ネオンサイン |
-| 🌃 サイバーネオン | 紫×ピンクの光、グリッド床 | ホロ装飾 |
-| 🌸 桜の和室 | 畳・障子・桜の枝 | ぼんぼり |
-| ☕ レトロカフェ | 木目・チェック壁紙・カップ棚 | 黒板メニュー |
-| 🌊 サマービーチ | 砂・波・パラソル | 貝殻 |
-| 🎮 ゲーミング部屋 | RGB・ポスター・モニター棚 | LEDストリップ |
-| 🌙 ミッドナイトラウンジ | 暗紫・革張り・間接照明 | キャンドル |
-| 🌿 ボタニカル | グリーン・木の床・植物 | 鳥かご |
+### MultipleItemsForm.tsx の上部に「全件にまとめて適用」セクションを追加
+- コンテンツ選択 Select（既存の ContentSection を流用）
+- アイテムタイプ選択（official / fanmade）
+- 「全件に適用」ボタン → クリックすると state の `items` 全件の `content_name` / `item_type` を一括更新
+- 各カードでは引き続き個別に上書きも可能
 
-各テーマは「**シーンプリセット**」として、壁の柄(チェック/ストライプ/無地)、床パターン、棚の形状、装飾(看板・額縁)まで一括で切り替わる。
-
-### BGM機能（新規）
-
-- **プリセットBGM**: 8〜12曲のロイヤリティフリーループ (チル/シティポップ/ローファイ/和風/ゲーム調 等)
-- 各テーマに**おすすめBGM**を1つ紐付け、模様替え時に自動セット
-- ユーザーは模様替えシートで個別に変更可
-- 訪問者ビューで再生ボタンを表示（自動再生はしない、ブラウザ制約とUX配慮）
-- データ保存: `binder_pages` に `bgm_preset_id` テキストカラムを追加
-
-### アバター選択（新規）
-
-現在は profile.avatar_url を強制使用 → ユーザーの**アバターギャラリー (`profile_images` テーブル)** から「このシーンに置くアバター」を選べるように。
-- 「アバターなし」も選択可（グッズだけのシーンが作れる）
-- 立ち位置は固定（床中央手前）。ポーズや向きの選択は今回スコープ外
-- データ保存: `binder_pages` に `scene_avatar_url` テキストカラムを追加
-
-### UIリニューアル
-
+UI イメージ:
 ```text
-┌─────────────────────────────────┐
-│ ☀ おはよう · 12👁 · 34♥ · ▶BGM │ ← 上部 (BGM再生ボタン追加)
-├─────────────────────────────────┤
-│                                 │
-│   [リッチなアイソメシーン]        │
-│   - 壁: テーマ柄 (チェック等)    │
-│   - 床: 市松/木目/タイル         │
-│   - 装飾: 看板・額・植物         │
-│   - 棚にグッズ・床にアバター     │
-│                                 │
-├─────────────────────────────────┤
-│ [ + グッズ ] [ 🎨 シーン編集 ]  │
-└─────────────────────────────────┘
+┌─────────────────────────────────────────┐
+│ 一括設定（全 12 件に適用）              │
+│ コンテンツ: [呪術廻戦       ▼]          │
+│ タイプ:     [公式グッズ     ▼]          │
+│              [全件に適用]               │
+└─────────────────────────────────────────┘
+
+[個別カード×N（既存UI、個別編集も可）]
 ```
 
-「**🎨 シーン編集**」を1つの統合シートに：
-- タブ1: ルームスタイル (テーマ選択・プレビューつき)
-- タブ2: アバター (自分のギャラリーから選択 / なし)
-- タブ3: BGM (プリセット一覧・試聴可能)
+---
 
-### ビジュアル強化（IsometricRoomScene刷新）
+## 変更ファイル
 
-参考画像のテイストに寄せるための具体改善：
-- **壁にパターン**: チェック柄/ストライプ/ドットを SVG `<pattern>` で実装
-- **看板/装飾レイヤー**: テーマごとに2〜3個のアクセント装飾 (ネオンサイン風の発光、額縁)
-- **床の市松を強調**: より大きく、コントラストを上げて参考画像のような印象に
-- **棚のスタイル多様化**: 木の棚 / メタルラック / ガラス棚 をテーマで切替
-- **アンビエント光**: テーマごとに `radial-gradient` でスポットライト効果
-- **吹き出し** (任意): 「いらっしゃい！」など空の状態でアバター頭上に表示
+| ファイル | 変更内容 |
+|---|---|
+| `src/components/AdminItemForm.tsx` | 登録成功時に `queryClient.invalidateQueries` 追加、bulk insert を並列化 |
+| `src/components/admin-item-form/MultipleItemsForm.tsx` | 上部に一括適用セクションを追加、`applyToAll` ハンドラ実装 |
+| `src/hooks/useOfficialItems.ts` | `refetchOnMount: 'always'` 追加 |
 
-### 技術設計（DB変更含む）
-
-**新マイグレーション**: `binder_pages` に2カラム追加
-- `bgm_preset_id text` (デフォルト `null`)
-- `scene_avatar_url text` (デフォルト `null`)
-
-**新ファイル**:
-- `src/components/myroom/roomBgm.ts` — BGMプリセット定義 + 推奨マッピング
-- `src/components/myroom/roomScenes.ts` — テーマプリセット（柄・装飾含む拡張版、現在の `roomThemes.ts` を発展）
-- `src/components/myroom/SceneEditorSheet.tsx` — タブ統合シート（テーマ/アバター/BGM）
-- `src/components/myroom/AvatarPicker.tsx` — `profile_images` から選択
-- `src/components/myroom/BgmPicker.tsx` — プリセット一覧＋試聴
-- `src/hooks/useRoomBgm.ts` — `<audio>` 制御・volume・loop管理
-- `src/components/myroom/SceneDecorations.tsx` — テーマ別の装飾SVGレイヤー
-
-**修正**:
-- `IsometricRoomScene.tsx` — pattern対応、装飾レイヤー差し込み、avatarUrl propを scene_avatar_url 優先に
-- `MyRoomScene.tsx` — BGM再生ボタン、シート統合、アバター反映
-- `useMyRoom.ts` — 新カラムの取得・更新
-
-**削除/廃止**:
-- 現 `ThemePickerSheet.tsx` → SceneEditorSheet に統合
-
-### 実装ステップ
-
-1. DBマイグレーション (binder_pages に bgm_preset_id, scene_avatar_url 追加)
-2. roomScenes.ts 拡張（パターン・装飾定義込み）+ roomBgm.ts 作成
-3. IsometricRoomScene 刷新（pattern対応・装飾レイヤー）
-4. SceneEditorSheet 作成（3タブ統合）
-5. useRoomBgm hook + 上部BGM再生ボタン
-6. MyRoomScene を新仕様に差し替え
-7. 390px幅で各テーマが綺麗に映るよう調整・QA
-
-### 期待される効果
-
-- 「自分だけの世界観」を作れる達成感が大幅UP
-- BGM＋ビジュアルでログイン時の没入感が増す
-- 訪問者にも音つきで届くため、SNS的シェア性が高まる
-
+DB 変更なし。
