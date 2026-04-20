@@ -88,6 +88,10 @@ export function ItemDetailsContent({
             />
           </div>
 
+          <h2 className="text-lg font-bold text-foreground leading-snug px-1">
+            {title}
+          </h2>
+
           <ItemDetailInfo
             tags={tags}
             price={price}
