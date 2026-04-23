@@ -84,7 +84,7 @@ export function ImageEditDialog({
 
   const handleEdit = async () => {
     if (editPrompt.trim()) {
-      // ポイント残高チェック
+      // ポイント残高チェック（実際の消費は edit-image Edge Function 側で行う）
       const currentPoints = userPoints?.total_points || 0;
       if (currentPoints < GENERATION_COST) {
         toast({
@@ -95,22 +95,10 @@ export function ImageEditDialog({
         return;
       }
 
-      try {
-        // ポイントを消費
-        await deductPoints.mutateAsync({
-          points: GENERATION_COST,
-          transactionType: "post_image_generation",
-          description: "投稿用画像生成",
-        });
-
-        const prompt = editPrompt.trim();
-        onEditComplete(prompt, selectedAvatarUrl || undefined);
-        setEditPrompt("");
-        setSelectedAvatarUrl(null);
-      } catch (error) {
-        // ポイント消費に失敗した場合は処理を中止
-        console.error("Failed to deduct points:", error);
-      }
+      const prompt = editPrompt.trim();
+      onEditComplete(prompt, selectedAvatarUrl || undefined);
+      setEditPrompt("");
+      setSelectedAvatarUrl(null);
     }
   };
   const allAvatarOptions: AvatarOption[] = [
