@@ -114,8 +114,14 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
     });
   };
 
+  const handleGenerateClick = () => {
+    if (!canProceedFromItems || !canProceedFromVisual) return;
+    setConfirmOpen(true);
+  };
+
   const handleGenerate = async () => {
     if (!canProceedFromItems) return;
+    setConfirmOpen(false);
     setStep("generating");
     try {
       const stylePrompt =
