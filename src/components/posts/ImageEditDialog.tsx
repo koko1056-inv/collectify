@@ -7,9 +7,10 @@ import { Loader2, User, Sparkles, Coins } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useUserPoints, useDeductPoints } from "@/hooks/usePoints";
+import { useUserPoints } from "@/hooks/usePoints";
 import { useToast } from "@/hooks/use-toast";
 
+// 表示用のコスト（実際の消費は edit-image Edge Function 側で行う）
 const GENERATION_COST = 10;
 interface ImageEditDialogProps {
   isOpen: boolean;
