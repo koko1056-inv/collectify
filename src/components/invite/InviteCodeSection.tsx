@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useInviteCode } from "@/hooks/useInviteCode";
-import { Copy, Gift, Users, Ticket } from "lucide-react";
+import { Copy, Gift, Users, Ticket, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { buildInviteShareText, buildInviteUrl } from "@/utils/shareLinks";
 
 export function InviteCodeSection() {
   const { myCodes, referralCount, createCode, redeemCode } = useInviteCode();
@@ -13,8 +14,22 @@ export function InviteCodeSection() {
   const latestCode = unusedCodes[0];
 
   const handleCopy = (code: string) => {
-    const shareText = `Collectifyで一緒に推しグッズを管理しよう！\n招待コード: ${code}\nhttps://collectify.app/login?invite=${code}`;
-    navigator.clipboard.writeText(shareText);
+    navigator.clipboard.writeText(buildInviteShareText(code));
+    toast.success("招待リンクをコピーしました！");
+  };
+
+  const handleShare = async (code: string) => {
+    const text = buildInviteShareText(code);
+    const url = buildInviteUrl(code);
+    if (navigator.share) {
+      try {
+        await navigator.share({ text, url });
+        return;
+      } catch {
+        // キャンセル等
+      }
+    }
+    navigator.clipboard.writeText(text);
     toast.success("招待リンクをコピーしました！");
   };
 
@@ -39,17 +54,30 @@ export function InviteCodeSection() {
 
       {/* Generate / Show code */}
       {latestCode ? (
-        <div className="flex items-center gap-2">
-          <div className="flex-1 bg-muted rounded-lg px-4 py-3 font-mono text-lg tracking-widest text-center">
-            {latestCode.code}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 bg-muted rounded-lg px-4 py-3 font-mono text-lg tracking-widest text-center">
+              {latestCode.code}
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => handleCopy(latestCode.code)}
+              title="リンクをコピー"
+            >
+              <Copy className="w-4 h-4" />
+            </Button>
+            <Button
+              size="icon"
+              onClick={() => handleShare(latestCode.code)}
+              title="シェア"
+            >
+              <Share2 className="w-4 h-4" />
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => handleCopy(latestCode.code)}
-          >
-            <Copy className="w-4 h-4" />
-          </Button>
+          <p className="text-xs text-muted-foreground text-center">
+            招待リンク: {buildInviteUrl(latestCode.code)}
+          </p>
         </div>
       ) : null}
 
