@@ -337,7 +337,6 @@ function HeroAvatar({
   onOpen,
   onDressUp,
   onGenerate,
-  onRandom,
   onUpload,
 }: {
   imageUrl: string;
@@ -345,7 +344,6 @@ function HeroAvatar({
   onOpen: () => void;
   onDressUp: () => void;
   onGenerate: () => void;
-  onRandom: () => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
@@ -395,14 +393,25 @@ function HeroAvatar({
         </div>
       </button>
 
-      {/* 下半分: アクションボタン (ルームページと同じトーン) */}
-      <div className="grid grid-cols-4 gap-1 p-2 border-t border-border/40">
-        <ActionButton icon={Wand2} label="生成" onClick={onGenerate} />
-        <ActionButton icon={Shirt} label="着せ替え" onClick={onDressUp} accent />
-        <ActionButton icon={Dices} label="ランダム" onClick={onRandom} />
-        <label className="flex flex-col items-center justify-center gap-1 py-2 rounded-lg hover:bg-muted/60 cursor-pointer transition-colors">
-          <UploadCloud className="w-4 h-4 text-foreground/80" />
-          <span className="text-[10px] font-medium">アップ</span>
+      {/* 下半分: 3つのアクション (生成 / 着せ替え★ / アップ) */}
+      <div className="grid grid-cols-3 gap-1.5 p-2.5 border-t border-border/40">
+        <ActionButton
+          icon={Wand2}
+          label="生成"
+          hint="AIで作る"
+          onClick={onGenerate}
+        />
+        <ActionButton
+          icon={Shirt}
+          label="着せ替え"
+          hint="グッズで装う"
+          onClick={onDressUp}
+          accent
+        />
+        <label className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-lg hover:bg-muted/60 cursor-pointer transition-colors text-foreground/80">
+          <UploadCloud className="w-4 h-4" />
+          <span className="text-[11px] font-semibold leading-none">アップ</span>
+          <span className="text-[9px] text-muted-foreground leading-none">写真から</span>
           <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
         </label>
       </div>
@@ -413,26 +422,63 @@ function HeroAvatar({
 function ActionButton({
   icon: Icon,
   label,
+  hint,
   onClick,
   accent,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
+  hint?: string;
   onClick: () => void;
   accent?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-colors ${
+      className={`flex flex-col items-center justify-center gap-1 py-2.5 rounded-lg transition-colors ${
         accent
           ? "bg-primary/10 text-primary hover:bg-primary/20"
           : "hover:bg-muted/60 text-foreground/80"
       }`}
     >
       <Icon className="w-4 h-4" />
-      <span className="text-[10px] font-medium">{label}</span>
+      <span className="text-[11px] font-semibold leading-none">{label}</span>
+      {hint && (
+        <span className={`text-[9px] leading-none ${accent ? "text-primary/70" : "text-muted-foreground"}`}>
+          {hint}
+        </span>
+      )}
     </button>
+  );
+}
+
+// ==================== NextStepHint ====================
+/**
+ * アバター数に応じて「次にやること」を案内するシンプルなヒントカード
+ * 1枚だけ持っている → 「グッズで着せ替えてみよう」
+ * 2枚以上 → 何も表示しない (上級者には邪魔をしない)
+ */
+function NextStepHint({ onDressUp }: { onDressUp: () => void }) {
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      onClick={onDressUp}
+      className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 via-pink-500/5 to-transparent hover:from-primary/10 hover:via-pink-500/10 transition-colors text-left"
+    >
+      <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+        <Shirt className="w-4 h-4 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold leading-tight">
+          グッズで着せ替えてみよう
+        </p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          お気に入りのグッズで、アバターを自分らしく
+        </p>
+      </div>
+      <ArrowRight className="w-4 h-4 text-primary shrink-0" />
+    </motion.button>
   );
 }
 
