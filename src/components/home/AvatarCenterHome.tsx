@@ -548,6 +548,65 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           accept="image/*"
         />
 
+        {/* アバター一覧（横スクロール） */}
+        <div className="w-full max-w-2xl relative z-10">
+          <div className="flex items-center justify-between px-2 mb-2">
+            <p className="text-xs font-medium text-muted-foreground">
+              {recentAvatars.length > 0 ? `保存済みアバター (${recentAvatars.length})` : "アバターをつくろう"}
+            </p>
+            {recentAvatars.length > 0 && (
+              <button
+                onClick={() => openStudio("gallery")}
+                className="text-xs text-primary font-medium hover:underline"
+              >
+                すべて見る →
+              </button>
+            )}
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 px-2 snap-x snap-mandatory">
+            {/* 新規生成タイル */}
+            <button
+              onClick={() => openStudio("generate")}
+              className="flex-shrink-0 snap-start w-20 h-20 rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-primary/10 transition-all"
+              aria-label="新しいアバターを生成"
+            >
+              <Sparkles className="w-5 h-5 text-primary" />
+              <span className="text-[10px] font-medium text-primary">新規生成</span>
+            </button>
+
+            {recentAvatars.map((avatar) => {
+              const isCurrent = currentAvatarUrl === avatar.image_url;
+              return (
+                <div key={avatar.id} className="flex-shrink-0 snap-start flex flex-col items-center gap-1">
+                  <button
+                    onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
+                    className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all ${
+                      isCurrent
+                        ? "border-primary shadow-lg ring-2 ring-primary/30"
+                        : "border-border hover:border-primary/60 hover:scale-105"
+                    }`}
+                  >
+                    <img
+                      src={avatar.image_url}
+                      alt={avatar.name || "アバター"}
+                      className="w-full h-full object-cover"
+                    />
+                    {isCurrent && (
+                      <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-0.5 shadow">
+                        <Check className="w-3 h-3" />
+                      </div>
+                    )}
+                  </button>
+                  <p className="text-[10px] text-muted-foreground truncate max-w-[80px] text-center">
+                    {avatar.name || (isCurrent ? "現在" : "—")}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+
         {/* 機能ボタン */}
         <div className="grid grid-cols-2 sm:flex gap-4 sm:gap-6 mb-8 max-w-md w-full px-4">
           {buttons.map((btn, index) => (
@@ -585,6 +644,8 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         userId={userId}
         currentAvatarUrl={currentAvatarUrl || profile?.avatar_url || null}
         onAvatarGenerated={handleAvatarGenerated}
+        initialTab={studioInitialTab}
+        initialBaseAvatarUrl={studioBaseAvatarUrl}
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
