@@ -9,9 +9,12 @@ import { Loader2, Sparkles, Upload, X, Wand2, Coins } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import type { AvatarGenerationResult } from "@/types/avatar";
-import { useUserPoints, useDeductPoints } from "@/hooks/usePoints";
+import { useUserPoints } from "@/hooks/usePoints";
+import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
+import { useFirstTimeFree } from "@/hooks/useFirstTimeFree";
+import { useQueryClient } from "@tanstack/react-query";
 
-const GENERATION_COST = 10;
+const GENERATION_COST = 30;
 
 interface AvatarGenerationModalProps {
   isOpen: boolean;
@@ -33,9 +36,14 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [generationStep, setGenerationStep] = useState<string>("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const { toast } = useToast();
   const { data: userPoints } = useUserPoints();
-  const deductPoints = useDeductPoints();
+  const { data: isFirstTime = false } = useFirstTimeFree({
+    transactionTypes: ["avatar_generation", "avatar_generation_free"],
+    extraTable: "avatar_gallery",
+  });
+  const qc = useQueryClient();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
