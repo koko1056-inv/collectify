@@ -225,7 +225,7 @@ export function CreateItemPostModal({
             <Button
               type="button"
               size="sm"
-              onClick={generateAIImage}
+              onClick={requestGenerateAIImage}
               disabled={
                 isGenerating ||
                 createMutation.isPending ||
