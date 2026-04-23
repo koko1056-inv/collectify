@@ -132,9 +132,13 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
       setProgress(100);
       setGenerationStep("完了！");
 
+      qc.invalidateQueries({ queryKey: ["userPoints"] });
+      qc.invalidateQueries({ queryKey: ["pointTransactions"] });
+      qc.invalidateQueries({ queryKey: ["firstTimeFree"] });
+
       toast({
         title: "アバター生成完了",
-        description: "AIアバターが生成されました",
+        description: data.freeTrial ? "🎁 初回無料で生成しました" : `AIアバターを生成しました (-${GENERATION_COST}pt)`,
       });
       setPrompt("");
       handleRemoveImage();
@@ -166,7 +170,7 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
             AIアバター生成
             <span className="ml-auto flex items-center gap-1 text-sm font-normal text-muted-foreground">
               <Coins className="w-4 h-4" />
-              {GENERATION_COST}pt
+              {isFirstTime ? "初回無料 🎁" : `${GENERATION_COST}pt`}
             </span>
           </DialogTitle>
           <DialogDescription>
@@ -272,7 +276,7 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
               キャンセル
             </Button>
             <Button
-              onClick={handleGenerate}
+              onClick={handleGenerateClick}
               disabled={isGenerating || (!prompt.trim() && !uploadedImage)}
               className="relative overflow-hidden group"
             >
@@ -290,6 +294,17 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
             </Button>
           </div>
         </div>
+
+        <SpendPointsDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title="AIアバターを生成しますか？"
+          description="入力内容をもとに3Dアバター画像を生成します。"
+          cost={GENERATION_COST}
+          freeTrial={isFirstTime}
+          loading={isGenerating}
+          onConfirm={handleGenerate}
+        />
       </DialogContent>
     </Dialog>
   );
