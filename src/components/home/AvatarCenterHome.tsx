@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -26,11 +26,13 @@ import {
   Dices,
   Edit2,
   Image as ImageIcon,
+  Plus,
   Sparkles,
   Shirt,
   Trash2,
   UploadCloud,
   User,
+  Wand2,
 } from "lucide-react";
 import { Profile } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -66,6 +68,9 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
   }
 
   const currentUrl = avatars.currentAvatar?.image_url || profile.avatar_url || null;
+  const restAvatars = avatars.avatars.filter(
+    (a) => a.id !== avatars.currentAvatar?.id
+  );
 
   const openStudio = (tab: StudioTab, baseUrl?: string | null) => {
     setStudioTab(tab);
@@ -79,219 +84,103 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
     e.target.value = "";
   };
 
-  const actions = [
-    {
-      icon: Sparkles,
-      label: "生成",
-      hint: "AIでつくる",
-      onClick: () => openStudio("generate"),
-    },
-    {
-      icon: Shirt,
-      label: "着せ替え",
-      hint: "グッズで変身",
-      onClick: () => openStudio("dressup", currentUrl),
-    },
-    {
-      icon: ImageIcon,
-      label: "ギャラリー",
-      hint: "一覧から選ぶ",
-      onClick: () => openStudio("gallery"),
-    },
-    {
-      icon: Dices,
-      label: "ランダム",
-      hint: "おまかせ",
-      onClick: () => setShowRandom(true),
-    },
-  ];
-
   return (
-    <div className="space-y-5">
-      {/* メインアバターカード（HeroCardと同じトーン） */}
-      <Card className="relative overflow-hidden border-border/40 shadow-sm">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-card to-card pointer-events-none" />
-        <div className="absolute -top-6 -right-6 w-40 h-40 rounded-full bg-gradient-to-br from-primary/15 to-transparent blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-gradient-to-tr from-pink-500/10 to-transparent blur-3xl pointer-events-none" />
-
-        <CardContent className="relative p-6 sm:p-8 flex flex-col items-center">
-          {/* メインアバター */}
-          <button
-            onClick={() => openStudio("gallery")}
-            className="relative group focus:outline-none mb-5"
-            aria-label="アバターを管理する"
-          >
-            {currentUrl ? (
-              <>
-                <div className="absolute -inset-3 bg-gradient-to-br from-primary/30 to-primary/5 rounded-full blur-xl opacity-60 group-hover:opacity-90 transition-opacity" />
-                <Avatar className="relative w-36 h-36 sm:w-44 sm:h-44 border-4 border-background shadow-2xl ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300 group-hover:scale-105">
-                  <AvatarImage src={currentUrl} className="object-cover" />
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    <User className="w-14 h-14" />
-                  </AvatarFallback>
-                </Avatar>
-              </>
-            ) : (
-              <div className="w-36 h-36 sm:w-44 sm:h-44 border-2 border-dashed border-primary/40 bg-primary/5 rounded-full flex flex-col items-center justify-center gap-2 group-hover:border-primary group-hover:bg-primary/10 transition-all">
-                <Sparkles className="w-10 h-10 text-primary" />
-                <span className="text-xs font-medium text-primary">アバターをつくる</span>
-              </div>
-            )}
-          </button>
-
-          {/* タイトル */}
-          <h2 className="text-lg sm:text-xl font-bold text-foreground">
-            {avatars.currentAvatar?.name || "マイアバター"}
-          </h2>
-          <p className="text-xs text-muted-foreground mt-1 mb-5">
-            あなたの分身を自由にデザインしよう
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+      {/* イントロ + 新規ボタン (ルームページと同じスタイル) */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <h2 className="text-base font-bold">AI推しアバター</h2>
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
+              NEW
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+            グッズで着せ替え、AIで生成。あなただけの分身を育てよう
           </p>
+        </div>
+        {avatars.avatars.length > 0 && (
+          <Button
+            onClick={() => openStudio("generate")}
+            size="sm"
+            className="shrink-0 gap-1.5 shadow-md"
+          >
+            <Plus className="w-4 h-4" />
+            新規
+          </Button>
+        )}
+      </div>
 
-          {/* 4つのアクションボタン（カード化して他ページのトーンに揃える） */}
-          <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full max-w-md">
-            {actions.map((a) => (
-              <button
-                key={a.label}
-                onClick={a.onClick}
-                className="group flex flex-col items-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-background/80 border border-border/40 hover:border-primary/40 hover:bg-primary/5 hover:shadow-md transition-all"
-              >
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
-                  <a.icon className="w-5 h-5 text-primary" />
-                </div>
-                <span className="text-[11px] sm:text-xs font-semibold text-foreground">{a.label}</span>
-                <span className="text-[9px] sm:text-[10px] text-muted-foreground hidden sm:block">{a.hint}</span>
-              </button>
+      {/* ローディング */}
+      {avatars.isLoading && (
+        <div className="space-y-3">
+          <div className="aspect-square sm:aspect-video rounded-3xl bg-muted/60 animate-pulse" />
+          <div className="grid grid-cols-3 gap-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="aspect-square rounded-2xl bg-muted/60 animate-pulse" />
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
-      {/* ギャラリーカード */}
-      <Card className="border-border/40 shadow-sm">
-        <CardContent className="p-4 sm:p-5">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                <ImageIcon className="w-3.5 h-3.5 text-primary" />
-              </div>
-              <h3 className="text-sm font-semibold">
-                マイギャラリー
-                {avatars.avatars.length > 0 && (
-                  <span className="ml-1.5 text-xs text-muted-foreground font-normal">
-                    ({avatars.avatars.length})
-                  </span>
-                )}
-              </h3>
-            </div>
-            {avatars.avatars.length > 0 && (
-              <button
-                onClick={() => openStudio("gallery")}
-                className="text-xs text-primary font-medium hover:underline"
-              >
-                すべて見る →
-              </button>
-            )}
-          </div>
+      {/* 空のヒーロー */}
+      {!avatars.isLoading && avatars.avatars.length === 0 && (
+        <EmptyHero onStart={() => openStudio("generate")} onUpload={handleFileUpload} />
+      )}
 
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {/* 新規生成タイル */}
-            <button
-              onClick={() => openStudio("generate")}
-              className="flex-shrink-0 w-[72px]"
-              aria-label="新しいアバターを生成"
-            >
-              <div className="w-[72px] h-[72px] rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-primary/10 transition-all">
-                <Sparkles className="w-5 h-5 text-primary" />
-                <span className="text-[9px] font-medium text-primary">新規生成</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground text-center mt-1.5">作る</p>
-            </button>
+      {/* ヒーロー (現在のアバターを大きく) */}
+      {!avatars.isLoading && currentUrl && (
+        <HeroAvatar
+          imageUrl={currentUrl}
+          name={avatars.currentAvatar?.name || "マイアバター"}
+          onOpen={() => openStudio("gallery")}
+          onDressUp={() => openStudio("dressup", currentUrl)}
+          onGenerate={() => openStudio("generate")}
+          onRandom={() => setShowRandom(true)}
+          onUpload={handleFileUpload}
+        />
+      )}
 
-            {/* アップロードタイル */}
-            <label className="flex-shrink-0 w-[72px] cursor-pointer">
-              <div className="w-[72px] h-[72px] rounded-2xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex flex-col items-center justify-center gap-1 hover:border-foreground/40 hover:bg-muted/30 transition-all">
-                <UploadCloud className="w-5 h-5 text-muted-foreground" />
-                <span className="text-[9px] font-medium text-muted-foreground">アップ</span>
-              </div>
-              <p className="text-[10px] text-muted-foreground text-center mt-1.5">画像から</p>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </label>
-
-            {avatars.avatars.map((a) => {
-              const isCurrent = a.is_current || a.image_url === currentUrl;
-              return (
-                <div key={a.id} className="flex-shrink-0 w-[72px] group">
-                  <div
-                    className={`relative w-[72px] h-[72px] rounded-2xl overflow-hidden border-2 transition-all ${
-                      isCurrent
-                        ? "border-primary shadow-md ring-2 ring-primary/30"
-                        : "border-border/60 hover:border-primary/60"
-                    }`}
-                  >
-                    <button
-                      onClick={() => avatars.setCurrent.mutate(a.id)}
-                      disabled={!!isCurrent || avatars.setCurrent.isPending}
-                      className="w-full h-full"
-                    >
-                      <img
-                        src={a.image_url}
-                        alt={a.name || "アバター"}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                    {isCurrent && (
-                      <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-0.5 shadow">
-                        <Check className="w-3 h-3" />
-                      </div>
-                    )}
-                    <div className="absolute bottom-0 right-0 flex opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setRenameTarget(a);
-                          setRenameValue(a.name || "");
-                        }}
-                        className="p-1 bg-background/90 rounded-tl-md hover:bg-background"
-                        aria-label="名前を編集"
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteTarget(a);
-                        }}
-                        className="p-1 bg-background/90 hover:bg-background"
-                        aria-label="削除"
-                      >
-                        <Trash2 className="w-3 h-3 text-destructive" />
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground truncate text-center mt-1.5">
-                    {a.name || (isCurrent ? "現在" : "—")}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-
-          {avatars.avatars.length === 0 && !avatars.isLoading && (
-            <p className="text-center text-xs text-muted-foreground py-3">
-              まだアバターがありません。生成またはアップロードして始めましょう
+      {/* ギャラリー (履歴) */}
+      {!avatars.isLoading && restAvatars.length > 0 && (
+        <>
+          <div className="flex items-center justify-between pt-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              ギャラリー
+              <span className="ml-1.5 normal-case font-normal">
+                ({restAvatars.length})
+              </span>
             </p>
-          )}
-        </CardContent>
-      </Card>
+            <button
+              onClick={() => openStudio("gallery")}
+              className="text-xs text-primary font-medium hover:underline"
+            >
+              すべて見る →
+            </button>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+            {restAvatars.map((a) => (
+              <AvatarThumbCard
+                key={a.id}
+                avatar={a}
+                onSelect={() => avatars.setCurrent.mutate(a.id)}
+                onRename={() => {
+                  setRenameTarget(a);
+                  setRenameValue(a.name || "");
+                }}
+                onDelete={() => setDeleteTarget(a)}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
-      {/* ソーシャルセクション（コレクション・コレクター） */}
+      {/* ソーシャルセクション (コレクション/コレクター) */}
       {userId && (
-        <AvatarSocialSection userId={userId} avatarUrl={currentUrl || undefined} />
+        <div className="pt-2">
+          <AvatarSocialSection userId={userId} avatarUrl={currentUrl || undefined} />
+        </div>
       )}
 
       {/* スタジオモーダル */}
@@ -305,7 +194,6 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
         />
       )}
 
-      {/* ランダムピックアップ */}
       <RandomPickupModal
         isOpen={showRandom}
         onClose={() => setShowRandom(false)}
@@ -359,9 +247,9 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>アバターを削除しますか？</AlertDialogTitle>
+            <AlertDialogTitle>このアバターを削除しますか？</AlertDialogTitle>
             <AlertDialogDescription>
-              この操作は取り消せません。本当にこのアバターを削除してもよろしいですか？
+              削除すると元に戻せません。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -373,11 +261,255 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              削除
+              削除する
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+// ==================== EmptyHero ====================
+function EmptyHero({
+  onStart,
+  onUpload,
+}: {
+  onStart: () => void;
+  onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="relative rounded-3xl overflow-hidden border border-border/40 shadow-sm"
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/30 to-primary/10" />
+      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-primary/20 blur-3xl" />
+      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-primary/15 blur-3xl" />
+
+      <div className="relative p-6 sm:p-10 text-center space-y-5">
+        <div className="relative w-20 h-20 mx-auto">
+          <motion.div
+            animate={{ rotate: [0, 15, -10, 0], scale: [1, 1.08, 1] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="w-full h-full rounded-full bg-primary flex items-center justify-center shadow-xl"
+          >
+            <Wand2 className="w-9 h-9 text-primary-foreground" />
+          </motion.div>
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="absolute"
+              style={{
+                left: `${50 + Math.cos((i / 3) * Math.PI * 2) * 55}%`,
+                top: `${50 + Math.sin((i / 3) * Math.PI * 2) * 55}%`,
+              }}
+              animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
+              transition={{ duration: 2, repeat: Infinity, delay: i * 0.5 }}
+            >
+              <Sparkles className="w-4 h-4 text-primary" />
+            </motion.div>
+          ))}
+        </div>
+
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold mb-1.5">
+            あなただけの推しアバター
+          </h2>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
+            写真からつくる、AIで生成、グッズで着せ替え。
+            <br className="hidden sm:block" />
+            自由に分身をデザインしよう ✨
+          </p>
+        </div>
+
+        <div className="flex items-center justify-center gap-2">
+          <Button size="lg" onClick={onStart} className="gap-2 h-12 px-6 shadow-lg">
+            <Wand2 className="w-5 h-5" />
+            はじめて作る
+          </Button>
+          <label className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-md border border-border bg-background hover:bg-muted cursor-pointer text-sm font-medium">
+            <UploadCloud className="w-4 h-4" />
+            画像から
+            <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
+          </label>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ==================== HeroAvatar (現在のアバターを大きく) ====================
+function HeroAvatar({
+  imageUrl,
+  name,
+  onOpen,
+  onDressUp,
+  onGenerate,
+  onRandom,
+  onUpload,
+}: {
+  imageUrl: string;
+  name: string;
+  onOpen: () => void;
+  onDressUp: () => void;
+  onGenerate: () => void;
+  onRandom: () => void;
+  onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="relative rounded-3xl overflow-hidden border border-border/40 shadow-xl bg-card"
+    >
+      {/* 上半分: 大きなアバタービジュアル */}
+      <button
+        onClick={onOpen}
+        className="relative w-full aspect-square sm:aspect-[16/10] block bg-gradient-to-br from-primary/10 via-accent/20 to-primary/5 overflow-hidden"
+      >
+        {/* 背景装飾 */}
+        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-primary/15 blur-3xl" />
+        <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-pink-500/10 blur-3xl" />
+
+        {/* アバター */}
+        <div className="relative w-full h-full flex items-center justify-center p-6">
+          <div className="relative">
+            <motion.div
+              animate={{ scale: [1, 1.04, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -inset-4 rounded-full bg-gradient-to-br from-primary/40 to-pink-500/30 blur-2xl"
+            />
+            <Avatar className="relative w-44 h-44 sm:w-56 sm:h-56 border-4 border-background shadow-2xl ring-2 ring-primary/30">
+              <AvatarImage src={imageUrl} className="object-cover" />
+              <AvatarFallback className="bg-primary/10 text-primary">
+                <User className="w-16 h-16" />
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        </div>
+
+        {/* 下グラデ + ラベル */}
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute left-4 right-4 bottom-3 text-left text-white">
+          <p className="text-[10px] uppercase tracking-widest opacity-80 mb-0.5">
+            現在のアバター
+          </p>
+          <p className="text-base font-bold truncate drop-shadow-md">{name}</p>
+        </div>
+
+        {/* 右上バッジ */}
+        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur text-white text-xs font-semibold flex items-center gap-1.5">
+          <Sparkles className="w-3 h-3" /> 着用中
+        </div>
+      </button>
+
+      {/* 下半分: アクションボタン (ルームページと同じトーン) */}
+      <div className="grid grid-cols-4 gap-1 p-2 border-t border-border/40">
+        <ActionButton icon={Wand2} label="生成" onClick={onGenerate} />
+        <ActionButton icon={Shirt} label="着せ替え" onClick={onDressUp} accent />
+        <ActionButton icon={Dices} label="ランダム" onClick={onRandom} />
+        <label className="flex flex-col items-center justify-center gap-1 py-2 rounded-lg hover:bg-muted/60 cursor-pointer transition-colors">
+          <UploadCloud className="w-4 h-4 text-foreground/80" />
+          <span className="text-[10px] font-medium">アップ</span>
+          <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
+        </label>
+      </div>
+    </motion.div>
+  );
+}
+
+function ActionButton({
+  icon: Icon,
+  label,
+  onClick,
+  accent,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+  accent?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-colors ${
+        accent
+          ? "bg-primary/10 text-primary hover:bg-primary/20"
+          : "hover:bg-muted/60 text-foreground/80"
+      }`}
+    >
+      <Icon className="w-4 h-4" />
+      <span className="text-[10px] font-medium">{label}</span>
+    </button>
+  );
+}
+
+// ==================== Avatar Thumb Card (履歴グリッド) ====================
+function AvatarThumbCard({
+  avatar,
+  onSelect,
+  onRename,
+  onDelete,
+}: {
+  avatar: AvatarRow;
+  onSelect: () => void;
+  onRename: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="group relative rounded-2xl overflow-hidden border border-border/40 bg-card shadow-sm hover:shadow-md transition-shadow"
+    >
+      <button
+        onClick={onSelect}
+        className="relative w-full aspect-square overflow-hidden bg-muted block"
+      >
+        <img
+          src={avatar.image_url}
+          alt={avatar.name || ""}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+        />
+        <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/70 to-transparent" />
+        {avatar.item_ids && avatar.item_ids.length > 0 && (
+          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full bg-pink-500/90 text-white text-[9px] font-semibold flex items-center gap-1">
+            <Shirt className="w-2.5 h-2.5" />
+          </div>
+        )}
+        {avatar.name && (
+          <div className="absolute left-2 right-2 bottom-1.5 text-white text-[11px] font-semibold truncate text-left">
+            {avatar.name}
+          </div>
+        )}
+      </button>
+
+      {/* ホバーアクション */}
+      <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRename();
+          }}
+          className="w-6 h-6 rounded-full bg-black/60 backdrop-blur hover:bg-black/80 flex items-center justify-center text-white"
+          aria-label="名前を編集"
+        >
+          <Edit2 className="w-3 h-3" />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="w-6 h-6 rounded-full bg-black/60 backdrop-blur hover:bg-destructive flex items-center justify-center text-white"
+          aria-label="削除"
+        >
+          <Trash2 className="w-3 h-3" />
+        </button>
+      </div>
+    </motion.div>
   );
 }
