@@ -51,6 +51,8 @@ interface AvatarStudioModalProps {
   userId: string;
   currentAvatarUrl: string | null;
   onAvatarGenerated?: (result: AvatarGenerationResult) => void | Promise<void>;
+  initialTab?: "generate" | "dressup" | "gallery";
+  initialBaseAvatarUrl?: string | null;
 }
 
 interface AvatarItem {
@@ -75,8 +77,10 @@ export function AvatarStudioModal({
   userId,
   currentAvatarUrl,
   onAvatarGenerated,
+  initialTab = "generate",
+  initialBaseAvatarUrl,
 }: AvatarStudioModalProps) {
-  const [activeTab, setActiveTab] = useState("generate");
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const { toast } = useToast();
 
   // 生成タブの状態
@@ -103,13 +107,17 @@ export function AvatarStudioModal({
 
   useEffect(() => {
     if (isOpen) {
+      setActiveTab(initialTab);
+      if (initialBaseAvatarUrl) {
+        setSelectedAvatarUrl(initialBaseAvatarUrl);
+      }
       fetchAvailableAvatars();
       fetchUserItems();
       fetchGalleryAvatars();
     } else {
       resetState();
     }
-  }, [isOpen]);
+  }, [isOpen, initialTab, initialBaseAvatarUrl]);
 
   const resetState = () => {
     setPrompt("");
@@ -137,7 +145,7 @@ export function AvatarStudioModal({
           (avatar) => !avatar.item_ids || avatar.item_ids.length === 0
         );
         setAvailableAvatars(pureAvatars);
-        if (pureAvatars.length > 0 && !selectedAvatarUrl) {
+        if (pureAvatars.length > 0 && !selectedAvatarUrl && !initialBaseAvatarUrl) {
           setSelectedAvatarUrl(pureAvatars[0].image_url);
         }
       }
