@@ -40,7 +40,6 @@ export function ImageEditDialog({
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const { user } = useAuth();
   const { data: userPoints } = useUserPoints();
-  const deductPoints = useDeductPoints();
   const { toast } = useToast();
   useEffect(() => {
     if (user && isOpen) {
