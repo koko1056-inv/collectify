@@ -1,94 +1,187 @@
 
 
-## コードベース整理リファクタリングプラン
+# バイラル成長のための全体設計プラン
 
-### 概要
+## 現状評価サマリー
 
-調査の結果、**未使用コンポーネント・重複機能・肥大ファイル** が多数蓄積していることが判明しました。アプリの動作を変えずに**安全に削除できる不要コード**を整理し、**肥大したファイルを分割**することで、保守性を改善します。
+**すでに実装済み**
+- 招待コード機能（`invite_codes` テーブル、30日有効、招待ボーナスあり）
+- シェア機能（X / Web Share API、複数箇所）
+- 公開ページ：`/user/:userId`、`/room/:roomId`、`/rooms/explore`（未ログインでも閲覧可）
+- 静的OGPメタタグ
 
-### Phase 1: 完全未使用コンポーネントの削除（リスクほぼゼロ）
+**バイラル阻害要因（優先度順）**
+1. **動的OGPが無い**（全ページ同じ `/og-image.png`）← SNS拡散の最大ボトルネック
+2. 招待はコード式で、ワンクリック招待リンクが無い
+3. シェア文言が画一的で煽り要素・数値が無い
+4. 達成ハイモーメント（AI生成完了、アイテム100個到達等）でのシェア誘導が弱い
+5. 公開コンテンツの SEO流入設計が無い（sitemap、構造化データ）
 
-調査で「どこからも import されていない」ことを確認したファイルを削除します。
+---
 
-| ファイル | 行数 | 理由 |
-|---------|-----|------|
-| `src/components/profile/AvatarGenerationModal.tsx` | 308 | 旧アバター生成モーダル。現在は `AvatarStudioModal` に置き換わり未使用 |
-| `src/components/profile/ProfileCard.tsx` | 188 | どこからも参照なし |
-| `src/components/profile/ProfileStats.tsx` | — | 参照なし |
-| `src/components/home/avatar-center/CollectionAnalyticsModal.tsx` | — | 参照なし |
-| `src/components/home/avatar-center/RandomPickupModal.tsx` | — | 前回「アバターのUX改善」で参照削除済み、ファイルが残骸化 |
+## 設計方針
 
-**連鎖的削除**：上記 `ProfileCard.tsx` のみが参照していたファイル群も一緒に削除：
+**バイラル係数 K = i × c を上げる**
+- **i（1人あたりの招待数）**: シェアボタンの露出増・ハイモーメント誘導・招待リンク化
+- **c（コンバージョン率）**: 動的OGPで魅力的プレビュー・公開ページのLP化・ワンクリック登録
 
-- `src/components/profile/ProfileBio.tsx`
-- `src/components/profile/ProfileBioSection.tsx`
-- `src/components/profile/ProfileFavorites.tsx`（現行は `FavoriteItemsTop5` に置き換え済み）
-- `src/components/profile/ProfileFavoritesSection.tsx`
-- `src/components/profile/ProfileImageSection.tsx`
-- `src/components/profile/ProfileInterests.tsx`
-- `src/components/profile/ProfileWishlist.tsx`
-- `src/components/profile/ProfileStatsOptimized.tsx`
+全フェーズ合計で約 5〜7日の作業量。**Phase 1 だけで効果の約 6〜7 割**を回収できる設計。
 
-削除前に**もう一度 grep で参照ゼロを検証**してから削除します（ProfileCard 削除後に再走査）。
+---
 
-### Phase 2: 同名衝突の解消
+## Phase 1: 動的OGP基盤【最優先・即効性大】(約2日)
 
-- **`src/components/ProfileCollection.tsx`(125行) と `src/components/profile/ProfileCollection.tsx`(164行) が同名で別物**
+### 1-1. Edge Function `generate-og-image` の新規作成
 
-  → 旧版（`src/components/ProfileCollection.tsx`）の参照状況を確認し、未使用なら削除。使用箇所があれば `LegacyProfileCollection.tsx` にリネーム or 統合。
+- `/functions/v1/generate-og-image?type=room&id=xxx` のような形式
+- `type`: `room` | `user` | `post` | `display`
+- SVG テンプレート → PNG 変換（Deno の `@resvg/resvg-js` または Cloudinary 的手法）で 1200×630 生成
+- 内容例（room）: 部屋の画像サムネ + オーナー名 + 「◯個のグッズ展示中」+ Collectifyロゴ
+- 生成結果は `og-cache` ストレージバケットに24hキャッシュ（URL に `updated_at` を含めて invalidate）
 
-### Phase 3: ポイント消費ロジックの一元化
+### 1-2. Edge Function `og-meta` でのHTML書き換え
 
-- **`useDeductPoints` の利用箇所** はすでに `ImageEditDialog` 1 箇所のみ。ポイント管理は **Edge Function 側に一元化** という方針に統一済み。
+- SNSクローラー（User-Agent に `bot|facebook|twitter|discord|slack|line` を含む）からのアクセスのみ、動的な meta タグ入り HTML を返す
+- それ以外は通常の SPA を返す（Cloudflare Workers 的な手法を Supabase Edge Function で代替）
+- 対象ルート: `/room/:roomId`、`/user/:userId`、`/post/:postId`、`/display/:displayId`
+- ※Vite SPA なので、デプロイ後の URL でクローラーUA判定のプロキシを設置する必要あり。実現可能性として**「Supabase Edge Function 経由のシェア専用URL（例: `/s/room/:id`）を発行し、そこから通常ページへリダイレクト」方式**を採用（実装コスト低・確実）
 
-  → `ImageEditDialog` の `useDeductPoints` 呼び出しを撤去し、`edit-image` Edge Function 側にポイント管理を持たせる（既存の `generate-avatar` と同パターン）。
+### 1-3. シェア用URL体系の導入
 
-  → `useDeductPoints` フックは将来削除予定としてコメントを残し、参照ゼロ化を確認後に消す（次回PR）。
+```text
+通常URL:        /room/abc123        (人間用・SPA)
+シェアURL:      /s/r/abc123         (クローラー用・Edge Function が動的meta返却→302でSPAへ)
+```
+- シェアボタンから貼り付けるURLを `/s/r/:id` に統一
+- クローラー以外はEdge FunctionがSPAへ即リダイレクト、人間のUX影響なし
 
-### Phase 4: 巨大ファイルの分割
+---
 
-#### 4-1. `GoodsDisplayModal.tsx` (1026行 / 18 useState) の分割
+## Phase 2: 招待リンク・インセンティブ強化 (約1.5日)
 
-責務が3つ混在：
-1. **アイテム選択** → `GoodsItemSelector.tsx`
-2. **背景生成・アップロード・プリセット** → `BackgroundEditor.tsx` + `useBackgroundGenerator.ts` フック
-3. **ギャラリー保存・Twitter投稿** → `useGoodsDisplaySave.ts` フック + `ShareToTwitterButton.tsx`
+### 2-1. 招待コード → 招待リンク化
+- `https://collectify.lovable.app/invite/ABC12345` でアクセスすると
+  - 未ログイン: 登録画面へ。コードを URL から自動適用（クエリ/localStorage）
+  - ログイン済み: 「あなたは既に登録済みです」
+- 既存の `invite_codes` テーブルをそのまま利用。新規ルート `/invite/:code` を追加
 
-ルートの `GoodsDisplayModal.tsx` はオーケストレーションのみに（〜300行目標）。
+### 2-2. 招待導線の強化
+- プロフィール画面にある招待UIを、**ホーム画面・達成通知・ポイント不足ダイアログ**の3箇所にも追加
+- 招待ボーナスを**段階報酬化**:
+  - 1人目: 50pt / 3人目: 200pt / 10人目: 1000pt + 限定バッジ
+- リーダーボード（招待数ランキング）を公開ページに設置
 
-#### 4-2. `AiRoomCreateWizard.tsx` (549行) の分割
+### 2-3. シェア文言の最適化（共通ユーティリティ化）
+- `src/utils/shareText.ts` を新設
+- テンプレート例:
+  - Room: `「{username}の推し部屋」グッズ{count}個展示中🌟 #Collectify #推し活 {url}`
+  - Achievement: `コレクション{count}個達成！#Collectify で推し活中 {url}`
+- ハッシュタグを `#Collectify #推し活 #{コンテンツ名}` にルール化
 
-ステップ別にファイル分割：
-- `wizard/SelectItemsStep.tsx`
-- `wizard/SelectStyleStep.tsx`
-- `wizard/SelectVisualStep.tsx`
-- `wizard/GeneratingStep.tsx`
-- `wizard/ResultStep.tsx`
+---
 
-ルートの `AiRoomCreateWizard.tsx` はステップ管理＋確認ダイアログのみに（〜200行目標）。
+## Phase 3: ハイモーメント・シェアフック (約1日)
 
-### Phase 5: 削除影響テスト
+### 3-1. シェア報酬インセンティブ
+- AIルーム生成完了 / グッズ展示場生成完了 / 100アイテム達成 等で**「シェアで +5pt」モーダル**
+- `share_rewards` テーブルを新設（1日1回/モーメントあたり、abuse防止）
 
-- `npx tsc --noEmit` で型エラーゼロを確認
-- 主要画面（プロフィール、AIルーム作成、アバター生成、投稿作成）で参照切れがないことを目視（ビルドが通れば import 切れは発覚する）
+### 3-2. フロー改善
+- 既存のシェア完了箇所（AiRoomCreateWizard, GeneratedResultView など）に統一 `useShareReward()` フックを導入
+- 成功時に自動でポイント付与 + トースト
 
-### 実施スコープ（今回のPRで実施する範囲）
+---
 
-**今回のPR**：
-- ✅ Phase 1（完全未使用コンポーネント削除：14ファイル / 約 1500 行削減）
-- ✅ Phase 2（同名衝突の解消）
+## Phase 4: 公開ページのLP化・SEO流入 (約1.5日)
 
-**次回PR以降に分ける**（影響範囲が広いため別途）：
-- ⏭ Phase 3（ポイント消費一元化）
-- ⏭ Phase 4-1（GoodsDisplayModal 分割）
-- ⏭ Phase 4-2（AiRoomCreateWizard 分割）
+### 4-1. 公開ページへのCTA追加
+- `/user/:userId`、`/room/:roomId` の未ログイン閲覧時に
+  - ページ下部固定の「あなたも推し部屋を作ろう！無料で始める」CTA
+  - 登録後、元の部屋/プロフィールへ自動復帰
 
-理由：Phase 1 と 2 は機能を一切変えない安全な削除なので、まず確実に通してからリスクのある分割に進む方が安全です。
+### 4-2. SEO対応
+- `sitemap.xml` を Edge Function で動的生成（公開部屋・公開プロフィール）
+- 構造化データ（JSON-LD）を `/user/:userId` `/room/:roomId` に注入（`Person` / `CreativeWork`）
+- `robots.txt` の整備
 
-### 期待される効果
+### 4-3. 公開ランキング
+- `/trending` ルート新規（未ログイン可）
+  - 今週のいいねTOPルーム / 今週のTOPコレクション / 今週のTOP投稿
+  - SEO流入口として機能
 
-- **約 1500 行の不要コード削減**
-- ファイル一覧が見やすくなり「どれが現役か」が明確に
-- 似た名前で迷う問題（`ProfileBio` vs `ProfileBioSection` 等）が解消
-- 同名ファイルの混乱を解消
+---
+
+## 技術詳細
+
+### 新規追加するファイル
+```text
+supabase/functions/generate-og-image/index.ts     (OGP画像生成)
+supabase/functions/share-meta/index.ts            (クローラー向けHTML返却)
+supabase/functions/sitemap/index.ts               (sitemap.xml生成)
+src/pages/InviteRedirect.tsx                      (/invite/:code)
+src/pages/Trending.tsx                            (/trending)
+src/utils/shareText.ts                            (共通シェアテキスト)
+src/hooks/useShareReward.ts                       (シェア報酬フック)
+src/components/share/ShareRewardDialog.tsx
+src/components/public/PublicCtaBanner.tsx         (公開ページ用CTA)
+```
+
+### DB マイグレーション
+```sql
+-- シェア報酬の重複防止
+CREATE TABLE public.share_rewards (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  moment_type text NOT NULL,   -- 'ai_room_complete', 'display_complete', etc.
+  reference_id uuid,
+  rewarded_at timestamptz DEFAULT now(),
+  UNIQUE(user_id, moment_type, reference_id)
+);
+ALTER TABLE public.share_rewards ENABLE ROW LEVEL SECURITY;
+-- 自分の履歴のみ閲覧
+
+-- 段階招待報酬の管理（既存 invite_codes + user_points で概ね表現可能）
+ALTER TABLE public.user_points ADD COLUMN referral_count integer DEFAULT 0;
+```
+
+### Storage
+- 新規バケット `og-cache` (public)
+
+### ストレージキャッシュ戦略
+- OGP画像URL形式: `/og-cache/room/{roomId}-{updated_at_epoch}.png`
+- `updated_at` が変わる＝URLが変わるので SNS側キャッシュも自動invalidate
+
+---
+
+## 実装順序の推奨
+
+```text
+Phase 1 (動的OGP)          ← ここだけで拡散力が数倍に
+  └─ Phase 2 (招待リンク)   ← 流入→定着のループが閉じる
+       └─ Phase 3 (シェア報酬)  ← 既存ユーザーの発信頻度UP
+            └─ Phase 4 (SEO/LP)  ← 中長期の非SNS流入
+```
+
+---
+
+## 成果予測
+
+| 指標 | 現状 | Phase 1後 | 全Phase後 |
+|---|---|---|---|
+| SNSシェアのクリック率 | 低（汎用OGP） | 3〜5倍 | 3〜5倍 |
+| 招待→登録転換率 | コード入力が面倒 | - | 2〜4倍 |
+| 1ユーザーあたり月間シェア数 | 低 | 微増 | 2〜3倍 |
+| バイラル係数K | <0.1（推定） | 0.2〜0.3 | **0.5〜0.8**（持続成長可能域） |
+
+---
+
+## 選択肢
+
+このプランをベースに、どこから着手するか選んでください：
+
+- **A) Phase 1 のみ先行**（2日、効果最大）
+- **B) Phase 1 + 2**（3.5日、ループ完成）
+- **C) Phase 1〜3**（4.5日、既存ユーザー活性化まで）
+- **D) フル実装**（6〜7日、SEO流入まで）
+- **E) プラン修正**（特定の部分を追加・削除・変更）
 
