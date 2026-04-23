@@ -17,6 +17,10 @@ import {
 import { useGenerateAiRoom, AiGeneratedRoom } from "@/hooks/ai-room/useAiRooms";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
+import { useFirstTimeFree } from "@/hooks/useFirstTimeFree";
+
+const ROOM_COST = 100;
 
 type Step = "items" | "style" | "visual" | "generating" | "result";
 
@@ -44,8 +48,13 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
   const [customPrompt, setCustomPrompt] = useState("");
   const [title, setTitle] = useState("");
   const [resultRoom, setResultRoom] = useState<AiGeneratedRoom | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const generateMutation = useGenerateAiRoom();
+  const { data: isFirstTime = false } = useFirstTimeFree({
+    transactionTypes: ["ai_room_generation", "ai_room_generation_free"],
+    extraTable: "ai_generated_rooms",
+  });
 
   const { data: items = [] } = useQuery({
     queryKey: ["user-items-for-ai-room", user?.id],
