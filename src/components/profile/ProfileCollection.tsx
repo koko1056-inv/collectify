@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/drawer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { FavoriteItemsTop5 } from "./profile/FavoriteItemsTop5";
+import { FavoriteItemsTop5 } from "./FavoriteItemsTop5";
 
 export function ProfileCollection({ userId }: { userId: string }) {
   const [searchQuery, setSearchQuery] = useState("");
