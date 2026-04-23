@@ -13,10 +13,10 @@ import { Package, Camera, Heart } from "lucide-react";
 import { ProfileHero } from "./ProfileHero";
 import { ProfileSettingsSheet } from "./ProfileSettingsSheet";
 import { ProfileEditSheet } from "./ProfileEditSheet";
-import { ProfileInterestsSection } from "./ProfileInterestsSection";
+import { ProfileInterests } from "./interests";
 import { ProfileCollection } from "./ProfileCollection";
 import { ProfileItemPosts } from "./ProfileItemPosts";
-import { ProfileWishlistSection } from "./ProfileWishlistSection";
+import { WishlistGrid } from "@/components/collection/WishlistGrid";
 
 type Tab = "collection" | "posts" | "wishlist";
 
@@ -85,8 +85,8 @@ export function ProfilePage() {
           />
 
           {/* 推しコンテンツ */}
-          <div className="px-4 mt-4">
-            <ProfileInterestsSection
+          <div className="px-4 mt-6">
+            <ProfileInterests
               currentInterests={profile.interests || []}
               onUpdate={refetchProfile}
             />
@@ -130,8 +130,8 @@ export function ProfilePage() {
               </div>
             )}
             {activeTab === "wishlist" && (
-              <div className="px-4">
-                <ProfileWishlistSection userId={user.id} />
+              <div className="px-4 mt-2">
+                <WishlistGrid userId={user.id} enableActions />
               </div>
             )}
           </div>

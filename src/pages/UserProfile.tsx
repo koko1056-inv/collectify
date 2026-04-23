@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { ProfileItemPosts } from "@/components/profile/ProfileItemPosts";
-import { ProfileWishlistSection } from "@/components/profile/ProfileWishlistSection";
+import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { Badge } from "@/components/ui/badge";
 
 type Tab = "collection" | "posts" | "wishlist";
@@ -135,8 +135,8 @@ export default function UserProfile() {
               </div>
             )}
             {activeTab === "wishlist" && userId && (
-              <div className="px-4">
-                <ProfileWishlistSection userId={userId} />
+              <div className="px-4 mt-2">
+                <WishlistGrid userId={userId} enableActions={isOwnProfile} />
               </div>
             )}
           </div>
