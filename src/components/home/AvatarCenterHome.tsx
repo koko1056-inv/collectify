@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Check,
-  Dices,
   Edit2,
   Image as ImageIcon,
   Plus,
@@ -33,13 +32,12 @@ import {
   UploadCloud,
   User,
   Wand2,
+  ArrowRight,
 } from "lucide-react";
 import { Profile } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { AvatarStudioModal, type StudioTab } from "@/components/avatar";
 import { useAvatars, type AvatarRow } from "@/hooks/useAvatars";
-import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
-import { AvatarSocialSection } from "./AvatarSocialSection";
 
 interface AvatarCenterHomeProps {
   profile: Profile | undefined;
