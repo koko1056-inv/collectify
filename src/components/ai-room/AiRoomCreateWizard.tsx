@@ -17,6 +17,10 @@ import {
 import { useGenerateAiRoom, AiGeneratedRoom } from "@/hooks/ai-room/useAiRooms";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
+import { useFirstTimeFree } from "@/hooks/useFirstTimeFree";
+
+const ROOM_COST = 100;
 
 type Step = "items" | "style" | "visual" | "generating" | "result";
 
@@ -44,8 +48,13 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
   const [customPrompt, setCustomPrompt] = useState("");
   const [title, setTitle] = useState("");
   const [resultRoom, setResultRoom] = useState<AiGeneratedRoom | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const generateMutation = useGenerateAiRoom();
+  const { data: isFirstTime = false } = useFirstTimeFree({
+    transactionTypes: ["ai_room_generation", "ai_room_generation_free"],
+    extraTable: "ai_generated_rooms",
+  });
 
   const { data: items = [] } = useQuery({
     queryKey: ["user-items-for-ai-room", user?.id],
@@ -105,8 +114,14 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
     });
   };
 
+  const handleGenerateClick = () => {
+    if (!canProceedFromItems || !canProceedFromVisual) return;
+    setConfirmOpen(true);
+  };
+
   const handleGenerate = async () => {
     if (!canProceedFromItems) return;
+    setConfirmOpen(false);
     setStep("generating");
     try {
       const stylePrompt =
@@ -330,7 +345,9 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                   </p>
                   <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
                     <Sparkles className="w-3 h-3" />
-                    1回の生成に 50pt 消費します
+                    {isFirstTime
+                      ? "初回無料で生成できます 🎁"
+                      : `1回の生成に ${ROOM_COST}pt 消費します`}
                   </div>
                 </div>
 
@@ -489,7 +506,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
             )}
             {step === "visual" && (
               <Button
-                onClick={handleGenerate}
+                onClick={handleGenerateClick}
                 disabled={!canProceedFromVisual || generateMutation.isPending}
                 className="gap-1.5"
               >
@@ -498,7 +515,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                 ) : (
                   <Wand2 className="w-4 h-4" />
                 )}
-                生成する (50pt)
+                生成する {isFirstTime ? "(初回無料 🎁)" : `(${ROOM_COST}pt)`}
               </Button>
             )}
           </div>
@@ -515,6 +532,17 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
             </Button>
           </div>
         )}
+
+        <SpendPointsDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title="AI推しルームを生成しますか？"
+          description="選んだグッズと部屋スタイルから、AIがオリジナルの推しルーム画像を生成します。"
+          cost={ROOM_COST}
+          freeTrial={isFirstTime}
+          loading={generateMutation.isPending}
+          onConfirm={handleGenerate}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -9,6 +9,9 @@ import { PostTarget, useCreateItemPost } from "@/hooks/item-posts/useItemPosts";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
+
+const POST_IMAGE_COST = 50;
 
 interface CreateItemPostModalProps {
   open: boolean;
@@ -33,11 +36,12 @@ export function CreateItemPostModal({
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [aiPrompt, setAiPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const createMutation = useCreateItemPost();
   const qc = useQueryClient();
 
-  const generateAIImage = async () => {
+  const requestGenerateAIImage = () => {
     if (!aiPrompt.trim()) {
       toast.error("生成したい画像の説明を入力してください");
       return;
@@ -46,6 +50,11 @@ export function CreateItemPostModal({
       toast.error(`画像は最大${MAX_IMAGES}枚までです`);
       return;
     }
+    setConfirmOpen(true);
+  };
+
+  const generateAIImage = async () => {
+    setConfirmOpen(false);
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-post-image", {
@@ -216,7 +225,7 @@ export function CreateItemPostModal({
             <Button
               type="button"
               size="sm"
-              onClick={generateAIImage}
+              onClick={requestGenerateAIImage}
               disabled={
                 isGenerating ||
                 createMutation.isPending ||
@@ -276,6 +285,16 @@ export function CreateItemPostModal({
             )}
           </Button>
         </div>
+
+        <SpendPointsDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title="AIで投稿画像を生成しますか？"
+          description={`「${itemTitle}」を題材に、AIが投稿用の画像を1枚生成します。`}
+          cost={POST_IMAGE_COST}
+          loading={isGenerating}
+          onConfirm={generateAIImage}
+        />
       </DialogContent>
     </Dialog>
   );

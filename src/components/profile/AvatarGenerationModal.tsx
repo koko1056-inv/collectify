@@ -9,9 +9,12 @@ import { Loader2, Sparkles, Upload, X, Wand2, Coins } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import type { AvatarGenerationResult } from "@/types/avatar";
-import { useUserPoints, useDeductPoints } from "@/hooks/usePoints";
+import { useUserPoints } from "@/hooks/usePoints";
+import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
+import { useFirstTimeFree } from "@/hooks/useFirstTimeFree";
+import { useQueryClient } from "@tanstack/react-query";
 
-const GENERATION_COST = 10;
+const GENERATION_COST = 30;
 
 interface AvatarGenerationModalProps {
   isOpen: boolean;
@@ -33,9 +36,14 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [generationStep, setGenerationStep] = useState<string>("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const { toast } = useToast();
   const { data: userPoints } = useUserPoints();
-  const deductPoints = useDeductPoints();
+  const { data: isFirstTime = false } = useFirstTimeFree({
+    transactionTypes: ["avatar_generation", "avatar_generation_free"],
+    extraTable: "avatar_gallery",
+  });
+  const qc = useQueryClient();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,7 +71,7 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
     });
   };
 
-  const handleGenerate = async () => {
+  const handleGenerateClick = () => {
     if (!prompt.trim() && !uploadedImage) {
       toast({
         variant: "destructive",
@@ -72,29 +80,17 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
       });
       return;
     }
+    setConfirmOpen(true);
+  };
 
-    // ポイント残高チェック
-    const currentPoints = userPoints?.total_points || 0;
-    if (currentPoints < GENERATION_COST) {
-      toast({
-        variant: "destructive",
-        title: "ポイント不足",
-        description: `アバター生成には${GENERATION_COST}ポイント必要です（現在: ${currentPoints}pt）`,
-      });
-      return;
-    }
-
+  const handleGenerate = async () => {
+    setConfirmOpen(false);
     setIsGenerating(true);
     setProgress(0);
     setGenerationStep("準備中...");
 
     try {
-      // ポイントを消費
-      await deductPoints.mutateAsync({
-        points: GENERATION_COST,
-        transactionType: "avatar_generation",
-        description: "AIアバター生成",
-      });
+      // ポイント消費は Edge Function 側で一元管理（初回無料含む）
 
       // ステップ1: 画像変換
       setProgress(20);
@@ -136,9 +132,13 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
       setProgress(100);
       setGenerationStep("完了！");
 
+      qc.invalidateQueries({ queryKey: ["userPoints"] });
+      qc.invalidateQueries({ queryKey: ["pointTransactions"] });
+      qc.invalidateQueries({ queryKey: ["firstTimeFree"] });
+
       toast({
         title: "アバター生成完了",
-        description: "AIアバターが生成されました",
+        description: data.freeTrial ? "🎁 初回無料で生成しました" : `AIアバターを生成しました (-${GENERATION_COST}pt)`,
       });
       setPrompt("");
       handleRemoveImage();
@@ -170,7 +170,7 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
             AIアバター生成
             <span className="ml-auto flex items-center gap-1 text-sm font-normal text-muted-foreground">
               <Coins className="w-4 h-4" />
-              {GENERATION_COST}pt
+              {isFirstTime ? "初回無料 🎁" : `${GENERATION_COST}pt`}
             </span>
           </DialogTitle>
           <DialogDescription>
@@ -276,7 +276,7 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
               キャンセル
             </Button>
             <Button
-              onClick={handleGenerate}
+              onClick={handleGenerateClick}
               disabled={isGenerating || (!prompt.trim() && !uploadedImage)}
               className="relative overflow-hidden group"
             >
@@ -294,6 +294,17 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
             </Button>
           </div>
         </div>
+
+        <SpendPointsDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title="AIアバターを生成しますか？"
+          description="入力内容をもとに3Dアバター画像を生成します。"
+          cost={GENERATION_COST}
+          freeTrial={isFirstTime}
+          loading={isGenerating}
+          onConfirm={handleGenerate}
+        />
       </DialogContent>
     </Dialog>
   );
