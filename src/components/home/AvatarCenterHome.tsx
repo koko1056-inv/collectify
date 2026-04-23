@@ -51,7 +51,6 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
   const [showStudio, setShowStudio] = useState(false);
   const [studioTab, setStudioTab] = useState<StudioTab>("generate");
   const [studioBaseUrl, setStudioBaseUrl] = useState<string | null>(null);
-  const [showRandom, setShowRandom] = useState(false);
 
   const [renameTarget, setRenameTarget] = useState<AvatarRow | null>(null);
   const [renameValue, setRenameValue] = useState("");
@@ -135,7 +134,6 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
           onOpen={() => openStudio("gallery")}
           onDressUp={() => openStudio("dressup", currentUrl)}
           onGenerate={() => openStudio("generate")}
-          onRandom={() => setShowRandom(true)}
           onUpload={handleFileUpload}
         />
       )}
