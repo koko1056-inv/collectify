@@ -172,11 +172,11 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
         </>
       )}
 
-      {/* ソーシャルセクション (コレクション/コレクター) */}
-      {userId && (
-        <div className="pt-2">
-          <AvatarSocialSection userId={userId} avatarUrl={currentUrl || undefined} />
-        </div>
+      {/* 次のステップヒント (アバター数に応じて) */}
+      {!avatars.isLoading && avatars.avatars.length > 0 && avatars.avatars.length < 2 && (
+        <NextStepHint
+          onDressUp={() => openStudio("dressup", currentUrl)}
+        />
       )}
 
       {/* スタジオモーダル */}
@@ -189,12 +189,6 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
           initialBaseAvatarUrl={studioBaseUrl}
         />
       )}
-
-      <RandomPickupModal
-        isOpen={showRandom}
-        onClose={() => setShowRandom(false)}
-        userId={userId}
-      />
 
       {/* 名前編集 */}
       <Dialog
