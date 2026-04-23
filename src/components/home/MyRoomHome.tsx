@@ -218,24 +218,12 @@ export function MyRoomHome({
             </div>
           )}
           {activeTab === "avatar" && (
-            <AvatarView
-              profile={profile}
-              userId={user?.id}
-              onOpenAvatarStudio={() => setShowAvatarStudio(true)}
-              t={t}
-            />
+            <div className="w-full animate-fade-in">
+              <AvatarCenterHome profile={profile} />
+            </div>
           )}
         </div>
       </div>
-
-      {/* モーダル */}
-      {user?.id && (
-        <AvatarStudioModal
-          isOpen={showAvatarStudio}
-          onClose={() => setShowAvatarStudio(false)}
-          userId={user.id}
-        />
-      )}
     </div>
   );
 }
