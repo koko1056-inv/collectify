@@ -132,7 +132,7 @@ export function FavoriteItemsEditModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
@@ -226,7 +226,7 @@ export function FavoriteItemsEditModal({
         </div>
 
         {/* 一覧 */}
-        <ScrollArea className="flex-1 px-4 pb-4 min-h-[200px]">
+        <ScrollArea className="flex-1 min-h-0 px-4 pb-4">
           {isLoading ? (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {Array.from({ length: 9 }).map((_, i) => (
