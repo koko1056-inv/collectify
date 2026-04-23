@@ -382,28 +382,28 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
   const buttons = [
     {
-      icon: Image,
-      label: "着せ替えギャラリー",
-      onClick: () => setShowAvatarStudio(true),
-      color: "from-gray-800 to-gray-900"
-    },
-    {
-      icon: Store,
-      label: "グッズギャラリー",
-      onClick: () => setShowGoodsGallery(true),
-      color: "from-gray-700 to-gray-800"
-    },
-    {
-      icon: Dices,
-      label: "ランダムピックアップ",
-      onClick: () => setShowRandomPickup(true),
-      color: "from-gray-600 to-gray-700"
+      icon: Sparkles,
+      label: "アバター生成",
+      onClick: () => openStudio("generate"),
+      color: "from-violet-500 to-purple-600"
     },
     {
       icon: Shirt,
       label: "グッズ着せ替え",
-      onClick: () => setShowAvatarStudio(true),
-      color: "from-gray-500 to-gray-600"
+      onClick: () => openStudio("dressup", currentAvatarUrl),
+      color: "from-pink-500 to-rose-600"
+    },
+    {
+      icon: Image,
+      label: "ギャラリー",
+      onClick: () => openStudio("gallery"),
+      color: "from-sky-500 to-blue-600"
+    },
+    {
+      icon: Dices,
+      label: "ランダム",
+      onClick: () => setShowRandomPickup(true),
+      color: "from-amber-500 to-orange-600"
     }
   ];
 
