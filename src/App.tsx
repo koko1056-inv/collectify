@@ -34,6 +34,7 @@ const PointShop = lazy(() => import("./pages/PointShop").catch(() => ({ default:
 const HowToUse = lazy(() => import("./pages/HowToUse").catch(() => ({ default: () => <div>Error loading page</div> })));
 const ImageSearch = lazy(() => import("./pages/ImageSearch").catch(() => ({ default: () => <div>Error loading page</div> })));
 const AiRooms = lazy(() => import("./pages/AiRooms").catch(() => ({ default: () => <div>Error loading page</div> })));
+const InviteRedirect = lazy(() => import("./pages/InviteRedirect").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -94,6 +95,7 @@ const App: React.FC = () => {
                       <Route path="/rooms/explore" element={<RoomExplore />} />
                       <Route path="/room/:roomId" element={<RoomView />} />
                       <Route path="/how-to-use" element={<HowToUse />} />
+                      <Route path="/invite/:code" element={<InviteRedirect />} />
                       {/* Protected routes — require authentication */}
                       <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
                       <Route path="/add-item" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
