@@ -9,6 +9,10 @@ import { Loader2, Sparkles, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { useAvatars } from "@/hooks/useAvatars";
+import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
+import { useFirstTimeFree } from "@/hooks/useFirstTimeFree";
+
+const AVATAR_COST = 30;
 
 const EXAMPLES = [
   "明るい笑顔、カジュアルな服装",
@@ -24,6 +28,11 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [step, setStep] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const { data: isFirstTime = false } = useFirstTimeFree({
+    transactionTypes: ["avatar_generation", "avatar_generation_free"],
+    extraTable: "avatar_gallery",
+  });
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -39,11 +48,16 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
     setPreviewUrl(null);
   };
 
-  const handleGenerate = async () => {
+  const handleGenerateClick = () => {
     if (!prompt.trim() && !uploadedImage) {
       toast.error("説明または写真を入力してください");
       return;
     }
+    setConfirmOpen(true);
+  };
+
+  const handleGenerate = async () => {
+    setConfirmOpen(false);
     setIsGenerating(true);
     setProgress(20);
     setStep("画像を処理中...");
@@ -170,13 +184,24 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
       </div>
 
       <Button
-        onClick={handleGenerate}
+        onClick={handleGenerateClick}
         disabled={isGenerating || (!prompt.trim() && !uploadedImage)}
         className="w-full h-12 text-base gap-2"
       >
         <Sparkles className="w-5 h-5" />
-        アバターを生成
+        アバターを生成 {isFirstTime ? "（初回無料 🎁）" : `(${AVATAR_COST}pt)`}
       </Button>
+
+      <SpendPointsDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="AIアバターを生成しますか？"
+        description="入力した説明や写真をもとに3D風のアバター画像を生成します。"
+        cost={AVATAR_COST}
+        freeTrial={isFirstTime}
+        loading={isGenerating}
+        onConfirm={handleGenerate}
+      />
     </div>
   );
 }
