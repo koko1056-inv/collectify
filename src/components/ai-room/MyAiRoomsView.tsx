@@ -35,6 +35,7 @@ import { AiRoomCreateWizard } from "./AiRoomCreateWizard";
 import { getStylePresetById } from "./roomStylePresets";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ShareModal } from "@/components/ShareModal";
 
 /**
  * マイルームの「ルーム」タブで表示するAIルーム一覧。
