@@ -53,6 +53,8 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const { user } = useAuth();
   const userId = user?.id;
   const [showAvatarStudio, setShowAvatarStudio] = useState(false);
+  const [studioInitialTab, setStudioInitialTab] = useState<"generate" | "dressup" | "gallery">("generate");
+  const [studioBaseAvatarUrl, setStudioBaseAvatarUrl] = useState<string | null>(null);
   const [showRandomPickup, setShowRandomPickup] = useState(false);
   const [showGoodsDisplay, setShowGoodsDisplay] = useState(false);
   const [showGoodsGallery, setShowGoodsGallery] = useState(false);
@@ -64,6 +66,13 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
   const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
   const [avatarToEdit, setAvatarToEdit] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // スタジオを指定タブで開く
+  const openStudio = (tab: "generate" | "dressup" | "gallery", baseAvatarUrl?: string | null) => {
+    setStudioInitialTab(tab);
+    setStudioBaseAvatarUrl(baseAvatarUrl ?? null);
+    setShowAvatarStudio(true);
+  };
 
   // 最新のアバターを取得（プロフィールとギャラリーを並行取得）
   const fetchCurrentAvatar = async () => {
