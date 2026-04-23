@@ -35,6 +35,7 @@ import { AiRoomCreateWizard } from "./AiRoomCreateWizard";
 import { getStylePresetById } from "./roomStylePresets";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ShareModal } from "@/components/ShareModal";
 
 /**
  * マイルームの「ルーム」タブで表示するAIルーム一覧。
@@ -47,6 +48,7 @@ export function MyAiRoomsView() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [viewing, setViewing] = useState<AiGeneratedRoom | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sharingRoom, setSharingRoom] = useState<AiGeneratedRoom | null>(null);
 
   const { data: rooms = [], isLoading } = useUserAiRooms(user?.id);
   const deleteMutation = useDeleteAiRoom();
@@ -54,25 +56,8 @@ export function MyAiRoomsView() {
 
   const [hero, ...rest] = rooms;
 
-  const handleShare = async (room: AiGeneratedRoom) => {
-    const text = `AIで作った推し部屋 🏠✨\n#Collectify`;
-    try {
-      if (navigator.share) {
-        try {
-          const res = await fetch(room.image_url);
-          const blob = await res.blob();
-          const file = new File([blob], "ai-room.png", { type: blob.type });
-          if ((navigator as any).canShare?.({ files: [file] })) {
-            await navigator.share({ text, files: [file] });
-            return;
-          }
-        } catch {}
-        await navigator.share({ text, url: room.image_url });
-      } else {
-        await navigator.clipboard.writeText(room.image_url);
-        toast.success("画像URLをコピーしました");
-      }
-    } catch {}
+  const handleShare = (room: AiGeneratedRoom) => {
+    setSharingRoom(room);
   };
 
   const handleDownload = (room: AiGeneratedRoom) => {
@@ -273,6 +258,17 @@ export function MyAiRoomsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* シェアモーダル */}
+      {sharingRoom && (
+        <ShareModal
+          isOpen={!!sharingRoom}
+          onClose={() => setSharingRoom(null)}
+          title={`AIで作った推し部屋 🏠✨ ${sharingRoom.title || ""} #Collectify`}
+          url={sharingRoom.image_url}
+          image={sharingRoom.image_url}
+        />
+      )}
     </div>
   );
 }
