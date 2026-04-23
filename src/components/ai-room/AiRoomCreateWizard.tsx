@@ -532,6 +532,17 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
             </Button>
           </div>
         )}
+
+        <SpendPointsDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title="AI推しルームを生成しますか？"
+          description="選んだグッズと部屋スタイルから、AIがオリジナルの推しルーム画像を生成します。"
+          cost={ROOM_COST}
+          freeTrial={isFirstTime}
+          loading={generateMutation.isPending}
+          onConfirm={handleGenerate}
+        />
       </DialogContent>
     </Dialog>
   );
