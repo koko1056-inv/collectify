@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -22,7 +23,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Check,
-  ChevronDown,
   Dices,
   Edit2,
   Image as ImageIcon,
@@ -37,20 +37,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AvatarStudioModal, type StudioTab } from "@/components/avatar";
 import { useAvatars, type AvatarRow } from "@/hooks/useAvatars";
 import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
+import { AvatarSocialSection } from "./AvatarSocialSection";
 
 interface AvatarCenterHomeProps {
   profile: Profile | undefined;
 }
 
 export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
-  if (!profile) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <p className="text-muted-foreground">プロフィールを読み込み中...</p>
-      </div>
-    );
-  }
-
   const { user } = useAuth();
   const userId = user?.id || "";
   const avatars = useAvatars(userId);
@@ -63,6 +56,14 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
   const [renameTarget, setRenameTarget] = useState<AvatarRow | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<AvatarRow | null>(null);
+
+  if (!profile) {
+    return (
+      <div className="min-h-[40vh] flex items-center justify-center">
+        <p className="text-muted-foreground">プロフィールを読み込み中...</p>
+      </div>
+    );
+  }
 
   const currentUrl = avatars.currentAvatar?.image_url || profile.avatar_url || null;
 
@@ -78,70 +79,110 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
     e.target.value = "";
   };
 
-  const buttons = [
+  const actions = [
     {
       icon: Sparkles,
       label: "生成",
+      hint: "AIでつくる",
       onClick: () => openStudio("generate"),
-      color: "from-violet-500 to-purple-600",
     },
     {
       icon: Shirt,
       label: "着せ替え",
+      hint: "グッズで変身",
       onClick: () => openStudio("dressup", currentUrl),
-      color: "from-pink-500 to-rose-600",
     },
     {
       icon: ImageIcon,
       label: "ギャラリー",
+      hint: "一覧から選ぶ",
       onClick: () => openStudio("gallery"),
-      color: "from-sky-500 to-blue-600",
     },
     {
       icon: Dices,
       label: "ランダム",
+      hint: "おまかせ",
       onClick: () => setShowRandom(true),
-      color: "from-amber-500 to-orange-600",
     },
   ];
 
   return (
-    <>
-      <div className="min-h-[80vh] flex flex-col items-center justify-start pt-8 sm:pt-12 relative px-4 sm:px-8 gap-6">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl pointer-events-none" />
+    <div className="space-y-5">
+      {/* メインアバターカード（HeroCardと同じトーン） */}
+      <Card className="relative overflow-hidden border-border/40 shadow-sm">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-card to-card pointer-events-none" />
+        <div className="absolute -top-6 -right-6 w-40 h-40 rounded-full bg-gradient-to-br from-primary/15 to-transparent blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-gradient-to-tr from-pink-500/10 to-transparent blur-3xl pointer-events-none" />
 
-        {/* メインアバター（タップでギャラリー） */}
-        <button
-          onClick={() => openStudio("gallery")}
-          className="relative cursor-pointer group focus:outline-none"
-          aria-label="アバターを管理する"
-        >
-          {currentUrl ? (
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
-              <Avatar className="w-44 h-44 sm:w-56 sm:h-56 lg:w-64 lg:h-64 border-4 border-background shadow-2xl relative z-10 transition-transform group-hover:scale-105">
-                <AvatarImage src={currentUrl} />
-                <AvatarFallback>
-                  <User className="w-16 h-16" />
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          ) : (
-            <div className="w-44 h-44 sm:w-56 sm:h-56 lg:w-64 lg:h-64 border-4 border-dashed border-muted-foreground/30 rounded-full flex flex-col items-center justify-center bg-muted/5">
-              <User className="w-16 h-16 text-muted-foreground/40 mb-2" />
-              <p className="text-sm text-muted-foreground">アバターを設定</p>
-            </div>
-          )}
-        </button>
+        <CardContent className="relative p-6 sm:p-8 flex flex-col items-center">
+          {/* メインアバター */}
+          <button
+            onClick={() => openStudio("gallery")}
+            className="relative group focus:outline-none mb-5"
+            aria-label="アバターを管理する"
+          >
+            {currentUrl ? (
+              <>
+                <div className="absolute -inset-3 bg-gradient-to-br from-primary/30 to-primary/5 rounded-full blur-xl opacity-60 group-hover:opacity-90 transition-opacity" />
+                <Avatar className="relative w-36 h-36 sm:w-44 sm:h-44 border-4 border-background shadow-2xl ring-2 ring-primary/20 group-hover:ring-primary/40 transition-all duration-300 group-hover:scale-105">
+                  <AvatarImage src={currentUrl} className="object-cover" />
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    <User className="w-14 h-14" />
+                  </AvatarFallback>
+                </Avatar>
+              </>
+            ) : (
+              <div className="w-36 h-36 sm:w-44 sm:h-44 border-2 border-dashed border-primary/40 bg-primary/5 rounded-full flex flex-col items-center justify-center gap-2 group-hover:border-primary group-hover:bg-primary/10 transition-all">
+                <Sparkles className="w-10 h-10 text-primary" />
+                <span className="text-xs font-medium text-primary">アバターをつくる</span>
+              </div>
+            )}
+          </button>
 
-        {/* カルーセル */}
-        <div className="w-full max-w-2xl relative z-10">
-          <div className="flex items-center justify-between px-2 mb-2">
-            <p className="text-xs font-medium text-muted-foreground">
-              {avatars.avatars.length > 0
-                ? `保存済みアバター (${avatars.avatars.length})`
-                : "アバターをつくろう"}
-            </p>
+          {/* タイトル */}
+          <h2 className="text-lg sm:text-xl font-bold text-foreground">
+            {avatars.currentAvatar?.name || "マイアバター"}
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1 mb-5">
+            あなたの分身を自由にデザインしよう
+          </p>
+
+          {/* 4つのアクションボタン（カード化して他ページのトーンに揃える） */}
+          <div className="grid grid-cols-4 gap-2 sm:gap-3 w-full max-w-md">
+            {actions.map((a) => (
+              <button
+                key={a.label}
+                onClick={a.onClick}
+                className="group flex flex-col items-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-background/80 border border-border/40 hover:border-primary/40 hover:bg-primary/5 hover:shadow-md transition-all"
+              >
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+                  <a.icon className="w-5 h-5 text-primary" />
+                </div>
+                <span className="text-[11px] sm:text-xs font-semibold text-foreground">{a.label}</span>
+                <span className="text-[9px] sm:text-[10px] text-muted-foreground hidden sm:block">{a.hint}</span>
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ギャラリーカード */}
+      <Card className="border-border/40 shadow-sm">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                <ImageIcon className="w-3.5 h-3.5 text-primary" />
+              </div>
+              <h3 className="text-sm font-semibold">
+                マイギャラリー
+                {avatars.avatars.length > 0 && (
+                  <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                    ({avatars.avatars.length})
+                  </span>
+                )}
+              </h3>
+            </div>
             {avatars.avatars.length > 0 && (
               <button
                 onClick={() => openStudio("gallery")}
@@ -151,21 +192,28 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
               </button>
             )}
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 px-2 snap-x">
+
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
             {/* 新規生成タイル */}
             <button
               onClick={() => openStudio("generate")}
-              className="flex-shrink-0 snap-start w-20 h-20 rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-primary/10 transition-all"
+              className="flex-shrink-0 w-[72px]"
               aria-label="新しいアバターを生成"
             >
-              <Sparkles className="w-5 h-5 text-primary" />
-              <span className="text-[10px] font-medium text-primary">新規生成</span>
+              <div className="w-[72px] h-[72px] rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-1 hover:border-primary hover:bg-primary/10 transition-all">
+                <Sparkles className="w-5 h-5 text-primary" />
+                <span className="text-[9px] font-medium text-primary">新規生成</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground text-center mt-1.5">作る</p>
             </button>
 
             {/* アップロードタイル */}
-            <label className="flex-shrink-0 snap-start w-20 h-20 rounded-2xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-foreground/40 hover:bg-muted/30 transition-all">
-              <UploadCloud className="w-5 h-5 text-muted-foreground" />
-              <span className="text-[10px] font-medium text-muted-foreground">アップロード</span>
+            <label className="flex-shrink-0 w-[72px] cursor-pointer">
+              <div className="w-[72px] h-[72px] rounded-2xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex flex-col items-center justify-center gap-1 hover:border-foreground/40 hover:bg-muted/30 transition-all">
+                <UploadCloud className="w-5 h-5 text-muted-foreground" />
+                <span className="text-[9px] font-medium text-muted-foreground">アップ</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground text-center mt-1.5">画像から</p>
               <input
                 type="file"
                 accept="image/*"
@@ -177,15 +225,12 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
             {avatars.avatars.map((a) => {
               const isCurrent = a.is_current || a.image_url === currentUrl;
               return (
-                <div
-                  key={a.id}
-                  className="flex-shrink-0 snap-start flex flex-col items-center gap-1 group"
-                >
+                <div key={a.id} className="flex-shrink-0 w-[72px] group">
                   <div
-                    className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all ${
+                    className={`relative w-[72px] h-[72px] rounded-2xl overflow-hidden border-2 transition-all ${
                       isCurrent
-                        ? "border-primary shadow-lg ring-2 ring-primary/30"
-                        : "border-border hover:border-primary/60"
+                        ? "border-primary shadow-md ring-2 ring-primary/30"
+                        : "border-border/60 hover:border-primary/60"
                     }`}
                   >
                     <button
@@ -204,7 +249,6 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
                         <Check className="w-3 h-3" />
                       </div>
                     )}
-                    {/* タイル右下のメニューボタン */}
                     <div className="absolute bottom-0 right-0 flex opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => {
@@ -229,39 +273,26 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
                       </button>
                     </div>
                   </div>
-                  <p className="text-[10px] text-muted-foreground truncate max-w-[80px] text-center">
+                  <p className="text-[10px] text-muted-foreground truncate text-center mt-1.5">
                     {a.name || (isCurrent ? "現在" : "—")}
                   </p>
                 </div>
               );
             })}
           </div>
-        </div>
 
-        {/* 機能ボタン */}
-        <div className="grid grid-cols-2 sm:flex gap-4 sm:gap-6 mb-8 max-w-md w-full px-4">
-          {buttons.map((btn, i) => (
-            <div key={i} className="relative flex flex-col items-center">
-              <Button
-                onClick={btn.onClick}
-                size="lg"
-                className={`rounded-full w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 shadow-lg hover:scale-110 transition-all duration-300 bg-gradient-to-br ${btn.color} border-2 border-background`}
-              >
-                <btn.icon className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
-              </Button>
-              <span className="mt-2 text-xs sm:text-sm font-medium text-foreground/80">
-                {btn.label}
-              </span>
-            </div>
-          ))}
-        </div>
+          {avatars.avatars.length === 0 && !avatars.isLoading && (
+            <p className="text-center text-xs text-muted-foreground py-3">
+              まだアバターがありません。生成またはアップロードして始めましょう
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* スクロール誘導 */}
-        <div className="flex flex-col items-center gap-2 animate-bounce mt-8">
-          <p className="text-sm text-muted-foreground">コレクション、コレクターを見る</p>
-          <ChevronDown className="w-6 h-6 text-muted-foreground" />
-        </div>
-      </div>
+      {/* ソーシャルセクション（コレクション・コレクター） */}
+      {userId && (
+        <AvatarSocialSection userId={userId} avatarUrl={currentUrl || undefined} />
+      )}
 
       {/* スタジオモーダル */}
       {userId && (
@@ -347,6 +378,6 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 }
