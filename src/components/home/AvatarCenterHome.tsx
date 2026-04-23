@@ -409,33 +409,33 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
 
   return (
     <>
-      <div className="min-h-[80vh] flex flex-col items-center justify-center relative px-4 sm:px-8">
+      <div className="min-h-[80vh] flex flex-col items-center justify-start pt-8 sm:pt-12 relative px-4 sm:px-8 gap-6">
         {/* 背景のグラデーション */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl" />
         
-        {/* アバター */}
+        {/* メインアバター */}
         <Popover open={isAvatarPopoverOpen} onOpenChange={setIsAvatarPopoverOpen}>
           <PopoverTrigger asChild>
-            <div className="relative mb-4 mt-16 sm:mt-0 cursor-pointer">
+            <div className="relative cursor-pointer">
               {currentAvatarUrl ? (
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
-                  <Avatar className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-background shadow-2xl relative z-10 transition-transform hover:scale-105">
+                  <Avatar className="w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 border-4 border-background shadow-2xl relative z-10 transition-transform hover:scale-105">
                     <AvatarImage src={currentAvatarUrl} />
                   </Avatar>
-                  <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-sm text-foreground px-4 py-2 rounded-full shadow-lg z-20 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    <span className="text-sm font-medium">編集</span>
+                  <div className="absolute bottom-2 right-2 bg-background/90 backdrop-blur-sm text-foreground px-3 py-1.5 rounded-full shadow-lg z-20 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span className="text-xs font-medium">編集</span>
                   </div>
                 </div>
               ) : (
                 <div className="relative">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-muted/10 to-muted/5 blur-xl" />
-                  <div className="w-72 h-72 sm:w-80 sm:h-80 lg:w-96 lg:h-96 border-4 border-dashed border-muted-foreground/20 rounded-full flex items-center justify-center relative z-10 bg-muted/5">
+                  <div className="w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 border-4 border-dashed border-muted-foreground/20 rounded-full flex items-center justify-center relative z-10 bg-muted/5">
                     <div className="text-center">
-                      <User className="w-20 h-20 mx-auto text-muted-foreground/30 mb-4" />
-                      <p className="text-muted-foreground/70 text-lg font-medium">アバターを設定</p>
-                      <p className="text-muted-foreground/50 text-sm mt-2">クリックして画像を選択またはAI生成</p>
+                      <User className="w-16 h-16 mx-auto text-muted-foreground/30 mb-3" />
+                      <p className="text-muted-foreground/70 text-base font-medium">アバターを設定</p>
+                      <p className="text-muted-foreground/50 text-xs mt-1">タップして作成</p>
                     </div>
                   </div>
                 </div>
