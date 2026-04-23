@@ -258,6 +258,17 @@ export function MyAiRoomsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* シェアモーダル */}
+      {sharingRoom && (
+        <ShareModal
+          isOpen={!!sharingRoom}
+          onClose={() => setSharingRoom(null)}
+          title={`AIで作った推し部屋 🏠✨ ${sharingRoom.title || ""} #Collectify`}
+          url={sharingRoom.image_url}
+          image={sharingRoom.image_url}
+        />
+      )}
     </div>
   );
 }
