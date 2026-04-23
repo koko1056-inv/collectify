@@ -53,6 +53,9 @@ export function ProfileCollection({ userId }: { userId: string }) {
 
   return (
     <div className="space-y-3 my-0 mx-0 px-0 py-px">
+      {/* お気に入り TOP5 */}
+      <FavoriteItemsTop5 userId={userId} isOwnProfile={isOwnProfile} />
+
       {/* 95%未満は非表示、以上のみ薄いpillで警告 */}
       {isOwnProfile && limitStatus && limitStatus.usagePercent >= 95 && (
         <div className="mx-4 p-3 bg-card rounded-lg border border-border">
