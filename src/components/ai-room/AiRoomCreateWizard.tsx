@@ -345,7 +345,9 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                   </p>
                   <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[11px] font-semibold">
                     <Sparkles className="w-3 h-3" />
-                    1回の生成に 50pt 消費します
+                    {isFirstTime
+                      ? "初回無料で生成できます 🎁"
+                      : `1回の生成に ${ROOM_COST}pt 消費します`}
                   </div>
                 </div>
 
@@ -504,7 +506,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
             )}
             {step === "visual" && (
               <Button
-                onClick={handleGenerate}
+                onClick={handleGenerateClick}
                 disabled={!canProceedFromVisual || generateMutation.isPending}
                 className="gap-1.5"
               >
@@ -513,7 +515,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                 ) : (
                   <Wand2 className="w-4 h-4" />
                 )}
-                生成する (50pt)
+                生成する {isFirstTime ? "(初回無料 🎁)" : `(${ROOM_COST}pt)`}
               </Button>
             )}
           </div>
