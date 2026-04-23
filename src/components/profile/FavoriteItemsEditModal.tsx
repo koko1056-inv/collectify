@@ -226,7 +226,7 @@ export function FavoriteItemsEditModal({
         </div>
 
         {/* 一覧 */}
-        <ScrollArea className="flex-1 px-4 pb-4 min-h-[200px]">
+        <ScrollArea className="flex-1 min-h-0 px-4 pb-4">
           {isLoading ? (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {Array.from({ length: 9 }).map((_, i) => (
