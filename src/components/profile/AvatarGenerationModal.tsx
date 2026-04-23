@@ -101,14 +101,6 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
       }
 
       // ステップ2: AI生成開始
-      setProgress(20);
-      setGenerationStep("画像を処理中...");
-      let imageBase64: string | undefined;
-      if (uploadedImage) {
-        imageBase64 = await convertImageToBase64(uploadedImage);
-      }
-
-      // ステップ2: AI生成開始
       setProgress(40);
       setGenerationStep("AIアバターを生成中...");
       
