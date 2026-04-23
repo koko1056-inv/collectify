@@ -528,7 +528,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
                   variant="ghost"
                   className="justify-start h-auto py-3 px-3"
                   onClick={() => {
-                    setShowAvatarStudio(true);
+                    openStudio("generate");
                     setIsAvatarPopoverOpen(false);
                   }}
                 >
