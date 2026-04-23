@@ -145,7 +145,7 @@ export function AvatarStudioModal({
           (avatar) => !avatar.item_ids || avatar.item_ids.length === 0
         );
         setAvailableAvatars(pureAvatars);
-        if (pureAvatars.length > 0 && !selectedAvatarUrl) {
+        if (pureAvatars.length > 0 && !selectedAvatarUrl && !initialBaseAvatarUrl) {
           setSelectedAvatarUrl(pureAvatars[0].image_url);
         }
       }
