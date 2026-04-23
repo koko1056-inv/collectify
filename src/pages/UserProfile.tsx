@@ -108,14 +108,14 @@ export default function UserProfile() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "relative flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-full text-sm font-medium transition-colors z-10",
+                      "relative flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-full text-sm font-medium transition-colors z-10 whitespace-nowrap min-w-0",
                       isActive
                         ? "bg-primary text-primary-foreground shadow-md"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span className="text-xs sm:text-sm">{tab.label}</span>
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="text-xs sm:text-sm whitespace-nowrap">{tab.label}</span>
                   </button>
                 );
               })}
