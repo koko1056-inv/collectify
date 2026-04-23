@@ -1,141 +1,79 @@
 
 
-# アバター周り 抜本リファクタプラン
+## お気に入りグッズ（5個）共有機能 — 実装プラン
 
-「巨大化したアバターページ + 重複した3つのモーダル + DB二重管理」を解体し、**シンプルで一貫した設計**に作り変えます。
+### 概要
+プロフィールの「コレクション」タブの最上部に「お気に入りグッズ TOP5」セクションを設けます。横スクロールするカードで、自分のページではタップして編集、他人のページではプロフィール上のハイライトとして閲覧できます。
 
-## 現状の何が複雑か
+### 仕様
 
-| 問題 | 詳細 |
-|---|---|
-| **715行の神コンポーネント** | `AvatarCenterHome.tsx` が表示・取得・アップロード・削除・名前編集・Popover・Carousel・4つのモーダル制御を全部持っている |
-| **モーダルが3つ重複** | `AvatarStudioModal`(779行)、`AvatarDressUpModal`(340行・未使用)、`AvatarGalleryModal`(248行) が同じ `avatar_gallery` テーブルを別々に操作 |
-| **DB二重書き込み** | `profiles.avatar_url` と `avatar_gallery.is_current` を毎回手動同期。トリガー任せの箇所と手動の箇所が混在し `setCurrentAvatar` が分岐だらけ |
-| **取得ロジックの重複** | 同じ `avatar_gallery` の fetch を `AvatarCenterHome` / `AvatarStudioModal` / `AvatarGalleryModal` がそれぞれ独自に実装 |
-| **UIの二重表示** | カルーセル(常時表示) と Popover(隠れ一覧) が両方ある |
-| **`window.location.reload()`** | `AvatarDressUpModal` がページごとリロード(悪手) |
+**保存先**
+- 既存の `profiles.favorite_item_ids: string[]` を活用（DB変更なし）
+- 並び順は配列の順番で保持（1番目=1位）
+- 上限 5 個
 
-## 新しい設計
-
-### 1. 1つのデータソース = カスタムフック `useAvatars`
-
-`src/hooks/useAvatars.ts` に **取得・切替・削除・名前編集・アップロード・AI生成保存** をすべて集約。React Queryで一元管理し、リアルタイム購読も内包。
-
-```ts
-const {
-  avatars,            // AvatarGalleryRow[]
-  currentAvatar,      // AvatarGalleryRow | null （単一の真実）
-  isLoading,
-  setCurrent,         // (id) => Promise
-  remove,             // (id) => Promise
-  rename,             // (id, name) => Promise
-  uploadFile,         // (file) => Promise
-  saveGenerated,      // ({imageUrl, prompt, itemIds?}) => Promise
-} = useAvatars(userId);
-```
-
-これで `setCurrentAvatar` の分岐地獄、`fetchCurrentAvatar` / `fetchRecentAvatars` / `fetchAvailableAvatars` / `fetchGalleryAvatars` の4種類の重複fetchを **全部1本に統合**。
-
-### 2. コンポーネント分割（神コンポ解体）
+**表示場所（プロフィール「コレクション」タブの最上部）**
+- セクションタイトル：「お気に入り TOP5 ⭐」
+- 横スクロールで5枚のカードを表示
+- 各カード：画像 + アイテム名 + コンテンツ名（小さく）
+- タップでアイテム詳細モーダル（既存）を開く
+- 自分のページ：右上に「編集」ボタン
+- 他人のページ：未設定なら非表示
+- 設定数が5未満の自分のページ：空きスロットに「+ 追加」プレースホルダー
 
 ```text
-src/components/avatar/
-├── AvatarCenterHome.tsx        ← 200行以内のレイアウトのみ
-├── AvatarMain.tsx              ← 中央の大きなアバター + 編集ボタン
-├── AvatarCarousel.tsx          ← 一覧カルーセル(現在/+新規/各タイル)
-├── AvatarActionButtons.tsx     ← 4つの円形ボタン
-├── AvatarStudioModal/          ← スタジオを分割
-│   ├── index.tsx               ← Tabsシェルのみ(150行)
-│   ├── GenerateTab.tsx         ← AI生成
-│   ├── DressUpTab.tsx          ← 着せ替え
-│   └── GalleryTab.tsx          ← ギャラリー
-└── dialogs/
-    ├── RenameAvatarDialog.tsx
-    └── DeleteAvatarDialog.tsx
+┌─────────────────────────────────────────┐
+│ ⭐ お気に入り TOP5         [編集]         │
+├─────────────────────────────────────────┤
+│ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐   →│
+│ │ 1位│ │ 2位│ │ 3位│ │ 4位│ │ + │     │
+│ │img │ │img │ │img │ │img │ │追加│     │
+│ └────┘ └────┘ └────┘ └────┘ └────┘     │
+└─────────────────────────────────────────┘
 ```
 
-### 3. データモデルの単純化
+**設定方法（2系統）**
 
-`avatar_gallery.is_current` を **唯一の真実**にし、`profiles.avatar_url` は派生値として扱う：
+1. 専用「お気に入り編集モーダル」（メイン）
+   - 上段：選択中の5枠（並び替え可：左右ボタンで順位変更、×で削除）
+   - 下段：自分のコレクション一覧（検索可）。タップで追加（5個に達したら無効化）
+   - 「保存」で `profiles.favorite_item_ids` 更新
 
-- `useAvatars` 内で「`is_current=true` の行」を `currentAvatar` として取得
-- 切替時は **1つのRPC `set_current_avatar(avatar_id)` を新設**して、サーバー側で `is_current` リセット + `profiles.avatar_url` 更新をアトミックに実行
-- これで `setCurrentAvatar` 関数の `skipGalleryInsert` フラグや `setTimeout(100)` のトリガー待ちが消滅
+2. コレクションのグッズカードに星アイコン
+   - 既存の `CollectionGoodsCard` の右上に星ボタン
+   - タップでお気に入りON/OFF（5個上限ならトーストで案内、上限到達時は星をdisabled風に）
 
-`avatar-storage.ts` は `ensureProfileImagesPublicUrl`（ストレージ転送）だけ残し、書き込みロジックは全部フックへ。
+**共有 / シェア**
+- プロフィール画面に既にある「シェア」機能でプロフィールURLを共有 → 開いた人にお気に入り TOP5 が見える
+- 追加で「お気に入り TOP5」セクション右上に独立シェアボタン（任意、後段で）
 
-### 4. 削除する重複ファイル
+### 技術的詳細
 
-- ❌ `src/components/home/avatar-center/AvatarDressUpModal.tsx` — `AvatarStudioModal` の dressup タブと完全重複（未使用）
-- ❌ `src/components/home/avatar-center/AvatarGalleryModal.tsx` — `AvatarStudioModal` の gallery タブと重複
-- ❌ `AvatarCenterHome` 内の Popover（カルーセルと機能重複）
-- ❌ `AvatarCenterHome` 内の独自fetch関数群
+**新規/更新ファイル**
+- `src/hooks/useFavoriteItems.ts`（新規）
+  - `useFavoriteItems(userId)`：`profiles.favorite_item_ids` を取得し、その順番を保ったまま `user_items`（image, title, content_name）を結合して返す
+  - `useUpdateFavoriteItems()`：配列を更新するmutation。`auth.uid() === userId` のときのみ
+- `src/components/profile/FavoriteItemsTop5.tsx`（新規）
+  - 横スクロール表示（既存スタイル踏襲：`overflow-x-auto scrollbar-hide`）
+  - 自分の場合は編集ボタンとプレースホルダー
+- `src/components/profile/FavoriteItemsEditModal.tsx`（新規）
+  - 上段：選択枠5つ（順位変更・削除）
+  - 下段：自分のコレクションをグリッドで表示、検索Inputあり
+- `src/components/CollectionGoodsCard.tsx`（更新）
+  - 自分のコレクションのとき右上に星アイコン。`useUpdateFavoriteItems` 経由でトグル
+- `src/components/profile/ProfilePage.tsx` および `src/pages/UserProfile.tsx`（更新）
+  - コレクションタブの最上部に `<FavoriteItemsTop5 userId={...} isOwnProfile={...} />` を挿入
+- 既存 `ProfileFavorites.tsx` は重複機能のため削除しないが、新コンポーネントに置換する形で参照を整理
 
-### 5. UI改善
+**RLS**
+- `profiles` 既存ポリシー（自分のみ更新可）で十分。DB変更なし
 
-- メインアバターをタップ → **カルーセル下のアクションボタンが脈動して気付かせる**だけ。Popoverは廃止
-- 「編集」バッジは中央の大きなアバターには付けず、操作はすべて4つのボタンに統一
-- 名前編集・削除はカルーセルタイル長押し → BottomSheet（モバイルファースト）
-- ファイルアップロードは「ギャラリー」タブ内に「画像をアップロード」ボタンとして移動
+**バリデーション**
+- フロント：5個超えないようガード
+- mutation 側でも `arr.slice(0, 5)` で防御
 
-### 6. アクションフロー（最終形）
-
-```text
-中央アバター
-  ↓ タップ → スタジオ（gallery タブ）が開く＝今のアバターを変えたいユースケース
-  
-カルーセル
-  ・タップ即切替（currentAvatarに設定）
-  ・長押し → 名前編集/削除シート
-  ・末尾「+ 新規」 → スタジオ(generate)
-  
-4ボタン
-  ・🪄 生成     → スタジオ(generate)
-  ・👕 着せ替え → スタジオ(dressup, baseAvatar=currentAvatar)
-  ・🖼️ ギャラリー → スタジオ(gallery)
-  ・🎲 ランダム → RandomPickupModal
-```
-
-## 技術的な変更点
-
-**新規作成**
-- `src/hooks/useAvatars.ts` — React Query ベースの統合フック（取得/切替/削除/名前/アップロード/保存）
-- `supabase/migrations/xxx_set_current_avatar_rpc.sql` — `set_current_avatar(avatar_id uuid)` RPC（is_currentリセット + profiles.avatar_url更新をアトミック化）
-- `src/components/avatar/AvatarMain.tsx`
-- `src/components/avatar/AvatarCarousel.tsx`
-- `src/components/avatar/AvatarActionButtons.tsx`
-- `src/components/avatar/AvatarStudioModal/{index,GenerateTab,DressUpTab,GalleryTab}.tsx`
-- `src/components/avatar/dialogs/{RenameAvatarDialog,DeleteAvatarDialog}.tsx`
-
-**書き換え**
-- `src/components/home/AvatarCenterHome.tsx` を200行以下のレイアウトのみに縮小、または `src/components/avatar/AvatarCenterHome.tsx` に移設
-- `src/utils/avatar-storage.ts` は `ensureProfileImagesPublicUrl` のみ残し、`setCurrentAvatar` は削除（フックに吸収）
-- `src/pages/MyRoom.tsx` の `handleAvatarGenerated` は `useAvatars().saveGenerated` を呼ぶだけに簡素化
-
-**削除**
-- `src/components/home/avatar-center/AvatarDressUpModal.tsx`
-- `src/components/home/avatar-center/AvatarGalleryModal.tsx`
-- `src/components/avatar/AvatarStudioModal.tsx`（779行モノリス → 分割版に置換）
-
-**温存**
-- `RandomPickupModal` / `GoodsDisplayModal` / `CollectionAnalyticsModal` — アバター本体とは独立した機能
-- `avatar_gallery` テーブル構造は変更なし（既存データはそのまま使える）
-- `generate-avatar` / `edit-image` Edge Functions は変更なし
-
-## 影響範囲
-
-- **DB変更**: マイグレーション1本（RPC追加のみ・既存データ非破壊）
-- **既存アバター**: 維持される（テーブル変更なし）。最悪消えても可とのことなので、もしRPC適用時に `is_current` の重複があれば最新1件のみ true に正規化
-- **ファイル数**: 3,460行 → 約1,800行（ロジック重複の削除で約半減）
-
-## 進め方
-
-タスクは下記6ステップで管理：
-
-1. `useAvatars` フックと `set_current_avatar` RPC 作成
-2. スタジオモーダルを4ファイルに分割
-3. `AvatarCenterHome` を分割コンポーネントで書き直し
-4. 旧モーダル(`AvatarDressUpModal` / `AvatarGalleryModal`)削除
-5. `avatar-storage.ts` クリーンアップ + `MyRoom.tsx` 簡素化
-6. 動作確認（生成・切替・着せ替え・削除・名前編集）
+### 想定される細かな挙動
+- 削除されたアイテムが `favorite_item_ids` に残っている場合 → join時に存在チェックし、表示から除外（DB上は次回保存時に整理）
+- 並び順は配列順を信頼（1〜5位）
+- 他人プロフィールで `favorite_item_ids` が空 → セクションごと非表示
 
