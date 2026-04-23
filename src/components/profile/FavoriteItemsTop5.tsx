@@ -103,13 +103,21 @@ export function FavoriteItemsTop5({ userId, isOwnProfile }: FavoriteItemsTop5Pro
       )}
 
       {/* 詳細モーダル */}
-      {detailItemId && (
-        <ItemDetailsModal
-          itemId={detailItemId}
-          isOpen={!!detailItemId}
-          onClose={() => setDetailItemId(null)}
-        />
-      )}
+      {detailItemId && (() => {
+        const it = items.find((i) => i.id === detailItemId);
+        if (!it) return null;
+        return (
+          <ItemDetailsModal
+            itemId={it.id}
+            title={it.title}
+            image={it.image}
+            isUserItem
+            userId={userId}
+            isOpen={!!detailItemId}
+            onClose={() => setDetailItemId(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
