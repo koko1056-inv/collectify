@@ -48,6 +48,7 @@ export function MyAiRoomsView() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [viewing, setViewing] = useState<AiGeneratedRoom | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sharingRoom, setSharingRoom] = useState<AiGeneratedRoom | null>(null);
 
   const { data: rooms = [], isLoading } = useUserAiRooms(user?.id);
   const deleteMutation = useDeleteAiRoom();
