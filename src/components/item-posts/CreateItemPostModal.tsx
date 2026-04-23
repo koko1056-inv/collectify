@@ -285,6 +285,16 @@ export function CreateItemPostModal({
             )}
           </Button>
         </div>
+
+        <SpendPointsDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title="AIで投稿画像を生成しますか？"
+          description={`「${itemTitle}」を題材に、AIが投稿用の画像を1枚生成します。`}
+          cost={POST_IMAGE_COST}
+          loading={isGenerating}
+          onConfirm={generateAIImage}
+        />
       </DialogContent>
     </Dialog>
   );
