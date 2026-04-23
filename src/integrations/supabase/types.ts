@@ -2962,6 +2962,13 @@ export type Database = {
       }
       increment_visit_count: { Args: { page_id: string }; Returns: number }
       is_follower: { Args: { target_user_id: string }; Returns: boolean }
+      set_current_avatar: {
+        Args: { _avatar_id: string }
+        Returns: {
+          id: string
+          image_url: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
