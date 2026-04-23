@@ -56,25 +56,8 @@ export function MyAiRoomsView() {
 
   const [hero, ...rest] = rooms;
 
-  const handleShare = async (room: AiGeneratedRoom) => {
-    const text = `AIで作った推し部屋 🏠✨\n#Collectify`;
-    try {
-      if (navigator.share) {
-        try {
-          const res = await fetch(room.image_url);
-          const blob = await res.blob();
-          const file = new File([blob], "ai-room.png", { type: blob.type });
-          if ((navigator as any).canShare?.({ files: [file] })) {
-            await navigator.share({ text, files: [file] });
-            return;
-          }
-        } catch {}
-        await navigator.share({ text, url: room.image_url });
-      } else {
-        await navigator.clipboard.writeText(room.image_url);
-        toast.success("画像URLをコピーしました");
-      }
-    } catch {}
+  const handleShare = (room: AiGeneratedRoom) => {
+    setSharingRoom(room);
   };
 
   const handleDownload = (room: AiGeneratedRoom) => {
