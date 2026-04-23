@@ -7,9 +7,10 @@ import { Loader2, User, Sparkles, Coins } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useUserPoints, useDeductPoints } from "@/hooks/usePoints";
+import { useUserPoints } from "@/hooks/usePoints";
 import { useToast } from "@/hooks/use-toast";
 
+// 表示用のコスト（実際の消費は edit-image Edge Function 側で行う）
 const GENERATION_COST = 10;
 interface ImageEditDialogProps {
   isOpen: boolean;
@@ -39,7 +40,6 @@ export function ImageEditDialog({
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const { user } = useAuth();
   const { data: userPoints } = useUserPoints();
-  const deductPoints = useDeductPoints();
   const { toast } = useToast();
   useEffect(() => {
     if (user && isOpen) {
@@ -84,7 +84,7 @@ export function ImageEditDialog({
 
   const handleEdit = async () => {
     if (editPrompt.trim()) {
-      // ポイント残高チェック
+      // ポイント残高チェック（実際の消費は edit-image Edge Function 側で行う）
       const currentPoints = userPoints?.total_points || 0;
       if (currentPoints < GENERATION_COST) {
         toast({
@@ -95,22 +95,10 @@ export function ImageEditDialog({
         return;
       }
 
-      try {
-        // ポイントを消費
-        await deductPoints.mutateAsync({
-          points: GENERATION_COST,
-          transactionType: "post_image_generation",
-          description: "投稿用画像生成",
-        });
-
-        const prompt = editPrompt.trim();
-        onEditComplete(prompt, selectedAvatarUrl || undefined);
-        setEditPrompt("");
-        setSelectedAvatarUrl(null);
-      } catch (error) {
-        // ポイント消費に失敗した場合は処理を中止
-        console.error("Failed to deduct points:", error);
-      }
+      const prompt = editPrompt.trim();
+      onEditComplete(prompt, selectedAvatarUrl || undefined);
+      setEditPrompt("");
+      setSelectedAvatarUrl(null);
     }
   };
   const allAvatarOptions: AvatarOption[] = [
