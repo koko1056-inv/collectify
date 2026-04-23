@@ -1,119 +1,94 @@
 
 
-## ポイント消費の確認UI統一プラン
+## コードベース整理リファクタリングプラン
 
 ### 概要
 
-現在ポイントを消費するアクション（AIルーム生成 / アバター生成 / 投稿画像AI生成）が、**確認なしで即座にポイントを消費している**状態です。すでに `SpendPointsDialog`（残高表示と不足ガード付きの共通ダイアログ）が存在するので、これを使って **ポイントが消費されるすべてのアクションの直前に確認ステップ** を挟みます。
+調査の結果、**未使用コンポーネント・重複機能・肥大ファイル** が多数蓄積していることが判明しました。アプリの動作を変えずに**安全に削除できる不要コード**を整理し、**肥大したファイルを分割**することで、保守性を改善します。
 
-### 対象アクションと消費ポイント
+### Phase 1: 完全未使用コンポーネントの削除（リスクほぼゼロ）
 
-| # | 場所 | アクション | コスト | 初回無料 |
-|---|------|----------|--------|--------|
-| 1 | `AvatarStudioModal/GenerateTab.tsx` | AIアバター生成 | 30pt | ○（履歴なしで0pt） |
-| 2 | `profile/AvatarGenerationModal.tsx` | AIアバター生成（旧UI） | 30pt | ○ |
-| 3 | `ai-room/AiRoomCreateWizard.tsx` 経由 `useGenerateAiRoom` | AI推しルーム生成 | 100pt | ○ |
-| 4 | `item-posts/CreateItemPostModal.tsx` | AI投稿画像生成 | 50pt | × |
+調査で「どこからも import されていない」ことを確認したファイルを削除します。
 
-※ `edit-image` と `generate-background` は現状ポイント消費していないため対象外（着せ替え・背景変更は引き続き無料）。
+| ファイル | 行数 | 理由 |
+|---------|-----|------|
+| `src/components/profile/AvatarGenerationModal.tsx` | 308 | 旧アバター生成モーダル。現在は `AvatarStudioModal` に置き換わり未使用 |
+| `src/components/profile/ProfileCard.tsx` | 188 | どこからも参照なし |
+| `src/components/profile/ProfileStats.tsx` | — | 参照なし |
+| `src/components/home/avatar-center/CollectionAnalyticsModal.tsx` | — | 参照なし |
+| `src/components/home/avatar-center/RandomPickupModal.tsx` | — | 前回「アバターのUX改善」で参照削除済み、ファイルが残骸化 |
 
-### 仕様
+**連鎖的削除**：上記 `ProfileCard.tsx` のみが参照していたファイル群も一緒に削除：
 
-**共通の確認ダイアログ**（既存の `SpendPointsDialog` をそのまま流用）：
-- タイトル：例「AIアバターを生成しますか？」
-- 説明文：何が生成されるかの簡潔な一文
-- 消費ポイント表示（30pt / 50pt / 100pt）
-- 現在の残高表示
-- **初回無料の場合**は「🎁 初回は無料！」バッジを表示し `cost={0}` で渡す
-- 不足時はボタンが無効化され、警告メッセージ
-- 「キャンセル」「消費して実行」の2ボタン
+- `src/components/profile/ProfileBio.tsx`
+- `src/components/profile/ProfileBioSection.tsx`
+- `src/components/profile/ProfileFavorites.tsx`（現行は `FavoriteItemsTop5` に置き換え済み）
+- `src/components/profile/ProfileFavoritesSection.tsx`
+- `src/components/profile/ProfileImageSection.tsx`
+- `src/components/profile/ProfileInterests.tsx`
+- `src/components/profile/ProfileWishlist.tsx`
+- `src/components/profile/ProfileStatsOptimized.tsx`
 
-**初回判定（フロント側）**：
-- アバター：`avatar_gallery` 件数 + `point_transactions` の `avatar_generation` 系履歴を取得
-- AIルーム：`ai_generated_rooms` 件数 + `point_transactions` の `ai_room_generation` 系履歴を取得
-- 両方 0 件なら「初回無料」表示
-- 既存の `useFirstTimeFree(transactionType)` フック（新規）を作成して再利用
+削除前に**もう一度 grep で参照ゼロを検証**してから削除します（ProfileCard 削除後に再走査）。
 
-**フロー**：
-```text
-[生成ボタン押下]
-  ↓
-[SpendPointsDialog 表示]
-  ├─ キャンセル → 何もしない
-  └─ 消費して実行 → 既存の生成処理（functions.invoke）を実行
-```
+### Phase 2: 同名衝突の解消
 
-### UI拡張：初回無料バッジ対応
+- **`src/components/ProfileCollection.tsx`(125行) と `src/components/profile/ProfileCollection.tsx`(164行) が同名で別物**
 
-`SpendPointsDialog` を拡張して `freeTrial?: boolean` プロパティを追加：
-- `freeTrial=true` の場合、「消費ポイント」行に取り消し線で元価格を表示し、「初回無料 🎁 (0pt)」を強調表示
-- 説明文の下に「初回お試しキャンペーン中。次回からは {cost}pt が消費されます」のヒント
+  → 旧版（`src/components/ProfileCollection.tsx`）の参照状況を確認し、未使用なら削除。使用箇所があれば `LegacyProfileCollection.tsx` にリネーム or 統合。
 
-### 技術的な変更ファイル
+### Phase 3: ポイント消費ロジックの一元化
 
-**コンポーネント修正（4箇所）**
+- **`useDeductPoints` の利用箇所** はすでに `ImageEditDialog` 1 箇所のみ。ポイント管理は **Edge Function 側に一元化** という方針に統一済み。
 
-1. `src/components/avatar/AvatarStudioModal/GenerateTab.tsx`
-   - `SpendPointsDialog` の state（`confirmOpen`）と JSX を追加
-   - 「生成」ボタンの onClick → 確認ダイアログを開くだけに変更
-   - 確認後に既存の `handleGenerate` を実行
-   - 初回無料判定 → 表示
+  → `ImageEditDialog` の `useDeductPoints` 呼び出しを撤去し、`edit-image` Edge Function 側にポイント管理を持たせる（既存の `generate-avatar` と同パターン）。
 
-2. `src/components/profile/AvatarGenerationModal.tsx`
-   - 同様に確認ダイアログを挟む
-   - 既存の `useDeductPoints` 直接呼び出しは不要（Edge Function 側でポイント管理しているため）。フロント側の重複消費ロジックを削除して整理
-   - **注意**: 現在このコンポーネントは `useDeductPoints` で **クライアント側でも10ptを消費している** が、Edge Function 側でも30pt消費するため重複している。フロントの消費を削除し Edge Function に一元化
+  → `useDeductPoints` フックは将来削除予定としてコメントを残し、参照ゼロ化を確認後に消す（次回PR）。
 
-3. `src/components/item-posts/CreateItemPostModal.tsx`
-   - AI生成ボタン押下時に `SpendPointsDialog`（cost=50, freeTrial=false）を表示
+### Phase 4: 巨大ファイルの分割
 
-4. `src/components/ai-room/AiRoomCreateWizard.tsx`
-   - 「生成する」ボタン押下時に `SpendPointsDialog`（cost=100, freeTrial=初回判定）を表示
+#### 4-1. `GoodsDisplayModal.tsx` (1026行 / 18 useState) の分割
 
-**新規ファイル**
+責務が3つ混在：
+1. **アイテム選択** → `GoodsItemSelector.tsx`
+2. **背景生成・アップロード・プリセット** → `BackgroundEditor.tsx` + `useBackgroundGenerator.ts` フック
+3. **ギャラリー保存・Twitter投稿** → `useGoodsDisplaySave.ts` フック + `ShareToTwitterButton.tsx`
 
-5. `src/hooks/useFirstTimeFree.ts`
-   - 引数：`{ transactionTypes: string[]; tableCheck?: { table: string; userId: string } }`
-   - `point_transactions` と必要に応じて `avatar_gallery` / `ai_generated_rooms` をチェックし `isFirstTime` を返す
-   - React Query で 60 秒キャッシュ
+ルートの `GoodsDisplayModal.tsx` はオーケストレーションのみに（〜300行目標）。
 
-**共通コンポーネント修正**
+#### 4-2. `AiRoomCreateWizard.tsx` (549行) の分割
 
-6. `src/components/shop/SpendPointsDialog.tsx`
-   - `freeTrial?: boolean` と `originalCost?: number` プロパティを追加
-   - 初回無料時の表示分岐を追加
+ステップ別にファイル分割：
+- `wizard/SelectItemsStep.tsx`
+- `wizard/SelectStyleStep.tsx`
+- `wizard/SelectVisualStep.tsx`
+- `wizard/GeneratingStep.tsx`
+- `wizard/ResultStep.tsx`
 
-### 影響範囲外（変更なし）
+ルートの `AiRoomCreateWizard.tsx` はステップ管理＋確認ダイアログのみに（〜200行目標）。
 
-- Edge Function 側のロジック：既存の認証＋ポイント消費＋初回判定はそのまま
-- `useSpendPoints` / `useDeductPoints` フック
-- すでに `SpendPointsDialog` を使っている `CollectionLimitBanner.tsx`
+### Phase 5: 削除影響テスト
 
-### 期待される体験
+- `npx tsc --noEmit` で型エラーゼロを確認
+- 主要画面（プロフィール、AIルーム作成、アバター生成、投稿作成）で参照切れがないことを目視（ビルドが通れば import 切れは発覚する）
 
-```text
-┌───────────────────────────────────┐
-│ AIアバターを生成しますか？        │
-│ 入力した説明から3Dアバターを      │
-│ 生成します。                      │
-│                                   │
-│ 消費ポイント        ⭐ 30pt       │
-│ 現在の残高              120 pt    │
-│                                   │
-│       [キャンセル] [消費して実行] │
-└───────────────────────────────────┘
-```
+### 実施スコープ（今回のPRで実施する範囲）
 
-初回時：
-```text
-┌───────────────────────────────────┐
-│ AIアバターを生成しますか？        │
-│                                   │
-│ 消費ポイント  ̶3̶0̶p̶t̶ → 🎁 初回無料  │
-│ 現在の残高              0 pt      │
-│ ※次回から 30pt が消費されます     │
-│                                   │
-│       [キャンセル]  [無料で実行]  │
-└───────────────────────────────────┘
-```
+**今回のPR**：
+- ✅ Phase 1（完全未使用コンポーネント削除：14ファイル / 約 1500 行削減）
+- ✅ Phase 2（同名衝突の解消）
+
+**次回PR以降に分ける**（影響範囲が広いため別途）：
+- ⏭ Phase 3（ポイント消費一元化）
+- ⏭ Phase 4-1（GoodsDisplayModal 分割）
+- ⏭ Phase 4-2（AiRoomCreateWizard 分割）
+
+理由：Phase 1 と 2 は機能を一切変えない安全な削除なので、まず確実に通してからリスクのある分割に進む方が安全です。
+
+### 期待される効果
+
+- **約 1500 行の不要コード削減**
+- ファイル一覧が見やすくなり「どれが現役か」が明確に
+- 似た名前で迷う問題（`ProfileBio` vs `ProfileBioSection` 等）が解消
+- 同名ファイルの混乱を解消
 
