@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { WelcomeOnboarding } from "@/components/onboarding/WelcomeOnboarding";
+import { ShareRoomButtons } from "@/components/room/ShareRoomButtons";
 
 export default function MyRoom() {
   const { user } = useAuth();
@@ -41,6 +42,12 @@ export default function MyRoom() {
       </div>
       <Navbar />
       <main className="relative z-10 w-full pb-24">
+        <div className="max-w-4xl mx-auto px-4 pt-4 flex justify-end">
+          <ShareRoomButtons
+            username={profile?.username}
+            displayName={profile?.display_name}
+          />
+        </div>
         <MyRoomHome profile={profile} />
       </main>
       <Footer />
