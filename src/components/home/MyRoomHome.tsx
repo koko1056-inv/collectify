@@ -30,7 +30,7 @@ export function MyRoomHome({
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"room" | "collection" | "avatar">("collection");
-  const [showAvatarStudio, setShowAvatarStudio] = useState(false);
+  
   const {
     mainRoom,
     roomItems,
