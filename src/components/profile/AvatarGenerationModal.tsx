@@ -71,7 +71,7 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
     });
   };
 
-  const handleGenerate = async () => {
+  const handleGenerateClick = () => {
     if (!prompt.trim() && !uploadedImage) {
       toast({
         variant: "destructive",
@@ -80,31 +80,27 @@ export function AvatarGenerationModal({ isOpen, onClose, onAvatarGenerated }: Av
       });
       return;
     }
+    setConfirmOpen(true);
+  };
 
-    // ポイント残高チェック
-    const currentPoints = userPoints?.total_points || 0;
-    if (currentPoints < GENERATION_COST) {
-      toast({
-        variant: "destructive",
-        title: "ポイント不足",
-        description: `アバター生成には${GENERATION_COST}ポイント必要です（現在: ${currentPoints}pt）`,
-      });
-      return;
-    }
-
+  const handleGenerate = async () => {
+    setConfirmOpen(false);
     setIsGenerating(true);
     setProgress(0);
     setGenerationStep("準備中...");
 
     try {
-      // ポイントを消費
-      await deductPoints.mutateAsync({
-        points: GENERATION_COST,
-        transactionType: "avatar_generation",
-        description: "AIアバター生成",
-      });
+      // ポイント消費は Edge Function 側で一元管理（初回無料含む）
 
       // ステップ1: 画像変換
+      setProgress(20);
+      setGenerationStep("画像を処理中...");
+      let imageBase64: string | undefined;
+      if (uploadedImage) {
+        imageBase64 = await convertImageToBase64(uploadedImage);
+      }
+
+      // ステップ2: AI生成開始
       setProgress(20);
       setGenerationStep("画像を処理中...");
       let imageBase64: string | undefined;
