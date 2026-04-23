@@ -21,12 +21,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface MyRoomHomeProps {
   profile: Profile | undefined;
-  onAvatarGenerated: (result: import("@/types/avatar").AvatarGenerationResult) => void | Promise<void>;
 }
 
 export function MyRoomHome({
   profile,
-  onAvatarGenerated
 }: MyRoomHomeProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -232,12 +230,10 @@ export function MyRoomHome({
 
       {/* モーダル */}
       {user?.id && (
-        <AvatarStudioModal 
-          isOpen={showAvatarStudio} 
-          onClose={() => setShowAvatarStudio(false)} 
+        <AvatarStudioModal
+          isOpen={showAvatarStudio}
+          onClose={() => setShowAvatarStudio(false)}
           userId={user.id}
-          currentAvatarUrl={profile?.avatar_url || null}
-          onAvatarGenerated={onAvatarGenerated}
         />
       )}
     </div>

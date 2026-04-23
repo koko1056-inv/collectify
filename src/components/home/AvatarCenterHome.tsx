@@ -1,18 +1,15 @@
-import { useState, useEffect } from "react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Dices, Store, Shirt, ChevronDown, Image, User, UploadCloud, Sparkles, Check, Trash2, Edit2, Search } from "lucide-react";
-import { Profile } from "@/types";
-import { useAuth } from "@/contexts/AuthContext";
-import { AvatarStudioModal } from "@/components/avatar";
-import type { AvatarGenerationResult } from "@/types/avatar";
-import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
-import { GoodsDisplayModal } from "./avatar-center/GoodsDisplayModal";
-import { supabase } from "@/integrations/supabase/client";
-import { ensureProfileImagesPublicUrl, setCurrentAvatar } from "@/utils/avatar-storage";
-import { toast } from "sonner";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,537 +21,128 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Check,
+  ChevronDown,
+  Dices,
+  Edit2,
+  Image as ImageIcon,
+  Sparkles,
+  Shirt,
+  Trash2,
+  UploadCloud,
+  User,
+} from "lucide-react";
+import { Profile } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
+import { AvatarStudioModal, type StudioTab } from "@/components/avatar";
+import { useAvatars, type AvatarRow } from "@/hooks/useAvatars";
+import { RandomPickupModal } from "./avatar-center/RandomPickupModal";
 
 interface AvatarCenterHomeProps {
   profile: Profile | undefined;
-  onAvatarGenerated: (url: string) => void;
 }
 
-export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHomeProps) {
-
-  // プロフィールが存在しない場合の早期リターン
+export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
   if (!profile) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">プロフィールを読み込み中...</p>
-        </div>
+        <p className="text-muted-foreground">プロフィールを読み込み中...</p>
       </div>
     );
   }
 
   const { user } = useAuth();
-  const userId = user?.id;
-  const [showAvatarStudio, setShowAvatarStudio] = useState(false);
-  const [studioInitialTab, setStudioInitialTab] = useState<"generate" | "dressup" | "gallery">("generate");
-  const [studioBaseAvatarUrl, setStudioBaseAvatarUrl] = useState<string | null>(null);
-  const [showRandomPickup, setShowRandomPickup] = useState(false);
-  const [showGoodsDisplay, setShowGoodsDisplay] = useState(false);
-  const [showGoodsGallery, setShowGoodsGallery] = useState(false);
-  const [currentAvatarUrl, setCurrentAvatarUrl] = useState<string | null>(null);
-  const [recentAvatars, setRecentAvatars] = useState<Array<{ id: string; image_url: string; name: string | null }>>([]);
-  const [isAvatarPopoverOpen, setIsAvatarPopoverOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [avatarToDelete, setAvatarToDelete] = useState<string | null>(null);
-  const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
-  const [avatarToEdit, setAvatarToEdit] = useState<{ id: string; name: string } | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const userId = user?.id || "";
+  const avatars = useAvatars(userId);
 
-  // スタジオを指定タブで開く
-  const openStudio = (tab: "generate" | "dressup" | "gallery", baseAvatarUrl?: string | null) => {
-    setStudioInitialTab(tab);
-    setStudioBaseAvatarUrl(baseAvatarUrl ?? null);
-    setShowAvatarStudio(true);
+  const [showStudio, setShowStudio] = useState(false);
+  const [studioTab, setStudioTab] = useState<StudioTab>("generate");
+  const [studioBaseUrl, setStudioBaseUrl] = useState<string | null>(null);
+  const [showRandom, setShowRandom] = useState(false);
+
+  const [renameTarget, setRenameTarget] = useState<AvatarRow | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<AvatarRow | null>(null);
+
+  const currentUrl = avatars.currentAvatar?.image_url || profile.avatar_url || null;
+
+  const openStudio = (tab: StudioTab, baseUrl?: string | null) => {
+    setStudioTab(tab);
+    setStudioBaseUrl(baseUrl ?? null);
+    setShowStudio(true);
   };
 
-  // 最新のアバターを取得（プロフィールとギャラリーを並行取得）
-  const fetchCurrentAvatar = async () => {
-    if (!userId) {
-      console.log("[AvatarCenterHome] No user ID. profile:", profile);
-      return;
-    }
-
-    console.log("[AvatarCenterHome] Fetching current avatar for user:", userId);
-
-    try {
-      // 1. プロフィールのavatar_urlを最優先
-      if (profile?.avatar_url) {
-        console.log("[AvatarCenterHome] Using profile avatar_url");
-        setCurrentAvatarUrl(profile.avatar_url);
-        return;
-      }
-
-      // 2. avatar_galleryから最新のアバターを取得（is_currentに関わらず）
-      const { data: latestAvatar } = await supabase
-        .from("avatar_gallery")
-        .select("image_url")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (latestAvatar?.image_url) {
-        console.log("[AvatarCenterHome] Using latest gallery avatar as fallback");
-        setCurrentAvatarUrl(latestAvatar.image_url);
-        return;
-      }
-
-      // どちらもない場合は null
-      console.log("[AvatarCenterHome] No avatar found");
-      setCurrentAvatarUrl(null);
-    } catch (error) {
-      console.error("[AvatarCenterHome] Error fetching current avatar:", error);
-      setCurrentAvatarUrl(null);
-    }
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) avatars.uploadFile.mutate(f);
+    e.target.value = "";
   };
-
-  // すべてのアバターを取得（ポップオーバー用）
-  const fetchRecentAvatars = async () => {
-    if (!userId) return;
-
-    try {
-      const { data } = await supabase
-        .from("avatar_gallery")
-        .select("id, image_url, item_ids, prompt, name")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(30); // 最新30件まで表示
-
-      if (data) {
-        // 重複URLを除外してすべてのアバターを表示
-        const seen = new Set<string>();
-        const allAvatars = [] as Array<{ id: string; image_url: string; name: string | null }>;
-
-        for (const avatar of data) {
-          if (!seen.has(avatar.image_url)) {
-            seen.add(avatar.image_url);
-            allAvatars.push({ id: avatar.id, image_url: avatar.image_url, name: avatar.name });
-          }
-        }
-
-        setRecentAvatars(allAvatars);
-      }
-    } catch (error) {
-      console.error("Error fetching recent avatars:", error);
-    }
-  };
-
-  // アバターを選択
-  const handleSelectAvatar = async (avatarUrl: string, avatarId: string) => {
-    if (!userId) return;
-
-    try {
-      const stableUrl = await ensureProfileImagesPublicUrl({ userId, sourceUrl: avatarUrl });
-
-      await setCurrentAvatar({
-        userId,
-        avatarUrl: stableUrl,
-        avatarGalleryId: avatarId,
-      });
-
-      // 3. UIを更新
-      setCurrentAvatarUrl(stableUrl);
-      setIsAvatarPopoverOpen(false);
-      toast.success("アバターを切り替えました");
-
-      // 親コンポーネントに通知
-      onAvatarGenerated(stableUrl);
-
-      // 再取得
-      await fetchCurrentAvatar();
-      await fetchRecentAvatars();
-    } catch (error) {
-      console.error("Error selecting avatar:", error);
-      toast.error("アバターの切り替えに失敗しました");
-    }
-  };
-
-  // ファイルアップロード
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !userId) return;
-
-    const file = e.target.files[0];
-    try {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${userId}/${crypto.randomUUID()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("profile_images")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("profile_images")
-        .getPublicUrl(filePath);
-
-      // 1. profiles.avatar_urlを更新
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ avatar_url: publicUrl })
-        .eq("id", userId);
-
-      if (updateError) throw updateError;
-
-      // 2. avatar_galleryの同期
-      await supabase
-        .from("avatar_gallery")
-        .update({ is_current: false })
-        .eq("user_id", userId);
-
-      const { data: existingProfileAvatar } = await supabase
-        .from("avatar_gallery")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("prompt", "プロフィール画像")
-        .maybeSingle();
-
-      if (existingProfileAvatar) {
-        await supabase
-          .from("avatar_gallery")
-          .update({ image_url: publicUrl, is_current: true })
-          .eq("id", existingProfileAvatar.id);
-      } else {
-        await supabase.from("avatar_gallery").insert({
-          user_id: userId,
-          image_url: publicUrl,
-          is_current: true,
-          item_ids: null,
-          prompt: "プロフィール画像",
-        });
-      }
-
-      setCurrentAvatarUrl(publicUrl);
-      setIsAvatarPopoverOpen(false);
-      toast.success("プロフィール画像を更新しました");
-      
-      await fetchCurrentAvatar();
-      await fetchRecentAvatars();
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      toast.error("画像のアップロードに失敗しました");
-    }
-  };
-
-  // AI生成したアバターを設定
-  const handleAvatarGenerated = async ({ imageUrl, prompt }: AvatarGenerationResult) => {
-    if (!userId) return;
-
-    try {
-      const publicUrl = await ensureProfileImagesPublicUrl({ userId, sourceUrl: imageUrl });
-
-      await setCurrentAvatar({
-        userId,
-        avatarUrl: publicUrl,
-        prompt,
-        itemIds: null,
-        skipGalleryInsert: true,
-      });
-
-      setCurrentAvatarUrl(publicUrl);
-      toast.success("AIで生成したアバターを設定しました");
-      onAvatarGenerated(publicUrl);
-
-      await fetchCurrentAvatar();
-      await fetchRecentAvatars();
-    } catch (error) {
-      console.error("Error setting avatar:", error);
-      toast.error("アバターの設定に失敗しました");
-    }
-  };
-
-  // アバター名を編集
-  const handleEditNameClick = (avatar: { id: string; name: string | null }, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setAvatarToEdit({ id: avatar.id, name: avatar.name || "" });
-    setEditNameDialogOpen(true);
-  };
-
-  const handleConfirmNameEdit = async () => {
-    if (!avatarToEdit) return;
-    
-    try {
-      await supabase
-        .from("avatar_gallery")
-        .update({ name: avatarToEdit.name })
-        .eq("id", avatarToEdit.id);
-      
-      setRecentAvatars(prev => 
-        prev.map(avatar => 
-          avatar.id === avatarToEdit.id 
-            ? { ...avatar, name: avatarToEdit.name } 
-            : avatar
-        )
-      );
-      
-      toast.success("アバター名を更新しました");
-    } catch (error) {
-      console.error("Error updating avatar name:", error);
-      toast.error("アバター名の更新に失敗しました");
-    } finally {
-      setEditNameDialogOpen(false);
-      setAvatarToEdit(null);
-    }
-  };
-
-  // アバター削除
-  const handleDeleteClick = (avatarId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setAvatarToDelete(avatarId);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!avatarToDelete) return;
-    
-    try {
-      await supabase
-        .from("avatar_gallery")
-        .delete()
-        .eq("id", avatarToDelete);
-      
-      await fetchRecentAvatars();
-      toast.success("アバターを削除しました");
-    } catch (error) {
-      console.error("Error deleting avatar:", error);
-      toast.error("アバターの削除に失敗しました");
-    } finally {
-      setDeleteDialogOpen(false);
-      setAvatarToDelete(null);
-    }
-  };
-
-  // 検索フィルタリング
-  const filteredAvatars = recentAvatars.filter(avatar => {
-    if (!searchQuery) return true;
-    return avatar.name?.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
-  // 初回ロード時とユーザーID変更時にアバターを取得
-  useEffect(() => {
-    fetchCurrentAvatar();
-    fetchRecentAvatars();
-  }, [userId]);
-
-  // リアルタイムでアバター更新を監視
-  useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel('avatar-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'avatar_gallery',
-          filter: `user_id=eq.${userId}`
-        },
-        () => {
-          fetchCurrentAvatar();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${userId}`
-        },
-        () => {
-          fetchCurrentAvatar();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId]);
 
   const buttons = [
     {
       icon: Sparkles,
-      label: "アバター生成",
+      label: "生成",
       onClick: () => openStudio("generate"),
-      color: "from-violet-500 to-purple-600"
+      color: "from-violet-500 to-purple-600",
     },
     {
       icon: Shirt,
-      label: "グッズ着せ替え",
-      onClick: () => openStudio("dressup", currentAvatarUrl),
-      color: "from-pink-500 to-rose-600"
+      label: "着せ替え",
+      onClick: () => openStudio("dressup", currentUrl),
+      color: "from-pink-500 to-rose-600",
     },
     {
-      icon: Image,
+      icon: ImageIcon,
       label: "ギャラリー",
       onClick: () => openStudio("gallery"),
-      color: "from-sky-500 to-blue-600"
+      color: "from-sky-500 to-blue-600",
     },
     {
       icon: Dices,
       label: "ランダム",
-      onClick: () => setShowRandomPickup(true),
-      color: "from-amber-500 to-orange-600"
-    }
+      onClick: () => setShowRandom(true),
+      color: "from-amber-500 to-orange-600",
+    },
   ];
 
   return (
     <>
       <div className="min-h-[80vh] flex flex-col items-center justify-start pt-8 sm:pt-12 relative px-4 sm:px-8 gap-6">
-        {/* 背景のグラデーション */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl" />
-        
-        {/* メインアバター */}
-        <Popover open={isAvatarPopoverOpen} onOpenChange={setIsAvatarPopoverOpen}>
-          <PopoverTrigger asChild>
-            <div className="relative cursor-pointer">
-              {currentAvatarUrl ? (
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
-                  <Avatar className="w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 border-4 border-background shadow-2xl relative z-10 transition-transform hover:scale-105">
-                    <AvatarImage src={currentAvatarUrl} />
-                  </Avatar>
-                  <div className="absolute bottom-2 right-2 bg-background/90 backdrop-blur-sm text-foreground px-3 py-1.5 rounded-full shadow-lg z-20 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span className="text-xs font-medium">編集</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-muted/10 to-muted/5 blur-xl" />
-                  <div className="w-48 h-48 sm:w-56 sm:h-56 lg:w-64 lg:h-64 border-4 border-dashed border-muted-foreground/20 rounded-full flex items-center justify-center relative z-10 bg-muted/5">
-                    <div className="text-center">
-                      <User className="w-16 h-16 mx-auto text-muted-foreground/30 mb-3" />
-                      <p className="text-muted-foreground/70 text-base font-medium">アバターを設定</p>
-                      <p className="text-muted-foreground/50 text-xs mt-1">タップして作成</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl pointer-events-none" />
+
+        {/* メインアバター（タップでギャラリー） */}
+        <button
+          onClick={() => openStudio("gallery")}
+          className="relative cursor-pointer group focus:outline-none"
+          aria-label="アバターを管理する"
+        >
+          {currentUrl ? (
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 blur-xl" />
+              <Avatar className="w-44 h-44 sm:w-56 sm:h-56 lg:w-64 lg:h-64 border-4 border-background shadow-2xl relative z-10 transition-transform group-hover:scale-105">
+                <AvatarImage src={currentUrl} />
+                <AvatarFallback>
+                  <User className="w-16 h-16" />
+                </AvatarFallback>
+              </Avatar>
             </div>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 p-3 bg-background border shadow-lg z-50" align="center">
-            <div className="flex flex-col gap-3">
-              {/* 保存済みアバター */}
-              {recentAvatars.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between px-1">
-                    <p className="text-xs text-muted-foreground font-medium">
-                      保存済みアバター ({filteredAvatars.length}/{recentAvatars.length})
-                    </p>
-                  </div>
-                  
-                  <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="名前で検索..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-8 h-8 text-sm"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-5 gap-2 max-h-[300px] overflow-y-auto">
-                    {filteredAvatars.map((avatar) => (
-                      <div key={avatar.id} className="relative group flex flex-col items-center">
-                        <Avatar className="w-full aspect-square border-2 border-border group-hover:border-primary transition-all duration-200">
-                          <AvatarImage src={avatar.image_url} className="object-cover" />
-                          <AvatarFallback>?</AvatarFallback>
-                        </Avatar>
-                        {avatar.name && (
-                          <p className="text-[10px] text-muted-foreground truncate w-full text-center mt-1">
-                            {avatar.name}
-                          </p>
-                        )}
-                        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
-                            className="p-1.5 bg-background text-foreground rounded-full hover:bg-background/90 transition-colors shadow-lg"
-                            title="選択"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={(e) => handleEditNameClick(avatar, e)}
-                            className="p-1.5 bg-background text-foreground rounded-full hover:bg-background/90 transition-colors shadow-lg"
-                            title="名前を編集"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={(e) => handleDeleteClick(avatar.id, e)}
-                            className="p-1.5 bg-background text-foreground rounded-full hover:bg-background/90 transition-colors shadow-lg"
-                            title="削除"
-                          >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {filteredAvatars.length === 0 && searchQuery && (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      「{searchQuery}」に一致するアバターが見つかりません
-                    </p>
-                  )}
-                </div>
-              )}
-              
-              {recentAvatars.length > 0 && <div className="border-t border-border" />}
-              
-              <div className="flex flex-col gap-1">
-                <Button
-                  variant="ghost"
-                  className="justify-start h-auto py-3 px-3"
-                  onClick={() => {
-                    document.getElementById('home-avatar-upload')?.click();
-                    setIsAvatarPopoverOpen(false);
-                  }}
-                >
-                  <UploadCloud className="w-4 h-4 mr-3" />
-                  <span className="text-sm">ファイルを選択</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start h-auto py-3 px-3"
-                  onClick={() => {
-                    openStudio("generate");
-                    setIsAvatarPopoverOpen(false);
-                  }}
-                >
-                  <Sparkles className="w-4 h-4 mr-3" />
-                  <span className="text-sm">アバタースタジオ</span>
-                </Button>
-              </div>
+          ) : (
+            <div className="w-44 h-44 sm:w-56 sm:h-56 lg:w-64 lg:h-64 border-4 border-dashed border-muted-foreground/30 rounded-full flex flex-col items-center justify-center bg-muted/5">
+              <User className="w-16 h-16 text-muted-foreground/40 mb-2" />
+              <p className="text-sm text-muted-foreground">アバターを設定</p>
             </div>
-          </PopoverContent>
-        </Popover>
+          )}
+        </button>
 
-        <input
-          id="home-avatar-upload"
-          type="file"
-          onChange={handleFileUpload}
-          className="hidden"
-          accept="image/*"
-        />
-
-        {/* アバター一覧（横スクロール） */}
+        {/* カルーセル */}
         <div className="w-full max-w-2xl relative z-10">
           <div className="flex items-center justify-between px-2 mb-2">
             <p className="text-xs font-medium text-muted-foreground">
-              {recentAvatars.length > 0 ? `保存済みアバター (${recentAvatars.length})` : "アバターをつくろう"}
+              {avatars.avatars.length > 0
+                ? `保存済みアバター (${avatars.avatars.length})`
+                : "アバターをつくろう"}
             </p>
-            {recentAvatars.length > 0 && (
+            {avatars.avatars.length > 0 && (
               <button
                 onClick={() => openStudio("gallery")}
                 className="text-xs text-primary font-medium hover:underline"
@@ -563,7 +151,7 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
               </button>
             )}
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 px-2 snap-x snap-mandatory">
+          <div className="flex gap-3 overflow-x-auto pb-2 px-2 snap-x">
             {/* 新規生成タイル */}
             <button
               onClick={() => openStudio("generate")}
@@ -574,31 +162,75 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
               <span className="text-[10px] font-medium text-primary">新規生成</span>
             </button>
 
-            {recentAvatars.map((avatar) => {
-              const isCurrent = currentAvatarUrl === avatar.image_url;
+            {/* アップロードタイル */}
+            <label className="flex-shrink-0 snap-start w-20 h-20 rounded-2xl border-2 border-dashed border-muted-foreground/30 bg-muted/20 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-foreground/40 hover:bg-muted/30 transition-all">
+              <UploadCloud className="w-5 h-5 text-muted-foreground" />
+              <span className="text-[10px] font-medium text-muted-foreground">アップロード</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </label>
+
+            {avatars.avatars.map((a) => {
+              const isCurrent = a.is_current || a.image_url === currentUrl;
               return (
-                <div key={avatar.id} className="flex-shrink-0 snap-start flex flex-col items-center gap-1">
-                  <button
-                    onClick={() => handleSelectAvatar(avatar.image_url, avatar.id)}
+                <div
+                  key={a.id}
+                  className="flex-shrink-0 snap-start flex flex-col items-center gap-1 group"
+                >
+                  <div
                     className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all ${
                       isCurrent
                         ? "border-primary shadow-lg ring-2 ring-primary/30"
-                        : "border-border hover:border-primary/60 hover:scale-105"
+                        : "border-border hover:border-primary/60"
                     }`}
                   >
-                    <img
-                      src={avatar.image_url}
-                      alt={avatar.name || "アバター"}
-                      className="w-full h-full object-cover"
-                    />
+                    <button
+                      onClick={() => avatars.setCurrent.mutate(a.id)}
+                      disabled={!!isCurrent || avatars.setCurrent.isPending}
+                      className="w-full h-full"
+                    >
+                      <img
+                        src={a.image_url}
+                        alt={a.name || "アバター"}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
                     {isCurrent && (
                       <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-0.5 shadow">
                         <Check className="w-3 h-3" />
                       </div>
                     )}
-                  </button>
+                    {/* タイル右下のメニューボタン */}
+                    <div className="absolute bottom-0 right-0 flex opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRenameTarget(a);
+                          setRenameValue(a.name || "");
+                        }}
+                        className="p-1 bg-background/90 rounded-tl-md hover:bg-background"
+                        aria-label="名前を編集"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTarget(a);
+                        }}
+                        className="p-1 bg-background/90 hover:bg-background"
+                        aria-label="削除"
+                      >
+                        <Trash2 className="w-3 h-3 text-destructive" />
+                      </button>
+                    </div>
+                  </div>
                   <p className="text-[10px] text-muted-foreground truncate max-w-[80px] text-center">
-                    {avatar.name || (isCurrent ? "現在" : "—")}
+                    {a.name || (isCurrent ? "現在" : "—")}
                   </p>
                 </div>
               );
@@ -606,11 +238,10 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           </div>
         </div>
 
-
         {/* 機能ボタン */}
         <div className="grid grid-cols-2 sm:flex gap-4 sm:gap-6 mb-8 max-w-md w-full px-4">
-          {buttons.map((btn, index) => (
-            <div key={index} className="relative group flex flex-col items-center">
+          {buttons.map((btn, i) => (
+            <div key={i} className="relative flex flex-col items-center">
               <Button
                 onClick={btn.onClick}
                 size="lg"
@@ -618,11 +249,9 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
               >
                 <btn.icon className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
               </Button>
-              <div className="mt-2 sm:absolute sm:top-full sm:mt-2 sm:left-1/2 sm:-translate-x-1/2 whitespace-nowrap sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                <span className="text-xs sm:text-sm font-medium bg-background/90 px-3 py-1 rounded-full shadow-lg">
-                  {btn.label}
-                </span>
-              </div>
+              <span className="mt-2 text-xs sm:text-sm font-medium text-foreground/80">
+                {btn.label}
+              </span>
             </div>
           ))}
         </div>
@@ -634,21 +263,69 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
         </div>
       </div>
 
-      {/* モーダル */}
-      <AvatarStudioModal
-        isOpen={showAvatarStudio}
-        onClose={() => {
-          setShowAvatarStudio(false);
-          fetchCurrentAvatar();
-        }}
+      {/* スタジオモーダル */}
+      {userId && (
+        <AvatarStudioModal
+          isOpen={showStudio}
+          onClose={() => setShowStudio(false)}
+          userId={userId}
+          initialTab={studioTab}
+          initialBaseAvatarUrl={studioBaseUrl}
+        />
+      )}
+
+      {/* ランダムピックアップ */}
+      <RandomPickupModal
+        isOpen={showRandom}
+        onClose={() => setShowRandom(false)}
         userId={userId}
-        currentAvatarUrl={currentAvatarUrl || profile?.avatar_url || null}
-        onAvatarGenerated={handleAvatarGenerated}
-        initialTab={studioInitialTab}
-        initialBaseAvatarUrl={studioBaseAvatarUrl}
       />
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      {/* 名前編集 */}
+      <Dialog
+        open={!!renameTarget}
+        onOpenChange={(o) => {
+          if (!o) setRenameTarget(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>アバター名を編集</DialogTitle>
+            <DialogDescription>このアバターの名前を変更できます</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="アバター名を入力..."
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              maxLength={50}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameTarget(null)}>
+              キャンセル
+            </Button>
+            <Button
+              onClick={() => {
+                if (renameTarget) {
+                  avatars.rename.mutate({ id: renameTarget.id, name: renameValue });
+                }
+                setRenameTarget(null);
+              }}
+            >
+              保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 削除確認 */}
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => {
+          if (!o) setDeleteTarget(null);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>アバターを削除しますか？</AlertDialogTitle>
@@ -658,58 +335,18 @@ export function AvatarCenterHome({ profile, onAvatarGenerated }: AvatarCenterHom
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteTarget) avatars.remove.mutate(deleteTarget.id);
+                setDeleteTarget(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               削除
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Dialog open={editNameDialogOpen} onOpenChange={setEditNameDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>アバター名を編集</DialogTitle>
-            <DialogDescription>
-              このアバターの名前を変更できます
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              placeholder="アバター名を入力..."
-              value={avatarToEdit?.name || ""}
-              onChange={(e) => setAvatarToEdit(prev => prev ? { ...prev, name: e.target.value } : null)}
-              maxLength={50}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditNameDialogOpen(false)}>
-              キャンセル
-            </Button>
-            <Button onClick={handleConfirmNameEdit}>
-              保存
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <RandomPickupModal
-        isOpen={showRandomPickup}
-        onClose={() => setShowRandomPickup(false)}
-        userId={userId}
-      />
-
-      <GoodsDisplayModal
-        isOpen={showGoodsDisplay}
-        onClose={() => setShowGoodsDisplay(false)}
-        userId={userId}
-      />
-
-      <GoodsDisplayModal
-        isOpen={showGoodsGallery}
-        onClose={() => setShowGoodsGallery(false)}
-        userId={userId}
-        initialShowGallery={true}
-      />
     </>
   );
 }
