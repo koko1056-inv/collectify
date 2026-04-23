@@ -190,11 +190,11 @@ export function MyRoomHome({
                       transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <span className="relative flex items-center gap-1.5">
-                    <Icon className="w-4 h-4" />
-                    <span className="text-xs sm:text-sm">{tab.label}</span>
+                  <span className="relative flex items-center gap-1.5 whitespace-nowrap">
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="text-xs sm:text-sm whitespace-nowrap">{tab.label}</span>
                     {tab.badge && !isActive && (
-                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse shrink-0" />
                     )}
                   </span>
                 </button>
