@@ -1,85 +1,141 @@
 
 
-# アバターページの体験改善プラン
+# アバター周り 抜本リファクタプラン
 
-`/my-room` のアバターページ（`AvatarCenterHome.tsx`）を、**「アバター一覧が常に見える」「着せ替えボタンから直接着せ替えタブが開く」** ように改善します。
+「巨大化したアバターページ + 重複した3つのモーダル + DB二重管理」を解体し、**シンプルで一貫した設計**に作り変えます。
 
-## 現状の課題
+## 現状の何が複雑か
 
-1. **アバター一覧が隠れている**：保存済みアバターを見るには大きなアバターをクリック → ポップオーバー展開、という1ステップが必要
-2. **「グッズ着せ替え」ボタンが期待通りに動かない**：押すと `AvatarStudioModal` が開くが、デフォルトタブが `generate`（生成タブ）になっており、ユーザーが手動で「着せ替え」タブに切り替える必要がある
-3. **「着せ替えギャラリー」と「グッズ着せ替え」のボタンが両方とも同じモーダルを同じ初期状態で開いており、機能の差別化ができていない**
+| 問題 | 詳細 |
+|---|---|
+| **715行の神コンポーネント** | `AvatarCenterHome.tsx` が表示・取得・アップロード・削除・名前編集・Popover・Carousel・4つのモーダル制御を全部持っている |
+| **モーダルが3つ重複** | `AvatarStudioModal`(779行)、`AvatarDressUpModal`(340行・未使用)、`AvatarGalleryModal`(248行) が同じ `avatar_gallery` テーブルを別々に操作 |
+| **DB二重書き込み** | `profiles.avatar_url` と `avatar_gallery.is_current` を毎回手動同期。トリガー任せの箇所と手動の箇所が混在し `setCurrentAvatar` が分岐だらけ |
+| **取得ロジックの重複** | 同じ `avatar_gallery` の fetch を `AvatarCenterHome` / `AvatarStudioModal` / `AvatarGalleryModal` がそれぞれ独自に実装 |
+| **UIの二重表示** | カルーセル(常時表示) と Popover(隠れ一覧) が両方ある |
+| **`window.location.reload()`** | `AvatarDressUpModal` がページごとリロード(悪手) |
 
-## 改善内容
+## 新しい設計
 
-### 1. アバター一覧を常時表示（横スクロールカルーセル）
+### 1. 1つのデータソース = カスタムフック `useAvatars`
 
-メインアバターのすぐ下に、保存済みアバターを横スクロールで常時表示します。
+`src/hooks/useAvatars.ts` に **取得・切替・削除・名前編集・アップロード・AI生成保存** をすべて集約。React Queryで一元管理し、リアルタイム購読も内包。
 
-```text
-┌────────────────────────────────┐
-│                                │
-│      ┌──────────┐              │
-│      │          │              │
-│      │  メイン   │   [編集▼]    │
-│      │  アバター │              │
-│      └──────────┘              │
-│                                │
-│  保存済みアバター (12件) [+追加] │
-│  ┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐ →  │
-│  │● ││  ││  ││  ││  ││  │     │
-│  └──┘└──┘└──┘└──┘└──┘└──┘     │
-│   現在                          │
-│                                │
-│  [生成] [着せ替え] [ギャラリー] [ランダム] │
-└────────────────────────────────┘
+```ts
+const {
+  avatars,            // AvatarGalleryRow[]
+  currentAvatar,      // AvatarGalleryRow | null （単一の真実）
+  isLoading,
+  setCurrent,         // (id) => Promise
+  remove,             // (id) => Promise
+  rename,             // (id, name) => Promise
+  uploadFile,         // (file) => Promise
+  saveGenerated,      // ({imageUrl, prompt, itemIds?}) => Promise
+} = useAvatars(userId);
 ```
 
-- タップで即切り替え（現状の `handleSelectAvatar` を流用）
-- 現在使用中のアバターは枠線と「現在」バッジで強調
-- 長押し or ホバーで「名前編集 / 削除」メニュー表示
-- 末尾に「+ 新規生成」タイル → アバタースタジオの生成タブを開く
-- 既存のポップオーバーは廃止（または「すべて見る」で展開する補助に縮小）
+これで `setCurrentAvatar` の分岐地獄、`fetchCurrentAvatar` / `fetchRecentAvatars` / `fetchAvailableAvatars` / `fetchGalleryAvatars` の4種類の重複fetchを **全部1本に統合**。
 
-### 2. 機能ボタンの整理と直接遷移
+### 2. コンポーネント分割（神コンポ解体）
 
-現状の4つのボタンを以下に整理し、それぞれが `AvatarStudioModal` の正しいタブを開くようにします。
+```text
+src/components/avatar/
+├── AvatarCenterHome.tsx        ← 200行以内のレイアウトのみ
+├── AvatarMain.tsx              ← 中央の大きなアバター + 編集ボタン
+├── AvatarCarousel.tsx          ← 一覧カルーセル(現在/+新規/各タイル)
+├── AvatarActionButtons.tsx     ← 4つの円形ボタン
+├── AvatarStudioModal/          ← スタジオを分割
+│   ├── index.tsx               ← Tabsシェルのみ(150行)
+│   ├── GenerateTab.tsx         ← AI生成
+│   ├── DressUpTab.tsx          ← 着せ替え
+│   └── GalleryTab.tsx          ← ギャラリー
+└── dialogs/
+    ├── RenameAvatarDialog.tsx
+    └── DeleteAvatarDialog.tsx
+```
 
-| ボタン | 動作 |
-|---|---|
-| 🪄 アバター生成 | スタジオを `generate` タブで開く |
-| 👕 **グッズ着せ替え** | スタジオを **`dressup` タブ**で開く（修正点） |
-| 🖼️ ギャラリー | スタジオを `gallery` タブで開く |
-| 🎲 ランダムピックアップ | 既存どおり |
+### 3. データモデルの単純化
 
-### 3. 着せ替え時のベースアバター自動選択
+`avatar_gallery.is_current` を **唯一の真実**にし、`profiles.avatar_url` は派生値として扱う：
 
-「グッズ着せ替え」ボタンから入った時は、**現在使用中のアバター**を自動で「ベースアバター」として選択した状態でモーダルを開きます（現状は最新のものが選ばれてしまう）。
+- `useAvatars` 内で「`is_current=true` の行」を `currentAvatar` として取得
+- 切替時は **1つのRPC `set_current_avatar(avatar_id)` を新設**して、サーバー側で `is_current` リセット + `profiles.avatar_url` 更新をアトミックに実行
+- これで `setCurrentAvatar` 関数の `skipGalleryInsert` フラグや `setTimeout(100)` のトリガー待ちが消滅
 
-### 4. ビジュアル微調整
+`avatar-storage.ts` は `ensureProfileImagesPublicUrl`（ストレージ転送）だけ残し、書き込みロジックは全部フックへ。
 
-- メインアバターのサイズを `w-72 → w-56`（モバイル）に縮小し、一覧と機能ボタンが1画面に収まるようにする
-- 機能ボタンのラベルを常時表示（モバイル幅では現状ホバーが効かないため）
-- 「コレクション、コレクターを見る」スクロール誘導は維持
+### 4. 削除する重複ファイル
+
+- ❌ `src/components/home/avatar-center/AvatarDressUpModal.tsx` — `AvatarStudioModal` の dressup タブと完全重複（未使用）
+- ❌ `src/components/home/avatar-center/AvatarGalleryModal.tsx` — `AvatarStudioModal` の gallery タブと重複
+- ❌ `AvatarCenterHome` 内の Popover（カルーセルと機能重複）
+- ❌ `AvatarCenterHome` 内の独自fetch関数群
+
+### 5. UI改善
+
+- メインアバターをタップ → **カルーセル下のアクションボタンが脈動して気付かせる**だけ。Popoverは廃止
+- 「編集」バッジは中央の大きなアバターには付けず、操作はすべて4つのボタンに統一
+- 名前編集・削除はカルーセルタイル長押し → BottomSheet（モバイルファースト）
+- ファイルアップロードは「ギャラリー」タブ内に「画像をアップロード」ボタンとして移動
+
+### 6. アクションフロー（最終形）
+
+```text
+中央アバター
+  ↓ タップ → スタジオ（gallery タブ）が開く＝今のアバターを変えたいユースケース
+  
+カルーセル
+  ・タップ即切替（currentAvatarに設定）
+  ・長押し → 名前編集/削除シート
+  ・末尾「+ 新規」 → スタジオ(generate)
+  
+4ボタン
+  ・🪄 生成     → スタジオ(generate)
+  ・👕 着せ替え → スタジオ(dressup, baseAvatar=currentAvatar)
+  ・🖼️ ギャラリー → スタジオ(gallery)
+  ・🎲 ランダム → RandomPickupModal
+```
 
 ## 技術的な変更点
 
-- **`src/components/home/AvatarCenterHome.tsx`**
-  - `recentAvatars` の表示をポップオーバー内 → メインビュー直下の横スクロールカルーセルに移動
-  - `AvatarStudioModal` を開く際に `initialTab` プロパティを渡せるよう各ボタンの `onClick` を変更
-  - 「グッズ着せ替え」ボタンの `onClick` で `initialTab="dressup"` と `initialBaseAvatarUrl={currentAvatarUrl}` を渡す
-  - メインアバターのサイズ調整・スクロール誘導の位置調整
+**新規作成**
+- `src/hooks/useAvatars.ts` — React Query ベースの統合フック（取得/切替/削除/名前/アップロード/保存）
+- `supabase/migrations/xxx_set_current_avatar_rpc.sql` — `set_current_avatar(avatar_id uuid)` RPC（is_currentリセット + profiles.avatar_url更新をアトミック化）
+- `src/components/avatar/AvatarMain.tsx`
+- `src/components/avatar/AvatarCarousel.tsx`
+- `src/components/avatar/AvatarActionButtons.tsx`
+- `src/components/avatar/AvatarStudioModal/{index,GenerateTab,DressUpTab,GalleryTab}.tsx`
+- `src/components/avatar/dialogs/{RenameAvatarDialog,DeleteAvatarDialog}.tsx`
 
-- **`src/components/avatar/AvatarStudioModal.tsx`**
-  - 新規プロパティ `initialTab?: "generate" | "dressup" | "gallery"` を追加
-  - 新規プロパティ `initialBaseAvatarUrl?: string` を追加（着せ替えタブのベースアバターを外部指定可能に）
-  - `useEffect` で `isOpen` 時に `initialTab` を `activeTab` にセット、`initialBaseAvatarUrl` を `selectedAvatarUrl` にセット
+**書き換え**
+- `src/components/home/AvatarCenterHome.tsx` を200行以下のレイアウトのみに縮小、または `src/components/avatar/AvatarCenterHome.tsx` に移設
+- `src/utils/avatar-storage.ts` は `ensureProfileImagesPublicUrl` のみ残し、`setCurrentAvatar` は削除（フックに吸収）
+- `src/pages/MyRoom.tsx` の `handleAvatarGenerated` は `useAvatars().saveGenerated` を呼ぶだけに簡素化
 
-- 既存の `AvatarDressUpModal.tsx` は使用箇所がないため変更なし（重複機能のためスタジオ側に統一）
+**削除**
+- `src/components/home/avatar-center/AvatarDressUpModal.tsx`
+- `src/components/home/avatar-center/AvatarGalleryModal.tsx`
+- `src/components/avatar/AvatarStudioModal.tsx`（779行モノリス → 分割版に置換）
+
+**温存**
+- `RandomPickupModal` / `GoodsDisplayModal` / `CollectionAnalyticsModal` — アバター本体とは独立した機能
+- `avatar_gallery` テーブル構造は変更なし（既存データはそのまま使える）
+- `generate-avatar` / `edit-image` Edge Functions は変更なし
 
 ## 影響範囲
 
-- DB変更：なし
-- 新規依存：なし
-- 既存の `handleSelectAvatar` `handleDeleteClick` `handleEditNameClick` 等のロジックはすべて再利用
+- **DB変更**: マイグレーション1本（RPC追加のみ・既存データ非破壊）
+- **既存アバター**: 維持される（テーブル変更なし）。最悪消えても可とのことなので、もしRPC適用時に `is_current` の重複があれば最新1件のみ true に正規化
+- **ファイル数**: 3,460行 → 約1,800行（ロジック重複の削除で約半減）
+
+## 進め方
+
+タスクは下記6ステップで管理：
+
+1. `useAvatars` フックと `set_current_avatar` RPC 作成
+2. スタジオモーダルを4ファイルに分割
+3. `AvatarCenterHome` を分割コンポーネントで書き直し
+4. 旧モーダル(`AvatarDressUpModal` / `AvatarGalleryModal`)削除
+5. `avatar-storage.ts` クリーンアップ + `MyRoom.tsx` 簡素化
+6. 動作確認（生成・切替・着せ替え・削除・名前編集）
 
