@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { MyAiRoomsView } from "@/components/ai-room/MyAiRoomsView";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { AvatarSocialSection } from "./AvatarSocialSection";
+
 import { AvatarCenterHome } from "./AvatarCenterHome";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { useQuery } from "@tanstack/react-query";
