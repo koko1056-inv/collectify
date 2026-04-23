@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,7 +29,19 @@ export function MyRoomHome({
   const { user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"room" | "collection" | "avatar">("collection");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = (searchParams.get("tab") as "room" | "collection" | "avatar") || "collection";
+  const [activeTab, setActiveTab] = useState<"room" | "collection" | "avatar">(
+    ["room", "collection", "avatar"].includes(initialTab) ? initialTab : "collection"
+  );
+
+  // URLクエリパラメータの tab 変更に追従
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && ["room", "collection", "avatar"].includes(t)) {
+      setActiveTab(t as "room" | "collection" | "avatar");
+    }
+  }, [searchParams]);
   
   const {
     mainRoom,

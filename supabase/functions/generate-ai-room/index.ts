@@ -65,43 +65,76 @@ Deno.serve(async (req) => {
     }
 
     // ポイント消費 (100pt) — service role で原子的に処理
+    // ただし初回（過去にAIルーム生成履歴がない、かつ ai_generated_rooms にレコードもない場合）は無料
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const ROOM_GENERATION_COST = 100;
 
-    const { data: pointsRow, error: pointsErr } = await adminClient
-      .from("user_points")
-      .select("total_points")
+    // 過去のAIルーム生成履歴をチェック
+    const { count: pastTxCount } = await adminClient
+      .from("point_transactions")
+      .select("id", { count: "exact", head: true })
       .eq("user_id", user.id)
-      .maybeSingle();
+      .in("transaction_type", ["ai_room_generation", "ai_room_generation_free"]);
 
-    if (pointsErr) {
-      console.error("Points lookup error:", pointsErr);
-      return json({ error: "ポイント残高の確認に失敗しました" }, 500);
-    }
+    const { count: pastRoomCount } = await adminClient
+      .from("ai_generated_rooms")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
 
-    const currentPoints = pointsRow?.total_points ?? 0;
-    if (currentPoints < ROOM_GENERATION_COST) {
-      return json(
-        {
-          error: `ポイントが不足しています（現在: ${currentPoints}pt / 必要: ${ROOM_GENERATION_COST}pt）`,
-          code: "INSUFFICIENT_POINTS",
-        },
-        402
-      );
-    }
+    const isFirstTime = (pastTxCount ?? 0) === 0 && (pastRoomCount ?? 0) === 0;
+    let usedFreeTrial = false;
 
-    const { error: deductErr } = await adminClient.rpc("add_user_points", {
-      _user_id: user.id,
-      _points: -ROOM_GENERATION_COST,
-      _transaction_type: "ai_room_generation",
-      _description: "AI推しルーム生成",
-    });
-    if (deductErr) {
-      console.error("Points deduction error:", deductErr);
-      return json({ error: "ポイント消費に失敗しました" }, 500);
+    if (isFirstTime) {
+      // 初回無料: 履歴のみ記録（0pt）
+      const { error: freeErr } = await adminClient.rpc("add_user_points", {
+        _user_id: user.id,
+        _points: 0,
+        _transaction_type: "ai_room_generation_free",
+        _description: "AI推しルーム生成（初回無料）",
+      });
+      if (freeErr) {
+        console.error("Free trial record error:", freeErr);
+        // 失敗しても続行（無料体験なので致命的ではない）
+      }
+      usedFreeTrial = true;
+    } else {
+      // 通常のポイント消費フロー
+      const { data: pointsRow, error: pointsErr } = await adminClient
+        .from("user_points")
+        .select("total_points")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (pointsErr) {
+        console.error("Points lookup error:", pointsErr);
+        return json({ error: "ポイント残高の確認に失敗しました" }, 500);
+      }
+
+      const currentPoints = pointsRow?.total_points ?? 0;
+      if (currentPoints < ROOM_GENERATION_COST) {
+        return json(
+          {
+            error: `ポイントが不足しています（現在: ${currentPoints}pt / 必要: ${ROOM_GENERATION_COST}pt）`,
+            code: "INSUFFICIENT_POINTS",
+          },
+          402
+        );
+      }
+
+      const { error: deductErr } = await adminClient.rpc("add_user_points", {
+        _user_id: user.id,
+        _points: -ROOM_GENERATION_COST,
+        _transaction_type: "ai_room_generation",
+        _description: "AI推しルーム生成",
+      });
+      if (deductErr) {
+        console.error("Points deduction error:", deductErr);
+        return json({ error: "ポイント消費に失敗しました" }, 500);
+      }
     }
 
     const refundPoints = async (reason: string) => {
+      if (usedFreeTrial) return; // 無料利用時は返金不要
       try {
         await adminClient.rpc("add_user_points", {
           _user_id: user.id,

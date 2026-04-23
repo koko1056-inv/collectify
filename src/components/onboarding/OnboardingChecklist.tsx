@@ -12,8 +12,10 @@ import {
   Circle,
   User,
   Package,
-  Image,
-  UserPlus,
+  Image as ImageIcon,
+  Star,
+  Home,
+  UserCircle2,
   ChevronDown,
   ChevronUp,
   Gift,
@@ -29,6 +31,7 @@ interface ChecklistItem {
   completed: boolean;
   action?: () => void;
   points: number;
+  freeTrial?: boolean;
 }
 
 export function OnboardingChecklist() {
@@ -51,11 +54,16 @@ export function OnboardingChecklist() {
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const [profileRes, itemsRes, postsRes, followsRes] = await Promise.all([
-        supabase.from('profiles').select('avatar_url, bio, display_name').eq('id', user.id).single(),
+      const [profileRes, itemsRes, postsRes, avatarRes, roomRes] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('avatar_url, bio, display_name, favorite_item_ids')
+          .eq('id', user.id)
+          .single(),
         supabase.from('user_items').select('id').eq('user_id', user.id).limit(1),
         supabase.from('goods_posts').select('id').eq('user_id', user.id).limit(1),
-        supabase.from('follows').select('id').eq('follower_id', user.id).limit(1),
+        supabase.from('avatar_gallery').select('id').eq('user_id', user.id).limit(1),
+        supabase.from('ai_generated_rooms').select('id').eq('user_id', user.id).limit(1),
       ]);
 
       const profile = profileRes.data;
@@ -63,7 +71,9 @@ export function OnboardingChecklist() {
         hasProfile: !!(profile?.avatar_url || profile?.bio || profile?.display_name),
         hasItem: (itemsRes.data?.length ?? 0) > 0,
         hasPost: (postsRes.data?.length ?? 0) > 0,
-        hasFollow: (followsRes.data?.length ?? 0) > 0,
+        hasFavorites: ((profile?.favorite_item_ids as string[] | null)?.length ?? 0) > 0,
+        hasAvatar: (avatarRes.data?.length ?? 0) > 0,
+        hasAiRoom: (roomRes.data?.length ?? 0) > 0,
       };
     },
     enabled: !!user?.id && !isDismissed,
@@ -71,7 +81,7 @@ export function OnboardingChecklist() {
   });
 
   const items: ChecklistItem[] = useMemo(() => {
-    if (!checklistData) return [];
+    if (!checklistData || !user?.id) return [];
     return [
       {
         id: 'account',
@@ -100,25 +110,45 @@ export function OnboardingChecklist() {
         points: 30,
       },
       {
+        id: 'favorites',
+        label: 'お気に入りを5個登録',
+        description: 'TOP5を他の人にも見せよう',
+        icon: Star,
+        completed: checklistData.hasFavorites,
+        action: () => navigate(`/?userId=${user.id}`),
+        points: 20,
+      },
+      {
+        id: 'ai-room',
+        label: 'AIでルームを作る',
+        description: 'グッズで推し部屋を生成',
+        icon: Home,
+        completed: checklistData.hasAiRoom,
+        action: () => navigate('/ai-rooms'),
+        points: 30,
+        freeTrial: true,
+      },
+      {
+        id: 'avatar',
+        label: 'アバターを作る',
+        description: 'AIで自分の分身をつくろう',
+        icon: UserCircle2,
+        completed: checklistData.hasAvatar,
+        action: () => navigate('/my-room?tab=avatar'),
+        points: 30,
+        freeTrial: true,
+      },
+      {
         id: 'first-post',
         label: '最初の投稿',
         description: 'グッズの写真を投稿しよう',
-        icon: Image,
+        icon: ImageIcon,
         completed: checklistData.hasPost,
         action: () => navigate('/posts'),
         points: 20,
       },
-      {
-        id: 'first-follow',
-        label: '誰かをフォロー',
-        description: 'コレクター仲間を見つけよう',
-        icon: UserPlus,
-        completed: checklistData.hasFollow,
-        action: () => navigate('/search'),
-        points: 20,
-      },
     ];
-  }, [checklistData, navigate]);
+  }, [checklistData, navigate, user?.id]);
 
   const completedCount = items.filter(i => i.completed).length;
   const totalCount = items.length;
@@ -149,7 +179,7 @@ export function OnboardingChecklist() {
                 <Sparkles className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-sm">はじめの5ステップ</h3>
+                <h3 className="font-bold text-sm">はじめの{totalCount}ステップ</h3>
                 <p className="text-xs text-muted-foreground">
                   {completedCount}/{totalCount} 完了
                 </p>
@@ -219,12 +249,20 @@ export function OnboardingChecklist() {
                       {item.completed ? (
                         <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
                       ) : (
-                        <Circle className="w-5 h-5 text-muted-foreground/40 shrink-0" />
+                        <Icon className="w-5 h-5 text-muted-foreground/60 shrink-0" />
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
-                          {item.label}
-                        </p>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className={`text-sm font-medium ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
+                            {item.label}
+                          </p>
+                          {!item.completed && item.freeTrial && (
+                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                              <Gift className="w-2.5 h-2.5" />
+                              初回無料
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground truncate">
                           {item.description}
                         </p>
