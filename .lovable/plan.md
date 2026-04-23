@@ -1,54 +1,85 @@
 
-## やること
 
-ユーザーから2つの要望:
-1. **登録したグッズが探すページに反映されるのが遅い** → キャッシュ戦略の改善
-2. **一括登録時にコンテンツを全アイテム共通でまとめて選択したい** → MultipleItemsForm に「全件まとめて適用」機能追加
+# アバターページの体験改善プラン
 
----
+`/my-room` のアバターページ（`AvatarCenterHome.tsx`）を、**「アバター一覧が常に見える」「着せ替えボタンから直接着せ替えタブが開く」** ように改善します。
 
-## 1. 探すページへの反映を高速化
+## 現状の課題
 
-### 現状の問題
-- `useOfficialItems` は `staleTime: 0` だが、Search.tsx の Realtime 購読は `official-items` キャッシュキーを invalidate しているのに対し、フックは `official-items`（同一）を使用しているのでキー自体は一致している
-- ただし、登録直後の画面遷移（AdminItemForm → Search）後、React Query がバックグラウンドフェッチ中の間に古いキャッシュを表示してしまう
-- `MultipleItemsForm` の onSubmit はループで1件ずつ insert しているが、完了時にクライアント側で `queryClient.invalidateQueries(['official-items'])` を呼んでいない（Realtime 任せ）
+1. **アバター一覧が隠れている**：保存済みアバターを見るには大きなアバターをクリック → ポップオーバー展開、という1ステップが必要
+2. **「グッズ着せ替え」ボタンが期待通りに動かない**：押すと `AvatarStudioModal` が開くが、デフォルトタブが `generate`（生成タブ）になっており、ユーザーが手動で「着せ替え」タブに切り替える必要がある
+3. **「着せ替えギャラリー」と「グッズ着せ替え」のボタンが両方とも同じモーダルを同じ初期状態で開いており、機能の差別化ができていない**
 
-### 改善策
-- **AdminItemForm.tsx (単一/複数登録 両方)**: 登録成功直後に `queryClient.invalidateQueries({ queryKey: ['official-items'] })` と `refetchQueries` を明示的に実行
-- **useOfficialItems.ts**: `staleTime: 0` のままだが `refetchOnMount: 'always'` を追加。Search ページに戻った瞬間に必ず再取得
-- **MultipleItemsForm の onSubmit**: ループ内 insert を `Promise.all` で並列化（Storage アップロードを含めて速度向上）。さらに insert を1回の bulk insert にまとめられる部分はまとめる
+## 改善内容
 
----
+### 1. アバター一覧を常時表示（横スクロールカルーセル）
 
-## 2. コンテンツの一括選択機能
+メインアバターのすぐ下に、保存済みアバターを横スクロールで常時表示します。
 
-### MultipleItemsForm.tsx の上部に「全件にまとめて適用」セクションを追加
-- コンテンツ選択 Select（既存の ContentSection を流用）
-- アイテムタイプ選択（official / fanmade）
-- 「全件に適用」ボタン → クリックすると state の `items` 全件の `content_name` / `item_type` を一括更新
-- 各カードでは引き続き個別に上書きも可能
-
-UI イメージ:
 ```text
-┌─────────────────────────────────────────┐
-│ 一括設定（全 12 件に適用）              │
-│ コンテンツ: [呪術廻戦       ▼]          │
-│ タイプ:     [公式グッズ     ▼]          │
-│              [全件に適用]               │
-└─────────────────────────────────────────┘
-
-[個別カード×N（既存UI、個別編集も可）]
+┌────────────────────────────────┐
+│                                │
+│      ┌──────────┐              │
+│      │          │              │
+│      │  メイン   │   [編集▼]    │
+│      │  アバター │              │
+│      └──────────┘              │
+│                                │
+│  保存済みアバター (12件) [+追加] │
+│  ┌──┐┌──┐┌──┐┌──┐┌──┐┌──┐ →  │
+│  │● ││  ││  ││  ││  ││  │     │
+│  └──┘└──┘└──┘└──┘└──┘└──┘     │
+│   現在                          │
+│                                │
+│  [生成] [着せ替え] [ギャラリー] [ランダム] │
+└────────────────────────────────┘
 ```
 
----
+- タップで即切り替え（現状の `handleSelectAvatar` を流用）
+- 現在使用中のアバターは枠線と「現在」バッジで強調
+- 長押し or ホバーで「名前編集 / 削除」メニュー表示
+- 末尾に「+ 新規生成」タイル → アバタースタジオの生成タブを開く
+- 既存のポップオーバーは廃止（または「すべて見る」で展開する補助に縮小）
 
-## 変更ファイル
+### 2. 機能ボタンの整理と直接遷移
 
-| ファイル | 変更内容 |
+現状の4つのボタンを以下に整理し、それぞれが `AvatarStudioModal` の正しいタブを開くようにします。
+
+| ボタン | 動作 |
 |---|---|
-| `src/components/AdminItemForm.tsx` | 登録成功時に `queryClient.invalidateQueries` 追加、bulk insert を並列化 |
-| `src/components/admin-item-form/MultipleItemsForm.tsx` | 上部に一括適用セクションを追加、`applyToAll` ハンドラ実装 |
-| `src/hooks/useOfficialItems.ts` | `refetchOnMount: 'always'` 追加 |
+| 🪄 アバター生成 | スタジオを `generate` タブで開く |
+| 👕 **グッズ着せ替え** | スタジオを **`dressup` タブ**で開く（修正点） |
+| 🖼️ ギャラリー | スタジオを `gallery` タブで開く |
+| 🎲 ランダムピックアップ | 既存どおり |
 
-DB 変更なし。
+### 3. 着せ替え時のベースアバター自動選択
+
+「グッズ着せ替え」ボタンから入った時は、**現在使用中のアバター**を自動で「ベースアバター」として選択した状態でモーダルを開きます（現状は最新のものが選ばれてしまう）。
+
+### 4. ビジュアル微調整
+
+- メインアバターのサイズを `w-72 → w-56`（モバイル）に縮小し、一覧と機能ボタンが1画面に収まるようにする
+- 機能ボタンのラベルを常時表示（モバイル幅では現状ホバーが効かないため）
+- 「コレクション、コレクターを見る」スクロール誘導は維持
+
+## 技術的な変更点
+
+- **`src/components/home/AvatarCenterHome.tsx`**
+  - `recentAvatars` の表示をポップオーバー内 → メインビュー直下の横スクロールカルーセルに移動
+  - `AvatarStudioModal` を開く際に `initialTab` プロパティを渡せるよう各ボタンの `onClick` を変更
+  - 「グッズ着せ替え」ボタンの `onClick` で `initialTab="dressup"` と `initialBaseAvatarUrl={currentAvatarUrl}` を渡す
+  - メインアバターのサイズ調整・スクロール誘導の位置調整
+
+- **`src/components/avatar/AvatarStudioModal.tsx`**
+  - 新規プロパティ `initialTab?: "generate" | "dressup" | "gallery"` を追加
+  - 新規プロパティ `initialBaseAvatarUrl?: string` を追加（着せ替えタブのベースアバターを外部指定可能に）
+  - `useEffect` で `isOpen` 時に `initialTab` を `activeTab` にセット、`initialBaseAvatarUrl` を `selectedAvatarUrl` にセット
+
+- 既存の `AvatarDressUpModal.tsx` は使用箇所がないため変更なし（重複機能のためスタジオ側に統一）
+
+## 影響範囲
+
+- DB変更：なし
+- 新規依存：なし
+- 既存の `handleSelectAvatar` `handleDeleteClick` `handleEditNameClick` 等のロジックはすべて再利用
+
