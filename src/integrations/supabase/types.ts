@@ -3274,6 +3274,10 @@ export type Database = {
           official_item_id: string
         }[]
       }
+      get_or_create_item_room: {
+        Args: { _official_item_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
