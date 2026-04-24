@@ -933,6 +933,39 @@ export type Database = {
           },
         ]
       }
+      greeting_stamps: {
+        Row: {
+          context_id: string | null
+          context_type: string | null
+          created_at: string
+          id: string
+          receiver_id: string
+          replied_at: string | null
+          sender_id: string
+          stamp_type: string
+        }
+        Insert: {
+          context_id?: string | null
+          context_type?: string | null
+          created_at?: string
+          id?: string
+          receiver_id: string
+          replied_at?: string | null
+          sender_id: string
+          stamp_type: string
+        }
+        Update: {
+          context_id?: string | null
+          context_type?: string | null
+          created_at?: string
+          id?: string
+          receiver_id?: string
+          replied_at?: string | null
+          sender_id?: string
+          stamp_type?: string
+        }
+        Relationships: []
+      }
       group_members: {
         Row: {
           created_at: string
@@ -1060,6 +1093,76 @@ export type Database = {
             columns: ["used_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_comment_reactions: {
+        Row: {
+          comment_id: string
+          created_at: string
+          reaction: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          reaction: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          reaction?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_comment_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "item_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_comments: {
+        Row: {
+          content: string
+          created_at: string
+          helpful_count: number
+          id: string
+          official_item_id: string
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          official_item_id: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          official_item_id?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "item_comments"
             referencedColumns: ["id"]
           },
         ]
@@ -1261,6 +1364,68 @@ export type Database = {
           },
         ]
       }
+      item_room_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_pinned: boolean
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_room_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "item_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      item_rooms: {
+        Row: {
+          created_at: string
+          id: string
+          last_active_at: string
+          member_count: number
+          message_count: number
+          official_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_active_at?: string
+          member_count?: number
+          message_count?: number
+          official_item_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_active_at?: string
+          member_count?: number
+          message_count?: number
+          official_item_id?: string
+        }
+        Relationships: []
+      }
       item_submissions: {
         Row: {
           content_name: string | null
@@ -1341,6 +1506,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      match_actions: {
+        Row: {
+          action: string
+          candidate_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          candidate_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      match_scores: {
+        Row: {
+          candidate_id: string
+          computed_at: string
+          score: number
+          shared_interests: number
+          shared_items: number
+          tradeable_items: number
+          user_id: string
+        }
+        Insert: {
+          candidate_id: string
+          computed_at?: string
+          score?: number
+          shared_interests?: number
+          shared_items?: number
+          tradeable_items?: number
+          user_id: string
+        }
+        Update: {
+          candidate_id?: string
+          computed_at?: string
+          score?: number
+          shared_interests?: number
+          shared_items?: number
+          tradeable_items?: number
+          user_id?: string
+        }
+        Relationships: []
       }
       messages: {
         Row: {
@@ -2462,6 +2681,44 @@ export type Database = {
           },
         ]
       }
+      trade_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          trade_request_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          trade_request_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          reviewee_id?: string
+          reviewer_id?: string
+          trade_request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_reviews_trade_request_id_fkey"
+            columns: ["trade_request_id"]
+            isOneToOne: false
+            referencedRelation: "trade_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_achievements: {
         Row: {
           achieved_at: string
@@ -2891,6 +3148,45 @@ export type Database = {
           },
         ]
       }
+      user_trust_scores: {
+        Row: {
+          collector_count: number
+          collector_score: number
+          communication_count: number
+          communication_score: number
+          created_at: string
+          reports_count: number
+          trade_count: number
+          trade_score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          collector_count?: number
+          collector_score?: number
+          communication_count?: number
+          communication_score?: number
+          created_at?: string
+          reports_count?: number
+          trade_count?: number
+          trade_score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          collector_count?: number
+          collector_score?: number
+          communication_count?: number
+          communication_score?: number
+          created_at?: string
+          reports_count?: number
+          trade_count?: number
+          trade_score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wishlists: {
         Row: {
           created_at: string
@@ -2948,6 +3244,18 @@ export type Database = {
         }
         Returns: undefined
       }
+      can_access_item_room: {
+        Args: { _official_item_id: string; _user: string }
+        Returns: boolean
+      }
+      can_review_trade: {
+        Args: { _reviewee: string; _reviewer: string; _trade_id: string }
+        Returns: boolean
+      }
+      can_send_stamp: {
+        Args: { _receiver: string; _sender: string }
+        Returns: boolean
+      }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -2968,6 +3276,10 @@ export type Database = {
           id: string
           image_url: string
         }[]
+      }
+      update_trust_score: {
+        Args: { _category: string; _delta: number; _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
