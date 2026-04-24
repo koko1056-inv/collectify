@@ -3257,6 +3257,23 @@ export type Database = {
         Returns: boolean
       }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
+      find_user_matches: {
+        Args: { _limit?: number; _user_id: string }
+        Returns: {
+          candidate_id: string
+          score: number
+          shared_interests: number
+          shared_items: number
+          tradeable_items: number
+        }[]
+      }
+      get_collection_diff: {
+        Args: { _me: string; _other: string }
+        Returns: {
+          diff_type: string
+          official_item_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
