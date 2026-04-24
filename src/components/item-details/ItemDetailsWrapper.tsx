@@ -2,20 +2,19 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { Tag } from "@/utils/tag";
-import { TagList } from "@/components/collection/TagList";
 import { TagManageModal } from "@/components/tag/TagManageModal";
 import { ShareModal } from "@/components/ShareModal";
 import { ModalHeader } from "./ModalHeader";
 import { Button } from "@/components/ui/button";
-import { BookMarked, Link2, Loader2, X, Share } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, X, Info, Users, Heart, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 import { isUUID } from "@/utils/tag/tag-core";
-import { Link } from "react-router-dom";
 import { SimpleItemTag } from "@/utils/tag/types";
-import { Item3DPreview } from "./Item3DPreview";
-import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
+import { ItemInfoTab } from "./tabs/ItemInfoTab";
+import { ItemOwnersTab } from "./tabs/ItemOwnersTab";
+import { ItemWishersTab } from "./tabs/ItemWishersTab";
+import { ItemCommentsSection } from "@/features/comments/ItemCommentsSection";
 
 interface ItemDetailsWrapperProps {
   itemId: string;
@@ -35,175 +34,119 @@ export function ItemDetailsWrapper({
   itemId,
   itemTitle,
   itemImage,
-  itemDescription,
   itemLink,
   itemArtist,
   itemAnime,
   onClose,
   isModal = true,
-  isUserCollection = false,
   setIsTagModalOpen,
 }: ItemDetailsWrapperProps) {
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("info");
   const { toast } = useToast();
   const navigate = useNavigate();
-
   const queryClient = useQueryClient();
-
-  const refetchIsInCollection = async () => {
-    await queryClient.invalidateQueries({ 
-      queryKey: ["user-item-exists", itemId] 
-    });
-  };
-
-  const refetchOwnersCount = async () => {
-    await queryClient.invalidateQueries({ 
-      queryKey: ["item-owners-count", itemId] 
-    });
-  };
 
   const { data: itemDetails, isLoading: isItemDetailsLoading } = useQuery({
     queryKey: ["official-item-details", itemId],
     queryFn: async () => {
-      if (!isUUID(itemId)) {
-        return null;
-      }
+      if (!isUUID(itemId)) return null;
       const { data, error } = await supabase
         .from("official_items")
         .select("*")
         .eq("id", itemId)
         .single();
-
-      if (error) {
-        console.error("Error fetching item details:", error);
-        throw error;
-      }
+      if (error) throw error;
       return data;
     },
     enabled: isUUID(itemId),
   });
 
-  const { data: itemTags = [], isLoading: isItemTagsLoading } = useQuery({
+  const { data: itemTags = [] } = useQuery({
     queryKey: ["item-tags", itemId],
     queryFn: async () => {
-      if (!isUUID(itemId)) {
-        return [];
-      }
+      if (!isUUID(itemId)) return [];
       const { data, error } = await supabase
         .from("item_tags")
-        .select(`
-          *,
-          tags (*)
-        `)
+        .select(`*, tags (*)`)
         .eq("official_item_id", itemId);
-
-      if (error) {
-        console.error("Error fetching item tags:", error);
-        throw error;
-      }
-      return data?.map((itemTag) => {
-        return {
-          id: itemTag.id,
-          tag_id: itemTag.tag_id,
-          tags: itemTag.tags
-        } as SimpleItemTag;
-      }) as SimpleItemTag[];
+      if (error) throw error;
+      return (data ?? []).map((it: any) => ({
+        id: it.id,
+        tag_id: it.tag_id,
+        tags: it.tags,
+      })) as SimpleItemTag[];
     },
     enabled: isUUID(itemId),
   });
 
-  const { data: wishlistCount, isLoading: isWishlistCountLoading } = useQuery({
+  const { data: wishlistCount = 0 } = useQuery({
     queryKey: ["item-wishlist-count", itemId],
     queryFn: async () => {
-      if (!isUUID(itemId)) {
-        return 0;
-      }
-      const { data, error } = await supabase
+      if (!isUUID(itemId)) return 0;
+      const { count } = await supabase
         .from("wishlists")
-        .select("*", { count: "exact" })
+        .select("*", { count: "exact", head: true })
         .eq("official_item_id", itemId);
-
-      if (error) {
-        console.error("Error fetching wishlist count:", error);
-        throw error;
-      }
-      return data?.length || 0;
+      return count ?? 0;
     },
     enabled: isUUID(itemId),
   });
 
-  const { data: itemOwnersCount, isLoading: isItemOwnersCountLoading } = useQuery({
+  const { data: ownersCount = 0 } = useQuery({
     queryKey: ["item-owners-count", itemId],
     queryFn: async () => {
-      if (!isUUID(itemId)) {
-        return 0;
-      }
-      
-      // 修正: サーバー側で認証が必要な場合はユーザーIDを含める必要がある
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      
-      const { data, error } = await supabase
+      if (!isUUID(itemId)) return 0;
+      const { data } = await supabase
         .from("user_items")
-        .select("id, official_item_id");
-      
-      // ここでは特定の条件で絞り込む
-      // ユーザーIDとは無関係に、すべての一致するアイテムを取得
-      const filtered = data?.filter(item => 
-        item && item.official_item_id === itemId
-      );
-
-      if (error) {
-        console.error("Error fetching item owners count:", error);
-        throw error;
-      }
-      
-      return filtered?.length || 0;
+        .select("user_id")
+        .eq("official_item_id", itemId);
+      const uniq = new Set((data ?? []).map((d) => d.user_id));
+      return uniq.size;
     },
     enabled: isUUID(itemId),
   });
 
-  // 3Dモデルを持つuser_itemを取得
+  const { data: commentsCount = 0 } = useQuery({
+    queryKey: ["item-comments-count", itemId],
+    queryFn: async () => {
+      if (!isUUID(itemId)) return 0;
+      const { count } = await supabase
+        .from("item_comments")
+        .select("*", { count: "exact", head: true })
+        .eq("official_item_id", itemId);
+      return count ?? 0;
+    },
+    enabled: isUUID(itemId),
+  });
+
   const { data: model3dUrl } = useQuery({
     queryKey: ["item-3d-model", itemId],
     queryFn: async () => {
-      if (!isUUID(itemId)) {
-        return null;
-      }
-      const { data, error } = await supabase
+      if (!isUUID(itemId)) return null;
+      const { data } = await supabase
         .from("user_items")
         .select("model_3d_url")
         .eq("official_item_id", itemId)
         .not("model_3d_url", "is", null)
         .limit(1)
         .maybeSingle();
-
-      if (error) {
-        console.error("Error fetching 3D model:", error);
-        return null;
-      }
       return data?.model_3d_url || null;
     },
     enabled: isUUID(itemId),
   });
 
-  const { data: itemCreator, isLoading: isItemCreatorLoading } = useQuery({
+  const { data: itemCreator } = useQuery({
     queryKey: ["item-creator", itemDetails?.created_by],
     queryFn: async () => {
-      if (!itemDetails?.created_by) {
-        return null;
-      }
+      if (!itemDetails?.created_by) return null;
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", itemDetails.created_by)
         .single();
-
-      if (error) {
-        console.error("Error fetching item creator:", error);
-        throw error;
-      }
+      if (error) throw error;
       return data;
     },
     enabled: !!itemDetails?.created_by,
@@ -213,7 +156,6 @@ export function ItemDetailsWrapper({
     try {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
-      
       if (!userId) {
         toast({
           title: "エラー",
@@ -222,77 +164,27 @@ export function ItemDetailsWrapper({
         });
         return;
       }
-      
       const { error } = await supabase
         .from("wishlists")
-        .insert({ 
-          official_item_id: itemId,
-          user_id: userId 
-        });
-
-      if (error) {
-        console.error("Error adding to wishlist:", error);
-        throw error;
-      }
-
-      toast({
-        title: "ウィッシュリストに追加しました",
-        description: "アイテムをウィッシュリストに追加しました。",
-      });
-
-      // Invalidate queries to update the UI
+        .insert({ official_item_id: itemId, user_id: userId });
+      if (error) throw error;
+      toast({ title: "ウィッシュリストに追加しました" });
       await queryClient.invalidateQueries({ queryKey: ["item-wishlist-count", itemId] });
-    } catch (error) {
+      await queryClient.invalidateQueries({ queryKey: ["item-wishers-tab", itemId] });
+    } catch (e: any) {
       toast({
         title: "エラー",
-        description: "ウィッシュリストへの追加に失敗しました。",
+        description: e?.message ?? "追加に失敗しました",
         variant: "destructive",
       });
     }
   };
 
-  const handleRemoveFromWishlist = async () => {
-    try {
-      const { error } = await supabase
-        .from("wishlists")
-        .delete()
-        .eq("official_item_id", itemId);
+  const handleAddToCollection = useCallback(() => {
+    navigate(`/collection/add/${itemId}`);
+  }, [itemId, navigate]);
 
-      if (error) {
-        console.error("Error removing from wishlist:", error);
-        throw error;
-      }
-
-      toast({
-        title: "ウィッシュリストから削除しました",
-        description: "アイテムをウィッシュリストから削除しました。",
-      });
-
-      // Invalidate queries to update the UI
-      await queryClient.invalidateQueries({ queryKey: ["item-wishlist-count", itemId] });
-    } catch (error) {
-      toast({
-        title: "エラー",
-        description: "ウィッシュリストからの削除に失敗しました。",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleAddToCollection = useCallback(async () => {
-    try {
-      navigate(`/collection/add/${itemId}`);
-    } catch (error) {
-      console.error("Error adding to collection:", error);
-      toast({
-        title: "エラー",
-        description: "コレクションへの追加に失敗しました。",
-        variant: "destructive",
-      });
-    }
-  }, [itemId, navigate, toast]);
-
-  if (isItemDetailsLoading || isItemTagsLoading || isWishlistCountLoading || isItemOwnersCountLoading || isItemCreatorLoading) {
+  if (isItemDetailsLoading) {
     return (
       <div className="flex items-center justify-center h-48">
         <Loader2 className="h-6 w-6 animate-spin" />
@@ -302,7 +194,7 @@ export function ItemDetailsWrapper({
 
   if (!itemDetails) {
     return (
-      <div className="flex items-center justify-center h-48">
+      <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
         アイテムが見つかりませんでした
       </div>
     );
@@ -317,88 +209,73 @@ export function ItemDetailsWrapper({
           </Button>
         </ModalHeader>
       )}
-      <div className="px-6 py-4">
-        <h2 className="text-lg font-semibold mb-2">{itemDetails.title}</h2>
-        {itemOwnersCount > 0 && (
-          <Badge className="mb-2">
-            {itemOwnersCount}人が所持
-          </Badge>
-        )}
-        <div className="mb-4 space-y-3">
-          <img
-            src={itemDetails.image}
-            alt={itemDetails.title}
-            className="w-full rounded-md aspect-square object-cover"
-          />
-          {model3dUrl && (
-            <Item3DPreview modelUrl={model3dUrl} title={itemDetails.title} />
-          )}
-        </div>
-        {itemDetails.description && (
-          <p className="text-sm text-gray-600 mb-4">{itemDetails.description}</p>
-        )}
-        {/* artist と anime プロパティは存在しない可能性があるため、代わりにpropsから受け取った値を使用 */}
-        {itemArtist && (
-          <p className="text-sm text-gray-600 mb-2">
-            アーティスト: {itemArtist}
-          </p>
-        )}
-        {itemAnime && (
-          <p className="text-sm text-gray-600 mb-2">
-            アニメ: {itemAnime}
-          </p>
-        )}
-        {itemDetails.release_date && (
-          <p className="text-sm text-gray-600 mb-2">
-            発売日: {itemDetails.release_date}
-          </p>
-        )}
-        {itemDetails.price && (
-          <p className="text-sm text-gray-600 mb-2">
-            価格: {itemDetails.price}
-          </p>
-        )}
-        {itemLink && (
-          <p className="text-sm text-gray-600 mb-2">
-            <Link to={itemLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:underline">
-              <Link2 className="h-4 w-4" />
-              公式サイト
-            </Link>
-          </p>
-        )}
-        {itemCreator && (
-          <p className="text-sm text-gray-600 mb-2">
-            作成者: <Link to={`/profile/${itemCreator.id}`} className="hover:underline">{itemCreator.username}</Link>
-          </p>
-        )}
-        <div className="mb-4">
-          <TagList tags={itemTags} />
-        </div>
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-2 flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={handleAddToWishlist}>
-              <BookMarked className="h-4 w-4 mr-2" />
-              ウィッシュリストに追加
-            </Button>
-            <Button size="sm" onClick={handleAddToCollection}>
-              コレクションに追加
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setIsShareModalOpen(true)}>
-              <Share className="h-4 w-4 mr-2" />
-              シェア
-            </Button>
-          </div>
-        </div>
 
-        {/* みんなの投稿セクション */}
-        <div className="mt-6 pt-6 border-t border-border">
-          <ItemPostsSection
-            target={{ type: "official", id: itemId }}
-            itemTitle={itemDetails?.title || itemTitle}
-            itemImage={itemDetails?.image || itemImage}
-          />
-        </div>
+      <div className="px-4 sm:px-6 pt-3 pb-4">
+        <h2 className="text-lg font-semibold mb-3 line-clamp-2">{itemDetails.title}</h2>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-4 h-auto">
+            <TabsTrigger value="info" className="flex flex-col gap-0.5 py-2 text-xs">
+              <Info className="h-4 w-4" />
+              情報
+            </TabsTrigger>
+            <TabsTrigger value="owners" className="flex flex-col gap-0.5 py-2 text-xs">
+              <Users className="h-4 w-4" />
+              持っている
+              {ownersCount > 0 && (
+                <span className="text-[10px] text-muted-foreground">({ownersCount})</span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="wishers" className="flex flex-col gap-0.5 py-2 text-xs">
+              <Heart className="h-4 w-4" />
+              欲しい
+              {wishlistCount > 0 && (
+                <span className="text-[10px] text-muted-foreground">({wishlistCount})</span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="comments" className="flex flex-col gap-0.5 py-2 text-xs">
+              <MessageSquare className="h-4 w-4" />
+              コメント
+              {commentsCount > 0 && (
+                <span className="text-[10px] text-muted-foreground">({commentsCount})</span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="info" className="mt-4">
+            <ItemInfoTab
+              itemDetails={itemDetails}
+              itemTags={itemTags}
+              itemCreator={itemCreator}
+              ownersCount={ownersCount}
+              itemArtist={itemArtist}
+              itemAnime={itemAnime}
+              itemLink={itemLink}
+              model3dUrl={model3dUrl}
+              onAddToWishlist={handleAddToWishlist}
+              onAddToCollection={handleAddToCollection}
+              onShare={() => setIsShareModalOpen(true)}
+            />
+          </TabsContent>
+
+          <TabsContent value="owners" className="mt-4">
+            <ItemOwnersTab officialItemId={itemId} onCloseModal={onClose} />
+          </TabsContent>
+
+          <TabsContent value="wishers" className="mt-4">
+            <ItemWishersTab
+              officialItemId={itemId}
+              itemTitle={itemDetails.title}
+              onCloseModal={onClose}
+            />
+          </TabsContent>
+
+          <TabsContent value="comments" className="mt-4">
+            <ItemCommentsSection officialItemId={itemId} />
+          </TabsContent>
+        </Tabs>
       </div>
+
       <TagManageModal
         isOpen={isTagManageModalOpen}
         onClose={() => setIsTagManageModalOpen(false)}
