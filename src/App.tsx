@@ -35,6 +35,7 @@ const HowToUse = lazy(() => import("./pages/HowToUse").catch(() => ({ default: (
 const ImageSearch = lazy(() => import("./pages/ImageSearch").catch(() => ({ default: () => <div>Error loading page</div> })));
 const AiRooms = lazy(() => import("./pages/AiRooms").catch(() => ({ default: () => <div>Error loading page</div> })));
 const InviteRedirect = lazy(() => import("./pages/InviteRedirect").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Matches = lazy(() => import("./pages/Matches").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -110,6 +111,7 @@ const App: React.FC = () => {
                       <Route path="/my-room" element={<ProtectedRoute><MyRoom /></ProtectedRoute>} />
                       <Route path="/image-search" element={<ProtectedRoute><ImageSearch /></ProtectedRoute>} />
                       <Route path="/ai-rooms" element={<ProtectedRoute><AiRooms /></ProtectedRoute>} />
+                      <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
                       <Route path="/point-shop" element={<ProtectedRoute><PointShop /></ProtectedRoute>} />
                       <Route path="/points" element={<Navigate to="/point-shop" replace />} />
                       <Route path="*" element={<Navigate to="/my-room" replace />} />
