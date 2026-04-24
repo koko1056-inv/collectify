@@ -157,6 +157,11 @@ export default function UserProfile() {
                 <WishlistGrid userId={userId} enableActions={isOwnProfile} />
               </div>
             )}
+            {activeTab === "trust" && userId && (
+              <div className="px-4 mt-2">
+                <TrustScoreSection userId={userId} />
+              </div>
+            )}
           </div>
         </div>
       </main>
