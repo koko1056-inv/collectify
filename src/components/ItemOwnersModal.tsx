@@ -8,6 +8,9 @@ import { Users, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { TrustBadge } from "@/features/trust/TrustBadge";
+import { StampSendButton } from "@/features/stamps/StampSendButton";
+import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
 
 interface ItemOwnersModalProps {
   isOpen: boolean;
