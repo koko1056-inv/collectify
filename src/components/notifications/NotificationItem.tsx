@@ -1,12 +1,14 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply } from 'lucide-react';
+import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Notification, NotificationData } from '@/types/notification';
 import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { STAMP_BY_TYPE, type StampType } from '@/features/stamps/types';
+import { useReplyStamp } from '@/features/stamps/useGreetingStamp';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -15,6 +17,7 @@ interface NotificationItemProps {
 export function NotificationItem({ notification }: NotificationItemProps) {
   const { markAsRead, deleteNotification } = useNotifications();
   const navigate = useNavigate();
+  const replyStamp = useReplyStamp();
 
   const getIcon = () => {
     switch (notification.type) {
@@ -26,6 +29,10 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         return <Reply className="h-4 w-4 text-primary" />;
       case 'like':
         return <Heart className="h-4 w-4 text-red-500" />;
+      case 'greeting_stamp':
+        return <Sticker className="h-4 w-4 text-pink-500" />;
+      case 'match_success':
+        return <Sparkles className="h-4 w-4 text-violet-500" />;
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'warning':
@@ -142,6 +149,46 @@ export function NotificationItem({ notification }: NotificationItemProps) {
                 </p>
               )}
             </div>
+          )}
+
+          {/* Greeting stamp notification */}
+          {notification.type === 'greeting_stamp' && data.stamp_type && (
+            <div className="flex items-center gap-2 mb-2 p-2 rounded-md bg-pink-50 border border-pink-100">
+              <span className="text-2xl">{STAMP_BY_TYPE[data.stamp_type as StampType]?.emoji ?? '👋'}</span>
+              <p className="text-xs flex-1 font-medium">
+                {STAMP_BY_TYPE[data.stamp_type as StampType]?.label ?? 'あいさつ'}
+              </p>
+              {data.stamp_id && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    replyStamp.mutate(data.stamp_id!);
+                    if (data.sender_id) navigate(`/user/${data.sender_id}`);
+                  }}
+                  disabled={replyStamp.isPending}
+                >
+                  ありがとう💌
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Match success notification */}
+          {notification.type === 'match_success' && data.matched_user_id && (
+            <Button
+              size="sm"
+              variant="default"
+              className="mb-2 h-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/user/${data.matched_user_id}`);
+              }}
+            >
+              プロフィールを見る →
+            </Button>
           )}
 
           <div className="flex items-center justify-between">

@@ -5,6 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { TradeReviewModal } from "@/features/trust/TradeReviewModal";
 
 interface TradeCompletionModalProps {
   isOpen: boolean;
@@ -20,9 +22,15 @@ interface TradeCompletionModalProps {
       image: string;
     };
     sender: {
+      id?: string;
       username: string;
       display_name?: string | null;
     };
+    receiver?: {
+      id?: string;
+      username: string;
+      display_name?: string | null;
+    } | null;
   };
 }
 
@@ -33,7 +41,22 @@ export function TradeCompletionModal({
 }: TradeCompletionModalProps) {
   const [step, setStep] = useState<'confirmation' | 'shipping' | 'complete'>('confirmation');
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+
+  // 相手のIDと表示名を判定
+  const counterparty = (() => {
+    if (!user) return null;
+    if (tradeRequest.sender?.id === user.id) {
+      return tradeRequest.receiver
+        ? { id: tradeRequest.receiver.id, name: tradeRequest.receiver.display_name || tradeRequest.receiver.username }
+        : null;
+    }
+    return tradeRequest.sender?.id
+      ? { id: tradeRequest.sender.id, name: tradeRequest.sender.display_name || tradeRequest.sender.username }
+      : null;
+  })();
 
   const handleComplete = async () => {
     setIsLoading(true);
@@ -51,7 +74,13 @@ export function TradeCompletionModal({
         title: "トレード完了",
         description: "トレードが完了しました。お疲れ様でした！",
       });
-      onClose();
+
+      // 相手がいれば評価モーダルを表示
+      if (counterparty?.id) {
+        setShowReview(true);
+      } else {
+        onClose();
+      }
     } catch (error) {
       console.error("Error completing trade:", error);
       toast({
@@ -65,71 +94,86 @@ export function TradeCompletionModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-white">
-        <DialogHeader>
-          <DialogTitle>トレード手続き</DialogTitle>
-          <DialogDescription>
-            {step === 'confirmation' && "トレードの詳細を確認してください"}
-            {step === 'shipping' && "発送情報を入力してください"}
-            {step === 'complete' && "トレードを完了します"}
-          </DialogDescription>
-        </DialogHeader>
-        <ScrollArea className="max-h-[60vh]">
-          <div className="space-y-4 p-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">提供アイテム</p>
-                <img
-                  src={tradeRequest.offered_item.image}
-                  alt={tradeRequest.offered_item.title}
-                  className="w-full aspect-square object-cover rounded-md"
-                />
-                <p className="mt-1 text-sm">{tradeRequest.offered_item.title}</p>
+    <>
+      <Dialog open={isOpen && !showReview} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[425px] bg-white">
+          <DialogHeader>
+            <DialogTitle>トレード手続き</DialogTitle>
+            <DialogDescription>
+              {step === 'confirmation' && "トレードの詳細を確認してください"}
+              {step === 'shipping' && "発送情報を入力してください"}
+              {step === 'complete' && "トレードを完了します"}
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh]">
+            <div className="space-y-4 p-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">提供アイテム</p>
+                  <img
+                    src={tradeRequest.offered_item.image}
+                    alt={tradeRequest.offered_item.title}
+                    className="w-full aspect-square object-cover rounded-md"
+                  />
+                  <p className="mt-1 text-sm">{tradeRequest.offered_item.title}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">リクエストアイテム</p>
+                  <img
+                    src={tradeRequest.requested_item.image}
+                    alt={tradeRequest.requested_item.title}
+                    className="w-full aspect-square object-cover rounded-md"
+                  />
+                  <p className="mt-1 text-sm">{tradeRequest.requested_item.title}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">リクエストアイテム</p>
-                <img
-                  src={tradeRequest.requested_item.image}
-                  alt={tradeRequest.requested_item.title}
-                  className="w-full aspect-square object-cover rounded-md"
-                />
-                <p className="mt-1 text-sm">{tradeRequest.requested_item.title}</p>
-              </div>
-            </div>
 
-            {step === 'shipping' && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium">発送手続き</p>
-                <p className="text-sm text-gray-500">
-                  トレード相手と連絡を取り、発送方法や住所を確認してください。
-                </p>
-              </div>
+              {step === 'shipping' && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">発送手続き</p>
+                  <p className="text-sm text-gray-500">
+                    トレード相手と連絡を取り、発送方法や住所を確認してください。
+                  </p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+          <DialogFooter>
+            {step === 'confirmation' && (
+              <Button onClick={() => setStep('shipping')} className="bg-black text-white hover:bg-gray-800">
+                発送手続きへ進む
+              </Button>
             )}
-          </div>
-        </ScrollArea>
-        <DialogFooter>
-          {step === 'confirmation' && (
-            <Button onClick={() => setStep('shipping')} className="bg-black text-white hover:bg-gray-800">
-              発送手続きへ進む
-            </Button>
-          )}
-          {step === 'shipping' && (
-            <Button onClick={() => setStep('complete')} className="bg-black text-white hover:bg-gray-800">
-              発送完了
-            </Button>
-          )}
-          {step === 'complete' && (
-            <Button 
-              onClick={handleComplete}
-              disabled={isLoading}
-              className="bg-black text-white hover:bg-gray-800"
-            >
-              トレードを完了する
-            </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            {step === 'shipping' && (
+              <Button onClick={() => setStep('complete')} className="bg-black text-white hover:bg-gray-800">
+                発送完了
+              </Button>
+            )}
+            {step === 'complete' && (
+              <Button 
+                onClick={handleComplete}
+                disabled={isLoading}
+                className="bg-black text-white hover:bg-gray-800"
+              >
+                トレードを完了する
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {counterparty?.id && (
+        <TradeReviewModal
+          isOpen={showReview}
+          onClose={() => {
+            setShowReview(false);
+            onClose();
+          }}
+          tradeRequestId={tradeRequest.id}
+          revieweeId={counterparty.id}
+          revieweeName={counterparty.name}
+        />
+      )}
+    </>
   );
 }

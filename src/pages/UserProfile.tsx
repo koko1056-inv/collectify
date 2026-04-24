@@ -7,20 +7,24 @@ import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Package, Camera, Heart } from "lucide-react";
+import { ArrowLeft, Package, Camera, Heart, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { ProfileItemPosts } from "@/components/profile/ProfileItemPosts";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { Badge } from "@/components/ui/badge";
+import { TrustBadge } from "@/features/trust/TrustBadge";
+import { TrustScoreSection } from "@/features/trust/TrustScoreSection";
+import { StampSendButton } from "@/features/stamps/StampSendButton";
 
-type Tab = "collection" | "posts" | "wishlist";
+type Tab = "collection" | "posts" | "wishlist" | "trust";
 
 const TABS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: "collection", label: "コレクション", icon: Package },
   { id: "posts", label: "投稿", icon: Camera },
   { id: "wishlist", label: "ウィッシュ", icon: Heart },
+  { id: "trust", label: "評価", icon: ShieldCheck },
 ];
 
 export default function UserProfile() {
@@ -83,6 +87,20 @@ export default function UserProfile() {
             onShare={() => setShareOpen(true)}
           />
 
+          {/* 信頼バッジ＆スタンプ送信 */}
+          {userId && (
+            <div className="px-4 mt-3 flex items-center gap-2 flex-wrap">
+              <TrustBadge userId={userId} size="md" />
+              {!isOwnProfile && user && (
+                <StampSendButton
+                  receiverId={userId}
+                  contextType="profile"
+                  contextId={userId}
+                />
+              )}
+            </div>
+          )}
+
           {/* 推しコンテンツ (読み取り専用) */}
           {interests.length > 0 && (
             <div className="px-4 mt-4">
@@ -137,6 +155,11 @@ export default function UserProfile() {
             {activeTab === "wishlist" && userId && (
               <div className="px-4 mt-2">
                 <WishlistGrid userId={userId} enableActions={isOwnProfile} />
+              </div>
+            )}
+            {activeTab === "trust" && userId && (
+              <div className="px-4 mt-2">
+                <TrustScoreSection userId={userId} />
               </div>
             )}
           </div>
