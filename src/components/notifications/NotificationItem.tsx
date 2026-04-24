@@ -17,6 +17,7 @@ interface NotificationItemProps {
 export function NotificationItem({ notification }: NotificationItemProps) {
   const { markAsRead, deleteNotification } = useNotifications();
   const navigate = useNavigate();
+  const replyStamp = useReplyStamp();
 
   const getIcon = () => {
     switch (notification.type) {
@@ -28,6 +29,10 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         return <Reply className="h-4 w-4 text-primary" />;
       case 'like':
         return <Heart className="h-4 w-4 text-red-500" />;
+      case 'greeting_stamp':
+        return <Sticker className="h-4 w-4 text-pink-500" />;
+      case 'match_success':
+        return <Sparkles className="h-4 w-4 text-violet-500" />;
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'warning':
