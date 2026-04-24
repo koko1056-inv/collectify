@@ -215,14 +215,14 @@ export function ItemDetailsWrapper({
         <h2 className="text-lg font-semibold mb-3 line-clamp-2">{itemDetails.title}</h2>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 h-auto">
+          <TabsList className="grid w-full grid-cols-5 h-auto">
             <TabsTrigger value="info" className="flex flex-col gap-0.5 py-2 text-xs">
               <Info className="h-4 w-4" />
               情報
             </TabsTrigger>
             <TabsTrigger value="owners" className="flex flex-col gap-0.5 py-2 text-xs">
               <Users className="h-4 w-4" />
-              持っている
+              持ってる
               {ownersCount > 0 && (
                 <span className="text-[10px] text-muted-foreground">({ownersCount})</span>
               )}
@@ -240,6 +240,10 @@ export function ItemDetailsWrapper({
               {commentsCount > 0 && (
                 <span className="text-[10px] text-muted-foreground">({commentsCount})</span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="room" className="flex flex-col gap-0.5 py-2 text-xs">
+              <MessageCircle className="h-4 w-4" />
+              ルーム
             </TabsTrigger>
           </TabsList>
 
@@ -273,6 +277,10 @@ export function ItemDetailsWrapper({
 
           <TabsContent value="comments" className="mt-4">
             <ItemCommentsSection officialItemId={itemId} />
+          </TabsContent>
+
+          <TabsContent value="room" className="mt-4">
+            <ItemRoomPanel officialItemId={itemId} itemTitle={itemDetails.title} />
           </TabsContent>
         </Tabs>
       </div>
