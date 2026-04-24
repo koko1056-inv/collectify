@@ -57,7 +57,7 @@ export function MessageBubble({ message, roomId, showHeader }: Props) {
             >
               {senderName}
             </button>
-            <TrustBadge userId={message.user_id} compact />
+            <TrustBadge userId={message.user_id} size="xs" showLabel={false} />
           </div>
         )}
 
