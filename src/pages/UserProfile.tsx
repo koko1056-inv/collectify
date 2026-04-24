@@ -87,6 +87,20 @@ export default function UserProfile() {
             onShare={() => setShareOpen(true)}
           />
 
+          {/* 信頼バッジ＆スタンプ送信 */}
+          {userId && (
+            <div className="px-4 mt-3 flex items-center gap-2 flex-wrap">
+              <TrustBadge userId={userId} size="md" />
+              {!isOwnProfile && user && (
+                <StampSendButton
+                  receiverId={userId}
+                  contextType="profile"
+                  contextId={userId}
+                />
+              )}
+            </div>
+          )}
+
           {/* 推しコンテンツ (読み取り専用) */}
           {interests.length > 0 && (
             <div className="px-4 mt-4">
