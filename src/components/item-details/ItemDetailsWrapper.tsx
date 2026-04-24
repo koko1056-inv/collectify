@@ -7,7 +7,7 @@ import { ShareModal } from "@/components/ShareModal";
 import { ModalHeader } from "./ModalHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, X, Info, Users, Heart, MessageSquare } from "lucide-react";
+import { Loader2, X, Info, Users, Heart, MessageSquare, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { isUUID } from "@/utils/tag/tag-core";
 import { SimpleItemTag } from "@/utils/tag/types";
@@ -15,6 +15,7 @@ import { ItemInfoTab } from "./tabs/ItemInfoTab";
 import { ItemOwnersTab } from "./tabs/ItemOwnersTab";
 import { ItemWishersTab } from "./tabs/ItemWishersTab";
 import { ItemCommentsSection } from "@/features/comments/ItemCommentsSection";
+import { ItemRoomPanel } from "@/features/item-room/ItemRoomPanel";
 
 interface ItemDetailsWrapperProps {
   itemId: string;
