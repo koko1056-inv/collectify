@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, User, Search, FileText, FolderOpen, Globe, Palette, HelpCircle } from "lucide-react";
+import { ShoppingBasket, User, Search, FileText, FolderOpen, Globe, Palette, HelpCircle, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
@@ -188,6 +188,12 @@ export function Navbar() {
                     <polyline points="9 22 9 12 15 12 15 22" />
                   </svg>
                   {t("nav.myRoom")}
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/matches" className={cn(navigationMenuTriggerStyle())}>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  同担マッチ
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
