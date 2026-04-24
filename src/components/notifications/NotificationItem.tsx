@@ -151,6 +151,46 @@ export function NotificationItem({ notification }: NotificationItemProps) {
             </div>
           )}
 
+          {/* Greeting stamp notification */}
+          {notification.type === 'greeting_stamp' && data.stamp_type && (
+            <div className="flex items-center gap-2 mb-2 p-2 rounded-md bg-pink-50 border border-pink-100">
+              <span className="text-2xl">{STAMP_BY_TYPE[data.stamp_type as StampType]?.emoji ?? '👋'}</span>
+              <p className="text-xs flex-1 font-medium">
+                {STAMP_BY_TYPE[data.stamp_type as StampType]?.label ?? 'あいさつ'}
+              </p>
+              {data.stamp_id && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    replyStamp.mutate(data.stamp_id!);
+                    if (data.sender_id) navigate(`/user/${data.sender_id}`);
+                  }}
+                  disabled={replyStamp.isPending}
+                >
+                  ありがとう💌
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Match success notification */}
+          {notification.type === 'match_success' && data.matched_user_id && (
+            <Button
+              size="sm"
+              variant="default"
+              className="mb-2 h-8"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/user/${data.matched_user_id}`);
+              }}
+            >
+              プロフィールを見る →
+            </Button>
+          )}
+
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
               {timeAgo}
