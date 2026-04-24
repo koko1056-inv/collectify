@@ -88,6 +88,8 @@ export function ItemOwnersModal({
 
   const totalOwners = owners?.length || 0;
   const isUserOwner = owners?.some(o => o.user_id === user?.id);
+  const ownerIds = (owners || []).map(o => o.user_id).filter(id => id !== user?.id);
+  const { data: trustMap } = useTrustScoresBulk(ownerIds);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -143,39 +145,60 @@ export function ItemOwnersModal({
               </p>
             </div>
           ) : (
-            owners?.map((owner) => (
-              <Link
-                key={owner.user_id}
-                to={`/user/${owner.profile?.username || owner.user_id}`}
-                onClick={onClose}
-                className="flex items-center justify-between gap-3 hover:bg-muted p-3 rounded-lg transition-colors"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={owner.profile?.avatar_url || ""} />
-                    <AvatarFallback>
-                      {owner.profile?.username?.charAt(0).toUpperCase() || "?"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">
-                      {owner.profile?.display_name || owner.profile?.username}
-                      {owner.user_id === user?.id && (
-                        <span className="text-primary ml-1">(あなた)</span>
-                      )}
-                    </p>
-                    {owner.profile?.bio && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {owner.profile.bio}
-                      </p>
-                    )}
+            owners?.map((owner) => {
+              const isMe = owner.user_id === user?.id;
+              const score = trustMap?.[owner.user_id];
+              return (
+                <div
+                  key={owner.user_id}
+                  className="flex flex-col gap-2 p-3 rounded-lg border border-border hover:bg-muted/40 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <Link
+                      to={`/user/${owner.profile?.username || owner.user_id}`}
+                      onClick={onClose}
+                      className="flex items-center gap-3 min-w-0 flex-1"
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={owner.profile?.avatar_url || ""} />
+                        <AvatarFallback>
+                          {owner.profile?.username?.charAt(0).toUpperCase() || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="font-medium text-sm truncate">
+                            {owner.profile?.display_name || owner.profile?.username}
+                            {isMe && <span className="text-primary ml-1">(あなた)</span>}
+                          </p>
+                          {!isMe && score && (
+                            <TrustBadge score={score} size="xs" showLabel={false} />
+                          )}
+                        </div>
+                        {owner.profile?.bio && (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {owner.profile.bio}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                    <Badge variant="outline" className="flex-shrink-0">
+                      {owner.quantity}個
+                    </Badge>
                   </div>
+                  {!isMe && user && (
+                    <div className="flex justify-end">
+                      <StampSendButton
+                        receiverId={owner.user_id}
+                        contextType="item"
+                        size="sm"
+                        label="あいさつ"
+                      />
+                    </div>
+                  )}
                 </div>
-                <Badge variant="outline" className="flex-shrink-0">
-                  {owner.quantity}個
-                </Badge>
-              </Link>
-            ))
+              );
+            })
           )}
         </div>
       </DialogContent>
