@@ -1,12 +1,14 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply } from 'lucide-react';
+import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Notification, NotificationData } from '@/types/notification';
 import { useNotifications } from '@/hooks/useNotifications';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { STAMP_BY_TYPE, type StampType } from '@/features/stamps/types';
+import { useReplyStamp } from '@/features/stamps/useGreetingStamp';
 
 interface NotificationItemProps {
   notification: Notification;
