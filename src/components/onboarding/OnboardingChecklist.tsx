@@ -162,6 +162,47 @@ export function OnboardingChecklist() {
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
   const allCompleted = completedCount === totalCount;
 
+  // Auto-claim rewards for completed steps that haven't been claimed yet
+  useEffect(() => {
+    if (!user?.id || !checklistData) return;
+    const claimedSteps = checklistData.claimedSteps;
+
+    const toClaim = items.filter(
+      (i) => i.completed && i.points > 0 && !claimedSteps.has(i.id) && !claimingRef.current.has(i.id)
+    );
+    if (toClaim.length === 0) return;
+
+    (async () => {
+      for (const item of toClaim) {
+        claimingRef.current.add(item.id);
+        try {
+          const { data, error } = await supabase.rpc('claim_onboarding_reward', {
+            _step_id: item.id,
+            _points: item.points,
+          });
+          if (error) {
+            console.error('[OnboardingChecklist] claim error:', error);
+            claimingRef.current.delete(item.id);
+            continue;
+          }
+          if (data === true) {
+            toast({
+              title: `🎉 ${item.label} 達成！`,
+              description: `+${item.points}pt をゲットしました`,
+            });
+          }
+        } catch (e) {
+          console.error('[OnboardingChecklist] claim exception:', e);
+          claimingRef.current.delete(item.id);
+        }
+      }
+      // Refresh data so UI reflects claimed state and points balance updates
+      queryClient.invalidateQueries({ queryKey: ['onboarding-checklist', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['userPoints'] });
+      queryClient.invalidateQueries({ queryKey: ['pointTransactions'] });
+    })();
+  }, [items, checklistData, user?.id, queryClient, toast]);
+
   const handleDismiss = () => {
     if (user?.id) {
       localStorage.setItem(`checklist_dismissed_${user.id}`, 'true');
