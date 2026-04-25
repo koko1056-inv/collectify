@@ -148,7 +148,7 @@ export function UserCollection({
     });
     
     return sorted;
-  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, sortOption]);
+  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, isPersonalTagLoading, sortOption]);
 
   const sortLabels: Record<SortOption, string> = {
     newest: "新しい順",
