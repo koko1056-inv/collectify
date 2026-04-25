@@ -45,6 +45,17 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
     setShowSuggestions(false);
   };
 
+  // 既存マイタグの中で、まだこのアイテムに付いていないもの
+  const availableExistingTags = allUserTags.filter(
+    (tag) => !personalTags.some((pt) => pt.tag_name === tag)
+  );
+
+  const handleQuickAddExisting = async (tagName: string) => {
+    if (addTag.isPending) return;
+    await addTag.mutateAsync({ userItemId, tagName });
+    toast.success(`「${tagName}」を追加しました`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -130,6 +141,34 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* 既存のマイタグから選んで追加 */}
+      {isAdding && availableExistingTags.length > 0 && (
+        <div className="space-y-1.5 pt-1">
+          <p className="text-xs text-muted-foreground">
+            既存のマイタグから選ぶ（タップで追加）
+          </p>
+          <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+            {availableExistingTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                disabled={addTag.isPending}
+                onClick={() => handleQuickAddExisting(tag)}
+                className="transition-transform hover:scale-105 disabled:opacity-50"
+              >
+                <Badge
+                  variant="outline"
+                  className="cursor-pointer gap-1 hover:bg-primary/10 hover:border-primary/30"
+                >
+                  <Plus className="w-3 h-3" />
+                  {tag}
+                </Badge>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
