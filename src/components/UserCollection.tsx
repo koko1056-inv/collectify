@@ -299,7 +299,9 @@ export function UserCollection({
         items={filteredItems} 
         isCompact={isCompact} 
         handleDragEnd={handleDragEnd} 
-        batchMemories={batchMemories} 
+        batchMemories={batchMemories}
+        selectedPersonalTag={selectedPersonalTag}
+        onPersonalTagChange={onPersonalTagChange}
       />
 
       <RandomCollectionItemModal 
