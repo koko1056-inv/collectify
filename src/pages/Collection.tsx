@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CollectionLimitBanner } from "@/components/shop/CollectionLimitBanner";
-import { usePersonalTags } from "@/hooks/usePersonalTags";
+
 
 export default function Collection() {
   const isMobile = useIsMobile();
