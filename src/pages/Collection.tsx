@@ -21,7 +21,6 @@ export default function Collection() {
   const [selectedContent, setSelectedContent] = useState("");
   const [selectedPersonalTag, setSelectedPersonalTag] = useState("");
   const { data: allTags = [] } = useTags();
-  const { allUserTags } = usePersonalTags();
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
