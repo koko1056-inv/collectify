@@ -87,7 +87,7 @@ export function UserCollection({
   const { data: batchMemories = {} } = useBatchItemMemories(itemIds);
 
   // マイタグでフィルタする場合、対象のuser_item_idを取得
-  const { data: personalTagItemIds = [] } = useQuery({
+  const { data: personalTagItemIds = [], isLoading: isPersonalTagLoading } = useQuery({
     queryKey: ["personal-tag-filter", effectiveUserId, selectedPersonalTag],
     queryFn: async () => {
       if (!selectedPersonalTag || !effectiveUserId) return [];
