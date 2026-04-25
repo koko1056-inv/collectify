@@ -84,11 +84,11 @@ export function PublicItemDetailsModal({
         </DialogHeader>
 
         {/* アイテム画像 */}
-        <div className="relative w-full aspect-square bg-muted">
+        <div className="relative w-full aspect-square bg-muted flex items-center justify-center">
           <img
             src={image}
             alt={title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             loading="lazy"
           />
         </div>
