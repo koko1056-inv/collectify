@@ -120,6 +120,28 @@ export function useDeleteAiRoom() {
   });
 }
 
+/** タイトル(ルーム名)を更新 */
+export function useUpdateAiRoomTitle() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ roomId, title }: { roomId: string; title: string }) => {
+      const trimmed = title.trim();
+      const { error } = await supabase
+        .from("ai_generated_rooms")
+        .update({ title: trimmed || null })
+        .eq("id", roomId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["ai-rooms", user?.id] });
+      qc.invalidateQueries({ queryKey: ["ai-rooms-public"] });
+      toast.success("ルーム名を更新しました");
+    },
+    onError: () => toast.error("更新に失敗しました"),
+  });
+}
+
 /** 公開/非公開切り替え (投稿への反映も同期) */
 export function useToggleAiRoomPublic() {
   const { user } = useAuth();

@@ -10,8 +10,10 @@ import {
   Download,
   Share2,
   X,
-  Image as ImageIcon,
+  Pencil,
+  Check,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -29,6 +31,7 @@ import {
   useUserAiRooms,
   useDeleteAiRoom,
   useToggleAiRoomPublic,
+  useUpdateAiRoomTitle,
   AiGeneratedRoom,
 } from "@/hooks/ai-room/useAiRooms";
 import { AiRoomCreateWizard } from "./AiRoomCreateWizard";
@@ -49,9 +52,12 @@ export function MyAiRoomsView() {
   const [viewing, setViewing] = useState<AiGeneratedRoom | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sharingRoom, setSharingRoom] = useState<AiGeneratedRoom | null>(null);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
 
   const { data: rooms = [], isLoading } = useUserAiRooms(user?.id);
   const deleteMutation = useDeleteAiRoom();
+  const updateTitleMutation = useUpdateAiRoomTitle();
   const toggleMutation = useToggleAiRoomPublic();
 
   const [hero, ...rest] = rooms;
@@ -184,8 +190,77 @@ export function MyAiRoomsView() {
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
               <div className="p-4 space-y-3 bg-background">
-                {viewing.title && (
-                  <p className="font-semibold text-base">{viewing.title}</p>
+                {/* タイトル編集 */}
+                {editingTitle ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      autoFocus
+                      value={titleDraft}
+                      onChange={(e) => setTitleDraft(e.target.value)}
+                      placeholder="ルーム名を入力"
+                      maxLength={60}
+                      className="h-9 text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          updateTitleMutation.mutate(
+                            { roomId: viewing.id, title: titleDraft },
+                            {
+                              onSuccess: () => {
+                                setViewing({ ...viewing, title: titleDraft.trim() || null });
+                                setEditingTitle(false);
+                              },
+                            }
+                          );
+                        } else if (e.key === "Escape") {
+                          setEditingTitle(false);
+                        }
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      className="h-9 px-2"
+                      disabled={updateTitleMutation.isPending}
+                      onClick={() =>
+                        updateTitleMutation.mutate(
+                          { roomId: viewing.id, title: titleDraft },
+                          {
+                            onSuccess: () => {
+                              setViewing({ ...viewing, title: titleDraft.trim() || null });
+                              setEditingTitle(false);
+                            },
+                          }
+                        )
+                      }
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-2"
+                      onClick={() => setEditingTitle(false)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 group/title">
+                    <p className="font-semibold text-base flex-1 truncate">
+                      {viewing.title || "無題のAIルーム"}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-xs gap-1"
+                      onClick={() => {
+                        setTitleDraft(viewing.title || "");
+                        setEditingTitle(true);
+                      }}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                      編集
+                    </Button>
+                  </div>
                 )}
                 {viewing.style_preset && (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
