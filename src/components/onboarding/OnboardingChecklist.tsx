@@ -315,7 +315,12 @@ export function OnboardingChecklist() {
                           {item.description}
                         </p>
                       </div>
-                      {!item.completed && (
+                      {item.completed ? (
+                        <span className="text-xs font-medium text-primary bg-primary/15 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
+                          <CheckCircle2 className="w-3 h-3" />
+                          +{item.points}pt
+                        </span>
+                      ) : (
                         <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
                           +{item.points}pt
                         </span>
