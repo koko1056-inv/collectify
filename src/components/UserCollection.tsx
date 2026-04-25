@@ -6,9 +6,23 @@ import { useState, useMemo, useCallback } from "react";
 import { DragEndEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Button } from "./ui/button";
-import { Dices, Plus, Sparkles, Package, Camera, ArrowUpDown, Clock, SortAsc, Heart, Search } from "lucide-react";
+import {
+  Dices,
+  Plus,
+  Package,
+  Camera,
+  ArrowUpDown,
+  Clock,
+  SortAsc,
+  Heart,
+  Search,
+  CheckSquare,
+  Tag,
+  X,
+} from "lucide-react";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
+import { BulkPersonalTagDialog } from "./collection/BulkPersonalTagDialog";
 import { useBatchItemMemories } from "@/hooks/useBatchItemMemories";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
