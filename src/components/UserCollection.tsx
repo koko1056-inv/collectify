@@ -28,6 +28,7 @@ interface UserCollectionProps {
   selectedContent?: string;
   onContentChange?: (content: string) => void;
   selectedPersonalTag?: string;
+  onPersonalTagChange?: (tag: string) => void;
 }
 
 export function UserCollection({
@@ -36,6 +37,7 @@ export function UserCollection({
   selectedContent,
   onContentChange,
   selectedPersonalTag,
+  onPersonalTagChange,
 }: UserCollectionProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
