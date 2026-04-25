@@ -165,7 +165,14 @@ export function OnboardingChecklist() {
   // Auto-claim rewards for completed steps that haven't been claimed yet
   useEffect(() => {
     if (!user?.id || !checklistData) return;
-    const claimedSteps = checklistData.claimedSteps;
+    const claimedSteps =
+      checklistData.claimedSteps instanceof Set
+        ? checklistData.claimedSteps
+        : new Set<string>(
+            Array.isArray(checklistData.claimedSteps)
+              ? (checklistData.claimedSteps as string[])
+              : []
+          );
 
     const toClaim = items.filter(
       (i) => i.completed && i.points > 0 && !claimedSteps.has(i.id) && !claimingRef.current.has(i.id)
