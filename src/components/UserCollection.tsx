@@ -306,15 +306,16 @@ export function UserCollection({
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
       {/* ツールバー */}
-      <div className="flex items-center gap-2 mb-4 p-2 bg-muted/30 rounded-xl overflow-x-auto scrollbar-none">
+      <div className="flex items-center gap-2 mb-4">
         {!isSelectionMode ? (
           <>
+            {/* 左：並び替え */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="shrink-0 gap-2 h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50 hover:bg-accent/50 transition-all"
+                  className="shrink-0 gap-1.5 h-9 px-3 rounded-full bg-background hover:bg-accent/50"
                 >
                   <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-sm font-medium">{sortLabels[sortOption]}</span>
@@ -336,36 +337,39 @@ export function UserCollection({
 
             <div className="flex-1 min-w-0" />
 
-            {isOwnCollection && (
-              <Button
-                onClick={handleToggleSelectionMode}
-                variant="ghost"
-                size="sm"
-                className="shrink-0 gap-2 h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50 hover:bg-accent/50 transition-all"
-              >
-                <CheckSquare className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-sm font-medium">選択</span>
-              </Button>
-            )}
+            {/* 右：アクション群（区切りを設けて視覚的にグループ化） */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {isOwnCollection && (
+                <Button
+                  onClick={handleToggleSelectionMode}
+                  variant="ghost"
+                  size="sm"
+                  aria-label="選択モード"
+                  className="shrink-0 gap-1.5 h-9 px-3 rounded-full hover:bg-accent/50"
+                >
+                  <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">選択</span>
+                </Button>
+              )}
 
-            <Button
-              onClick={handleRandomModalOpen}
-              variant="ghost"
-              size="sm"
-              aria-label={t("collection.todaysCollection")}
-              className="shrink-0 gap-2 h-9 px-3 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 hover:from-primary/20 hover:to-accent/20 transition-all group"
-            >
-              <Dices className="h-3.5 w-3.5 text-primary group-hover:rotate-12 transition-transform" />
-              <span className="text-sm font-medium text-primary hidden sm:inline">{t("collection.todaysCollection")}</span>
-            </Button>
+              <Button
+                onClick={handleRandomModalOpen}
+                size="sm"
+                aria-label={t("collection.todaysCollection")}
+                className="shrink-0 gap-1.5 h-9 px-3 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border-0 shadow-none group"
+              >
+                <Dices className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                <span className="text-sm font-medium">今日のグッズ</span>
+              </Button>
+            </div>
           </>
         ) : (
           <>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={handleSelectAll}
-              className="h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50"
+              className="h-9 px-3 rounded-full"
             >
               <span className="text-sm font-medium">
                 {selectedItemIds.length === filteredItems.length && filteredItems.length > 0
@@ -381,7 +385,7 @@ export function UserCollection({
               variant="ghost"
               size="sm"
               onClick={handleToggleSelectionMode}
-              className="h-9 px-3 rounded-lg"
+              className="h-9 px-3 rounded-full"
             >
               <X className="h-4 w-4 mr-1" />
               キャンセル
