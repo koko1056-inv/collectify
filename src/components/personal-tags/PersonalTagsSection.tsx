@@ -45,6 +45,17 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
     setShowSuggestions(false);
   };
 
+  // 既存マイタグの中で、まだこのアイテムに付いていないもの
+  const availableExistingTags = allUserTags.filter(
+    (tag) => !personalTags.some((pt) => pt.tag_name === tag)
+  );
+
+  const handleQuickAddExisting = async (tagName: string) => {
+    if (addTag.isPending) return;
+    await addTag.mutateAsync({ userItemId, tagName });
+    toast.success(`「${tagName}」を追加しました`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
