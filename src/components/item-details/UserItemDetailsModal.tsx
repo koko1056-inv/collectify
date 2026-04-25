@@ -39,6 +39,7 @@ export function UserItemDetailsModal({
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [isEditingNote, setIsEditingNote] = useState(false);
+  const [isEditingPurchaseDate, setIsEditingPurchaseDate] = useState(false);
   const [noteValue, setNoteValue] = useState("");
   const [purchaseDateValue, setPurchaseDateValue] = useState("");
   const [isAddingMemory, setIsAddingMemory] = useState(false);
@@ -90,16 +91,13 @@ export function UserItemDetailsModal({
     enabled: isOpen && !!itemId,
   });
 
-  // メモと購入日を保存
+  // メモを保存
   const handleSaveNote = useCallback(async () => {
     setIsSaving(true);
     try {
       const { error } = await supabase
         .from("user_items")
-        .update({ 
-          note: noteValue,
-          purchase_date: purchaseDateValue || null
-        })
+        .update({ note: noteValue })
         .eq("id", itemId);
 
       if (error) throw error;
@@ -113,7 +111,29 @@ export function UserItemDetailsModal({
     } finally {
       setIsSaving(false);
     }
-  }, [noteValue, purchaseDateValue, itemId, queryClient]);
+  }, [noteValue, itemId, queryClient]);
+
+  // 購入日を保存
+  const handleSavePurchaseDate = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("user_items")
+        .update({ purchase_date: purchaseDateValue || null })
+        .eq("id", itemId);
+
+      if (error) throw error;
+
+      toast.success("購入日を保存しました");
+      setIsEditingPurchaseDate(false);
+      queryClient.invalidateQueries({ queryKey: ["user-item-details", itemId] });
+    } catch (error) {
+      console.error("Error saving purchase date:", error);
+      toast.error("保存に失敗しました");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [purchaseDateValue, itemId, queryClient]);
 
   // 思い出を追加
   const handleAddMemory = useCallback(async () => {
@@ -211,20 +231,53 @@ export function UserItemDetailsModal({
 
               {/* 購入日 */}
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                <div className="flex items-center gap-2 text-sm flex-wrap">
+                  <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                   <span className="text-muted-foreground">購入日:</span>
-                  {isEditingNote ? (
-                    <Input
-                      type="date"
-                      value={purchaseDateValue}
-                      onChange={(e) => setPurchaseDateValue(e.target.value)}
-                      className="h-7 w-auto"
-                    />
+                  {isEditingPurchaseDate ? (
+                    <div className="flex items-center gap-1 flex-1 min-w-0">
+                      <Input
+                        type="date"
+                        value={purchaseDateValue}
+                        onChange={(e) => setPurchaseDateValue(e.target.value)}
+                        className="h-8 flex-1 min-w-0"
+                      />
+                      <Button
+                        size="sm"
+                        className="h-8 px-2"
+                        onClick={handleSavePurchaseDate}
+                        disabled={isSaving}
+                      >
+                        {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : "保存"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-2"
+                        onClick={() => {
+                          setIsEditingPurchaseDate(false);
+                          setPurchaseDateValue(itemDetails?.purchase_date || "");
+                        }}
+                      >
+                        ×
+                      </Button>
+                    </div>
                   ) : (
-                    <span className="font-medium">
-                      {itemDetails?.purchase_date || "未設定"}
-                    </span>
+                    <>
+                      <span className="font-medium">
+                        {itemDetails?.purchase_date
+                          ? format(new Date(itemDetails.purchase_date), "yyyy年M月d日", { locale: ja })
+                          : "未設定"}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs ml-auto"
+                        onClick={() => setIsEditingPurchaseDate(true)}
+                      >
+                        編集
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -268,7 +321,6 @@ export function UserItemDetailsModal({
                         onClick={() => {
                           setIsEditingNote(false);
                           setNoteValue(itemDetails?.note || "");
-                          setPurchaseDateValue(itemDetails?.purchase_date || "");
                         }}
                       >
                         キャンセル
