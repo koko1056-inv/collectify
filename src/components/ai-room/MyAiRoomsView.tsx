@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Wand2,
@@ -11,7 +11,10 @@ import {
   Share2,
   X,
   Image as ImageIcon,
+  Pencil,
+  Check,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -29,6 +32,7 @@ import {
   useUserAiRooms,
   useDeleteAiRoom,
   useToggleAiRoomPublic,
+  useUpdateAiRoomTitle,
   AiGeneratedRoom,
 } from "@/hooks/ai-room/useAiRooms";
 import { AiRoomCreateWizard } from "./AiRoomCreateWizard";
