@@ -144,6 +144,34 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
         </div>
       )}
 
+      {/* 既存のマイタグから選んで追加 */}
+      {isAdding && availableExistingTags.length > 0 && (
+        <div className="space-y-1.5 pt-1">
+          <p className="text-xs text-muted-foreground">
+            既存のマイタグから選ぶ（タップで追加）
+          </p>
+          <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+            {availableExistingTags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                disabled={addTag.isPending}
+                onClick={() => handleQuickAddExisting(tag)}
+                className="transition-transform hover:scale-105 disabled:opacity-50"
+              >
+                <Badge
+                  variant="outline"
+                  className="cursor-pointer gap-1 hover:bg-primary/10 hover:border-primary/30"
+                >
+                  <Plus className="w-3 h-3" />
+                  {tag}
+                </Badge>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* タグ一覧 */}
       {personalTags.length > 0 ? (
         <div className="flex flex-wrap gap-1">
