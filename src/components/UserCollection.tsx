@@ -273,11 +273,6 @@ export function UserCollection({
       </div>
     );
   }
-  if (filteredItems.length === 0) {
-    return <div className="text-center py-8">
-        <p className="text-gray-500">{t("collection.noMatches")}</p>
-      </div>;
-  }
   const handleToggleSelectionMode = () => {
     setIsSelectionMode((prev) => {
       if (prev) setSelectedItemIds([]);
