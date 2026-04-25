@@ -119,10 +119,14 @@ export function UserCollection({
       });
     }
     // マイタグでフィルタ
-    if (selectedPersonalTag && personalTagItemIds.length > 0) {
-      filtered = filtered.filter(item => personalTagItemIds.includes(item.id));
-    } else if (selectedPersonalTag && personalTagItemIds.length === 0) {
-      filtered = [];
+    if (selectedPersonalTag) {
+      if (isPersonalTagLoading) {
+        // ローディング中は空にせず、現在のフィルタ結果を保持
+      } else if (personalTagItemIds.length > 0) {
+        filtered = filtered.filter(item => personalTagItemIds.includes(item.id));
+      } else {
+        filtered = [];
+      }
     }
     
     // ソート処理
