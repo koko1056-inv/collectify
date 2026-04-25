@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Wand2,
@@ -10,7 +10,6 @@ import {
   Download,
   Share2,
   X,
-  Image as ImageIcon,
   Pencil,
   Check,
 } from "lucide-react";
