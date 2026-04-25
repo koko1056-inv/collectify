@@ -48,33 +48,36 @@ export function Footer() {
         </Link>
 
 
-        {/* コミュニティタブ (新: item-posts フィード) */}
-        <Link
-          to="/item-posts"
-          className={cn(
-            "flex flex-col items-center justify-center flex-1 py-2",
-            isActive("/item-posts") ? "text-primary" : "text-muted-foreground"
-          )}
-        >
-          <svg 
+        {/*
+          コミュニティタブ (item-posts フィード)
+          初期リリース版では非表示。復元するにはこのコメントブロックを解除してください。
+          <Link
+            to="/item-posts"
             className={cn(
-              "h-6 w-6 mb-0.5 transition-all",
-              isActive("/item-posts") && "scale-110"
-            )} 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
+              "flex flex-col items-center justify-center flex-1 py-2",
+              isActive("/item-posts") ? "text-primary" : "text-muted-foreground"
+            )}
           >
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
-          <span className="text-[10px] font-medium">コミュニティ</span>
-        </Link>
+            <svg
+              className={cn(
+                "h-6 w-6 mb-0.5 transition-all",
+                isActive("/item-posts") && "scale-110"
+              )}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span className="text-[10px] font-medium">コミュニティ</span>
+          </Link>
+        */}
 
         {/* プロフィールタブ */}
         <Link
