@@ -47,13 +47,6 @@ export default function Collection() {
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
           <CollectionLimitBanner type="collection" />
 
-          {/* マイタグでカテゴリ絞り込み */}
-          <PersonalTagTabs
-            tags={allUserTags}
-            selectedTag={selectedPersonalTag}
-            onSelect={handlePersonalTagChange}
-          />
-
           <FilterSheet
             searchQuery={searchQuery}
             onSearchChange={handleSearchChange}
@@ -73,6 +66,7 @@ export default function Collection() {
               selectedContent={selectedContent} 
               onContentChange={handleContentChange}
               selectedPersonalTag={selectedPersonalTag}
+              onPersonalTagChange={handlePersonalTagChange}
             />
           </div>
         </div>
