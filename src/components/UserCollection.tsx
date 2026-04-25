@@ -302,7 +302,7 @@ export function UserCollection({
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
       {/* ツールバー */}
-      <div className="flex items-center gap-2 mb-4 p-2 bg-muted/30 rounded-xl">
+      <div className="flex items-center gap-2 mb-4 p-2 bg-muted/30 rounded-xl overflow-x-auto scrollbar-none">
         {!isSelectionMode ? (
           <>
             <DropdownMenu>
@@ -310,7 +310,7 @@ export function UserCollection({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="gap-2 h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50 hover:bg-accent/50 transition-all"
+                  className="shrink-0 gap-2 h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50 hover:bg-accent/50 transition-all"
                 >
                   <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-sm font-medium">{sortLabels[sortOption]}</span>
@@ -330,14 +330,14 @@ export function UserCollection({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="flex-1" />
+            <div className="flex-1 min-w-0" />
 
             {isOwnCollection && (
               <Button
                 onClick={handleToggleSelectionMode}
                 variant="ghost"
                 size="sm"
-                className="gap-2 h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50 hover:bg-accent/50 transition-all"
+                className="shrink-0 gap-2 h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50 hover:bg-accent/50 transition-all"
               >
                 <CheckSquare className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-sm font-medium">選択</span>
@@ -348,10 +348,11 @@ export function UserCollection({
               onClick={handleRandomModalOpen}
               variant="ghost"
               size="sm"
-              className="gap-2 h-9 px-3 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 hover:from-primary/20 hover:to-accent/20 transition-all group"
+              aria-label={t("collection.todaysCollection")}
+              className="shrink-0 gap-2 h-9 px-3 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 hover:from-primary/20 hover:to-accent/20 transition-all group"
             >
               <Dices className="h-3.5 w-3.5 text-primary group-hover:rotate-12 transition-transform" />
-              <span className="text-sm font-medium text-primary">{t("collection.todaysCollection")}</span>
+              <span className="text-sm font-medium text-primary hidden sm:inline">{t("collection.todaysCollection")}</span>
             </Button>
           </>
         ) : (
