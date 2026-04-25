@@ -1,12 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { CollectionGrid } from "./CollectionGrid";
 import { DragEndEvent } from "@dnd-kit/core";
 import { CollectionWishlist } from "./CollectionWishlist";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { usePersonalTags } from "@/hooks/usePersonalTags";
-
-type ViewMode = "grid" | "wishlist" | string; // string = personal tag name
 
 interface CollectionViewToggleProps {
   userId: string;
@@ -16,6 +14,10 @@ interface CollectionViewToggleProps {
   batchMemories?: Record<string, any[]>;
   selectedPersonalTag?: string;
   onPersonalTagChange?: (tag: string) => void;
+  // 選択モード
+  isSelectionMode?: boolean;
+  selectedItems?: string[];
+  onSelectItem?: (itemId: string) => void;
 }
 
 export function CollectionViewToggle({
@@ -26,34 +28,29 @@ export function CollectionViewToggle({
   batchMemories = {},
   selectedPersonalTag = "",
   onPersonalTagChange,
+  isSelectionMode = false,
+  selectedItems = [],
+  onSelectItem,
 }: CollectionViewToggleProps) {
   const { allUserTags } = usePersonalTags();
-  // "grid" | "wishlist" | personal tag name
-  const [activeView, setActiveView] = useState<ViewMode>(
-    selectedPersonalTag ? selectedPersonalTag : "grid"
-  );
+  // 「通常表示 / 欲しい物リスト」の切替（マイタグ選択時は無効）
+  const [viewType, setViewType] = useState<"grid" | "wishlist">("grid");
 
-  // 同期：外部からマイタグが変更された場合
-  React.useEffect(() => {
-    if (selectedPersonalTag) {
-      setActiveView(selectedPersonalTag);
-    } else if (activeView !== "grid" && activeView !== "wishlist") {
-      // マイタグがクリアされたら通常表示に戻す
-      setActiveView("grid");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPersonalTag]);
+  // 現在アクティブなタブ：マイタグ選択中ならそのタグ、なければ viewType
+  const activeView: string = selectedPersonalTag || viewType;
 
-  const handleSelect = (view: ViewMode) => {
-    setActiveView(view);
-    if (view === "grid" || view === "wishlist") {
+  const handleSelectTab = (value: string) => {
+    if (value === "grid" || value === "wishlist") {
+      setViewType(value as "grid" | "wishlist");
       onPersonalTagChange?.("");
     } else {
-      onPersonalTagChange?.(view);
+      // マイタグ選択時は通常表示に戻す
+      setViewType("grid");
+      onPersonalTagChange?.(value);
     }
   };
 
-  const tabs: { value: ViewMode; label: string }[] = [
+  const tabs: { value: string; label: string }[] = [
     { value: "grid", label: "通常表示" },
     { value: "wishlist", label: "欲しい物リスト" },
     ...allUserTags.map((tag) => ({ value: tag, label: tag })),
@@ -72,7 +69,7 @@ export function CollectionViewToggle({
               return (
                 <button
                   key={tab.value}
-                  onClick={() => handleSelect(tab.value)}
+                  onClick={() => handleSelectTab(tab.value)}
                   className={cn(
                     "relative shrink-0 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap rounded-full",
                     isActive
@@ -95,9 +92,9 @@ export function CollectionViewToggle({
         <CollectionGrid
           items={items}
           isCompact={isCompact}
-          isSelectionMode={false}
-          selectedItems={[]}
-          onSelectItem={() => {}}
+          isSelectionMode={isSelectionMode}
+          selectedItems={selectedItems}
+          onSelectItem={onSelectItem ?? (() => {})}
           onDragEnd={handleDragEnd}
           batchMemories={batchMemories}
         />
