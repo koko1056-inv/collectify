@@ -88,6 +88,12 @@ export function CollectionViewToggle({
 
       {showWishlist ? (
         <CollectionWishlist userId={userId} />
+      ) : items.length === 0 ? (
+        <div className="text-center py-12 text-sm text-muted-foreground">
+          {selectedPersonalTag
+            ? `「${selectedPersonalTag}」タグが付いたグッズはまだありません`
+            : "該当するグッズがありません"}
+        </div>
       ) : (
         <CollectionGrid
           items={items}
