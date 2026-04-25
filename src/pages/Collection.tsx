@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CollectionLimitBanner } from "@/components/shop/CollectionLimitBanner";
-import { PersonalTagTabs } from "@/components/collection/PersonalTagTabs";
-import { usePersonalTags } from "@/hooks/usePersonalTags";
+
 
 export default function Collection() {
   const isMobile = useIsMobile();
@@ -22,7 +21,6 @@ export default function Collection() {
   const [selectedContent, setSelectedContent] = useState("");
   const [selectedPersonalTag, setSelectedPersonalTag] = useState("");
   const { data: allTags = [] } = useTags();
-  const { allUserTags } = usePersonalTags();
 
   const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
@@ -47,13 +45,6 @@ export default function Collection() {
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
           <CollectionLimitBanner type="collection" />
 
-          {/* マイタグでカテゴリ絞り込み */}
-          <PersonalTagTabs
-            tags={allUserTags}
-            selectedTag={selectedPersonalTag}
-            onSelect={handlePersonalTagChange}
-          />
-
           <FilterSheet
             searchQuery={searchQuery}
             onSearchChange={handleSearchChange}
@@ -73,6 +64,7 @@ export default function Collection() {
               selectedContent={selectedContent} 
               onContentChange={handleContentChange}
               selectedPersonalTag={selectedPersonalTag}
+              onPersonalTagChange={handlePersonalTagChange}
             />
           </div>
         </div>
