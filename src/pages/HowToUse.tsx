@@ -1,25 +1,22 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState } from "react";
-import { 
-  Search, 
-  FolderOpen, 
-  Heart, 
-  ArrowRightLeft, 
+import {
+  Search,
+  Heart,
+  ArrowRightLeft,
   Home,
   Plus,
   Sparkles,
-  ChevronRight,
   CheckCircle2,
-  MessageCircle,
-  Users,
   Gift,
   Lightbulb,
   ArrowRight,
-  Image,
   Star,
-  Zap
+  Zap,
+  Package,
+  UserCircle2,
+  Wand2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +26,6 @@ import { motion } from "framer-motion";
 
 // スクリーンショット画像
 import guideSearchImg from "@/assets/guide-search.png";
-import guideCommunityImg from "@/assets/guide-community.png";
 import guideCollectionImg from "@/assets/guide-collection.png";
 
 const featureShowcase = [
@@ -37,47 +33,50 @@ const featureShowcase = [
     id: "search",
     title: "グッズを発見",
     subtitle: "お気に入りを見つけよう",
-    description: "作品名やタグで検索して、欲しいグッズを簡単に発見。コンテンツ別にフィルタリングして、効率的にグッズを探せます。",
+    description:
+      "作品名・キャラ・タグでグッズを検索。気になったものはワンタップでコレクションやウィッシュリストに追加できます。",
     image: guideSearchImg,
     color: "from-blue-500 to-cyan-500",
     steps: [
-      "検索バーでキーワード入力",
-      "コンテンツやタグでフィルター",
-      "気になるグッズをタップ"
+      "発見ページでキーワード検索",
+      "コンテンツやタグで絞り込み",
+      "気になるグッズをタップして詳細へ",
     ],
     action: "発見ページへ",
-    path: "/search"
+    path: "/search",
   },
   {
     id: "collection",
     title: "コレクション管理",
-    subtitle: "大切なグッズを記録",
-    description: "持っているグッズを登録して一覧で管理。購入日や価格、思い出の写真も一緒に保存できます。",
+    subtitle: "持っているグッズを記録",
+    description:
+      "持っているグッズを登録して一覧で管理。購入日・価格・思い出の写真も一緒に保存できます。",
     image: guideCollectionImg,
     color: "from-green-500 to-emerald-500",
     steps: [
       "グッズをコレクションに追加",
       "詳細情報やメモを記録",
-      "タグで整理して検索しやすく"
+      "タグで整理して見つけやすく",
     ],
     action: "コレクションへ",
-    path: "/collection"
+    path: "/collection",
   },
   {
-    id: "community",
-    title: "コミュニティ",
-    subtitle: "仲間と交流しよう",
-    description: "投稿でグッズを紹介したり、他のコレクターと交流。いいねやコメントで盛り上がろう！",
-    image: guideCommunityImg,
+    id: "ai-room",
+    title: "AIで推し部屋を生成",
+    subtitle: "あなたのグッズで世界に一つの部屋を",
+    description:
+      "登録したグッズからAIが推し部屋のイメージを生成。スタイルを選ぶだけで、写真のような空間が完成します。",
+    image: guideCollectionImg,
     color: "from-purple-500 to-pink-500",
     steps: [
-      "写真付きで投稿を作成",
-      "いいね・コメントで交流",
-      "気になるユーザーをフォロー"
+      "コレクションからグッズを選択",
+      "好みのスタイルプリセットを指定",
+      "AIが部屋イメージを自動生成",
     ],
-    action: "投稿を見る",
-    path: "/posts"
-  }
+    action: "AIルームへ",
+    path: "/ai-rooms",
+  },
 ];
 
 const quickTips = [
@@ -85,61 +84,71 @@ const quickTips = [
     icon: Plus,
     title: "グッズを追加",
     description: "発見ページからワンタップで追加",
-    color: "bg-blue-500"
+    color: "bg-blue-500",
   },
   {
     icon: Heart,
     title: "ウィッシュリスト",
     description: "欲しいグッズをブックマーク",
-    color: "bg-pink-500"
+    color: "bg-pink-500",
   },
   {
     icon: ArrowRightLeft,
     title: "トレード",
-    description: "グッズを交換できる機能",
-    color: "bg-orange-500"
+    description: "他のコレクターとグッズを交換",
+    color: "bg-orange-500",
   },
   {
     icon: Home,
     title: "マイルーム",
-    description: "グッズを飾れるバーチャル空間",
-    color: "bg-purple-500"
+    description: "あなたのコレクションのホーム画面",
+    color: "bg-purple-500",
   },
   {
-    icon: Sparkles,
+    icon: UserCircle2,
     title: "AIアバター",
-    description: "オリジナルアバターを生成",
-    color: "bg-cyan-500"
+    description: "AIで自分だけのアバターを生成",
+    color: "bg-cyan-500",
   },
   {
-    icon: Gift,
-    title: "ポイント",
-    description: "活動でポイントが貯まる",
-    color: "bg-amber-500"
-  }
+    icon: Wand2,
+    title: "AIルーム",
+    description: "グッズから推し部屋イメージを生成",
+    color: "bg-fuchsia-500",
+  },
+];
+
+const onboardingSteps = [
+  { label: "アカウント作成", points: 10, icon: "👤" },
+  { label: "プロフィール設定", points: 10, icon: "✏️" },
+  { label: "推しの作品を登録", points: 10, icon: "⭐" },
+  { label: "最初のグッズを追加", points: 20, icon: "📦" },
+  { label: "AIアバターを作る", points: 30, icon: "🧑‍🎨" },
+  { label: "AIで推し部屋を生成", points: 30, icon: "🏠" },
+  { label: "最初の投稿", points: 20, icon: "📸" },
 ];
 
 const faqs = [
   {
     q: "グッズが見つからない場合は？",
-    a: "発見ページで見つからないグッズは、コレクションページから直接追加できます。「+」ボタンから写真を撮って登録しましょう。",
-    icon: "🔍"
+    a: "発見ページに無いグッズはコレクションページから直接追加できます。「+」ボタンから写真を撮って登録しましょう。",
+    icon: "🔍",
   },
   {
     q: "ポイントは何に使えますか？",
-    a: "ポイントショップでコレクション枠の追加やAI画像生成の回数を購入できます。グッズ追加やログインでポイントがもらえます。",
-    icon: "💎"
+    a: "ポイントショップでコレクション枠の追加やAI画像生成の追加回数を購入できます。ログインやグッズ追加、はじめのステップ達成でポイントが貯まります。",
+    icon: "💎",
   },
   {
     q: "マイルームは誰でも見れますか？",
-    a: "公開設定にすると他のユーザーも訪問できます。非公開にしたい場合はルーム設定から変更可能です。",
-    icon: "🏠"
+    a: "公開設定にすると他のユーザーも訪問できます。非公開にしたい場合はルーム設定からいつでも変更できます。",
+    icon: "🏠",
   },
   {
-    q: "通知を受け取るには？",
-    a: "プロフィールで「お気に入りの作品」を設定すると、関連する新着グッズの通知を受け取れます。",
-    icon: "🔔"
-  }
+    q: "トレードはどうやって始めますか？",
+    a: "コレクションのグッズを「トレード可」に設定すると、他のユーザーから交換リクエストが届くようになります。マッチした相手とチャットで詳細を相談しましょう。",
+    icon: "🔄",
+  },
 ];
 
 export default function HowToUse() {
@@ -149,11 +158,10 @@ export default function HowToUse() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
       <Navbar />
-      <main className={`${isMobile ? 'pb-24' : 'pt-4 pb-8'}`}>
+      <main className={`${isMobile ? "pb-24" : "pt-4 pb-8"}`}>
         <div className="max-w-6xl mx-auto px-4 space-y-16">
-          
           {/* ヒーローセクション */}
-          <motion.section 
+          <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center space-y-6 py-8"
@@ -169,19 +177,65 @@ export default function HowToUse() {
               の使い方
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              推しグッズを記録・管理・共有できるアプリです。
+              推しグッズを記録・管理して、AIで推し部屋まで作れるアプリ。
               <br className="hidden md:block" />
               コレクションをもっと楽しくしましょう！
             </p>
+          </motion.section>
+
+          {/* はじめのステップ（オンボーディング報酬） */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="space-y-6"
+          >
+            <div className="text-center">
+              <h2 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-6 h-6 text-primary" />
+                はじめの7ステップ
+              </h2>
+              <p className="text-muted-foreground mt-2">
+                ステップを達成するごとに自動でポイントがもらえます
+              </p>
+            </div>
+            <Card className="border-2 border-primary/20 overflow-hidden">
+              <CardContent className="p-5 md:p-6">
+                <ol className="grid sm:grid-cols-2 gap-3">
+                  {onboardingSteps.map((step, i) => (
+                    <li
+                      key={step.label}
+                      className="flex items-center gap-3 rounded-xl bg-muted/40 p-3"
+                    >
+                      <span className="w-8 h-8 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center text-sm shrink-0">
+                        {i + 1}
+                      </span>
+                      <span className="text-xl">{step.icon}</span>
+                      <span className="flex-1 text-sm font-medium">
+                        {step.label}
+                      </span>
+                      <Badge variant="secondary" className="font-bold">
+                        +{step.points}pt
+                      </Badge>
+                    </li>
+                  ))}
+                </ol>
+                <p className="text-xs text-muted-foreground mt-4 text-center">
+                  マイルーム上のチェックリストから進捗を確認できます
+                </p>
+              </CardContent>
+            </Card>
           </motion.section>
 
           {/* メイン機能ショーケース */}
           <section className="space-y-8">
             <div className="text-center">
               <h2 className="text-2xl md:text-3xl font-bold">主な機能</h2>
-              <p className="text-muted-foreground mt-2">スクリーンショットで使い方をチェック</p>
+              <p className="text-muted-foreground mt-2">
+                Collectifyの中心となる3つの機能
+              </p>
             </div>
-            
+
             <div className="space-y-12">
               {featureShowcase.map((feature, index) => (
                 <motion.div
@@ -192,17 +246,33 @@ export default function HowToUse() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
                   <Card className="overflow-hidden border-0 shadow-xl">
-                    <div className={`grid ${isMobile ? 'grid-cols-1' : index % 2 === 0 ? 'md:grid-cols-2' : 'md:grid-cols-2'}`}>
+                    <div
+                      className={`grid ${
+                        isMobile ? "grid-cols-1" : "md:grid-cols-2"
+                      }`}
+                    >
                       {/* 画像セクション */}
-                      <div className={`relative overflow-hidden ${!isMobile && index % 2 === 1 ? 'md:order-2' : ''}`}>
-                        <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-10`} />
-                        <img 
-                          src={feature.image} 
+                      <div
+                        className={`relative overflow-hidden ${
+                          !isMobile && index % 2 === 1 ? "md:order-2" : ""
+                        }`}
+                      >
+                        <div
+                          className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-10`}
+                        />
+                        <img
+                          src={feature.image}
                           alt={feature.title}
                           className="w-full h-full object-cover object-top aspect-video md:aspect-auto"
                         />
-                        <div className={`absolute top-4 ${index % 2 === 0 ? 'left-4' : 'right-4'}`}>
-                          <Badge className={`bg-gradient-to-r ${feature.color} text-white border-0`}>
+                        <div
+                          className={`absolute top-4 ${
+                            index % 2 === 0 ? "left-4" : "right-4"
+                          }`}
+                        >
+                          <Badge
+                            className={`bg-gradient-to-r ${feature.color} text-white border-0`}
+                          >
                             <Star className="w-3 h-3 mr-1" />
                             STEP {index + 1}
                           </Badge>
@@ -213,19 +283,28 @@ export default function HowToUse() {
                       <div className="p-6 md:p-8 flex flex-col justify-center bg-card">
                         <div className="space-y-4">
                           <div>
-                            <p className={`text-sm font-medium bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`}>
+                            <p
+                              className={`text-sm font-medium bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`}
+                            >
                               {feature.subtitle}
                             </p>
-                            <h3 className="text-2xl md:text-3xl font-bold mt-1">{feature.title}</h3>
+                            <h3 className="text-2xl md:text-3xl font-bold mt-1">
+                              {feature.title}
+                            </h3>
                           </div>
                           <p className="text-muted-foreground leading-relaxed">
                             {feature.description}
                           </p>
-                          
+
                           <div className="space-y-2 pt-2">
                             {feature.steps.map((step, stepIndex) => (
-                              <div key={stepIndex} className="flex items-center gap-3">
-                                <div className={`w-6 h-6 rounded-full bg-gradient-to-r ${feature.color} flex items-center justify-center text-white text-xs font-bold`}>
+                              <div
+                                key={stepIndex}
+                                className="flex items-center gap-3"
+                              >
+                                <div
+                                  className={`w-6 h-6 rounded-full bg-gradient-to-r ${feature.color} flex items-center justify-center text-white text-xs font-bold`}
+                                >
                                   {stepIndex + 1}
                                 </div>
                                 <span className="text-sm">{step}</span>
@@ -233,7 +312,7 @@ export default function HowToUse() {
                             ))}
                           </div>
 
-                          <Button 
+                          <Button
                             className={`mt-4 bg-gradient-to-r ${feature.color} hover:opacity-90 transition-opacity text-white`}
                             onClick={() => navigate(feature.path)}
                           >
@@ -256,9 +335,11 @@ export default function HowToUse() {
                 <Zap className="w-6 h-6 text-primary" />
                 便利な機能
               </h2>
-              <p className="text-muted-foreground mt-2">もっと楽しく使いこなそう</p>
+              <p className="text-muted-foreground mt-2">
+                もっと楽しく使いこなそう
+              </p>
             </div>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {quickTips.map((tip, index) => (
                 <motion.div
@@ -270,12 +351,16 @@ export default function HowToUse() {
                 >
                   <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
                     <CardContent className="p-4 md:p-6 text-center space-y-3">
-                      <div className={`w-12 h-12 mx-auto rounded-xl ${tip.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                      <div
+                        className={`w-12 h-12 mx-auto rounded-xl ${tip.color} flex items-center justify-center group-hover:scale-110 transition-transform`}
+                      >
                         <tip.icon className="w-6 h-6 text-white" />
                       </div>
                       <div>
                         <h3 className="font-bold">{tip.title}</h3>
-                        <p className="text-xs md:text-sm text-muted-foreground mt-1">{tip.description}</p>
+                        <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                          {tip.description}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -294,30 +379,32 @@ export default function HowToUse() {
               <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 md:p-8">
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                   <div className="p-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-                    <Gift className="w-10 h-10 text-white" />
+                    <Gift className="w-10 h-10 text-primary-foreground" />
                   </div>
                   <div className="flex-1 space-y-3">
-                    <h3 className="text-xl md:text-2xl font-bold">ポイントを貯めてお得に！</h3>
+                    <h3 className="text-xl md:text-2xl font-bold">
+                      ポイントを貯めてお得に！
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                       <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
-                        <span className="text-xl">📦</span>
+                        <Package className="w-5 h-5 text-primary" />
                         <div>
                           <div className="font-medium">グッズ追加</div>
                           <div className="text-primary font-bold">+10pt</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
-                        <span className="text-xl">📅</span>
+                        <CheckCircle2 className="w-5 h-5 text-primary" />
                         <div>
                           <div className="font-medium">毎日ログイン</div>
                           <div className="text-primary font-bold">+5pt</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
-                        <span className="text-xl">📸</span>
+                        <Sparkles className="w-5 h-5 text-primary" />
                         <div>
-                          <div className="font-medium">投稿作成</div>
-                          <div className="text-primary font-bold">+15pt</div>
+                          <div className="font-medium">ステップ達成</div>
+                          <div className="text-primary font-bold">最大+130pt</div>
                         </div>
                       </div>
                     </div>
@@ -333,7 +420,7 @@ export default function HowToUse() {
               <h2 className="text-2xl md:text-3xl font-bold">よくある質問</h2>
               <p className="text-muted-foreground mt-2">困ったときはこちら</p>
             </div>
-            
+
             <div className="grid md:grid-cols-2 gap-4">
               {faqs.map((faq, index) => (
                 <motion.div
@@ -349,7 +436,9 @@ export default function HowToUse() {
                         <span className="text-2xl">{faq.icon}</span>
                         <div className="space-y-2">
                           <h3 className="font-bold text-base">{faq.q}</h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {faq.a}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -360,7 +449,7 @@ export default function HowToUse() {
           </section>
 
           {/* CTA */}
-          <motion.section 
+          <motion.section
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -373,17 +462,25 @@ export default function HowToUse() {
               あなたのコレクションライフを、もっと楽しく。
             </p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="text-base px-8" onClick={() => navigate("/search")}>
+              <Button
+                size="lg"
+                className="text-base px-8"
+                onClick={() => navigate("/search")}
+              >
                 <Search className="w-5 h-5 mr-2" />
                 グッズを探す
               </Button>
-              <Button size="lg" variant="outline" className="text-base px-8" onClick={() => navigate("/my-room")}>
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-base px-8"
+                onClick={() => navigate("/my-room")}
+              >
                 <Home className="w-5 h-5 mr-2" />
                 マイルームへ
               </Button>
             </div>
           </motion.section>
-
         </div>
       </main>
       <Footer />
