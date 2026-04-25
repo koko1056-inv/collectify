@@ -177,10 +177,10 @@ export function UserItemDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between pr-6">
-            <span className="truncate">{title}</span>
+          <DialogTitle className="pr-8 text-base sm:text-lg leading-snug break-words">
+            {title}
           </DialogTitle>
         </DialogHeader>
 
@@ -191,11 +191,11 @@ export function UserItemDetailsModal({
         ) : (
           <div className="space-y-4">
             {/* メイン画像 */}
-            <div className="aspect-square w-full rounded-lg overflow-hidden bg-muted">
+            <div className="aspect-square w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
               <img
                 src={itemDetails?.image || image}
                 alt={title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
 
