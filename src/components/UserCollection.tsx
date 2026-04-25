@@ -306,18 +306,18 @@ export function UserCollection({
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
       {/* ツールバー */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center justify-between gap-2 mb-4">
         {!isSelectionMode ? (
           <>
-            {/* 左：並び替え */}
+            {/* 左：並び替え（控えめ） */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  className="shrink-0 gap-1.5 h-9 px-3 rounded-full bg-background hover:bg-accent/50"
+                  className="shrink-0 gap-1.5 h-9 px-2.5 -ml-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 >
-                  <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  <ArrowUpDown className="h-3.5 w-3.5" />
                   <span className="text-sm font-medium">{sortLabels[sortOption]}</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -335,20 +335,18 @@ export function UserCollection({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <div className="flex-1 min-w-0" />
-
-            {/* 右：アクション群（区切りを設けて視覚的にグループ化） */}
-            <div className="flex items-center gap-1.5 shrink-0">
+            {/* 右：アクション群（階層付け） */}
+            <div className="flex items-center gap-1 shrink-0">
               {isOwnCollection && (
                 <Button
                   onClick={handleToggleSelectionMode}
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   aria-label="選択モード"
-                  className="shrink-0 gap-1.5 h-9 px-3 rounded-full hover:bg-accent/50"
+                  title="選択"
+                  className="shrink-0 h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60"
                 >
-                  <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">選択</span>
+                  <CheckSquare className="h-[18px] w-[18px]" />
                 </Button>
               )}
 
@@ -356,10 +354,10 @@ export function UserCollection({
                 onClick={handleRandomModalOpen}
                 size="sm"
                 aria-label={t("collection.todaysCollection")}
-                className="shrink-0 gap-1.5 h-9 px-3 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border-0 shadow-none group"
+                className="shrink-0 gap-1.5 h-9 pl-3 pr-3.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow transition-all group"
               >
                 <Dices className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                <span className="text-sm font-medium">今日のグッズ</span>
+                <span className="text-sm font-semibold">今日のグッズ</span>
               </Button>
             </div>
           </>
