@@ -278,61 +278,162 @@ export function UserCollection({
         <p className="text-gray-500">{t("collection.noMatches")}</p>
       </div>;
   }
+  const handleToggleSelectionMode = () => {
+    setIsSelectionMode((prev) => {
+      if (prev) setSelectedItemIds([]);
+      return !prev;
+    });
+  };
+
+  const handleSelectItem = (id: string) => {
+    setSelectedItemIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItemIds.length === filteredItems.length) {
+      setSelectedItemIds([]);
+    } else {
+      setSelectedItemIds(filteredItems.map((i) => i.id));
+    }
+  };
+
+  const handleBulkComplete = () => {
+    setIsSelectionMode(false);
+    setSelectedItemIds([]);
+  };
+
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
+      {/* ツールバー */}
       <div className="flex items-center gap-2 mb-4 p-2 bg-muted/30 rounded-xl">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="gap-2 h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50 hover:bg-accent/50 transition-all"
-            >
-              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="text-sm font-medium">{sortLabels[sortOption]}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="min-w-[160px]">
-            {(Object.keys(sortLabels) as SortOption[]).map((option) => (
-              <DropdownMenuItem
-                key={option}
-                onClick={() => setSortOption(option)}
-                className={`gap-2 ${sortOption === option ? "bg-accent font-medium" : ""}`}
+        {!isSelectionMode ? (
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-2 h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50 hover:bg-accent/50 transition-all"
+                >
+                  <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-sm font-medium">{sortLabels[sortOption]}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="min-w-[160px]">
+                {(Object.keys(sortLabels) as SortOption[]).map((option) => (
+                  <DropdownMenuItem
+                    key={option}
+                    onClick={() => setSortOption(option)}
+                    className={`gap-2 ${sortOption === option ? "bg-accent font-medium" : ""}`}
+                  >
+                    <span className="text-muted-foreground">{sortIcons[option]}</span>
+                    {sortLabels[option]}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="flex-1" />
+
+            {isOwnCollection && (
+              <Button
+                onClick={handleToggleSelectionMode}
+                variant="ghost"
+                size="sm"
+                className="gap-2 h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50 hover:bg-accent/50 transition-all"
               >
-                <span className="text-muted-foreground">{sortIcons[option]}</span>
-                {sortLabels[option]}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+                <CheckSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-sm font-medium">選択</span>
+              </Button>
+            )}
 
-        <div className="flex-1" />
-
-        <Button 
-          onClick={handleRandomModalOpen} 
-          variant="ghost" 
-          size="sm" 
-          className="gap-2 h-9 px-3 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 hover:from-primary/20 hover:to-accent/20 transition-all group"
-        >
-          <Dices className="h-3.5 w-3.5 text-primary group-hover:rotate-12 transition-transform" />
-          <span className="text-sm font-medium text-primary">{t("collection.todaysCollection")}</span>
-        </Button>
+            <Button
+              onClick={handleRandomModalOpen}
+              variant="ghost"
+              size="sm"
+              className="gap-2 h-9 px-3 rounded-lg bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 hover:from-primary/20 hover:to-accent/20 transition-all group"
+            >
+              <Dices className="h-3.5 w-3.5 text-primary group-hover:rotate-12 transition-transform" />
+              <span className="text-sm font-medium text-primary">{t("collection.todaysCollection")}</span>
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSelectAll}
+              className="h-9 px-3 rounded-lg bg-background shadow-sm border border-border/50"
+            >
+              <span className="text-sm font-medium">
+                {selectedItemIds.length === filteredItems.length && filteredItems.length > 0
+                  ? "選択解除"
+                  : "全て選択"}
+              </span>
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {selectedItemIds.length}件選択中
+            </span>
+            <div className="flex-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleSelectionMode}
+              className="h-9 px-3 rounded-lg"
+            >
+              <X className="h-4 w-4 mr-1" />
+              キャンセル
+            </Button>
+          </>
+        )}
       </div>
-      
-      <CollectionViewToggle 
-        userId={effectiveUserId} 
-        items={filteredItems} 
-        isCompact={isCompact} 
-        handleDragEnd={handleDragEnd} 
+
+      <CollectionViewToggle
+        userId={effectiveUserId}
+        items={filteredItems}
+        isCompact={isCompact}
+        handleDragEnd={handleDragEnd}
         batchMemories={batchMemories}
         selectedPersonalTag={selectedPersonalTag}
         onPersonalTagChange={onPersonalTagChange}
+        isSelectionMode={isSelectionMode}
+        selectedItems={selectedItemIds}
+        onSelectItem={handleSelectItem}
       />
 
-      <RandomCollectionItemModal 
-        isOpen={isRandomModalOpen} 
-        onClose={handleRandomModalClose} 
-        userId={effectiveUserId} 
+      {/* 選択モード時のフローティングアクションバー */}
+      {isSelectionMode && selectedItemIds.length > 0 && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 px-4 w-full max-w-md">
+          <div className="bg-background/95 backdrop-blur-md border border-border rounded-full shadow-xl flex items-center gap-2 p-2">
+            <span className="text-sm font-medium pl-3">
+              {selectedItemIds.length}件
+            </span>
+            <div className="flex-1" />
+            <Button
+              size="sm"
+              onClick={() => setIsBulkTagDialogOpen(true)}
+              className="rounded-full gap-1.5"
+            >
+              <Tag className="w-4 h-4" />
+              マイタグを付ける
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <BulkPersonalTagDialog
+        open={isBulkTagDialogOpen}
+        onOpenChange={setIsBulkTagDialogOpen}
+        selectedItemIds={selectedItemIds}
+        onComplete={handleBulkComplete}
+      />
+
+      <RandomCollectionItemModal
+        isOpen={isRandomModalOpen}
+        onClose={handleRandomModalClose}
+        userId={effectiveUserId}
       />
     </div>
   );
