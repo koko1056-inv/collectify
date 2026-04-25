@@ -321,7 +321,6 @@ export function UserItemDetailsModal({
                         onClick={() => {
                           setIsEditingNote(false);
                           setNoteValue(itemDetails?.note || "");
-                          setPurchaseDateValue(itemDetails?.purchase_date || "");
                         }}
                       >
                         キャンセル
