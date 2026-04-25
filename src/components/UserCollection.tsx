@@ -50,8 +50,8 @@ export function UserCollection({
   userId,
   selectedContent,
   onContentChange,
-  selectedPersonalTag,
-  onPersonalTagChange,
+  selectedPersonalTag: selectedPersonalTagProp,
+  onPersonalTagChange: onPersonalTagChangeProp,
 }: UserCollectionProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -62,6 +62,10 @@ export function UserCollection({
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   const [isBulkTagDialogOpen, setIsBulkTagDialogOpen] = useState(false);
+  // 親から渡されない場合は内部 state でマイタグ選択を管理（MyRoom 経由など）
+  const [internalPersonalTag, setInternalPersonalTag] = useState("");
+  const selectedPersonalTag = selectedPersonalTagProp ?? internalPersonalTag;
+  const onPersonalTagChange = onPersonalTagChangeProp ?? setInternalPersonalTag;
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
 
