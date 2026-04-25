@@ -59,8 +59,13 @@ export function UserCollection({
   const [isCompact, setIsCompact] = useState(false);
   const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>("newest");
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  const [isBulkTagDialogOpen, setIsBulkTagDialogOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
   const queryClient = useQueryClient();
+
+  const isOwnCollection = !userId || userId === user?.id;
 
   const handleRandomModalOpen = useCallback(() => {
     setIsRandomModalOpen(true);
