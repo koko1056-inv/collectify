@@ -87,7 +87,7 @@ export function UserCollection({
   const { data: batchMemories = {} } = useBatchItemMemories(itemIds);
 
   // マイタグでフィルタする場合、対象のuser_item_idを取得
-  const { data: personalTagItemIds = [] } = useQuery({
+  const { data: personalTagItemIds = [], isLoading: isPersonalTagLoading } = useQuery({
     queryKey: ["personal-tag-filter", effectiveUserId, selectedPersonalTag],
     queryFn: async () => {
       if (!selectedPersonalTag || !effectiveUserId) return [];
@@ -119,10 +119,14 @@ export function UserCollection({
       });
     }
     // マイタグでフィルタ
-    if (selectedPersonalTag && personalTagItemIds.length > 0) {
-      filtered = filtered.filter(item => personalTagItemIds.includes(item.id));
-    } else if (selectedPersonalTag && personalTagItemIds.length === 0) {
-      filtered = [];
+    if (selectedPersonalTag) {
+      if (isPersonalTagLoading) {
+        // ローディング中は空にせず、現在のフィルタ結果を保持
+      } else if (personalTagItemIds.length > 0) {
+        filtered = filtered.filter(item => personalTagItemIds.includes(item.id));
+      } else {
+        filtered = [];
+      }
     }
     
     // ソート処理
@@ -144,7 +148,7 @@ export function UserCollection({
     });
     
     return sorted;
-  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, sortOption]);
+  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, isPersonalTagLoading, sortOption]);
 
   const sortLabels: Record<SortOption, string> = {
     newest: "新しい順",
