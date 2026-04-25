@@ -38,8 +38,11 @@ interface ChecklistItem {
 export function OnboardingChecklist() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
+  const claimingRef = useRef<Set<string>>(new Set());
 
   // Check if dismissed from localStorage
   useEffect(() => {
@@ -55,7 +58,7 @@ export function OnboardingChecklist() {
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const [profileRes, itemsRes, postsRes, avatarRes, roomRes] = await Promise.all([
+      const [profileRes, itemsRes, postsRes, avatarRes, roomRes, rewardsRes] = await Promise.all([
         supabase
           .from('profiles')
           .select('avatar_url, bio, display_name, favorite_item_ids')
@@ -65,9 +68,11 @@ export function OnboardingChecklist() {
         supabase.from('goods_posts').select('id').eq('user_id', user.id).limit(1),
         supabase.from('avatar_gallery').select('id').eq('user_id', user.id).limit(1),
         supabase.from('ai_generated_rooms').select('id').eq('user_id', user.id).limit(1),
+        supabase.from('onboarding_rewards').select('step_id').eq('user_id', user.id),
       ]);
 
       const profile = profileRes.data;
+      const claimedSteps = new Set((rewardsRes.data ?? []).map((r) => r.step_id));
       return {
         hasProfile: !!(profile?.avatar_url || profile?.bio || profile?.display_name),
         hasItem: (itemsRes.data?.length ?? 0) > 0,
@@ -75,6 +80,7 @@ export function OnboardingChecklist() {
         hasFavorites: ((profile?.favorite_item_ids as string[] | null)?.length ?? 0) > 0,
         hasAvatar: (avatarRes.data?.length ?? 0) > 0,
         hasAiRoom: (roomRes.data?.length ?? 0) > 0,
+        claimedSteps,
       };
     },
     enabled: !!user?.id && !isDismissed,
