@@ -1709,6 +1709,30 @@ export type Database = {
           },
         ]
       }
+      onboarding_rewards: {
+        Row: {
+          created_at: string
+          id: string
+          points_awarded: number
+          step_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          points_awarded?: number
+          step_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          points_awarded?: number
+          step_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       original_item_tags: {
         Row: {
           created_at: string
@@ -3257,6 +3281,10 @@ export type Database = {
         Returns: boolean
       }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
+      claim_onboarding_reward: {
+        Args: { _points: number; _step_id: string }
+        Returns: boolean
+      }
       find_user_matches: {
         Args: { _limit?: number; _user_id: string }
         Returns: {

@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2,
@@ -37,8 +38,11 @@ interface ChecklistItem {
 export function OnboardingChecklist() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
+  const claimingRef = useRef<Set<string>>(new Set());
 
   // Check if dismissed from localStorage
   useEffect(() => {
@@ -54,7 +58,7 @@ export function OnboardingChecklist() {
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const [profileRes, itemsRes, postsRes, avatarRes, roomRes] = await Promise.all([
+      const [profileRes, itemsRes, postsRes, avatarRes, roomRes, rewardsRes] = await Promise.all([
         supabase
           .from('profiles')
           .select('avatar_url, bio, display_name, favorite_item_ids')
@@ -64,9 +68,11 @@ export function OnboardingChecklist() {
         supabase.from('goods_posts').select('id').eq('user_id', user.id).limit(1),
         supabase.from('avatar_gallery').select('id').eq('user_id', user.id).limit(1),
         supabase.from('ai_generated_rooms').select('id').eq('user_id', user.id).limit(1),
+        supabase.from('onboarding_rewards').select('step_id').eq('user_id', user.id),
       ]);
 
       const profile = profileRes.data;
+      const claimedSteps = new Set((rewardsRes.data ?? []).map((r) => r.step_id));
       return {
         hasProfile: !!(profile?.avatar_url || profile?.bio || profile?.display_name),
         hasItem: (itemsRes.data?.length ?? 0) > 0,
@@ -74,6 +80,7 @@ export function OnboardingChecklist() {
         hasFavorites: ((profile?.favorite_item_ids as string[] | null)?.length ?? 0) > 0,
         hasAvatar: (avatarRes.data?.length ?? 0) > 0,
         hasAiRoom: (roomRes.data?.length ?? 0) > 0,
+        claimedSteps,
       };
     },
     enabled: !!user?.id && !isDismissed,
@@ -154,6 +161,47 @@ export function OnboardingChecklist() {
   const totalCount = items.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
   const allCompleted = completedCount === totalCount;
+
+  // Auto-claim rewards for completed steps that haven't been claimed yet
+  useEffect(() => {
+    if (!user?.id || !checklistData) return;
+    const claimedSteps = checklistData.claimedSteps;
+
+    const toClaim = items.filter(
+      (i) => i.completed && i.points > 0 && !claimedSteps.has(i.id) && !claimingRef.current.has(i.id)
+    );
+    if (toClaim.length === 0) return;
+
+    (async () => {
+      for (const item of toClaim) {
+        claimingRef.current.add(item.id);
+        try {
+          const { data, error } = await supabase.rpc('claim_onboarding_reward', {
+            _step_id: item.id,
+            _points: item.points,
+          });
+          if (error) {
+            console.error('[OnboardingChecklist] claim error:', error);
+            claimingRef.current.delete(item.id);
+            continue;
+          }
+          if (data === true) {
+            toast({
+              title: `🎉 ${item.label} 達成！`,
+              description: `+${item.points}pt をゲットしました`,
+            });
+          }
+        } catch (e) {
+          console.error('[OnboardingChecklist] claim exception:', e);
+          claimingRef.current.delete(item.id);
+        }
+      }
+      // Refresh data so UI reflects claimed state and points balance updates
+      queryClient.invalidateQueries({ queryKey: ['onboarding-checklist', user.id] });
+      queryClient.invalidateQueries({ queryKey: ['userPoints'] });
+      queryClient.invalidateQueries({ queryKey: ['pointTransactions'] });
+    })();
+  }, [items, checklistData, user?.id, queryClient, toast]);
 
   const handleDismiss = () => {
     if (user?.id) {
@@ -267,7 +315,12 @@ export function OnboardingChecklist() {
                           {item.description}
                         </p>
                       </div>
-                      {!item.completed && (
+                      {item.completed ? (
+                        <span className="text-xs font-medium text-primary bg-primary/15 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
+                          <CheckCircle2 className="w-3 h-3" />
+                          +{item.points}pt
+                        </span>
+                      ) : (
                         <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
                           +{item.points}pt
                         </span>
