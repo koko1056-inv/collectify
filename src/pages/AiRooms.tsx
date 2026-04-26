@@ -93,8 +93,13 @@ export default function AiRoomsPage() {
     document.body.removeChild(a);
   };
 
+  const handleNewClick = () => {
+    if (activeTab === "rooms") setWizardOpen(true);
+    else setAvatarStudioTab("generate");
+  };
+
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-28">
       {/* ヘッダー */}
       <div className="sticky top-0 z-30 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-400/10 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
@@ -108,17 +113,17 @@ export default function AiRoomsPage() {
           </Button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <Wand2 className="w-4 h-4 text-primary" />
+              <Sparkles className="w-4 h-4 text-primary" />
               <h1 className="text-base sm:text-lg font-bold truncate">
-                AIルーム
+                AIスタジオ
               </h1>
             </div>
             <p className="text-[10px] text-muted-foreground">
-              AIがあなたの推しで部屋を描きます
+              AIで推しルームとアバターを生成
             </p>
           </div>
           <Button
-            onClick={() => setWizardOpen(true)}
+            onClick={handleNewClick}
             size="sm"
             className="gap-1.5 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 text-white hover:opacity-95 shadow-md"
           >
@@ -126,62 +131,131 @@ export default function AiRoomsPage() {
             新規
           </Button>
         </div>
+        {/* タブ */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-2">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ActiveTab)}>
+            <TabsList className="grid grid-cols-2 w-full h-10">
+              <TabsTrigger value="rooms" className="gap-1.5">
+                <Home className="w-4 h-4" />
+                ルーム
+              </TabsTrigger>
+              <TabsTrigger value="avatar" className="gap-1.5">
+                <Shirt className="w-4 h-4" />
+                アバター
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
-        {/* ヒーロー CTA (ルームが空のとき) */}
-        {!isLoading && rooms.length === 0 && (
-          <EmptyHero onStart={() => setWizardOpen(true)} />
-        )}
-
-        {/* ローディング */}
-        {isLoading && (
-          <div className="grid grid-cols-2 gap-3">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="aspect-video rounded-2xl bg-muted/60 animate-pulse"
-              />
-            ))}
-          </div>
-        )}
-
-        {/* グリッド */}
-        {!isLoading && rooms.length > 0 && (
+        {activeTab === "rooms" && (
           <>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-foreground">
-                マイAIルーム
-                <span className="ml-1.5 text-xs text-muted-foreground font-normal">
-                  ({rooms.length})
-                </span>
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {rooms.map((room) => (
-                <RoomCard
-                  key={room.id}
-                  room={room}
-                  onOpen={() => setViewing(room)}
-                  onDelete={() => setDeletingId(room.id)}
-                  onTogglePublic={() =>
-                    toggleMutation.mutate({
-                      roomId: room.id,
-                      isPublic: !room.is_public,
-                    })
-                  }
-                />
-              ))}
-            </div>
+            {/* ヒーロー CTA (ルームが空のとき) */}
+            {!isLoading && rooms.length === 0 && (
+              <EmptyHero onStart={() => setWizardOpen(true)} />
+            )}
+
+            {/* ローディング */}
+            {isLoading && (
+              <div className="grid grid-cols-2 gap-3">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="aspect-video rounded-2xl bg-muted/60 animate-pulse"
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* グリッド */}
+            {!isLoading && rooms.length > 0 && (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-foreground">
+                    マイAIルーム
+                    <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                      ({rooms.length})
+                    </span>
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {rooms.map((room) => (
+                    <RoomCard
+                      key={room.id}
+                      room={room}
+                      onOpen={() => setViewing(room)}
+                      onDelete={() => setDeletingId(room.id)}
+                      onTogglePublic={() =>
+                        toggleMutation.mutate({
+                          roomId: room.id,
+                          isPublic: !room.is_public,
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </>
+        )}
+
+        {activeTab === "avatar" && (
+          <AvatarPanel
+            avatars={avatarsHook}
+            onGenerate={() => setAvatarStudioTab("generate")}
+            onDressUp={() => setAvatarStudioTab("dressup")}
+            onOpenGallery={() => setAvatarStudioTab("gallery")}
+            onDelete={(id) => setDeletingAvatarId(id)}
+          />
         )}
       </div>
 
-      {/* 作成ウィザード */}
+      {/* 作成ウィザード (ルーム) */}
       <AiRoomCreateWizard
         open={wizardOpen}
         onOpenChange={setWizardOpen}
       />
+
+      {/* アバタースタジオ */}
+      {user && avatarStudioTab && (
+        <AvatarStudioModal
+          isOpen={!!avatarStudioTab}
+          onClose={() => setAvatarStudioTab(null)}
+          userId={user.id}
+          initialTab={avatarStudioTab}
+        />
+      )}
+
+      {/* アバター削除確認 */}
+      <AlertDialog
+        open={!!deletingAvatarId}
+        onOpenChange={(o) => !o && setDeletingAvatarId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>このアバターを削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              削除すると元に戻せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deletingAvatarId) {
+                  avatarsHook.remove.mutate(deletingAvatarId);
+                  setDeletingAvatarId(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       {/* 画像ビューアー */}
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
