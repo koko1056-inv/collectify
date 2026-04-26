@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Camera, FileText, X } from "lucide-react";
+import { Plus, Camera, X, Sparkles, Home, Shirt } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,20 +12,28 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
+  // AI生成を主役に。グッズ追加は二次アクション。
   const actions = [
+    {
+      icon: Home,
+      label: "AIでルームを作る",
+      onClick: () => navigate("/my-room?tab=studio"),
+      gradient: "from-violet-500 to-fuchsia-500",
+      description: "AIが部屋を生成",
+    },
+    {
+      icon: Shirt,
+      label: "AIでアバターを作る",
+      onClick: () => navigate("/my-room?tab=avatar"),
+      gradient: "from-pink-500 to-rose-500",
+      description: "好きな姿に変身",
+    },
     {
       icon: Camera,
       label: "グッズを追加",
       onClick: () => navigate("/add-item"),
-      color: "bg-gradient-to-r from-pink-500 to-purple-500",
-      description: "フォームで登録",
-    },
-    {
-      icon: FileText,
-      label: "投稿作成",
-      onClick: () => navigate("/posts"),
-      color: "bg-green-500",
-      description: "コミュニティ",
+      gradient: "from-sky-500 to-blue-500",
+      description: "素材を増やす",
     },
   ];
 
@@ -38,7 +46,7 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 z-40"
+            className="fixed inset-0 bg-foreground/40 z-40"
             onClick={() => setIsOpen(false)}
           />
         )}
@@ -60,8 +68,8 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
                   setIsOpen(false);
                 }}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-full shadow-lg text-white",
-                  action.color
+                  "flex items-center gap-3 px-4 py-3 rounded-full shadow-lg text-primary-foreground bg-gradient-to-r",
+                  action.gradient
                 )}
               >
                 <action.icon className="h-5 w-5" />
@@ -80,16 +88,17 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "h-14 w-14 rounded-full flex items-center justify-center shadow-lg z-50 relative",
-          "bg-gradient-to-br from-pink-500 to-purple-600",
-          "hover:from-pink-600 hover:to-purple-700 transition-all"
+          "bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500",
+          "hover:shadow-xl transition-all"
         )}
         whileTap={{ scale: 0.95 }}
         animate={{ rotate: isOpen ? 45 : 0 }}
+        aria-label="AIで作る"
       >
         {isOpen ? (
-          <X className="h-6 w-6 text-white" />
+          <X className="h-6 w-6 text-primary-foreground" />
         ) : (
-          <Plus className="h-6 w-6 text-white" />
+          <Sparkles className="h-6 w-6 text-primary-foreground" />
         )}
       </motion.button>
     </div>
