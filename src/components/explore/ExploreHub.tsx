@@ -1,24 +1,24 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search,
   Sparkles,
-  Heart,
-  Eye,
   Crown,
   Home as HomeIcon,
   User,
   Package,
   Wand2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ExploreRoomCard, type ExploreRoom } from "./ExploreRoomCard";
+import { useMyAiBookmarks } from "@/hooks/ai-room/useAiBookmarks";
 
 type ExploreTab = "rooms" | "avatars" | "collections" | "users";
 
