@@ -44,12 +44,19 @@ import { getStylePresetById } from "@/components/ai-room/roomStylePresets";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+type ActiveTab = "rooms" | "avatar";
+
 export default function AiRoomsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<ActiveTab>("rooms");
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [avatarStudioTab, setAvatarStudioTab] = useState<StudioTab | null>(null);
   const [viewing, setViewing] = useState<AiGeneratedRoom | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingAvatarId, setDeletingAvatarId] = useState<string | null>(null);
+
+  const avatarsHook = useAvatars(user?.id);
 
   const { data: rooms = [], isLoading } = useUserAiRooms(user?.id);
   const deleteMutation = useDeleteAiRoom();
