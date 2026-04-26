@@ -14,10 +14,9 @@ import {
   X,
   Home,
   Shirt,
-  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Footer } from "@/components/Footer";
 import { useAvatars } from "@/hooks/useAvatars";
 import { AvatarStudioModal, type StudioTab } from "@/components/avatar";
