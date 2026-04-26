@@ -55,6 +55,8 @@ export function UserCollection({
   onContentChange,
   selectedPersonalTag: selectedPersonalTagProp,
   onPersonalTagChange: onPersonalTagChangeProp,
+  onOpenFilter,
+  activeFilterCount: activeFilterCountProp,
 }: UserCollectionProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
