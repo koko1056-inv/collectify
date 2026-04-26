@@ -41,6 +41,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
   const [title, setTitle] = useState("");
   const [resultRoom, setResultRoom] = useState<AiGeneratedRoom | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [remix, setRemix] = useState<PendingRemix | null>(null);
 
   const generateMutation = useGenerateAiRoom();
   const { data: isFirstTime = false } = useFirstTimeFree({
