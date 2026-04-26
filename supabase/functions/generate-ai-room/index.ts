@@ -16,6 +16,7 @@ interface GenerateAiRoomInput {
   visualStylePrompt?: string; // 任意: 描画スタイルの追加指示
   customPrompt?: string; // 任意: ユーザーのフリーテキスト
   title?: string;
+  parentRoomId?: string; // 任意: リミックス元のルームID
 }
 
 Deno.serve(async (req) => {
@@ -52,6 +53,7 @@ Deno.serve(async (req) => {
       visualStylePrompt,
       customPrompt,
       title,
+      parentRoomId,
     } = body;
 
     if (!itemImageUrls || itemImageUrls.length === 0) {
@@ -261,6 +263,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
         source_item_images: itemImageUrls,
         source_item_ids: itemIds && itemIds.length > 0 ? itemIds : null,
         title: title || null,
+        parent_room_id: parentRoomId || null,
       })
       .select()
       .single();

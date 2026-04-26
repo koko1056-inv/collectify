@@ -17,7 +17,7 @@ import { SelectStyleStep } from "./wizard/SelectStyleStep";
 import { SelectVisualStep } from "./wizard/SelectVisualStep";
 import { GeneratingStep } from "./wizard/GeneratingStep";
 import { ResultStep } from "./wizard/ResultStep";
-import { consumePendingAiItems } from "@/utils/ai-studio-handoff";
+import { consumePendingAiItems, consumePendingRemix, type PendingRemix } from "@/utils/ai-studio-handoff";
 
 const ROOM_COST = 100;
 const MAX_ITEMS = 3;
@@ -41,6 +41,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
   const [title, setTitle] = useState("");
   const [resultRoom, setResultRoom] = useState<AiGeneratedRoom | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [remix, setRemix] = useState<PendingRemix | null>(null);
 
   const generateMutation = useGenerateAiRoom();
   const { data: isFirstTime = false } = useFirstTimeFree({
@@ -76,15 +77,35 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         setCustomPrompt("");
         setTitle("");
         setResultRoom(null);
+        setRemix(null);
       }, 300);
       return;
     }
     // open になった瞬間に sessionStorage を確認
+    const pendingRemix = consumePendingRemix();
+    if (pendingRemix) {
+      setRemix(pendingRemix);
+      if (pendingRemix.stylePreset) setStylePresetId(pendingRemix.stylePreset);
+      if (pendingRemix.customPrompt) setCustomPrompt(pendingRemix.customPrompt);
+      if (pendingRemix.visualStyle) setVisualStyleId(pendingRemix.visualStyle);
+      if (pendingRemix.mode === "remix" && pendingRemix.items?.length) {
+        setSelectedItems(pendingRemix.items.slice(0, MAX_ITEMS));
+        setStep("style");
+      } else {
+        // スタイル継承モードは素材選択から
+        setStep("items");
+      }
+      toast.success(
+        pendingRemix.mode === "remix"
+          ? "リミックス元のスタイルと素材を引き継ぎました 🎨"
+          : "スタイルを引き継ぎました ✨"
+      );
+      return;
+    }
     const handed = consumePendingAiItems();
     if (handed.length > 0) {
       setSelectedItems(handed.slice(0, MAX_ITEMS));
       toast.success(`${Math.min(handed.length, MAX_ITEMS)}点の素材を引き継ぎました`);
-      // すでに素材は揃っているのでスタイル選択ステップへ
       setStep("style");
     }
   }, [open]);

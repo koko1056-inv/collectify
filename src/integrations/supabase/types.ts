@@ -55,6 +55,7 @@ export type Database = {
           image_url: string
           is_public: boolean
           like_count: number
+          parent_room_id: string | null
           source_item_ids: string[] | null
           source_item_images: string[] | null
           style_preset: string | null
@@ -69,6 +70,7 @@ export type Database = {
           image_url: string
           is_public?: boolean
           like_count?: number
+          parent_room_id?: string | null
           source_item_ids?: string[] | null
           source_item_images?: string[] | null
           style_preset?: string | null
@@ -83,6 +85,7 @@ export type Database = {
           image_url?: string
           is_public?: boolean
           like_count?: number
+          parent_room_id?: string | null
           source_item_ids?: string[] | null
           source_item_images?: string[] | null
           style_preset?: string | null
@@ -92,6 +95,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "ai_generated_rooms_parent_room_id_fkey"
+            columns: ["parent_room_id"]
+            isOneToOne: false
+            referencedRelation: "ai_generated_rooms"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ai_generated_rooms_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -99,6 +109,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ai_work_bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          work_id: string
+          work_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          work_id: string
+          work_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          work_id?: string
+          work_type?: string
+        }
+        Relationships: []
       }
       avatar_gallery: {
         Row: {
