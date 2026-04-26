@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy, Wand2 } from "lucide-react";
+import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy, Wand2, Shirt } from "lucide-react";
 import { motion } from "framer-motion";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,17 +30,24 @@ export function MyRoomHome({
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = (searchParams.get("tab") as "room" | "collection" | "avatar") || "collection";
-  const [activeTab, setActiveTab] = useState<"room" | "collection" | "avatar">(
-    ["room", "collection", "avatar"].includes(initialTab) ? initialTab : "collection"
-  );
+  // 旧URLパラメータ(room/avatar) → studio に正規化、collection はそのまま
+  const rawTab = searchParams.get("tab");
+  const normalizeTab = (t: string | null): "studio" | "collection" => {
+    if (t === "collection") return "collection";
+    if (t === "studio" || t === "room" || t === "avatar") return "studio";
+    return "studio"; // AI Studio をデフォルトに（AI生成主役方針）
+  };
+  const [activeTab, setActiveTab] = useState<"studio" | "collection">(normalizeTab(rawTab));
+  // AI Studio内のサブビュー
+  const initialStudioView = rawTab === "avatar" ? "avatar" : "room";
+  const [studioView, setStudioView] = useState<"room" | "avatar">(initialStudioView);
 
   // URLクエリパラメータの tab 変更に追従
   useEffect(() => {
     const t = searchParams.get("tab");
-    if (t && ["room", "collection", "avatar"].includes(t)) {
-      setActiveTab(t as "room" | "collection" | "avatar");
-    }
+    setActiveTab(normalizeTab(t));
+    if (t === "avatar") setStudioView("avatar");
+    else if (t === "room" || t === "studio") setStudioView("room");
   }, [searchParams]);
   
   const {
@@ -144,21 +151,26 @@ export function MyRoomHome({
   }
 
   const handleEditRoom = () => {
-    setActiveTab("room");
+    setActiveTab("studio");
+    setStudioView("room");
   };
 
   // タブバッジの状態（新着があるかどうか）
-  // 実際のアプリではこれをSupabaseから取得
   const tabBadges = {
-    collection: false, // コレクションに新着がある場合true
-    room: roomItems.length === 0 && mainRoom, // ルームが空の場合にヒントとして表示
-    avatar: !profile?.avatar_url, // アバター未設定の場合
+    studio: (roomItems.length === 0 && mainRoom) || !profile?.avatar_url,
+    collection: false,
   };
 
+  // 2大タブ: AI Studio（ルーム+アバター） / コレクション（素材庫）
   const tabs = [
+    { id: "studio" as const, icon: Sparkles, label: "AI Studio", badge: tabBadges.studio },
     { id: "collection" as const, icon: Package, label: "コレクション", badge: tabBadges.collection },
-    { id: "room" as const, icon: Home, label: "ルーム", badge: tabBadges.room },
-    { id: "avatar" as const, icon: User, label: "アバター", badge: tabBadges.avatar },
+  ];
+
+  // AI Studio内のサブ切替
+  const studioSubTabs = [
+    { id: "room" as const, icon: Home, label: "ルーム" },
+    { id: "avatar" as const, icon: Shirt, label: "アバター" },
   ];
 
   return (
@@ -177,8 +189,8 @@ export function MyRoomHome({
         </div>
       </div>
 
-      {/* タブナビゲーション - 明確なセグメント型 */}
-      <div className="px-4 sm:px-6 lg:px-8 mb-6">
+      {/* メインタブナビゲーション - AI Studio / コレクション の2大タブ */}
+      <div className="px-4 sm:px-6 lg:px-8 mb-4">
         <div className="max-w-4xl mx-auto">
           <div className="relative flex p-1 rounded-full bg-muted/60 border border-border/30">
             {tabs.map((tab) => {
@@ -216,20 +228,49 @@ export function MyRoomHome({
         </div>
       </div>
 
+      {/* AI Studio内のサブタブ（ルーム/アバター） */}
+      {activeTab === "studio" && (
+        <div className="px-4 sm:px-6 lg:px-8 mb-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-muted/40 border border-border/20">
+              {studioSubTabs.map((sub) => {
+                const Icon = sub.icon;
+                const isActive = studioView === sub.id;
+                return (
+                  <button
+                    key={sub.id}
+                    onClick={() => setStudioView(sub.id)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      isActive
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {sub.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* メインコンテンツ */}
       <div className="flex-1 w-full">
-        <div className={cn(activeTab === "room" ? "w-full" : "max-w-4xl mx-auto px-4 sm:px-6 lg:px-8")}>
+        <div className={cn(activeTab === "studio" && studioView === "room" ? "w-full" : "max-w-4xl mx-auto px-4 sm:px-6 lg:px-8")}>
           {activeTab === "collection" && (
             <div className="w-full animate-fade-in">
               {user?.id && <ProfileCollection userId={user.id} />}
             </div>
           )}
-          {activeTab === "room" && (
+          {activeTab === "studio" && studioView === "room" && (
             <div className="w-full animate-fade-in py-2">
               <MyAiRoomsView />
             </div>
           )}
-          {activeTab === "avatar" && (
+          {activeTab === "studio" && studioView === "avatar" && (
             <div className="w-full animate-fade-in">
               <AvatarCenterHome profile={profile} />
             </div>
