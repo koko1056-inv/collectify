@@ -12,8 +12,14 @@ import {
   Download,
   Share2,
   X,
+  Home,
+  Shirt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Footer } from "@/components/Footer";
+import { useAvatars } from "@/hooks/useAvatars";
+import { AvatarStudioModal, type StudioTab } from "@/components/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,12 +43,19 @@ import { getStylePresetById } from "@/components/ai-room/roomStylePresets";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+type ActiveTab = "rooms" | "avatar";
+
 export default function AiRoomsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<ActiveTab>("rooms");
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [avatarStudioTab, setAvatarStudioTab] = useState<StudioTab | null>(null);
   const [viewing, setViewing] = useState<AiGeneratedRoom | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingAvatarId, setDeletingAvatarId] = useState<string | null>(null);
+
+  const avatarsHook = useAvatars(user?.id);
 
   const { data: rooms = [], isLoading } = useUserAiRooms(user?.id);
   const deleteMutation = useDeleteAiRoom();
@@ -79,8 +92,13 @@ export default function AiRoomsPage() {
     document.body.removeChild(a);
   };
 
+  const handleNewClick = () => {
+    if (activeTab === "rooms") setWizardOpen(true);
+    else setAvatarStudioTab("generate");
+  };
+
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-28">
       {/* ヘッダー */}
       <div className="sticky top-0 z-30 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-400/10 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
@@ -94,17 +112,17 @@ export default function AiRoomsPage() {
           </Button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <Wand2 className="w-4 h-4 text-primary" />
+              <Sparkles className="w-4 h-4 text-primary" />
               <h1 className="text-base sm:text-lg font-bold truncate">
-                AIルーム
+                AIスタジオ
               </h1>
             </div>
             <p className="text-[10px] text-muted-foreground">
-              AIがあなたの推しで部屋を描きます
+              AIで推しルームとアバターを生成
             </p>
           </div>
           <Button
-            onClick={() => setWizardOpen(true)}
+            onClick={handleNewClick}
             size="sm"
             className="gap-1.5 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 text-white hover:opacity-95 shadow-md"
           >
@@ -112,62 +130,131 @@ export default function AiRoomsPage() {
             新規
           </Button>
         </div>
+        {/* タブ */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-2">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ActiveTab)}>
+            <TabsList className="grid grid-cols-2 w-full h-10">
+              <TabsTrigger value="rooms" className="gap-1.5">
+                <Home className="w-4 h-4" />
+                ルーム
+              </TabsTrigger>
+              <TabsTrigger value="avatar" className="gap-1.5">
+                <Shirt className="w-4 h-4" />
+                アバター
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-5">
-        {/* ヒーロー CTA (ルームが空のとき) */}
-        {!isLoading && rooms.length === 0 && (
-          <EmptyHero onStart={() => setWizardOpen(true)} />
-        )}
-
-        {/* ローディング */}
-        {isLoading && (
-          <div className="grid grid-cols-2 gap-3">
-            {[0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="aspect-video rounded-2xl bg-muted/60 animate-pulse"
-              />
-            ))}
-          </div>
-        )}
-
-        {/* グリッド */}
-        {!isLoading && rooms.length > 0 && (
+        {activeTab === "rooms" && (
           <>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-foreground">
-                マイAIルーム
-                <span className="ml-1.5 text-xs text-muted-foreground font-normal">
-                  ({rooms.length})
-                </span>
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {rooms.map((room) => (
-                <RoomCard
-                  key={room.id}
-                  room={room}
-                  onOpen={() => setViewing(room)}
-                  onDelete={() => setDeletingId(room.id)}
-                  onTogglePublic={() =>
-                    toggleMutation.mutate({
-                      roomId: room.id,
-                      isPublic: !room.is_public,
-                    })
-                  }
-                />
-              ))}
-            </div>
+            {/* ヒーロー CTA (ルームが空のとき) */}
+            {!isLoading && rooms.length === 0 && (
+              <EmptyHero onStart={() => setWizardOpen(true)} />
+            )}
+
+            {/* ローディング */}
+            {isLoading && (
+              <div className="grid grid-cols-2 gap-3">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="aspect-video rounded-2xl bg-muted/60 animate-pulse"
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* グリッド */}
+            {!isLoading && rooms.length > 0 && (
+              <>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold text-foreground">
+                    マイAIルーム
+                    <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                      ({rooms.length})
+                    </span>
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {rooms.map((room) => (
+                    <RoomCard
+                      key={room.id}
+                      room={room}
+                      onOpen={() => setViewing(room)}
+                      onDelete={() => setDeletingId(room.id)}
+                      onTogglePublic={() =>
+                        toggleMutation.mutate({
+                          roomId: room.id,
+                          isPublic: !room.is_public,
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </>
+        )}
+
+        {activeTab === "avatar" && (
+          <AvatarPanel
+            avatars={avatarsHook}
+            onGenerate={() => setAvatarStudioTab("generate")}
+            onDressUp={() => setAvatarStudioTab("dressup")}
+            onOpenGallery={() => setAvatarStudioTab("gallery")}
+            onDelete={(id) => setDeletingAvatarId(id)}
+          />
         )}
       </div>
 
-      {/* 作成ウィザード */}
+      {/* 作成ウィザード (ルーム) */}
       <AiRoomCreateWizard
         open={wizardOpen}
         onOpenChange={setWizardOpen}
       />
+
+      {/* アバタースタジオ */}
+      {user && avatarStudioTab && (
+        <AvatarStudioModal
+          isOpen={!!avatarStudioTab}
+          onClose={() => setAvatarStudioTab(null)}
+          userId={user.id}
+          initialTab={avatarStudioTab}
+        />
+      )}
+
+      {/* アバター削除確認 */}
+      <AlertDialog
+        open={!!deletingAvatarId}
+        onOpenChange={(o) => !o && setDeletingAvatarId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>このアバターを削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              削除すると元に戻せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deletingAvatarId) {
+                  avatarsHook.remove.mutate(deletingAvatarId);
+                  setDeletingAvatarId(null);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       {/* 画像ビューアー */}
       <Dialog open={!!viewing} onOpenChange={(o) => !o && setViewing(null)}>
@@ -249,6 +336,143 @@ export default function AiRoomsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Footer />
+    </div>
+  );
+}
+
+// ==================== AvatarPanel ====================
+
+function AvatarPanel({
+  avatars,
+  onGenerate,
+  onDressUp,
+  onOpenGallery,
+  onDelete,
+}: {
+  avatars: ReturnType<typeof useAvatars>;
+  onGenerate: () => void;
+  onDressUp: () => void;
+  onOpenGallery: () => void;
+  onDelete: (id: string) => void;
+}) {
+  if (avatars.isLoading) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="aspect-[3/4] rounded-2xl bg-muted/60 animate-pulse"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* アクションカード */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={onGenerate}
+          className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-pink-500/15 via-purple-500/15 to-orange-400/15 border border-border/40 hover:shadow-md transition"
+        >
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-2">
+            <Wand2 className="w-5 h-5 text-white" />
+          </div>
+          <p className="text-sm font-semibold">AIで生成</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            プロンプトから新しい姿に
+          </p>
+        </button>
+        <button
+          onClick={onDressUp}
+          className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-sky-500/15 via-blue-500/15 to-cyan-400/15 border border-border/40 hover:shadow-md transition"
+          disabled={avatars.avatars.length === 0}
+        >
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 flex items-center justify-center mb-2">
+            <Shirt className="w-5 h-5 text-white" />
+          </div>
+          <p className="text-sm font-semibold">着せ替え</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            グッズで着せ替えて変身
+          </p>
+        </button>
+      </div>
+
+      {/* 空状態 */}
+      {avatars.avatars.length === 0 && (
+        <div className="rounded-3xl border border-dashed border-border/60 p-8 text-center space-y-3">
+          <div className="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
+            <Sparkles className="w-7 h-7 text-primary" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold">まだアバターがありません</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              AI生成で最初のアバターを作りましょう
+            </p>
+          </div>
+          <Button onClick={onGenerate} className="gap-1.5">
+            <Wand2 className="w-4 h-4" />
+            生成をはじめる
+          </Button>
+        </div>
+      )}
+
+      {/* ギャラリー */}
+      {avatars.avatars.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-foreground">
+              マイアバター
+              <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                ({avatars.avatars.length})
+              </span>
+            </p>
+            <Button variant="ghost" size="sm" onClick={onOpenGallery} className="text-xs">
+              詳しく管理
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {avatars.avatars.map((a) => {
+              const isCurrent = !!a.is_current;
+              return (
+                <div
+                  key={a.id}
+                  className={cn(
+                    "relative rounded-2xl overflow-hidden border bg-card group",
+                    isCurrent ? "border-primary ring-2 ring-primary/40" : "border-border/40"
+                  )}
+                >
+                  <button
+                    onClick={() => avatars.setCurrent.mutate(a.id)}
+                    className="block w-full aspect-[3/4] bg-muted"
+                  >
+                    <img
+                      src={a.image_url}
+                      alt={a.name || "avatar"}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                  {isCurrent && (
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
+                      使用中
+                    </div>
+                  )}
+                  <button
+                    onClick={() => onDelete(a.id)}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-destructive"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
