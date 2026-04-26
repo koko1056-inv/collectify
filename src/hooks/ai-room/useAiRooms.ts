@@ -11,9 +11,11 @@ export interface AiGeneratedRoom {
   style_prompt: string | null;
   custom_prompt: string | null;
   source_item_images: string[] | null;
+  source_item_ids?: string[] | null;
   title: string | null;
   is_public: boolean;
   like_count: number;
+  parent_room_id?: string | null;
   created_at: string;
 }
 
