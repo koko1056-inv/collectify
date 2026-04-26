@@ -63,6 +63,7 @@ export interface GenerateInput {
   visualStylePrompt?: string;
   customPrompt?: string;
   title?: string;
+  parentRoomId?: string;
 }
 
 /** AIルーム生成 (Edge Function呼び出し) */
