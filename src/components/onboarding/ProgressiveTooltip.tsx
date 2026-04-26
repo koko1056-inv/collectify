@@ -81,7 +81,7 @@ export function ProgressiveTooltip({
   };
 
   return (
-    <div className="relative inline-block" ref={elementRef}>
+    <div className="relative inline-block w-full" ref={elementRef}>
       {children}
       <div
         className={cn(
