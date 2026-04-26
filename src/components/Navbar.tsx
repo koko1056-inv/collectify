@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, User, Search, FileText, FolderOpen, Globe, Palette, HelpCircle, Sparkles } from "lucide-react";
+import { ShoppingBasket, User, Search, FileText, FolderOpen, Globe, Palette, HelpCircle, Sparkles, Compass, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
@@ -170,9 +170,9 @@ export function Navbar() {
         {user && <NavigationMenu className="mr-auto">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link to="/search" className={cn(navigationMenuTriggerStyle())}>
-                  <Search className="h-4 w-4 mr-2" />
-                  {t("nav.searchNav")}
+                <Link to="/my-room" className={cn(navigationMenuTriggerStyle())}>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  AI Studio
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
@@ -182,25 +182,33 @@ export function Navbar() {
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/my-room" className={cn(navigationMenuTriggerStyle())}>
-                  <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                  {t("nav.myRoom")}
+                <Link to="/explore" className={cn(navigationMenuTriggerStyle())}>
+                  <Compass className="h-4 w-4 mr-2" />
+                  探索
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/matches" className={cn(navigationMenuTriggerStyle())}>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  同担マッチ
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/posts" className={cn(navigationMenuTriggerStyle())}>
-                  <FileText className="h-4 w-4 mr-2" />
-                  {t("nav.community")}
-                </Link>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className={cn(navigationMenuTriggerStyle())}>
+                      もっと見る
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem onClick={() => navigate("/search")}>
+                      <Search className="h-4 w-4 mr-2" />
+                      {t("nav.searchNav")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/matches")}>
+                      <Users className="h-4 w-4 mr-2" />
+                      同担マッチ
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate("/posts")}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      {t("nav.community")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>}
