@@ -29,7 +29,7 @@ export function SearchInput({
         onFocus={onFocus}
         onBlur={onBlur}
         onKeyDown={onKeyDown}
-        className="pl-10 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200 px-[41px]"
+        className="pl-10 pr-3 bg-white border-gray-200 focus:border-gray-300 focus:ring-gray-200"
       />
       <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
         <Search className="h-5 w-5" />
