@@ -16,6 +16,7 @@ interface GenerateAiRoomInput {
   visualStylePrompt?: string; // 任意: 描画スタイルの追加指示
   customPrompt?: string; // 任意: ユーザーのフリーテキスト
   title?: string;
+  parentRoomId?: string; // 任意: リミックス元のルームID
 }
 
 Deno.serve(async (req) => {
