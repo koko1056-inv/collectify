@@ -44,6 +44,8 @@ interface UserCollectionProps {
   onContentChange?: (content: string) => void;
   selectedPersonalTag?: string;
   onPersonalTagChange?: (tag: string) => void;
+  onOpenFilter?: () => void;
+  activeFilterCount?: number;
 }
 
 export function UserCollection({
