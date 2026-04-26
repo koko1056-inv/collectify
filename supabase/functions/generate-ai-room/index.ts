@@ -53,6 +53,7 @@ Deno.serve(async (req) => {
       visualStylePrompt,
       customPrompt,
       title,
+      parentRoomId,
     } = body;
 
     if (!itemImageUrls || itemImageUrls.length === 0) {
