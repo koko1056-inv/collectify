@@ -19,6 +19,7 @@ import {
   CheckSquare,
   Tag,
   X,
+  SlidersHorizontal,
 } from "lucide-react";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
