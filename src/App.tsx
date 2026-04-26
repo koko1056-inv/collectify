@@ -28,7 +28,7 @@ const QuickAdd = lazy(() => import("./pages/QuickAdd").catch(() => ({ default: (
 const UserProfile = lazy(() => import("./pages/UserProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 const EditProfile = lazy(() => import("./pages/EditProfile").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Messages = lazy(() => import("./pages/Messages").catch(() => ({ default: () => <div>Error loading page</div> })));
-const RoomExplore = lazy(() => import("./pages/RoomExplore").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Explore = lazy(() => import("./pages/Explore").catch(() => ({ default: () => <div>Error loading page</div> })));
 const RoomView = lazy(() => import("./pages/RoomView").catch(() => ({ default: () => <div>Error loading page</div> })));
 const PointShop = lazy(() => import("./pages/PointShop").catch(() => ({ default: () => <div>Error loading page</div> })));
 const HowToUse = lazy(() => import("./pages/HowToUse").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -93,7 +93,8 @@ const App: React.FC = () => {
                       <Route path="/login" element={<Login />} />
                       {/* Public routes */}
                       <Route path="/user/:userId" element={<UserProfile />} />
-                      <Route path="/rooms/explore" element={<RoomExplore />} />
+                      <Route path="/explore" element={<Explore />} />
+                      <Route path="/rooms/explore" element={<Navigate to="/explore?tab=rooms" replace />} />
                       <Route path="/room/:roomId" element={<RoomView />} />
                       <Route path="/how-to-use" element={<HowToUse />} />
                       <Route path="/invite/:code" element={<InviteRedirect />} />
