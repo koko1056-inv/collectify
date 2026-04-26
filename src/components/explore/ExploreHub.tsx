@@ -118,123 +118,104 @@ export function ExploreHub() {
 }
 
 // ============= AIルームタブ =============
-function RoomsTab({ searchQuery }: { searchQuery: string }) {
-  const navigate = useNavigate();
+const PAGE_SIZE = 24;
 
-  const { data: rooms = [], isLoading } = useQuery({
-    queryKey: ["explore-rooms"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("binder_pages")
-        .select("id, title, user_id, background_image, visit_count, is_public")
-        .eq("is_main_room", true)
+function RoomsTab({ searchQuery }: { searchQuery: string }) {
+  const { data: bookmarks } = useMyAiBookmarks();
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ["explore-ai-rooms"],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      const { data: rooms, error } = await supabase
+        .from("ai_generated_rooms")
+        .select("*")
         .eq("is_public", true)
-        .order("visit_count", { ascending: false })
-        .limit(30);
+        .order("created_at", { ascending: false })
+        .range(from, to);
       if (error) throw error;
 
-      const enriched = await Promise.all(
-        (data || []).map(async (room) => {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("username, avatar_url, display_name")
-            .eq("id", room.user_id)
-            .single();
-          const { count: likeCount } = await supabase
-            .from("room_likes")
-            .select("*", { count: "exact", head: true })
-            .eq("room_id", room.id);
-          const { count: itemCount } = await supabase
-            .from("binder_items")
-            .select("*", { count: "exact", head: true })
-            .eq("binder_page_id", room.id);
-          return { ...room, profile, like_count: likeCount || 0, item_count: itemCount || 0 };
-        })
-      );
-      return enriched;
+      const userIds = Array.from(new Set((rooms || []).map((r) => r.user_id)));
+      const profilesMap = new Map<string, any>();
+      if (userIds.length) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, username, avatar_url, display_name")
+          .in("id", userIds);
+        (profiles || []).forEach((p) => profilesMap.set(p.id, p));
+      }
+
+      return (rooms || []).map((r) => ({
+        ...r,
+        profile: profilesMap.get(r.user_id) || null,
+      })) as ExploreRoom[];
     },
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === PAGE_SIZE ? allPages.length : undefined,
   });
 
+  const allRooms: ExploreRoom[] = (data?.pages.flat() || []) as ExploreRoom[];
   const filtered = searchQuery
-    ? rooms.filter(
+    ? allRooms.filter(
         (r) =>
           r.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          r.style_prompt?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           r.profile?.username?.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : rooms;
+    : allRooms;
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="aspect-square rounded-2xl bg-muted animate-pulse" />
+          <div
+            key={i}
+            className="break-inside-avoid mb-3 rounded-2xl bg-muted animate-pulse"
+            style={{ height: 160 + ((i * 37) % 120) }}
+          />
         ))}
       </div>
     );
   }
 
   if (filtered.length === 0) {
-    return <EmptyState icon={HomeIcon} message="まだ公開ルームがありません" />;
+    return <EmptyState icon={HomeIcon} message="まだ公開AI作品がありません" />;
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-      {filtered.map((room, index) => (
-        <button
-          key={room.id}
-          onClick={() => navigate(`/room/${room.id}`)}
-          className="group relative aspect-square rounded-2xl overflow-hidden bg-muted hover:scale-[1.02] transition-transform"
-        >
-          {room.background_image && (
-            <img
-              src={room.background_image}
-              alt={room.title}
-              loading="lazy"
-              className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity"
-            />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent" />
-          {index < 3 && (
-            <div
-              className={cn(
-                "absolute top-2 left-2 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs",
-                index === 0 && "bg-amber-400 text-white",
-                index === 1 && "bg-slate-400 text-white",
-                index === 2 && "bg-orange-400 text-white"
-              )}
-            >
-              {index + 1}
-            </div>
-          )}
-          <div className="absolute bottom-0 left-0 right-0 p-2.5">
-            <div className="flex items-center gap-1.5 mb-1">
-              <Avatar className="w-5 h-5 border border-border">
-                <AvatarImage src={room.profile?.avatar_url || undefined} />
-                <AvatarFallback className="text-[8px]">
-                  {room.profile?.username?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-foreground/90 text-xs truncate">
-                {room.profile?.display_name || room.profile?.username}
-              </span>
-            </div>
-            <h3 className="text-foreground font-medium text-sm truncate mb-1">{room.title}</h3>
-            <div className="flex items-center gap-2 text-muted-foreground text-[10px]">
-              <span className="flex items-center gap-0.5">
-                <Eye className="w-3 h-3" />
-                {room.visit_count}
-              </span>
-              <span className="flex items-center gap-0.5">
-                <Heart className="w-3 h-3" />
-                {room.like_count}
-              </span>
-            </div>
-          </div>
-        </button>
-      ))}
+    <div className="space-y-4">
+      <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
+        {filtered.map((room) => (
+          <ExploreRoomCard
+            key={room.id}
+            room={room}
+            isBookmarked={bookmarks?.has(`room:${room.id}`) || false}
+          />
+        ))}
+      </div>
+      {hasNextPage && (
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="outline"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? "読み込み中..." : "もっと見る"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
+
 
 // ============= AIアバタータブ（プレースホルダー） =============
 function AvatarsTab({ searchQuery }: { searchQuery: string }) {
