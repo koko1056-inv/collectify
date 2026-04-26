@@ -81,7 +81,7 @@ export function ProfileCollection({ userId }: { userId: string }) {
       )}
 
       {/* 検索バー */}
-      <div className="px-2">
+      <div>
         <SearchBar
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
