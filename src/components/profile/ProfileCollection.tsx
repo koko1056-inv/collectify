@@ -7,7 +7,7 @@ import { Tag } from "@/types";
 import { UserCollection } from "../UserCollection";
 import { useCollectionLimitStatus } from "@/hooks/useCollectionLimit";
 import { Progress } from "@/components/ui/progress";
-import { Package, SlidersHorizontal, X } from "lucide-react";
+import { Package, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SearchBar } from "../SearchBar";
 import { Button } from "@/components/ui/button";
