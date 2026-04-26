@@ -17,7 +17,7 @@ import { SelectStyleStep } from "./wizard/SelectStyleStep";
 import { SelectVisualStep } from "./wizard/SelectVisualStep";
 import { GeneratingStep } from "./wizard/GeneratingStep";
 import { ResultStep } from "./wizard/ResultStep";
-import { consumePendingAiItems } from "@/utils/ai-studio-handoff";
+import { consumePendingAiItems, consumePendingRemix, type PendingRemix } from "@/utils/ai-studio-handoff";
 
 const ROOM_COST = 100;
 const MAX_ITEMS = 3;
