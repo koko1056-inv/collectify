@@ -53,7 +53,8 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
   const toggleBookmark = useToggleAiBookmark();
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  const handleStyleClone = () => {
+  const handleStyleClone = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setPendingRemix({
       mode: "style",
       parentRoomId: room.id,
@@ -67,7 +68,8 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
     navigate("/my-room?tab=studio&from=explore");
   };
 
-  const handleRemix = () => {
+  const handleRemix = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setPendingRemix({
       mode: "remix",
       parentRoomId: room.id,
