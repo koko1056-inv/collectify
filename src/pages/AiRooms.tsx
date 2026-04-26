@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Footer } from "@/components/Footer";
+import { Navbar } from "@/components/Navbar";
 import { useAvatars } from "@/hooks/useAvatars";
 import { AvatarStudioModal, type StudioTab } from "@/components/avatar";
 import {
