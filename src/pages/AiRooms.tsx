@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Footer } from "@/components/Footer";
+import { Navbar } from "@/components/Navbar";
 import { useAvatars } from "@/hooks/useAvatars";
 import { AvatarStudioModal, type StudioTab } from "@/components/avatar";
 import {
@@ -99,6 +100,7 @@ export default function AiRoomsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-28">
+      <Navbar />
       {/* ヘッダー */}
       <div className="sticky top-0 z-30 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-400/10 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
