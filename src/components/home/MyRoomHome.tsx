@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy, Wand2 } from "lucide-react";
+import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy, Wand2, Shirt } from "lucide-react";
 import { motion } from "framer-motion";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,17 +30,24 @@ export function MyRoomHome({
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = (searchParams.get("tab") as "room" | "collection" | "avatar") || "collection";
-  const [activeTab, setActiveTab] = useState<"room" | "collection" | "avatar">(
-    ["room", "collection", "avatar"].includes(initialTab) ? initialTab : "collection"
-  );
+  // 旧URLパラメータ(room/avatar) → studio に正規化、collection はそのまま
+  const rawTab = searchParams.get("tab");
+  const normalizeTab = (t: string | null): "studio" | "collection" => {
+    if (t === "collection") return "collection";
+    if (t === "studio" || t === "room" || t === "avatar") return "studio";
+    return "studio"; // AI Studio をデフォルトに（AI生成主役方針）
+  };
+  const [activeTab, setActiveTab] = useState<"studio" | "collection">(normalizeTab(rawTab));
+  // AI Studio内のサブビュー
+  const initialStudioView = rawTab === "avatar" ? "avatar" : "room";
+  const [studioView, setStudioView] = useState<"room" | "avatar">(initialStudioView);
 
   // URLクエリパラメータの tab 変更に追従
   useEffect(() => {
     const t = searchParams.get("tab");
-    if (t && ["room", "collection", "avatar"].includes(t)) {
-      setActiveTab(t as "room" | "collection" | "avatar");
-    }
+    setActiveTab(normalizeTab(t));
+    if (t === "avatar") setStudioView("avatar");
+    else if (t === "room" || t === "studio") setStudioView("room");
   }, [searchParams]);
   
   const {
