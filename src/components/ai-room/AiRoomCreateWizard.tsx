@@ -77,15 +77,35 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         setCustomPrompt("");
         setTitle("");
         setResultRoom(null);
+        setRemix(null);
       }, 300);
       return;
     }
     // open になった瞬間に sessionStorage を確認
+    const pendingRemix = consumePendingRemix();
+    if (pendingRemix) {
+      setRemix(pendingRemix);
+      if (pendingRemix.stylePreset) setStylePresetId(pendingRemix.stylePreset);
+      if (pendingRemix.customPrompt) setCustomPrompt(pendingRemix.customPrompt);
+      if (pendingRemix.visualStyle) setVisualStyleId(pendingRemix.visualStyle);
+      if (pendingRemix.mode === "remix" && pendingRemix.items?.length) {
+        setSelectedItems(pendingRemix.items.slice(0, MAX_ITEMS));
+        setStep("style");
+      } else {
+        // スタイル継承モードは素材選択から
+        setStep("items");
+      }
+      toast.success(
+        pendingRemix.mode === "remix"
+          ? "リミックス元のスタイルと素材を引き継ぎました 🎨"
+          : "スタイルを引き継ぎました ✨"
+      );
+      return;
+    }
     const handed = consumePendingAiItems();
     if (handed.length > 0) {
       setSelectedItems(handed.slice(0, MAX_ITEMS));
       toast.success(`${Math.min(handed.length, MAX_ITEMS)}点の素材を引き継ぎました`);
-      // すでに素材は揃っているのでスタイル選択ステップへ
       setStep("style");
     }
   }, [open]);
