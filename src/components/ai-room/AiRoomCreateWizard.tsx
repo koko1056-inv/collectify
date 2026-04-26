@@ -17,6 +17,7 @@ import { SelectStyleStep } from "./wizard/SelectStyleStep";
 import { SelectVisualStep } from "./wizard/SelectVisualStep";
 import { GeneratingStep } from "./wizard/GeneratingStep";
 import { ResultStep } from "./wizard/ResultStep";
+import { consumePendingAiItems } from "@/utils/ai-studio-handoff";
 
 const ROOM_COST = 100;
 const MAX_ITEMS = 3;
@@ -64,6 +65,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
     enabled: open && !!user?.id,
   });
 
+  // モーダルを開いた瞬間にコレクションから引き継いだ素材を取り込む
   useEffect(() => {
     if (!open) {
       setTimeout(() => {
@@ -75,6 +77,15 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         setTitle("");
         setResultRoom(null);
       }, 300);
+      return;
+    }
+    // open になった瞬間に sessionStorage を確認
+    const handed = consumePendingAiItems();
+    if (handed.length > 0) {
+      setSelectedItems(handed.slice(0, MAX_ITEMS));
+      toast.success(`${Math.min(handed.length, MAX_ITEMS)}点の素材を引き継ぎました`);
+      // すでに素材は揃っているのでスタイル選択ステップへ
+      setStep("style");
     }
   }, [open]);
 
