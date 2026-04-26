@@ -20,7 +20,10 @@ import {
   Tag,
   X,
   SlidersHorizontal,
+  Sparkles,
 } from "lucide-react";
+import { setPendingAiItems } from "@/utils/ai-studio-handoff";
+import { toast } from "sonner";
 import { RandomCollectionItemModal } from "./collection/RandomCollectionItemModal";
 import { CollectionViewToggle } from "./collection/CollectionViewToggle";
 import { BulkPersonalTagDialog } from "./collection/BulkPersonalTagDialog";
@@ -437,19 +440,43 @@ export function UserCollection({
 
       {/* 選択モード時のフローティングアクションバー */}
       {isSelectionMode && selectedItemIds.length > 0 && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 px-4 w-full max-w-md">
-          <div className="bg-background/95 backdrop-blur-md border border-border rounded-full shadow-xl flex items-center gap-2 p-2">
-            <span className="text-sm font-medium pl-3">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 px-4 w-full max-w-lg">
+          <div className="bg-background/95 backdrop-blur-md border border-border rounded-2xl shadow-xl flex items-center gap-2 p-2">
+            <span className="text-sm font-medium pl-3 shrink-0">
               {selectedItemIds.length}件
             </span>
             <div className="flex-1" />
             <Button
               size="sm"
+              variant="outline"
               onClick={() => setIsBulkTagDialogOpen(true)}
               className="rounded-full gap-1.5"
             >
               <Tag className="w-4 h-4" />
-              マイタグを付ける
+              <span className="hidden sm:inline">マイタグ</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                const picked = filteredItems.filter((i) => selectedItemIds.includes(i.id));
+                if (picked.length === 0) return;
+                if (picked.length > 3) {
+                  toast.info("AI生成では最大3点まで使えます。先頭3点を引き継ぎます。");
+                }
+                setPendingAiItems(
+                  picked.slice(0, 3).map((i) => ({
+                    id: i.id,
+                    title: i.title || "",
+                    image: i.image || "",
+                  }))
+                );
+                handleBulkComplete();
+                navigate("/my-room?tab=studio&from=collection");
+              }}
+              className="rounded-full gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-primary-foreground"
+            >
+              <Sparkles className="w-4 h-4" />
+              AIで作る
             </Button>
           </div>
         </div>
