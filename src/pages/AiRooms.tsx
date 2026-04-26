@@ -98,54 +98,155 @@ export default function AiRoomsPage() {
     else setAvatarStudioTab("generate");
   };
 
+  const latestRoom = rooms[0];
+  const currentAvatar = avatarsHook.currentAvatar;
+  const totalCreations = rooms.length + avatarsHook.avatars.length;
+
   return (
     <div className="min-h-screen bg-background pb-28">
       <Navbar />
-      {/* ヘッダー */}
-      <div className="sticky top-0 z-30 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-400/10 backdrop-blur-xl border-b border-border/40">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <h1 className="text-base sm:text-lg font-bold truncate">
-                AIスタジオ
-              </h1>
+
+      {/* ヒーローヘッダー */}
+      <div className="relative overflow-hidden border-b border-border/40">
+        {/* 背景装飾 */}
+        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-400/10" />
+        <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-pink-400/20 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-purple-400/20 blur-3xl" />
+
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-3">
+          {/* タイトル行 */}
+          <div className="flex items-center gap-2 mb-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(-1)}
+              className="shrink-0 h-9 w-9"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <motion.div
+                  animate={{ rotate: [0, 8, -6, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                  className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-orange-400 flex items-center justify-center shadow-md"
+                >
+                  <Wand2 className="w-3.5 h-3.5 text-white" />
+                </motion.div>
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight">
+                  AIスタジオ
+                </h1>
+                {totalCreations > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">
+                    {totalCreations}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-0.5 ml-9">
+                推しグッズから世界を生成 ✨
+              </p>
             </div>
-            <p className="text-[10px] text-muted-foreground">
-              AIで推しルームとアバターを生成
-            </p>
           </div>
-          <Button
-            onClick={handleNewClick}
-            size="sm"
-            className="gap-1.5 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 text-white hover:opacity-95 shadow-md"
-          >
-            <Plus className="w-4 h-4" />
-            新規
-          </Button>
-        </div>
-        {/* タブ */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-2">
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ActiveTab)}>
-            <TabsList className="grid grid-cols-2 w-full h-10">
-              <TabsTrigger value="rooms" className="gap-1.5">
-                <Home className="w-4 h-4" />
-                ルーム
-              </TabsTrigger>
-              <TabsTrigger value="avatar" className="gap-1.5">
-                <Shirt className="w-4 h-4" />
-                アバター
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+
+          {/* 現在のクリエーション・スナップショット */}
+          {(latestRoom || currentAvatar) && (
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {/* 最新ルーム */}
+              <button
+                onClick={() => latestRoom && setViewing(latestRoom)}
+                disabled={!latestRoom}
+                className="group relative aspect-[4/3] rounded-2xl overflow-hidden border border-border/40 bg-muted disabled:opacity-50"
+              >
+                {latestRoom ? (
+                  <>
+                    <img
+                      src={latestRoom.image_url}
+                      alt=""
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-white/90 text-[9px] font-bold text-foreground flex items-center gap-1">
+                      <Home className="w-2.5 h-2.5" /> 最新ルーム
+                    </div>
+                    <p className="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold truncate text-left">
+                      {latestRoom.title || "無題のルーム"}
+                    </p>
+                  </>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
+                    <Home className="w-6 h-6" />
+                    <span className="text-[10px]">ルーム未作成</span>
+                  </div>
+                )}
+              </button>
+
+              {/* 現在のアバター */}
+              <button
+                onClick={() => setActiveTab("avatar")}
+                className="group relative aspect-[4/3] rounded-2xl overflow-hidden border border-border/40 bg-muted"
+              >
+                {currentAvatar ? (
+                  <>
+                    <img
+                      src={currentAvatar.image_url}
+                      alt=""
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-white/90 text-[9px] font-bold text-foreground flex items-center gap-1">
+                      <Shirt className="w-2.5 h-2.5" /> 使用中アバター
+                    </div>
+                    <p className="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold truncate text-left">
+                      {currentAvatar.name || "あなたの分身"}
+                    </p>
+                  </>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
+                    <Shirt className="w-6 h-6" />
+                    <span className="text-[10px]">アバター未設定</span>
+                  </div>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* タブ + CTA */}
+          <div className="flex items-center gap-2">
+            <Tabs
+              value={activeTab}
+              onValueChange={(v) => setActiveTab(v as ActiveTab)}
+              className="flex-1"
+            >
+              <TabsList className="grid grid-cols-2 w-full h-10 bg-background/60 backdrop-blur">
+                <TabsTrigger value="rooms" className="gap-1.5 text-xs">
+                  <Home className="w-3.5 h-3.5" />
+                  ルーム
+                  {rooms.length > 0 && (
+                    <span className="ml-0.5 px-1 py-px rounded text-[9px] bg-muted text-muted-foreground">
+                      {rooms.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="avatar" className="gap-1.5 text-xs">
+                  <Shirt className="w-3.5 h-3.5" />
+                  アバター
+                  {avatarsHook.avatars.length > 0 && (
+                    <span className="ml-0.5 px-1 py-px rounded text-[9px] bg-muted text-muted-foreground">
+                      {avatarsHook.avatars.length}
+                    </span>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Button
+              onClick={handleNewClick}
+              size="sm"
+              className="h-10 gap-1 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 text-white hover:opacity-95 shadow-md shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              新規作成
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -173,11 +274,12 @@ export default function AiRoomsPage() {
             {!isLoading && rooms.length > 0 && (
               <>
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-foreground">
+                  <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                    <Home className="w-4 h-4 text-primary" />
                     マイAIルーム
-                    <span className="ml-1.5 text-xs text-muted-foreground font-normal">
-                      ({rooms.length})
-                    </span>
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    タップで拡大表示
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
