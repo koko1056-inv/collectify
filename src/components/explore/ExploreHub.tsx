@@ -23,7 +23,6 @@ import { useMyAiBookmarks } from "@/hooks/ai-room/useAiBookmarks";
 type ExploreTab = "rooms" | "avatars" | "collections" | "users";
 
 export function ExploreHub() {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = (searchParams.get("tab") as ExploreTab) || "rooms";
   const [activeTab, setActiveTab] = useState<ExploreTab>(
