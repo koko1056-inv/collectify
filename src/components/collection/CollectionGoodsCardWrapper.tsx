@@ -8,12 +8,15 @@ import { useState, useCallback } from "react";
 import { CollectionGoodsCardModals } from "./CollectionGoodsCardModals";
 import { QuantityEditModal } from "./QuantityEditModal";
 import { UserItemDetailsModal } from "@/components/item-details/UserItemDetailsModal";
+import { PublicUserItemModal } from "@/components/item-details/PublicUserItemModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CollectionGoodsCardProps {
   title: string;
   image: string;
   id: string;
   isShared?: boolean;
+  /** このアイテムの所有者(他ユーザーのコレクション表示時に使う) */
   userId?: string;
   releaseDate?: string;
   prize?: string;
@@ -34,6 +37,8 @@ export function CollectionGoodsCardWrapper({
   isCompact = false,
   memories = []
 }: CollectionGoodsCardProps) {
+  const { user } = useAuth();
+  const isOwnItem = !userId || userId === user?.id;
   const [isItemDetailsOpen, setIsItemDetailsOpen] = useState(false);
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
@@ -78,26 +83,45 @@ export function CollectionGoodsCardWrapper({
           <h3 className="font-medium text-foreground text-[12px] leading-snug line-clamp-2 min-h-[2.5em] tracking-tight">{title}</h3>
         </CardContent>
 
-        <CollectionGoodsCardFooter id={id} onMemoriesClick={handleMemoriesClick} onTagManageClick={handleTagManageClick} onDeleteClick={handleDeleteClick} onCreatePostClick={handleCreatePostClick} />
+        {/* フッターアクション(削除など)は自分のグッズのみ表示 */}
+        {isOwnItem && (
+          <CollectionGoodsCardFooter id={id} onMemoriesClick={handleMemoriesClick} onTagManageClick={handleTagManageClick} onDeleteClick={handleDeleteClick} onCreatePostClick={handleCreatePostClick} />
+        )}
       </Card>
 
-      {/* ユーザーアイテム詳細モーダル */}
-      <UserItemDetailsModal
-        isOpen={isItemDetailsOpen}
-        onClose={() => setIsItemDetailsOpen(false)}
-        itemId={id}
-        title={title}
-        image={image}
-      />
+      {/* 自分のグッズ: 通常の編集モーダル */}
+      {isOwnItem ? (
+        <UserItemDetailsModal
+          isOpen={isItemDetailsOpen}
+          onClose={() => setIsItemDetailsOpen(false)}
+          itemId={id}
+          title={title}
+          image={image}
+        />
+      ) : (
+        /* 他人のグッズ: 公開ビュー＋追加・ウィッシュリスト導線 */
+        <PublicUserItemModal
+          isOpen={isItemDetailsOpen}
+          onClose={() => setIsItemDetailsOpen(false)}
+          itemId={id}
+          title={title}
+          image={image}
+          ownerId={userId}
+        />
+      )}
 
-      <CollectionGoodsCardModals isMemoriesModalOpen={isMemoriesModalOpen} setIsMemoriesModalOpen={setIsMemoriesModalOpen} isTagModalOpen={isTagModalOpen} setIsTagModalOpen={setIsTagModalOpen} isDeleteConfirmOpen={isDeleteConfirmOpen} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} isCreatePostModalOpen={isCreatePostModalOpen} setIsCreatePostModalOpen={setIsCreatePostModalOpen} id={id} title={title} image={image} />
+      {isOwnItem && (
+        <CollectionGoodsCardModals isMemoriesModalOpen={isMemoriesModalOpen} setIsMemoriesModalOpen={setIsMemoriesModalOpen} isTagModalOpen={isTagModalOpen} setIsTagModalOpen={setIsTagModalOpen} isDeleteConfirmOpen={isDeleteConfirmOpen} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} isCreatePostModalOpen={isCreatePostModalOpen} setIsCreatePostModalOpen={setIsCreatePostModalOpen} id={id} title={title} image={image} />
+      )}
 
-      <QuantityEditModal 
-        isOpen={isQuantityEditOpen}
-        onClose={() => setIsQuantityEditOpen(false)}
-        itemId={id}
-        initialQuantity={quantity}
-        itemTitle={title}
-      />
+      {isOwnItem && (
+        <QuantityEditModal 
+          isOpen={isQuantityEditOpen}
+          onClose={() => setIsQuantityEditOpen(false)}
+          itemId={id}
+          initialQuantity={quantity}
+          itemTitle={title}
+        />
+      )}
     </>;
 }

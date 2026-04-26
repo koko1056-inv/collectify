@@ -96,6 +96,7 @@ const CollectionGrid = memo(function CollectionGrid({
               quantity={item.quantity}
               isCompact={isCompact}
               memories={batchMemories[item.id] || []}
+              ownerId={item.user_id}
             />
           </div>
         );

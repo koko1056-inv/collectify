@@ -14,6 +14,8 @@ interface MyCollectionGoodsCardProps {
   quantity?: number;
   isCompact?: boolean;
   memories?: any[];
+  /** このアイテムの所有者ID(他人のコレクションを表示している場合に使う) */
+  ownerId?: string;
 }
 
 function MyCollectionGoodsCardComponent({ 
@@ -22,7 +24,8 @@ function MyCollectionGoodsCardComponent({
   image,
   quantity,
   isCompact,
-  memories = []
+  memories = [],
+  ownerId,
 }: MyCollectionGoodsCardProps) {
   const {
     attributes,
@@ -75,6 +78,7 @@ function MyCollectionGoodsCardComponent({
         image={image}
         quantity={quantity}
         memories={memories}
+        userId={ownerId}
       />
     </div>
   );

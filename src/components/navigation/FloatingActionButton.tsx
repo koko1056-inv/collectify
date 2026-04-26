@@ -12,8 +12,15 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  // AI生成を主役に。グッズ追加は二次アクション。
+  // メインアクション = グッズ追加。AI生成はサブメニュー。
   const actions = [
+    {
+      icon: Camera,
+      label: "写真でグッズ追加",
+      onClick: () => navigate("/image-search"),
+      gradient: "from-sky-500 to-blue-500",
+      description: "撮るだけで自動登録",
+    },
     {
       icon: Home,
       label: "AIでルームを作る",
@@ -28,14 +35,12 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
       gradient: "from-pink-500 to-rose-500",
       description: "好きな姿に変身",
     },
-    {
-      icon: Camera,
-      label: "グッズを追加",
-      onClick: () => navigate("/add-item"),
-      gradient: "from-sky-500 to-blue-500",
-      description: "素材を増やす",
-    },
   ];
+
+  const handleMainClick = () => {
+    // メイン: グッズ追加ページへ。長押し/2タップではなくシンプルに直行。
+    navigate("/add-item");
+  };
 
   return (
     <div className={cn("relative", className)}>
@@ -52,7 +57,7 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
         )}
       </AnimatePresence>
 
-      {/* アクションボタン群 */}
+      {/* サブアクション */}
       <AnimatePresence>
         {isOpen && (
           <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex flex-col-reverse items-center gap-3 z-50">
@@ -83,24 +88,36 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
         )}
       </AnimatePresence>
 
-      {/* メインFAB */}
-      <motion.button
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          "h-14 w-14 rounded-full flex items-center justify-center shadow-lg z-50 relative",
-          "bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500",
-          "hover:shadow-xl transition-all"
-        )}
-        whileTap={{ scale: 0.95 }}
-        animate={{ rotate: isOpen ? 45 : 0 }}
-        aria-label="AIで作る"
-      >
-        {isOpen ? (
-          <X className="h-6 w-6 text-primary-foreground" />
-        ) : (
-          <Sparkles className="h-6 w-6 text-primary-foreground" />
-        )}
-      </motion.button>
+      {/* メインFAB: タップ=グッズ追加, 「…」マーク部分でメニューを開く */}
+      <div className="relative">
+        <motion.button
+          onClick={handleMainClick}
+          className={cn(
+            "h-14 w-14 rounded-full flex items-center justify-center shadow-lg z-50 relative",
+            "bg-primary text-primary-foreground",
+            "hover:shadow-xl transition-all"
+          )}
+          whileTap={{ scale: 0.95 }}
+          aria-label="グッズを追加"
+        >
+          <Plus className="h-7 w-7" />
+        </motion.button>
+        {/* サブメニュー切替 (右上の小さなSparklesボタン) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(!isOpen);
+          }}
+          aria-label="その他のアクション"
+          className={cn(
+            "absolute -top-1 -right-1 h-7 w-7 rounded-full z-[51] flex items-center justify-center shadow-md transition-transform",
+            "bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 text-primary-foreground",
+            isOpen && "rotate-45"
+          )}
+        >
+          {isOpen ? <X className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
+        </button>
+      </div>
     </div>
   );
 }
