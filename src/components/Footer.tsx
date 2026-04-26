@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { User, Compass, Home, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { FloatingActionButton } from "./navigation/FloatingActionButton";
 
 export function Footer() {
   const location = useLocation();
@@ -14,38 +15,49 @@ export function Footer() {
     path === "/explore" ? isExploreActive : location.pathname === path;
 
   // AI生成（ルーム/アバター）を主役、コレクションを素材庫とする方針に基づく
-  // 4タブ構成: ホーム / 探索 / コレクション / プロフィール
-  const tabs = [
+  // 5タブ構成（中央に AI Studio FAB）: ホーム / 探索 / [FAB] / コレクション / プロフィール
+  const leftTabs = [
     { to: "/my-room", icon: Home, label: "ホーム" },
     { to: "/explore", icon: Compass, label: "探索" },
+  ];
+  const rightTabs = [
     { to: "/collection", icon: Package, label: "コレクション" },
     { to: "/edit-profile", icon: User, label: "プロフィール" },
   ];
 
+  const renderTab = ({ to, icon: Icon, label }: typeof leftTabs[number]) => {
+    const active = isActive(to);
+    return (
+      <Link
+        key={to}
+        to={to}
+        className={cn(
+          "flex flex-col items-center justify-center flex-1 py-2 transition-colors",
+          active ? "text-primary" : "text-muted-foreground"
+        )}
+      >
+        <Icon
+          className={cn(
+            "h-6 w-6 mb-0.5 transition-transform",
+            active && "scale-110"
+          )}
+        />
+        <span className="text-[10px] font-medium">{label}</span>
+      </Link>
+    );
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t sm:hidden z-50">
       <div className="flex items-center justify-around h-16 relative">
-        {tabs.map(({ to, icon: Icon, label }) => {
-          const active = isActive(to);
-          return (
-            <Link
-              key={to}
-              to={to}
-              className={cn(
-                "flex flex-col items-center justify-center flex-1 py-2 transition-colors",
-                active ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              <Icon
-                className={cn(
-                  "h-6 w-6 mb-0.5 transition-transform",
-                  active && "scale-110"
-                )}
-              />
-              <span className="text-[10px] font-medium">{label}</span>
-            </Link>
-          );
-        })}
+        {leftTabs.map(renderTab)}
+        {/* 中央 FAB: AIで作る */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="-mt-8">
+            <FloatingActionButton />
+          </div>
+        </div>
+        {rightTabs.map(renderTab)}
       </div>
     </div>
   );
