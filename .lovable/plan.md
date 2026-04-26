@@ -1,63 +1,150 @@
-## 概要
-1. マイタグタブを選んだときにフィルタが効かない問題を修正
-2. 複数アイテムを選択して一括でマイタグを付けられる機能を追加
+# AI生成を主役にしたUI/UX刷新プラン
+
+「AI生成（ルーム/アバター）が主役、コレクションは素材」「探索はAI作品＋コレクションを同格に」「リミックス機能フル実装」「/explore統合・ボトムナビ独立タブ」の方針で全Phase段階的に実装します。
 
 ---
 
-## 1. フィルタが効かない原因と修正
+## Phase 1: 情報設計（IA）とナビゲーション刷新
 
-### 原因
-`CollectionViewToggle.tsx` が内部に `activeView` state を持っており、props の `selectedPersonalTag` と二重管理になっています。タブをクリックした際にローカル state は更新されるものの、親 (`UserCollection`) 側の `selectedPersonalTag` がうまく同期せず、結果として `personalTagItemIds` のフィルタリング処理が走らないケースがあります。
+### 1-1. ホーム画面のタブ再構成
+- **`src/components/home/MyRoomHome.tsx`**
+  - 構造を「**AI Studio**（デフォルト）」「**コレクション（素材庫）**」の2大タブに再編
+  - HeroCardを最新AI生成作品のサムネイル表示に差し替え
+  - 「マイルーム」「アバター」セクションを AI Studio タブ内に統合
 
-### 修正
-- **`src/components/collection/CollectionViewToggle.tsx`**
-  - 内部 state `activeView` を削除し、props の `selectedPersonalTag` を単一の真実とする
-  - 「通常表示 / 欲しい物リスト」は別 state (`viewType: "grid" | "wishlist"`) として残す
-  - タブクリック時は `onPersonalTagChange` をそのまま呼ぶ
+### 1-2. 探索ページの刷新（`/explore` 統合）
+- **新規 `src/pages/Explore.tsx`** を作成（`/rooms/explore` → `/explore` リダイレクト）
+- **`src/components/explore/ExploreHub.tsx`** を新規作成し、現在の `RoomExplorer.tsx` を置き換え
+- タブ構造を以下に再構築：
+  - **AIルーム**（既存）
+  - **AIアバター**（新設）
+  - **コレクション**（他ユーザーの素材庫を覗く）
+  - **ユーザー**（Featured Users）
+- マソンリー/グリッドレイアウトの基礎を導入
+- `src/App.tsx` のルートを更新（旧 `/rooms/explore` は新ページへリダイレクト）
+
+### 1-3. ボトムナビゲーション独立タブ化
+- **`src/components/navigation/MobileBottomNav.tsx`** に「探索」タブを独立配置
+  - 構成案: `ホーム / 探索 / ＋(FAB) / コレクション / マイページ`
+- アイコンは `Compass` を使用
+
+### 1-4. FAB刷新
+- **`src/components/navigation/FloatingActionButton.tsx`**
+  - 主要アクションを「✨ AIで作る（ルーム/アバター）」「📷 グッズ追加」の2つに集約
+  - 二次機能（交換出品、コレクション作成等）はサブメニューに格納
+
+### 1-5. Navbarスリム化
+- **`src/components/Navbar.tsx`**
+  - メイン3本柱：`AI Studio` / `コレクション` / `探索`
+  - 検索・交換・マッチング等の二次機能はドロップダウンメニュー内に格納
+
+---
+
+## Phase 2: コレクション ⇔ AI Studio 接続強化
+
+### 2-1. コレクションからAIへの素材送り
 - **`src/components/UserCollection.tsx`**
-  - `filteredItems` 内で `selectedPersonalTag` がある場合のロジックを整理し、ロード完了後は `personalTagItemIds` に基づいて確実に絞り込む
+  - マルチセレクトモードを強化、選択中フッターバーに「AIで使う」ボタン追加
+  - 選択アイテムを `sessionStorage` 経由で AI Studio に渡す
+
+### 2-2. AI Studioでの素材受け取り
+- **`src/components/ai-room/AiRoomCreateWizard.tsx`**
+  - `initialSelectedItems` プロップを受け取り、最初のステップでプレビュー表示
+- **`src/components/avatar-generation/`** 配下のウィザードにも同様の対応
+
+### 2-3. 逆方向リンク（AI作品 → 元素材）
+- AI生成ルーム/アバターの詳細ビューに「使われた素材を見る」セクション追加
+- 生成時に使用した `binder_items` の ID を保存するフィールドを追加（DB migration）
 
 ---
 
-## 2. マイタグ一括付け機能
+## Phase 3: 探索ページのリミックス機能フル実装
 
-### UX フロー
-1. コレクション画面に「選択モード」ボタンを追加
-2. 選択モード中、各カードにチェックボックスを表示してタップで選択
-3. 下部にフローティングアクションバーを表示し「マイタグを付ける」ボタンを配置
-4. ボタン押下でダイアログを開き、既存タグから選ぶ or 新規タグ名を入力
-5. 確定で選択中の全アイテムに対して一括 insert
+### 3-1. 作品カードへのアクション追加
+- **`src/components/explore/ExploreRoomCard.tsx`** （新規）
+  - 「**このスタイルで作る**」（プロンプト＋スタイル継承）
+  - 「**リミックス**」（同じ素材で別バリエーション生成）
+  - 「**素材を見る**」（制作者のコレクションへ）
+  - 「**いいね**」「**保存（ブックマーク）**」
 
-### 実装内容
+### 3-2. リミックス基盤の実装
+- DB migration: `ai_generations` テーブル（または既存テーブル）に以下を追加
+  - `parent_generation_id`（リミックス元）
+  - `style_prompt`、`source_item_ids[]`
+- **`src/hooks/useRemixGeneration.ts`** を新規作成
+- AI Studio ウィザードに「リミックス元」プレビューを表示
 
-- **`src/hooks/usePersonalTags.ts`**
-  - `addTagBulk` mutation を追加
-    - 入力: `{ userItemIds: string[]; tagName: string }`
-    - `user_personal_tags` に複数行を一括 insert(既存重複は `onConflict` で無視)
-    - 成功時に関連クエリを invalidate
+### 3-3. ブックマーク機能
+- DB migration: `ai_work_bookmarks` テーブル新設（user_id, work_id, work_type）
+- マイページに「保存した作品」タブ追加
 
+### 3-4. フィード型UX
+- 探索ページに無限スクロール導入（`useInfiniteQuery`）
+- マソンリーレイアウト最適化（モバイルは2列、PCは4列）
+- 「For You」レコメンド: ユーザーの `interests` タグベースで並び替え
+
+---
+
+## Phase 4: AI Studio 体験向上 & コミュニティ強化
+
+### 4-1. AI Studio ギャラリー拡張
+- **`src/components/ai-room/MyAiRoomsView.tsx`**
+  - Instagramライクなグリッドビュー
+  - 「再生成」「バリエーション作成」アクション
+  - リミックスツリー（自作品の派生系統表示）
+
+### 4-2. 公開作品ページ
+- **新規 `src/pages/AiWorkDetail.tsx`** （ルート: `/ai-work/:id`）
+  - 探索ページから遷移する詳細ページ
+  - リミックス導線、いいね・コメント、シェア用OGP
+
+### 4-3. シェア強化
+- AI作品シェア時のウォーターマーク・フレーム追加
+- リミックス系統の可視化（「この作品から N 個の派生作品」）
+
+### 4-4. コレクション体験向上
 - **`src/components/UserCollection.tsx`**
-  - `isSelectionMode` / `selectedItemIds: Set<string>` を追加
-  - ツールバーに「選択」ボタンを追加(既存のソートボタン横)
-  - 選択モード時はフローティングアクションバーを表示(選択数、全選択、マイタグ付与、キャンセル)
-  - `CollectionGrid` に選択モード関連 props を渡す
-
-- **`src/components/collection/CollectionGrid.tsx`**
-  - 既に `isSelectionMode` / `selectedItems` / `onSelectItem` のインターフェースを持っているため、カード側でクリック時に `onSelectItem` を呼ぶようにし、選択中は枠線などで視覚的に強調
-  - 選択モード中は DnD 並べ替えを無効化(誤操作防止)
-
-- **`src/components/collection/BulkPersonalTagDialog.tsx`(新規)**
-  - 既存タグのチップ一覧 + 新規入力欄
-  - 「○件のグッズに『タグ名』を追加」ボタンで実行
-  - 完了後に選択モードを終了
+  - 表示切替: グリッド / リスト / シェルフ（棚）
+  - 並び順拡張: 取得日 / カテゴリ / 推し別 / 使用頻度（AI素材として）
+- HeroCard下にカテゴリ別チャート、コレクター歴グラフ
 
 ---
 
-## 変更ファイル
-- `src/components/collection/CollectionViewToggle.tsx`(state 整理)
-- `src/components/UserCollection.tsx`(選択モード・アクションバー追加)
-- `src/components/collection/CollectionGrid.tsx`(選択 UI 強化)
-- `src/hooks/usePersonalTags.ts`(`addTagBulk` 追加)
-- `src/components/collection/BulkPersonalTagDialog.tsx`(新規作成)
+## 影響範囲・新規作成ファイル
 
-DB スキーマ変更は不要です(既存の `user_personal_tags` テーブルをそのまま利用)。
+### 新規ファイル
+- `src/pages/Explore.tsx`
+- `src/pages/AiWorkDetail.tsx`
+- `src/components/explore/ExploreHub.tsx`
+- `src/components/explore/ExploreRoomCard.tsx`
+- `src/components/explore/ExploreAvatarTab.tsx`
+- `src/components/explore/ExploreCollectionTab.tsx`
+- `src/hooks/useRemixGeneration.ts`
+- `src/hooks/useExploreFeed.ts`
+
+### 主要編集ファイル
+- `src/App.tsx`（ルート再編）
+- `src/components/Navbar.tsx`
+- `src/components/navigation/MobileBottomNav.tsx`
+- `src/components/navigation/FloatingActionButton.tsx`
+- `src/components/home/MyRoomHome.tsx`
+- `src/components/UserCollection.tsx`
+- `src/components/ai-room/AiRoomCreateWizard.tsx`
+- `src/components/ai-room/MyAiRoomsView.tsx`
+- `src/components/room3d/RoomExplorer.tsx`（→ ExploreHub に統合）
+
+### DBマイグレーション
+- `ai_work_bookmarks` テーブル新設
+- AI生成テーブルへ `parent_generation_id`・`source_item_ids` カラム追加
+- 必要なRLSポリシー設定
+
+---
+
+## 進め方
+
+各Phaseは独立してリリース可能な単位として段階的に実装します。各Phase完了時に preview 上で確認しながら次に進みます。
+
+- **Phase 1**: 情報設計・ナビゲーション刷新（探索ページ刷新含む）
+- **Phase 2**: コレクション ⇔ AI 接続
+- **Phase 3**: リミックス機能フル実装
+- **Phase 4**: コミュニティ強化・体験向上
