@@ -263,6 +263,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
         source_item_images: itemImageUrls,
         source_item_ids: itemIds && itemIds.length > 0 ? itemIds : null,
         title: title || null,
+        parent_room_id: parentRoomId || null,
       })
       .select()
       .single();
