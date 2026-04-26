@@ -307,20 +307,39 @@ export function MyAiRoomsView() {
                       viewing.style_preset}
                   </div>
                 )}
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleVariation(viewing)}
+                    className="gap-1.5"
+                    disabled={!viewing.source_item_ids?.length}
+                  >
+                    <Repeat className="w-4 h-4" />
+                    バリエーション
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/ai-work/${viewing.id}`)}
+                    className="gap-1.5"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    詳細
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleDownload(viewing)}
-                    className="flex-1 gap-1.5"
+                    className="gap-1.5"
                   >
                     <Download className="w-4 h-4" />
                     保存
                   </Button>
                   <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleShare(viewing)}
-                    className="flex-1 gap-1.5"
+                    className="gap-1.5"
                   >
                     <Share2 className="w-4 h-4" />
                     シェア
