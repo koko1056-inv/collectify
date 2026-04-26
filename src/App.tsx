@@ -36,6 +36,7 @@ const ImageSearch = lazy(() => import("./pages/ImageSearch").catch(() => ({ defa
 const AiRooms = lazy(() => import("./pages/AiRooms").catch(() => ({ default: () => <div>Error loading page</div> })));
 const InviteRedirect = lazy(() => import("./pages/InviteRedirect").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Matches = lazy(() => import("./pages/Matches").catch(() => ({ default: () => <div>Error loading page</div> })));
+const AiWorkDetail = lazy(() => import("./pages/AiWorkDetail").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -96,6 +97,7 @@ const App: React.FC = () => {
                       <Route path="/explore" element={<Explore />} />
                       <Route path="/rooms/explore" element={<Navigate to="/explore?tab=rooms" replace />} />
                       <Route path="/room/:roomId" element={<RoomView />} />
+                      <Route path="/ai-work/:id" element={<AiWorkDetail />} />
                       <Route path="/how-to-use" element={<HowToUse />} />
                       <Route path="/invite/:code" element={<InviteRedirect />} />
                       {/* Protected routes — require authentication */}

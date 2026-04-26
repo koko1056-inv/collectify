@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Wand2,
@@ -13,6 +13,8 @@ import {
   X,
   Pencil,
   Check,
+  Repeat,
+  ExternalLink,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,7 @@ import {
 } from "@/hooks/ai-room/useAiRooms";
 import { AiRoomCreateWizard } from "./AiRoomCreateWizard";
 import { getStylePresetById } from "./roomStylePresets";
+import { setPendingRemix } from "@/utils/ai-studio-handoff";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ShareModal } from "@/components/ShareModal";
@@ -52,6 +55,7 @@ export function MyAiRoomsView() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [viewing, setViewing] = useState<AiGeneratedRoom | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   // コレクションから「AIで作る」で遷移してきたら自動でウィザードを開く
   useEffect(() => {
@@ -87,6 +91,27 @@ export function MyAiRoomsView() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  };
+
+  const handleVariation = (room: AiGeneratedRoom) => {
+    // 自作品からバリエーション = リミックス(同素材＋スタイル) としてウィザードを開く
+    setPendingRemix({
+      mode: "remix",
+      parentRoomId: room.id,
+      stylePrompt: room.style_prompt,
+      stylePreset: room.style_preset,
+      customPrompt: room.custom_prompt,
+      items: (room.source_item_ids || []).map((id, i) => ({
+        id,
+        title: "",
+        image: room.source_item_images?.[i] || "",
+      })),
+      parentImageUrl: room.image_url,
+      parentTitle: room.title,
+    });
+    setViewing(null);
+    toast.success("バリエーションを作成します 🎨");
+    setWizardOpen(true);
   };
 
   return (
@@ -282,20 +307,39 @@ export function MyAiRoomsView() {
                       viewing.style_preset}
                   </div>
                 )}
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleVariation(viewing)}
+                    className="gap-1.5"
+                    disabled={!viewing.source_item_ids?.length}
+                  >
+                    <Repeat className="w-4 h-4" />
+                    バリエーション
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate(`/ai-work/${viewing.id}`)}
+                    className="gap-1.5"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    詳細
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleDownload(viewing)}
-                    className="flex-1 gap-1.5"
+                    className="gap-1.5"
                   >
                     <Download className="w-4 h-4" />
                     保存
                   </Button>
                   <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => handleShare(viewing)}
-                    className="flex-1 gap-1.5"
+                    className="gap-1.5"
                   >
                     <Share2 className="w-4 h-4" />
                     シェア

@@ -53,7 +53,8 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
   const toggleBookmark = useToggleAiBookmark();
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  const handleStyleClone = () => {
+  const handleStyleClone = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setPendingRemix({
       mode: "style",
       parentRoomId: room.id,
@@ -67,7 +68,8 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
     navigate("/my-room?tab=studio&from=explore");
   };
 
-  const handleRemix = () => {
+  const handleRemix = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setPendingRemix({
       mode: "remix",
       parentRoomId: room.id,
@@ -95,7 +97,10 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
       className="group relative break-inside-avoid mb-3 rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/40 hover:shadow-xl transition-all"
     >
       {/* メイン画像 */}
-      <div className="relative w-full overflow-hidden bg-muted">
+      <div
+        className="relative w-full overflow-hidden bg-muted cursor-pointer"
+        onClick={() => navigate(`/ai-work/${room.id}`)}
+      >
         <img
           src={room.image_url}
           alt={room.title || "AI生成ルーム"}
