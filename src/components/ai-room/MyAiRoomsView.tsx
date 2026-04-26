@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Wand2,
@@ -50,6 +51,18 @@ export function MyAiRoomsView() {
   const { user } = useAuth();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [viewing, setViewing] = useState<AiGeneratedRoom | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // コレクションから「AIで作る」で遷移してきたら自動でウィザードを開く
+  useEffect(() => {
+    if (searchParams.get("from") === "collection") {
+      setWizardOpen(true);
+      // クエリパラメータから from を削除（ブラウザバックなどで再発火しないように）
+      const next = new URLSearchParams(searchParams);
+      next.delete("from");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sharingRoom, setSharingRoom] = useState<AiGeneratedRoom | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
