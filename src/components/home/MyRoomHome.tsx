@@ -151,21 +151,26 @@ export function MyRoomHome({
   }
 
   const handleEditRoom = () => {
-    setActiveTab("room");
+    setActiveTab("studio");
+    setStudioView("room");
   };
 
   // タブバッジの状態（新着があるかどうか）
-  // 実際のアプリではこれをSupabaseから取得
   const tabBadges = {
-    collection: false, // コレクションに新着がある場合true
-    room: roomItems.length === 0 && mainRoom, // ルームが空の場合にヒントとして表示
-    avatar: !profile?.avatar_url, // アバター未設定の場合
+    studio: (roomItems.length === 0 && mainRoom) || !profile?.avatar_url,
+    collection: false,
   };
 
+  // 2大タブ: AI Studio（ルーム+アバター） / コレクション（素材庫）
   const tabs = [
+    { id: "studio" as const, icon: Sparkles, label: "AI Studio", badge: tabBadges.studio },
     { id: "collection" as const, icon: Package, label: "コレクション", badge: tabBadges.collection },
-    { id: "room" as const, icon: Home, label: "ルーム", badge: tabBadges.room },
-    { id: "avatar" as const, icon: User, label: "アバター", badge: tabBadges.avatar },
+  ];
+
+  // AI Studio内のサブ切替
+  const studioSubTabs = [
+    { id: "room" as const, icon: Home, label: "ルーム" },
+    { id: "avatar" as const, icon: Shirt, label: "アバター" },
   ];
 
   return (
@@ -184,8 +189,8 @@ export function MyRoomHome({
         </div>
       </div>
 
-      {/* タブナビゲーション - 明確なセグメント型 */}
-      <div className="px-4 sm:px-6 lg:px-8 mb-6">
+      {/* メインタブナビゲーション - AI Studio / コレクション の2大タブ */}
+      <div className="px-4 sm:px-6 lg:px-8 mb-4">
         <div className="max-w-4xl mx-auto">
           <div className="relative flex p-1 rounded-full bg-muted/60 border border-border/30">
             {tabs.map((tab) => {
@@ -223,20 +228,49 @@ export function MyRoomHome({
         </div>
       </div>
 
+      {/* AI Studio内のサブタブ（ルーム/アバター） */}
+      {activeTab === "studio" && (
+        <div className="px-4 sm:px-6 lg:px-8 mb-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-muted/40 border border-border/20">
+              {studioSubTabs.map((sub) => {
+                const Icon = sub.icon;
+                const isActive = studioView === sub.id;
+                return (
+                  <button
+                    key={sub.id}
+                    onClick={() => setStudioView(sub.id)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
+                      isActive
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {sub.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* メインコンテンツ */}
       <div className="flex-1 w-full">
-        <div className={cn(activeTab === "room" ? "w-full" : "max-w-4xl mx-auto px-4 sm:px-6 lg:px-8")}>
+        <div className={cn(activeTab === "studio" && studioView === "room" ? "w-full" : "max-w-4xl mx-auto px-4 sm:px-6 lg:px-8")}>
           {activeTab === "collection" && (
             <div className="w-full animate-fade-in">
               {user?.id && <ProfileCollection userId={user.id} />}
             </div>
           )}
-          {activeTab === "room" && (
+          {activeTab === "studio" && studioView === "room" && (
             <div className="w-full animate-fade-in py-2">
               <MyAiRoomsView />
             </div>
           )}
-          {activeTab === "avatar" && (
+          {activeTab === "studio" && studioView === "avatar" && (
             <div className="w-full animate-fade-in">
               <AvatarCenterHome profile={profile} />
             </div>
