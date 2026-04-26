@@ -63,7 +63,7 @@ export function ProgressiveTooltip({
   };
 
   if (!isVisible) {
-    return <div ref={elementRef}>{children}</div>;
+    return <div ref={elementRef} className="w-full">{children}</div>;
   }
 
   const positionClasses = {
@@ -81,7 +81,7 @@ export function ProgressiveTooltip({
   };
 
   return (
-    <div className="relative inline-block" ref={elementRef}>
+    <div className="relative inline-block w-full" ref={elementRef}>
       {children}
       <div
         className={cn(
