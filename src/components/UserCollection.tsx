@@ -340,30 +340,30 @@ export function UserCollection({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* フィルタ（適用中のみクリア可） */}
+            {/* フィルタ（Drawerを開く / 適用中なら件数バッジ表示） */}
             {(() => {
-              const filterCount =
+              const localCount =
                 (selectedTags?.length || 0) +
                 (selectedContent && selectedContent !== "all" ? 1 : 0) +
                 (selectedPersonalTag ? 1 : 0);
+              const filterCount = activeFilterCountProp ?? localCount;
               const hasFilter = filterCount > 0;
               return (
                 <Button
                   variant="ghost"
                   size="sm"
-                  disabled={!hasFilter}
-                  onClick={() => {
-                    onContentChange?.("all");
-                    onPersonalTagChange("");
-                  }}
-                  className="flex-1 min-w-0 gap-1 h-9 px-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 disabled:opacity-40"
-                  title={hasFilter ? "フィルタを解除" : "フィルタなし"}
+                  onClick={onOpenFilter}
+                  disabled={!onOpenFilter}
+                  className="flex-1 min-w-0 gap-1 h-9 px-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 relative"
+                  title="フィルター"
                 >
                   <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
-                  <span className="text-xs font-medium truncate">
-                    {hasFilter ? `${filterCount}件` : "フィルタ"}
-                  </span>
-                  {hasFilter && <X className="h-3 w-3 shrink-0 opacity-70" />}
+                  <span className="text-xs font-medium truncate">フィルター</span>
+                  {hasFilter && (
+                    <span className="ml-0.5 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+                      {filterCount}
+                    </span>
+                  )}
                 </Button>
               );
             })()}
