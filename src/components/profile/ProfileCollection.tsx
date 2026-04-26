@@ -80,31 +80,16 @@ export function ProfileCollection({ userId }: { userId: string }) {
         </div>
       )}
 
-      {/* 検索バー + フィルターボタン */}
-      <div className="flex items-center gap-2 px-2">
-        <div className="flex-1 min-w-0">
-          <SearchBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedTags={selectedTags}
-            onTagsChange={setSelectedTags}
-            tags={allTags}
-            selectedContent={selectedContent}
-          />
-        </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setIsFilterDrawerOpen(true)}
-          className="shrink-0 h-9 w-9 relative"
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          {activeFilterCount > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] flex items-center justify-center">
-              {activeFilterCount}
-            </span>
-          )}
-        </Button>
+      {/* 検索バー */}
+      <div className="px-2">
+        <SearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          selectedTags={selectedTags}
+          onTagsChange={setSelectedTags}
+          tags={allTags}
+          selectedContent={selectedContent}
+        />
       </div>
 
       {/* アクティブフィルターチップ */}
@@ -135,6 +120,10 @@ export function ProfileCollection({ userId }: { userId: string }) {
       <UserCollection
         selectedTags={selectedTags}
         userId={userId}
+        selectedContent={selectedContent}
+        onContentChange={setSelectedContent}
+        onOpenFilter={() => setIsFilterDrawerOpen(true)}
+        activeFilterCount={activeFilterCount}
       />
 
       {/* フィルターDrawer */}
