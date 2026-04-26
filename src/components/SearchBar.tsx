@@ -99,7 +99,7 @@ export function SearchBar({
 
   return (
     <>
-      <div className="max-w-xl mx-auto relative">
+      <div className="w-full relative">
         <ProgressiveTooltip
           id="search"
           title="グッズを検索しよう"
