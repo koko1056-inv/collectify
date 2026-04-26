@@ -95,7 +95,10 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
       className="group relative break-inside-avoid mb-3 rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/40 hover:shadow-xl transition-all"
     >
       {/* メイン画像 */}
-      <div className="relative w-full overflow-hidden bg-muted">
+      <div
+        className="relative w-full overflow-hidden bg-muted cursor-pointer"
+        onClick={() => navigate(`/ai-work/${room.id}`)}
+      >
         <img
           src={room.image_url}
           alt={room.title || "AI生成ルーム"}
