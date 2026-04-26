@@ -337,6 +337,143 @@ export default function AiRoomsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Footer />
+    </div>
+  );
+}
+
+// ==================== AvatarPanel ====================
+
+function AvatarPanel({
+  avatars,
+  onGenerate,
+  onDressUp,
+  onOpenGallery,
+  onDelete,
+}: {
+  avatars: ReturnType<typeof useAvatars>;
+  onGenerate: () => void;
+  onDressUp: () => void;
+  onOpenGallery: () => void;
+  onDelete: (id: string) => void;
+}) {
+  if (avatars.isLoading) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className="aspect-[3/4] rounded-2xl bg-muted/60 animate-pulse"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* アクションカード */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={onGenerate}
+          className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-pink-500/15 via-purple-500/15 to-orange-400/15 border border-border/40 hover:shadow-md transition"
+        >
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-2">
+            <Wand2 className="w-5 h-5 text-white" />
+          </div>
+          <p className="text-sm font-semibold">AIで生成</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            プロンプトから新しい姿に
+          </p>
+        </button>
+        <button
+          onClick={onDressUp}
+          className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-sky-500/15 via-blue-500/15 to-cyan-400/15 border border-border/40 hover:shadow-md transition"
+          disabled={avatars.avatars.length === 0}
+        >
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 flex items-center justify-center mb-2">
+            <Shirt className="w-5 h-5 text-white" />
+          </div>
+          <p className="text-sm font-semibold">着せ替え</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            グッズで着せ替えて変身
+          </p>
+        </button>
+      </div>
+
+      {/* 空状態 */}
+      {avatars.avatars.length === 0 && (
+        <div className="rounded-3xl border border-dashed border-border/60 p-8 text-center space-y-3">
+          <div className="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
+            <Sparkles className="w-7 h-7 text-primary" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold">まだアバターがありません</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              AI生成で最初のアバターを作りましょう
+            </p>
+          </div>
+          <Button onClick={onGenerate} className="gap-1.5">
+            <Wand2 className="w-4 h-4" />
+            生成をはじめる
+          </Button>
+        </div>
+      )}
+
+      {/* ギャラリー */}
+      {avatars.avatars.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold text-foreground">
+              マイアバター
+              <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                ({avatars.avatars.length})
+              </span>
+            </p>
+            <Button variant="ghost" size="sm" onClick={onOpenGallery} className="text-xs">
+              詳しく管理
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {avatars.avatars.map((a) => {
+              const isCurrent = !!a.is_current;
+              return (
+                <div
+                  key={a.id}
+                  className={cn(
+                    "relative rounded-2xl overflow-hidden border bg-card group",
+                    isCurrent ? "border-primary ring-2 ring-primary/40" : "border-border/40"
+                  )}
+                >
+                  <button
+                    onClick={() => avatars.setCurrent.mutate(a.id)}
+                    className="block w-full aspect-[3/4] bg-muted"
+                  >
+                    <img
+                      src={a.image_url}
+                      alt={a.name || "avatar"}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                  {isCurrent && (
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
+                      使用中
+                    </div>
+                  )}
+                  <button
+                    onClick={() => onDelete(a.id)}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-destructive"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
