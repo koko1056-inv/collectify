@@ -118,7 +118,7 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
 
         {/* リミックスバッジ */}
         {room.parent_room_id && (
-          <div className="absolute top-2 left-12 flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-500/90 backdrop-blur text-[10px] font-semibold text-white">
+          <div className="absolute top-2 left-12 flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/90 backdrop-blur text-[10px] font-semibold text-accent-foreground">
             <Repeat className="w-3 h-3" />
             Remix
           </div>
