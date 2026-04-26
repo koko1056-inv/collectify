@@ -9,21 +9,23 @@ import { useProfileImageUpload } from "@/hooks/useProfileImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { Package, Camera, Heart } from "lucide-react";
+import { Package, Camera, Heart, Bookmark } from "lucide-react";
 import { ProfileHero } from "./ProfileHero";
 import { ProfileSettingsSheet } from "./ProfileSettingsSheet";
 import { ProfileEditSheet } from "./ProfileEditSheet";
 import { ProfileInterests } from "./interests";
 import { ProfileCollection } from "./ProfileCollection";
 import { ProfileItemPosts } from "./ProfileItemPosts";
+import { ProfileBookmarks } from "./ProfileBookmarks";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 
-type Tab = "collection" | "posts" | "wishlist";
+type Tab = "collection" | "posts" | "wishlist" | "saved";
 
 const TABS: { id: Tab; label: string; icon: typeof Package }[] = [
   { id: "collection", label: "コレクション", icon: Package },
   { id: "posts", label: "投稿", icon: Camera },
   { id: "wishlist", label: "ウィッシュ", icon: Heart },
+  { id: "saved", label: "保存", icon: Bookmark },
 ];
 
 export function ProfilePage() {
@@ -134,6 +136,7 @@ export function ProfilePage() {
                 <WishlistGrid userId={user.id} enableActions />
               </div>
             )}
+            {activeTab === "saved" && <ProfileBookmarks />}
           </div>
         </div>
       </main>
