@@ -63,7 +63,7 @@ export function ProgressiveTooltip({
   };
 
   if (!isVisible) {
-    return <div ref={elementRef}>{children}</div>;
+    return <div ref={elementRef} className="w-full">{children}</div>;
   }
 
   const positionClasses = {
