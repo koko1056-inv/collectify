@@ -399,10 +399,10 @@ interface FeatureContent {
   title: string;
   subtitle: string;
   description: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number | string }>;
   gradient: string;
   accent: string;
-  bullets: { icon: React.ComponentType<{ className?: string }>; text: string }[];
+  bullets: { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; text: string }[];
   cta: string;
 }
 
