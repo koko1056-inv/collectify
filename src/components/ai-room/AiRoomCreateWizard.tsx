@@ -20,7 +20,7 @@ import { ResultStep } from "./wizard/ResultStep";
 import { consumePendingAiItems, consumePendingRemix, type PendingRemix } from "@/utils/ai-studio-handoff";
 
 const ROOM_COST = 100;
-const MAX_ITEMS = 3;
+const MAX_ITEMS = 10;
 const TOTAL_STEPS = 3;
 
 type Step = "items" | "style" | "visual" | "generating" | "result";
