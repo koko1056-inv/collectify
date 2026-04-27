@@ -1,150 +1,106 @@
-# AI生成を主役にしたUI/UX刷新プラン
+## 背景：現状の問題点
 
-「AI生成（ルーム/アバター）が主役、コレクションは素材」「探索はAI作品＋コレクションを同格に」「リミックス機能フル実装」「/explore統合・ボトムナビ独立タブ」の方針で全Phase段階的に実装します。
+調査の結果、現在のオンボーディングは **4つのシステムが並走** しており、内容も古いままで現在のアプリ構成と乖離しています。
 
----
+| 既存システム | 場所 | 問題点 |
+|---|---|---|
+| `WelcomeOnboarding`（全画面・4ステップ） | 初回 `/my-room` で起動 | 「マイルーム」「トレード」など旧機能の言及あり |
+| `OnboardingWalkthrough`（モーダル・6ステップ） | `/` Index で起動 | Indexはもう使われていないため**死んでいる** |
+| `OnboardingGuide`（上部スティッキーバナー・2ステップ） | `/search` 上部 | Welcomeと役割重複、「グッズ追加→ウィッシュリスト」のみで狭い |
+| `OnboardingChecklist`（カード・7項目） | `MyRoomHome` | 内容は概ねOKだが、AIルーム/アバター強化が必要 |
 
-## Phase 1: 情報設計（IA）とナビゲーション刷新
-
-### 1-1. ホーム画面のタブ再構成
-- **`src/components/home/MyRoomHome.tsx`**
-  - 構造を「**AI Studio**（デフォルト）」「**コレクション（素材庫）**」の2大タブに再編
-  - HeroCardを最新AI生成作品のサムネイル表示に差し替え
-  - 「マイルーム」「アバター」セクションを AI Studio タブ内に統合
-
-### 1-2. 探索ページの刷新（`/explore` 統合）
-- **新規 `src/pages/Explore.tsx`** を作成（`/rooms/explore` → `/explore` リダイレクト）
-- **`src/components/explore/ExploreHub.tsx`** を新規作成し、現在の `RoomExplorer.tsx` を置き換え
-- タブ構造を以下に再構築：
-  - **AIルーム**（既存）
-  - **AIアバター**（新設）
-  - **コレクション**（他ユーザーの素材庫を覗く）
-  - **ユーザー**（Featured Users）
-- マソンリー/グリッドレイアウトの基礎を導入
-- `src/App.tsx` のルートを更新（旧 `/rooms/explore` は新ページへリダイレクト）
-
-### 1-3. ボトムナビゲーション独立タブ化
-- **`src/components/navigation/MobileBottomNav.tsx`** に「探索」タブを独立配置
-  - 構成案: `ホーム / 探索 / ＋(FAB) / コレクション / マイページ`
-- アイコンは `Compass` を使用
-
-### 1-4. FAB刷新
-- **`src/components/navigation/FloatingActionButton.tsx`**
-  - 主要アクションを「✨ AIで作る（ルーム/アバター）」「📷 グッズ追加」の2つに集約
-  - 二次機能（交換出品、コレクション作成等）はサブメニューに格納
-
-### 1-5. Navbarスリム化
-- **`src/components/Navbar.tsx`**
-  - メイン3本柱：`AI Studio` / `コレクション` / `探索`
-  - 検索・交換・マッチング等の二次機能はドロップダウンメニュー内に格納
+→ 重複削減と、**現フッター構成（AIスタジオ・探索・みつける・コレクション・プロフィール）** に沿った再設計が必要です。
 
 ---
 
-## Phase 2: コレクション ⇔ AI Studio 接続強化
+## 新オンボーディング設計（2層構造）
 
-### 2-1. コレクションからAIへの素材送り
-- **`src/components/UserCollection.tsx`**
-  - マルチセレクトモードを強化、選択中フッターバーに「AIで使う」ボタン追加
-  - 選択アイテムを `sessionStorage` 経由で AI Studio に渡す
+ユーザーの希望に沿い「**4機能をバランス良く**」「**完了後は /search に着地**」する2層モデルに整理します。
 
-### 2-2. AI Studioでの素材受け取り
-- **`src/components/ai-room/AiRoomCreateWizard.tsx`**
-  - `initialSelectedItems` プロップを受け取り、最初のステップでプレビュー表示
-- **`src/components/avatar-generation/`** 配下のウィザードにも同様の対応
+### 第1層：初回ウェルカム（全画面、1回のみ）
+`WelcomeOnboarding.tsx` を全面書き換え。**6ステップ・スワイプ可** の全画面フロー。
 
-### 2-3. 逆方向リンク（AI作品 → 元素材）
-- AI生成ルーム/アバターの詳細ビューに「使われた素材を見る」セクション追加
-- 生成時に使用した `binder_items` の ID を保存するフィールドを追加（DB migration）
+| # | ステップ | 内容 |
+|---|---|---|
+| 1 | **Welcome / 名前入力** | グラデーションオーブ＋「推し活ネーム」入力（既存の良い部分は流用） |
+| 2 | **興味選択** | 好きな作品を選ぶ（`InitialInterestSelection` 流用） |
+| 3 | **🎨 AIスタジオ紹介** | 「グッズからAIで推し部屋・アバターが作れる」短いデモGIF風アニメ |
+| 4 | **🔍 探索 紹介** | 「他のコレクターの作品やコレクションを発見」 |
+| 5 | **📦 コレクション 紹介** | 「持ってるグッズを記録、お気に入りTOP5でプロフを彩る」 |
+| 6 | **🎁 完了セレブレーション** | 紙吹雪 + 「ようこそボーナス 50pt」付与（既存ロジック維持）→ **「グッズを探す」ボタンで `/search` へ** |
 
----
+**特徴：**
+- 各機能スライドに **共通レイアウト**：上に大きなビジュアル（アイコン＋アニメーション）、中央にタイトル、下に1文の価値訴求 + 1つのアクション例
+- 下部に進捗ドット + 「次へ / スキップ」ボタン
+- スワイプ対応（既存の touch handler を強化）
+- 完了で `completeWalkthrough()` + `completeWelcome()` + `add_user_points` ボーナス付与（DB永続化済）
 
-## Phase 3: 探索ページのリミックス機能フル実装
+### 第2層：継続誘導チェックリスト（マイルームに常駐）
+`OnboardingChecklist.tsx` を**現アプリに合わせて再構成**。完了済みは自動でポイント付与（既存のRPC `claim_onboarding_reward` を維持）。
 
-### 3-1. 作品カードへのアクション追加
-- **`src/components/explore/ExploreRoomCard.tsx`** （新規）
-  - 「**このスタイルで作る**」（プロンプト＋スタイル継承）
-  - 「**リミックス**」（同じ素材で別バリエーション生成）
-  - 「**素材を見る**」（制作者のコレクションへ）
-  - 「**いいね**」「**保存（ブックマーク）**」
+新チェックリスト項目（**8項目**、機能カテゴリ別にグループ化）：
 
-### 3-2. リミックス基盤の実装
-- DB migration: `ai_generations` テーブル（または既存テーブル）に以下を追加
-  - `parent_generation_id`（リミックス元）
-  - `style_prompt`、`source_item_ids[]`
-- **`src/hooks/useRemixGeneration.ts`** を新規作成
-- AI Studio ウィザードに「リミックス元」プレビューを表示
+**🎯 はじめの一歩**
+1. アカウント作成（自動完了）+10pt
+2. プロフィール設定（アバター/自己紹介） +20pt
 
-### 3-3. ブックマーク機能
-- DB migration: `ai_work_bookmarks` テーブル新設（user_id, work_id, work_type）
-- マイページに「保存した作品」タブ追加
+**📦 コレクション**
+3. 最初のグッズ登録 +30pt
+4. お気に入りTOP5を選ぶ +20pt
+5. ウィッシュリストに追加 +10pt（**新規追加**）
 
-### 3-4. フィード型UX
-- 探索ページに無限スクロール導入（`useInfiniteQuery`）
-- マソンリーレイアウト最適化（モバイルは2列、PCは4列）
-- 「For You」レコメンド: ユーザーの `interests` タグベースで並び替え
+**🎨 AIスタジオ**（初回無料バッジ付き）
+6. AIルームを作成 +30pt
+7. AIアバターを作成 +30pt
 
----
+**🌐 コミュニティ**
+8. 他ユーザーをフォロー / AI作品を保存 +20pt（**新規追加**）
 
-## Phase 4: AI Studio 体験向上 & コミュニティ強化
-
-### 4-1. AI Studio ギャラリー拡張
-- **`src/components/ai-room/MyAiRoomsView.tsx`**
-  - Instagramライクなグリッドビュー
-  - 「再生成」「バリエーション作成」アクション
-  - リミックスツリー（自作品の派生系統表示）
-
-### 4-2. 公開作品ページ
-- **新規 `src/pages/AiWorkDetail.tsx`** （ルート: `/ai-work/:id`）
-  - 探索ページから遷移する詳細ページ
-  - リミックス導線、いいね・コメント、シェア用OGP
-
-### 4-3. シェア強化
-- AI作品シェア時のウォーターマーク・フレーム追加
-- リミックス系統の可視化（「この作品から N 個の派生作品」）
-
-### 4-4. コレクション体験向上
-- **`src/components/UserCollection.tsx`**
-  - 表示切替: グリッド / リスト / シェルフ（棚）
-  - 並び順拡張: 取得日 / カテゴリ / 推し別 / 使用頻度（AI素材として）
-- HeroCard下にカテゴリ別チャート、コレクター歴グラフ
+各項目タップで該当画面へ直接遷移。完了率プログレスバー＋達成バッジ付き。
 
 ---
 
-## 影響範囲・新規作成ファイル
+## 削除・整理する既存システム
 
-### 新規ファイル
-- `src/pages/Explore.tsx`
-- `src/pages/AiWorkDetail.tsx`
-- `src/components/explore/ExploreHub.tsx`
-- `src/components/explore/ExploreRoomCard.tsx`
-- `src/components/explore/ExploreAvatarTab.tsx`
-- `src/components/explore/ExploreCollectionTab.tsx`
-- `src/hooks/useRemixGeneration.ts`
-- `src/hooks/useExploreFeed.ts`
-
-### 主要編集ファイル
-- `src/App.tsx`（ルート再編）
-- `src/components/Navbar.tsx`
-- `src/components/navigation/MobileBottomNav.tsx`
-- `src/components/navigation/FloatingActionButton.tsx`
-- `src/components/home/MyRoomHome.tsx`
-- `src/components/UserCollection.tsx`
-- `src/components/ai-room/AiRoomCreateWizard.tsx`
-- `src/components/ai-room/MyAiRoomsView.tsx`
-- `src/components/room3d/RoomExplorer.tsx`（→ ExploreHub に統合）
-
-### DBマイグレーション
-- `ai_work_bookmarks` テーブル新設
-- AI生成テーブルへ `parent_generation_id`・`source_item_ids` カラム追加
-- 必要なRLSポリシー設定
+| ファイル | 処置 |
+|---|---|
+| `src/components/onboarding/OnboardingWalkthrough.tsx` | **削除**（Indexで使われているが Index 自体が古い／フローが Welcome と重複） |
+| `src/hooks/useOnboardingWalkthrough.ts` | **削除** |
+| `src/pages/Index.tsx` の Walkthrough 呼び出し | 該当ブロック削除 |
+| `src/components/onboarding/OnboardingGuide.tsx` | **削除**（Welcomeで /search に誘導するため不要） |
+| `src/pages/Search.tsx` の `<OnboardingGuide />` | 削除 |
+| `src/components/onboarding/WelcomeOnboarding.tsx` | **全面書き換え**（6ステップ構成へ） |
+| `src/components/onboarding/OnboardingChecklist.tsx` | **項目刷新**（上記8項目、グループ化UI追加） |
+| `src/components/onboarding/ProgressiveTooltip.tsx` | 利用箇所を確認の上、未使用なら削除 |
 
 ---
 
-## 進め方
+## 変更ファイル一覧
 
-各Phaseは独立してリリース可能な単位として段階的に実装します。各Phase完了時に preview 上で確認しながら次に進みます。
+**書き換え：**
+- `src/components/onboarding/WelcomeOnboarding.tsx` — 6ステップ全画面フロー
+- `src/components/onboarding/OnboardingChecklist.tsx` — 8項目・3グループ構成
 
-- **Phase 1**: 情報設計・ナビゲーション刷新（探索ページ刷新含む）
-- **Phase 2**: コレクション ⇔ AI 接続
-- **Phase 3**: リミックス機能フル実装
-- **Phase 4**: コミュニティ強化・体験向上
+**削除：**
+- `src/components/onboarding/OnboardingWalkthrough.tsx`
+- `src/components/onboarding/OnboardingGuide.tsx`
+- `src/hooks/useOnboardingWalkthrough.ts`
+
+**修正：**
+- `src/pages/Index.tsx` — Walkthrough関連 import / JSX 削除
+- `src/pages/Search.tsx` — OnboardingGuide 削除
+- `src/components/home/MyRoomHome.tsx` — Checklist は維持（変更なし）
+
+**DB：**
+- スキーマ変更なし（既存の `profiles.onboarded_at`、`onboarding_rewards`、`add_user_points` RPC、`claim_onboarding_reward` RPC を再利用）
+
+---
+
+## 期待される効果
+
+1. **重複オンボーディングの排除** — 初回1回の全画面フロー＋ホーム常駐チェックリストの2層に整理
+2. **現アプリ構成との一致** — フッター4機能（AIスタジオ/探索/コレクション/プロフィール）+ /search を全てカバー
+3. **AI機能の発見性向上** — チェックリストで「初回無料」バッジ付きAI生成を強調、収益化導線も自然に
+4. **行動誘発** — Welcome完了直後に /search へ着地し、即「最初のグッズ登録」へ繋がる導線
+
+承認後、上記の通り実装を進めます。
