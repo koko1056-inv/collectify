@@ -5,32 +5,42 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
   ChevronRight,
+  ChevronLeft,
   Sparkles,
   Heart,
-  Box,
+  Package,
   Users,
   Gift,
   Star,
+  Wand2,
+  Search as SearchIcon,
+  Compass,
+  Check,
 } from "lucide-react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { InitialInterestSelection } from "@/components/InitialInterestSelection";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { startOnboardingGuide } from "./OnboardingGuide";
 import { cn } from "@/lib/utils";
 
 interface WelcomeOnboardingProps {
   onComplete: () => void;
 }
 
-// --- オンボーディングフロー ---
-// 1. Welcome / 名前入力（displayName 未設定ならここで）
-// 2. 機能紹介スライド (3枚) — ユーザー名を呼びかけてパーソナライズ
-// 3. 興味選択
-// 4. 完成セレブレーション（紙吹雪 + 50pt 付与）
+// ──────────────────────────────────────────────
+// 新オンボーディングフロー（6ステップ）
+//   1. Welcome / 名前入力
+//   2. 興味選択
+//   3. AIスタジオ紹介
+//   4. 探索 紹介
+//   5. コレクション 紹介
+//   6. 完了セレブレーション → /search へ
+// ──────────────────────────────────────────────
 
-type Step = "welcome" | "slides" | "interests" | "celebrate";
+type Step = "welcome" | "interests" | "feature-ai" | "feature-explore" | "feature-collection" | "celebrate";
+
+const FEATURE_STEPS: Step[] = ["feature-ai", "feature-explore", "feature-collection"];
 
 export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const { user } = useAuth();
@@ -38,10 +48,9 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const navigate = useNavigate();
 
   const [step, setStep] = useState<Step>("welcome");
+  const [direction, setDirection] = useState(1);
   const [displayName, setDisplayName] = useState("");
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [slide, setSlide] = useState(0);
-  const [direction, setDirection] = useState(1);
 
   // 既存プロフィールの display_name をプリロード
   useEffect(() => {
@@ -57,43 +66,38 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
       });
   }, [user?.id]);
 
-  // 呼びかけ名: 「〇〇さん」形式で使う
-  const friendlyName = useMemo(() => (displayName.trim() ? displayName.trim() : "あなた"), [displayName]);
-
-  // --- 機能紹介スライド（ユーザー名でパーソナライズ） ---
-  const slides = useMemo(
-    () => [
-      {
-        id: "collect",
-        icon: Heart,
-        title: `推しグッズを\nまるごと記録`,
-        description: `${friendlyName}さんの大切なコレクション。購入日や思い出も一緒に、ひとつずつ丁寧に保存できます。`,
-        gradient: "from-pink-400 via-rose-400 to-pink-500",
-        accent: "#ec4899",
-      },
-      {
-        id: "room",
-        icon: Box,
-        title: `あなただけの\n推し活ルーム`,
-        description: `棚や台座を自由に組み合わせて、${friendlyName}さん好みのディスプレイを。壁紙や飾り方も自由自在。`,
-        gradient: "from-purple-400 via-fuchsia-400 to-pink-400",
-        accent: "#a855f7",
-      },
-      {
-        id: "community",
-        icon: Users,
-        title: `仲間と繋がって\n一緒に盛り上がる`,
-        description: `同じ推しの仲間と交流、トレードも。${friendlyName}さんのコレクションに「いいね」が届くかも？`,
-        gradient: "from-amber-400 via-orange-400 to-rose-400",
-        accent: "#f59e0b",
-      },
-    ],
-    [friendlyName]
+  const friendlyName = useMemo(
+    () => (displayName.trim() ? displayName.trim() : "あなた"),
+    [displayName]
   );
 
-  // --- Step handlers ---
-  const goToSlides = useCallback(async () => {
-    // 入力された display_name を保存
+  // 全ステップ順序とindex計算（プログレス表示用）
+  const allSteps: Step[] = useMemo(
+    () => ["welcome", "interests", ...FEATURE_STEPS, "celebrate"],
+    []
+  );
+  const stepIndex = allSteps.indexOf(step);
+  const progress = ((stepIndex + 1) / allSteps.length) * 100;
+
+  const goNext = useCallback(() => {
+    setDirection(1);
+    const next = allSteps[stepIndex + 1];
+    if (next) setStep(next);
+  }, [allSteps, stepIndex]);
+
+  const goPrev = useCallback(() => {
+    setDirection(-1);
+    const prev = allSteps[stepIndex - 1];
+    if (prev) setStep(prev);
+  }, [allSteps, stepIndex]);
+
+  const skipToEnd = useCallback(() => {
+    setDirection(1);
+    setStep("celebrate");
+  }, []);
+
+  // Welcome → display_name保存 → interests
+  const handleWelcomeNext = useCallback(async () => {
     if (user?.id && displayName.trim()) {
       try {
         await supabase
@@ -104,31 +108,11 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
         console.error("Failed to save display name:", e);
       }
     }
-    setStep("slides");
-  }, [user?.id, displayName]);
-
-  const nextSlide = useCallback(() => {
-    if (slide < slides.length - 1) {
-      setDirection(1);
-      setSlide((s) => s + 1);
-    } else {
-      setStep("interests");
-    }
-  }, [slide, slides.length]);
-
-  const prevSlide = useCallback(() => {
-    if (slide > 0) {
-      setDirection(-1);
-      setSlide((s) => s - 1);
-    }
-  }, [slide]);
-
-  const handleInterestDone = useCallback(() => {
-    setStep("celebrate");
-  }, []);
+    goNext();
+  }, [user?.id, displayName, goNext]);
 
   const handleFinish = useCallback(async () => {
-    // Welcome Gift: 50pt を付与 (RPCでuser_pointsと原子的に同期)
+    // ようこそボーナス 50pt
     if (user?.id) {
       try {
         await supabase.rpc("add_user_points", {
@@ -144,57 +128,111 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     completeWalkthrough();
     await completeWelcome();
     onComplete();
-    startOnboardingGuide();
     navigate("/search");
   }, [user?.id, completeWalkthrough, completeWelcome, onComplete, navigate]);
 
-  // Touch swipe for slides
+  // タッチスワイプ（機能紹介ステップで有効）
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return;
     const diff = touchStart - e.changedTouches[0].clientX;
-    if (diff > 50) nextSlide();
-    else if (diff < -50) prevSlide();
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) goNext();
+      else if (stepIndex > 0) goPrev();
+    }
     setTouchStart(null);
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-background overflow-hidden">
-      {/* 背景に漂う絵文字（全ステップ共通のBGM的装飾） */}
       <FloatingEmojis />
 
-      <AnimatePresence mode="wait">
+      {/* 上部プログレスバー（welcome / interests / celebrate以外で表示） */}
+      {FEATURE_STEPS.includes(step) && (
+        <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-4">
+          <div className="max-w-md mx-auto flex items-center gap-3">
+            <button
+              onClick={goPrev}
+              className="p-1.5 rounded-full hover:bg-muted/50 transition-colors"
+              aria-label="戻る"
+            >
+              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+            </button>
+            <div className="flex-1 h-1.5 bg-muted/40 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400"
+                initial={false}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              />
+            </div>
+            <button
+              onClick={skipToEnd}
+              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2"
+            >
+              スキップ
+            </button>
+          </div>
+        </div>
+      )}
+
+      <AnimatePresence mode="wait" custom={direction}>
         {step === "welcome" && (
           <WelcomeStep
             key="welcome"
             displayName={displayName}
             onDisplayNameChange={setDisplayName}
-            onNext={goToSlides}
+            onNext={handleWelcomeNext}
             isLoading={isLoadingProfile}
           />
         )}
-        {step === "slides" && (
-          <SlidesStep
-            key="slides"
-            slides={slides}
-            currentSlide={slide}
-            direction={direction}
+
+        {step === "interests" && (
+          <InterestsStep
+            key="interests"
             friendlyName={friendlyName}
-            onNext={nextSlide}
-            onPrev={prevSlide}
-            onGoTo={(i) => {
-              setDirection(i > slide ? 1 : -1);
-              setSlide(i);
-            }}
-            onSkip={() => setStep("interests")}
+            onDone={goNext}
+            onSkip={goNext}
+          />
+        )}
+
+        {step === "feature-ai" && (
+          <FeatureStep
+            key="feature-ai"
+            featureKey="ai"
+            friendlyName={friendlyName}
+            direction={direction}
+            onNext={goNext}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           />
         )}
-        {step === "interests" && (
-          <InterestsStep key="interests" friendlyName={friendlyName} onDone={handleInterestDone} />
+
+        {step === "feature-explore" && (
+          <FeatureStep
+            key="feature-explore"
+            featureKey="explore"
+            friendlyName={friendlyName}
+            direction={direction}
+            onNext={goNext}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          />
         )}
+
+        {step === "feature-collection" && (
+          <FeatureStep
+            key="feature-collection"
+            featureKey="collection"
+            friendlyName={friendlyName}
+            direction={direction}
+            onNext={goNext}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          />
+        )}
+
         {step === "celebrate" && (
           <CelebrateStep key="celebrate" friendlyName={friendlyName} onFinish={handleFinish} />
         )}
@@ -222,9 +260,8 @@ function WelcomeStep({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.4 }}
-      className="h-full flex flex-col items-center justify-center px-6"
+      className="h-full flex flex-col items-center justify-center px-6 relative z-10"
     >
-      {/* グラデーションオーブ */}
       <motion.div
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -302,179 +339,16 @@ function WelcomeStep({
   );
 }
 
-// ==================== Step 2: 機能紹介スライド ====================
-
-function SlidesStep({
-  slides,
-  currentSlide,
-  direction,
-  friendlyName,
-  onNext,
-  onPrev,
-  onGoTo,
-  onSkip,
-  onTouchStart,
-  onTouchEnd,
-}: {
-  slides: Array<{
-    id: string;
-    icon: React.ComponentType<{ className?: string; strokeWidth?: number | string }>;
-    title: string;
-    description: string;
-    gradient: string;
-    accent: string;
-  }>;
-  currentSlide: number;
-  direction: number;
-  friendlyName: string;
-  onNext: () => void;
-  onPrev: () => void;
-  onGoTo: (index: number) => void;
-  onSkip: () => void;
-  onTouchStart: (e: React.TouchEvent) => void;
-  onTouchEnd: (e: React.TouchEvent) => void;
-}) {
-  const s = slides[currentSlide];
-  const Icon = s.icon;
-  const isLast = currentSlide === slides.length - 1;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="h-full flex flex-col relative"
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-    >
-      {/* スキップ */}
-      <div className="absolute top-4 right-4 z-10">
-        <Button variant="ghost" size="sm" onClick={onSkip} className="text-muted-foreground">
-          スキップ
-        </Button>
-      </div>
-
-      {/* 挨拶バッジ */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/80 backdrop-blur-md border border-border/40 text-xs font-medium">
-        <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-        <span className="text-foreground">{friendlyName}さん</span>
-      </div>
-
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={s.id}
-            custom={direction}
-            initial={{ opacity: 0, x: direction * 80, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: direction * -80, scale: 0.95 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-            className="flex flex-col items-center text-center w-full max-w-sm"
-          >
-            {/* アニメーションするアイコン */}
-            <div className="relative mb-10">
-              {/* グラデーションブロブ（拡大縮小アニメ） */}
-              <motion.div
-                animate={{ scale: [1, 1.08, 1], rotate: [0, 6, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className={`absolute inset-0 rounded-full blur-3xl bg-gradient-to-br ${s.gradient} opacity-60 scale-[1.8]`}
-              />
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className={`relative w-32 h-32 rounded-[40%] bg-gradient-to-br ${s.gradient} flex items-center justify-center shadow-2xl`}
-              >
-                <Icon className="w-16 h-16 text-white" strokeWidth={2.5} />
-              </motion.div>
-
-              {/* 周囲のキラキラ */}
-              {[0, 1, 2, 3].map((i) => (
-                <motion.div
-                  key={i}
-                  className="absolute"
-                  style={{
-                    left: `${[10, 90, 15, 85][i]}%`,
-                    top: `${[15, 20, 85, 75][i]}%`,
-                  }}
-                  animate={{
-                    scale: [0, 1, 0],
-                    rotate: [0, 180, 360],
-                    opacity: [0, 1, 0],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: i * 0.5,
-                    ease: "easeOut",
-                  }}
-                >
-                  <Sparkles className="w-5 h-5" style={{ color: s.accent }} />
-                </motion.div>
-              ))}
-            </div>
-
-            {/* タイトル */}
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground whitespace-pre-line leading-tight mb-4">
-              {s.title}
-            </h1>
-            <p className="text-muted-foreground text-base leading-relaxed max-w-xs">
-              {s.description}
-            </p>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* 下部ナビ */}
-      <div className="px-6 pb-10 pt-4 space-y-6">
-        <div className="flex items-center justify-center gap-2">
-          {slides.map((sl, i) => (
-            <button
-              key={sl.id}
-              onClick={() => onGoTo(i)}
-              className={cn(
-                "h-2 rounded-full transition-all duration-300",
-                i === currentSlide ? "w-8" : "w-2",
-                i <= currentSlide ? "bg-foreground" : "bg-muted-foreground/25"
-              )}
-              style={i === currentSlide ? { background: sl.accent } : undefined}
-            />
-          ))}
-        </div>
-
-        <Button
-          onClick={onNext}
-          size="lg"
-          className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2"
-          style={{
-            background: `linear-gradient(135deg, ${s.accent}, ${slides[(currentSlide + 1) % slides.length].accent})`,
-            color: "white",
-          }}
-        >
-          {isLast ? (
-            <>
-              次へ進む
-              <ArrowRight className="w-5 h-5" />
-            </>
-          ) : (
-            <>
-              次へ
-              <ChevronRight className="w-5 h-5" />
-            </>
-          )}
-        </Button>
-      </div>
-    </motion.div>
-  );
-}
-
-// ==================== Step 3: 興味選択 ====================
+// ==================== Step 2: 興味選択 ====================
 
 function InterestsStep({
   friendlyName,
   onDone,
+  onSkip,
 }: {
   friendlyName: string;
   onDone: () => void;
+  onSkip: () => void;
 }) {
   return (
     <motion.div
@@ -482,8 +356,15 @@ function InterestsStep({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.4 }}
-      className="h-full flex flex-col"
+      className="h-full flex flex-col relative z-10"
     >
+      {/* 上部スキップ */}
+      <div className="absolute top-4 right-4 z-10">
+        <Button variant="ghost" size="sm" onClick={onSkip} className="text-muted-foreground">
+          スキップ
+        </Button>
+      </div>
+
       <div className="flex-1 overflow-auto">
         <div className="max-w-lg mx-auto px-4 py-8">
           <motion.div
@@ -493,7 +374,7 @@ function InterestsStep({
             className="text-center mb-6"
           >
             <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 mb-4">
-              <Sparkles className="w-8 h-8 text-primary" />
+              <Heart className="w-8 h-8 text-primary" />
             </div>
             <h2 className="text-2xl font-bold mb-2">
               {friendlyName}さんの「推し」は？
@@ -509,7 +390,231 @@ function InterestsStep({
   );
 }
 
-// ==================== Step 4: お祝い画面 ====================
+// ==================== Step 3-5: 機能紹介 ====================
+
+type FeatureKey = "ai" | "explore" | "collection";
+
+interface FeatureContent {
+  badge: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  gradient: string;
+  accent: string;
+  bullets: { icon: React.ComponentType<{ className?: string }>; text: string }[];
+  cta: string;
+}
+
+function getFeatureContent(key: FeatureKey, friendlyName: string): FeatureContent {
+  switch (key) {
+    case "ai":
+      return {
+        badge: "STEP 3 / 5 ・ AI スタジオ",
+        title: "AIで推し部屋を\n生み出そう",
+        subtitle: "Powered by AI Studio",
+        description: `${friendlyName}さんのグッズから、AIがオリジナルの推し部屋やアバターを生成。世界に一つだけの推し空間が作れます。`,
+        icon: Wand2,
+        gradient: "from-violet-500 via-fuchsia-500 to-pink-500",
+        accent: "#a855f7",
+        bullets: [
+          { icon: Sparkles, text: "グッズ写真からAIで部屋を自動生成" },
+          { icon: Star, text: "オリジナルのAIアバターも作れる" },
+          { icon: Gift, text: "初回は無料でお試しできます" },
+        ],
+        cta: "次へ",
+      };
+    case "explore":
+      return {
+        badge: "STEP 4 / 5 ・ 探索",
+        title: "他の推し活仲間と\n出会おう",
+        subtitle: "Discover & Connect",
+        description: `他のコレクターのAI作品やコレクション、推しが同じ仲間を発見。気になる人をフォローして交流しよう。`,
+        icon: Compass,
+        gradient: "from-cyan-500 via-blue-500 to-indigo-500",
+        accent: "#3b82f6",
+        bullets: [
+          { icon: Users, text: "推しが同じ仲間を見つけられる" },
+          { icon: Heart, text: "AI作品やコレクションを保存" },
+          { icon: SearchIcon, text: "ランキングや特集で新発見" },
+        ],
+        cta: "次へ",
+      };
+    case "collection":
+      return {
+        badge: "STEP 5 / 5 ・ コレクション",
+        title: "推しグッズを\n大切に記録しよう",
+        subtitle: "Your Collection",
+        description: `持っているグッズを登録して一覧で管理。お気に入りTOP5でプロフィールを彩り、欲しいグッズもウィッシュリストに保存。`,
+        icon: Package,
+        gradient: "from-emerald-500 via-green-500 to-lime-500",
+        accent: "#10b981",
+        bullets: [
+          { icon: Check, text: "持ってるグッズをワンタップ登録" },
+          { icon: Star, text: "お気に入りTOP5でプロフを彩る" },
+          { icon: Heart, text: "欲しいグッズはウィッシュリストへ" },
+        ],
+        cta: "完了する",
+      };
+  }
+}
+
+function FeatureStep({
+  featureKey,
+  friendlyName,
+  direction,
+  onNext,
+  onTouchStart,
+  onTouchEnd,
+}: {
+  featureKey: FeatureKey;
+  friendlyName: string;
+  direction: number;
+  onNext: () => void;
+  onTouchStart: (e: React.TouchEvent) => void;
+  onTouchEnd: (e: React.TouchEvent) => void;
+}) {
+  const content = getFeatureContent(featureKey, friendlyName);
+  const Icon = content.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: direction * 60 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: direction * -60 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="h-full flex flex-col relative z-10 pt-16"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      <div className="flex-1 flex flex-col items-center justify-center px-6">
+        <div className="w-full max-w-sm flex flex-col items-center text-center">
+          {/* バッジ */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-card/80 backdrop-blur-md border border-border/40 text-[11px] font-semibold text-muted-foreground mb-6"
+          >
+            {content.badge}
+          </motion.div>
+
+          {/* アイコン＋アニメーション */}
+          <div className="relative mb-8">
+            <motion.div
+              animate={{ scale: [1, 1.08, 1], rotate: [0, 6, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className={cn(
+                "absolute inset-0 rounded-full blur-3xl bg-gradient-to-br opacity-60 scale-[1.8]",
+                content.gradient
+              )}
+            />
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className={cn(
+                "relative w-32 h-32 rounded-[40%] bg-gradient-to-br flex items-center justify-center shadow-2xl",
+                content.gradient
+              )}
+            >
+              <Icon className="w-16 h-16 text-white" strokeWidth={2.5} />
+            </motion.div>
+
+            {/* キラキラ */}
+            {[0, 1, 2, 3].map((i) => (
+              <motion.div
+                key={i}
+                className="absolute"
+                style={{
+                  left: `${[10, 90, 15, 85][i]}%`,
+                  top: `${[15, 20, 85, 75][i]}%`,
+                }}
+                animate={{
+                  scale: [0, 1, 0],
+                  rotate: [0, 180, 360],
+                  opacity: [0, 1, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: i * 0.5,
+                  ease: "easeOut",
+                }}
+              >
+                <Sparkles className="w-5 h-5" style={{ color: content.accent }} />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* タイトル */}
+          <motion.h1
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="text-3xl sm:text-4xl font-bold text-foreground whitespace-pre-line leading-tight mb-3"
+          >
+            {content.title}
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-muted-foreground text-sm leading-relaxed max-w-xs mb-6"
+          >
+            {content.description}
+          </motion.p>
+
+          {/* 機能ハイライト */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="w-full space-y-2"
+          >
+            {content.bullets.map((b, i) => {
+              const BIcon = b.icon;
+              return (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-card/60 backdrop-blur-sm border border-border/40 text-left"
+                >
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: `${content.accent}20` }}
+                  >
+                    <BIcon className="w-4 h-4" style={{ color: content.accent }} />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{b.text}</span>
+                </div>
+              );
+            })}
+          </motion.div>
+        </div>
+      </div>
+
+      {/* 下部CTA */}
+      <div className="px-6 pb-10 pt-6">
+        <div className="max-w-sm mx-auto">
+          <Button
+            onClick={onNext}
+            size="lg"
+            className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2"
+            style={{
+              background: `linear-gradient(135deg, ${content.accent}, ${content.accent}dd)`,
+              color: "white",
+            }}
+          >
+            {content.cta}
+            <ChevronRight className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ==================== Step 6: お祝い画面 ====================
 
 function CelebrateStep({
   friendlyName,
@@ -523,9 +628,8 @@ function CelebrateStep({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="h-full flex flex-col items-center justify-center px-6 relative overflow-hidden"
+      className="h-full flex flex-col items-center justify-center px-6 relative overflow-hidden z-10"
     >
-      {/* Confetti */}
       <Confetti />
 
       <motion.div
@@ -588,9 +692,12 @@ function CelebrateStep({
           size="lg"
           className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 hover:opacity-95"
         >
-          推し活をはじめる
+          グッズを探しに行く
           <ArrowRight className="w-5 h-5" />
         </Button>
+        <p className="text-center text-xs text-muted-foreground mt-3">
+          続きはホームのチェックリストから進められます
+        </p>
       </motion.div>
     </motion.div>
   );
@@ -601,7 +708,6 @@ function CelebrateStep({
 const EMOJIS = ["✨", "💖", "🌸", "⭐", "🎀", "💫", "🫧", "🌟"];
 
 function FloatingEmojis() {
-  // クライアントで一度だけ位置をランダム化
   const positions = useMemo(
     () =>
       Array.from({ length: 14 }).map((_, i) => ({
