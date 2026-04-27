@@ -10,10 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2,
-  Circle,
   User,
   Package,
-  Image as ImageIcon,
   Star,
   Home,
   UserCircle2,
@@ -22,18 +20,31 @@ import {
   Gift,
   Sparkles,
   X,
+  Heart,
+  Users,
+  Wand2,
+  Compass,
+  type LucideIcon,
 } from 'lucide-react';
 
 interface ChecklistItem {
   id: string;
   label: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   completed: boolean;
   action?: () => void;
   points: number;
   freeTrial?: boolean;
+  group: 'start' | 'collection' | 'ai' | 'community';
 }
+
+const GROUP_META: Record<ChecklistItem['group'], { label: string; icon: LucideIcon; color: string }> = {
+  start: { label: 'はじめの一歩', icon: Sparkles, color: 'text-amber-500' },
+  collection: { label: 'コレクション', icon: Package, color: 'text-emerald-500' },
+  ai: { label: 'AIスタジオ', icon: Wand2, color: 'text-fuchsia-500' },
+  community: { label: 'コミュニティ', icon: Users, color: 'text-blue-500' },
+};
 
 export function OnboardingChecklist() {
   const { user } = useAuth();
@@ -58,28 +69,43 @@ export function OnboardingChecklist() {
     queryFn: async () => {
       if (!user?.id) return null;
 
-      const [profileRes, itemsRes, postsRes, avatarRes, roomRes, rewardsRes] = await Promise.all([
+      const [
+        profileRes,
+        itemsRes,
+        avatarRes,
+        roomRes,
+        wishlistRes,
+        followsRes,
+        bookmarksRes,
+        rewardsRes,
+      ] = await Promise.all([
         supabase
           .from('profiles')
           .select('avatar_url, bio, display_name, favorite_item_ids')
           .eq('id', user.id)
           .single(),
         supabase.from('user_items').select('id').eq('user_id', user.id).limit(1),
-        supabase.from('goods_posts').select('id').eq('user_id', user.id).limit(1),
         supabase.from('avatar_gallery').select('id').eq('user_id', user.id).limit(1),
         supabase.from('ai_generated_rooms').select('id').eq('user_id', user.id).limit(1),
+        supabase.from('wishlists').select('id').eq('user_id', user.id).limit(1),
+        supabase.from('follows').select('id').eq('follower_id', user.id).limit(1),
+        supabase.from('ai_work_bookmarks').select('id').eq('user_id', user.id).limit(1),
         supabase.from('onboarding_rewards').select('step_id').eq('user_id', user.id),
       ]);
 
       const profile = profileRes.data;
       const claimedSteps = new Set((rewardsRes.data ?? []).map((r) => r.step_id));
+      const favCount = (profile?.favorite_item_ids as string[] | null)?.length ?? 0;
+
       return {
         hasProfile: !!(profile?.avatar_url || profile?.bio || profile?.display_name),
         hasItem: (itemsRes.data?.length ?? 0) > 0,
-        hasPost: (postsRes.data?.length ?? 0) > 0,
-        hasFavorites: ((profile?.favorite_item_ids as string[] | null)?.length ?? 0) > 0,
+        hasFavorites5: favCount >= 5,
         hasAvatar: (avatarRes.data?.length ?? 0) > 0,
         hasAiRoom: (roomRes.data?.length ?? 0) > 0,
+        hasWishlist: (wishlistRes.data?.length ?? 0) > 0,
+        hasFollow: (followsRes.data?.length ?? 0) > 0,
+        hasBookmark: (bookmarksRes.data?.length ?? 0) > 0,
         claimedSteps,
       };
     },
@@ -90,6 +116,7 @@ export function OnboardingChecklist() {
   const items: ChecklistItem[] = useMemo(() => {
     if (!checklistData || !user?.id) return [];
     return [
+      // 🎯 はじめの一歩
       {
         id: 'account',
         label: 'アカウント作成',
@@ -97,6 +124,7 @@ export function OnboardingChecklist() {
         icon: CheckCircle2,
         completed: true,
         points: 10,
+        group: 'start',
       },
       {
         id: 'profile',
@@ -106,7 +134,9 @@ export function OnboardingChecklist() {
         completed: checklistData.hasProfile,
         action: () => navigate('/edit-profile'),
         points: 20,
+        group: 'start',
       },
+      // 📦 コレクション
       {
         id: 'first-item',
         label: '最初のグッズ登録',
@@ -115,44 +145,71 @@ export function OnboardingChecklist() {
         completed: checklistData.hasItem,
         action: () => navigate('/search'),
         points: 30,
+        group: 'collection',
       },
       {
         id: 'favorites',
-        label: 'お気に入りを5個登録',
-        description: 'TOP5を他の人にも見せよう',
+        label: 'お気に入りTOP5を選ぶ',
+        description: 'プロフィールを彩ろう',
         icon: Star,
-        completed: checklistData.hasFavorites,
-        action: () => navigate(`/?userId=${user.id}`),
+        completed: checklistData.hasFavorites5,
+        action: () => navigate('/collection'),
         points: 20,
+        group: 'collection',
       },
       {
+        id: 'wishlist',
+        label: 'ウィッシュリストに追加',
+        description: '欲しいグッズをハートで保存',
+        icon: Heart,
+        completed: checklistData.hasWishlist,
+        action: () => navigate('/search'),
+        points: 10,
+        group: 'collection',
+      },
+      // 🎨 AIスタジオ
+      {
         id: 'ai-room',
-        label: 'AIでルームを作る',
-        description: 'グッズで推し部屋を生成',
+        label: 'AIで推し部屋を作る',
+        description: 'グッズで世界に一つの空間を生成',
         icon: Home,
         completed: checklistData.hasAiRoom,
         action: () => navigate('/ai-rooms'),
         points: 30,
         freeTrial: true,
+        group: 'ai',
       },
       {
         id: 'avatar',
-        label: 'アバターを作る',
-        description: 'AIで自分の分身をつくろう',
+        label: 'AIアバターを作る',
+        description: '自分だけの分身を生成',
         icon: UserCircle2,
         completed: checklistData.hasAvatar,
         action: () => navigate('/my-room?tab=avatar'),
         points: 30,
         freeTrial: true,
+        group: 'ai',
+      },
+      // 🌐 コミュニティ
+      {
+        id: 'follow',
+        label: '誰かをフォロー',
+        description: '気になるコレクターを見つけよう',
+        icon: Users,
+        completed: checklistData.hasFollow,
+        action: () => navigate('/explore'),
+        points: 10,
+        group: 'community',
       },
       {
-        id: 'first-post',
-        label: '最初の投稿',
-        description: 'グッズの写真を投稿しよう',
-        icon: ImageIcon,
-        completed: checklistData.hasPost,
-        action: () => navigate('/posts'),
-        points: 20,
+        id: 'bookmark',
+        label: 'AI作品を保存',
+        description: 'お気に入りの推し部屋をブックマーク',
+        icon: Compass,
+        completed: checklistData.hasBookmark,
+        action: () => navigate('/explore'),
+        points: 10,
+        group: 'community',
       },
     ];
   }, [checklistData, navigate, user?.id]);
@@ -162,7 +219,19 @@ export function OnboardingChecklist() {
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
   const allCompleted = completedCount === totalCount;
 
-  // Auto-claim rewards for completed steps that haven't been claimed yet
+  // グループ化
+  const groupedItems = useMemo(() => {
+    const groups: Record<ChecklistItem['group'], ChecklistItem[]> = {
+      start: [],
+      collection: [],
+      ai: [],
+      community: [],
+    };
+    items.forEach((item) => groups[item.group].push(item));
+    return groups;
+  }, [items]);
+
+  // 自動報酬付与
   useEffect(() => {
     if (!user?.id || !checklistData) return;
     const claimedSteps =
@@ -203,7 +272,6 @@ export function OnboardingChecklist() {
           claimingRef.current.delete(item.id);
         }
       }
-      // Refresh data so UI reflects claimed state and points balance updates
       queryClient.invalidateQueries({ queryKey: ['onboarding-checklist', user.id] });
       queryClient.invalidateQueries({ queryKey: ['userPoints'] });
       queryClient.invalidateQueries({ queryKey: ['pointTransactions'] });
@@ -230,11 +298,11 @@ export function OnboardingChecklist() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-primary/10">
-                <Sparkles className="w-4 h-4 text-primary" />
+              <div className="p-1.5 rounded-lg bg-gradient-to-br from-pink-500 via-purple-500 to-orange-400">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-sm">はじめの{totalCount}ステップ</h3>
+                <h3 className="font-bold text-sm">推し活はじめてガイド</h3>
                 <p className="text-xs text-muted-foreground">
                   {completedCount}/{totalCount} 完了
                 </p>
@@ -278,7 +346,7 @@ export function OnboardingChecklist() {
             </div>
           </div>
 
-          {/* Items */}
+          {/* Items grouped */}
           <AnimatePresence>
             {isExpanded && (
               <motion.div
@@ -286,53 +354,81 @@ export function OnboardingChecklist() {
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-1.5 overflow-hidden"
+                className="space-y-3 overflow-hidden"
               >
-                {items.map((item) => {
-                  const Icon = item.icon;
+                {(Object.keys(groupedItems) as ChecklistItem['group'][]).map((groupKey) => {
+                  const groupItems = groupedItems[groupKey];
+                  if (groupItems.length === 0) return null;
+                  const meta = GROUP_META[groupKey];
+                  const GroupIcon = meta.icon;
+                  const groupCompleted = groupItems.filter((i) => i.completed).length;
                   return (
-                    <button
-                      key={item.id}
-                      onClick={item.completed ? undefined : item.action}
-                      disabled={item.completed}
-                      className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-left ${
-                        item.completed
-                          ? 'bg-primary/5 opacity-60'
-                          : 'bg-muted/30 hover:bg-muted/60 cursor-pointer'
-                      }`}
-                    >
-                      {item.completed ? (
-                        <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                      ) : (
-                        <Icon className="w-5 h-5 text-muted-foreground/60 shrink-0" />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <p className={`text-sm font-medium ${item.completed ? 'line-through text-muted-foreground' : ''}`}>
-                            {item.label}
-                          </p>
-                          {!item.completed && item.freeTrial && (
-                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
-                              <Gift className="w-2.5 h-2.5" />
-                              初回無料
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {item.description}
-                        </p>
+                    <div key={groupKey} className="space-y-1.5">
+                      {/* Group header */}
+                      <div className="flex items-center gap-1.5 px-1">
+                        <GroupIcon className={`w-3.5 h-3.5 ${meta.color}`} />
+                        <span className="text-[11px] font-bold text-foreground/80 uppercase tracking-wider">
+                          {meta.label}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground ml-auto">
+                          {groupCompleted}/{groupItems.length}
+                        </span>
                       </div>
-                      {item.completed ? (
-                        <span className="text-xs font-medium text-primary bg-primary/15 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
-                          <CheckCircle2 className="w-3 h-3" />
-                          +{item.points}pt
-                        </span>
-                      ) : (
-                        <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
-                          +{item.points}pt
-                        </span>
-                      )}
-                    </button>
+                      {/* Group items */}
+                      <div className="space-y-1.5">
+                        {groupItems.map((item) => {
+                          const Icon = item.icon;
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={item.completed ? undefined : item.action}
+                              disabled={item.completed}
+                              className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all text-left ${
+                                item.completed
+                                  ? 'bg-primary/5 opacity-60'
+                                  : 'bg-muted/30 hover:bg-muted/60 cursor-pointer'
+                              }`}
+                            >
+                              {item.completed ? (
+                                <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
+                              ) : (
+                                <Icon className="w-5 h-5 text-muted-foreground/60 shrink-0" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <p
+                                    className={`text-sm font-medium ${
+                                      item.completed ? 'line-through text-muted-foreground' : ''
+                                    }`}
+                                  >
+                                    {item.label}
+                                  </p>
+                                  {!item.completed && item.freeTrial && (
+                                    <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                      <Gift className="w-2.5 h-2.5" />
+                                      初回無料
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {item.description}
+                                </p>
+                              </div>
+                              {item.completed ? (
+                                <span className="text-xs font-medium text-primary bg-primary/15 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  +{item.points}pt
+                                </span>
+                              ) : (
+                                <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full shrink-0">
+                                  +{item.points}pt
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   );
                 })}
               </motion.div>
