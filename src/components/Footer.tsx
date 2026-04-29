@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { User, Compass, Package, Sparkles, Search } from "lucide-react";
+import { User, Compass, Package, Sparkles, Search, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -22,7 +22,7 @@ export function Footer() {
   };
 
   const leftTabs = [
-    { to: "/ai-rooms", icon: Sparkles, label: "AIスタジオ" },
+    { to: "/ai-rooms", icon: Palette, label: "AIスタジオ" },
     { to: "/explore", icon: Compass, label: "探索" },
   ];
   const rightTabs = [
