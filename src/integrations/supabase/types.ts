@@ -3302,6 +3302,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      award_challenge_prize: {
+        Args: {
+          _challenge_id: string
+          _description: string
+          _points: number
+          _winner_user_id: string
+        }
+        Returns: undefined
+      }
       can_access_item_room: {
         Args: { _official_item_id: string; _user: string }
         Returns: boolean
@@ -3319,6 +3328,11 @@ export type Database = {
         Args: { _points: number; _step_id: string }
         Returns: boolean
       }
+      deduct_points_for_challenge: {
+        Args: { _description: string; _total_prize: number }
+        Returns: undefined
+      }
+      ensure_user_limits_row: { Args: never; Returns: undefined }
       find_user_matches: {
         Args: { _limit?: number; _user_id: string }
         Returns: {
@@ -3340,6 +3354,10 @@ export type Database = {
         Args: { _official_item_id: string }
         Returns: string
       }
+      grant_achievement_if_eligible: {
+        Args: { _achievement_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3353,6 +3371,7 @@ export type Database = {
       }
       increment_visit_count: { Args: { page_id: string }; Returns: number }
       is_follower: { Args: { target_user_id: string }; Returns: boolean }
+      purchase_shop_item: { Args: { _shop_item_id: string }; Returns: Json }
       set_current_avatar: {
         Args: { _avatar_id: string }
         Returns: {

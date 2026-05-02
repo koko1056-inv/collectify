@@ -28,42 +28,17 @@ export function useCreateChallenge() {
       const thirdPoints = data.third_place_points || 30;
       const totalPrizePoints = firstPoints + secondPoints + thirdPoints;
 
-      // 現在のポイント残高を取得
-      const { data: userPoints, error: pointsError } = await supabase
-        .from("user_points")
-        .select("total_points")
-        .eq("user_id", user.id)
-        .single();
-
-      if (pointsError && pointsError.code !== 'PGRST116') {
-        throw pointsError;
-      }
-
-      const currentPoints = userPoints?.total_points || 0;
-
-      // ポイント残高チェック
-      if (currentPoints < totalPrizePoints) {
-        throw new Error(`ポイントが不足しています（現在: ${currentPoints}pt、必要: ${totalPrizePoints}pt）`);
-      }
-
-      // ポイントを差し引く
-      if (userPoints) {
-        await supabase
-          .from("user_points")
-          .update({ total_points: currentPoints - totalPrizePoints })
-          .eq("user_id", user.id);
-      } else {
-        // ポイントレコードがない場合は作成（通常は到達しない）
-        throw new Error("ポイントが不足しています");
-      }
-
-      // ポイント履歴に記録
-      await supabase.from("point_transactions").insert({
-        user_id: user.id,
-        points: -totalPrizePoints,
-        transaction_type: "challenge_create",
-        description: `チャレンジ「${data.title}」作成（賞金プール）`,
+      // ポイント減算 + 履歴記録（サーバー側で残高検証）
+      const { error: deductErr } = await supabase.rpc("deduct_points_for_challenge", {
+        _total_prize: totalPrizePoints,
+        _description: `チャレンジ「${data.title}」作成（賞金プール）`,
       });
+      if (deductErr) {
+        if (deductErr.message?.includes("Insufficient points")) {
+          throw new Error(`ポイントが不足しています（必要: ${totalPrizePoints}pt）`);
+        }
+        throw deductErr;
+      }
 
       // チャレンジを作成
       const { data: challenge, error } = await supabase
@@ -84,10 +59,12 @@ export function useCreateChallenge() {
 
       if (error) {
         // チャレンジ作成失敗時はポイントを戻す
-        await supabase
-          .from("user_points")
-          .update({ total_points: currentPoints })
-          .eq("user_id", user.id);
+        await supabase.rpc("add_user_points", {
+          _user_id: user.id,
+          _points: totalPrizePoints,
+          _transaction_type: "challenge_refund",
+          _description: `チャレンジ作成失敗のため返金: ${data.title}`,
+        });
         throw error;
       }
 
@@ -239,32 +216,14 @@ export function useEndChallenge() {
       for (let i = 0; i < Math.min(3, sortedEntries.length); i++) {
         const entry = sortedEntries[i];
         if (entry.voteCount > 0) {
-          // Add points to winner
-          const { data: userPoints } = await supabase
-            .from("user_points")
-            .select("total_points")
-            .eq("user_id", entry.user_id)
-            .single();
-
-          if (userPoints) {
-            await supabase
-              .from("user_points")
-              .update({ total_points: userPoints.total_points + pointsAwards[i].points })
-              .eq("user_id", entry.user_id);
-          } else {
-            await supabase
-              .from("user_points")
-              .insert({ user_id: entry.user_id, total_points: pointsAwards[i].points });
-          }
-
-          // Record transaction
-          await supabase.from("point_transactions").insert({
-            user_id: entry.user_id,
-            points: pointsAwards[i].points,
-            transaction_type: "challenge_reward",
-            description: `チャレンジ「${challenge.title}」${pointsAwards[i].place}位入賞`,
-            reference_id: challengeId,
+          // サーバー側でオーナー検証 + ポイント付与 + 履歴記録
+          const { error: awardErr } = await supabase.rpc("award_challenge_prize", {
+            _challenge_id: challengeId,
+            _winner_user_id: entry.user_id,
+            _points: pointsAwards[i].points,
+            _description: `チャレンジ「${challenge.title}」${pointsAwards[i].place}位入賞`,
           });
+          if (awardErr) throw awardErr;
         }
       }
 

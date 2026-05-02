@@ -155,89 +155,21 @@ export function usePurchaseShopItem() {
   return useMutation({
     mutationFn: async (item: PointShopItem) => {
       if (!user?.id) throw new Error("User not authenticated");
-      
-      // 現在のポイントを確認
-      const { data: userPoints, error: pointsError } = await supabase
-        .from("user_points")
-        .select("total_points")
-        .eq("user_id", user.id)
-        .single();
-      
-      if (pointsError) throw pointsError;
-      
-      const currentPoints = userPoints?.total_points || 0;
-      if (currentPoints < item.points_cost) {
-        throw new Error("ポイントが不足しています");
-      }
-      
-      // 現在の上限を取得
-      let { data: limits, error: limitsError } = await supabase
-        .from("user_limits")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-      
-      if (limitsError && limitsError.code === 'PGRST116') {
-        // レコードが存在しない場合は作成
-        const { data: newLimits, error: insertError } = await supabase
-          .from("user_limits")
-          .insert({ user_id: user.id })
-          .select()
-          .single();
-        
-        if (insertError) throw insertError;
-        limits = newLimits;
-      } else if (limitsError) {
-        throw limitsError;
-      }
-      
-      // 上限を更新
-      const updateData: Partial<UserLimits> = {};
-      switch (item.item_type) {
-        case 'collection_slots':
-          updateData.collection_slots = (limits?.collection_slots || 100) + item.value;
-          break;
-        case 'room_slot':
-          updateData.room_slots = (limits?.room_slots || 1) + item.value;
-          break;
-        case 'custom_tags':
-          updateData.custom_tag_slots = (limits?.custom_tag_slots || 10) + item.value;
-          break;
-        case 'group_create':
-          updateData.group_create_count = (limits?.group_create_count || 0) + item.value;
-          break;
-        default:
-          break;
-      }
-      
-      // ポイント減算 + 履歴記録を RPC で原子化 (user_points と point_transactions の不整合防止)
-      const { error: deductError } = await supabase.rpc("add_user_points", {
-        _user_id: user.id,
-        _points: -item.points_cost,
-        _transaction_type: "shop_purchase",
-        _description: `${item.name}を購入`,
-        _reference_id: item.id,
+
+      // サーバー側で原子的にポイント減算 + 上限増加 + 履歴記録を実行
+      const { data, error } = await supabase.rpc("purchase_shop_item", {
+        _shop_item_id: item.id,
       });
-      if (deductError) throw deductError;
-      
-      // 上限を更新
-      if (Object.keys(updateData).length > 0) {
-        await supabase
-          .from("user_limits")
-          .update(updateData)
-          .eq("user_id", user.id);
+
+      if (error) {
+        if (error.message?.includes("Insufficient points")) {
+          throw new Error("ポイントが不足しています");
+        }
+        throw error;
       }
-      
-      // 購入履歴に記録
-      await supabase
-        .from("user_point_purchases")
-        .insert({
-          user_id: user.id,
-          shop_item_id: item.id,
-          points_spent: item.points_cost
-        });
-      
-      return { item, newPoints: currentPoints - item.points_cost };
+
+      const result = (data as { success?: boolean; new_points?: number }) || {};
+      return { item, newPoints: result.new_points ?? 0 };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["userPoints"] });
