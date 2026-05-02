@@ -216,32 +216,14 @@ export function useEndChallenge() {
       for (let i = 0; i < Math.min(3, sortedEntries.length); i++) {
         const entry = sortedEntries[i];
         if (entry.voteCount > 0) {
-          // Add points to winner
-          const { data: userPoints } = await supabase
-            .from("user_points")
-            .select("total_points")
-            .eq("user_id", entry.user_id)
-            .single();
-
-          if (userPoints) {
-            await supabase
-              .from("user_points")
-              .update({ total_points: userPoints.total_points + pointsAwards[i].points })
-              .eq("user_id", entry.user_id);
-          } else {
-            await supabase
-              .from("user_points")
-              .insert({ user_id: entry.user_id, total_points: pointsAwards[i].points });
-          }
-
-          // Record transaction
-          await supabase.from("point_transactions").insert({
-            user_id: entry.user_id,
-            points: pointsAwards[i].points,
-            transaction_type: "challenge_reward",
-            description: `チャレンジ「${challenge.title}」${pointsAwards[i].place}位入賞`,
-            reference_id: challengeId,
+          // サーバー側でオーナー検証 + ポイント付与 + 履歴記録
+          const { error: awardErr } = await supabase.rpc("award_challenge_prize", {
+            _challenge_id: challengeId,
+            _winner_user_id: entry.user_id,
+            _points: pointsAwards[i].points,
+            _description: `チャレンジ「${challenge.title}」${pointsAwards[i].place}位入賞`,
           });
+          if (awardErr) throw awardErr;
         }
       }
 
