@@ -59,10 +59,12 @@ export function useCreateChallenge() {
 
       if (error) {
         // チャレンジ作成失敗時はポイントを戻す
-        await supabase
-          .from("user_points")
-          .update({ total_points: currentPoints })
-          .eq("user_id", user.id);
+        await supabase.rpc("add_user_points", {
+          _user_id: user.id,
+          _points: totalPrizePoints,
+          _transaction_type: "challenge_refund",
+          _description: `チャレンジ作成失敗のため返金: ${data.title}`,
+        });
         throw error;
       }
 
