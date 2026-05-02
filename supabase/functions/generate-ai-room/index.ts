@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface GenerateAiRoomInput {
-  itemImageUrls: string[]; // 最大10枚
+  itemImageUrls: string[]; // 最大5枚
   itemIds?: string[]; // 任意: 選択した user_items の ID 一覧
   stylePrompt: string; // 部屋スタイルのプロンプト
   stylePreset?: string; // 任意: "pastel_kawaii" など
