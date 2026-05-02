@@ -3333,6 +3333,10 @@ export type Database = {
         Returns: undefined
       }
       ensure_user_limits_row: { Args: never; Returns: undefined }
+      expand_collection_slots: {
+        Args: { _cost?: number; _slots_added?: number }
+        Returns: Json
+      }
       find_user_matches: {
         Args: { _limit?: number; _user_id: string }
         Returns: {
@@ -3372,6 +3376,7 @@ export type Database = {
       increment_visit_count: { Args: { page_id: string }; Returns: number }
       is_follower: { Args: { target_user_id: string }; Returns: boolean }
       purchase_shop_item: { Args: { _shop_item_id: string }; Returns: Json }
+      retroactive_content_points: { Args: never; Returns: Json }
       set_current_avatar: {
         Args: { _avatar_id: string }
         Returns: {

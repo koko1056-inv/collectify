@@ -33,14 +33,14 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
       .single();
     
     if (limitsError && limitsError.code === 'PGRST116') {
-      // レコードがない場合は作成
-      const { data: newLimits, error: insertError } = await supabase
+      // レコードがない場合はサーバー側で作成
+      await supabase.rpc("ensure_user_limits_row");
+      const { data: newLimits, error: refetchError } = await supabase
         .from("user_limits")
-        .insert({ user_id: userId })
         .select("collection_slots")
+        .eq("user_id", userId)
         .single();
-      
-      if (insertError) throw insertError;
+      if (refetchError) throw refetchError;
       limits = newLimits;
     } else if (limitsError) {
       throw limitsError;

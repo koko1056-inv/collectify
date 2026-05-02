@@ -104,15 +104,15 @@ export function useUserLimits() {
         .single();
       
       if (error) {
-        // レコードが存在しない場合は作成
+        // レコードが存在しない場合はサーバー側で作成
         if (error.code === 'PGRST116') {
-          const { data: newRecord, error: insertError } = await supabase
+          await supabase.rpc("ensure_user_limits_row");
+          const { data: newRecord, error: refetchError } = await supabase
             .from("user_limits")
-            .insert({ user_id: user.id })
-            .select()
+            .select("*")
+            .eq("user_id", user.id)
             .single();
-          
-          if (insertError) throw insertError;
+          if (refetchError) throw refetchError;
           return newRecord;
         }
         throw error;
