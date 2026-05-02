@@ -29,6 +29,10 @@ dist-ssr
 *.sw?
 .claude/memory-db/
 
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/
+
 # iOS / Capacitor (Xcode)
 ios/App/Pods/
 ios/App/App/public/

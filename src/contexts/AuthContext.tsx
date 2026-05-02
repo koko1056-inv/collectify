@@ -2,8 +2,25 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { Capacitor } from '@capacitor/core'
+import { Purchases } from '@revenuecat/purchases-capacitor'
 
 import { trackLogin, trackLogout } from '@/utils/analytics'
+
+// Identify the user in RevenueCat so purchases attach to the correct app user.
+const rcLogin = (userId: string) => {
+  if (!Capacitor.isNativePlatform()) return
+  Purchases.logIn({ appUserID: userId }).catch((err) => {
+    console.error('[RevenueCat] logIn failed', err)
+  })
+}
+
+const rcLogout = () => {
+  if (!Capacitor.isNativePlatform()) return
+  Purchases.logOut().catch((err) => {
+    console.error('[RevenueCat] logOut failed', err)
+  })
+}
 
 // ログインボーナス処理のユーティリティ関数（連続ログイン対応）
 const awardLoginBonus = async (userId: string) => {
@@ -54,6 +71,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(initialSession)
           setUser(initialSession.user)
           trackLogin(initialSession.user.id)
+          rcLogin(initialSession.user.id)
         }
       } catch (error) {
         console.error('Session initialization error:', error)
@@ -73,16 +91,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(currentSession.user)
         if (_event === 'SIGNED_IN') {
           trackLogin(currentSession.user.id)
+          rcLogin(currentSession.user.id)
           // ログインボーナスを付与（非同期で実行）
           setTimeout(() => {
             awardLoginBonus(currentSession.user.id)
           }, 0)
         } else if (_event === 'SIGNED_OUT') {
           trackLogout(currentSession.user.id)
+          rcLogout()
         }
       } else {
         setSession(null)
         setUser(null)
+        rcLogout()
       }
       setLoading(false)
     })

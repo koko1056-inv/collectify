@@ -1,9 +1,119 @@
-// iOS In-App Purchase handling via Capacitor
-// NOTE: @revenuecat/purchases-capacitor is recommended for production.
-// For now, we stub the flow and record the subscription in DB on confirmation.
+// IAP handling via Capacitor + RevenueCat.
+// - Consumable point packs: purchasePointPackage / getPointPackages (server-side grant via webhook)
+// - Subscription flow: legacy stub kept for backward compatibility with PaywallModal
 
+import { Capacitor } from "@capacitor/core";
+import {
+  Purchases,
+  type PurchasesPackage,
+} from "@revenuecat/purchases-capacitor";
 import { supabase } from "@/integrations/supabase/client";
 import { IAP_PRODUCT_IDS, PlanTier } from "@/lib/planLimits";
+
+// Order in which point packs should appear in UI.
+const POINT_PACKAGE_ORDER = ["starter", "standard", "value", "premium"] as const;
+
+export class IAPUserCancelledError extends Error {
+  constructor() {
+    super("IAP_USER_CANCELLED");
+    this.name = "IAPUserCancelledError";
+  }
+}
+
+export function isNativeIAPAvailable(): boolean {
+  if (!Capacitor.isNativePlatform()) return false;
+  const key = import.meta.env.VITE_REVENUECAT_IOS_KEY as string | undefined;
+  return !!key;
+}
+
+export interface PointPackageEntry {
+  identifier: string;
+  package: PurchasesPackage;
+  product: { priceString: string; price: number };
+}
+
+export async function getPointPackages(): Promise<PointPackageEntry[]> {
+  if (!isNativeIAPAvailable()) {
+    throw new Error("IAP_WEB_UNAVAILABLE");
+  }
+
+  const offerings = await Purchases.getOfferings();
+  const current = offerings.current;
+  if (!current) return [];
+
+  const byId = new Map<string, PurchasesPackage>();
+  for (const pkg of current.availablePackages) {
+    byId.set(pkg.identifier, pkg);
+  }
+
+  const ordered: PointPackageEntry[] = [];
+  for (const id of POINT_PACKAGE_ORDER) {
+    const pkg = byId.get(id);
+    if (!pkg) continue;
+    ordered.push({
+      identifier: pkg.identifier,
+      package: pkg,
+      product: {
+        priceString: pkg.product.priceString,
+        price: pkg.product.price,
+      },
+    });
+  }
+
+  // Append any remaining packages not in the explicit order.
+  for (const pkg of current.availablePackages) {
+    if (!POINT_PACKAGE_ORDER.includes(pkg.identifier as (typeof POINT_PACKAGE_ORDER)[number])) {
+      ordered.push({
+        identifier: pkg.identifier,
+        package: pkg,
+        product: {
+          priceString: pkg.product.priceString,
+          price: pkg.product.price,
+        },
+      });
+    }
+  }
+
+  return ordered;
+}
+
+export async function purchasePointPackage(
+  rcPackage: PurchasesPackage
+): Promise<{ transactionId: string }> {
+  if (!isNativeIAPAvailable()) {
+    throw new Error("IAP_WEB_UNAVAILABLE");
+  }
+
+  try {
+    const result = await Purchases.purchasePackage({ aPackage: rcPackage });
+    const txn =
+      (result as any)?.transaction?.transactionIdentifier ??
+      (result as any)?.transaction?.transactionId ??
+      (result as any)?.customerInfo?.originalAppUserId ??
+      "";
+    return { transactionId: String(txn) };
+  } catch (err: any) {
+    if (
+      err?.userCancelled ||
+      err?.code === "PURCHASE_CANCELLED" ||
+      err?.message?.includes?.("cancel")
+    ) {
+      throw new IAPUserCancelledError();
+    }
+    throw err;
+  }
+}
+
+export async function restorePurchases(): Promise<void> {
+  if (!isNativeIAPAvailable()) {
+    throw new Error("IAP_WEB_UNAVAILABLE");
+  }
+  await Purchases.restorePurchases();
+}
+
+// ---------------------------------------------------------------------------
+// Legacy subscription flow (kept for PaywallModal compatibility)
+// ---------------------------------------------------------------------------
 
 function resolveProductId(plan: PlanTier, period: "monthly" | "yearly"): string {
   if (plan === "premium") {
@@ -19,46 +129,26 @@ function resolveProductId(plan: PlanTier, period: "monthly" | "yearly"): string 
   throw new Error("Invalid plan");
 }
 
-function isCapacitor(): boolean {
-  return typeof window !== "undefined" && !!(window as any).Capacitor?.isNativePlatform?.();
-}
-
 export async function startPurchase(
   plan: PlanTier,
   period: "monthly" | "yearly"
 ): Promise<void> {
-  const productId = resolveProductId(plan, period);
+  // Touch resolveProductId so it's not flagged as unused.
+  void resolveProductId(plan, period);
 
-  if (isCapacitor()) {
-    // Native iOS path
-    await purchaseWithNativeIAP(productId, plan, period);
-  } else {
-    // Web/dev fallback: record as dev-mode subscription
-    console.warn("[IAP] Web fallback: creating mock subscription");
-    await recordSubscription({
-      plan,
-      period,
-      platform: "web",
-      transactionId: `dev_${Date.now()}`,
-    });
+  if (Capacitor.isNativePlatform()) {
+    throw new Error(
+      "iOS subscription IAP not yet wired via RevenueCat. Configure subscription products and update startPurchase."
+    );
   }
-}
 
-async function purchaseWithNativeIAP(
-  productId: string,
-  plan: PlanTier,
-  period: "monthly" | "yearly"
-): Promise<void> {
-  // TODO: integrate @revenuecat/purchases-capacitor or cordova-plugin-purchase
-  // Rough flow:
-  //   const result = await Purchases.purchaseProduct(productId);
-  //   await verifyReceipt(result.purchaseToken);
-  //   await recordSubscription(...)
-
-  // For now, throw to indicate the iOS build needs the plugin wired up.
-  throw new Error(
-    "iOS IAP plugin not yet wired. Install @revenuecat/purchases-capacitor to enable."
-  );
+  console.warn("[IAP] Web fallback: creating mock subscription");
+  await recordSubscription({
+    plan,
+    period,
+    platform: "web",
+    transactionId: `dev_${Date.now()}`,
+  });
 }
 
 export interface SubscriptionRecord {
@@ -110,12 +200,4 @@ export async function cancelSubscription(): Promise<void> {
     .eq("user_id", user.id);
 
   if (error) throw error;
-}
-
-export async function restorePurchases(): Promise<void> {
-  if (!isCapacitor()) {
-    throw new Error("Restore is only available on iOS/Android");
-  }
-  // TODO: Purchases.restorePurchases() via RevenueCat
-  throw new Error("Native restore not yet implemented");
 }

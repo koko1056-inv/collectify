@@ -12,6 +12,8 @@ export interface PointPackage {
   is_active: boolean;
   sort_order: number;
   created_at: string;
+  apple_product_id?: string | null;
+  revenuecat_package_id?: string | null;
 }
 
 export interface PointShopItem {
