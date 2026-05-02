@@ -59,8 +59,8 @@ Deno.serve(async (req) => {
     if (!itemImageUrls || itemImageUrls.length === 0) {
       return json({ error: "アイテム画像が必要です" }, 400);
     }
-    if (itemImageUrls.length > 10) {
-      return json({ error: "アイテムは最大10個までです" }, 400);
+    if (itemImageUrls.length > 5) {
+      return json({ error: "アイテムは最大5個までです" }, 400);
     }
     if (!stylePrompt) {
       return json({ error: "スタイルが必要です" }, 400);
