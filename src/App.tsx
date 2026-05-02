@@ -13,12 +13,26 @@ import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
-// Import main pages directly for faster navigation
-import Search from "./pages/Search";
-import Collection from "./pages/Collection";
-import Posts from "./pages/Posts";
-import MyRoom from "./pages/MyRoom";
-import ItemPostsFeed from "./pages/ItemPostsFeed";
+// 主要ページも lazy 化して初回バンドルを縮小（MyRoom はデフォルト遷移先なので即プリフェッチ）
+const MyRoom = lazy(() => import("./pages/MyRoom").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Search = lazy(() => import("./pages/Search").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Collection = lazy(() => import("./pages/Collection").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Posts = lazy(() => import("./pages/Posts"));
+const ItemPostsFeed = lazy(() => import("./pages/ItemPostsFeed").catch(() => ({ default: () => <div>Error loading page</div> })));
+
+// バックグラウンドで主要ページをプリフェッチ
+if (typeof window !== "undefined") {
+  const prefetch = () => {
+    import("./pages/MyRoom");
+    import("./pages/Search");
+    import("./pages/Collection");
+  };
+  if ("requestIdleCallback" in window) {
+    (window as any).requestIdleCallback(prefetch, { timeout: 2000 });
+  } else {
+    setTimeout(prefetch, 1500);
+  }
+}
 
 // Lazy load only rarely used pages
 const Login = lazy(() => import("./pages/Login").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -64,7 +78,7 @@ const queryClient = new QueryClient({
       retry: 2, // 2回まで再試行
       refetchOnWindowFocus: false,
       refetchOnMount: false, // マウント時の再取得を防ぐ
-      refetchOnReconnect: true, // ネットワーク再接続時は再取得
+      refetchOnReconnect: false, // ネット復帰時の再取得も抑制（必要時は明示的に invalidate）
       networkMode: 'online', // オンライン時のみクエリ実行
     },
     mutations: {
