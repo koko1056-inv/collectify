@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
@@ -73,9 +73,9 @@ const Search = () => {
 
   const currentTab = searchParams.get("tab") || "goods";
 
-  const handleTabChange = (tab: string) => {
+  const handleTabChange = useCallback((tab: string) => {
     setSearchParams({ tab });
-  };
+  }, [setSearchParams]);
 
   // ユーザーの興味のあるコンテンツをデフォルトで設定
   useEffect(() => {
@@ -105,14 +105,24 @@ const Search = () => {
     }
   }, [location.search, items, setSearchParams]);
 
-  const filteredItems = items.filter(item => {
-    const matchesSearch = searchQuery ? item.title.toLowerCase().includes(searchQuery.toLowerCase()) || (item.artist?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || (item.anime?.toLowerCase() || "").includes(searchQuery.toLowerCase()) : true;
-    const matchesTags = selectedTags.length === 0 || selectedTags.every(tag => item.item_tags?.some(itemTag => itemTag.tags?.name === tag));
-    const matchesContent = !selectedContent || selectedContent === "all" || item.content_name === selectedContent;
-    return matchesSearch && matchesTags && matchesContent;
-  });
+  const filteredItems = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return items.filter(item => {
+      const matchesSearch = q
+        ? item.title.toLowerCase().includes(q) ||
+          (item.artist?.toLowerCase() || "").includes(q) ||
+          (item.anime?.toLowerCase() || "").includes(q)
+        : true;
+      const matchesTags = selectedTags.length === 0 || selectedTags.every(tag => item.item_tags?.some(itemTag => itemTag.tags?.name === tag));
+      const matchesContent = !selectedContent || selectedContent === "all" || item.content_name === selectedContent;
+      return matchesSearch && matchesTags && matchesContent;
+    });
+  }, [items, searchQuery, selectedTags, selectedContent]);
 
-  const activeFilterCount = (selectedContent && selectedContent !== "all" ? 1 : 0) + selectedTags.length;
+  const activeFilterCount = useMemo(
+    () => (selectedContent && selectedContent !== "all" ? 1 : 0) + selectedTags.length,
+    [selectedContent, selectedTags]
+  );
 
   const clearAllFilters = useCallback(() => {
     setSelectedContent("all");

@@ -43,7 +43,7 @@ export function LazyImage({
         }
       },
       {
-        rootMargin: "100px",
+        rootMargin: "300px",
       }
     );
 
@@ -121,6 +121,7 @@ export function LazyImage({
             className
           )}
           loading="lazy"
+          decoding="async"
           {...props}
         />
       )}

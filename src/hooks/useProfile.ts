@@ -61,11 +61,11 @@ export function useProfile(userId: string | undefined) {
       return profileData as Profile;
     },
     enabled: !!userId,
-    staleTime: 1000 * 60 * 2,
+    staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
-    // プロフィールは編集・オンボーディング等で変わりやすいので、マウント時は必ず最新を取りに行く
-    refetchOnMount: "always",
-    refetchOnWindowFocus: "always",
+    // 編集後は明示的に refetchProfile() を呼ぶので、自動再取得は抑制してページ遷移を高速化
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   return {
