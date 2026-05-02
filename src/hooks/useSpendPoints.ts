@@ -61,45 +61,32 @@ export function useSpendPoints() {
 export function useExpandCollectionSlots() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const spend = useSpendPoints();
 
   return useMutation({
     mutationFn: async () => {
       if (!user?.id) throw new Error("ログインが必要です");
-      const COST = 30;
-      const SLOTS_ADDED = 10;
 
-      // ポイント消費
-      await spend.mutateAsync({
-        cost: COST,
-        transactionType: "collection_slot_expand",
-        description: `コレクション枠 +${SLOTS_ADDED} 拡張`,
+      // サーバー側で残高検証 + ポイント減算 + 枠拡張 + 履歴記録を原子化
+      const { error } = await supabase.rpc("expand_collection_slots", {
+        _cost: 30,
+        _slots_added: 10,
       });
-
-      // user_limits を upsert
-      const { data: existing } = await supabase
-        .from("user_limits")
-        .select("collection_slots")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (existing) {
-        const { error } = await supabase
-          .from("user_limits")
-          .update({ collection_slots: (existing.collection_slots ?? 100) + SLOTS_ADDED })
-          .eq("user_id", user.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("user_limits")
-          .insert({ user_id: user.id, collection_slots: 100 + SLOTS_ADDED });
-        if (error) throw error;
+      if (error) {
+        if (error.message?.includes("Insufficient points")) {
+          throw new Error("ポイントが不足しています（必要: 30pt）");
+        }
+        throw error;
       }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["userLimits"] });
       qc.invalidateQueries({ queryKey: ["collectionCount"] });
+      qc.invalidateQueries({ queryKey: ["userPoints"] });
+      qc.invalidateQueries({ queryKey: ["pointTransactions"] });
       toast.success("コレクション枠を +10 拡張しました ✨");
+    },
+    onError: (e) => {
+      toast.error((e as Error).message || "枠拡張に失敗しました");
     },
   });
 }
