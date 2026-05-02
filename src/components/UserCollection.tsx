@@ -314,85 +314,92 @@ export function UserCollection({
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
       {/* ツールバー */}
-      <div className="flex items-center gap-1.5 mb-4">
+      <div className="flex items-center gap-2 mb-4">
         {!isSelectionMode ? (
           <>
-            {/* 並び替え */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex-1 min-w-0 gap-1 h-9 px-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                >
-                  <ArrowUpDown className="h-3.5 w-3.5 shrink-0" />
-                  <span className="text-xs font-medium truncate">{sortLabels[sortOption]}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="min-w-[160px]">
-                {(Object.keys(sortLabels) as SortOption[]).map((option) => (
-                  <DropdownMenuItem
-                    key={option}
-                    onClick={() => setSortOption(option)}
-                    className={`gap-2 ${sortOption === option ? "bg-accent font-medium" : ""}`}
+            {/* 左：並び替え + フィルター（コンパクト） */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* 並び替え */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1.5 h-9 px-2.5 rounded-lg text-foreground hover:bg-muted/60"
                   >
-                    <span className="text-muted-foreground">{sortIcons[option]}</span>
-                    {sortLabels[option]}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    <ArrowUpDown className="h-4 w-4 shrink-0" />
+                    <span className="text-xs font-medium">{sortLabels[sortOption]}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="min-w-[160px]">
+                  {(Object.keys(sortLabels) as SortOption[]).map((option) => (
+                    <DropdownMenuItem
+                      key={option}
+                      onClick={() => setSortOption(option)}
+                      className={`gap-2 ${sortOption === option ? "bg-accent font-medium" : ""}`}
+                    >
+                      <span className="text-muted-foreground">{sortIcons[option]}</span>
+                      {sortLabels[option]}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-            {/* フィルタ（Drawerを開く / 適用中なら件数バッジ表示） */}
-            {(() => {
-              const localCount =
-                (selectedTags?.length || 0) +
-                (selectedContent && selectedContent !== "all" ? 1 : 0) +
-                (selectedPersonalTag ? 1 : 0);
-              const filterCount = activeFilterCountProp ?? localCount;
-              const hasFilter = filterCount > 0;
-              return (
+              {/* フィルタ（アイコンのみ + バッジ） */}
+              {(() => {
+                const localCount =
+                  (selectedTags?.length || 0) +
+                  (selectedContent && selectedContent !== "all" ? 1 : 0) +
+                  (selectedPersonalTag ? 1 : 0);
+                const filterCount = activeFilterCountProp ?? localCount;
+                const hasFilter = filterCount > 0;
+                return (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onOpenFilter}
+                    disabled={!onOpenFilter}
+                    className="relative h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
+                    title="フィルター"
+                    aria-label="フィルター"
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                    {hasFilter && (
+                      <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+                        {filterCount}
+                      </span>
+                    )}
+                  </Button>
+                );
+              })()}
+            </div>
+
+            <div className="flex-1" />
+
+            {/* 右：選択 + 今日のグッズ（CTA） */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {isOwnCollection && (
                 <Button
+                  onClick={handleToggleSelectionMode}
                   variant="ghost"
-                  size="sm"
-                  onClick={onOpenFilter}
-                  disabled={!onOpenFilter}
-                  className="flex-1 min-w-0 gap-1 h-9 px-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 relative"
-                  title="フィルター"
+                  size="icon"
+                  className="h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
+                  title="複数選択"
+                  aria-label="複数選択"
                 >
-                  <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
-                  <span className="text-xs font-medium truncate">フィルター</span>
-                  {hasFilter && (
-                    <span className="ml-0.5 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
-                      {filterCount}
-                    </span>
-                  )}
+                  <CheckSquare className="h-4 w-4" />
                 </Button>
-              );
-            })()}
+              )}
 
-            {/* 複数選択 */}
-            {isOwnCollection && (
               <Button
-                onClick={handleToggleSelectionMode}
-                variant="ghost"
+                onClick={handleRandomModalOpen}
                 size="sm"
-                className="flex-1 min-w-0 gap-1 h-9 px-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                className="gap-1.5 h-9 px-3 rounded-lg bg-primary/10 text-primary hover:bg-primary/15 shadow-none group"
               >
-                <CheckSquare className="h-3.5 w-3.5 shrink-0" />
-                <span className="text-xs font-medium truncate">選択</span>
+                <Dices className="h-4 w-4 shrink-0 group-hover:rotate-12 transition-transform" />
+                <span className="text-xs font-semibold whitespace-nowrap">今日のグッズ</span>
               </Button>
-            )}
-
-            {/* 今日のグッズ */}
-            <Button
-              onClick={handleRandomModalOpen}
-              size="sm"
-              className="flex-1 min-w-0 gap-1 h-9 px-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/15 shadow-none group"
-            >
-              <Dices className="h-3.5 w-3.5 shrink-0 group-hover:rotate-12 transition-transform" />
-              <span className="text-xs font-semibold truncate">今日のグッズ</span>
-            </Button>
+            </div>
           </>
         ) : (
           <>
