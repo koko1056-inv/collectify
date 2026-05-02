@@ -336,13 +336,10 @@ async function checkAndAwardAchievements(userId: string, totalPoints: number, ac
     a => !existingIds.includes(a.id)
   );
   
-  // 新しい称号を付与
+  // 新しい称号を付与（サーバー側で資格を再検証）
   for (const achievement of newAchievements) {
-    await supabase
-      .from("user_achievements")
-      .insert({
-        user_id: userId,
-        achievement_id: achievement.id
-      });
+    await supabase.rpc("grant_achievement_if_eligible", {
+      _achievement_id: achievement.id,
+    });
   }
 }
