@@ -1,6 +1,12 @@
 
 project_id = "dmgrgzysrzzgsajwqyrh"
 
+# RevenueCat calls this endpoint without a Supabase JWT — it uses
+# the RC_WEBHOOK_SECRET Bearer token for auth instead.
+[[functions]]
+name = "revenuecat-webhook"
+verify_jwt = false
+
 [[functions]]
 name = "scrape-images"
 verify_jwt = true

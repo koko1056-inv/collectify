@@ -1,6 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  isNativeIAPAvailable,
+  getPointPackages,
+  purchasePointPackage,
+  IAPUserCancelledError,
+  type PointPackageEntry,
+} from "@/utils/iap";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -44,10 +52,30 @@ export default function PointShop() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [confirmPack, setConfirmPack] = useState<PointPackage | null>(null);
+  const [purchasing, setPurchasing] = useState(false);
+  const [rcPackages, setRcPackages] = useState<PointPackageEntry[]>([]);
+  const nativeAvailable = isNativeIAPAvailable();
 
   const { data: packages, isLoading: packagesLoading } = usePointPackages();
   const { data: userPoints, isLoading: pointsLoading } = useUserPoints();
+
+  // Load RevenueCat offerings once on native platforms.
+  useEffect(() => {
+    if (!nativeAvailable) return;
+    let cancelled = false;
+    getPointPackages()
+      .then((list) => {
+        if (!cancelled) setRcPackages(list);
+      })
+      .catch((err) => {
+        console.error("[PointShop] getPointPackages failed", err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [nativeAvailable]);
 
   if (!user) {
     return (
@@ -65,13 +93,66 @@ export default function PointShop() {
 
   const currentPoints = userPoints?.total_points ?? 0;
 
-  const handleConfirmPurchase = () => {
-    // 決済は未接続。準備中の通知のみ。
-    toast({
-      title: "決済機能は準備中です",
-      description: "ポイント購入機能はまもなく公開予定です。今しばらくお待ちください。",
-    });
-    setConfirmPack(null);
+  const handleConfirmPurchase = async () => {
+    const pack = confirmPack;
+    if (!pack) return;
+
+    if (!nativeAvailable) {
+      toast({
+        title: "購入はiOSアプリでのみ可能です",
+        description: "App Store版アプリからお手続きください。",
+      });
+      setConfirmPack(null);
+      return;
+    }
+
+    const rcId = pack.revenuecat_package_id;
+    if (!rcId) {
+      toast({
+        title: "購入できません",
+        description: "このパックの製品設定が見つかりません。",
+        variant: "destructive",
+      });
+      setConfirmPack(null);
+      return;
+    }
+
+    const match = rcPackages.find((p) => p.identifier === rcId);
+    if (!match) {
+      toast({
+        title: "購入できません",
+        description: "App Storeの製品が読み込めませんでした。再度お試しください。",
+        variant: "destructive",
+      });
+      setConfirmPack(null);
+      return;
+    }
+
+    setPurchasing(true);
+    try {
+      await purchasePointPackage(match.package);
+      // Server-side webhook grants the points; refresh balance after a short delay.
+      queryClient.invalidateQueries({ queryKey: ["userPoints"] });
+      toast({
+        title: "購入が完了しました",
+        description: "ポイントが反映されるまで数秒かかります。",
+      });
+      setConfirmPack(null);
+    } catch (err) {
+      if (err instanceof IAPUserCancelledError) {
+        // Silent — user cancelled the purchase.
+        setConfirmPack(null);
+      } else {
+        console.error("[PointShop] purchase failed", err);
+        toast({
+          title: "購入に失敗しました",
+          description: err instanceof Error ? err.message : "もう一度お試しください。",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setPurchasing(false);
+    }
   };
 
   return (
@@ -124,7 +205,9 @@ export default function PointShop() {
               <Sparkles className="w-5 h-5 text-primary" />
               ポイントパック
             </h2>
-            <Badge variant="outline" className="text-[10px]">決済機能 準備中</Badge>
+            {!nativeAvailable && (
+              <Badge variant="outline" className="text-[10px]">iOSアプリのみ対応</Badge>
+            )}
           </div>
 
           {packagesLoading ? (
@@ -239,15 +322,17 @@ export default function PointShop() {
                   を獲得します。
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  ※ 現在 決済機能は準備中です。実際の購入は近日中に開放予定です。
+                  {nativeAvailable
+                    ? "※ 購入後、ポイントが反映されるまで数秒かかる場合があります。"
+                    : "※ 購入はiOSアプリでのみ可能です。"}
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmPurchase}>
-              続ける
+            <AlertDialogCancel disabled={purchasing}>キャンセル</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmPurchase} disabled={purchasing}>
+              {purchasing ? "処理中..." : "続ける"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
