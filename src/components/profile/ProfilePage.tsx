@@ -105,14 +105,20 @@ export function ProfilePage() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "relative flex-1 flex items-center justify-center gap-1 sm:gap-1.5 py-2.5 px-1.5 sm:px-2 rounded-full text-sm font-medium transition-colors z-10 whitespace-nowrap min-w-0",
+                      "relative flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-full text-sm font-medium transition-colors z-10 whitespace-nowrap min-w-0",
                       isActive
                         ? "bg-primary text-primary-foreground shadow-md"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <Icon className="w-4 h-4 shrink-0 hidden sm:block" />
-                    <span className="text-[13px] sm:text-sm whitespace-nowrap truncate">{tab.label}</span>
+                    {isActive ? (
+                      <span className="text-[12px] sm:text-sm font-semibold whitespace-nowrap">{tab.label}</span>
+                    ) : (
+                      <>
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span className="hidden sm:inline text-sm whitespace-nowrap">{tab.label}</span>
+                      </>
+                    )}
                   </button>
                 );
               })}
