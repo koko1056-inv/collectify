@@ -77,9 +77,18 @@ export function useGenerateAiRoom() {
         body: input,
       });
       if (error) {
-        const msg = (error as any)?.context?.responseText
-          ? JSON.parse((error as any).context.responseText).error
-          : error.message;
+        let msg = error.message;
+        try {
+          const ctx: any = (error as any)?.context;
+          if (ctx?.responseText) {
+            msg = JSON.parse(ctx.responseText).error || msg;
+          } else if (typeof ctx?.text === "function") {
+            const txt = await ctx.text();
+            msg = JSON.parse(txt).error || msg;
+          } else if (data?.error) {
+            msg = data.error;
+          }
+        } catch {}
         throw new Error(msg || "生成に失敗しました");
       }
       if (!data?.room) throw new Error(data?.error || "生成に失敗しました");
