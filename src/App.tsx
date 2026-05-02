@@ -17,7 +17,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 const MyRoom = lazy(() => import("./pages/MyRoom").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Search = lazy(() => import("./pages/Search").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Collection = lazy(() => import("./pages/Collection").catch(() => ({ default: () => <div>Error loading page</div> })));
-const Posts = lazy(() => import("./pages/Posts").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Posts = lazy(() => import("./pages/Posts"));
 const ItemPostsFeed = lazy(() => import("./pages/ItemPostsFeed").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // バックグラウンドで主要ページをプリフェッチ
