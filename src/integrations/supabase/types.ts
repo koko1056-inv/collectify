@@ -62,6 +62,7 @@ export type Database = {
           style_prompt: string | null
           title: string | null
           user_id: string
+          visual_style: string | null
         }
         Insert: {
           created_at?: string
@@ -77,6 +78,7 @@ export type Database = {
           style_prompt?: string | null
           title?: string | null
           user_id: string
+          visual_style?: string | null
         }
         Update: {
           created_at?: string
@@ -92,6 +94,7 @@ export type Database = {
           style_prompt?: string | null
           title?: string | null
           user_id?: string
+          visual_style?: string | null
         }
         Relationships: [
           {

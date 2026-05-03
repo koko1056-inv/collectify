@@ -1,0 +1,1 @@
+ALTER TABLE public.ai_generated_rooms ADD COLUMN IF NOT EXISTS visual_style text;
