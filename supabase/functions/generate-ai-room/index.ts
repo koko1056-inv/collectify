@@ -259,6 +259,7 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
         image_url: finalImageUrl,
         style_preset: stylePreset || null,
         style_prompt: stylePrompt,
+        visual_style: visualStyle || null,
         custom_prompt: customPrompt || null,
         source_item_images: itemImageUrls,
         source_item_ids: itemIds && itemIds.length > 0 ? itemIds : null,
