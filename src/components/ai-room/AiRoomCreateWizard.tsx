@@ -69,7 +69,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
   // モーダルを開いた瞬間にコレクションから引き継いだ素材を取り込む
   useEffect(() => {
     if (!open) {
-      setTimeout(() => {
+      const t = setTimeout(() => {
         setStep("items");
         setSelectedItems([]);
         setStylePresetId(null);
@@ -79,7 +79,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         setResultRoom(null);
         setRemix(null);
       }, 300);
-      return;
+      return () => clearTimeout(t);
     }
     // open になった瞬間に sessionStorage を確認
     const pendingRemix = consumePendingRemix();
