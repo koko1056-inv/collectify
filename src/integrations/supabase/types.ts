@@ -1059,6 +1059,45 @@ export type Database = {
         }
         Relationships: []
       }
+      iap_transactions: {
+        Row: {
+          amount_jpy: number | null
+          apple_transaction_id: string
+          created_at: string
+          id: string
+          points_granted: number
+          product_id: string
+          raw_event: Json | null
+          revenuecat_event_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_jpy?: number | null
+          apple_transaction_id: string
+          created_at?: string
+          id?: string
+          points_granted: number
+          product_id: string
+          raw_event?: Json | null
+          revenuecat_event_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_jpy?: number | null
+          apple_transaction_id?: string
+          created_at?: string
+          id?: string
+          points_granted?: number
+          product_id?: string
+          raw_event?: Json | null
+          revenuecat_event_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       images: {
         Row: {
           created_at: string
@@ -1865,6 +1904,7 @@ export type Database = {
       }
       point_packages: {
         Row: {
+          apple_product_id: string | null
           bonus_points: number
           created_at: string
           id: string
@@ -1872,9 +1912,11 @@ export type Database = {
           name: string
           points: number
           price: number
+          revenuecat_package_id: string | null
           sort_order: number
         }
         Insert: {
+          apple_product_id?: string | null
           bonus_points?: number
           created_at?: string
           id?: string
@@ -1882,9 +1924,11 @@ export type Database = {
           name: string
           points: number
           price: number
+          revenuecat_package_id?: string | null
           sort_order?: number
         }
         Update: {
+          apple_product_id?: string | null
           bonus_points?: number
           created_at?: string
           id?: string
@@ -1892,6 +1936,7 @@ export type Database = {
           name?: string
           points?: number
           price?: number
+          revenuecat_package_id?: string | null
           sort_order?: number
         }
         Relationships: []
@@ -3361,6 +3406,16 @@ export type Database = {
       grant_achievement_if_eligible: {
         Args: { _achievement_id: string }
         Returns: boolean
+      }
+      grant_points_from_iap: {
+        Args: {
+          _apple_tx_id: string
+          _event: Json
+          _event_id: string
+          _product_id: string
+          _user_id: string
+        }
+        Returns: Json
       }
       has_role: {
         Args: {
