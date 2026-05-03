@@ -55,13 +55,19 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
 
   const handleStyleClone = (e?: React.MouseEvent) => {
     e?.stopPropagation();
+    // バリエーションと同じく、素材・スタイル・イラストスタイルすべてを引き継ぐ
     setPendingRemix({
-      mode: "style",
+      mode: "remix",
       parentRoomId: room.id,
       stylePrompt: room.style_prompt,
       stylePreset: room.style_preset,
       visualStyle: (room as any).visual_style,
       customPrompt: room.custom_prompt,
+      items: (room.source_item_ids || []).map((id, i) => ({
+        id,
+        title: "",
+        image: room.source_item_images?.[i] || "",
+      })),
       parentImageUrl: room.image_url,
       parentTitle: room.title,
     });
