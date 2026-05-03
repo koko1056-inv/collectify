@@ -42,13 +42,19 @@ export default function AiWorkDetail() {
 
   const handleStyleClone = () => {
     if (!room) return;
+    // バリエーションと同じく、素材・スタイル・イラストスタイルすべてを引き継ぐ
     setPendingRemix({
-      mode: "style",
+      mode: "remix",
       parentRoomId: room.id,
       stylePrompt: room.style_prompt,
       stylePreset: room.style_preset,
       visualStyle: (room as any).visual_style,
       customPrompt: room.custom_prompt,
+      items: (room.source_item_ids || []).map((sid, i) => ({
+        id: sid,
+        title: "",
+        image: room.source_item_images?.[i] || "",
+      })),
       parentImageUrl: room.image_url,
       parentTitle: room.title,
     });
