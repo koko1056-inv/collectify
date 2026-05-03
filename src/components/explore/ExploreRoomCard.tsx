@@ -76,6 +76,7 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
       parentRoomId: room.id,
       stylePrompt: room.style_prompt,
       stylePreset: room.style_preset,
+      visualStyle: (room as any).visual_style,
       customPrompt: room.custom_prompt,
       items: (room.source_item_ids || []).map((id, i) => ({
         id,
