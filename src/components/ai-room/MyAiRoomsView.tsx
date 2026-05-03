@@ -59,7 +59,8 @@ export function MyAiRoomsView() {
 
   // コレクションから「AIで作る」で遷移してきたら自動でウィザードを開く
   useEffect(() => {
-    if (searchParams.get("from") === "collection") {
+    const from = searchParams.get("from");
+    if (from === "collection" || from === "explore") {
       setWizardOpen(true);
       // クエリパラメータから from を削除（ブラウザバックなどで再発火しないように）
       const next = new URLSearchParams(searchParams);
