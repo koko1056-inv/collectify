@@ -9,6 +9,7 @@ export interface AiGeneratedRoom {
   image_url: string;
   style_preset: string | null;
   style_prompt: string | null;
+  visual_style?: string | null;
   custom_prompt: string | null;
   source_item_images: string[] | null;
   source_item_ids?: string[] | null;
