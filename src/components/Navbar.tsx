@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, User, Search, FileText, FolderOpen, Globe, Palette, HelpCircle, Sparkles, Compass, Users } from "lucide-react";
+import { ShoppingBasket, User, Search, Globe, Palette, HelpCircle, Compass, Package } from "lucide-react";
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
@@ -166,19 +166,13 @@ export function Navbar() {
           Collectify
         </Link>
         
-        {/* ナビゲーションメニュー */}
+        {/* ナビゲーションメニュー（モバイルFooterと統一: AIスタジオ / 探索 / みつける / コレクション / プロフィール） */}
         {user && <NavigationMenu className="mr-auto">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link to="/my-room" className={cn(navigationMenuTriggerStyle())}>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  AI Studio
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/collection" className={cn(navigationMenuTriggerStyle())}>
-                  <FolderOpen className="h-4 w-4 mr-2" />
-                  {t("nav.collection")}
+                <Link to="/ai-rooms" className={cn(navigationMenuTriggerStyle())}>
+                  <Palette className="h-4 w-4 mr-2" />
+                  AIスタジオ
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
@@ -188,27 +182,22 @@ export function Navbar() {
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className={cn(navigationMenuTriggerStyle())}>
-                      もっと見る
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem onClick={() => navigate("/search")}>
-                      <Search className="h-4 w-4 mr-2" />
-                      {t("nav.searchNav")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/matches")}>
-                      <Users className="h-4 w-4 mr-2" />
-                      同担マッチ
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate("/posts")}>
-                      <FileText className="h-4 w-4 mr-2" />
-                      {t("nav.community")}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Link to="/search" className={cn(navigationMenuTriggerStyle())}>
+                  <Search className="h-4 w-4 mr-2" />
+                  みつける
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/collection" className={cn(navigationMenuTriggerStyle())}>
+                  <Package className="h-4 w-4 mr-2" />
+                  コレクション
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/edit-profile" className={cn(navigationMenuTriggerStyle())}>
+                  <User className="h-4 w-4 mr-2" />
+                  プロフィール
+                </Link>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>}
