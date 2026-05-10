@@ -26,7 +26,9 @@ export function useProfile(userId: string | undefined) {
           following_count,
           is_admin,
           interests,
-          x_username
+          x_username,
+          featured_room_id,
+          featured_avatar_id
         `)
         .eq("id", userId)
         .maybeSingle();
