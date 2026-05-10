@@ -19,6 +19,10 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ExploreRoomCard, type ExploreRoom } from "./ExploreRoomCard";
 import { useMyAiBookmarks } from "@/hooks/ai-room/useAiBookmarks";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMatches } from "@/features/matching/useMatches";
+import { MatchCard } from "@/features/matching/MatchCard";
+import { CollectionDiffModal } from "@/features/matching/CollectionDiffModal";
 
 type ExploreTab = "rooms" | "avatars" | "collections" | "users";
 
