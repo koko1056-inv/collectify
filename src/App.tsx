@@ -51,6 +51,7 @@ const AiRooms = lazy(() => import("./pages/AiRooms").catch(() => ({ default: () 
 const InviteRedirect = lazy(() => import("./pages/InviteRedirect").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Matches = lazy(() => import("./pages/Matches").catch(() => ({ default: () => <div>Error loading page</div> })));
 const AiWorkDetail = lazy(() => import("./pages/AiWorkDetail").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Landing = lazy(() => import("./pages/Landing").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -105,6 +106,7 @@ const App: React.FC = () => {
                   <Suspense fallback={<LoadingFallback />}>
                     <Routes>
                       <Route path="/" element={<Navigate to="/my-room" replace />} />
+                      <Route path="/lp" element={<Landing />} />
                       <Route path="/login" element={<Login />} />
                       {/* Public routes */}
                       <Route path="/user/:userId" element={<UserProfile />} />
