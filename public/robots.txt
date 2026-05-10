@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Authenticated app routes — no SEO value
+Disallow: /admin
+Disallow: /add-item
+Disallow: /quick-add
+Disallow: /edit-profile
+Disallow: /messages
+Disallow: /collection
+Disallow: /my-room
+Disallow: /matches
+Disallow: /notifications
+Disallow: /trade-requests
+Disallow: /image-search
+
+Sitemap: https://collectify.app/sitemap.xml
