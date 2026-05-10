@@ -17,6 +17,7 @@ import { ProfileInterests } from "./interests";
 import { ProfileCollection } from "./ProfileCollection";
 import { ProfileItemPosts } from "./ProfileItemPosts";
 import { ProfileBookmarks } from "./ProfileBookmarks";
+import { ProfileShowcase } from "./ProfileShowcase";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 
 type Tab = "collection" | "posts" | "wishlist" | "saved";
@@ -93,6 +94,14 @@ export function ProfilePage() {
               onUpdate={refetchProfile}
             />
           </div>
+
+          {/* ショーケース: お気に入りルーム / アバター */}
+          <ProfileShowcase
+            profileId={user.id}
+            isOwnProfile
+            featuredRoomId={profile.featured_room_id ?? null}
+            featuredAvatarId={profile.featured_avatar_id ?? null}
+          />
 
           {/* タブナビ */}
           <div className="px-4 mt-6">
