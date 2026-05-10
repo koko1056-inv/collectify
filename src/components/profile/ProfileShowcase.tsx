@@ -80,43 +80,138 @@ export function ProfileShowcase({
     if (featuredRoom) navigate(`/ai-work/${featuredRoom.id}`);
   };
 
+  const hasAny = !!featuredRoom || !!featuredAvatar;
+
   return (
     <section className="px-4 mt-6">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-500" />
-          <h2 className="text-sm font-bold">ショーケース</h2>
+      <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+          <h2 className="text-[13px] font-bold tracking-wide">マイステージ</h2>
         </div>
-        {isOwnProfile && (
-          <span className="text-[10px] text-muted-foreground">
-            お気に入りのルーム・アバターをピン留め
-          </span>
+        {isOwnProfile && hasAny && (
+          <button
+            onClick={() => setPickerOpen(featuredRoom ? "room" : "avatar")}
+            className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+          >
+            <Pencil className="w-3 h-3" /> 編集
+          </button>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {/* ルーム */}
-        <ShowcaseCard
-          icon={Home}
-          label="マイルーム"
-          imageUrl={featuredRoom?.image_url}
-          title={featuredRoom?.title}
-          isOwnProfile={isOwnProfile}
-          onClick={featuredRoom ? openRoomDetail : isOwnProfile ? () => setPickerOpen("room") : undefined}
-          onEdit={isOwnProfile ? () => setPickerOpen("room") : undefined}
-          emptyHint="お気に入りルームを設定"
-        />
-        {/* アバター */}
-        <ShowcaseCard
-          icon={User}
-          label="マイアバター"
-          imageUrl={featuredAvatar?.image_url}
-          title={featuredAvatar?.name}
-          isOwnProfile={isOwnProfile}
-          onClick={isOwnProfile && !featuredAvatar ? () => setPickerOpen("avatar") : undefined}
-          onEdit={isOwnProfile ? () => setPickerOpen("avatar") : undefined}
-          emptyHint="お気に入りアバターを設定"
-        />
+      {/* ヒーロー型ショーケース */}
+      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-muted to-muted/40 shadow-sm">
+        {/* 背景: ルーム */}
+        {featuredRoom?.image_url ? (
+          <button
+            onClick={openRoomDetail}
+            className="absolute inset-0 w-full h-full group"
+            aria-label="ルームを開く"
+          >
+            <img
+              src={featuredRoom.image_url}
+              alt={featuredRoom.title || "マイルーム"}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20" />
+          </button>
+        ) : (
+          <button
+            onClick={isOwnProfile ? () => setPickerOpen("room") : undefined}
+            disabled={!isOwnProfile}
+            className="absolute inset-0 w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground"
+          >
+            <Home className="w-8 h-8 opacity-40" />
+            <p className="text-xs font-medium">
+              {isOwnProfile ? "お気に入りルームを設定" : "ルーム未設定"}
+            </p>
+            {isOwnProfile && (
+              <span className="mt-1 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                <Plus className="w-3 h-3" /> 追加
+              </span>
+            )}
+          </button>
+        )}
+
+        {/* 上部ラベル */}
+        {featuredRoom && (
+          <div className="absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md text-white text-[10px] font-medium">
+            <Home className="w-3 h-3" />
+            {featuredRoom.title || "マイルーム"}
+          </div>
+        )}
+
+        {/* オーナー編集ボタン */}
+        {isOwnProfile && featuredRoom && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setPickerOpen("room");
+            }}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md text-white flex items-center justify-center"
+            aria-label="ルーム変更"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+        )}
+
+        {/* アバター: 左下に重ねる */}
+        <div className="absolute bottom-3 left-3 flex items-end gap-2.5">
+          <div className="relative">
+            {featuredAvatar?.image_url ? (
+              <div className="relative">
+                <div className="absolute inset-0 rounded-2xl bg-primary/40 blur-lg" />
+                <img
+                  src={featuredAvatar.image_url}
+                  alt={featuredAvatar.name || "マイアバター"}
+                  className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-white shadow-xl"
+                />
+                {isOwnProfile && (
+                  <button
+                    onClick={() => setPickerOpen("avatar")}
+                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md border-2 border-background"
+                    aria-label="アバター変更"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={isOwnProfile ? () => setPickerOpen("avatar") : undefined}
+                disabled={!isOwnProfile}
+                className={cn(
+                  "w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-1 backdrop-blur-md",
+                  featuredRoom
+                    ? "bg-white/15 border-white/50 text-white"
+                    : "bg-background/60 border-border text-muted-foreground"
+                )}
+              >
+                <User className="w-5 h-5 opacity-80" />
+                <span className="text-[9px] font-medium leading-tight text-center px-1">
+                  {isOwnProfile ? "アバター追加" : "未設定"}
+                </span>
+              </button>
+            )}
+          </div>
+
+          {featuredAvatar?.name && (
+            <div className="mb-1 max-w-[40%]">
+              <p className={cn(
+                "text-[11px] font-semibold truncate",
+                featuredRoom ? "text-white drop-shadow" : "text-foreground"
+              )}>
+                {featuredAvatar.name}
+              </p>
+              <p className={cn(
+                "text-[9px]",
+                featuredRoom ? "text-white/80" : "text-muted-foreground"
+              )}>
+                マイアバター
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ピッカー */}
