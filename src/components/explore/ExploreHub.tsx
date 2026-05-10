@@ -19,6 +19,10 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ExploreRoomCard, type ExploreRoom } from "./ExploreRoomCard";
 import { useMyAiBookmarks } from "@/hooks/ai-room/useAiBookmarks";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMatches } from "@/features/matching/useMatches";
+import { MatchCard } from "@/features/matching/MatchCard";
+import { CollectionDiffModal } from "@/features/matching/CollectionDiffModal";
 
 type ExploreTab = "rooms" | "avatars" | "collections" | "users";
 
@@ -310,6 +314,9 @@ function CollectionsTab({ searchQuery }: { searchQuery: string }) {
 // ============= ユーザータブ =============
 function UsersTab({ searchQuery }: { searchQuery: string }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: matches = [], isLoading: matchesLoading } = useMatches(user?.id, 12);
+  const [compareWith, setCompareWith] = useState<string | null>(null);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["explore-featured-users"],
@@ -332,49 +339,99 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
       )
     : users;
 
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="h-32 rounded-2xl bg-muted animate-pulse" />
-        ))}
-      </div>
-    );
-  }
-
-  if (filtered.length === 0) {
-    return <EmptyState icon={User} message="ユーザーが見つかりません" />;
-  }
+  const showMatchSection = !!user && !searchQuery && (matchesLoading || matches.length > 0);
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-      {filtered.map((u) => (
-        <button
-          key={u.id}
-          onClick={() => navigate(`/user/${u.id}`)}
-          className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border hover:border-primary/40 hover:shadow-md transition-all"
-        >
-          <div className="relative">
-            <Avatar className="w-16 h-16 border-2 border-border">
-              <AvatarImage src={u.avatar_url || undefined} />
-              <AvatarFallback className="bg-secondary text-secondary-foreground">
-                {u.username?.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            {(u.followers_count || 0) >= 10 && (
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center border-2 border-background">
-                <Crown className="w-3 h-3 text-primary-foreground" />
-              </div>
-            )}
+    <div className="space-y-8">
+      {/* 同担マッチセクション */}
+      {showMatchSection && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-500" />
+            <h2 className="text-lg font-bold">あなたと相性の良いファン</h2>
           </div>
-          <span className="text-sm font-medium truncate max-w-full">
-            {u.display_name || u.username}
-          </span>
-          <span className="text-[10px] text-muted-foreground">
-            {u.followers_count || 0} フォロワー
-          </span>
-        </button>
-      ))}
+          <p className="text-xs text-muted-foreground">
+            推し・コレクション・欲しいグッズから、相性の良いユーザーをおすすめします
+          </p>
+          {matchesLoading ? (
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="shrink-0 w-[280px] h-72 rounded-2xl bg-muted animate-pulse"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
+              {matches.map((m) => (
+                <div
+                  key={m.candidate_id}
+                  className="shrink-0 w-[280px] sm:w-[320px] snap-start"
+                >
+                  <MatchCard match={m} onCompare={setCompareWith} />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* 人気ユーザー */}
+      <section className="space-y-3">
+        {showMatchSection && (
+          <div className="flex items-center gap-2">
+            <User className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-bold">人気ユーザー</h2>
+          </div>
+        )}
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="h-32 rounded-2xl bg-muted animate-pulse" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <EmptyState icon={User} message="ユーザーが見つかりません" />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {filtered.map((u) => (
+              <button
+                key={u.id}
+                onClick={() => navigate(`/user/${u.id}`)}
+                className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border hover:border-primary/40 hover:shadow-md transition-all"
+              >
+                <div className="relative">
+                  <Avatar className="w-16 h-16 border-2 border-border">
+                    <AvatarImage src={u.avatar_url || undefined} />
+                    <AvatarFallback className="bg-secondary text-secondary-foreground">
+                      {u.username?.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  {(u.followers_count || 0) >= 10 && (
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center border-2 border-background">
+                      <Crown className="w-3 h-3 text-primary-foreground" />
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm font-medium truncate max-w-full">
+                  {u.display_name || u.username}
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {u.followers_count || 0} フォロワー
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <CollectionDiffModal
+        meId={user?.id}
+        otherId={compareWith}
+        open={!!compareWith}
+        onOpenChange={(o) => !o && setCompareWith(null)}
+      />
     </div>
   );
 }
