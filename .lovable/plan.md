@@ -1,73 +1,81 @@
-# パフォーマンス最適化プラン
+## ゴール
 
-各ページの遷移と読み込みを軽くするため、以下4つの観点で改善します。コード変更のみで完結し、見た目や機能は変えません。
+1. PC表示を「モバイル版に合わせる」方針で揃える（差分があるところだけ）
+2. 同担マッチング機能を、探索ページの「ユーザー」タブに**マッチセクション**として追加
+3. 専用ページ `/matches` は廃止し、探索に集約
 
-## 現状の問題点
+---
 
-調査の結果、主に4つのボトルネックがありました：
+## 現状の主な差分（モバイル基準で揃える対象）
 
-1. **メインページ（Search/MyRoom/Collection/Posts/ItemPostsFeed）が直接importされている** → 初回ロードで全部バンドル化され、初回JSが肥大化
-2. **`useProfile` が `refetchOnMount: "always"` & `refetchOnWindowFocus: "always"`** → 画面遷移するたびにプロフィール再取得が走り、待ち時間の原因
-3. **vite.config に手動 chunk 分割がない** → react/three.js/recharts/framer-motion などの巨大ライブラリが1チャンクに混ざりキャッシュが効きにくい
-4. **`Search.tsx` でフィルタリングが毎レンダー実行・`useEffect` で `setSearchParams` を呼び再レンダーループ気味** → タブ切替時のもたつき
+| 箇所 | モバイル | デスクトップ | 対応 |
+|---|---|---|---|
+| ナビゲーション | 下部固定Footer（AIスタジオ / 探索 / みつける / コレクション / プロフィール） | 上部Navbarに「AI Studio / Collection / 探索 / もっと見る（検索・同担マッチ・コミュニティ）」 | デスクトップNavbarをモバイルと同じ5項目に再構成 |
+| 同担マッチへの導線 | なし | Navbar→もっと見る→同担マッチ | 両方とも探索→ユーザータブから入る形に統一 |
+| コミュニティ（投稿） | Footerに無し | Navbarのもっと見るに有り | デスクトップのもっと見るメニューを廃止 |
+| 検索（みつける） | Footer中央の大きなボタン | Navbarのもっと見る | デスクトップでも独立リンクに昇格 |
+| プロフィール導線 | Footer右端の独立タブ | アバタードロップダウンの中 | デスクトップでもプロフィールを上位導線に |
 
-## 変更内容
+> 上記以外に細かなdesktop専用の「<br className=hidden sm:block>」や「hidden sm:inline」は意味を持つレスポンシブ調整なので**残す**（モバイルでテキスト非表示にしているアイコン等）。
 
-### 1. ルート分割の見直し（`src/App.tsx`）
-- 直接 import している `Search` / `Collection` / `Posts` / `MyRoom` / `ItemPostsFeed` を全て `lazy()` 化
-- `MyRoom` のみ `/` のデフォルト遷移先なので prefetch（マウント時に裏で `import()` 実行）
-- これで初回バンドルが大幅に小さくなり、初期表示が速くなる
+---
 
-### 2. Vite の手動チャンク分割（`vite.config.ts`）
-`build.rollupOptions.output.manualChunks` を追加して、以下をベンダー分離：
-- `react-vendor`: react, react-dom, react-router-dom
-- `ui-vendor`: @radix-ui/*, lucide-react
-- `three-vendor`: three, @react-three/*, postprocessing
-- `chart-vendor`: recharts
-- `motion-vendor`: framer-motion
-- `supabase-vendor`: @supabase/*
+## 実装内容
 
-→ ページ間移動時に共通ライブラリがブラウザキャッシュから即読みされる
+### 1. デスクトップ Navbar をモバイルと揃える（`src/components/Navbar.tsx`）
 
-### 3. データ取得の最適化
-- **`src/hooks/useProfile.ts`**: `refetchOnMount: "always"` → `false`、`refetchOnWindowFocus: "always"` → `false`、`staleTime` を 5分に延長。プロフィール変更時は `refetchProfile()` を明示的に呼ぶ箇所がすでにあるので問題なし
-- **`src/App.tsx` の QueryClient**: 既に `staleTime: 10分` だが、`refetchOnReconnect: false` も追加してネット復帰時の不要な再取得を抑制
+デスクトップ版（`hidden sm:flex` ブロック）のメニューを、モバイル下部Footerと同じ5項目に再構成：
 
-### 4. Search ページの再レンダー削減（`src/pages/Search.tsx`）
-- `filteredItems` を `useMemo` 化（現在は毎レンダー filter 実行）
-- `activeFilterCount` を `useMemo` 化
-- タブ切替の `handleTabChange` を `useCallback` 化
+- AIスタジオ → `/ai-rooms`（または `/my-room?tab=studio`、現Footerと同じ）
+- 探索 → `/explore`
+- みつける（検索）→ `/search`（中央寄り、目立たせる）
+- コレクション → `/collection`
+- プロフィール → `/edit-profile`
 
-### 5. 画像読み込みの改善（`src/components/ui/lazy-image.tsx`）
-- IntersectionObserver の `rootMargin` を `100px` → `300px` に拡大して先読み距離を増やす（体感の表示速度向上）
-- `decoding="async"` 属性を追加
+「もっと見る」ドロップダウンは廃止。アバタードロップダウンには言語/テーマ/使い方/ログアウトのみを残す（プロフィール項目はナビ本体に上がるので削除）。
 
-## 技術的な詳細
+### 2. 探索ページのユーザータブにマッチセクションを追加（`src/components/explore/ExploreHub.tsx`）
 
-```text
-[初回ロード時のバンドル構成 Before]
-main.js (~1.5MB) ← 全ページ + 全ライブラリ
+`UsersTab` の上部に「あなたと相性の良いファン」セクションを追加：
 
-[After]
-main.js (~300KB)             ← ルーター + 共通レイアウト
-react-vendor.js (~150KB)     ← キャッシュされ全ページで再利用
-ui-vendor.js (~200KB)        ← 同上
-three-vendor.js (~600KB)     ← /room/* に入った時だけロード
-[page].js (~50-100KB each)   ← 該当ページに行った時だけロード
-```
+- ログイン中ユーザーのみ表示（`useAuth`、`useMatches(user.id)` を利用）
+- 上位 6〜8 件を `MatchCard` で**横スクロール**表示（モバイルでも読みやすい1.5枚見せレイアウト）
+- セクションタイトル横に「もっと見る」リンクは置かない（専用ページ廃止のため）
+- `CollectionDiffModal` も同セクションに組み込み（`compareWith` ステート）
+- マッチ0件 or 未ログイン時はセクション非表示
 
-## 期待効果
+その下に既存の「人気ユーザー一覧」グリッドはそのまま残す。
 
-- 初回表示: 体感 30〜50% 高速化（バンドル分割 + lazy 化）
-- ページ遷移: プロフィール再取得が消えるので 200〜500ms 短縮
-- リピート訪問: ベンダーチャンクのキャッシュが効き、ほぼ即時表示
+### 3. `/matches` ページの廃止
 
-## 影響範囲（変更ファイル）
+- `src/App.tsx` のルートを `<Route path="/matches" element={<Navigate to="/explore?tab=users" replace />} />` に変更
+- `src/pages/Matches.tsx` は削除
+- 残存リンク（Navbarの「もっと見る」内、その他参照箇所）はすべて削除または `/explore?tab=users` に置換
 
-- `src/App.tsx`
-- `vite.config.ts`
-- `src/hooks/useProfile.ts`
-- `src/pages/Search.tsx`
-- `src/components/ui/lazy-image.tsx`
+### 4. メモリ更新
 
-機能・UI には変更ありません。承認いただければ実装に移ります。
+`mem://index.md` の Core に「同担マッチは探索のユーザータブに集約。`/matches` は廃止して `/explore?tab=users` にリダイレクト」を追記。
+
+---
+
+## 影響範囲
+
+**変更ファイル**
+- `src/components/Navbar.tsx`（デスクトップメニュー再構成）
+- `src/components/explore/ExploreHub.tsx`（UsersTab にマッチセクション追加）
+- `src/App.tsx`（`/matches` をリダイレクトに）
+- `mem://index.md`
+
+**削除ファイル**
+- `src/pages/Matches.tsx`
+
+**触らないもの**
+- モバイル Footer（既に基準なので無変更）
+- 各ページ内部の `hidden sm:inline` 等の細かなレスポンシブ表示（意味のある調整）
+- マッチ計算ロジック（`useMatches`, `MatchCard`, `CollectionDiffModal`）
+
+---
+
+## 確認したい点
+
+「みつける（検索）」をデスクトップNavbarのどの位置に置くか — モバイルFooter同様に**中央**で目立たせるか、他項目と同列で良いかは実装時の調整事項とします（特に指定なければ同列で実装）。
