@@ -62,4 +62,6 @@ export interface Profile {
   is_admin: boolean | null;
   interests: string[] | null;
   x_username: string | null;
+  featured_room_id?: string | null;
+  featured_avatar_id?: string | null;
 }
