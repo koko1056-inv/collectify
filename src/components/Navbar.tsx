@@ -226,10 +226,6 @@ export function Navbar() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
-                    <User className="w-4 h-4 mr-2" />
-                    プロフィール
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/how-to-use")}>
                     <HelpCircle className="w-4 h-4 mr-2" />
                     使い方
