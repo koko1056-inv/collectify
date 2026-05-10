@@ -2244,6 +2244,8 @@ export type Database = {
           favorite_contents: string[] | null
           favorite_item_ids: string[] | null
           favorite_tags: string[] | null
+          featured_avatar_id: string | null
+          featured_room_id: string | null
           followers_count: number | null
           following_count: number | null
           id: string
@@ -2265,6 +2267,8 @@ export type Database = {
           favorite_contents?: string[] | null
           favorite_item_ids?: string[] | null
           favorite_tags?: string[] | null
+          featured_avatar_id?: string | null
+          featured_room_id?: string | null
           followers_count?: number | null
           following_count?: number | null
           id: string
@@ -2286,6 +2290,8 @@ export type Database = {
           favorite_contents?: string[] | null
           favorite_item_ids?: string[] | null
           favorite_tags?: string[] | null
+          featured_avatar_id?: string | null
+          featured_room_id?: string | null
           followers_count?: number | null
           following_count?: number | null
           id?: string
@@ -2299,6 +2305,20 @@ export type Database = {
           x_username?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_featured_avatar_id_fkey"
+            columns: ["featured_avatar_id"]
+            isOneToOne: false
+            referencedRelation: "avatar_gallery"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_featured_room_id_fkey"
+            columns: ["featured_room_id"]
+            isOneToOne: false
+            referencedRelation: "ai_generated_rooms"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_referred_by_fkey"
             columns: ["referred_by"]

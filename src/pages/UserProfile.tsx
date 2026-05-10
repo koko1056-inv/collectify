@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { ProfileItemPosts } from "@/components/profile/ProfileItemPosts";
+import { ProfileShowcase } from "@/components/profile/ProfileShowcase";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { Badge } from "@/components/ui/badge";
 import { TrustBadge } from "@/features/trust/TrustBadge";
@@ -113,6 +114,16 @@ export default function UserProfile() {
                 ))}
               </div>
             </div>
+          )}
+
+          {/* ショーケース: お気に入りルーム / アバター */}
+          {userId && (
+            <ProfileShowcase
+              profileId={userId}
+              isOwnProfile={isOwnProfile}
+              featuredRoomId={profile.featured_room_id ?? null}
+              featuredAvatarId={profile.featured_avatar_id ?? null}
+            />
           )}
 
           {/* タブ */}
