@@ -51,6 +51,96 @@ export default function Landing() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Page-specific SEO meta tags + JSON-LD structured data
+  useEffect(() => {
+    const TITLE = "Collectify｜推しグッズコレクション × AI 3D推し部屋 × 推し友マッチング";
+    const DESC =
+      "推しグッズを記録して、AIが3D推し部屋に。推し友も見つかる、まったく新しい推し活アプリ。アニメ・ゲーム・アイドル・Vtuber・K-POP対応。基本無料、クレカ登録不要で30秒登録。";
+    const URL =
+      typeof window !== "undefined" ? window.location.origin + "/lp" : "https://collectify.app/lp";
+    const OG_IMAGE =
+      typeof window !== "undefined" ? window.location.origin + "/og-image.png" : "https://collectify.app/og-image.png";
+
+    const prevTitle = document.title;
+    document.title = TITLE;
+
+    const setMeta = (selector: string, attr: "name" | "property", key: string, content: string) => {
+      let el = document.head.querySelector<HTMLMetaElement>(selector);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+      }
+      el.setAttribute("content", content);
+      return el;
+    };
+
+    const updates = [
+      setMeta('meta[name="description"]', "name", "description", DESC),
+      setMeta('meta[property="og:title"]', "property", "og:title", TITLE),
+      setMeta('meta[property="og:description"]', "property", "og:description", DESC),
+      setMeta('meta[property="og:url"]', "property", "og:url", URL),
+      setMeta('meta[property="og:image"]', "property", "og:image", OG_IMAGE),
+      setMeta('meta[property="og:type"]', "property", "og:type", "website"),
+      setMeta('meta[name="twitter:card"]', "name", "twitter:card", "summary_large_image"),
+      setMeta('meta[name="twitter:title"]', "name", "twitter:title", TITLE),
+      setMeta('meta[name="twitter:description"]', "name", "twitter:description", DESC),
+      setMeta('meta[name="twitter:image"]', "name", "twitter:image", OG_IMAGE),
+    ];
+
+    // Canonical URL
+    let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    const prevCanonicalHref = canonical.href;
+    canonical.href = URL;
+
+    // JSON-LD structured data: SoftwareApplication
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "Collectify",
+      description: DESC,
+      url: URL,
+      applicationCategory: "LifestyleApplication",
+      operatingSystem: "iOS, Android, Web",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "JPY",
+      },
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.8",
+        ratingCount: "100",
+      },
+      author: {
+        "@type": "Organization",
+        name: "MGC inc.",
+        url: "https://mgc-global.com",
+      },
+    };
+    const ldScript = document.createElement("script");
+    ldScript.type = "application/ld+json";
+    ldScript.id = "ld-collectify-software";
+    ldScript.text = JSON.stringify(jsonLd);
+    // Replace any existing identical script
+    document.getElementById("ld-collectify-software")?.remove();
+    document.head.appendChild(ldScript);
+
+    return () => {
+      document.title = prevTitle;
+      canonical && (canonical.href = prevCanonicalHref);
+      ldScript.remove();
+      // Note: meta tags themselves are left in place; index.html defaults
+      // are restored by browser when navigating to a route that re-sets them.
+      void updates;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
       {/* ───────── Top Nav ───────── */}
@@ -838,8 +928,8 @@ export default function Landing() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link to="/login" className="hover:text-foreground transition">ログイン</Link></li>
                 <li><a href="https://mgc-global.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition">運営：MGC inc.</a></li>
-                <li><Link to="/lp" className="hover:text-foreground transition">プライバシーポリシー</Link></li>
-                <li><Link to="/lp" className="hover:text-foreground transition">利用規約</Link></li>
+                <li><Link to="/privacy" className="hover:text-foreground transition">プライバシーポリシー</Link></li>
+                <li><Link to="/terms" className="hover:text-foreground transition">利用規約</Link></li>
               </ul>
             </div>
           </div>

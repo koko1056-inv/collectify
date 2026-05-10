@@ -12,6 +12,7 @@ import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RootRedirect } from "@/components/RootRedirect";
 
 // 主要ページも lazy 化して初回バンドルを縮小（MyRoom はデフォルト遷移先なので即プリフェッチ）
 const MyRoom = lazy(() => import("./pages/MyRoom").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -52,6 +53,8 @@ const InviteRedirect = lazy(() => import("./pages/InviteRedirect").catch(() => (
 const Matches = lazy(() => import("./pages/Matches").catch(() => ({ default: () => <div>Error loading page</div> })));
 const AiWorkDetail = lazy(() => import("./pages/AiWorkDetail").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Landing = lazy(() => import("./pages/Landing").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Privacy = lazy(() => import("./pages/Privacy").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Terms = lazy(() => import("./pages/Terms").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -105,8 +108,10 @@ const App: React.FC = () => {
                   <Sonner />
                   <Suspense fallback={<LoadingFallback />}>
                     <Routes>
-                      <Route path="/" element={<Navigate to="/my-room" replace />} />
+                      <Route path="/" element={<RootRedirect />} />
                       <Route path="/lp" element={<Landing />} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/terms" element={<Terms />} />
                       <Route path="/login" element={<Login />} />
                       {/* Public routes */}
                       <Route path="/user/:userId" element={<UserProfile />} />
