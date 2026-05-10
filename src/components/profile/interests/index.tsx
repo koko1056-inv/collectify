@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Heart, Plus } from "lucide-react";
 import { getAllContentNames } from "@/utils/tag/content-operations";
 import { InterestsList } from "./InterestsList";
 import { ContentSelectionDialog } from "./ContentSelectionDialog";
