@@ -1101,33 +1101,6 @@ export type Database = {
         }
         Relationships: []
       }
-      images: {
-        Row: {
-          created_at: string
-          file_path: string
-          id: string
-          is_selected: boolean | null
-          source_url: string | null
-          url: string
-        }
-        Insert: {
-          created_at?: string
-          file_path: string
-          id?: string
-          is_selected?: boolean | null
-          source_url?: string | null
-          url: string
-        }
-        Update: {
-          created_at?: string
-          file_path?: string
-          id?: string
-          is_selected?: boolean | null
-          source_url?: string | null
-          url?: string
-        }
-        Relationships: []
-      }
       invite_codes: {
         Row: {
           code: string
