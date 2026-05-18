@@ -14,6 +14,12 @@ type FetchStat = {
   errors: number;
 };
 
+type ResourceStat = {
+  count: number;
+  totalBytes: number;
+  totalMs: number;
+};
+
 type PerfSnapshot = {
   ttfb: number | null;
   fcp: number | null;
@@ -22,6 +28,9 @@ type PerfSnapshot = {
   currentRoute: string;
   fetchTotal: number;
   fetchByHost: Record<string, FetchStat>;
+  resourceByType: Record<string, ResourceStat>;
+  resourceTotalBytes: number;
+  resourceTotalMs: number;
   marks: { name: string; t: number }[];
 };
 
