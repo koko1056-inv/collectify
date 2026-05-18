@@ -23,6 +23,13 @@ function isEnabled(): boolean {
   }
 }
 
+function formatBytes(b: number): string {
+  if (!b) return "0B";
+  if (b < 1024) return `${b}B`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)}KB`;
+  return `${(b / 1024 / 1024).toFixed(2)}MB`;
+}
+
 /**
  * 開発・QA用のフローティング計測オーバーレイ。
  * 表示 ON/OFF: URL に `?perf=1` を付ける、または localStorage.setItem('perf','1')
@@ -97,6 +104,20 @@ export function PerfOverlay() {
               </span>
             </div>
           ))}
+          <div style={{ marginTop: 4, opacity: 0.85 }}>
+            resources: {Object.values(snap.resourceByType).reduce((a, b) => a + b.count, 0)} ·{" "}
+            {formatBytes(snap.resourceTotalBytes)} · {Math.round(snap.resourceTotalMs)}ms
+          </div>
+          {Object.entries(snap.resourceByType)
+            .sort((a, b) => b[1].totalBytes - a[1].totalBytes)
+            .map(([type, s]) => (
+              <div key={type} style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                <span>{type}</span>
+                <span>
+                  {s.count} · {formatBytes(s.totalBytes)} · {Math.round(s.totalMs)}ms
+                </span>
+              </div>
+            ))}
           {snap.marks.length > 0 && (
             <>
               <div style={{ marginTop: 4, opacity: 0.85 }}>marks:</div>

@@ -14,6 +14,12 @@ type FetchStat = {
   errors: number;
 };
 
+type ResourceStat = {
+  count: number;
+  totalBytes: number;
+  totalMs: number;
+};
+
 type PerfSnapshot = {
   ttfb: number | null;
   fcp: number | null;
@@ -22,6 +28,9 @@ type PerfSnapshot = {
   currentRoute: string;
   fetchTotal: number;
   fetchByHost: Record<string, FetchStat>;
+  resourceByType: Record<string, ResourceStat>;
+  resourceTotalBytes: number;
+  resourceTotalMs: number;
   marks: { name: string; t: number }[];
 };
 
@@ -35,24 +44,36 @@ const state: PerfSnapshot = {
   currentRoute: typeof window !== "undefined" ? window.location.pathname : "/",
   fetchTotal: 0,
   fetchByHost: {},
+  resourceByType: {},
+  resourceTotalBytes: 0,
+  resourceTotalMs: 0,
   marks: [],
 };
 
 let routeStartedAt = typeof performance !== "undefined" ? performance.now() : 0;
 let routeReadyCaptured = false;
 
+function snapshot(): PerfSnapshot {
+  return {
+    ...state,
+    fetchByHost: { ...state.fetchByHost },
+    resourceByType: { ...state.resourceByType },
+    marks: [...state.marks],
+  };
+}
+
 function emit() {
-  for (const l of listeners) l({ ...state, fetchByHost: { ...state.fetchByHost }, marks: [...state.marks] });
+  for (const l of listeners) l(snapshot());
 }
 
 export function subscribePerf(cb: (s: PerfSnapshot) => void) {
   listeners.add(cb);
-  cb({ ...state, fetchByHost: { ...state.fetchByHost }, marks: [...state.marks] });
+  cb(snapshot());
   return () => listeners.delete(cb);
 }
 
 export function getPerfSnapshot(): PerfSnapshot {
-  return { ...state, fetchByHost: { ...state.fetchByHost }, marks: [...state.marks] };
+  return snapshot();
 }
 
 export function markPerf(name: string) {
@@ -150,9 +171,52 @@ function installWebVitals() {
   }
 }
 
+/* ---------- リソース計測（画像 / スクリプト / CSS / フォント など） ---------- */
+function categorize(entry: PerformanceResourceTiming): string {
+  const t = entry.initiatorType;
+  const url = entry.name.toLowerCase();
+  if (t === "img" || /\.(png|jpe?g|gif|webp|avif|svg|ico)(\?|$)/.test(url)) return "image";
+  if (t === "script" || /\.js(\?|$)/.test(url)) return "script";
+  if (t === "css" || t === "link" || /\.css(\?|$)/.test(url)) return "css";
+  if (/\.(woff2?|ttf|otf|eot)(\?|$)/.test(url)) return "font";
+  if (t === "xmlhttprequest" || t === "fetch") return "xhr";
+  if (t === "video" || /\.(mp4|webm|mov)(\?|$)/.test(url)) return "video";
+  if (t === "audio" || /\.(mp3|wav|ogg)(\?|$)/.test(url)) return "audio";
+  return t || "other";
+}
+
+function recordResource(entry: PerformanceResourceTiming) {
+  const type = categorize(entry);
+  const bytes = entry.encodedBodySize || entry.transferSize || 0;
+  const dur = entry.duration || 0;
+  const b = (state.resourceByType[type] ||= { count: 0, totalBytes: 0, totalMs: 0 });
+  b.count += 1;
+  b.totalBytes += bytes;
+  b.totalMs += dur;
+  state.resourceTotalBytes += bytes;
+  state.resourceTotalMs += dur;
+}
+
+function installResourceTiming() {
+  if (typeof window === "undefined" || !("PerformanceObserver" in window)) return;
+  try {
+    // 既に発生済みのものを集計
+    for (const e of performance.getEntriesByType("resource") as PerformanceResourceTiming[]) {
+      recordResource(e);
+    }
+    new PerformanceObserver((list) => {
+      for (const e of list.getEntries() as PerformanceResourceTiming[]) recordResource(e);
+      emit();
+    }).observe({ type: "resource", buffered: true });
+  } catch {
+    /* ignore */
+  }
+}
+
 export function initPerf() {
   installFetchInstrumentation();
   installWebVitals();
+  installResourceTiming();
 }
 
 export type { PerfSnapshot };
