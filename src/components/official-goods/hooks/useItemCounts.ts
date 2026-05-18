@@ -56,7 +56,7 @@ export function useItemCounts() {
         });
       });
       
-      console.log("Owner counts after calculation:", counts);
+      // debug log removed
       return counts;
     },
   });

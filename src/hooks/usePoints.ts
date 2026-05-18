@@ -49,7 +49,6 @@ export function useUserPoints() {
     queryFn: async () => {
       if (!user?.id) throw new Error("User not authenticated");
       
-      console.log("[useUserPoints] Fetching points for user:", user.id);
       
       const { data, error } = await supabase
         .from("user_points")
@@ -57,12 +56,10 @@ export function useUserPoints() {
         .eq("user_id", user.id)
         .single();
         
-      console.log("[useUserPoints] Query result:", { data, error });
         
       if (error) {
         // ユーザーポイントレコードが存在しない場合は作成
         if (error.code === 'PGRST116') {
-          console.log("[useUserPoints] No user points record found, initializing via RPC");
           await supabase.rpc('add_user_points', {
             _user_id: user.id,
             _points: 0,
@@ -81,7 +78,6 @@ export function useUserPoints() {
         throw error;
       }
       
-      console.log("[useUserPoints] Returning points:", data?.total_points);
       return data;
     },
     enabled: !!user?.id,
