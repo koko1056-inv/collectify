@@ -61,7 +61,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
-  
+  // ログインボーナスは同セッション中1回だけ
+  const bonusAwardedForRef = useRef<string | null>(null)
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -92,18 +93,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (_event === 'SIGNED_IN') {
           trackLogin(currentSession.user.id)
           rcLogin(currentSession.user.id)
-          // ログインボーナスを付与（非同期で実行）
-          setTimeout(() => {
-            awardLoginBonus(currentSession.user.id)
-          }, 0)
+          // ログインボーナスは同セッションで1度だけ
+          if (bonusAwardedForRef.current !== currentSession.user.id) {
+            bonusAwardedForRef.current = currentSession.user.id
+            setTimeout(() => {
+              awardLoginBonus(currentSession.user.id)
+            }, 0)
+          }
         } else if (_event === 'SIGNED_OUT') {
           trackLogout(currentSession.user.id)
           rcLogout()
+          bonusAwardedForRef.current = null
         }
       } else {
         setSession(null)
         setUser(null)
         rcLogout()
+        bonusAwardedForRef.current = null
       }
       setLoading(false)
     })
