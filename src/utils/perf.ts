@@ -53,18 +53,27 @@ const state: PerfSnapshot = {
 let routeStartedAt = typeof performance !== "undefined" ? performance.now() : 0;
 let routeReadyCaptured = false;
 
+function snapshot(): PerfSnapshot {
+  return {
+    ...state,
+    fetchByHost: { ...state.fetchByHost },
+    resourceByType: { ...state.resourceByType },
+    marks: [...state.marks],
+  };
+}
+
 function emit() {
-  for (const l of listeners) l({ ...state, fetchByHost: { ...state.fetchByHost }, marks: [...state.marks] });
+  for (const l of listeners) l(snapshot());
 }
 
 export function subscribePerf(cb: (s: PerfSnapshot) => void) {
   listeners.add(cb);
-  cb({ ...state, fetchByHost: { ...state.fetchByHost }, marks: [...state.marks] });
+  cb(snapshot());
   return () => listeners.delete(cb);
 }
 
 export function getPerfSnapshot(): PerfSnapshot {
-  return { ...state, fetchByHost: { ...state.fetchByHost }, marks: [...state.marks] };
+  return snapshot();
 }
 
 export function markPerf(name: string) {
