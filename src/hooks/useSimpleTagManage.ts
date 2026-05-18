@@ -69,8 +69,8 @@ export function useSimpleTagManage(
       return contentData ? { name: contentData.name, id: contentData.id } : null;
     },
     enabled: isOpen && itemIds.length > 0,
-    refetchOnMount: 'always',
-    staleTime: 0,
+    refetchOnMount: false,
+    staleTime: 1000 * 60,
   });
 
   // 初期状態を設定（モーダルが開いた時とデータロード完了時に1回だけ）
