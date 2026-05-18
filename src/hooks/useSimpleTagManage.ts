@@ -38,8 +38,8 @@ export function useSimpleTagManage(
       return await getTagsForItem(itemIds[0], isUserItem);
     },
     enabled: isOpen && itemIds.length > 0,
-    refetchOnMount: 'always',
-    staleTime: 0,
+    refetchOnMount: false,
+    staleTime: 1000 * 60,
   });
 
   // コンテンツ名とIDを取得
