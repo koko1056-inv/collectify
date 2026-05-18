@@ -122,7 +122,7 @@ export default {
         "page-flip-left": "page-flip-left 0.6s ease-out",
       },
       fontFamily: {
-        sans: ["Zen Maru Gothic", "Zen Kaku Gothic New", "sans-serif"],
+        sans: ["Zen Kaku Gothic New", "sans-serif"],
         display: ["Zen Kaku Gothic New", "sans-serif"],
         righteous: ["Righteous", "cursive"],
       },
