@@ -1,81 +1,57 @@
-## ゴール
+# 読み込み最適化プラン
 
-1. PC表示を「モバイル版に合わせる」方針で揃える（差分があるところだけ）
-2. 同担マッチング機能を、探索ページの「ユーザー」タブに**マッチセクション**として追加
-3. 専用ページ `/matches` は廃止し、探索に集約
+## 現状の問題
 
----
+コンソールログとコードを調査した結果、以下の「重複読み込み」「過剰な再レンダリング」が確認されました。
 
-## 現状の主な差分（モバイル基準で揃える対象）
+1. **`useOfficialItems` が `staleTime: 0` + `refetchOnMount: 'always'`** — 公式グッズ146件を毎回フルフェッチしている
+2. **`UserCollection` の `user-items` クエリが `refetchOnMount: "always"`** — ページ遷移毎に再フェッチ
+3. **`useItemPosts` / `useSimpleTagManage` / `useTagSelect` も同様に always 再フェッチ**
+4. **`OfficialItemsList` の過剰再レンダー** — ログに `フィルタリング後のアイテム数: 0 / 0` が10回以上連続出力、`Sorting items by: newest` も同様。`filteredByTagsItems` が `useMemo` 化されておらず、毎レンダーで新配列を生成 → `useSortedItems` が走り続ける
+5. **`Index.tsx` で `useProfile` を2回呼び出し** (自分用 + 閲覧中ユーザー用) — `userId` が無いケースでも両方マウントされる
+6. **`AuthContext` のログインボーナス処理が二重発火** — ログに `Starting login bonus process` が連続2回出ている
 
-| 箇所 | モバイル | デスクトップ | 対応 |
-|---|---|---|---|
-| ナビゲーション | 下部固定Footer（AIスタジオ / 探索 / みつける / コレクション / プロフィール） | 上部Navbarに「AI Studio / Collection / 探索 / もっと見る（検索・同担マッチ・コミュニティ）」 | デスクトップNavbarをモバイルと同じ5項目に再構成 |
-| 同担マッチへの導線 | なし | Navbar→もっと見る→同担マッチ | 両方とも探索→ユーザータブから入る形に統一 |
-| コミュニティ（投稿） | Footerに無し | Navbarのもっと見るに有り | デスクトップのもっと見るメニューを廃止 |
-| 検索（みつける） | Footer中央の大きなボタン | Navbarのもっと見る | デスクトップでも独立リンクに昇格 |
-| プロフィール導線 | Footer右端の独立タブ | アバタードロップダウンの中 | デスクトップでもプロフィールを上位導線に |
+## 修正方針
 
-> 上記以外に細かなdesktop専用の「<br className=hidden sm:block>」や「hidden sm:inline」は意味を持つレスポンシブ調整なので**残す**（モバイルでテキスト非表示にしているアイコン等）。
+### A. React Query の再フェッチ設定を統一
 
----
+App.tsx のグローバル設定（`staleTime: 10分`, `refetchOnMount: false`）に揃え、個別フックの `staleTime: 0` / `refetchOnMount: 'always'` を削除する。データ変更時は既存の `queryClient.invalidateQueries` で十分。
 
-## 実装内容
+対象:
+- `src/hooks/useOfficialItems.ts` — `staleTime: 5分`、`refetchOnMount: false`
+- `src/components/UserCollection.tsx` — `refetchOnMount: false`（追加・削除は invalidate 済み）
+- `src/hooks/useItemPosts.ts` — `refetchOnMount: false`
+- `src/hooks/useSimpleTagManage.ts` — `staleTime: 1分`、`refetchOnMount: false`
+- `src/hooks/useTagSelect.ts` — 同上
 
-### 1. デスクトップ Navbar をモバイルと揃える（`src/components/Navbar.tsx`）
+### B. `OfficialItemsList` の再レンダー削減
 
-デスクトップ版（`hidden sm:flex` ブロック）のメニューを、モバイル下部Footerと同じ5項目に再構成：
+- `filteredByTagsItems` を `useMemo` 化（依存: `items`, `selectedTags`）
+- 開発デバッグ用の `console.log` を削除（本番でも垂れ流しになっている）
+- `useSortedItems` も入力が同一参照なら結果を再利用できるように依存を見直す
 
-- AIスタジオ → `/ai-rooms`（または `/my-room?tab=studio`、現Footerと同じ）
-- 探索 → `/explore`
-- みつける（検索）→ `/search`（中央寄り、目立たせる）
-- コレクション → `/collection`
-- プロフィール → `/edit-profile`
+### C. `Index.tsx` の `useProfile` 重複呼び出しを整理
 
-「もっと見る」ドロップダウンは廃止。アバタードロップダウンには言語/テーマ/使い方/ログアウトのみを残す（プロフィール項目はナビ本体に上がるので削除）。
+`userId` が無いときは閲覧中ユーザー用の `useProfile(userId)` は `enabled: false` で自然にスキップされるが、コンポーネント分割で意図を明確化。少なくとも `userId` パスでないときは追加クエリが走らないことを確認。
 
-### 2. 探索ページのユーザータブにマッチセクションを追加（`src/components/explore/ExploreHub.tsx`）
+### D. ログインボーナスの二重発火を防止
 
-`UsersTab` の上部に「あなたと相性の良いファン」セクションを追加：
+`AuthContext` 内のログインボーナス処理を `useRef` でガードし、同セッション中は1回だけ実行する。
 
-- ログイン中ユーザーのみ表示（`useAuth`、`useMatches(user.id)` を利用）
-- 上位 6〜8 件を `MatchCard` で**横スクロール**表示（モバイルでも読みやすい1.5枚見せレイアウト）
-- セクションタイトル横に「もっと見る」リンクは置かない（専用ページ廃止のため）
-- `CollectionDiffModal` も同セクションに組み込み（`compareWith` ステート）
-- マッチ0件 or 未ログイン時はセクション非表示
+### E. デバッグログの整理
 
-その下に既存の「人気ユーザー一覧」グリッドはそのまま残す。
+本番でノイズになっている `console.log`（フィルター件数、Sorting items by、Owner counts dump など）を削除または `import.meta.env.DEV` でガード。
 
-### 3. `/matches` ページの廃止
+## 期待される効果
 
-- `src/App.tsx` のルートを `<Route path="/matches" element={<Navigate to="/explore?tab=users" replace />} />` に変更
-- `src/pages/Matches.tsx` は削除
-- 残存リンク（Navbarの「もっと見る」内、その他参照箇所）はすべて削除または `/explore?tab=users` に置換
+- 公式グッズ・コレクションページの体感速度向上（キャッシュヒット時は即表示）
+- 同一ページ内での重複ネットワークリクエスト解消
+- レンダリングコスト低減（モバイルでのスクロールがスムーズに）
 
-### 4. メモリ更新
+## 触らない範囲
 
-`mem://index.md` の Core に「同担マッチは探索のユーザータブに集約。`/matches` は廃止して `/explore?tab=users` にリダイレクト」を追記。
+- UI レイアウト・デザイン
+- ビジネスロジック（フィルタ条件・ソート結果は同一）
+- Supabase スキーマ・RLS
 
----
-
-## 影響範囲
-
-**変更ファイル**
-- `src/components/Navbar.tsx`（デスクトップメニュー再構成）
-- `src/components/explore/ExploreHub.tsx`（UsersTab にマッチセクション追加）
-- `src/App.tsx`（`/matches` をリダイレクトに）
-- `mem://index.md`
-
-**削除ファイル**
-- `src/pages/Matches.tsx`
-
-**触らないもの**
-- モバイル Footer（既に基準なので無変更）
-- 各ページ内部の `hidden sm:inline` 等の細かなレスポンシブ表示（意味のある調整）
-- マッチ計算ロジック（`useMatches`, `MatchCard`, `CollectionDiffModal`）
-
----
-
-## 確認したい点
-
-「みつける（検索）」をデスクトップNavbarのどの位置に置くか — モバイルFooter同様に**中央**で目立たせるか、他項目と同列で良いかは実装時の調整事項とします（特に指定なければ同列で実装）。
+承認いただければ A → E の順で実装します。
