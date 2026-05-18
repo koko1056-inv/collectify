@@ -3,6 +3,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { initPerf } from './utils/perf';
+
+// パフォーマンス計装（fetch 数 / Web Vitals）を最初に有効化
+initPerf();
 import { Capacitor } from '@capacitor/core';
 import { Purchases } from '@revenuecat/purchases-capacitor';
 
