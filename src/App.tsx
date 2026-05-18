@@ -13,6 +13,26 @@ import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RootRedirect } from "@/components/RootRedirect";
+import { PerfOverlay } from "@/components/dev/PerfOverlay";
+import { markRouteReady } from "@/utils/perf";
+import { useLocation } from "react-router-dom";
+
+// ルート切り替えごとに、描画完了タイミング（2フレーム後）を「初回表示時間」として記録
+const RouteReadyTracker: React.FC = () => {
+  const location = useLocation();
+  React.useEffect(() => {
+    let raf1 = 0;
+    let raf2 = 0;
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => markRouteReady());
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, [location.pathname]);
+  return null;
+};
 
 // 主要ページも lazy 化して初回バンドルを縮小（MyRoom はデフォルト遷移先なので即プリフェッチ）
 const MyRoom = lazy(() => import("./pages/MyRoom").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -106,6 +126,8 @@ const App: React.FC = () => {
                 <TooltipProvider>
                   <Toaster />
                   <Sonner />
+                  <RouteReadyTracker />
+                  <PerfOverlay />
                   <Suspense fallback={<LoadingFallback />}>
                     <Routes>
                       <Route path="/" element={<RootRedirect />} />
