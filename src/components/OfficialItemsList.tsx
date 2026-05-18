@@ -1,5 +1,5 @@
 import { OfficialItem } from "@/types";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { OfficialItemsHeader } from "./official-goods/OfficialItemsHeader";
 import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
