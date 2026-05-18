@@ -5,8 +5,10 @@ import { OfficialItem } from "@/types";
 export function useOfficialItems() {
   return useQuery<OfficialItem[]>({
     queryKey: ["official-items"],
-    staleTime: 0, // 常に最新データを取得
-    refetchOnMount: 'always',
+    staleTime: 1000 * 60 * 5, // 5分間キャッシュ
+    gcTime: 1000 * 60 * 30,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("official_items")
