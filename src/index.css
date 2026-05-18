@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Righteous&display=swap');
+/* フォントは index.html で preconnect + 並列読み込み */
 
 @tailwind base;
 @tailwind components;
