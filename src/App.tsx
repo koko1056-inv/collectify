@@ -126,7 +126,7 @@ const App: React.FC = () => {
                   <Toaster />
                   <Sonner />
                   <RouteReadyTracker />
-                  <PerfOverlay />
+                  
                   <Suspense fallback={<LoadingFallback />}>
                     <Routes>
                       <Route path="/" element={<RootRedirect />} />
