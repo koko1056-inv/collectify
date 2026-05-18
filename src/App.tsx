@@ -13,7 +13,6 @@ import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RootRedirect } from "@/components/RootRedirect";
-import { PerfOverlay } from "@/components/dev/PerfOverlay";
 import { markRouteReady } from "@/utils/perf";
 import { useLocation } from "react-router-dom";
 
