@@ -44,6 +44,9 @@ const state: PerfSnapshot = {
   currentRoute: typeof window !== "undefined" ? window.location.pathname : "/",
   fetchTotal: 0,
   fetchByHost: {},
+  resourceByType: {},
+  resourceTotalBytes: 0,
+  resourceTotalMs: 0,
   marks: [],
 };
 
