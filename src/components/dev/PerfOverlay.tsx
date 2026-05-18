@@ -40,7 +40,10 @@ export function PerfOverlay() {
 
   useEffect(() => {
     if (!enabled) return;
-    return subscribePerf(setSnap);
+    const unsub = subscribePerf(setSnap);
+    return () => {
+      unsub();
+    };
   }, [enabled]);
 
   useEffect(() => {
