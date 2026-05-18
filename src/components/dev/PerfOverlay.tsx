@@ -20,6 +20,7 @@ function isEnabled(): boolean {
     return localStorage.getItem("perf") === "1" || import.meta.env.DEV;
   } catch {
     return import.meta.env.DEV;
+  }
 }
 
 function formatBytes(b: number): string {
@@ -27,7 +28,6 @@ function formatBytes(b: number): string {
   if (b < 1024) return `${b}B`;
   if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)}KB`;
   return `${(b / 1024 / 1024).toFixed(2)}MB`;
-}
 }
 
 /**
