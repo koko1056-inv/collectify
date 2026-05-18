@@ -27,9 +27,9 @@ export function useTagSelect(category: string, initialValue: string | null) {
       console.log(`Found ${data?.length || 0} tags for category ${category}:`, data);
       return data || [];
     },
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // 検索クエリでフィルタリングされたタグリスト

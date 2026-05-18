@@ -1,5 +1,5 @@
 import { OfficialItem } from "@/types";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { OfficialItemsHeader } from "./official-goods/OfficialItemsHeader";
 import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
@@ -69,23 +69,16 @@ export function OfficialItemsList({
     setSelectedIds(new Set());
   }, []);
   
-  // 選択したタグでフィルタリングされたアイテムを取得
-  const filteredByTagsItems = items.filter(item => {
-    if (selectedTags.length === 0) return true;
-    
-    // タグの配列が実際に存在することを確認
-    const itemTags = item.item_tags || [];
-    
-    // 選択したすべてのタグが、そのアイテムのタグに含まれているかをチェック
-    return selectedTags.every(selectedTag => {
-      return itemTags.some(itemTag => 
-        itemTag.tags && itemTag.tags.name === selectedTag
+  // 選択したタグでフィルタリングされたアイテムを取得（メモ化して再レンダー時の再計算を防ぐ）
+  const filteredByTagsItems = useMemo(() => {
+    if (selectedTags.length === 0) return items;
+    return items.filter(item => {
+      const itemTags = item.item_tags || [];
+      return selectedTags.every(selectedTag =>
+        itemTags.some(itemTag => itemTag.tags && itemTag.tags.name === selectedTag)
       );
     });
-  });
-  
-  console.log(`フィルタリング後のアイテム数: ${filteredByTagsItems.length} / ${items.length}`);
-  console.log('選択されたタグ:', selectedTags);
+  }, [items, selectedTags]);
   
   const sortedItems = useSortedItems(filteredByTagsItems, sortBy, ownerCounts);
   const loaderRef = useRef<HTMLDivElement>(null);

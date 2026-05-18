@@ -42,7 +42,7 @@ export function useSortedItems(items: OfficialItem[], sortBy: SortOption, ownerC
     enabled: !!user?.id && sortBy === "not-owned",
   });
 
-  console.log("Sorting items by:", sortBy);
+  // debug log removed
 
   return [...items].sort((a, b) => {
     if (sortBy === "newest") {

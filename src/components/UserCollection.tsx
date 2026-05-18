@@ -107,8 +107,9 @@ export function UserCollection({
       return data || [];
     },
     enabled: !!effectiveUserId,
-    // マウント時に常に再フェッチして、他ページで追加/削除したグッズを即反映する
-    refetchOnMount: "always",
+    // 追加・削除は明示的に invalidate しているので、マウント毎の再取得は抑制
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10
   });

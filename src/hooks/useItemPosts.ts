@@ -38,8 +38,9 @@ export function useItemPosts(userItemId: string) {
       })) as GoodsPost[];
     },
     enabled: !!userItemId,
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    staleTime: 1000 * 60 * 5,
   });
 
   // アイテム固有の投稿のリアルタイム更新
