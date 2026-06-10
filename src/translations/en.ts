@@ -1,4 +1,10 @@
 export const enTranslations = {
+  system: {
+    offline: "You're offline. We'll resume automatically when reconnected",
+    backOnline: "Back online",
+    requestFailed: "Request failed. Please try again later",
+    loadFailed: "Failed to load data",
+  },
   nav: {
     login: "Login",
     profile: "Edit Profile",
@@ -220,8 +226,8 @@ export const enTranslations = {
     howToAddImage: "How to Add Image",
     methodA: "Set Image URL Directly",
     methodADesc: "Use this if you have a direct image URL",
-    methodB: "Upload Image from File",
-    methodBDesc: "Select and upload an image file from your device",
+    methodB: "Take a Photo / Upload",
+    methodBDesc: "Take a photo with your camera or choose one from your library",
     methodC: "Fetch Images from Website",
     methodCDesc: "Enter a product page URL to automatically fetch images. You can select multiple for bulk registration.",
     set: "Set",

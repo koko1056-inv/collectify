@@ -107,8 +107,10 @@ export function UserCollection({
       return data || [];
     },
     enabled: !!effectiveUserId,
-    // 追加・削除は明示的に invalidate しているので、マウント毎の再取得は抑制
-    refetchOnMount: false,
+    // 追加/削除側は全箇所で invalidateQueries(["user-items"]) 済み。
+    // true（staleの時だけ再フェッチ）なら、非アクティブ時に invalidate された
+    // クエリも再マウント時に拾える。false だと古い一覧が残るリスクがある。
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10

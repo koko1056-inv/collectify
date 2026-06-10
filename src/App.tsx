@@ -3,18 +3,22 @@ import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { toast } from "sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { Suspense, lazy } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RootRedirect } from "@/components/RootRedirect";
 import { markRouteReady } from "@/utils/perf";
 import { useLocation } from "react-router-dom";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { AppErrorBoundary } from "@/components/AppErrorBoundary";
+import { OfflineBanner } from "@/components/OfflineBanner";
+import { getTranslation, Language } from "@/translations";
 
 // ルート切り替えごとに、描画完了タイミング（2フレーム後）を「初回表示時間」として記録
 const RouteReadyTracker: React.FC = () => {
@@ -75,25 +79,34 @@ const Landing = lazy(() => import("./pages/Landing").catch(() => ({ default: () 
 const Privacy = lazy(() => import("./pages/Privacy").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Terms = lazy(() => import("./pages/Terms").catch(() => ({ default: () => <div>Error loading page</div> })));
 
-// Loading fallback component
-const LoadingFallback = () => (
-  <div className="min-h-screen bg-loading-bg flex items-center justify-center">
-    <div className="space-y-6 text-center">
-      <div className="relative">
-        <div className="h-16 w-16 mx-auto">
-          <Skeleton className="h-full w-full rounded-full" />
-        </div>
-        <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-pulse" />
-      </div>
-      <div className="space-y-2">
-        <Skeleton className="h-6 w-32 mx-auto" />
-        <Skeleton className="h-4 w-24 mx-auto" />
-      </div>
-    </div>
-  </div>
-);
+// queryClient はモジュールスコープのため、言語は localStorage から直接解決する
+const currentLanguage = (): Language => {
+  try {
+    return localStorage.getItem("app-language") === "en" ? "en" : "ja";
+  } catch {
+    return "ja";
+  }
+};
 
 const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      console.error("Query error:", error);
+      // キャッシュが無い＝画面にデータを出せない初回ロード失敗時のみユーザーに通知
+      if (query.state.data === undefined) {
+        toast.error(getTranslation(currentLanguage(), "system.loadFailed"), { id: "query-error" });
+      }
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) => {
+      console.error("Mutation error:", error);
+      // 呼び出し側で個別に onError 処理している場合は二重通知しない
+      if (!mutation.options.onError) {
+        toast.error(getTranslation(currentLanguage(), "system.requestFailed"), { id: "mutation-error" });
+      }
+    },
+  }),
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 10, // 10分間はキャッシュを使用
@@ -107,9 +120,6 @@ const queryClient = new QueryClient({
     mutations: {
       retry: 1, // ミューテーションの再試行回数を制限
       networkMode: 'online',
-      onError: (error) => {
-        console.error('Mutation error:', error);
-      },
     },
   },
 });
@@ -126,8 +136,9 @@ const App: React.FC = () => {
                   <Toaster />
                   <Sonner />
                   <RouteReadyTracker />
-                  
-                  <Suspense fallback={<LoadingFallback />}>
+                  <OfflineBanner />
+                  <AppErrorBoundary>
+                  <Suspense fallback={<LoadingScreen />}>
                     <Routes>
                       <Route path="/" element={<RootRedirect />} />
                       <Route path="/lp" element={<Landing />} />
@@ -162,6 +173,7 @@ const App: React.FC = () => {
                       <Route path="*" element={<Navigate to="/my-room" replace />} />
                     </Routes>
                   </Suspense>
+                  </AppErrorBoundary>
                 </TooltipProvider>
               </OnboardingProvider>
             </AuthProvider>

@@ -1,4 +1,10 @@
 export const jaTranslations = {
+  system: {
+    offline: "オフラインです。接続が回復すると自動で再開します",
+    backOnline: "オンラインに戻りました",
+    requestFailed: "通信に失敗しました。時間をおいて再度お試しください",
+    loadFailed: "データの読み込みに失敗しました",
+  },
   nav: {
     login: "ログイン",
     profile: "プロフィール編集",
@@ -220,8 +226,8 @@ export const jaTranslations = {
     howToAddImage: "画像の追加方法",
     methodA: "画像URLを直接設定",
     methodADesc: "画像の直接URLがある場合はこちらを使用してください",
-    methodB: "ファイルから画像をアップロード",
-    methodBDesc: "お手持ちの画像ファイルを選択してアップロードできます",
+    methodB: "写真を撮る・アップロード",
+    methodBDesc: "カメラで撮影するか、写真ライブラリから選択できます",
     methodC: "Webサイトから画像を取得",
     methodCDesc: "商品ページのURLを入力すると、そのページから画像を自動取得します。複数選択して一括登録できます。",
     set: "設定",
