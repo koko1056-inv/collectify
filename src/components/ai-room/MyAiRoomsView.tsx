@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { getOptimizedImageUrl } from "@/utils/optimized-image";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -225,9 +226,12 @@ export function MyAiRoomsView() {
                 <X className="w-5 h-5" />
               </button>
               <img
-                src={viewing.image_url}
+                src={getOptimizedImageUrl(viewing.image_url, { width: 1200, quality: 80 })}
                 alt=""
                 className="w-full h-auto max-h-[80vh] object-contain"
+                onError={(e) => {
+                  if (e.currentTarget.src !== viewing.image_url) e.currentTarget.src = viewing.image_url;
+                }}
               />
               <div className="p-4 space-y-3 bg-background">
                 {/* タイトル編集 */}
@@ -497,10 +501,13 @@ function HeroRoom({
         className="relative w-full aspect-video block bg-muted overflow-hidden"
       >
         <img
-          src={room.image_url}
+          src={getOptimizedImageUrl(room.image_url, { width: 800 })}
           alt={room.title || "AI room"}
           className="w-full h-full object-cover transition-transform duration-700 hover:scale-[1.03]"
           loading="eager"
+          onError={(e) => {
+            if (e.currentTarget.src !== room.image_url) e.currentTarget.src = room.image_url;
+          }}
         />
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
@@ -606,10 +613,13 @@ function RoomThumbCard({
         className="relative w-full aspect-video overflow-hidden bg-muted block"
       >
         <img
-          src={room.image_url}
+          src={getOptimizedImageUrl(room.image_url, { width: 600 })}
           alt=""
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          onError={(e) => {
+            if (e.currentTarget.src !== room.image_url) e.currentTarget.src = room.image_url;
+          }}
         />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent" />
         {preset && (

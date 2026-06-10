@@ -58,11 +58,22 @@ export function useLoginForm() {
         });
       } else {
         await handleUserSignup(formData);
-        toast({
-          title: "登録完了",
-          description: "アカウントが作成されました。ログインしてください。",
-        });
-        setIsLogin(true);
+        // signUp は自動確認設定ならそのままセッションが張られる（＝ログイン済み）。
+        // その場合「ログインしてください」と出すと矛盾するため文言を分ける。
+        const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
+        if (session) {
+          toast({
+            title: "登録完了",
+            description: "アカウントが作成されました。Collectifyへようこそ！",
+          });
+          navigate("/");
+        } else {
+          toast({
+            title: "登録完了",
+            description: "アカウントが作成されました。ログインしてください。",
+          });
+          setIsLogin(true);
+        }
       }
     } catch (error) {
       console.error("Authentication error:", error);

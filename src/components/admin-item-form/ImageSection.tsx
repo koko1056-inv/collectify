@@ -271,45 +271,13 @@ export function ImageSection({
         <div className="bg-muted/50 p-2 sm:p-4 rounded-lg border">
           <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4 text-foreground">{t("addItem.howToAddImage")}</h3>
           
+          {/* モバイルの主動線は「写真を撮る/選ぶ」なのでアップロードを最上位に置く */}
           <div className="space-y-4 sm:space-y-6">
-            {/* 方法A */}
+            {/* 方法A: 写真アップロード */}
             <div className="bg-background p-3 sm:p-4 rounded-lg border-2 border-border">
               <div className="flex items-start gap-2 sm:gap-3 mb-3">
                 <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
                   A
-                </div>
-                <div className="flex-1 min-w-0">
-                  <label htmlFor="imageUrl" className="text-sm sm:text-base font-semibold text-foreground block mb-1">
-                    {t("addItem.methodA")}
-                  </label>
-                  <p className="text-xs sm:text-sm text-muted-foreground break-words">
-                    {t("addItem.methodADesc")}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:ml-11">
-                <Input
-                  id="imageUrl"
-                  value={imageUrlInput}
-                  onChange={(e) => setImageUrlInput(e.target.value)}
-                  placeholder="https://..."
-                  className="text-sm"
-                />
-                <Button
-                  type="button"
-                  onClick={handleSetImageUrl}
-                  className="sm:flex-shrink-0 text-sm px-4"
-                >
-                  {t("addItem.set")}
-                </Button>
-              </div>
-            </div>
-
-            {/* 方法B */}
-            <div className="bg-background p-3 sm:p-4 rounded-lg border-2 border-border">
-              <div className="flex items-start gap-2 sm:gap-3 mb-3">
-                <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
-                  B
                 </div>
                 <div className="flex-1 min-w-0">
                   <label htmlFor="fileUpload" className="text-sm sm:text-base font-semibold text-foreground block mb-1">
@@ -335,11 +303,11 @@ export function ImageSection({
               </div>
             </div>
 
-            {/* 方法C */}
+            {/* 方法B: 商品ページから自動取得 */}
             <div className="bg-background p-3 sm:p-4 rounded-lg border-2 border-border">
               <div className="flex items-start gap-2 sm:gap-3 mb-3">
                 <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
-                  C
+                  B
                 </div>
                 <div className="flex-1 min-w-0">
                   <label htmlFor="url" className="text-sm sm:text-base font-semibold text-foreground block mb-1">
@@ -370,6 +338,39 @@ export function ImageSection({
                   ) : (
                     t("addItem.fetch")
                   )}
+                </Button>
+              </div>
+            </div>
+
+            {/* 方法C: 画像URLを直接指定（上級者向けなので最後） */}
+            <div className="bg-background p-3 sm:p-4 rounded-lg border-2 border-border">
+              <div className="flex items-start gap-2 sm:gap-3 mb-3">
+                <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold text-sm">
+                  C
+                </div>
+                <div className="flex-1 min-w-0">
+                  <label htmlFor="imageUrl" className="text-sm sm:text-base font-semibold text-foreground block mb-1">
+                    {t("addItem.methodA")}
+                  </label>
+                  <p className="text-xs sm:text-sm text-muted-foreground break-words">
+                    {t("addItem.methodADesc")}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2 sm:ml-11">
+                <Input
+                  id="imageUrl"
+                  value={imageUrlInput}
+                  onChange={(e) => setImageUrlInput(e.target.value)}
+                  placeholder="https://..."
+                  className="text-sm"
+                />
+                <Button
+                  type="button"
+                  onClick={handleSetImageUrl}
+                  className="sm:flex-shrink-0 text-sm px-4"
+                >
+                  {t("addItem.set")}
                 </Button>
               </div>
             </div>

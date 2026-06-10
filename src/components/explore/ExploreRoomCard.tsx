@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useToggleAiBookmark } from "@/hooks/ai-room/useAiBookmarks";
 import { setPendingRemix } from "@/utils/ai-studio-handoff";
+import { getOptimizedImageUrl } from "@/utils/optimized-image";
 import { toast } from "sonner";
 
 export interface ExploreRoom {
@@ -52,6 +53,12 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
   const navigate = useNavigate();
   const toggleBookmark = useToggleAiBookmark();
   const [imgLoaded, setImgLoaded] = useState(false);
+  // フィードではオリジナル(1.5MB超)ではなくリサイズ版(約50KB)を配信。
+  // 変換に失敗した場合のみ元URLへフォールバックする。
+  const [imgFallback, setImgFallback] = useState(false);
+  const displaySrc = imgFallback
+    ? room.image_url
+    : getOptimizedImageUrl(room.image_url, { width: 600 });
 
   const handleStyleClone = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -110,10 +117,13 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
         onClick={() => navigate(`/ai-work/${room.id}`)}
       >
         <img
-          src={room.image_url}
+          src={displaySrc}
           alt={room.title || "AI生成ルーム"}
           loading="lazy"
           onLoad={() => setImgLoaded(true)}
+          onError={() => {
+            if (!imgFallback) setImgFallback(true);
+          }}
           className={cn(
             "w-full h-auto object-cover transition-opacity",
             imgLoaded ? "opacity-100" : "opacity-0"

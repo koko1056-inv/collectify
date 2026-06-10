@@ -280,7 +280,9 @@ function WelcomeStep({
         transition={{ delay: 0.25 }}
         className="text-4xl sm:text-5xl font-bold text-center mb-3 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 bg-clip-text text-transparent"
       >
-        Collectifyへようこそ
+        {/* 狭い画面で「ようこ／そ」と不自然に折り返さないよう語境界で改行 */}
+        <span className="inline-block">Collectifyへ</span>
+        <span className="inline-block">ようこそ</span>
       </motion.h1>
 
       <motion.p
