@@ -44,12 +44,17 @@ const Collection = lazy(() => import("./pages/Collection").catch(() => ({ defaul
 const Posts = lazy(() => import("./pages/Posts"));
 const ItemPostsFeed = lazy(() => import("./pages/ItemPostsFeed").catch(() => ({ default: () => <div>Error loading page</div> })));
 
-// バックグラウンドで主要ページをプリフェッチ
+// バックグラウンドで下部ナビ全タブのコードチャンクをプリフェッチ。
+// 未プリフェッチのタブは初回タップ時に Suspense の全画面ローディングが挟まり
+// 「表示→ロード」に見えるため、5タブ分を事前に読み込んでおく。
 if (typeof window !== "undefined") {
   const prefetch = () => {
     import("./pages/MyRoom");
     import("./pages/Search");
     import("./pages/Collection");
+    import("./pages/AiRooms");
+    import("./pages/Explore");
+    import("./pages/EditProfile");
   };
   if ("requestIdleCallback" in window) {
     (window as any).requestIdleCallback(prefetch, { timeout: 2000 });
