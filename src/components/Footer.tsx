@@ -36,6 +36,7 @@ export function Footer() {
       <Link
         key={to}
         to={to}
+        aria-current={active ? "page" : undefined}
         className={cn(
           "flex flex-col items-center justify-center flex-1 py-2 transition-colors",
           active ? "text-primary" : "text-muted-foreground"
@@ -47,13 +48,13 @@ export function Footer() {
             active && "scale-110"
           )}
         />
-        <span className="text-[10px] font-medium">{label}</span>
+        <span className={cn("text-[11px]", active ? "font-semibold" : "font-medium")}>{label}</span>
       </Link>
     );
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t sm:hidden z-50">
+    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t sm:hidden z-50 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-16 relative">
         {leftTabs.map(renderTab)}
         {/* 中央: グッズを探す */}

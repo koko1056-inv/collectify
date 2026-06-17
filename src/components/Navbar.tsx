@@ -100,7 +100,7 @@ export function Navbar() {
   };
   return <nav className="relative z-50 bg-background border-b shadow-sm">
       {/* モバイル版のロゴ (sm未満でのみ表示) */}
-      <div className="flex sm:hidden items-center h-12 bg-background px-4">
+      <div className="flex sm:hidden items-center h-12 bg-background px-4 pt-[env(safe-area-inset-top)]">
         <div className="w-20 flex-shrink-0" /> {/* Left spacer for balance */}
         <Link to="/my-room" className="logo-text text-xl font-bold flex-1 text-center">
           Collectify
