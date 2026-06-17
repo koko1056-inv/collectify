@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { CardImage } from "./CardImage";
-import { CollectionGoodsCard } from "../CollectionGoodsCard";
+import { CollectionGoodsCardWrapper } from "./CollectionGoodsCardWrapper";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { memo } from "react";
@@ -72,14 +72,17 @@ function MyCollectionGoodsCardComponent({
       {...attributes}
       {...listeners}
     >
-      <CollectionGoodsCard
-        id={id}
-        title={title}
-        image={image}
-        quantity={quantity}
-        memories={memories}
-        userId={ownerId}
-      />
+      {/* 旧 CollectionGoodsCard（素通しラッパー）が付与していた h-full を保持 */}
+      <div className="h-full">
+        <CollectionGoodsCardWrapper
+          id={id}
+          title={title}
+          image={image}
+          quantity={quantity}
+          memories={memories}
+          userId={ownerId}
+        />
+      </div>
     </div>
   );
 }
