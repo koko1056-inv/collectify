@@ -11,7 +11,8 @@ if (MIXPANEL_TOKEN) {
   } catch (e) {
     console.warn('Failed to initialize Mixpanel:', e);
   }
-} else {
+} else if (import.meta.env.DEV) {
+  // 本番では毎回出るノイズになるため開発時のみ通知
   console.warn('VITE_MIXPANEL_TOKEN is not set. Analytics will not be tracked.');
 }
 

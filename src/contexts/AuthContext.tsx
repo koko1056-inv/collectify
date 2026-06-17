@@ -25,24 +25,15 @@ const rcLogout = () => {
 // ログインボーナス処理のユーティリティ関数（連続ログイン対応）
 const awardLoginBonus = async (userId: string) => {
   try {
-    console.log("[AuthContext] Starting login bonus process for user:", userId);
-    
     // Use server-side function for login bonus
     const { data: claimed, error } = await supabase
       .rpc('claim_login_bonus', { _user_id: userId });
-    
+
     if (error) {
       console.error("[AuthContext] Login bonus error:", error);
       return;
     }
-    
-    if (!claimed) {
-      console.log("[AuthContext] User already received login bonus today");
-      return;
-    }
-    
-    console.log("[AuthContext] Login bonus awarded successfully");
-    console.log("[AuthContext] Login bonus process completed");
+    // claimed が false の場合は本日付与済み（正常系なので何も出力しない）
   } catch (error) {
     console.error("[AuthContext] ログインボーナス付与エラー:", error);
   }
