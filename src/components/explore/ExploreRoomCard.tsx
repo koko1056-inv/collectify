@@ -111,9 +111,9 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
       transition={{ duration: 0.25 }}
       className="group relative break-inside-avoid mb-3 rounded-2xl overflow-hidden bg-card border border-border hover:border-primary/40 hover:shadow-xl transition-all"
     >
-      {/* メイン画像 */}
+      {/* メイン画像（縦長画像でカードが伸びすぎないよう 4:5 に固定し object-cover で収める） */}
       <div
-        className="relative w-full overflow-hidden bg-muted cursor-pointer"
+        className="relative w-full aspect-[4/5] overflow-hidden bg-muted cursor-pointer"
         onClick={() => navigate(`/ai-work/${room.id}`)}
       >
         <img
@@ -125,12 +125,12 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
             if (!imgFallback) setImgFallback(true);
           }}
           className={cn(
-            "w-full h-auto object-cover transition-opacity",
+            "w-full h-full object-cover transition-opacity",
             imgLoaded ? "opacity-100" : "opacity-0"
           )}
         />
         {!imgLoaded && (
-          <div className="absolute inset-0 bg-muted animate-pulse aspect-square" />
+          <div className="absolute inset-0 bg-muted animate-pulse" />
         )}
 
         {/* AI バッジ */}
