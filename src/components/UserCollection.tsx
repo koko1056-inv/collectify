@@ -31,6 +31,7 @@ import { useBatchItemMemories } from "@/hooks/useBatchItemMemories";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
+import { EmptyState } from "./ui/empty-state";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -435,18 +436,26 @@ export function UserCollection({
         )}
       </div>
 
-      <CollectionViewToggle
-        userId={effectiveUserId}
-        items={filteredItems}
-        isCompact={isCompact}
-        handleDragEnd={handleDragEnd}
-        batchMemories={batchMemories}
-        selectedPersonalTag={selectedPersonalTag}
-        onPersonalTagChange={onPersonalTagChange}
-        isSelectionMode={isSelectionMode}
-        selectedItems={selectedItemIds}
-        onSelectItem={handleSelectItem}
-      />
+      {filteredItems.length === 0 ? (
+        <EmptyState
+          icon={Search}
+          title="該当するグッズがありません"
+          description="検索条件やフィルターを変えてみてください"
+        />
+      ) : (
+        <CollectionViewToggle
+          userId={effectiveUserId}
+          items={filteredItems}
+          isCompact={isCompact}
+          handleDragEnd={handleDragEnd}
+          batchMemories={batchMemories}
+          selectedPersonalTag={selectedPersonalTag}
+          onPersonalTagChange={onPersonalTagChange}
+          isSelectionMode={isSelectionMode}
+          selectedItems={selectedItemIds}
+          onSelectItem={handleSelectItem}
+        />
+      )}
 
       {/* 選択モード時のフローティングアクションバー */}
       {isSelectionMode && selectedItemIds.length > 0 && (

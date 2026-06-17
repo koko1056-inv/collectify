@@ -51,17 +51,32 @@ export function OnboardingChecklist() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [isExpanded, setIsExpanded] = useState(true);
+  // Collapsed by default so room/avatar content stays above the fold.
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const claimingRef = useRef<Set<string>>(new Set());
 
-  // Check if dismissed from localStorage
+  // Check dismissed + remembered expand state from localStorage
   useEffect(() => {
     if (user?.id) {
       const dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`);
       if (dismissed) setIsDismissed(true);
+      // Respect a previously remembered expand preference; default stays collapsed.
+      const expanded = localStorage.getItem(`checklist_expanded_${user.id}`);
+      if (expanded === 'true') setIsExpanded(true);
     }
   }, [user?.id]);
+
+  // Toggle expand/collapse and persist the user's preference.
+  const handleToggleExpand = () => {
+    setIsExpanded((prev) => {
+      const next = !prev;
+      if (user?.id) {
+        localStorage.setItem(`checklist_expanded_${user.id}`, String(next));
+      }
+      return next;
+    });
+  };
 
   // Fetch user data for checklist status
   const { data: checklistData } = useQuery({
@@ -218,6 +233,8 @@ export function OnboardingChecklist() {
   const totalCount = items.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
   const allCompleted = completedCount === totalCount;
+  // Reward hint for the compact (collapsed) summary: points of the next step.
+  const nextReward = items.find((i) => !i.completed)?.points ?? 0;
 
   // グループ化
   const groupedItems = useMemo(() => {
@@ -295,25 +312,32 @@ export function OnboardingChecklist() {
     >
       <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-lg overflow-hidden">
         <CardContent className="p-4 space-y-3">
-          {/* Header */}
+          {/* Header (tap anywhere to expand/collapse) */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-pink-500 via-purple-500 to-orange-400">
+            <button
+              type="button"
+              onClick={handleToggleExpand}
+              aria-expanded={isExpanded}
+              aria-label={isExpanded ? 'ガイドを閉じる' : 'ガイドを開く'}
+              className="flex items-center gap-2 flex-1 min-w-0 text-left rounded-lg -m-1 p-1 transition-colors hover:bg-muted/40"
+            >
+              <div className="p-1.5 rounded-lg bg-brand-gradient shrink-0">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-bold text-sm">推し活はじめてガイド</h3>
                 <p className="text-xs text-muted-foreground">
                   {completedCount}/{totalCount} 完了
                 </p>
               </div>
-            </div>
-            <div className="flex items-center gap-1">
+            </button>
+            <div className="flex items-center gap-1 shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                onClick={() => setIsExpanded(!isExpanded)}
+                aria-label={isExpanded ? 'ガイドを閉じる' : 'ガイドを開く'}
+                onClick={handleToggleExpand}
               >
                 {isExpanded ? (
                   <ChevronUp className="w-4 h-4" />
@@ -325,6 +349,7 @@ export function OnboardingChecklist() {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-muted-foreground"
+                aria-label="ガイドを閉じる"
                 onClick={handleDismiss}
               >
                 <X className="w-3.5 h-3.5" />
@@ -341,7 +366,7 @@ export function OnboardingChecklist() {
               </span>
               <span className="text-primary font-medium flex items-center gap-1">
                 <Gift className="w-3 h-3" />
-                報酬あり
+                {nextReward > 0 ? `次は+${nextReward}pt` : '報酬あり'}
               </span>
             </div>
           </div>

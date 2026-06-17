@@ -6,7 +6,8 @@ import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
 import { useItemCounts } from "./official-goods/hooks/useItemCounts";
 import { useSortedItems } from "./official-goods/hooks/useSortedItems";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, CheckSquare, X, Tags } from "lucide-react";
+import { Loader2, Upload, CheckSquare, X, Tags, Package } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { TagManageModal } from "./tag/TagManageModal";
 import { 
   Drawer,
@@ -217,13 +218,21 @@ export function OfficialItemsList({
         isUserItem={false}
       />
       
-      <OfficialItemsGrid
-        items={currentItems}
-        selectionMode={selectionMode}
-        selectedIds={selectedIds}
-        onToggleSelect={toggleSelect}
-      />
-      
+      {sortedItems.length === 0 ? (
+        <EmptyState
+          icon={Package}
+          title="公式グッズがまだありません"
+          description="検索条件やフィルターを変えてみてください"
+        />
+      ) : (
+        <OfficialItemsGrid
+          items={currentItems}
+          selectionMode={selectionMode}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
+        />
+      )}
+
       {visibleCount < sortedItems.length && (
         <div 
           ref={loaderRef} 

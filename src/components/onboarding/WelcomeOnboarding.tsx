@@ -161,7 +161,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
             </button>
             <div className="flex-1 h-1.5 bg-muted/40 rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400"
+                className="h-full bg-brand-gradient"
                 initial={false}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
@@ -268,8 +268,8 @@ function WelcomeStep({
         transition={{ type: "spring", stiffness: 60, delay: 0.1 }}
         className="relative mb-8"
       >
-        <div className="absolute inset-0 rounded-full blur-3xl bg-gradient-to-br from-pink-400 via-purple-400 to-orange-400 opacity-40 scale-150" />
-        <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-orange-400 flex items-center justify-center shadow-2xl">
+        <div className="absolute inset-0 rounded-full blur-3xl bg-brand-gradient opacity-40 scale-150" />
+        <div className="relative w-24 h-24 rounded-full bg-brand-gradient flex items-center justify-center shadow-2xl">
           <Sparkles className="w-12 h-12 text-white" strokeWidth={2.5} />
         </div>
       </motion.div>
@@ -278,7 +278,7 @@ function WelcomeStep({
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.25 }}
-        className="text-4xl sm:text-5xl font-bold text-center mb-3 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 bg-clip-text text-transparent"
+        className="text-4xl sm:text-5xl font-bold text-center mb-3 text-brand-gradient"
       >
         {/* 狭い画面で「ようこ／そ」と不自然に折り返さないよう語境界で改行 */}
         <span className="inline-block">Collectifyへ</span>
@@ -325,7 +325,7 @@ function WelcomeStep({
           onClick={onNext}
           disabled={isLoading}
           size="lg"
-          className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 hover:opacity-95"
+          className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
         >
           はじめる
           <ArrowRight className="w-5 h-5" />
@@ -640,8 +640,8 @@ function CelebrateStep({
         transition={{ type: "spring", stiffness: 80, delay: 0.2 }}
         className="relative mb-8"
       >
-        <div className="absolute inset-0 rounded-full blur-3xl bg-gradient-to-br from-pink-400 via-purple-400 to-amber-400 opacity-60 scale-150" />
-        <div className="relative w-32 h-32 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-amber-400 flex items-center justify-center shadow-2xl">
+        <div className="absolute inset-0 rounded-full blur-3xl bg-brand-gradient opacity-60 scale-150" />
+        <div className="relative w-32 h-32 rounded-full bg-brand-gradient flex items-center justify-center shadow-2xl">
           <Gift className="w-16 h-16 text-white" strokeWidth={2.5} />
         </div>
       </motion.div>
@@ -692,7 +692,7 @@ function CelebrateStep({
         <Button
           onClick={onFinish}
           size="lg"
-          className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 hover:opacity-95"
+          className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
         >
           グッズを探しに行く
           <ArrowRight className="w-5 h-5" />

@@ -129,7 +129,7 @@ export default function AiRoomsPage() {
                 <motion.div
                   animate={{ rotate: [0, 8, -6, 0] }}
                   transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-orange-400 flex items-center justify-center shadow-md"
+                  className="w-7 h-7 rounded-full bg-brand-gradient flex items-center justify-center shadow-md"
                 >
                   <Wand2 className="w-3.5 h-3.5 text-white" />
                 </motion.div>
@@ -241,7 +241,7 @@ export default function AiRoomsPage() {
             <Button
               onClick={handleNewClick}
               size="sm"
-              className="h-10 gap-1 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 text-white hover:opacity-95 shadow-md shrink-0"
+              className="h-10 gap-1 bg-brand-gradient text-white hover:opacity-95 shadow-md shrink-0"
             >
               <Plus className="w-4 h-4" />
               新規作成
@@ -599,7 +599,7 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
           <motion.div
             animate={{ rotate: [0, 15, -10, 0], scale: [1, 1.08, 1] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full h-full rounded-full bg-gradient-to-br from-pink-400 via-purple-500 to-orange-400 flex items-center justify-center shadow-xl"
+            className="w-full h-full rounded-full bg-brand-gradient flex items-center justify-center shadow-xl"
           >
             <Wand2 className="w-9 h-9 text-white" />
           </motion.div>
@@ -633,7 +633,7 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
         <Button
           size="lg"
           onClick={onStart}
-          className="gap-2 h-12 px-6 bg-gradient-to-r from-pink-500 via-purple-500 to-orange-400 text-white hover:opacity-95 shadow-lg"
+          className="gap-2 h-12 px-6 bg-brand-gradient text-white hover:opacity-95 shadow-lg"
         >
           <Wand2 className="w-5 h-5" />
           はじめて作る
