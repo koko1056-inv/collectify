@@ -5,7 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 // LINEアプリ内(LIFF)で開かれた時だけ、ログイン中のCollectifyアカウントと
 // LINEユーザーIDを line_user_links に紐付ける（パーソナライズ通知の土台）。
 // VITE_LIFF_ID 未設定 / LINE外 / 未ログイン のときは完全に何もしない。
-const LIFF_ID = import.meta.env.VITE_LIFF_ID as string | undefined;
+// LIFF ID は公開情報（クライアントに露出）なので既定値を直接埋め込み、
+// 環境変数 VITE_LIFF_ID があればそちらを優先。
+const LIFF_ID = (import.meta.env.VITE_LIFF_ID as string | undefined) || "2010453556-4OGxmwaE";
 const LIFF_SDK = "https://static.line-scdn.net/liff/edge/2/sdk.js";
 
 function loadLiff(): Promise<any> {
