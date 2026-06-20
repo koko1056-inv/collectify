@@ -7,6 +7,8 @@ import { handleAdminLogin, handleUserLogin, handleUserSignup } from "@/utils/aut
 export function useLoginForm() {
   const [searchParams] = useSearchParams();
   const inviteCodeFromUrl = searchParams.get("invite")?.toUpperCase() || "";
+  // ログイン/登録後に戻る先（リッチメニューで開いた画面など）。無ければルートへ。
+  const redirectTo = searchParams.get("redirect") || "/";
   // URLに招待コードがあれば、初期状態をサインアップモードにする
   const [isLogin, setIsLogin] = useState(!inviteCodeFromUrl);
   const [inviteCode, setInviteCode] = useState(inviteCodeFromUrl);
@@ -46,10 +48,10 @@ export function useLoginForm() {
           if (isAdmin) {
             navigate("/admin");
           } else {
-            navigate("/");
+            navigate(redirectTo);
           }
         } else {
-          navigate("/");
+          navigate(redirectTo);
         }
         
         toast({
@@ -66,7 +68,7 @@ export function useLoginForm() {
             title: "登録完了",
             description: "アカウントが作成されました。Collectifyへようこそ！",
           });
-          navigate("/");
+          navigate(redirectTo);
         } else {
           toast({
             title: "登録完了",
