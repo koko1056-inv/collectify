@@ -6,13 +6,16 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, User, Lock } from "lucide-react";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import { PasswordReset } from "@/components/PasswordReset";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // 既にログイン済みでこの画面に来た場合の戻り先（リッチメニュー由来など）。
+  const redirectTo = searchParams.get("redirect") || "/";
   const { toast } = useToast();
   const {
     isLogin,
@@ -31,7 +34,7 @@ export default function Login() {
         if (error) throw error;
         
         if (session) {
-          navigate("/");
+          navigate(redirectTo);
         }
       } catch (error) {
         console.error("Session check error:", error);
@@ -49,12 +52,12 @@ export default function Login() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        navigate("/");
+        navigate(redirectTo);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast]);
+  }, [navigate, toast, redirectTo]);
 
   if (showPasswordReset) {
     return (
