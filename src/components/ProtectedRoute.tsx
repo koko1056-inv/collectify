@@ -17,9 +17,10 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   }
 
   if (!user) {
-    // ログイン後に元の画面（例: リッチメニューで開いた /collection）へ戻せるよう、
-    // 現在のパスを redirect に載せる。
-    const redirect = encodeURIComponent(location.pathname + location.search);
+    // ログイン後に元の画面へ戻す。/login や / を redirect にすると循環するためガード。
+    const raw = location.pathname + location.search;
+    const safe = raw.startsWith("/login") || raw === "/" ? "/my-room" : raw;
+    const redirect = encodeURIComponent(safe);
     return <Navigate to={`/login?redirect=${redirect}`} replace />;
   }
 

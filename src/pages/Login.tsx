@@ -7,16 +7,14 @@ import { AlertCircle, User, Lock } from "lucide-react";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import { PasswordReset } from "@/components/PasswordReset";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Login() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  // 既にログイン済みでこの画面に来た場合の戻り先（リッチメニュー由来など）。
-  const redirectTo = searchParams.get("redirect") || "/";
-  const { toast } = useToast();
+  const redirectTo = searchParams.get("redirect") || "/my-room";
+  const { user, loading: authLoading } = useAuth();
   const {
     isLogin,
     loading,
@@ -27,37 +25,12 @@ export default function Login() {
     toggleMode,
   } = useLoginForm();
 
+  // AuthContext の状態のみ使用（直接 Supabase 購読は二重購読でループの原因になる）
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        
-        if (session) {
-          navigate(redirectTo);
-        }
-      } catch (error) {
-        console.error("Session check error:", error);
-        toast({
-          variant: "destructive",
-          title: "エラーが発生しました",
-          description: "セッションの確認中にエラーが発生しました。",
-        });
-      }
-    };
-    
-    checkSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        navigate(redirectTo);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate, toast, redirectTo]);
+    if (!authLoading && user) {
+      navigate(redirectTo, { replace: true });
+    }
+  }, [user, authLoading, navigate, redirectTo]);
 
   if (showPasswordReset) {
     return (
@@ -133,9 +106,9 @@ export default function Login() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               disabled={loading}
               size="lg"
             >
