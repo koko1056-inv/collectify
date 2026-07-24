@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Package, Camera, Heart, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProfileHero } from "@/components/profile/ProfileHero";
+import { FavoriteItemsCircleStrip } from "@/components/profile/FavoriteItemsCircleStrip";
 import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { ProfileItemPosts } from "@/components/profile/ProfileItemPosts";
 import { ProfileShowcase } from "@/components/profile/ProfileShowcase";
@@ -87,6 +88,9 @@ export default function UserProfile() {
             isOwnProfile={isOwnProfile}
             onShare={() => setShareOpen(true)}
           />
+
+          {/* 推し（お気に入りグッズ）を丸アイコンで横並び表示 */}
+          {userId && <FavoriteItemsCircleStrip userId={userId} />}
 
           {/* 信頼バッジ＆スタンプ送信 */}
           {userId && (

@@ -1,18 +1,19 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Calendar, Tag, BookHeart, Plus, ImagePlus } from "lucide-react";
+import { Loader2, Calendar, Tag, BookHeart, Plus, ImagePlus, Heart, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
+import { format, differenceInCalendarDays } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
 import { PersonalTagsSection } from "@/components/personal-tags/PersonalTagsSection";
 import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
+import { useItemShare } from "@/hooks/useItemShare";
 
 interface UserItemDetailsModalProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export function UserItemDetailsModal({
 }: UserItemDetailsModalProps) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { shareItem, isSharing } = useItemShare();
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [isEditingPurchaseDate, setIsEditingPurchaseDate] = useState(false);
   const [noteValue, setNoteValue] = useState("");
@@ -211,12 +213,32 @@ export function UserItemDetailsModal({
         ) : (
           <div className="space-y-4">
             {/* メイン画像 */}
-            <div className="aspect-square w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+            <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-muted flex items-center justify-center">
               <img
                 src={itemDetails?.image || image}
                 alt={title}
                 className="w-full h-full object-contain"
               />
+              {/* シェアボタン */}
+              <button
+                onClick={() =>
+                  shareItem({
+                    title,
+                    imageUrl: itemDetails?.image || image,
+                    contentName: itemDetails?.content_name ?? null,
+                  })
+                }
+                disabled={isSharing}
+                className="absolute top-2 right-2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm flex items-center justify-center transition-colors disabled:opacity-60"
+                aria-label="このグッズをシェア"
+                title="シェア"
+              >
+                {isSharing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Share2 className="w-4 h-4" />
+                )}
+              </button>
             </div>
 
             {/* 詳細情報 */}
@@ -281,6 +303,26 @@ export function UserItemDetailsModal({
                   )}
                 </div>
               </div>
+
+              {/* お迎え日数（購入日 or 追加日からの経過） */}
+              {(() => {
+                const base = itemDetails?.purchase_date || itemDetails?.created_at;
+                if (!base) return null;
+                const days = Math.max(
+                  1,
+                  differenceInCalendarDays(new Date(), new Date(base)) + 1
+                );
+                return (
+                  <div className="flex items-center gap-1.5 text-sm bg-primary/5 border border-primary/10 rounded-lg px-2.5 py-1.5 w-fit">
+                    <Heart className="w-3.5 h-3.5 text-primary fill-primary/30" />
+                    <span className="text-muted-foreground">お迎えして</span>
+                    <span className="font-bold text-primary tabular-nums">
+                      {days.toLocaleString()}
+                    </span>
+                    <span className="text-muted-foreground">日いっしょ</span>
+                  </div>
+                );
+              })()}
 
               {itemDetails?.quantity && itemDetails.quantity > 1 && (
                 <div className="text-sm">
