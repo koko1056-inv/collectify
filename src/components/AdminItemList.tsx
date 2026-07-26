@@ -16,9 +16,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AdminItemList() {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
 
@@ -52,16 +54,16 @@ export function AdminItemList() {
       if (error) throw error;
 
       toast({
-        title: "アイテムを削除しました",
-        description: "公式グッズリストからアイテムが削除されました。",
+        title: t("chrome.itemDetails.deletedTitle"),
+        description: t("chrome.adminItems.deletedDesc"),
       });
 
       queryClient.invalidateQueries({ queryKey: ["official-items"] });
     } catch (error) {
       console.error("Error deleting item:", error);
       toast({
-        title: "エラー",
-        description: "アイテムの削除に失敗しました。",
+        title: t("chrome.common.error"),
+        description: t("chrome.itemDetails.deleteFailed"),
         variant: "destructive",
       });
     } finally {
@@ -72,11 +74,11 @@ export function AdminItemList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>公式グッズ一覧</CardTitle>
+        <CardTitle>{t("chrome.adminItems.title")}</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div>読み込み中...</div>
+          <div>{t("chrome.common.loading")}</div>
         ) : (
           <div className="space-y-4">
             {items?.map((item) => (
@@ -104,18 +106,18 @@ export function AdminItemList() {
       <AlertDialog open={!!deletingItemId} onOpenChange={() => setDeletingItemId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>アイテムを削除しますか？</AlertDialogTitle>
+            <AlertDialogTitle>{t("chrome.adminItems.deleteConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              この操作は取り消せません。このアイテムに関連するすべてのデータ（タグなど）も削除されます。
+              {t("chrome.adminItems.deleteConfirmDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogCancel>{t("chrome.common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deletingItemId && handleDelete(deletingItemId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              削除する
+              {t("chrome.itemDetails.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

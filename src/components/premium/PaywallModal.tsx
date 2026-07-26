@@ -10,6 +10,7 @@ import {
 } from "@/lib/planLimits";
 import { startPurchase } from "@/utils/iap";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PaywallModalProps {
   open: boolean;
@@ -18,6 +19,7 @@ interface PaywallModalProps {
 }
 
 export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) {
+  const { t } = useLanguage();
   const [selectedPlan, setSelectedPlan] = useState<PlanTier>("premium");
   const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
   const [loading, setLoading] = useState(false);
@@ -26,24 +28,49 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
   const monthlyEquiv = period === "yearly" ? Math.floor(price / 12) : price;
 
   const features = [
-    { key: "collection", label: "コレクション上限", free: "50個", premium: "1,000個" },
-    { key: "themes", label: "ルームテーマ", free: "4種類", premium: "全12種類" },
-    { key: "furniture", label: "家具スロット", free: "10個", premium: "50個" },
-    { key: "3d", label: "3Dモデル生成", free: "月1回", premium: "月10回" },
-    { key: "conversion", label: "ディスプレイ変換", free: "月3回", premium: "月30回" },
-    { key: "bgm", label: "カスタムBGM", free: "×", premium: "✓" },
-    { key: "watermark", label: "シェア画像の透かし削除", free: "×", premium: "✓" },
-    { key: "badge", label: "プレミアムバッジ", free: "×", premium: "✓" },
+    {
+      key: "collection",
+      label: t("misc.premium.featureCollection"),
+      free: t("misc.premium.valueCollectionFree"),
+      premium: t("misc.premium.valueCollectionPremium"),
+    },
+    {
+      key: "themes",
+      label: t("misc.premium.featureThemes"),
+      free: t("misc.premium.valueThemesFree"),
+      premium: t("misc.premium.valueThemesPremium"),
+    },
+    {
+      key: "furniture",
+      label: t("misc.premium.featureFurniture"),
+      free: t("misc.premium.valueFurnitureFree"),
+      premium: t("misc.premium.valueFurniturePremium"),
+    },
+    {
+      key: "3d",
+      label: t("misc.premium.feature3d"),
+      free: t("misc.premium.value3dFree"),
+      premium: t("misc.premium.value3dPremium"),
+    },
+    {
+      key: "conversion",
+      label: t("misc.premium.featureConversion"),
+      free: t("misc.premium.valueConversionFree"),
+      premium: t("misc.premium.valueConversionPremium"),
+    },
+    { key: "bgm", label: t("misc.premium.featureBgm"), free: "×", premium: "✓" },
+    { key: "watermark", label: t("misc.premium.featureWatermark"), free: "×", premium: "✓" },
+    { key: "badge", label: t("misc.premium.featureBadge"), free: "×", premium: "✓" },
   ];
 
   const handlePurchase = async () => {
     setLoading(true);
     try {
       await startPurchase(selectedPlan, period);
-      toast.success("プレミアムプランをご利用いただけます！");
+      toast.success(t("misc.premium.purchaseSuccess"));
       onOpenChange(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "購入に失敗しました");
+      toast.error(e instanceof Error ? e.message : t("misc.premium.purchaseFailed"));
     } finally {
       setLoading(false);
     }
@@ -73,7 +100,7 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
               period === "monthly" ? "bg-primary text-primary-foreground" : "bg-muted"
             )}
           >
-            月額
+            {t("misc.premium.monthly")}
           </button>
           <button
             onClick={() => setPeriod("yearly")}
@@ -82,9 +109,9 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
               period === "yearly" ? "bg-primary text-primary-foreground" : "bg-muted"
             )}
           >
-            年額
+            {t("misc.premium.yearly")}
             <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full">
-              2ヶ月お得
+              {t("misc.premium.yearlyBadge")}
             </span>
           </button>
         </div>
@@ -116,18 +143,18 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {p === "premium"
-                        ? "ルームを本気で作り込みたい方に"
-                        : "すべてを使いこなしたいヘビーユーザーへ"}
+                        ? t("misc.premium.premiumTagline")
+                        : t("misc.premium.premiumPlusTagline")}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold">
                       ¥{planMonthly.toLocaleString()}
-                      <span className="text-xs font-normal text-muted-foreground">/月</span>
+                      <span className="text-xs font-normal text-muted-foreground">{t("misc.premium.perMonth")}</span>
                     </p>
                     {period === "yearly" && (
                       <p className="text-xs text-muted-foreground">
-                        年額 ¥{planPrice.toLocaleString()}
+                        {t("misc.premium.yearlyPrice", { price: planPrice.toLocaleString() })}
                       </p>
                     )}
                   </div>
@@ -158,13 +185,15 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
           className="w-full bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60 text-primary-foreground font-semibold"
           size="lg"
         >
-          {loading ? "処理中..." : `¥${monthlyEquiv.toLocaleString()}/月で始める`}
+          {loading
+            ? t("misc.common.processing")
+            : t("misc.premium.startCta", { price: monthlyEquiv.toLocaleString() })}
         </Button>
 
         <p className="text-[10px] text-center text-muted-foreground leading-relaxed">
-          自動更新されます。キャンセルは設定からいつでも可能です。
+          {t("misc.premium.autoRenew")}
           <br />
-          購入するとご利用規約およびプライバシーポリシーに同意したものとみなされます。
+          {t("misc.premium.terms")}
         </p>
       </DialogContent>
     </Dialog>

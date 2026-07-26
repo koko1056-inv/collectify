@@ -23,6 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMatches } from "@/features/matching/useMatches";
 import { MatchCard } from "@/features/matching/MatchCard";
 import { CollectionDiffModal } from "@/features/matching/CollectionDiffModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type ExploreTab = "rooms" | "avatars" | "collections" | "users";
 
@@ -33,6 +34,7 @@ export function ExploreHub() {
     ["rooms", "avatars", "collections", "users"].includes(initialTab) ? initialTab : "rooms"
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const { t } = useLanguage();
 
   const handleTabChange = (v: string) => {
     setActiveTab(v as ExploreTab);
@@ -51,10 +53,10 @@ export function ExploreHub() {
               <div>
                 <h1 className="text-2xl font-bold flex items-center gap-2">
                   <Sparkles className="w-6 h-6 text-primary" />
-                  探索
+                  {t("chrome.explore.title")}
                 </h1>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  みんなのAI作品とコレクションを覗いてみよう
+                  {t("chrome.explore.subtitle")}
                 </p>
               </div>
             </div>
@@ -65,7 +67,7 @@ export function ExploreHub() {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="作品やユーザーを検索..."
+                placeholder={t("chrome.explore.searchPlaceholder")}
                 className="pl-10"
               />
             </div>
@@ -79,28 +81,28 @@ export function ExploreHub() {
                 className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
               >
                 <HomeIcon className="w-4 h-4" />
-                AIルーム
+                {t("chrome.explore.tabRooms")}
               </TabsTrigger>
               <TabsTrigger
                 value="avatars"
                 className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
               >
                 <Wand2 className="w-4 h-4" />
-                AIアバター
+                {t("chrome.explore.tabAvatars")}
               </TabsTrigger>
               <TabsTrigger
                 value="collections"
                 className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
               >
                 <Package className="w-4 h-4" />
-                コレクション
+                {t("chrome.explore.tabCollections")}
               </TabsTrigger>
               <TabsTrigger
                 value="users"
                 className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
               >
                 <User className="w-4 h-4" />
-                ユーザー
+                {t("chrome.explore.tabUsers")}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -125,6 +127,7 @@ const PAGE_SIZE = 24;
 
 function RoomsTab({ searchQuery }: { searchQuery: string }) {
   const { data: bookmarks } = useMyAiBookmarks();
+  const { t } = useLanguage();
 
   const {
     data,
@@ -190,7 +193,7 @@ function RoomsTab({ searchQuery }: { searchQuery: string }) {
   }
 
   if (filtered.length === 0) {
-    return <EmptyState icon={HomeIcon} message="まだ公開AI作品がありません" />;
+    return <EmptyState icon={HomeIcon} message={t("chrome.explore.emptyRooms")} />;
   }
 
   return (
@@ -211,7 +214,7 @@ function RoomsTab({ searchQuery }: { searchQuery: string }) {
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
           >
-            {isFetchingNextPage ? "読み込み中..." : "もっと見る"}
+            {isFetchingNextPage ? t("chrome.common.loading") : t("chrome.common.loadMore")}
           </Button>
         </div>
       )}
@@ -223,11 +226,12 @@ function RoomsTab({ searchQuery }: { searchQuery: string }) {
 // ============= AIアバタータブ（プレースホルダー） =============
 function AvatarsTab({ searchQuery }: { searchQuery: string }) {
   // 公開アバターテーブルの整備が必要。Phase 3でフル実装予定。
+  const { t } = useLanguage();
   return (
     <EmptyState
       icon={Wand2}
-      message="AIアバター探索はまもなく公開予定"
-      description="他ユーザーのAI生成アバターをここから見つけられるようになります"
+      message={t("chrome.explore.avatarsComingSoon")}
+      description={t("chrome.explore.avatarsComingSoonDesc")}
     />
   );
 }
@@ -235,6 +239,7 @@ function AvatarsTab({ searchQuery }: { searchQuery: string }) {
 // ============= コレクションタブ =============
 function CollectionsTab({ searchQuery }: { searchQuery: string }) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const { data: collectors = [], isLoading } = useQuery({
     queryKey: ["explore-collectors"],
@@ -279,7 +284,7 @@ function CollectionsTab({ searchQuery }: { searchQuery: string }) {
   }
 
   if (filtered.length === 0) {
-    return <EmptyState icon={Package} message="まだコレクションを公開しているユーザーがいません" />;
+    return <EmptyState icon={Package} message={t("chrome.explore.emptyCollections")} />;
   }
 
   return (
@@ -301,8 +306,7 @@ function CollectionsTab({ searchQuery }: { searchQuery: string }) {
             <p className="text-xs text-muted-foreground truncate">@{c.username}</p>
             <div className="flex items-center gap-1 mt-1 text-xs text-primary">
               <Package className="w-3 h-3" />
-              <span className="font-medium">{c.item_count}</span>
-              <span className="text-muted-foreground">点のグッズ</span>
+              <span className="font-medium">{t("chrome.explore.goodsCount", { n: c.item_count })}</span>
             </div>
           </div>
         </button>
@@ -315,6 +319,7 @@ function CollectionsTab({ searchQuery }: { searchQuery: string }) {
 function UsersTab({ searchQuery }: { searchQuery: string }) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { data: matches = [], isLoading: matchesLoading } = useMatches(user?.id, 12);
   const [compareWith, setCompareWith] = useState<string | null>(null);
 
@@ -348,10 +353,10 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
         <section className="space-y-3">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-500" />
-            <h2 className="text-lg font-bold">あなたと相性の良いファン</h2>
+            <h2 className="text-lg font-bold">{t("chrome.explore.matchTitle")}</h2>
           </div>
           <p className="text-xs text-muted-foreground">
-            推し・コレクション・欲しいグッズから、相性の良いユーザーをおすすめします
+            {t("chrome.explore.matchDesc")}
           </p>
           {matchesLoading ? (
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -382,7 +387,7 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
         {showMatchSection && (
           <div className="flex items-center gap-2">
             <User className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-bold">人気ユーザー</h2>
+            <h2 className="text-lg font-bold">{t("chrome.explore.popularUsers")}</h2>
           </div>
         )}
         {isLoading ? (
@@ -392,7 +397,7 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon={User} message="ユーザーが見つかりません" />
+          <EmptyState icon={User} message={t("chrome.explore.noUsers")} />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {filtered.map((u) => (
@@ -418,7 +423,7 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
                   {u.display_name || u.username}
                 </span>
                 <span className="text-[10px] text-muted-foreground">
-                  {u.followers_count || 0} フォロワー
+                  {t("chrome.explore.followers", { n: u.followers_count || 0 })}
                 </span>
               </button>
             ))}

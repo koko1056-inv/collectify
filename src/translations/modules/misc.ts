@@ -51,6 +51,7 @@ export const misc = {
       markAllRead: "すべて既読にする",
       markRead: "既読にする",
       postImageAlt: "投稿画像",
+      quotedComment: "「{text}」",
       greetingFallback: "あいさつ",
       thanks: "ありがとう💌",
       viewProfile: "プロフィールを見る →",
@@ -163,6 +164,14 @@ export const misc = {
       registeredTitle: "登録完了！",
       registeredDesc: "グッズが正常に登録されました",
       registerFailed: "登録に失敗しました",
+      greeting:
+        "こんにちは！グッズの登録をお手伝いします✨\n\nまずは登録したいグッズの画像を送ってください。画像URLを貼り付けるか、ファイルをアップロードしてくださいね！",
+      proxyFailed:
+        "⚠️ 外部画像の取得に失敗しました。\n\n画像を直接アップロードしてください。左下の画像ボタン📷をタップして、スマホやPCから画像を選んでください。",
+      imageDataFailed:
+        "⚠️ 画像データの取得に失敗しました。\n\n画像を直接アップロードしてください。",
+      registeredChat:
+        "グッズの登録が完了しました！🎉\n\n続けて別のグッズを登録しますか？画像を送ってください！",
       collectedInfo: "収集済みの情報:",
       inputPlaceholder: "メッセージまたは画像URLを入力...",
     },
@@ -322,6 +331,39 @@ export const misc = {
       bookmarkDesc: "お気に入りの推し部屋をブックマーク",
     },
 
+    publicCollection: {
+      acquiredOn: "{date}入手",
+      memories: "思い出 ({n})",
+    },
+
+    imageSearch: {
+      title: "画像でグッズ検索",
+      subtitle: "カメラで撮影するか画像をアップロードして、類似したグッズを探しましょう",
+      searchImageAlt: "検索画像",
+      analyzing: "画像を解析中...",
+      resultTitle: "検索結果",
+      noSimilar: "類似アイテムが見つかりませんでした",
+      searchDone: "検索完了",
+      foundCount: "{n}件の関連結果が見つかりました",
+      analyzeError: "画像の解析中にエラーが発生しました。しばらくしてから再度お試しください。",
+      fileTooLarge: "ファイルサイズが大きすぎます",
+      fileTooLargeDesc: "10MB以下の画像をアップロードしてください",
+      dropToUpload: "ドロップしてアップロード",
+      dragOrClick: "画像をドラッグするか、クリックして選択",
+      formats: "JPG, PNG, GIF, WebP (最大10MB)",
+      cameraSearch: "カメラで撮影して検索",
+      searching: "検索中...",
+      captionHeading: "画像の説明",
+      labelsHeading: "検出されたラベル",
+      keywordsHeading: "関連キーワード",
+      tabApp: "アプリ内 ({n})",
+      noAppResults: "アプリ内で類似アイテムは見つかりませんでした",
+      webSimilarHeading: "Web上の類似画像",
+      similarImageAlt: "類似画像 {n}",
+      webPagesHeading: "関連するWebページ",
+      noWebResults: "Web上で類似画像は見つかりませんでした",
+    },
+
     avatar: {
       studioTitle: "アバタースタジオ",
       studioDesc: "AIでアバターを生成・着せ替え・管理",
@@ -419,6 +461,7 @@ export const misc = {
       markAllRead: "Mark all as read",
       markRead: "Mark as read",
       postImageAlt: "Post image",
+      quotedComment: "“{text}”",
       greetingFallback: "Greeting",
       thanks: "Thanks 💌",
       viewProfile: "View profile →",
@@ -531,6 +574,14 @@ export const misc = {
       registeredTitle: "All done!",
       registeredDesc: "Your goods were added successfully",
       registerFailed: "Couldn't add these goods",
+      greeting:
+        "Hi! I'll help you add your goods ✨\n\nStart by sending a photo of the item you want to add. Paste an image URL or upload a file!",
+      proxyFailed:
+        "⚠️ Couldn't fetch that external image.\n\nPlease upload the image directly. Tap the image button 📷 at the bottom left and pick a photo from your phone or computer.",
+      imageDataFailed:
+        "⚠️ Couldn't fetch the image data.\n\nPlease upload the image directly.",
+      registeredChat:
+        "Your goods have been added! 🎉\n\nWant to add another one? Send me a photo!",
       collectedInfo: "Collected so far:",
       inputPlaceholder: "Type a message or paste an image URL...",
     },
@@ -688,6 +739,39 @@ export const misc = {
       followDesc: "Find collectors worth watching",
       bookmarkLabel: "Save an AI creation",
       bookmarkDesc: "Bookmark the Rooms you love",
+    },
+
+    publicCollection: {
+      acquiredOn: "Acquired {date}",
+      memories: "Memories ({n})",
+    },
+
+    imageSearch: {
+      title: "Search goods by image",
+      subtitle: "Take a photo or upload an image to find similar goods",
+      searchImageAlt: "Search image",
+      analyzing: "Analyzing the image...",
+      resultTitle: "Search results",
+      noSimilar: "No similar items found",
+      searchDone: "Search complete",
+      foundCount: "Found {n} related results",
+      analyzeError: "Something went wrong while analyzing the image. Please try again in a moment.",
+      fileTooLarge: "File is too large",
+      fileTooLargeDesc: "Please upload an image under 10MB",
+      dropToUpload: "Drop to upload",
+      dragOrClick: "Drag an image here, or click to choose one",
+      formats: "JPG, PNG, GIF, WebP (max 10MB)",
+      cameraSearch: "Take a photo and search",
+      searching: "Searching...",
+      captionHeading: "Image description",
+      labelsHeading: "Detected labels",
+      keywordsHeading: "Related keywords",
+      tabApp: "In app ({n})",
+      noAppResults: "No similar items found in the app",
+      webSimilarHeading: "Similar images on the web",
+      similarImageAlt: "Similar image {n}",
+      webPagesHeading: "Related web pages",
+      noWebResults: "No similar images found on the web",
     },
 
     avatar: {

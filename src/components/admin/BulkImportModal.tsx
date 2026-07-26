@@ -26,6 +26,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { LazyImage } from "@/components/ui/lazy-image";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ScrapedImage {
   url: string;
@@ -52,6 +53,7 @@ interface BulkImportModalProps {
 
 export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -69,8 +71,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
   const handleScrape = async () => {
     if (!url.trim()) {
       toast({
-        title: "エラー",
-        description: "URLを入力してください",
+        title: t("misc.common.error"),
+        description: t("misc.bulkImport.urlRequired"),
         variant: "destructive",
       });
       return;
@@ -87,8 +89,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
       const images = data.images || [];
       if (images.length === 0) {
         toast({
-          title: "画像が見つかりません",
-          description: "このURLから画像を取得できませんでした",
+          title: t("misc.bulkImport.noImagesTitle"),
+          description: t("misc.bulkImport.noImagesDesc"),
           variant: "destructive",
         });
         return;
@@ -97,14 +99,14 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
       setScrapedImages(images);
       setStep("select");
       toast({
-        title: "スクレイピング完了",
-        description: `${images.length}件の画像を取得しました`,
+        title: t("misc.bulkImport.scrapeDoneTitle"),
+        description: t("misc.bulkImport.scrapeDoneDesc", { n: images.length }),
       });
     } catch (error) {
       console.error("Scrape error:", error);
       toast({
-        title: "スクレイピングエラー",
-        description: "画像の取得に失敗しました",
+        title: t("misc.bulkImport.scrapeErrorTitle"),
+        description: t("misc.bulkImport.scrapeErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -119,8 +121,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
     } else {
       if (newSelected.size >= 20) {
         toast({
-          title: "選択上限",
-          description: "一度に選択できるのは20件までです",
+          title: t("misc.bulkImport.selectLimitTitle"),
+          description: t("misc.bulkImport.selectLimitDesc"),
           variant: "destructive",
         });
         return;
@@ -143,8 +145,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
   const handleAnalyze = async () => {
     if (selectedImages.size === 0) {
       toast({
-        title: "エラー",
-        description: "画像を選択してください",
+        title: t("misc.common.error"),
+        description: t("misc.bulkImport.selectImagesRequired"),
         variant: "destructive",
       });
       return;
@@ -204,7 +206,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
         setAnalyzedItems((prev) =>
           prev.map((item, idx) =>
             idx === i
-              ? { ...item, status: "error", error: "分析に失敗しました" }
+              ? { ...item, status: "error", error: t("misc.bulkImport.analyzeFailed") }
               : item
           )
         );
@@ -232,8 +234,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
 
     if (itemsToImport.length === 0) {
       toast({
-        title: "エラー",
-        description: "インポートするアイテムを選択してください",
+        title: t("misc.common.error"),
+        description: t("misc.bulkImport.selectItemsRequired"),
         variant: "destructive",
       });
       return;
@@ -282,8 +284,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
     await queryClient.invalidateQueries({ queryKey: ["official-items"] });
 
     toast({
-      title: "インポート完了",
-      description: `${successCount}件のグッズをインポートしました`,
+      title: t("misc.bulkImport.importDoneTitle"),
+      description: t("misc.bulkImport.importDoneDesc", { n: successCount }),
     });
 
     handleClose();
@@ -317,8 +319,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
       prev.map((item) => ({ ...item, contentName: name }))
     );
     toast({
-      title: "適用しました",
-      description: `全${analyzedItems.length}件のコンテンツを「${name}」に設定しました`,
+      title: t("misc.bulkImport.appliedTitle"),
+      description: t("misc.bulkImport.appliedDesc", { n: analyzedItems.length, name }),
     });
   };
 
@@ -328,13 +330,13 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
         <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            サイトからグッズを一括インポート
+            {t("misc.bulkImport.title")}
           </DialogTitle>
           <DialogDescription>
-            {step === "url" && "グッズ情報が掲載されているWebページのURLを入力してください"}
-            {step === "select" && "インポートする画像を選択してください（最大20件）"}
-            {step === "analyze" && "AIが画像を分析しています..."}
-            {step === "import" && "インポートするアイテムを確認してください"}
+            {step === "url" && t("misc.bulkImport.stepUrl")}
+            {step === "select" && t("misc.bulkImport.stepSelect")}
+            {step === "analyze" && t("misc.bulkImport.stepAnalyze")}
+            {step === "import" && t("misc.bulkImport.stepImport")}
           </DialogDescription>
         </DialogHeader>
 
@@ -360,18 +362,18 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
                     {isLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      "取得"
+                      t("misc.bulkImport.fetch")
                     )}
                   </Button>
                 </div>
               </div>
 
               <div className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg">
-                <p className="font-medium mb-2">💡 ヒント</p>
+                <p className="font-medium mb-2">{t("misc.bulkImport.hintTitle")}</p>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>グッズ一覧ページのURLを入力すると効果的です</li>
-                  <li>商品画像が含まれるページを選んでください</li>
-                  <li>AIが自動で商品名や説明を推測します</li>
+                  <li>{t("misc.bulkImport.hint1")}</li>
+                  <li>{t("misc.bulkImport.hint2")}</li>
+                  <li>{t("misc.bulkImport.hint3")}</li>
                 </ul>
               </div>
             </div>
@@ -382,14 +384,14 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
-                  {selectedImages.size}件選択中 / {scrapedImages.length}件
+                  {t("misc.bulkImport.selectedCount", { n: selectedImages.size, total: scrapedImages.length })}
                 </span>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={selectAll}>
-                    全選択
+                    {t("misc.bulkImport.selectAll")}
                   </Button>
                   <Button variant="outline" size="sm" onClick={deselectAll}>
-                    全解除
+                    {t("misc.bulkImport.deselectAll")}
                   </Button>
                 </div>
               </div>
@@ -408,7 +410,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
                     >
                       <LazyImage
                         src={image.url}
-                        alt={image.title || `画像 ${index + 1}`}
+                        alt={image.title || t("misc.bulkImport.imageAlt", { n: index + 1 })}
                         className="w-full h-full object-cover"
                       />
                       {selectedImages.has(image.url) && (
@@ -423,11 +425,11 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
 
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={() => setStep("url")}>
-                  戻る
+                  {t("misc.common.back")}
                 </Button>
                 <Button onClick={handleAnalyze} disabled={selectedImages.size === 0}>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  AI分析を開始 ({selectedImages.size}件)
+                  {t("misc.bulkImport.startAnalyze", { n: selectedImages.size })}
                 </Button>
               </div>
             </div>
@@ -438,7 +440,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
             <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span>分析中...</span>
+                  <span>{t("misc.bulkImport.analyzing")}</span>
                   <span>{Math.round(analyzeProgress)}%</span>
                 </div>
                 <Progress value={analyzeProgress} />
@@ -460,12 +462,12 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
                       </div>
                       <div className="flex-1 min-w-0">
                         {item.status === "pending" && (
-                          <span className="text-sm text-muted-foreground">待機中...</span>
+                          <span className="text-sm text-muted-foreground">{t("misc.bulkImport.waiting")}</span>
                         )}
                         {item.status === "analyzing" && (
                           <div className="flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin" />
-                            <span className="text-sm">分析中...</span>
+                            <span className="text-sm">{t("misc.bulkImport.analyzing")}</span>
                           </div>
                         )}
                         {item.status === "done" && (
@@ -494,19 +496,19 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
           {step === "import" && (
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
-                インポートするアイテムを確認してチェックを入れてください
+                {t("misc.bulkImport.confirmItems")}
               </div>
 
               {/* コンテンツ一括設定 */}
               <div className="space-y-2 p-3 rounded-lg border bg-muted/30">
                 <Label htmlFor="bulk-content" className="text-sm font-medium">
-                  コンテンツを一括設定
+                  {t("misc.bulkImport.bulkContentLabel")}
                 </Label>
                 <div className="flex gap-2">
                   <Input
                     id="bulk-content"
                     list="bulk-content-suggestions"
-                    placeholder="例: ミセスグリーンアップル"
+                    placeholder={t("misc.bulkImport.bulkContentPlaceholder")}
                     value={bulkContentName}
                     onChange={(e) => setBulkContentName(e.target.value)}
                     className="flex-1"
@@ -521,18 +523,18 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
                     onClick={applyBulkContentName}
                     disabled={!bulkContentName.trim()}
                   >
-                    全件に適用
+                    {t("misc.bulkImport.applyToAll")}
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  入力したコンテンツ名を全アイテムに一括で適用します。新しいコンテンツ名は自動で登録されます。
+                  {t("misc.bulkImport.bulkContentNote")}
                 </p>
               </div>
 
               {isLoading && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span>インポート中...</span>
+                    <span>{t("misc.bulkImport.importing")}</span>
                     <span>{Math.round(importProgress)}%</span>
                   </div>
                   <Progress value={importProgress} />
@@ -563,7 +565,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium">{item.title || "取得失敗"}</p>
+                        <p className="font-medium">{item.title || t("misc.bulkImport.fetchFailed")}</p>
                         <p className="text-xs text-muted-foreground line-clamp-2">
                           {item.description}
                         </p>
@@ -592,7 +594,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
 
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" onClick={handleClose} disabled={isLoading}>
-                  キャンセル
+                  {t("misc.common.cancel")}
                 </Button>
                 <Button
                   onClick={handleImport}
@@ -607,9 +609,9 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
                   ) : (
                     <Upload className="h-4 w-4 mr-2" />
                   )}
-                  インポート (
-                  {analyzedItems.filter((i) => i.selected && i.status === "done").length}
-                  件)
+                  {t("misc.bulkImport.importCta", {
+                    n: analyzedItems.filter((i) => i.selected && i.status === "done").length,
+                  })}
                 </Button>
               </div>
             </div>

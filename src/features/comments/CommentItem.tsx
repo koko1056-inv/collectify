@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ThumbsUp, MessageSquare, Trash2, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -23,6 +24,7 @@ interface CommentItemProps {
 
 export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [replyOpen, setReplyOpen] = useState(false);
   const [replyText, setReplyText] = useState("");
   const createMut = useCreateItemComment(officialItemId);
@@ -57,7 +59,7 @@ export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemP
             to={`/user/${author?.username || comment.user_id}`}
             className="text-sm font-semibold hover:underline"
           >
-            {author?.display_name || author?.username || "コレクター"}
+            {author?.display_name || author?.username || t("trade.comments.collectorFallback")}
           </Link>
           <p className="text-sm text-foreground whitespace-pre-wrap break-words mt-0.5">
             {comment.content}
@@ -87,7 +89,7 @@ export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemP
             )}
           >
             <ThumbsUp className="h-3.5 w-3.5" />
-            参考になった
+            {t("trade.comments.helpful")}
             {comment.helpful_count > 0 && (
               <span className="ml-0.5">({comment.helpful_count})</span>
             )}
@@ -98,13 +100,13 @@ export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemP
               className="flex items-center gap-1 hover:text-foreground transition-colors"
             >
               <MessageSquare className="h-3.5 w-3.5" />
-              返信
+              {t("trade.comments.reply")}
             </button>
           )}
           {isMine && (
             <button
               onClick={() => {
-                if (confirm("このコメントを削除しますか？")) {
+                if (confirm(t("trade.comments.confirmDelete"))) {
                   deleteMut.mutate(comment.id);
                 }
               }}
@@ -120,7 +122,9 @@ export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemP
             <Textarea
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              placeholder={`${author?.display_name || author?.username}さんに返信...`}
+              placeholder={t("trade.comments.replyPlaceholder", {
+                name: author?.display_name || author?.username || "",
+              })}
               className="min-h-[60px] text-sm"
               maxLength={1000}
             />
@@ -130,10 +134,14 @@ export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemP
                 onClick={submitReply}
                 disabled={createMut.isPending || !replyText.trim()}
               >
-                {createMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "送信"}
+                {createMut.isPending ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  t("trade.comments.send")
+                )}
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setReplyOpen(false)}>
-                取消
+                {t("trade.comments.cancel")}
               </Button>
             </div>
           </div>

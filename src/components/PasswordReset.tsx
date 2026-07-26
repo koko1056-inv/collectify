@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PasswordResetProps {
   onBack: () => void;
@@ -15,6 +16,7 @@ export function PasswordReset({ onBack }: PasswordResetProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,12 +34,12 @@ export function PasswordReset({ onBack }: PasswordResetProps) {
       }
 
       toast({
-        title: "メール送信完了",
-        description: "パスワードリセット用のメールを送信しました。メールをご確認ください。",
+        title: t("chrome.passwordReset.sentTitle"),
+        description: t("chrome.passwordReset.sentDesc"),
       });
       onBack();
     } catch (error) {
-      setError("パスワードリセットメールの送信に失敗しました。もう一度お試しください。");
+      setError(t("chrome.passwordReset.failed"));
     } finally {
       setLoading(false);
     }
@@ -59,14 +61,14 @@ export function PasswordReset({ onBack }: PasswordResetProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="メールアドレス"
+            placeholder={t("chrome.passwordReset.emailPlaceholder")}
             className="pl-10"
           />
         </div>
       </div>
       <div className="flex flex-col space-y-4">
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "送信中..." : "パスワードリセットメールを送信"}
+          {loading ? t("chrome.passwordReset.sending") : t("chrome.passwordReset.submit")}
         </Button>
         <Button
           type="button"
@@ -75,7 +77,7 @@ export function PasswordReset({ onBack }: PasswordResetProps) {
           className="w-full"
           disabled={loading}
         >
-          ログイン画面に戻る
+          {t("chrome.passwordReset.backToLogin")}
         </Button>
       </div>
     </form>

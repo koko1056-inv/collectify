@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Share2, Facebook, Instagram } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ShareModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface ShareModalProps {
 
 export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode = false }: ShareModalProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleShare = async (platform: string) => {
     const shareUrl = encodeURIComponent(url);
@@ -43,8 +45,8 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
         // フォールバック: URLをコピー
         await navigator.clipboard.writeText(url);
         toast({
-          title: "URLをコピーしました",
-          description: "Instagramアプリで投稿に貼り付けてください。",
+          title: t("chrome.share.urlCopiedTitle"),
+          description: t("chrome.share.urlCopiedDesc"),
         });
         onClose();
         return;
@@ -60,7 +62,7 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
           try {
             await navigator.share({
               title: title,
-              text: "TikTokで共有",
+              text: t("chrome.share.tiktokText"),
               url: url,
             });
             onClose();
@@ -86,16 +88,16 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
           }
         }
         toast({
-          title: "共有",
-          description: "このプラットフォームでの共有は現在サポートされていません。",
+          title: t("chrome.share.title"),
+          description: t("chrome.share.unsupported"),
         });
         return;
     }
 
     window.open(shareLink, '_blank', 'noopener,noreferrer');
     toast({
-      title: "共有完了",
-      description: `${platform}で共有しました。`,
+      title: t("chrome.share.doneTitle"),
+      description: t("chrome.share.doneDesc", { platform }),
     });
     onClose();
   };
@@ -104,7 +106,7 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>共有</DialogTitle>
+          <DialogTitle>{t("chrome.share.title")}</DialogTitle>
         </DialogHeader>
         {showInviteCode && (
           <div className="border-b border-border pb-4 mb-2">
@@ -120,7 +122,7 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
-            X で共有
+            {t("chrome.share.on", { platform: "X" })}
           </Button>
           <Button
             variant="outline"
@@ -128,7 +130,7 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
             onClick={() => handleShare('instagram')}
           >
             <Instagram className="h-5 w-5 text-pink-600" />
-            Instagram で共有
+            {t("chrome.share.on", { platform: "Instagram" })}
           </Button>
           <Button
             variant="outline"
@@ -136,7 +138,7 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
             onClick={() => handleShare('facebook')}
           >
             <Facebook className="h-5 w-5 text-blue-600" />
-            Facebook で共有
+            {t("chrome.share.on", { platform: "Facebook" })}
           </Button>
           <Button
             variant="outline"
@@ -144,7 +146,7 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
             onClick={() => handleShare('tiktok')}
           >
             <img src="/tiktok-icon.svg" alt="TikTok" className="h-5 w-5" />
-            TikTok で共有
+            {t("chrome.share.on", { platform: "TikTok" })}
           </Button>
           <Button
             variant="outline"
@@ -152,7 +154,7 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
             onClick={() => handleShare('line')}
           >
             <img src="/line-icon.svg" alt="LINE" className="h-5 w-5" />
-            LINE で共有
+            {t("chrome.share.on", { platform: "LINE" })}
           </Button>
           {navigator.share && (
             <Button
@@ -161,7 +163,7 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
               onClick={() => handleShare('native')}
             >
               <Share2 className="h-5 w-5" />
-              その他の方法で共有
+              {t("chrome.share.other")}
             </Button>
           )}
         </div>

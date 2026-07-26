@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { InitialInterestSelection } from "@/components/InitialInterestSelection";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +46,7 @@ const FEATURE_STEPS: Step[] = ["feature-ai", "feature-explore", "feature-collect
 export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const { user } = useAuth();
   const { completeWalkthrough, completeWelcome } = useOnboarding();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [step, setStep] = useState<Step>("welcome");
@@ -67,8 +69,8 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   }, [user?.id]);
 
   const friendlyName = useMemo(
-    () => (displayName.trim() ? displayName.trim() : "あなた"),
-    [displayName]
+    () => (displayName.trim() ? displayName.trim() : t("misc.onboarding.you")),
+    [displayName, t]
   );
 
   // 全ステップ順序とindex計算（プログレス表示用）
@@ -155,7 +157,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
             <button
               onClick={goPrev}
               className="p-1.5 rounded-full hover:bg-muted/50 transition-colors"
-              aria-label="戻る"
+              aria-label={t("misc.common.back")}
             >
               <ChevronLeft className="w-5 h-5 text-muted-foreground" />
             </button>
@@ -171,7 +173,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
               onClick={skipToEnd}
               className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2"
             >
-              スキップ
+              {t("misc.common.skip")}
             </button>
           </div>
         </div>
@@ -254,6 +256,7 @@ function WelcomeStep({
   onNext: () => void;
   isLoading: boolean;
 }) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -281,8 +284,8 @@ function WelcomeStep({
         className="text-4xl sm:text-5xl font-bold text-center mb-3 text-brand-gradient"
       >
         {/* 狭い画面で「ようこ／そ」と不自然に折り返さないよう語境界で改行 */}
-        <span className="inline-block">Collectifyへ</span>
-        <span className="inline-block">ようこそ</span>
+        <span className="inline-block">{t("misc.onboarding.welcomeLine1")}</span>
+        <span className="inline-block">{t("misc.onboarding.welcomeLine2")}</span>
       </motion.h1>
 
       <motion.p
@@ -291,9 +294,9 @@ function WelcomeStep({
         transition={{ delay: 0.35 }}
         className="text-center text-muted-foreground mb-10 max-w-sm"
       >
-        推し活の全てを、ここに。
+        {t("misc.onboarding.tagline")}
         <br />
-        まずは、あなたのお名前を教えてください ✨
+        {t("misc.onboarding.askName")}
       </motion.p>
 
       <motion.div
@@ -305,7 +308,7 @@ function WelcomeStep({
         <Input
           value={displayName}
           onChange={(e) => onDisplayNameChange(e.target.value)}
-          placeholder="推し活ネームを入力..."
+          placeholder={t("misc.onboarding.namePlaceholder")}
           disabled={isLoading}
           maxLength={30}
           className="h-14 text-lg text-center rounded-2xl border-2 focus-visible:ring-2 focus-visible:ring-primary/40 mb-3"
@@ -317,7 +320,7 @@ function WelcomeStep({
             animate={{ opacity: 1 }}
             className="text-center text-sm text-primary font-medium mb-6"
           >
-            こんにちは、{displayName.trim()}さん 👋
+            {t("misc.onboarding.greeting", { name: displayName.trim() })}
           </motion.p>
         )}
 
@@ -327,13 +330,13 @@ function WelcomeStep({
           size="lg"
           className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
         >
-          はじめる
+          {t("misc.onboarding.start")}
           <ArrowRight className="w-5 h-5" />
         </Button>
 
         {!displayName.trim() && (
           <p className="text-center text-xs text-muted-foreground mt-3">
-            （あとでも設定できます）
+            {t("misc.onboarding.setLater")}
           </p>
         )}
       </motion.div>
@@ -352,6 +355,7 @@ function InterestsStep({
   onDone: () => void;
   onSkip: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -363,7 +367,7 @@ function InterestsStep({
       {/* 上部スキップ */}
       <div className="absolute top-4 right-4 z-10">
         <Button variant="ghost" size="sm" onClick={onSkip} className="text-muted-foreground">
-          スキップ
+          {t("misc.common.skip")}
         </Button>
       </div>
 
@@ -379,10 +383,10 @@ function InterestsStep({
               <Heart className="w-8 h-8 text-primary" />
             </div>
             <h2 className="text-2xl font-bold mb-2">
-              {friendlyName}さんの「推し」は？
+              {t("misc.onboarding.interestsTitle", { name: friendlyName })}
             </h2>
             <p className="text-muted-foreground text-sm">
-              好きなコンテンツを選ぶと、ぴったりのグッズをおすすめします
+              {t("misc.onboarding.interestsSubtitle")}
             </p>
           </motion.div>
           <InitialInterestSelection onComplete={onDone} standalone />
@@ -408,55 +412,57 @@ interface FeatureContent {
   cta: string;
 }
 
-function getFeatureContent(key: FeatureKey, friendlyName: string): FeatureContent {
+type TFunc = (key: string, vars?: Record<string, string | number>) => string;
+
+function getFeatureContent(key: FeatureKey, friendlyName: string, t: TFunc): FeatureContent {
   switch (key) {
     case "ai":
       return {
-        badge: "STEP 3 / 5 ・ AI スタジオ",
-        title: "AIで推し部屋を\n生み出そう",
+        badge: t("misc.onboarding.aiBadge"),
+        title: t("misc.onboarding.aiTitle"),
         subtitle: "Powered by AI Studio",
-        description: `${friendlyName}さんのグッズから、AIがオリジナルの推し部屋やアバターを生成。世界に一つだけの推し空間が作れます。`,
+        description: t("misc.onboarding.aiDesc", { name: friendlyName }),
         icon: Wand2,
         gradient: "from-violet-500 via-fuchsia-500 to-pink-500",
         accent: "#a855f7",
         bullets: [
-          { icon: Sparkles, text: "グッズ写真からAIで部屋を自動生成" },
-          { icon: Star, text: "オリジナルのAIアバターも作れる" },
-          { icon: Gift, text: "初回は無料でお試しできます" },
+          { icon: Sparkles, text: t("misc.onboarding.aiBullet1") },
+          { icon: Star, text: t("misc.onboarding.aiBullet2") },
+          { icon: Gift, text: t("misc.onboarding.aiBullet3") },
         ],
-        cta: "次へ",
+        cta: t("misc.onboarding.next"),
       };
     case "explore":
       return {
-        badge: "STEP 4 / 5 ・ 探索",
-        title: "他の推し活仲間と\n出会おう",
+        badge: t("misc.onboarding.exploreBadge"),
+        title: t("misc.onboarding.exploreTitle"),
         subtitle: "Discover & Connect",
-        description: `他のコレクターのAI作品やコレクション、推しが同じ仲間を発見。気になる人をフォローして交流しよう。`,
+        description: t("misc.onboarding.exploreDesc"),
         icon: Compass,
         gradient: "from-cyan-500 via-blue-500 to-indigo-500",
         accent: "#3b82f6",
         bullets: [
-          { icon: Users, text: "推しが同じ仲間を見つけられる" },
-          { icon: Heart, text: "AI作品やコレクションを保存" },
-          { icon: SearchIcon, text: "ランキングや特集で新発見" },
+          { icon: Users, text: t("misc.onboarding.exploreBullet1") },
+          { icon: Heart, text: t("misc.onboarding.exploreBullet2") },
+          { icon: SearchIcon, text: t("misc.onboarding.exploreBullet3") },
         ],
-        cta: "次へ",
+        cta: t("misc.onboarding.next"),
       };
     case "collection":
       return {
-        badge: "STEP 5 / 5 ・ コレクション",
-        title: "推しグッズを\n大切に記録しよう",
+        badge: t("misc.onboarding.collectionBadge"),
+        title: t("misc.onboarding.collectionTitle"),
         subtitle: "Your Collection",
-        description: `持っているグッズを登録して一覧で管理。お気に入りTOP5でプロフィールを彩り、欲しいグッズもウィッシュリストに保存。`,
+        description: t("misc.onboarding.collectionDesc"),
         icon: Package,
         gradient: "from-emerald-500 via-green-500 to-lime-500",
         accent: "#10b981",
         bullets: [
-          { icon: Check, text: "持ってるグッズをワンタップ登録" },
-          { icon: Star, text: "お気に入りTOP5でプロフを彩る" },
-          { icon: Heart, text: "欲しいグッズはウィッシュリストへ" },
+          { icon: Check, text: t("misc.onboarding.collectionBullet1") },
+          { icon: Star, text: t("misc.onboarding.collectionBullet2") },
+          { icon: Heart, text: t("misc.onboarding.collectionBullet3") },
         ],
-        cta: "完了する",
+        cta: t("misc.onboarding.finish"),
       };
   }
 }
@@ -476,7 +482,8 @@ function FeatureStep({
   onTouchStart: (e: React.TouchEvent) => void;
   onTouchEnd: (e: React.TouchEvent) => void;
 }) {
-  const content = getFeatureContent(featureKey, friendlyName);
+  const { t } = useLanguage();
+  const content = getFeatureContent(featureKey, friendlyName, t);
   const Icon = content.icon;
 
   return (
@@ -625,6 +632,7 @@ function CelebrateStep({
   friendlyName: string;
   onFinish: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -652,7 +660,7 @@ function CelebrateStep({
         transition={{ delay: 0.5 }}
         className="text-3xl sm:text-4xl font-bold text-center mb-3"
       >
-        準備完了！
+        {t("misc.onboarding.readyTitle")}
       </motion.h1>
 
       <motion.p
@@ -661,7 +669,7 @@ function CelebrateStep({
         transition={{ delay: 0.6 }}
         className="text-center text-muted-foreground mb-6 max-w-xs"
       >
-        {friendlyName}さんだけの推し活スペースが完成しました ✨
+        {t("misc.onboarding.readyDesc", { name: friendlyName })}
       </motion.p>
 
       {/* ようこそギフト */}
@@ -676,8 +684,8 @@ function CelebrateStep({
             <Star className="w-6 h-6 text-white fill-white" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-foreground">ようこそボーナス</p>
-            <p className="text-xs text-muted-foreground">50ポイント獲得！</p>
+            <p className="text-sm font-semibold text-foreground">{t("misc.onboarding.welcomeBonus")}</p>
+            <p className="text-xs text-muted-foreground">{t("misc.onboarding.welcomeBonusDesc")}</p>
           </div>
           <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">+50</div>
         </div>
@@ -694,11 +702,11 @@ function CelebrateStep({
           size="lg"
           className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
         >
-          グッズを探しに行く
+          {t("misc.onboarding.goExplore")}
           <ArrowRight className="w-5 h-5" />
         </Button>
         <p className="text-center text-xs text-muted-foreground mt-3">
-          続きはホームのチェックリストから進められます
+          {t("misc.onboarding.continueNote")}
         </p>
       </motion.div>
     </motion.div>

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreateChallengeData {
   title: string;
@@ -18,10 +19,11 @@ export function useCreateChallenge() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (data: CreateChallengeData) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
 
       const firstPoints = data.first_place_points || 100;
       const secondPoints = data.second_place_points || 50;
@@ -35,7 +37,7 @@ export function useCreateChallenge() {
       });
       if (deductErr) {
         if (deductErr.message?.includes("Insufficient points")) {
-          throw new Error(`ポイントが不足しています（必要: ${totalPrizePoints}pt）`);
+          throw new Error(t("notices.points.insufficientRequired", { required: totalPrizePoints }));
         }
         throw deductErr;
       }
@@ -74,10 +76,10 @@ export function useCreateChallenge() {
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
       queryClient.invalidateQueries({ queryKey: ["userPoints"] });
       queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
-      toast({ title: "チャレンジを作成しました" });
+      toast({ title: t("notices.challenges.created") });
     },
     onError: (error) => {
-      toast({ title: "エラー", description: error.message, variant: "destructive" });
+      toast({ title: t("notices.common.errorTitle"), description: error.message, variant: "destructive" });
     },
   });
 }
@@ -93,10 +95,11 @@ export function useCreateChallengeEntry() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (data: CreateEntryData) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
 
       const { data: entry, error } = await supabase
         .from("challenge_entries")
@@ -112,7 +115,7 @@ export function useCreateChallengeEntry() {
 
       if (error) {
         if (error.code === '23505') {
-          throw new Error("このチャレンジには既に参加しています");
+          throw new Error(t("notices.challenges.alreadyEntered"));
         }
         throw error;
       }
@@ -121,10 +124,10 @@ export function useCreateChallengeEntry() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["challenge-entries", variables.challenge_id] });
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
-      toast({ title: "チャレンジに参加しました！" });
+      toast({ title: t("notices.challenges.entered") });
     },
     onError: (error) => {
-      toast({ title: "エラー", description: error.message, variant: "destructive" });
+      toast({ title: t("notices.common.errorTitle"), description: error.message, variant: "destructive" });
     },
   });
 }
@@ -133,10 +136,11 @@ export function useVoteForEntry() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ challengeId, entryId, hasVoted }: { challengeId: string; entryId: string; hasVoted: boolean }) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
 
       if (hasVoted) {
         // 投票を取り消す
@@ -170,7 +174,7 @@ export function useVoteForEntry() {
       queryClient.invalidateQueries({ queryKey: ["challenge-entries", variables.challengeId] });
     },
     onError: (error) => {
-      toast({ title: "エラー", description: error.message, variant: "destructive" });
+      toast({ title: t("notices.common.errorTitle"), description: error.message, variant: "destructive" });
     },
   });
 }
@@ -178,6 +182,7 @@ export function useVoteForEntry() {
 export function useEndChallenge() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (challengeId: string) => {
@@ -239,10 +244,10 @@ export function useEndChallenge() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
-      toast({ title: "チャレンジが終了し、ポイントが付与されました" });
+      toast({ title: t("notices.challenges.endedWithPoints") });
     },
     onError: (error) => {
-      toast({ title: "エラー", description: error.message, variant: "destructive" });
+      toast({ title: t("notices.common.errorTitle"), description: error.message, variant: "destructive" });
     },
   });
 }

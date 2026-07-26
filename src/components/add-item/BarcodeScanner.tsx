@@ -3,6 +3,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { X, ScanBarcode, Camera, FlipHorizontal2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -10,6 +11,7 @@ interface BarcodeScannerProps {
 }
 
 export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
+  const { t } = useLanguage();
   const [isScanning, setIsScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
@@ -52,7 +54,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       );
     } catch (err) {
       console.error("Scanner error:", err);
-      setError("カメラへのアクセスに失敗しました");
+      setError(t("misc.addItem.cameraAccessFailed"));
       setIsScanning(false);
     }
   };
@@ -83,7 +85,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         </Button>
         <div className="flex items-center gap-2 text-white">
           <ScanBarcode className="w-5 h-5" />
-          <span className="font-medium">バーコードスキャン</span>
+          <span className="font-medium">{t("misc.addItem.barcodeScan")}</span>
         </div>
         <Button variant="ghost" size="icon" onClick={toggleCamera} className="text-white">
           <FlipHorizontal2 className="w-6 h-6" />
@@ -122,10 +124,10 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         {error && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-white p-4 text-center">
             <Camera className="w-12 h-12 mb-4 text-muted-foreground" />
-            <p className="text-lg font-medium mb-2">カメラを使用できません</p>
+            <p className="text-lg font-medium mb-2">{t("misc.addItem.cameraUnavailable")}</p>
             <p className="text-sm text-muted-foreground mb-4">{error}</p>
             <Button variant="outline" onClick={startScanner}>
-              再試行
+              {t("misc.common.retry")}
             </Button>
           </div>
         )}
@@ -134,7 +136,7 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       {/* フッター */}
       <div className="relative z-10 p-4 bg-gradient-to-t from-black/80 to-transparent">
         <p className="text-center text-white/80 text-sm">
-          バーコードを枠内に合わせてください
+          {t("misc.addItem.barcodeGuide")}
         </p>
       </div>
 

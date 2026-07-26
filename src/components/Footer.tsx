@@ -2,10 +2,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { User, Compass, Package, Sparkles, Search, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Footer() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const isExploreActive =
     location.pathname.startsWith("/explore") || location.pathname.startsWith("/rooms/explore");
@@ -22,12 +24,12 @@ export function Footer() {
   };
 
   const leftTabs = [
-    { to: "/ai-rooms", icon: Palette, label: "AIスタジオ" },
-    { to: "/explore", icon: Compass, label: "探索" },
+    { to: "/ai-rooms", icon: Palette, label: t("chrome.nav.aiStudio") },
+    { to: "/explore", icon: Compass, label: t("chrome.nav.explore") },
   ];
   const rightTabs = [
-    { to: "/collection", icon: Package, label: "コレクション" },
-    { to: "/edit-profile", icon: User, label: "プロフィール" },
+    { to: "/collection", icon: Package, label: t("chrome.nav.collection") },
+    { to: "/edit-profile", icon: User, label: t("chrome.nav.profile") },
   ];
 
   const renderTab = ({ to, icon: Icon, label }: typeof leftTabs[number]) => {
@@ -63,7 +65,7 @@ export function Footer() {
             <motion.button
               onClick={() => navigate("/search")}
               whileTap={{ scale: 0.95 }}
-              aria-label="グッズを探す"
+              aria-label={t("chrome.nav.searchGoods")}
               className={cn(
                 "h-14 w-14 rounded-full flex items-center justify-center shadow-lg",
                 "bg-primary text-primary-foreground hover:shadow-xl transition-all"
@@ -71,7 +73,7 @@ export function Footer() {
             >
               <Search className="h-7 w-7" />
             </motion.button>
-            <span className="text-[10px] font-medium text-muted-foreground mt-0.5">みつける</span>
+            <span className="text-[10px] font-medium text-muted-foreground mt-0.5">{t("chrome.nav.find")}</span>
           </div>
         </div>
         {rightTabs.map(renderTab)}

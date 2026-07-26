@@ -5,8 +5,10 @@ import { useInviteCode } from "@/hooks/useInviteCode";
 import { Copy, Gift, Users, Ticket, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { buildInviteShareText, buildInviteUrl } from "@/utils/shareLinks";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function InviteCodeSection() {
+  const { t } = useLanguage();
   const { myCodes, referralCount, createCode, redeemCode } = useInviteCode();
   const [redeemInput, setRedeemInput] = useState("");
 
@@ -15,7 +17,7 @@ export function InviteCodeSection() {
 
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(buildInviteShareText(code));
-    toast.success("招待リンクをコピーしました！");
+    toast.success(t("misc.invite.linkCopied"));
   };
 
   const handleShare = async (code: string) => {
@@ -30,25 +32,25 @@ export function InviteCodeSection() {
       }
     }
     navigator.clipboard.writeText(text);
-    toast.success("招待リンクをコピーしました！");
+    toast.success(t("misc.invite.linkCopied"));
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-lg font-semibold">
         <Gift className="w-5 h-5 text-primary" />
-        友達を招待
+        {t("misc.invite.title")}
       </div>
 
       {/* Stats */}
       <div className="flex gap-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="w-4 h-4" />
-          <span>{referralCount}人を招待済み</span>
+          <span>{t("misc.invite.invitedCount", { n: referralCount })}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Ticket className="w-4 h-4" />
-          <span>未使用コード: {unusedCodes.length}枚</span>
+          <span>{t("misc.invite.unusedCodes", { n: unusedCodes.length })}</span>
         </div>
       </div>
 
@@ -63,20 +65,20 @@ export function InviteCodeSection() {
               variant="outline"
               size="icon"
               onClick={() => handleCopy(latestCode.code)}
-              title="リンクをコピー"
+              title={t("misc.invite.copyLink")}
             >
               <Copy className="w-4 h-4" />
             </Button>
             <Button
               size="icon"
               onClick={() => handleShare(latestCode.code)}
-              title="シェア"
+              title={t("misc.invite.share")}
             >
               <Share2 className="w-4 h-4" />
             </Button>
           </div>
           <p className="text-xs text-muted-foreground text-center">
-            招待リンク: {buildInviteUrl(latestCode.code)}
+            {t("misc.invite.inviteLink", { url: buildInviteUrl(latestCode.code) })}
           </p>
         </div>
       ) : null}
@@ -87,19 +89,19 @@ export function InviteCodeSection() {
         className="w-full bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60"
       >
         <Gift className="w-4 h-4 mr-2" />
-        新しい招待コードを作成
+        {t("misc.invite.createCode")}
       </Button>
 
       <p className="text-xs text-muted-foreground">
-        友達が招待コードを使うと、お互いに50ポイントもらえます
+        {t("misc.invite.bonusNote")}
       </p>
 
       {/* Redeem section */}
       <div className="border-t border-border pt-4 mt-4">
-        <p className="text-sm font-medium mb-2">招待コードを入力</p>
+        <p className="text-sm font-medium mb-2">{t("misc.invite.enterCode")}</p>
         <div className="flex gap-2">
           <Input
-            placeholder="例: ABCD1234"
+            placeholder={t("misc.invite.codePlaceholder")}
             value={redeemInput}
             onChange={(e) => setRedeemInput(e.target.value.toUpperCase())}
             maxLength={8}
@@ -112,12 +114,12 @@ export function InviteCodeSection() {
                 redeemCode.mutate(redeemInput);
                 setRedeemInput("");
               } else {
-                toast.error("8文字の招待コードを入力してください");
+                toast.error(t("misc.invite.codeLengthError"));
               }
             }}
             disabled={redeemCode.isPending || redeemInput.length !== 8}
           >
-            適用
+            {t("misc.invite.apply")}
           </Button>
         </div>
       </div>

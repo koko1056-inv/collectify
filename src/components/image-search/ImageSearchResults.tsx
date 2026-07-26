@@ -4,6 +4,7 @@ import { WebSearchResult } from "@/utils/image-search";
 import { ExternalLink, Globe, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ImageSearchResultsProps {
   detectedObjects?: string[];
@@ -22,8 +23,9 @@ export function ImageSearchResults({
   webResults,
   isLoading = false
 }: ImageSearchResultsProps) {
+  const { t } = useLanguage();
   if (isLoading) {
-    return <div className="text-center p-4 text-muted-foreground">検索中...</div>;
+    return <div className="text-center p-4 text-muted-foreground">{t("misc.imageSearch.searching")}</div>;
   }
 
   const hasAppResults = items.length > 0;
@@ -43,14 +45,14 @@ export function ImageSearchResults({
         <div className="bg-muted/50 p-4 rounded-xl border border-border">
           {caption && (
             <div className="mb-3">
-              <h3 className="font-medium text-sm text-muted-foreground mb-1">画像の説明</h3>
+              <h3 className="font-medium text-sm text-muted-foreground mb-1">{t("misc.imageSearch.captionHeading")}</h3>
               <p className="text-sm text-foreground font-medium">{caption}</p>
             </div>
           )}
           
           {labels.length > 0 && (
             <div>
-              <h3 className="font-medium text-sm text-muted-foreground mb-2">検出されたラベル</h3>
+              <h3 className="font-medium text-sm text-muted-foreground mb-2">{t("misc.imageSearch.labelsHeading")}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {labels.slice(0, 8).map((label, index) => (
                   <Badge key={index} variant="secondary" className="text-xs">
@@ -63,7 +65,7 @@ export function ImageSearchResults({
 
           {webResults?.webEntities && webResults.webEntities.length > 0 && (
             <div className="mt-3">
-              <h3 className="font-medium text-sm text-muted-foreground mb-2">関連キーワード</h3>
+              <h3 className="font-medium text-sm text-muted-foreground mb-2">{t("misc.imageSearch.keywordsHeading")}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {webResults.webEntities.slice(0, 6).map((entity, index) => (
                   <Badge key={index} variant="outline" className="text-xs">
@@ -82,7 +84,7 @@ export function ImageSearchResults({
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="app" className="gap-1.5">
               <ImageIcon className="h-4 w-4" />
-              アプリ内 ({items.length})
+              {t("misc.imageSearch.tabApp", { n: items.length })}
             </TabsTrigger>
             <TabsTrigger value="web" className="gap-1.5">
               <Globe className="h-4 w-4" />
@@ -110,7 +112,7 @@ export function ImageSearchResults({
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                アプリ内で類似アイテムは見つかりませんでした
+                {t("misc.imageSearch.noAppResults")}
               </div>
             )}
           </TabsContent>
@@ -121,7 +123,7 @@ export function ImageSearchResults({
               {/* 類似画像 */}
               {webResults?.visuallySimilarImages && webResults.visuallySimilarImages.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-sm mb-3 text-foreground">Web上の類似画像</h3>
+                  <h3 className="font-semibold text-sm mb-3 text-foreground">{t("misc.imageSearch.webSimilarHeading")}</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {webResults.visuallySimilarImages.map((img, index) => (
                       <a
@@ -133,7 +135,7 @@ export function ImageSearchResults({
                       >
                         <img
                           src={img.url}
-                          alt={`類似画像 ${index + 1}`}
+                          alt={t("misc.imageSearch.similarImageAlt", { n: index + 1 })}
                           className="w-full h-full object-cover"
                           loading="lazy"
                           onError={(e) => {
@@ -152,7 +154,7 @@ export function ImageSearchResults({
               {/* マッチしたページ */}
               {webResults?.pagesWithMatchingImages && webResults.pagesWithMatchingImages.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-sm mb-3 text-foreground">関連するWebページ</h3>
+                  <h3 className="font-semibold text-sm mb-3 text-foreground">{t("misc.imageSearch.webPagesHeading")}</h3>
                   <div className="space-y-2">
                     {webResults.pagesWithMatchingImages.map((page, index) => (
                       <a
@@ -178,7 +180,7 @@ export function ImageSearchResults({
 
               {!hasWebResults && (
                 <div className="text-center py-8 text-muted-foreground">
-                  Web上で類似画像は見つかりませんでした
+                  {t("misc.imageSearch.noWebResults")}
                 </div>
               )}
             </div>

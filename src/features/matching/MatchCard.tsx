@@ -8,6 +8,7 @@ import { Heart, Package, Repeat, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { MatchCandidate } from "./types";
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
 
 export function MatchCard({ match, onCompare }: Props) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const { data: profile } = useQuery({
     queryKey: ["match-profile", match.candidate_id],
@@ -49,13 +51,15 @@ export function MatchCard({ match, onCompare }: Props) {
                 onClick={() => navigate(`/user/${profile.id}`)}
                 className="font-bold text-base truncate hover:underline"
               >
-                {profile.display_name ?? profile.username ?? "ユーザー"}
+                {profile.display_name ?? profile.username ?? t("trade.match.userFallback")}
               </button>
               <TrustBadge userId={profile.id} size="sm" />
             </div>
             <div className="flex items-center gap-1 mt-1">
               <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-              <span className="text-xs font-semibold text-amber-700">マッチ度 {Math.round(Number(match.score))}</span>
+              <span className="text-xs font-semibold text-amber-700">
+                {t("trade.match.score", { score: Math.round(Number(match.score)) })}
+              </span>
             </div>
             {profile.bio && (
               <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{profile.bio}</p>
@@ -67,17 +71,17 @@ export function MatchCard({ match, onCompare }: Props) {
           <div className="rounded-md bg-pink-50 border border-pink-100 px-2 py-1.5">
             <Heart className="h-3.5 w-3.5 mx-auto text-pink-600 mb-0.5" />
             <div className="text-sm font-bold text-pink-700">{match.shared_interests}</div>
-            <div className="text-[10px] text-muted-foreground">同じ趣味</div>
+            <div className="text-[10px] text-muted-foreground">{t("trade.match.sharedInterests")}</div>
           </div>
           <div className="rounded-md bg-emerald-50 border border-emerald-100 px-2 py-1.5">
             <Package className="h-3.5 w-3.5 mx-auto text-emerald-600 mb-0.5" />
             <div className="text-sm font-bold text-emerald-700">{match.shared_items}</div>
-            <div className="text-[10px] text-muted-foreground">被りグッズ</div>
+            <div className="text-[10px] text-muted-foreground">{t("trade.match.sharedItems")}</div>
           </div>
           <div className="rounded-md bg-violet-50 border border-violet-100 px-2 py-1.5">
             <Repeat className="h-3.5 w-3.5 mx-auto text-violet-600 mb-0.5" />
             <div className="text-sm font-bold text-violet-700">{match.tradeable_items}</div>
-            <div className="text-[10px] text-muted-foreground">交換候補</div>
+            <div className="text-[10px] text-muted-foreground">{t("trade.match.tradeableItems")}</div>
           </div>
         </div>
 
@@ -93,9 +97,14 @@ export function MatchCard({ match, onCompare }: Props) {
 
         <div className="flex gap-2 pt-1">
           <Button size="sm" variant="outline" className="flex-1" onClick={() => onCompare(profile.id)}>
-            コレクション比較
+            {t("trade.match.compareCollections")}
           </Button>
-          <StampSendButton receiverId={profile.id} contextType="match" size="sm" label="あいさつ" />
+          <StampSendButton
+            receiverId={profile.id}
+            contextType="match"
+            size="sm"
+            label={t("trade.match.greetLabel")}
+          />
         </div>
       </CardContent>
     </Card>

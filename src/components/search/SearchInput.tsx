@@ -1,6 +1,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SearchInputProps {
   searchQuery: string;
@@ -17,13 +18,15 @@ export function SearchInput({
   onFocus,
   onBlur,
   onKeyDown,
-  placeholder = "グッズを検索..."
+  placeholder
 }: SearchInputProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="relative">
       <Input
         type="text"
-        placeholder={placeholder}
+        placeholder={placeholder ?? t("chrome.search.goodsPlaceholder")}
         value={searchQuery}
         onChange={onSearchChange}
         onFocus={onFocus}

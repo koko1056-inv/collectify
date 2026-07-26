@@ -13,6 +13,7 @@ import { Heart, Users, Tags, Plus, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OfficialGoodsCardProps {
   title: string;
@@ -42,6 +43,7 @@ export function OfficialGoodsCard({
   contentName,
 }: OfficialGoodsCardProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const {
     isInCollection,
     wishlistCount,
@@ -105,7 +107,7 @@ export function OfficialGoodsCard({
                 disabled={isInCollection}
               >
                 {isInCollection ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
-                {isInCollection ? "追加済み" : "追加"}
+                {isInCollection ? t("chrome.goodsCard.added") : t("chrome.goodsCard.add")}
               </Button>
               <Button
                 size="icon"
@@ -169,7 +171,7 @@ export function OfficialGoodsCard({
             disabled={isInCollection}
           >
             {isInCollection ? <Check className="h-3 w-3 shrink-0" /> : <Plus className="h-3 w-3 shrink-0" />}
-            <span className="truncate">{isInCollection ? "追加済み" : "追加"}</span>
+            <span className="truncate">{isInCollection ? t("chrome.goodsCard.added") : t("chrome.goodsCard.add")}</span>
           </Button>
         </div>
       </Card>

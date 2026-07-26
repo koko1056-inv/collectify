@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MemoriesForm } from "./collection/MemoriesForm";
 import { MemoriesList } from "./collection/MemoriesList";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemMemoriesModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface ItemMemoriesModalProps {
 
 export function ItemMemoriesModal({ isOpen, onClose, itemIds, itemTitles, userId }: ItemMemoriesModalProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const isOwner = !userId || (user && user.id === userId);
@@ -94,26 +96,26 @@ export function ItemMemoriesModal({ isOpen, onClose, itemIds, itemTitles, userId
       await refetch();
 
       toast({
-        title: isOwner ? "思い出を追加しました" : "コメントを追加しました",
+        title: isOwner ? t("chrome.memories.addedMemoryTitle") : t("chrome.memories.addedCommentTitle"),
         description: isOwner 
-          ? "コレクションに新しい思い出が追加されました。"
-          : "コレクションにコメントが追加されました。",
+          ? t("chrome.memories.addedMemoryDesc")
+          : t("chrome.memories.addedCommentDesc"),
       });
     } catch (error) {
       console.error("Error adding memory:", error);
       toast({
-        title: "エラー",
+        title: t("chrome.common.error"),
         description: isOwner 
-          ? "思い出の追加に失敗しました。"
-          : "コメントの追加に失敗しました。",
+          ? t("chrome.memories.addMemoryFailed")
+          : t("chrome.memories.addCommentFailed"),
         variant: "destructive",
       });
     }
   };
 
   const title = itemTitles && itemTitles.length === 1 
-    ? `${itemTitles[0]}の思い出`
-    : `${itemTitles?.length || 0}個のコレクションの思い出`;
+    ? t("chrome.memories.titleSingle", { title: itemTitles[0] })
+    : t("chrome.memories.titleMultiple", { n: itemTitles?.length || 0 });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -121,14 +123,14 @@ export function ItemMemoriesModal({ isOpen, onClose, itemIds, itemTitles, userId
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            コレクションの思い出やコメントを追加できます。
+            {t("chrome.memories.description")}
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="h-[70vh]">
           <div className="space-y-6 pr-4">
             <MemoriesForm onSubmit={handleSubmit} />
             <div className="space-y-4 mt-6">
-              <h3 className="font-medium text-lg">これまでの思い出</h3>
+              <h3 className="font-medium text-lg">{t("chrome.memories.pastMemories")}</h3>
               <MemoriesList memories={memories} />
             </div>
           </div>

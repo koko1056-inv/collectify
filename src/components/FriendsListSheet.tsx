@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserCard } from "./profile/UserCard";
 import { PopularCollectors } from "./profile/PopularCollectors";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FriendsListSheetProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
   const [activeTab, setActiveTab] = useState<string>("following");
   const [collectionCounts, setCollectionCounts] = useState<Record<string, number>>({});
   const { toast } = useToast();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,8 +46,8 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
         setUserId(user.id);
       } else {
         toast({
-          title: "エラー",
-          description: "ログインが必要です",
+          title: t("chrome.common.error"),
+          description: t("chrome.friends.loginRequired"),
           variant: "destructive",
         });
         navigate("/login");
@@ -103,8 +105,8 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
       } catch (error) {
         console.error("Error searching users:", error);
         toast({
-          title: "検索エラー",
-          description: "ユーザーの検索中にエラーが発生しました",
+          title: t("chrome.friends.searchErrorTitle"),
+          description: t("chrome.friends.searchErrorDesc"),
           variant: "destructive",
         });
       } finally {
@@ -163,8 +165,8 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
         if (unfollowError) throw unfollowError;
 
         toast({
-          title: "成功",
-          description: "フォローを解除しました",
+          title: t("chrome.common.success"),
+          description: t("chrome.friends.unfollowed"),
         });
       } else {
         // フォロー関係を作成
@@ -177,8 +179,8 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
         if (followError) throw followError;
 
         toast({
-          title: "成功",
-          description: "ユーザーをフォローしました",
+          title: t("chrome.common.success"),
+          description: t("chrome.friends.followed"),
         });
       }
 
@@ -197,8 +199,8 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
     } catch (error) {
       console.error("Error following user:", error);
       toast({
-        title: "エラー",
-        description: "フォローできませんでした",
+        title: t("chrome.common.error"),
+        description: t("chrome.friends.followFailed"),
         variant: "destructive",
       });
     }
@@ -217,13 +219,13 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
             <Button variant="ghost" size="icon" onClick={onClose} className="-ml-2">
               <ArrowLeft className="h-6 w-6" />
             </Button>
-            <SheetTitle>フレンド</SheetTitle>
+            <SheetTitle>{t("chrome.friends.title")}</SheetTitle>
           </div>
           
           <div className="flex items-center gap-2 mt-3 bg-accent rounded-full px-3 py-1">
             <Search className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
             <Input
-              placeholder="ユーザー名で検索"
+              placeholder={t("chrome.friends.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 h-8 text-sm"
@@ -235,10 +237,10 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
           <div className="p-4 h-[calc(100%-120px)] overflow-hidden">
             {searchQuery.trim().length >= 2 ? (
               <div className="space-y-4 h-full">
-                <h3 className="font-medium">検索結果</h3>
+                <h3 className="font-medium">{t("chrome.friends.searchResults")}</h3>
                 {searching ? (
                   <div className="flex justify-center p-4">
-                    <p>検索中...</p>
+                    <p>{t("chrome.search.searching")}</p>
                   </div>
                 ) : searchResults.length > 0 ? (
                   <ScrollArea className="h-[calc(100vh-16rem)]">
@@ -264,16 +266,16 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
                   </ScrollArea>
                 ) : (
                   <p className="text-center text-gray-500 p-4">
-                    ユーザーが見つかりませんでした
+                    {t("chrome.friends.noUsersFound")}
                   </p>
                 )}
               </div>
             ) : (
               <Tabs defaultValue="following" value={activeTab} onValueChange={setActiveTab} className="h-full">
                 <TabsList className="w-full mb-4">
-                  <TabsTrigger value="following" className="flex-1">フォロー中</TabsTrigger>
-                  <TabsTrigger value="followers" className="flex-1">フォロワー</TabsTrigger>
-                  <TabsTrigger value="popular" className="flex-1">人気</TabsTrigger>
+                  <TabsTrigger value="following" className="flex-1">{t("chrome.friends.tabFollowing")}</TabsTrigger>
+                  <TabsTrigger value="followers" className="flex-1">{t("chrome.friends.tabFollowers")}</TabsTrigger>
+                  <TabsTrigger value="popular" className="flex-1">{t("chrome.friends.tabPopular")}</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="following" className="h-[calc(100%-56px)]">
@@ -292,7 +294,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
           </div>
         ) : (
           <div className="p-4 flex items-center justify-center h-40">
-            <p>読み込み中...</p>
+            <p>{t("chrome.common.loading")}</p>
           </div>
         )}
       </SheetContent>

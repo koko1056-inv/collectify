@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WishlistModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export function WishlistModal({
   const [note, setNote] = useState("");
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const { playWishlistSound } = useSoundEffect();
 
@@ -45,8 +47,8 @@ export function WishlistModal({
   const handleSave = async () => {
     if (!user) {
       toast({
-        title: "ログインが必要です",
-        description: "ウィッシュリストに追加するにはログインしてください。",
+        title: t("chrome.wishlist.loginRequiredTitle"),
+        description: t("chrome.wishlist.loginRequiredDesc"),
       });
       onClose();
       return;
@@ -62,8 +64,8 @@ export function WishlistModal({
         if (error) throw error;
 
         toast({
-          title: "ウィッシュリストを更新しました",
-          description: `${itemTitle}のメモを更新しました。`,
+          title: t("chrome.wishlist.updatedTitle"),
+          description: t("chrome.wishlist.noteUpdatedDesc", { title: itemTitle }),
         });
       } else {
         // 既に追加されているか確認
@@ -86,8 +88,8 @@ export function WishlistModal({
           if (updateError) throw updateError;
           
           toast({
-            title: "ウィッシュリストを更新しました",
-            description: `${itemTitle}のメモを更新しました。`,
+            title: t("chrome.wishlist.updatedTitle"),
+            description: t("chrome.wishlist.noteUpdatedDesc", { title: itemTitle }),
           });
         } else {
           // 新規追加
@@ -107,8 +109,8 @@ export function WishlistModal({
           playWishlistSound();
 
           toast({
-            title: "ウィッシュリストに追加しました",
-            description: `${itemTitle}をウィッシュリストに追加しました`,
+            title: t("chrome.wishlist.addedTitle"),
+            description: t("chrome.wishlist.addedDesc", { title: itemTitle }),
           });
         }
       }
@@ -122,8 +124,8 @@ export function WishlistModal({
     } catch (error) {
       console.error("Error saving to wishlist:", error);
       toast({
-        title: "エラー",
-        description: "もう一度お試しください。",
+        title: t("chrome.common.error"),
+        description: t("chrome.wishlist.tryAgain"),
         variant: "destructive",
       });
     }
@@ -134,15 +136,15 @@ export function WishlistModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "ウィッシュリストを編集" : "ウィッシュリストに追加"}
+            {isEditing ? t("chrome.wishlist.editTitle") : t("chrome.wishlist.addTitle")}
           </DialogTitle>
         </DialogHeader>
         <div className="py-4">
-          <h4 className="text-sm font-medium mb-2">アイテム</h4>
+          <h4 className="text-sm font-medium mb-2">{t("chrome.wishlist.item")}</h4>
           <p className="text-sm text-gray-500 mb-4">{itemTitle}</p>
-          <h4 className="text-sm font-medium mb-2">メモ (任意)</h4>
+          <h4 className="text-sm font-medium mb-2">{t("chrome.wishlist.noteOptional")}</h4>
           <Textarea
-            placeholder="メモを入力..."
+            placeholder={t("chrome.wishlist.notePlaceholder")}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             className="min-h-[100px]"
@@ -150,10 +152,10 @@ export function WishlistModal({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            キャンセル
+            {t("chrome.common.cancel")}
           </Button>
           <Button onClick={handleSave}>
-            {isEditing ? "更新する" : "追加する"}
+            {isEditing ? t("chrome.wishlist.update") : t("chrome.wishlist.add")}
           </Button>
         </DialogFooter>
       </DialogContent>

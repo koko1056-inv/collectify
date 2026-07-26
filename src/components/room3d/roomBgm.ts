@@ -5,6 +5,7 @@
 export interface BgmPreset {
   id: string;
   name: string;
+  nameEn: string;
   icon: string;
   url: string;
   mood: "chill" | "upbeat" | "mystical" | "cozy" | "epic";
@@ -18,6 +19,7 @@ export const BGM_PRESETS: BgmPreset[] = [
   {
     id: "lofi_chill",
     name: "ローファイ・チル",
+    nameEn: "Lo-fi Chill",
     icon: "🎧",
     url: `${BASE}/lofi-chill.mp3`,
     mood: "chill",
@@ -26,6 +28,7 @@ export const BGM_PRESETS: BgmPreset[] = [
   {
     id: "cafe_ambient",
     name: "カフェアンビエント",
+    nameEn: "Cafe Ambient",
     icon: "☕",
     url: `${BASE}/cafe-ambient.mp3`,
     mood: "cozy",
@@ -34,6 +37,7 @@ export const BGM_PRESETS: BgmPreset[] = [
   {
     id: "synthwave",
     name: "シンセウェーブ",
+    nameEn: "Synthwave",
     icon: "🌆",
     url: `${BASE}/synthwave.mp3`,
     mood: "upbeat",
@@ -42,6 +46,7 @@ export const BGM_PRESETS: BgmPreset[] = [
   {
     id: "forest_ambient",
     name: "森の環境音",
+    nameEn: "Forest Ambience",
     icon: "🌲",
     url: `${BASE}/forest-ambient.mp3`,
     mood: "mystical",
@@ -50,6 +55,7 @@ export const BGM_PRESETS: BgmPreset[] = [
   {
     id: "rain",
     name: "雨音",
+    nameEn: "Rain",
     icon: "🌧️",
     url: `${BASE}/rain.mp3`,
     mood: "chill",
@@ -58,6 +64,7 @@ export const BGM_PRESETS: BgmPreset[] = [
   {
     id: "crystal_chimes",
     name: "クリスタル・チャイム",
+    nameEn: "Crystal Chimes",
     icon: "💎",
     url: `${BASE}/crystal-chimes.mp3`,
     mood: "mystical",
@@ -66,6 +73,7 @@ export const BGM_PRESETS: BgmPreset[] = [
   {
     id: "game_8bit",
     name: "8ビットゲーム",
+    nameEn: "8-bit Game",
     icon: "🎮",
     url: `${BASE}/8bit.mp3`,
     mood: "upbeat",
@@ -74,6 +82,7 @@ export const BGM_PRESETS: BgmPreset[] = [
   {
     id: "shrine_wind",
     name: "神社の風",
+    nameEn: "Shrine Wind",
     icon: "⛩️",
     url: `${BASE}/shrine-wind.mp3`,
     mood: "mystical",

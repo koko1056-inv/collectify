@@ -89,12 +89,12 @@ export function Navbar() {
       toast({
         variant: "destructive",
         title: t("common.error"),
-        description: "ログアウトに失敗しました"
+        description: t("chrome.nav.logoutFailed")
       });
     } else {
       toast({
-        title: "ログアウト完了",
-        description: "ログアウトしました"
+        title: t("chrome.nav.logoutDoneTitle"),
+        description: t("chrome.nav.logoutDoneDesc")
       });
     }
   };
@@ -123,16 +123,16 @@ export function Navbar() {
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                     <User className="w-4 h-4 mr-2" />
-                    プロフィール
+                    {t("chrome.nav.profile")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/how-to-use")}>
                     <HelpCircle className="w-4 h-4 mr-2" />
-                    使い方
+                    {t("chrome.nav.howToUse")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="flex items-center gap-2">
                     <Globe className="w-4 h-4" />
-                    言語 / Language
+                    {t("chrome.nav.language")}
                   </DropdownMenuLabel>
                   <DropdownMenuItem onClick={() => setLanguage("ja")} className={language === "ja" ? "bg-accent" : ""}>
                     🇯🇵 日本語
@@ -143,7 +143,7 @@ export function Navbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="flex items-center gap-2">
                     <Palette className="w-4 h-4" />
-                    テーマカラー
+                    {t("chrome.nav.themeColor")}
                   </DropdownMenuLabel>
                   {themeColors.map((color) => (
                     <DropdownMenuItem
@@ -151,7 +151,7 @@ export function Navbar() {
                       onClick={() => setThemeColor(color.value)}
                       className={themeColor === color.value ? "bg-accent" : ""}
                     >
-                      {color.emoji} {color.label}
+                      {color.emoji} {t(`chrome.themeColor.${color.value}`)}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -172,31 +172,31 @@ export function Navbar() {
               <NavigationMenuItem>
                 <Link to="/ai-rooms" className={cn(navigationMenuTriggerStyle())}>
                   <Palette className="h-4 w-4 mr-2" />
-                  AIスタジオ
+                  {t("chrome.nav.aiStudio")}
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link to="/explore" className={cn(navigationMenuTriggerStyle())}>
                   <Compass className="h-4 w-4 mr-2" />
-                  探索
+                  {t("chrome.nav.explore")}
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link to="/search" className={cn(navigationMenuTriggerStyle())}>
                   <Search className="h-4 w-4 mr-2" />
-                  みつける
+                  {t("chrome.nav.find")}
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link to="/collection" className={cn(navigationMenuTriggerStyle())}>
                   <Package className="h-4 w-4 mr-2" />
-                  コレクション
+                  {t("chrome.nav.collection")}
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link to="/edit-profile" className={cn(navigationMenuTriggerStyle())}>
                   <User className="h-4 w-4 mr-2" />
-                  プロフィール
+                  {t("chrome.nav.profile")}
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>
@@ -228,12 +228,12 @@ export function Navbar() {
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={() => navigate("/how-to-use")}>
                     <HelpCircle className="w-4 h-4 mr-2" />
-                    使い方
+                    {t("chrome.nav.howToUse")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="flex items-center gap-2">
                     <Globe className="w-4 h-4" />
-                    言語 / Language
+                    {t("chrome.nav.language")}
                   </DropdownMenuLabel>
                   <DropdownMenuItem onClick={() => setLanguage("ja")} className={language === "ja" ? "bg-accent" : ""}>
                     🇯🇵 日本語
@@ -244,7 +244,7 @@ export function Navbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="flex items-center gap-2">
                     <Palette className="w-4 h-4" />
-                    テーマカラー
+                    {t("chrome.nav.themeColor")}
                   </DropdownMenuLabel>
                   {themeColors.map((color) => (
                     <DropdownMenuItem
@@ -252,7 +252,7 @@ export function Navbar() {
                       onClick={() => setThemeColor(color.value)}
                       className={themeColor === color.value ? "bg-accent" : ""}
                     >
-                      {color.emoji} {color.label}
+                      {color.emoji} {t(`chrome.themeColor.${color.value}`)}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>

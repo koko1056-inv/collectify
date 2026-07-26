@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { Tag } from "@/types";
 import { SearchBar } from "./SearchBar";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FilterSheetProps {
   searchQuery: string;
@@ -41,6 +42,7 @@ export function FilterSheet({
   onPersonalTagChange,
 }: FilterSheetProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [contentSearch, setContentSearch] = useState("");
 
@@ -109,7 +111,7 @@ export function FilterSheet({
           size="icon"
           onClick={() => setSheetOpen(true)}
           className="relative shrink-0 h-10 w-10 rounded-xl"
-          aria-label="フィルターを開く"
+          aria-label={t("chrome.filter.open")}
         >
           <SlidersHorizontal className="w-4 h-4" />
           {hasActive && (
@@ -150,7 +152,7 @@ export function FilterSheet({
             onClick={clearAll}
             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2"
           >
-            クリア
+            {t("chrome.common.clear")}
           </button>
         </div>
       )}
@@ -161,10 +163,10 @@ export function FilterSheet({
           <SheetHeader className="px-5 pt-5 pb-3 border-b">
             <SheetTitle className="flex items-center gap-2 text-left">
               <SlidersHorizontal className="w-5 h-5" />
-              フィルター
+              {t("chrome.filter.title")}
               {hasActive && (
                 <span className="ml-auto text-xs text-muted-foreground font-normal">
-                  {activeCount}件 有効
+                  {t("chrome.filter.activeCount", { n: activeCount })}
                 </span>
               )}
             </SheetTitle>
@@ -174,7 +176,7 @@ export function FilterSheet({
             {/* コンテンツセクション */}
             <section>
               <SectionHeading
-                title="コンテンツ"
+                title={t("chrome.filter.content")}
                 value={
                   selectedContent && selectedContent !== "all"
                     ? selectedContent
@@ -184,7 +186,7 @@ export function FilterSheet({
               <div className="relative mb-3">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="コンテンツ名で検索..."
+                  placeholder={t("chrome.filter.contentSearchPlaceholder")}
                   value={contentSearch}
                   onChange={(e) => setContentSearch(e.target.value)}
                   className="pl-9 h-10 rounded-xl"
@@ -192,7 +194,7 @@ export function FilterSheet({
               </div>
               <div className="flex flex-wrap gap-2">
                 <PillOption
-                  label="すべて"
+                  label={t("chrome.common.all")}
                   active={!selectedContent || selectedContent === "all"}
                   onClick={() => onContentChange("all")}
                 />
@@ -206,7 +208,7 @@ export function FilterSheet({
                   />
                 ))}
                 {filteredContent.length === 0 && (
-                  <p className="text-sm text-muted-foreground">該当なし</p>
+                  <p className="text-sm text-muted-foreground">{t("chrome.filter.noMatch")}</p>
                 )}
               </div>
             </section>
@@ -215,12 +217,12 @@ export function FilterSheet({
             {user && personalTags.length > 0 && onPersonalTagChange && (
               <section>
                 <SectionHeading
-                  title="マイタグ"
+                  title={t("chrome.filter.myTags")}
                   value={selectedPersonalTag || undefined}
                 />
                 <div className="flex flex-wrap gap-2">
                   <PillOption
-                    label="すべて"
+                    label={t("chrome.common.all")}
                     active={!selectedPersonalTag}
                     onClick={() => onPersonalTagChange("")}
                   />
@@ -240,8 +242,8 @@ export function FilterSheet({
             {tags.length > 0 && (
               <section>
                 <SectionHeading
-                  title="タグ"
-                  value={selectedTags.length ? `${selectedTags.length}件` : undefined}
+                  title={t("chrome.filter.tags")}
+                  value={selectedTags.length ? t("chrome.filter.tagCount", { n: selectedTags.length }) : undefined}
                 />
                 <div className="flex flex-wrap gap-2">
                   {tags.slice(0, 60).map((tag) => {
@@ -274,13 +276,13 @@ export function FilterSheet({
               disabled={!hasActive}
               className="flex-1 rounded-xl"
             >
-              クリア
+              {t("chrome.common.clear")}
             </Button>
             <Button
               onClick={() => setSheetOpen(false)}
               className="flex-1 rounded-xl"
             >
-              {hasActive ? `${activeCount}件で絞り込む` : "閉じる"}
+              {hasActive ? t("chrome.filter.applyCount", { n: activeCount }) : t("chrome.filter.close")}
             </Button>
           </div>
         </SheetContent>
@@ -352,6 +354,8 @@ function ActiveFilterChip({
   label: string;
   onRemove: () => void;
 }) {
+  const { t } = useLanguage();
+
   return (
     <Badge
       variant="secondary"
@@ -361,7 +365,7 @@ function ActiveFilterChip({
       <button
         onClick={onRemove}
         className="rounded-full p-0.5 hover:bg-primary/20 transition-colors"
-        aria-label="このフィルタを解除"
+        aria-label={t("chrome.filter.removeChip")}
       >
         <X className="w-3 h-3" />
       </button>

@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2,
@@ -29,8 +30,8 @@ import {
 
 interface ChecklistItem {
   id: string;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
   icon: LucideIcon;
   completed: boolean;
   action?: () => void;
@@ -39,11 +40,18 @@ interface ChecklistItem {
   group: 'start' | 'collection' | 'ai' | 'community';
 }
 
-const GROUP_META: Record<ChecklistItem['group'], { label: string; icon: LucideIcon; color: string }> = {
-  start: { label: 'はじめの一歩', icon: Sparkles, color: 'text-amber-500' },
-  collection: { label: 'コレクション', icon: Package, color: 'text-emerald-500' },
-  ai: { label: 'AIスタジオ', icon: Wand2, color: 'text-fuchsia-500' },
-  community: { label: 'コミュニティ', icon: Users, color: 'text-blue-500' },
+const GROUP_META: Record<
+  ChecklistItem['group'],
+  { labelKey: string; icon: LucideIcon; color: string }
+> = {
+  start: { labelKey: 'misc.checklist.groupStart', icon: Sparkles, color: 'text-amber-500' },
+  collection: {
+    labelKey: 'misc.checklist.groupCollection',
+    icon: Package,
+    color: 'text-emerald-500',
+  },
+  ai: { labelKey: 'misc.checklist.groupAi', icon: Wand2, color: 'text-fuchsia-500' },
+  community: { labelKey: 'misc.checklist.groupCommunity', icon: Users, color: 'text-blue-500' },
 };
 
 export function OnboardingChecklist() {
@@ -51,6 +59,7 @@ export function OnboardingChecklist() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
   // Collapsed by default so room/avatar content stays above the fold.
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -134,8 +143,8 @@ export function OnboardingChecklist() {
       // 🎯 はじめの一歩
       {
         id: 'account',
-        label: 'アカウント作成',
-        description: '完了済み！',
+        labelKey: 'misc.checklist.accountLabel',
+        descriptionKey: 'misc.checklist.accountDesc',
         icon: CheckCircle2,
         completed: true,
         points: 10,
@@ -143,8 +152,8 @@ export function OnboardingChecklist() {
       },
       {
         id: 'profile',
-        label: 'プロフィール設定',
-        description: 'アバターや自己紹介を追加',
+        labelKey: 'misc.checklist.profileLabel',
+        descriptionKey: 'misc.checklist.profileDesc',
         icon: User,
         completed: checklistData.hasProfile,
         action: () => navigate('/edit-profile'),
@@ -154,8 +163,8 @@ export function OnboardingChecklist() {
       // 📦 コレクション
       {
         id: 'first-item',
-        label: '最初のグッズ登録',
-        description: 'コレクションに追加しよう',
+        labelKey: 'misc.checklist.firstItemLabel',
+        descriptionKey: 'misc.checklist.firstItemDesc',
         icon: Package,
         completed: checklistData.hasItem,
         action: () => navigate('/search'),
@@ -164,8 +173,8 @@ export function OnboardingChecklist() {
       },
       {
         id: 'favorites',
-        label: 'お気に入りTOP5を選ぶ',
-        description: 'プロフィールを彩ろう',
+        labelKey: 'misc.checklist.favoritesLabel',
+        descriptionKey: 'misc.checklist.favoritesDesc',
         icon: Star,
         completed: checklistData.hasFavorites5,
         action: () => navigate('/collection'),
@@ -174,8 +183,8 @@ export function OnboardingChecklist() {
       },
       {
         id: 'wishlist',
-        label: 'ウィッシュリストに追加',
-        description: '欲しいグッズをハートで保存',
+        labelKey: 'misc.checklist.wishlistLabel',
+        descriptionKey: 'misc.checklist.wishlistDesc',
         icon: Heart,
         completed: checklistData.hasWishlist,
         action: () => navigate('/search'),
@@ -185,8 +194,8 @@ export function OnboardingChecklist() {
       // 🎨 AIスタジオ
       {
         id: 'ai-room',
-        label: 'AIで推し部屋を作る',
-        description: 'グッズで世界に一つの空間を生成',
+        labelKey: 'misc.checklist.aiRoomLabel',
+        descriptionKey: 'misc.checklist.aiRoomDesc',
         icon: Home,
         completed: checklistData.hasAiRoom,
         action: () => navigate('/ai-rooms'),
@@ -196,8 +205,8 @@ export function OnboardingChecklist() {
       },
       {
         id: 'avatar',
-        label: 'AIアバターを作る',
-        description: '自分だけの分身を生成',
+        labelKey: 'misc.checklist.avatarLabel',
+        descriptionKey: 'misc.checklist.avatarDesc',
         icon: UserCircle2,
         completed: checklistData.hasAvatar,
         action: () => navigate('/my-room?tab=avatar'),
@@ -208,8 +217,8 @@ export function OnboardingChecklist() {
       // 🌐 コミュニティ
       {
         id: 'follow',
-        label: '誰かをフォロー',
-        description: '気になるコレクターを見つけよう',
+        labelKey: 'misc.checklist.followLabel',
+        descriptionKey: 'misc.checklist.followDesc',
         icon: Users,
         completed: checklistData.hasFollow,
         action: () => navigate('/explore'),
@@ -218,8 +227,8 @@ export function OnboardingChecklist() {
       },
       {
         id: 'bookmark',
-        label: 'AI作品を保存',
-        description: 'お気に入りの推し部屋をブックマーク',
+        labelKey: 'misc.checklist.bookmarkLabel',
+        descriptionKey: 'misc.checklist.bookmarkDesc',
         icon: Compass,
         completed: checklistData.hasBookmark,
         action: () => navigate('/explore'),
@@ -280,8 +289,8 @@ export function OnboardingChecklist() {
           }
           if (data === true) {
             toast({
-              title: `🎉 ${item.label} 達成！`,
-              description: `+${item.points}pt をゲットしました`,
+              title: t('misc.checklist.achievedTitle', { label: t(item.labelKey) }),
+              description: t('misc.checklist.achievedDesc', { points: item.points }),
             });
           }
         } catch (e) {
@@ -318,16 +327,16 @@ export function OnboardingChecklist() {
               type="button"
               onClick={handleToggleExpand}
               aria-expanded={isExpanded}
-              aria-label={isExpanded ? 'ガイドを閉じる' : 'ガイドを開く'}
+              aria-label={isExpanded ? t('misc.checklist.close') : t('misc.checklist.open')}
               className="flex items-center gap-2 flex-1 min-w-0 text-left rounded-lg -m-1 p-1 transition-colors hover:bg-muted/40"
             >
               <div className="p-1.5 rounded-lg bg-brand-gradient shrink-0">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-bold text-sm">推し活はじめてガイド</h3>
+                <h3 className="font-bold text-sm">{t('misc.checklist.title')}</h3>
                 <p className="text-xs text-muted-foreground">
-                  {completedCount}/{totalCount} 完了
+                  {t('misc.checklist.progress', { done: completedCount, total: totalCount })}
                 </p>
               </div>
             </button>
@@ -336,7 +345,7 @@ export function OnboardingChecklist() {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7"
-                aria-label={isExpanded ? 'ガイドを閉じる' : 'ガイドを開く'}
+                aria-label={isExpanded ? t('misc.checklist.close') : t('misc.checklist.open')}
                 onClick={handleToggleExpand}
               >
                 {isExpanded ? (
@@ -349,7 +358,7 @@ export function OnboardingChecklist() {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-muted-foreground"
-                aria-label="ガイドを閉じる"
+                aria-label={t('misc.checklist.close')}
                 onClick={handleDismiss}
               >
                 <X className="w-3.5 h-3.5" />
@@ -362,11 +371,13 @@ export function OnboardingChecklist() {
             <Progress value={progress} className="h-2" />
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">
-                あと{totalCount - completedCount}ステップ
+                {t('misc.checklist.stepsLeft', { n: totalCount - completedCount })}
               </span>
               <span className="text-primary font-medium flex items-center gap-1">
                 <Gift className="w-3 h-3" />
-                {nextReward > 0 ? `次は+${nextReward}pt` : '報酬あり'}
+                {nextReward > 0
+                  ? t('misc.checklist.nextReward', { n: nextReward })
+                  : t('misc.checklist.hasReward')}
               </span>
             </div>
           </div>
@@ -393,7 +404,7 @@ export function OnboardingChecklist() {
                       <div className="flex items-center gap-1.5 px-1">
                         <GroupIcon className={`w-3.5 h-3.5 ${meta.color}`} />
                         <span className="text-[11px] font-bold text-foreground/80 uppercase tracking-wider">
-                          {meta.label}
+                          {t(meta.labelKey)}
                         </span>
                         <span className="text-[10px] text-muted-foreground ml-auto">
                           {groupCompleted}/{groupItems.length}
@@ -426,17 +437,17 @@ export function OnboardingChecklist() {
                                       item.completed ? 'line-through text-muted-foreground' : ''
                                     }`}
                                   >
-                                    {item.label}
+                                    {t(item.labelKey)}
                                   </p>
                                   {!item.completed && item.freeTrial && (
                                     <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                                       <Gift className="w-2.5 h-2.5" />
-                                      初回無料
+                                      {t('misc.common.freeFirstTime')}
                                     </span>
                                   )}
                                 </div>
                                 <p className="text-xs text-muted-foreground truncate">
-                                  {item.description}
+                                  {t(item.descriptionKey)}
                                 </p>
                               </div>
                               {item.completed ? (

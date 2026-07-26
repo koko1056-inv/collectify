@@ -2,6 +2,7 @@ import { useEffect, useState, ReactNode, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
 interface ProgressiveTooltipProps {
@@ -26,6 +27,7 @@ export function ProgressiveTooltip({
   delay = 500,
   showOnce = true,
 }: ProgressiveTooltipProps) {
+  const { t } = useLanguage();
   const { shouldShowTooltip, markTooltipShown } = useOnboarding();
   const [isVisible, setIsVisible] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
@@ -116,7 +118,7 @@ export function ProgressiveTooltip({
             onClick={handleDismiss}
             className="w-full mt-2"
           >
-            わかった
+            {t("misc.onboarding.gotIt")}
           </Button>
         </div>
         <div

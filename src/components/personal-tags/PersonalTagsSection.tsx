@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X, Plus, Tag, Loader2 } from "lucide-react";
 import { usePersonalTags } from "@/hooks/usePersonalTags";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
 interface PersonalTagsSectionProps {
@@ -11,6 +12,7 @@ interface PersonalTagsSectionProps {
 }
 
 export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
+  const { t } = useLanguage();
   const { personalTags, allUserTags, isLoading, addTag, removeTag } = usePersonalTags(userItemId);
   const [isAdding, setIsAdding] = useState(false);
   const [newTagName, setNewTagName] = useState("");
@@ -25,19 +27,19 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
 
   const handleAddTag = async () => {
     if (!newTagName.trim()) {
-      toast.error("タグ名を入力してください");
+      toast.error(t("misc.personalTags.nameRequired"));
       return;
     }
 
     await addTag.mutateAsync({ userItemId, tagName: newTagName });
     setNewTagName("");
     setIsAdding(false);
-    toast.success("マイタグを追加しました");
+    toast.success(t("misc.personalTags.added"));
   };
 
   const handleRemoveTag = async (tagId: string) => {
     await removeTag.mutateAsync(tagId);
-    toast.success("マイタグを削除しました");
+    toast.success(t("misc.personalTags.removed"));
   };
 
   const handleSelectSuggestion = (tagName: string) => {
@@ -53,14 +55,14 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
   const handleQuickAddExisting = async (tagName: string) => {
     if (addTag.isPending) return;
     await addTag.mutateAsync({ userItemId, tagName });
-    toast.success(`「${tagName}」を追加しました`);
+    toast.success(t("misc.personalTags.addedNamed", { tag: tagName }));
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="w-4 h-4 animate-spin" />
-        <span>読み込み中...</span>
+        <span>{t("misc.common.loading")}</span>
       </div>
     );
   }
@@ -70,8 +72,8 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Tag className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium">マイタグ</span>
-          <span className="text-xs text-muted-foreground">(自分だけ)</span>
+          <span className="text-sm font-medium">{t("misc.personalTags.title")}</span>
+          <span className="text-xs text-muted-foreground">{t("misc.personalTags.privateNote")}</span>
         </div>
         {!isAdding && (
           <Button
@@ -81,7 +83,7 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
             onClick={() => setIsAdding(true)}
           >
             <Plus className="w-3 h-3" />
-            追加
+            {t("misc.common.add")}
           </Button>
         )}
       </div>
@@ -97,7 +99,7 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
                 setShowSuggestions(true);
               }}
               onFocus={() => setShowSuggestions(true)}
-              placeholder="タグ名を入力..."
+              placeholder={t("misc.personalTags.placeholder")}
               className="h-8 text-sm"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -112,7 +114,7 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
               onClick={handleAddTag}
               disabled={addTag.isPending}
             >
-              {addTag.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "追加"}
+              {addTag.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : t("misc.common.add")}
             </Button>
             <Button
               variant="outline"
@@ -123,7 +125,7 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
                 setNewTagName("");
               }}
             >
-              キャンセル
+              {t("misc.common.cancel")}
             </Button>
           </div>
           
@@ -148,7 +150,7 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
       {isAdding && availableExistingTags.length > 0 && (
         <div className="space-y-1.5 pt-1">
           <p className="text-xs text-muted-foreground">
-            既存のマイタグから選ぶ（タップで追加）
+            {t("misc.personalTags.chooseExisting")}
           </p>
           <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
             {availableExistingTags.map((tag) => (
@@ -194,7 +196,7 @@ export function PersonalTagsSection({ userItemId }: PersonalTagsSectionProps) {
       ) : (
         !isAdding && (
           <p className="text-xs text-muted-foreground">
-            マイタグはありません
+            {t("misc.personalTags.empty")}
           </p>
         )
       )}

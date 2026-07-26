@@ -7,6 +7,7 @@ import { Send, Image, Bot, User, Loader2, Check, X, Upload } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Message {
   role: "user" | "assistant";
@@ -59,10 +60,11 @@ const withTimeout = async <T,>(promise: Promise<T>, ms: number, label: string): 
 };
 
 export function ChatAddItem() {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "こんにちは！グッズの登録をお手伝いします✨\n\nまずは登録したいグッズの画像を送ってください。画像URLを貼り付けるか、ファイルをアップロードしてくださいね！",
+      content: t("misc.chatAdd.greeting"),
       suggestions: []
     }
   ]);
@@ -135,8 +137,8 @@ export function ChatAddItem() {
     } catch (error) {
       console.error("Error:", error);
       toast({
-        title: "エラー",
-        description: "メッセージの送信に失敗しました",
+        title: t("misc.common.error"),
+        description: t("misc.chatAdd.sendFailed"),
         variant: "destructive"
       });
     } finally {
@@ -156,8 +158,8 @@ export function ChatAddItem() {
     } catch (error) {
       console.error("Error uploading image:", error);
       toast({
-        title: "エラー",
-        description: "画像のアップロードに失敗しました",
+        title: t("misc.common.error"),
+        description: t("misc.chatAdd.uploadFailed"),
         variant: "destructive"
       });
     }
@@ -171,8 +173,8 @@ export function ChatAddItem() {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) {
         toast({
-          title: "エラー",
-          description: "ログインが必要です",
+          title: t("misc.common.error"),
+          description: t("misc.chatAdd.loginRequired"),
           variant: "destructive"
         });
         return;
@@ -222,7 +224,7 @@ export function ChatAddItem() {
           // ユーザーに直接アップロードを促すメッセージを追加
           setMessages(prev => [...prev, {
             role: "assistant",
-            content: `⚠️ 外部画像の取得に失敗しました。\n\n画像を直接アップロードしてください。左下の画像ボタン📷をタップして、スマホやPCから画像を選んでください。`,
+            content: t("misc.chatAdd.proxyFailed"),
             suggestions: []
           }]);
           setIsSubmitting(false);
@@ -235,7 +237,7 @@ export function ChatAddItem() {
         if (!imageBlob) {
           setMessages(prev => [...prev, {
             role: "assistant",
-            content: `⚠️ 画像データの取得に失敗しました。\n\n画像を直接アップロードしてください。`,
+            content: t("misc.chatAdd.imageDataFailed"),
             suggestions: []
           }]);
           setIsSubmitting(false);
@@ -260,8 +262,8 @@ export function ChatAddItem() {
         if (uploadError) {
           console.error("Failed to upload image:", uploadError);
           toast({
-            title: "エラー",
-            description: "画像のアップロードに失敗しました。再度お試しください。",
+            title: t("misc.common.error"),
+            description: t("misc.chatAdd.uploadFailedRetry"),
             variant: "destructive"
           });
           setIsSubmitting(false);
@@ -364,14 +366,14 @@ export function ChatAddItem() {
       }
 
       toast({
-        title: "登録完了！",
-        description: "グッズが正常に登録されました"
+        title: t("misc.chatAdd.registeredTitle"),
+        description: t("misc.chatAdd.registeredDesc")
       });
 
       // Reset chat
       setMessages([{
         role: "assistant",
-        content: "グッズの登録が完了しました！🎉\n\n続けて別のグッズを登録しますか？画像を送ってください！",
+        content: t("misc.chatAdd.registeredChat"),
         suggestions: []
       }]);
       setCollectedData({});
@@ -380,8 +382,8 @@ export function ChatAddItem() {
     } catch (error) {
       console.error("Error submitting:", error);
       toast({
-        title: "エラー",
-        description: "登録に失敗しました",
+        title: t("misc.common.error"),
+        description: t("misc.chatAdd.registerFailed"),
         variant: "destructive"
       });
     } finally {
@@ -492,7 +494,7 @@ export function ChatAddItem() {
       {/* Collected Data Preview */}
       {Object.keys(collectedData).length > 0 && (
         <div className="px-4 py-2 border-t bg-muted/50">
-          <p className="text-xs text-muted-foreground mb-1">収集済みの情報:</p>
+          <p className="text-xs text-muted-foreground mb-1">{t("misc.chatAdd.collectedInfo")}</p>
           <div className="flex flex-wrap gap-1">
             {collectedData.title && (
               <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
@@ -540,7 +542,7 @@ export function ChatAddItem() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="メッセージまたは画像URLを入力..."
+            placeholder={t("misc.chatAdd.inputPlaceholder")}
             disabled={isLoading}
             className="flex-1"
           />

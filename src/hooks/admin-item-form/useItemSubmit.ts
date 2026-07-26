@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { addTagToItem } from "@/utils/tag/tag-mutations";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FormDataType {
   title: string;
@@ -33,13 +34,14 @@ export function useItemSubmit({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const validateForm = () => {
     // タイトルのバリデーション
     if (!formData.title.trim()) {
       toast({
-        title: "エラー",
-        description: "タイトルを入力してください。",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.adminItem.titleRequiredDesc"),
         variant: "destructive",
       });
       return false;
@@ -215,8 +217,8 @@ export function useItemSubmit({
       }
 
       toast({
-        title: "アイテムを追加しました",
-        description: "あなたのおかげでグッズリストが充実しました！5ポイント獲得！",
+        title: t("notices.adminItem.addedTitle"),
+        description: t("notices.adminItem.addedDesc"),
       });
 
       resetForm();
@@ -226,8 +228,8 @@ export function useItemSubmit({
     } catch (error) {
       console.error("Error:", error);
       toast({
-        title: "エラー",
-        description: "アイテムの追加に失敗しました。",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.adminItem.addFailedDesc"),
         variant: "destructive",
       });
     } finally {

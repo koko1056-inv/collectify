@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreatePollData {
   title: string;
@@ -16,11 +17,12 @@ interface CreatePollData {
 export function useCreatePoll() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (data: CreatePollData) => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
 
       // 投票を作成
       const { data: poll, error: pollError } = await supabase
@@ -55,15 +57,15 @@ export function useCreatePoll() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["polls"] });
       toast({
-        title: "投票を作成しました",
-        description: "投票が正常に作成されました。",
+        title: t("notices.polls.createdTitle"),
+        description: t("notices.polls.createdDesc"),
       });
     },
     onError: (error) => {
       console.error("投票作成エラー:", error);
       toast({
-        title: "エラー",
-        description: "投票の作成に失敗しました。",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.polls.createFailedDesc"),
         variant: "destructive",
       });
     },
@@ -73,6 +75,7 @@ export function useCreatePoll() {
 export function useVotePoll() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -83,7 +86,7 @@ export function useVotePoll() {
       optionId: string;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
 
       // 既存の投票を削除
       await supabase
@@ -104,15 +107,15 @@ export function useVotePoll() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["polls"] });
       toast({
-        title: "投票しました",
-        description: "投票が完了しました。",
+        title: t("notices.polls.votedTitle"),
+        description: t("notices.polls.votedDesc"),
       });
     },
     onError: (error) => {
       console.error("投票エラー:", error);
       toast({
-        title: "エラー",
-        description: "投票に失敗しました。",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.polls.voteFailedDesc"),
         variant: "destructive",
       });
     },

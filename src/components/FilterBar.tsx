@@ -12,6 +12,7 @@ import { Input } from "./ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "./ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FilterBarProps {
   searchQuery: string;
@@ -39,6 +40,7 @@ export function FilterBar({
   contentNames: contentNamesProp,
 }: FilterBarProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [contentSearchQuery, setContentSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isPersonalTagDialogOpen, setIsPersonalTagDialogOpen] = useState(false);
@@ -99,9 +101,9 @@ export function FilterBar({
   const popularContentNames = useMemo(() => contentNames.slice(0, 5), [contentNames]);
 
   const displayText = useMemo(() => {
-    if (!selectedContent || selectedContent === "all") return "コンテンツで絞り込む";
+    if (!selectedContent || selectedContent === "all") return t("chrome.filterBar.filterByContent");
     return selectedContent;
-  }, [selectedContent]);
+  }, [selectedContent, t]);
 
   return (
     <div className="space-y-3 w-full">
@@ -132,7 +134,7 @@ export function FilterBar({
             className="text-xs h-7 px-3"
             onClick={() => onContentChange("all")}
           >
-            すべて
+            {t("chrome.common.all")}
           </Button>
           {contentNames.map((content) => (
             <Button
@@ -151,12 +153,12 @@ export function FilterBar({
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold">
-                コンテンツを選択
+                {t("chrome.filterBar.selectContent")}
               </DialogTitle>
             </DialogHeader>
             <div className="p-4 pb-0">
               <Input
-                placeholder="コンテンツを検索..."
+                placeholder={t("chrome.filterBar.searchContentPlaceholder")}
                 value={contentSearchQuery}
                 onChange={handleContentSearchChange}
                 className="mb-4"
@@ -171,7 +173,7 @@ export function FilterBar({
                     className="h-auto min-h-[5rem] px-2 py-4 flex flex-col items-center justify-center gap-2"
                     onClick={handleContentSelect.bind(null, "all")}
                   >
-                    <span className="text-base">すべて</span>
+                    <span className="text-base">{t("chrome.common.all")}</span>
                   </Button>
                 )}
                 {filteredContentNames.map((content) => (
@@ -197,7 +199,7 @@ export function FilterBar({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <TagIcon className="w-3 h-3 text-primary" />
-            <span className="text-xs font-medium text-muted-foreground">マイタグで絞り込み</span>
+            <span className="text-xs font-medium text-muted-foreground">{t("chrome.filterBar.filterByMyTag")}</span>
           </div>
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex w-max gap-1.5 pb-2">
@@ -207,7 +209,7 @@ export function FilterBar({
                 className="text-xs h-6 px-2 shrink-0"
                 onClick={() => onPersonalTagChange("")}
               >
-                すべて
+                {t("chrome.common.all")}
               </Button>
               {personalTags.map((tag) => (
                 <Badge

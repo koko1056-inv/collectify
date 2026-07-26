@@ -147,7 +147,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               />
               {data.comment_text && (
                 <p className="text-xs text-muted-foreground line-clamp-1 flex-1">
-                  「{data.comment_text}」
+                  {t("misc.notifications.quotedComment", { text: data.comment_text })}
                 </p>
               )}
             </div>

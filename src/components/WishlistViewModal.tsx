@@ -12,6 +12,7 @@ import { ItemDetailsModal } from "./ItemDetailsModal";
 import { ShareModal } from "./ShareModal";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface EditingWishlist {
   id: string;
@@ -29,6 +30,7 @@ export function WishlistViewModal({
 }) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [editingWishlist, setEditingWishlist] = useState<EditingWishlist | null>(null);
   const [isShareListOpen, setIsShareListOpen] = useState(false);
@@ -64,8 +66,8 @@ export function WishlistViewModal({
   const handleAddToCollection = async (item: any) => {
     if (!user) {
       toast({
-        title: "エラー",
-        description: "コレクションに追加するにはログインが必要です。",
+        title: t("chrome.common.error"),
+        description: t("chrome.wishlistView.loginRequired"),
         variant: "destructive"
       });
       return;
@@ -91,14 +93,14 @@ export function WishlistViewModal({
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       
       toast({
-        title: "成功",
-        description: "コレクションに追加しました"
+        title: t("chrome.common.success"),
+        description: t("chrome.wishlistView.addedToCollection")
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
       toast({
-        title: "エラー",
-        description: "コレクションへの追加に失敗しました。",
+        title: t("chrome.common.error"),
+        description: t("chrome.wishlistView.addFailed"),
         variant: "destructive"
       });
     }
@@ -111,14 +113,14 @@ export function WishlistViewModal({
 
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       toast({
-        title: "成功",
-        description: "ウィッシュリストから削除しました。"
+        title: t("chrome.common.success"),
+        description: t("chrome.wishlistView.removed")
       });
     } catch (error) {
       console.error("Error removing from wishlist:", error);
       toast({
-        title: "エラー",
-        description: "ウィッシュリストからの削除に失敗しました。",
+        title: t("chrome.common.error"),
+        description: t("chrome.wishlistView.removeFailed"),
         variant: "destructive"
       });
     }
@@ -129,7 +131,7 @@ export function WishlistViewModal({
         <DialogContent className="max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle>ウィッシュリスト</DialogTitle>
+              <DialogTitle>{t("chrome.wishlistView.title")}</DialogTitle>
               <Button
                 variant="ghost"
                 size="sm"
@@ -137,7 +139,7 @@ export function WishlistViewModal({
                 className="flex items-center gap-2"
               >
                 <Share className="h-4 w-4" />
-                リストを共有
+                {t("chrome.wishlistView.shareList")}
               </Button>
             </div>
           </DialogHeader>
@@ -150,7 +152,7 @@ export function WishlistViewModal({
                       <Skeleton className="h-4 w-1/4" />
                     </div>
                   </div>) : wishlistItems?.length === 0 ? <p className="text-center text-gray-500 py-4 text-sm">
-                  まだウィッシュリストに登録されていません
+                  {t("chrome.wishlistView.empty")}
                 </p> : wishlistItems?.map(item => <div key={item.id} className="flex gap-2 items-center border rounded-lg p-2 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setSelectedItem({
               id: item.official_item_id,
               title: item.official_items.title,
@@ -164,7 +166,7 @@ export function WishlistViewModal({
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="font-medium text-sm">{item.official_items.title}</h3>
-                          {item.note && <p className="text-xs text-gray-500 mt-1">メモ: {item.note}</p>}
+                          {item.note && <p className="text-xs text-gray-500 mt-1">{t("chrome.wishlistView.note", { note: item.note })}</p>}
                         </div>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => {
@@ -203,6 +205,6 @@ export function WishlistViewModal({
 
       {selectedItem && <ItemDetailsModal isOpen={!!selectedItem} onClose={() => setSelectedItem(null)} title={selectedItem.title} image={selectedItem.image} price={selectedItem.price} releaseDate={selectedItem.releaseDate} description={selectedItem.description} itemId={selectedItem.id} />}
       
-      {isShareListOpen && <ShareModal isOpen={isShareListOpen} onClose={() => setIsShareListOpen(false)} title="ウィッシュリスト" url={window.location.href} image={wishlistItems?.[0]?.official_items?.image || ""} />}
+      {isShareListOpen && <ShareModal isOpen={isShareListOpen} onClose={() => setIsShareListOpen(false)} title={t("chrome.wishlistView.title")} url={window.location.href} image={wishlistItems?.[0]?.official_items?.image || ""} />}
     </>;
 }

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Check, X, Merge, Search, Tag, Clock, User } from "lucide-react";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -57,6 +58,7 @@ export function TagCandidatesManager() {
   const [displayContext, setDisplayContext] = useState("");
   
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   // タグ候補を取得
@@ -157,14 +159,14 @@ export function TagCandidatesManager() {
       return newTag;
     },
     onSuccess: () => {
-      toast({ title: "タグを承認しました" });
+      toast({ title: t("misc.admin.approved") });
       queryClient.invalidateQueries({ queryKey: ["tag-candidates"] });
       queryClient.invalidateQueries({ queryKey: ["approved-tags"] });
       queryClient.invalidateQueries({ queryKey: ["tags"] });
     },
     onError: (error) => {
       console.error("Approve error:", error);
-      toast({ title: "承認に失敗しました", variant: "destructive" });
+      toast({ title: t("misc.admin.approveFailed"), variant: "destructive" });
     },
   });
 
@@ -182,11 +184,11 @@ export function TagCandidatesManager() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: "タグを却下しました" });
+      toast({ title: t("misc.admin.rejected") });
       queryClient.invalidateQueries({ queryKey: ["tag-candidates"] });
     },
     onError: () => {
-      toast({ title: "却下に失敗しました", variant: "destructive" });
+      toast({ title: t("misc.admin.rejectFailed"), variant: "destructive" });
     },
   });
 
@@ -216,7 +218,7 @@ export function TagCandidatesManager() {
       if (updateError) throw updateError;
     },
     onSuccess: () => {
-      toast({ title: "エイリアスとしてマージしました" });
+      toast({ title: t("misc.admin.merged") });
       queryClient.invalidateQueries({ queryKey: ["tag-candidates"] });
       queryClient.invalidateQueries({ queryKey: ["tag-aliases"] });
       setMergeDialogOpen(false);
@@ -225,7 +227,7 @@ export function TagCandidatesManager() {
     },
     onError: (error) => {
       console.error("Merge error:", error);
-      toast({ title: "マージに失敗しました", variant: "destructive" });
+      toast({ title: t("misc.admin.mergeFailed"), variant: "destructive" });
     },
   });
 
@@ -247,9 +249,9 @@ export function TagCandidatesManager() {
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case "character": return "キャラクター";
-      case "type": return "グッズタイプ";
-      case "series": return "シリーズ";
+      case "character": return t("misc.admin.categoryCharacter");
+      case "type": return t("misc.admin.categoryType");
+      case "series": return t("misc.admin.categorySeries");
       default: return category;
     }
   };
@@ -257,13 +259,13 @@ export function TagCandidatesManager() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">審査中</Badge>;
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800">{t("misc.admin.statusPending")}</Badge>;
       case "approved":
-        return <Badge variant="outline" className="bg-green-100 text-green-800">承認済</Badge>;
+        return <Badge variant="outline" className="bg-green-100 text-green-800">{t("misc.admin.statusApproved")}</Badge>;
       case "rejected":
-        return <Badge variant="outline" className="bg-red-100 text-red-800">却下</Badge>;
+        return <Badge variant="outline" className="bg-red-100 text-red-800">{t("misc.admin.statusRejected")}</Badge>;
       case "merged":
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800">マージ済</Badge>;
+        return <Badge variant="outline" className="bg-blue-100 text-blue-800">{t("misc.admin.statusMerged")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -274,18 +276,18 @@ export function TagCandidatesManager() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Tag className="h-5 w-5" />
-          タグ候補管理
+          {t("misc.admin.tagCandidates")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* フィルター */}
         <div className="flex flex-wrap gap-4">
           <div className="flex-1 min-w-[200px]">
-            <Label className="sr-only">検索</Label>
+            <Label className="sr-only">{t("misc.admin.search")}</Label>
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="タグ名で検索..."
+                placeholder={t("misc.admin.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
@@ -294,35 +296,35 @@ export function TagCandidatesManager() {
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="ステータス" />
+              <SelectValue placeholder={t("misc.admin.status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">すべて</SelectItem>
-              <SelectItem value="pending">審査中</SelectItem>
-              <SelectItem value="approved">承認済</SelectItem>
-              <SelectItem value="rejected">却下</SelectItem>
-              <SelectItem value="merged">マージ済</SelectItem>
+              <SelectItem value="all">{t("misc.admin.all")}</SelectItem>
+              <SelectItem value="pending">{t("misc.admin.statusPending")}</SelectItem>
+              <SelectItem value="approved">{t("misc.admin.statusApproved")}</SelectItem>
+              <SelectItem value="rejected">{t("misc.admin.statusRejected")}</SelectItem>
+              <SelectItem value="merged">{t("misc.admin.statusMerged")}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="カテゴリ" />
+              <SelectValue placeholder={t("misc.admin.category")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">すべて</SelectItem>
-              <SelectItem value="character">キャラクター</SelectItem>
-              <SelectItem value="type">グッズタイプ</SelectItem>
-              <SelectItem value="series">シリーズ</SelectItem>
+              <SelectItem value="all">{t("misc.admin.all")}</SelectItem>
+              <SelectItem value="character">{t("misc.admin.categoryCharacter")}</SelectItem>
+              <SelectItem value="type">{t("misc.admin.categoryType")}</SelectItem>
+              <SelectItem value="series">{t("misc.admin.categorySeries")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {/* 候補リスト */}
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">読み込み中...</div>
+          <div className="text-center py-8 text-muted-foreground">{t("misc.common.loading")}</div>
         ) : candidates.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            タグ候補がありません
+            {t("misc.admin.noCandidates")}
           </div>
         ) : (
           <ScrollArea className="h-[400px]">
@@ -341,13 +343,13 @@ export function TagCandidatesManager() {
                       {getStatusBadge(candidate.status)}
                       {candidate.suggestion_count > 1 && (
                         <Badge variant="outline" className="text-xs">
-                          {candidate.suggestion_count}回提案
+                          {t("misc.admin.suggestedTimes", { n: candidate.suggestion_count })}
                         </Badge>
                       )}
                     </div>
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       {candidate.content_names?.name && (
-                        <span>コンテンツ: {candidate.content_names.name}</span>
+                        <span>{t("misc.admin.contentLabel", { name: candidate.content_names.name })}</span>
                       )}
                       <span className="flex items-center gap-1">
                         <User className="h-3 w-3" />
@@ -366,7 +368,7 @@ export function TagCandidatesManager() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleMergeClick(candidate)}
-                        title="既存タグにマージ"
+                        title={t("misc.admin.mergeToExisting")}
                       >
                         <Merge className="h-4 w-4" />
                       </Button>
@@ -385,7 +387,7 @@ export function TagCandidatesManager() {
                         disabled={approveMutation.isPending}
                       >
                         <Check className="h-4 w-4 mr-1" />
-                        承認
+                        {t("misc.admin.approve")}
                       </Button>
                     </div>
                   )}
@@ -399,17 +401,19 @@ export function TagCandidatesManager() {
         <Dialog open={mergeDialogOpen} onOpenChange={setMergeDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>既存タグにマージ</DialogTitle>
+              <DialogTitle>{t("misc.admin.mergeToExisting")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <p className="text-sm text-muted-foreground">
-                「<span className="font-medium">{selectedCandidate?.name}</span>」を既存のタグのエイリアス（別名）として登録します。
+                {t("misc.admin.mergeDescPrefix")}
+                <span className="font-medium">{selectedCandidate?.name}</span>
+                {t("misc.admin.mergeDescSuffix")}
               </p>
               <div className="space-y-2">
-                <Label>マージ先のタグ</Label>
+                <Label>{t("misc.admin.mergeTarget")}</Label>
                 <Select value={selectedMergeTagId} onValueChange={setSelectedMergeTagId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="タグを選択..." />
+                    <SelectValue placeholder={t("misc.admin.selectTag")} />
                   </SelectTrigger>
                   <SelectContent>
                     {existingTags.map((tag) => (
@@ -424,13 +428,13 @@ export function TagCandidatesManager() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setMergeDialogOpen(false)}>
-                キャンセル
+                {t("misc.common.cancel")}
               </Button>
               <Button
                 onClick={handleMergeConfirm}
                 disabled={!selectedMergeTagId || mergeMutation.isPending}
               >
-                マージ
+                {t("misc.admin.merge")}
               </Button>
             </DialogFooter>
           </DialogContent>

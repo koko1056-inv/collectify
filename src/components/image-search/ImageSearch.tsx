@@ -5,8 +5,10 @@ import { analyzeImageFile, ImageAnalysisResult, WebSearchResult } from '@/utils/
 import { Loader2, ScanSearch } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { OfficialItem } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function ImageSearch() {
+  const { t } = useLanguage();
   const [results, setResults] = useState<OfficialItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [labels, setLabels] = useState<Array<{ description: string; score: number }>>([]);
@@ -38,20 +40,20 @@ export function ImageSearch() {
 
       if (totalResults === 0) {
         toast({
-          title: "検索結果",
-          description: "類似アイテムが見つかりませんでした",
+          title: t("misc.imageSearch.resultTitle"),
+          description: t("misc.imageSearch.noSimilar"),
         });
       } else {
         toast({
-          title: "検索完了",
-          description: `${totalResults}件の関連結果が見つかりました`,
+          title: t("misc.imageSearch.searchDone"),
+          description: t("misc.imageSearch.foundCount", { n: totalResults }),
         });
       }
     } catch (error) {
       console.error('画像アップロードエラー:', error);
       toast({
-        title: "エラー",
-        description: "画像の解析中にエラーが発生しました。しばらくしてから再度お試しください。",
+        title: t("misc.common.error"),
+        description: t("misc.imageSearch.analyzeError"),
         variant: "destructive",
       });
     } finally {
@@ -64,10 +66,10 @@ export function ImageSearch() {
       <div className="text-center mb-4">
         <div className="flex items-center justify-center gap-2 mb-2">
           <ScanSearch className="h-7 w-7 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">画像でグッズ検索</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("misc.imageSearch.title")}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          カメラで撮影するか画像をアップロードして、類似したグッズを探しましょう
+          {t("misc.imageSearch.subtitle")}
         </p>
       </div>
 
@@ -79,7 +81,7 @@ export function ImageSearch() {
           <div className="relative w-48 h-48 rounded-xl overflow-hidden border border-border shadow-sm">
             <img
               src={previewUrl}
-              alt="検索画像"
+              alt={t("misc.imageSearch.searchImageAlt")}
               className="w-full h-full object-cover"
             />
             {loading && (
@@ -94,7 +96,7 @@ export function ImageSearch() {
       {loading && !previewUrl && (
         <div className="flex justify-center items-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2 text-lg text-foreground">画像を解析中...</span>
+          <span className="ml-2 text-lg text-foreground">{t("misc.imageSearch.analyzing")}</span>
         </div>
       )}
 

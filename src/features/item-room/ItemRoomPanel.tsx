@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, MessageCircle, Send, Users, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   useItemRoom,
   useItemRoomMessages,
@@ -18,6 +19,7 @@ interface Props {
 
 export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { data: roomData, isLoading: isRoomLoading } = useItemRoom(officialItemId);
   const room = roomData?.room ?? null;
   const canAccess = roomData?.canAccess ?? false;
@@ -41,7 +43,7 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
         <Lock className="h-8 w-8 mb-3" />
-        <p className="text-sm">ログインするとルームに参加できます</p>
+        <p className="text-sm">{t("trade.room.loginPrompt")}</p>
       </div>
     );
   }
@@ -60,11 +62,11 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
         <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-3">
           <Lock className="h-6 w-6 text-muted-foreground" />
         </div>
-        <p className="text-sm font-medium mb-1">ルームに参加するには</p>
+        <p className="text-sm font-medium mb-1">{t("trade.room.joinTitle")}</p>
         <p className="text-xs text-muted-foreground max-w-xs">
-          このグッズを<span className="font-medium">コレクションに追加</span>
-          するか、<span className="font-medium">ウィッシュリスト</span>
-          に入れる必要があります
+          {t("trade.room.joinReqPrefix")}<span className="font-medium">{t("trade.room.joinReqCollection")}</span>
+          {t("trade.room.joinReqMiddle")}<span className="font-medium">{t("trade.room.joinReqWishlist")}</span>
+          {t("trade.room.joinReqSuffix")}
         </p>
       </div>
     );
@@ -73,7 +75,7 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
   if (!room) {
     return (
       <div className="text-center py-12 text-sm text-muted-foreground">
-        ルームを読み込めませんでした
+        {t("trade.room.loadFailed")}
       </div>
     );
   }
@@ -93,10 +95,12 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
           <MessageCircle className="h-4 w-4 text-primary shrink-0" />
           <div className="min-w-0">
             <p className="text-xs font-semibold truncate">
-              {itemTitle ?? "グッズ"}のルーム
+              {t("trade.room.headerTitle", {
+                title: itemTitle ?? t("trade.room.defaultItemTitle"),
+              })}
             </p>
             <p className="text-[10px] text-muted-foreground">
-              所有・欲しいユーザーのチャット
+              {t("trade.room.headerSubtitle")}
             </p>
           </div>
         </div>
@@ -115,8 +119,8 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
             <MessageCircle className="h-8 w-8 mb-3 opacity-50" />
-            <p className="text-sm">まだメッセージはありません</p>
-            <p className="text-xs mt-1">最初の一言を送ってみよう</p>
+            <p className="text-sm">{t("trade.room.emptyTitle")}</p>
+            <p className="text-xs mt-1">{t("trade.room.emptyDesc")}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -147,7 +151,7 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
               handleSend();
             }
           }}
-          placeholder="メッセージを送る..."
+          placeholder={t("trade.room.inputPlaceholder")}
           disabled={sendMessage.isPending}
           className="flex-1"
         />

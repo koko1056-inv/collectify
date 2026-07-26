@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import type { ItemRoom, ItemRoomMessage } from "./types";
 
@@ -104,13 +105,14 @@ export function useItemRoomMessages(roomId: string | undefined) {
 /** メッセージ投稿 */
 export function useSendItemRoomMessage(roomId: string | undefined) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (content: string) => {
       if (!roomId || !user) throw new Error("Not ready");
       const trimmed = content.trim();
-      if (!trimmed) throw new Error("メッセージを入力してください");
+      if (!trimmed) throw new Error(t("trade.room.errEmptyMessage"));
 
       const { error } = await supabase.from("item_room_messages").insert({
         room_id: roomId,
@@ -123,13 +125,14 @@ export function useSendItemRoomMessage(roomId: string | undefined) {
       queryClient.invalidateQueries({ queryKey: ["item-room-messages", roomId] });
     },
     onError: (e) => {
-      toast.error((e as Error).message || "送信に失敗しました");
+      toast.error((e as Error).message || t("trade.room.sendFailed"));
     },
   });
 }
 
 /** メッセージ削除（自分のみ） */
 export function useDeleteItemRoomMessage(roomId: string | undefined) {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (messageId: string) => {
@@ -141,8 +144,8 @@ export function useDeleteItemRoomMessage(roomId: string | undefined) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["item-room-messages", roomId] });
-      toast.success("削除しました");
+      toast.success(t("trade.room.deleted"));
     },
-    onError: (e) => toast.error((e as Error).message || "削除に失敗しました"),
+    onError: (e) => toast.error((e as Error).message || t("trade.room.deleteFailed")),
   });
 }

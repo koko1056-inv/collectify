@@ -3,6 +3,7 @@ import { Loader2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useItemComments, useCreateItemComment } from "./useItemComments";
 import { CommentItem } from "./CommentItem";
 
@@ -16,6 +17,7 @@ interface ItemCommentsSectionProps {
  */
 export function ItemCommentsSection({ officialItemId }: ItemCommentsSectionProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { data: comments = [], isLoading } = useItemComments(officialItemId);
   const createMut = useCreateItemComment(officialItemId);
   const [text, setText] = useState("");
@@ -34,7 +36,7 @@ export function ItemCommentsSection({ officialItemId }: ItemCommentsSectionProps
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="このグッズについて感想・情報をシェア..."
+            placeholder={t("trade.comments.composePlaceholder")}
             className="min-h-[80px] text-sm"
             maxLength={1000}
           />
@@ -50,14 +52,14 @@ export function ItemCommentsSection({ officialItemId }: ItemCommentsSectionProps
               {createMut.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                "投稿する"
+                t("trade.comments.post")
               )}
             </Button>
           </div>
         </div>
       ) : (
         <p className="text-sm text-muted-foreground text-center py-2">
-          コメントするにはログインしてください
+          {t("trade.comments.loginPrompt")}
         </p>
       )}
 
@@ -71,8 +73,8 @@ export function ItemCommentsSection({ officialItemId }: ItemCommentsSectionProps
       ) : comments.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <MessageCircle className="h-10 w-10 mx-auto mb-2 opacity-40" />
-          <p className="text-sm">まだコメントはありません</p>
-          <p className="text-xs mt-1">最初のコメントを投稿しましょう</p>
+          <p className="text-sm">{t("trade.comments.emptyTitle")}</p>
+          <p className="text-xs mt-1">{t("trade.comments.emptyDesc")}</p>
         </div>
       ) : (
         <div className="space-y-4">

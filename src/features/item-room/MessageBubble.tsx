@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useDeleteItemRoomMessage } from "./useItemRoom";
 import { TrustBadge } from "@/features/trust/TrustBadge";
 import type { ItemRoomMessage } from "./types";
@@ -17,12 +18,15 @@ interface Props {
 
 export function MessageBubble({ message, roomId, showHeader }: Props) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const isMe = user?.id === message.user_id;
   const deleteMessage = useDeleteItemRoomMessage(roomId);
 
   const senderName =
-    message.sender?.display_name || message.sender?.username || "コレクター";
+    message.sender?.display_name ||
+    message.sender?.username ||
+    t("trade.room.collectorFallback");
 
   const goToProfile = () => {
     if (message.sender?.username) navigate(`/user/${message.sender.username}`);
@@ -77,7 +81,7 @@ export function MessageBubble({ message, roomId, showHeader }: Props) {
               size="icon"
               className="absolute -left-8 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover:opacity-100"
               onClick={() => {
-                if (confirm("このメッセージを削除しますか？")) {
+                if (confirm(t("trade.room.confirmDeleteMessage"))) {
                   deleteMessage.mutate(message.id);
                 }
               }}

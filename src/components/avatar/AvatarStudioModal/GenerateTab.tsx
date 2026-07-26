@@ -11,17 +11,19 @@ import { toast } from "sonner";
 import type { useAvatars } from "@/hooks/useAvatars";
 import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
 import { useFirstTimeFree } from "@/hooks/useFirstTimeFree";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const AVATAR_COST = 30;
 
-const EXAMPLES = [
-  "明るい笑顔、カジュアルな服装",
-  "クールな雰囲気、眼鏡をかけている",
-  "可愛い猫耳、カラフルな衣装",
-  "優しい雰囲気、落ち着いた色の服",
+const EXAMPLE_KEYS = [
+  "misc.avatar.example1",
+  "misc.avatar.example2",
+  "misc.avatar.example3",
+  "misc.avatar.example4",
 ];
 
 export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars> }) {
+  const { t } = useLanguage();
   const [prompt, setPrompt] = useState("");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
 
   const handleGenerateClick = () => {
     if (!prompt.trim() && !uploadedImage) {
-      toast.error("説明または写真を入力してください");
+      toast.error(t("misc.avatar.promptRequired"));
       return;
     }
     setConfirmOpen(true);
@@ -60,7 +62,7 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
     setConfirmOpen(false);
     setIsGenerating(true);
     setProgress(20);
-    setStep("画像を処理中...");
+    setStep(t("misc.avatar.stepProcessing"));
     try {
       let imageBase64: string | undefined;
       if (uploadedImage) {
@@ -72,7 +74,7 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
         });
       }
       setProgress(40);
-      setStep("AIがアバターを生成中...");
+      setStep(t("misc.avatar.stepGenerating"));
 
       const { data, error } = await supabase.functions.invoke("generate-avatar", {
         body: {
@@ -84,22 +86,22 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      if (!data?.imageUrl) throw new Error("画像URLが取得できませんでした");
+      if (!data?.imageUrl) throw new Error(t("misc.avatar.noImageUrl"));
 
       setProgress(70);
-      setStep("アバターを保存中...");
+      setStep(t("misc.avatar.stepSaving"));
       await avatars.saveGenerated.mutateAsync({
         imageUrl: data.imageUrl,
         prompt: prompt.trim() || (uploadedImage ? "写真から生成" : "AIアバター"),
       });
 
       setProgress(100);
-      setStep("完了！");
-      toast.success("🎉 アバター生成完了");
+      setStep(t("misc.avatar.stepDone"));
+      toast.success(t("misc.avatar.generateSuccess"));
       setPrompt("");
       handleRemove();
     } catch (e: any) {
-      toast.error(e?.message ?? "生成に失敗しました");
+      toast.error(e?.message ?? t("misc.avatar.generateFailed"));
     } finally {
       setIsGenerating(false);
       setProgress(0);
@@ -122,7 +124,7 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
       <div className="space-y-2">
         <Label className="flex items-center gap-2">
           <Upload className="w-4 h-4" />
-          写真から生成（オプション）
+          {t("misc.avatar.fromPhotoLabel")}
         </Label>
         {previewUrl ? (
           <div className="relative group">
@@ -141,24 +143,24 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
             </Button>
             <div className="absolute bottom-2 left-2">
               <Badge variant="secondary" className="bg-background/80">
-                3Dキャラクターに変換されます
+                {t("misc.avatar.convertNote")}
               </Badge>
             </div>
           </div>
         ) : (
           <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/30 rounded-xl cursor-pointer hover:bg-muted/50 hover:border-primary/50 transition-all">
             <Upload className="h-6 w-6 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground mt-2">クリックで写真を選択</span>
+            <span className="text-sm text-muted-foreground mt-2">{t("misc.avatar.clickToSelect")}</span>
             <Input type="file" accept="image/*" onChange={handleFile} className="hidden" />
           </label>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="prompt">アバターの説明</Label>
+        <Label htmlFor="prompt">{t("misc.avatar.descLabel")}</Label>
         <Textarea
           id="prompt"
-          placeholder="例：青い髪で眼鏡をかけた女の子..."
+          placeholder={t("misc.avatar.descPlaceholder")}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           rows={3}
@@ -167,17 +169,17 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
       </div>
 
       <div className="space-y-2">
-        <Label className="text-muted-foreground text-xs">クイック選択</Label>
+        <Label className="text-muted-foreground text-xs">{t("misc.avatar.quickSelect")}</Label>
         <div className="flex flex-wrap gap-2">
-          {EXAMPLES.map((ex, i) => (
+          {EXAMPLE_KEYS.map((exKey, i) => (
             <Button
               key={i}
               variant="outline"
               size="sm"
-              onClick={() => setPrompt(ex)}
+              onClick={() => setPrompt(t(exKey))}
               className="text-xs h-8"
             >
-              {ex}
+              {t(exKey)}
             </Button>
           ))}
         </div>
@@ -189,14 +191,17 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
         className="w-full h-12 text-base gap-2"
       >
         <Sparkles className="w-5 h-5" />
-        アバターを生成 {isFirstTime ? "（初回無料 🎁）" : `(${AVATAR_COST}pt)`}
+        {t("misc.avatar.generateBtn")}{" "}
+        {isFirstTime
+          ? t("misc.avatar.freeFirstBadge")
+          : t("misc.avatar.costBadge", { cost: AVATAR_COST })}
       </Button>
 
       <SpendPointsDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="AIアバターを生成しますか？"
-        description="入力した説明や写真をもとに3D風のアバター画像を生成します。"
+        title={t("misc.avatar.confirmTitle")}
+        description={t("misc.avatar.confirmDesc")}
         cost={AVATAR_COST}
         freeTrial={isFirstTime}
         loading={isGenerating}
