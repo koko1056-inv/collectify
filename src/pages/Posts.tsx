@@ -83,7 +83,8 @@ const Posts = memo(function Posts() {
         <div className="flex-1 flex flex-col min-w-0">
           {/* メインコンテンツ */}
           <main className="flex-1 overflow-auto">
-            <div className="py-4">
+            {/* 下部固定ナビ（モバイル）に最後のカードが隠れないよう余白を確保 */}
+            <div className="py-4 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-8">
               <div className="max-w-6xl mx-auto px-4">
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="w-full mb-4">
@@ -169,7 +170,7 @@ const Posts = memo(function Posts() {
       {/* フローティングアクションボタン */}
       <button
         onClick={handleCreateAction}
-        className="fixed bottom-20 right-6 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 group"
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 group"
         aria-label={activeTab === "posts" ? t("common.newPost") : activeTab === "polls" ? "新規投票" : "新規チャレンジ"}>
 
         {getCreateIcon()}

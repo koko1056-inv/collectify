@@ -159,7 +159,7 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
             キャンセル
           </Button>
           <Button onClick={handleAddNewTag} disabled={submitting || balance < TAG_CREATE_COST}>
-            {submitting ? "処理中…" : `${TAG_CREATE_COST}pt消費して追加`}
+            {submitting ? "処理中..." : `${TAG_CREATE_COST}pt消費して追加`}
           </Button>
         </DialogFooter>
       </DialogContent>

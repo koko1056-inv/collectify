@@ -174,7 +174,8 @@ export function MyRoomHome({
   ];
 
   return (
-    <div className="min-h-[60vh] flex flex-col pb-24 animate-fade-in">
+    // 下部の余白は親（MyRoom）が持つ。ここにも付けると二重になり空白が広がりすぎる。
+    <div className="min-h-[60vh] flex flex-col animate-fade-in">
       {/* オンボーディングチェックリスト */}
       <div className="px-4 sm:px-6 lg:px-8 mb-4">
         <div className="max-w-4xl mx-auto">

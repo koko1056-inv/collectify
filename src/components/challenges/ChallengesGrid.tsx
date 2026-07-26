@@ -1,6 +1,7 @@
 import { useChallenges } from "@/hooks/challenges";
 import { ChallengeCard } from "./ChallengeCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -9,7 +10,7 @@ interface ChallengesGridProps {
 }
 
 export function ChallengesGrid({ onCreateChallenge }: ChallengesGridProps) {
-  const { data: challenges, isLoading, error } = useChallenges();
+  const { data: challenges, isLoading, error, refetch } = useChallenges();
 
   if (isLoading) {
     return (
@@ -23,9 +24,10 @@ export function ChallengesGrid({ onCreateChallenge }: ChallengesGridProps) {
 
   if (error) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
-        エラーが発生しました
-      </div>
+      <QueryErrorState
+        title="チャレンジの読み込みに失敗しました"
+        onRetry={() => refetch()}
+      />
     );
   }
 

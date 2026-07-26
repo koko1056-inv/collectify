@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,9 @@ const MODES: { id: FeedMode; label: string; icon: typeof Flame }[] = [
 
 export default function ItemPostsFeed() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  // /post/:postId で共有された投稿を開くためのパラメータ
+  const { postId: routePostId } = useParams<{ postId?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [mode, setMode] = useState<FeedMode>("new");
   const hashtag = searchParams.get("tag");
@@ -41,6 +44,9 @@ export default function ItemPostsFeed() {
     hashtag,
     contentFilter,
   });
+
+  // グリッドから開いた投稿が優先。無ければ共有リンクの postId を使う。
+  const activePostId = selectedPost?.id ?? routePostId ?? null;
 
   // コンテンツ名一覧
   const { data: contentNames = [] } = useQuery({
@@ -174,10 +180,16 @@ export default function ItemPostsFeed() {
         </div>
       </main>
 
+      {/* 共有リンク(/post/:postId)で来た場合も、その投稿を直接開く */}
       <ItemPostDetailModal
-        open={!!selectedPost}
-        onOpenChange={(o) => !o && setSelectedPost(null)}
-        postId={selectedPost?.id ?? null}
+        open={!!activePostId}
+        onOpenChange={(o) => {
+          if (o) return;
+          setSelectedPost(null);
+          // URL に postId が残ったままだと閉じても再度開いてしまうため、フィードへ戻す
+          if (routePostId) navigate("/item-posts", { replace: true });
+        }}
+        postId={activePostId}
         initialPost={selectedPost}
       />
 

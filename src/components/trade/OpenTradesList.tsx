@@ -7,6 +7,8 @@ import { CreateOpenTradeButton } from "./CreateOpenTradeButton";
 import { OpenTradeRequests } from "./OpenTradeRequests";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ArrowLeftRight } from "lucide-react";
 
 interface OpenTradesListProps {
   trades: TradeRequest[];
@@ -56,10 +58,11 @@ export function OpenTradesList({
         <ScrollArea className="h-[calc(50vh-220px)]">
           <div className="space-y-6 pr-4">
             {trades.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
-                <img src="/placeholder.svg" alt="No open trades" className="w-24 h-24 mb-4 opacity-50" />
-                <p>現在オープンなトレードリクエストはありません</p>
-              </div>
+              <EmptyState
+                icon={ArrowLeftRight}
+                title="オープンなトレードリクエストはありません"
+                description="誰でも応募できる募集がここに並びます"
+              />
             ) : (
               trades.map((trade) => (
                 <TradeCard

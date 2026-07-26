@@ -44,7 +44,12 @@ const Search = () => {
   const { user } = useAuth();
   const { profile } = useProfile(user?.id);
   const queryClient = useQueryClient();
-  const { data: items = [] } = useOfficialItems();
+  const {
+    data: items = [],
+    isLoading: itemsLoading,
+    isError: itemsError,
+    refetch: refetchItems,
+  } = useOfficialItems();
   const { data: allTags = [] } = useTags(selectedContent);
 
   // コンテンツ名を早期に取得
@@ -218,6 +223,9 @@ const Search = () => {
                 selectedContent={selectedContent}
                 onContentChange={setSelectedContent}
                 tags={allTags}
+                isInitialLoading={itemsLoading}
+                isError={itemsError}
+                onRetry={() => refetchItems()}
               />
 
               {/* フィルターDrawer */}
@@ -273,7 +281,7 @@ const Search = () => {
       {currentTab === "goods" && (
         <Button
           onClick={() => navigate("/add-item")}
-          className="fixed bottom-20 right-4 sm:bottom-8 sm:right-8 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
+          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
           size="icon"
         >
           <Plus className="h-6 w-6" />

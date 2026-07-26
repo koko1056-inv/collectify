@@ -104,7 +104,7 @@ export function SpendPointsDialog({
             disabled={insufficient || loading}
           >
             {loading
-              ? "処理中…"
+              ? "処理中..."
               : freeTrial
                 ? "無料で実行"
                 : confirmLabel}

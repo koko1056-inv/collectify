@@ -8,6 +8,8 @@ import { useSortedItems } from "./official-goods/hooks/useSortedItems";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, CheckSquare, X, Tags, Package } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 import { TagManageModal } from "./tag/TagManageModal";
 import { 
   Drawer,
@@ -31,6 +33,12 @@ interface OfficialItemsListProps {
   selectedContent?: string;
   onContentChange?: (content: string) => void;
   tags?: Tag[];
+  /** 初回データ取得中かどうか。true の間は空状態ではなくスケルトンを表示する。 */
+  isInitialLoading?: boolean;
+  /** 取得に失敗したかどうか。true なら空状態ではなくエラー表示にする。 */
+  isError?: boolean;
+  /** エラー表示の「再試行」で呼ばれる。 */
+  onRetry?: () => void;
 }
 
 type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned";
@@ -43,7 +51,10 @@ export function OfficialItemsList({
   onTagsChange = () => {},
   selectedContent = "",
   onContentChange = () => {},
-  tags = []
+  tags = [],
+  isInitialLoading = false,
+  isError = false,
+  onRetry
 }: OfficialItemsListProps) {
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -218,7 +229,21 @@ export function OfficialItemsList({
         isUserItem={false}
       />
       
-      {sortedItems.length === 0 ? (
+      {isInitialLoading ? (
+        // 取得完了前に空状態を出すと「グッズがありません」と誤解させてしまうため、
+        // 読み込み中はグリッド形のスケルトンを表示する。
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="aspect-[3/4] w-full rounded-xl" />
+          ))}
+        </div>
+      ) : isError ? (
+        // 通信失敗を空状態で見せると「グッズが無い」と誤解されるため区別する
+        <QueryErrorState
+          title="グッズの読み込みに失敗しました"
+          onRetry={onRetry}
+        />
+      ) : sortedItems.length === 0 ? (
         <EmptyState
           icon={Package}
           title="公式グッズがまだありません"

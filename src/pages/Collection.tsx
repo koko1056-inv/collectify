@@ -74,7 +74,7 @@ export default function Collection() {
       {isMobile && (
         <Button
           onClick={() => navigate("/rooms/explore")}
-          className="fixed bottom-20 right-4 z-40 shadow-lg rounded-full w-14 h-14 p-0"
+          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 shadow-lg rounded-full w-14 h-14 p-0"
           size="icon"
         >
           <Home className="w-6 h-6" />

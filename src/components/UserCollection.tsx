@@ -457,9 +457,10 @@ export function UserCollection({
         />
       )}
 
-      {/* 選択モード時のフローティングアクションバー */}
+      {/* 選択モード時のフローティングアクションバー。
+          下部ナビ中央の「みつける」ボタンが上へ張り出しているため、それより上に配置する。 */}
       {isSelectionMode && selectedItemIds.length > 0 && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 px-4 w-full max-w-lg">
+        <div className="fixed bottom-[calc(7rem+env(safe-area-inset-bottom))] sm:bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-lg">
           <div className="bg-background/95 backdrop-blur-md border border-border rounded-2xl shadow-xl flex items-center gap-2 p-2">
             <span className="text-sm font-medium pl-3 shrink-0">
               {selectedItemIds.length}件

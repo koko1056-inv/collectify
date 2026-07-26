@@ -5,6 +5,7 @@ import { PostDetailModal } from "./PostDetailModal";
 import { GoodsPost } from "@/types/posts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { EmptyPostsState } from "./EmptyPostsState";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 
 interface PostsGridProps {
   filters?: {
@@ -18,7 +19,7 @@ interface PostsGridProps {
 }
 
 export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", onCreatePost }: PostsGridProps) {
-  const { data, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostsWithPagination();
+  const { data, isLoading, error, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostsWithPagination();
   const [selectedPost, setSelectedPost] = useState<GoodsPost | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
@@ -128,7 +129,12 @@ export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", o
         {[...Array(isMobile ? 4 : 8)].map((_, i) => (
           <div key={i} className="break-inside-avoid mb-3">
             <div className="rounded-xl border border-border/50 overflow-hidden">
-              <div className="w-full bg-muted animate-pulse" style={{ height: `${150 + Math.random() * 100}px` }} />
+              {/* 高さは index から決める。Math.random() だと再レンダーごとに変わり、
+                  読み込み中にカードがガタガタ動いてしまう。 */}
+              <div
+                className="w-full bg-muted animate-pulse"
+                style={{ height: `${150 + ((i * 37) % 100)}px` }}
+              />
               <div className="p-2.5 space-y-1.5">
                 <div className="h-3 bg-muted rounded animate-pulse w-2/3" />
                 <div className="h-2.5 bg-muted rounded animate-pulse w-1/2" />
@@ -143,9 +149,10 @@ export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", o
   if (error) {
     console.error("投稿の取得に失敗:", error);
     return (
-      <div className="text-center py-12">
-        <p className="text-destructive">投稿の読み込みに失敗しました</p>
-      </div>
+      <QueryErrorState
+        title="投稿の読み込みに失敗しました"
+        onRetry={() => refetch()}
+      />
     );
   }
 
@@ -193,7 +200,12 @@ export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", o
           {[...Array(4)].map((_, i) => (
             <div key={i} className="break-inside-avoid mb-3">
               <div className="rounded-xl border border-border/50 overflow-hidden">
-                <div className="w-full bg-muted animate-pulse" style={{ height: `${150 + Math.random() * 100}px` }} />
+                {/* 高さは index から決める。Math.random() だと再レンダーごとに変わり、
+                  読み込み中にカードがガタガタ動いてしまう。 */}
+              <div
+                className="w-full bg-muted animate-pulse"
+                style={{ height: `${150 + ((i * 37) % 100)}px` }}
+              />
               </div>
             </div>
           ))}
