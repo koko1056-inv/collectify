@@ -83,7 +83,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
 
       toast({
         title: "成功",
-        description: "コレクションに追加しました。",
+        description: "コレクションに追加しました",
       });
     } catch (error) {
       console.error("Error adding to collection:", error);

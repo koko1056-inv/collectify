@@ -493,7 +493,7 @@ export function UserCollection({
                 handleBulkComplete();
                 navigate("/my-room?tab=studio&from=collection");
               }}
-              className="rounded-full gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-primary-foreground"
+              className="rounded-full gap-1.5 bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60 text-primary-foreground"
             >
               <Sparkles className="w-4 h-4" />
               AIで作る

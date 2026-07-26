@@ -53,7 +53,7 @@ export function PointBalanceCard() {
       </div>
 
       {/* 残高表示 */}
-      <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-pink-950/30 border border-amber-200/60 dark:border-amber-900/40">
+      <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-amber-50 via-orange-50 to-primary/5 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-primary/10 border border-amber-200/60 dark:border-amber-900/40">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs text-muted-foreground mb-1">現在の残高</p>
@@ -76,7 +76,7 @@ export function PointBalanceCard() {
         </div>
 
         {/* 装飾 */}
-        <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-gradient-to-br from-pink-300/20 to-amber-300/20 blur-2xl pointer-events-none" />
+        <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-amber-300/20 blur-2xl pointer-events-none" />
       </div>
 
       {/* 最近の履歴 */}

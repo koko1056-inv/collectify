@@ -33,7 +33,7 @@ export function useRandomItem(userId: string | null | undefined, isOpen: boolean
     } catch (error) {
       console.error("Error fetching random item:", error);
       toast({
-        title: "エラーが発生しました",
+        title: "エラー",
         description: "ランダムアイテムの取得に失敗しました。",
         variant: "destructive",
       });

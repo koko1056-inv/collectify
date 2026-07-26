@@ -160,7 +160,7 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       playSuccessSound();
 
       toast({
-        title: "コレクションに追加しました！",
+        title: "コレクションに追加しました",
         description: result.pointsAwarded ? `+${result.pointsAwarded}ポイント獲得` : undefined,
       });
     } catch (error) {

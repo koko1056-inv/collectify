@@ -89,7 +89,7 @@ const OfficialGoodsCardWithSwipe = ({
       await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
 
       toast({
-        title: "ウィッシュリストに追加しました！",
+        title: "ウィッシュリストに追加しました",
         description: "左スワイプで追加されました。",
       });
     } catch (error) {

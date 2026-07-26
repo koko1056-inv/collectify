@@ -98,7 +98,7 @@ function ItemPostTile({
             <Heart
               className={cn(
                 "w-3.5 h-3.5",
-                post.is_liked_by_me && "fill-rose-400 text-rose-400"
+                post.is_liked_by_me && "fill-primary text-primary"
               )}
             />
             {post.like_count}

@@ -33,7 +33,7 @@ export function FavoriteItemsCircleStrip({ userId }: Props) {
             className="flex flex-col items-center gap-1 shrink-0 w-16 group"
           >
             <div className="relative">
-              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-primary/50 to-pink-400/40 opacity-70" />
+              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-primary/50 to-primary/40 opacity-70" />
               <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-background">
                 <img
                   src={item.image}

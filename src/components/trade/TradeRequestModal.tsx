@@ -234,7 +234,7 @@ export function TradeRequestModal({
                             onClick={() => setSelectedItem(item.id)}
                             className={`p-2 rounded-lg border transition-colors ${
                               selectedItem === item.id
-                                ? "border-purple-500 bg-purple-50"
+                                ? "border-primary bg-primary/5"
                                 : "border-gray-200 hover:border-gray-300"
                             }`}
                           >
@@ -296,7 +296,7 @@ export function TradeRequestModal({
                           onClick={() => setSelectedItem(item.id)}
                           className={`p-2 rounded-lg border transition-colors ${
                             selectedItem === item.id
-                              ? "border-purple-500 bg-purple-50"
+                              ? "border-primary bg-primary/5"
                               : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
@@ -329,7 +329,7 @@ export function TradeRequestModal({
                           onClick={() => setDesiredItemId(item.id)}
                           className={`p-2 rounded-lg border transition-colors ${
                             desiredItemId === item.id
-                              ? "border-purple-500 bg-purple-50"
+                              ? "border-primary bg-primary/5"
                               : "border-gray-200 hover:border-gray-300"
                           }`}
                           disabled={selectedItem === item.id} // Can't select same item for both
@@ -426,7 +426,7 @@ export function TradeRequestModal({
                 <Button 
                   onClick={handleNextStep} 
                   disabled={!selectedItem}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   希望アイテムを選択する
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -442,7 +442,7 @@ export function TradeRequestModal({
                 <Button 
                   onClick={handleNextStep} 
                   disabled={!desiredItemId}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   次へ
                   <ArrowRight className="h-4 w-4 ml-2" />

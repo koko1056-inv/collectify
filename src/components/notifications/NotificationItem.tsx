@@ -30,7 +30,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       case 'like':
         return <Heart className="h-4 w-4 text-red-500" />;
       case 'greeting_stamp':
-        return <Sticker className="h-4 w-4 text-pink-500" />;
+        return <Sticker className="h-4 w-4 text-primary" />;
       case 'match_success':
         return <Sparkles className="h-4 w-4 text-violet-500" />;
       case 'success':
@@ -153,7 +153,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
           {/* Greeting stamp notification */}
           {notification.type === 'greeting_stamp' && data.stamp_type && (
-            <div className="flex items-center gap-2 mb-2 p-2 rounded-md bg-pink-50 border border-pink-100">
+            <div className="flex items-center gap-2 mb-2 p-2 rounded-md bg-primary/5 border border-primary/10">
               <span className="text-2xl">{STAMP_BY_TYPE[data.stamp_type as StampType]?.emoji ?? '👋'}</span>
               <p className="text-xs flex-1 font-medium">
                 {STAMP_BY_TYPE[data.stamp_type as StampType]?.label ?? 'あいさつ'}

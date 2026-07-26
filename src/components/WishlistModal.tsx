@@ -108,7 +108,7 @@ export function WishlistModal({
 
           toast({
             title: "ウィッシュリストに追加しました",
-            description: `${itemTitle}をウィッシュリストに追加しました。`,
+            description: `${itemTitle}をウィッシュリストに追加しました`,
           });
         }
       }
@@ -122,7 +122,7 @@ export function WishlistModal({
     } catch (error) {
       console.error("Error saving to wishlist:", error);
       toast({
-        title: "エラーが発生しました",
+        title: "エラー",
         description: "もう一度お試しください。",
         variant: "destructive",
       });

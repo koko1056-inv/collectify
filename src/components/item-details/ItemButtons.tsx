@@ -104,7 +104,7 @@ export function ItemButtons({
       await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
       
       toast({
-        title: "コレクションに追加しました！",
+        title: "コレクションに追加しました",
         description: result.pointsAwarded ? `+${result.pointsAwarded}ポイント獲得` : undefined,
       });
     } catch (error) {
@@ -150,7 +150,7 @@ export function ItemButtons({
       });
       toast({
         title: "成功",
-        description: "ウィッシュリストに追加しました。"
+        description: "ウィッシュリストに追加しました"
       });
     } catch (error) {
       console.error("Error adding to wishlist:", error);

@@ -53,8 +53,8 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-center w-16 h-16 mx-auto bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mb-2">
-            <Crown className="w-8 h-8 text-white" />
+          <div className="flex items-center justify-center w-16 h-16 mx-auto bg-gradient-to-br from-primary to-primary/70 rounded-full mb-2">
+            <Crown className="w-8 h-8 text-primary-foreground" />
           </div>
           <DialogTitle className="text-center text-2xl">
             Collectify Premium
@@ -83,7 +83,7 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
             )}
           >
             年額
-            <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+            <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full">
               2ヶ月お得
             </span>
           </button>
@@ -155,7 +155,7 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
         <Button
           onClick={handlePurchase}
           disabled={loading}
-          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold"
+          className="w-full bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60 text-primary-foreground font-semibold"
           size="lg"
         >
           {loading ? "処理中..." : `¥${monthlyEquiv.toLocaleString()}/月で始める`}

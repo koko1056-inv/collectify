@@ -55,7 +55,7 @@ function MyCollectionGoodsCardComponent({
           <h3 className="text-xs font-medium text-foreground truncate">{title}</h3>
           {quantity && quantity > 1 && (
             <Badge 
-              className="absolute bottom-2 right-2 bg-purple-500 hover:bg-purple-500"
+              className="absolute bottom-2 right-2 bg-primary hover:bg-primary text-primary-foreground"
             >
               ×{quantity}
             </Badge>

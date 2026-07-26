@@ -359,7 +359,7 @@ function HeroAvatar({
       >
         {/* 背景装飾 */}
         <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-primary/15 blur-3xl" />
-        <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-pink-500/10 blur-3xl" />
+        <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-primary/10 blur-3xl" />
 
         {/* アバター */}
         <div className="relative w-full h-full flex items-center justify-center p-6">
@@ -367,7 +367,7 @@ function HeroAvatar({
             <motion.div
               animate={{ scale: [1, 1.04, 1] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -inset-4 rounded-full bg-gradient-to-br from-primary/40 to-pink-500/30 blur-2xl"
+              className="absolute -inset-4 rounded-full bg-gradient-to-br from-primary/40 to-primary/30 blur-2xl"
             />
             <Avatar className="relative w-44 h-44 sm:w-56 sm:h-56 border-4 border-background shadow-2xl ring-2 ring-primary/30">
               <AvatarImage src={imageUrl} className="object-cover" />
@@ -464,7 +464,7 @@ function NextStepHint({ onDressUp }: { onDressUp: () => void }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={onDressUp}
-      className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 via-pink-500/5 to-transparent hover:from-primary/10 hover:via-pink-500/10 transition-colors text-left"
+      className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/5 to-transparent hover:from-primary/10 hover:via-primary/10 transition-colors text-left"
     >
       <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
         <Shirt className="w-4 h-4 text-primary" />
@@ -512,7 +512,7 @@ function AvatarThumbCard({
         />
         <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/70 to-transparent" />
         {avatar.item_ids && avatar.item_ids.length > 0 && (
-          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full bg-pink-500/90 text-white text-[9px] font-semibold flex items-center gap-1">
+          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-[9px] font-semibold flex items-center gap-1">
             <Shirt className="w-2.5 h-2.5" />
           </div>
         )}

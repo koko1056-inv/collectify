@@ -46,7 +46,7 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
     } catch (error) {
       console.error('Error updating image:', error);
       toast({
-        title: "エラーが発生しました",
+        title: "エラー",
         description: "画像の更新中にエラーが発生しました。もう一度お試しください。",
         variant: "destructive",
       });

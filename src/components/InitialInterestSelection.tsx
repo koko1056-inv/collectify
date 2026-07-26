@@ -132,7 +132,7 @@ export function InitialInterestSelection({
       toast({ title: `「${newContentName.trim()}」を追加しました` });
     } catch (error) {
       console.error('Error creating content:', error);
-      toast({ title: "エラーが発生しました", variant: "destructive" });
+      toast({ title: "エラー", variant: "destructive" });
     } finally {
       setCreatingContent(false);
     }
@@ -169,7 +169,7 @@ export function InitialInterestSelection({
     } catch (error) {
       console.error('Error saving interests:', error);
       toast({
-        title: "エラーが発生しました",
+        title: "エラー",
         description: "興味のあるコンテンツの保存に失敗しました",
         variant: "destructive",
       });

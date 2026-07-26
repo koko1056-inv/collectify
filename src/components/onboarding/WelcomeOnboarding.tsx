@@ -375,7 +375,7 @@ function InterestsStep({
             transition={{ delay: 0.1 }}
             className="text-center mb-6"
           >
-            <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 mb-4">
+            <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 mb-4">
               <Heart className="w-8 h-8 text-primary" />
             </div>
             <h2 className="text-2xl font-bold mb-2">
@@ -669,7 +669,7 @@ function CelebrateStep({
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.75 }}
-        className="bg-gradient-to-br from-amber-50 to-pink-50 dark:from-amber-950/30 dark:to-pink-950/30 border-2 border-amber-200 dark:border-amber-900/50 rounded-2xl px-5 py-4 mb-8 max-w-sm w-full"
+        className="bg-gradient-to-br from-amber-50 to-primary/5 dark:from-amber-950/30 dark:to-primary/10 border-2 border-amber-200 dark:border-amber-900/50 rounded-2xl px-5 py-4 mb-8 max-w-sm w-full"
       >
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center shrink-0">

@@ -12,7 +12,7 @@ export function OpenTradeRequests() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
       </div>
     );
   }
@@ -20,12 +20,12 @@ export function OpenTradeRequests() {
   return (
     <div className="mt-8 animate-fade-in">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-purple-800">トレードリクエスト一覧</h2>
+        <h2 className="text-xl font-semibold text-primary">トレードリクエスト一覧</h2>
         <Button 
           variant="outline" 
           size="sm" 
           onClick={fetchMyOpenTradeRequests}
-          className="flex items-center gap-1 rounded-full hover:bg-purple-50 border-purple-200 text-purple-700"
+          className="flex items-center gap-1 rounded-full hover:bg-primary/5 border-primary/20 text-primary"
         >
           <RefreshCw className="h-4 w-4" />
           更新
@@ -37,7 +37,7 @@ export function OpenTradeRequests() {
           <CardContent className="pt-6 pb-6">
             <p className="text-center text-gray-500">まだオープントレードリクエストはありません</p>
             <div className="mt-2 text-center">
-              <span className="inline-block bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full">
+              <span className="inline-block bg-primary/10 text-primary text-xs px-3 py-1 rounded-full">
                 新しいトレードを作成してみましょう！
               </span>
             </div>

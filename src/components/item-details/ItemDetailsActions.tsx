@@ -27,7 +27,7 @@ export function ItemDetailsActions({
         <>
           <Button
             variant="outline"
-            className="flex-1 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+            className="flex-1 border-primary/20 hover:bg-primary/5 hover:border-primary/30"
             onClick={onTag}
           >
             <Tag className="h-4 w-4 mr-2" />

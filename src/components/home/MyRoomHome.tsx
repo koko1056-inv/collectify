@@ -343,7 +343,7 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
       {/* 背景: ヒーローグラデ + 装飾 */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-card to-card" />
       <div className="absolute -top-6 -right-6 w-40 h-40 rounded-full bg-gradient-to-br from-primary/15 to-transparent blur-2xl" />
-      <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-gradient-to-tr from-pink-500/10 to-transparent blur-3xl" />
+      <div className="absolute -bottom-10 -left-10 w-48 h-48 rounded-full bg-gradient-to-tr from-primary/10 to-transparent blur-3xl" />
 
       {/* 装飾: ドットパターン */}
       <div

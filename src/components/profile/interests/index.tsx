@@ -119,7 +119,7 @@ export function ProfileInterests({
     <div className="space-y-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500/30" />
+          <Heart className="w-3.5 h-3.5 text-primary fill-primary/30" />
           <h3 className="text-[13px] font-bold tracking-wide">推しコンテンツ</h3>
           {selectedInterests.length > 0 && (
             <span className="text-[10px] text-muted-foreground">

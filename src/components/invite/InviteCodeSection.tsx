@@ -36,7 +36,7 @@ export function InviteCodeSection() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 text-lg font-semibold">
-        <Gift className="w-5 h-5 text-purple-500" />
+        <Gift className="w-5 h-5 text-primary" />
         友達を招待
       </div>
 
@@ -84,7 +84,7 @@ export function InviteCodeSection() {
       <Button
         onClick={() => createCode.mutate()}
         disabled={createCode.isPending}
-        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+        className="w-full bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60"
       >
         <Gift className="w-4 h-4 mr-2" />
         新しい招待コードを作成

@@ -228,7 +228,7 @@ export function ItemPostDetailModal({
                 className={cn(
                   "w-5 h-5 transition-all",
                   post.is_liked_by_me
-                    ? "fill-rose-500 text-rose-500 scale-110"
+                    ? "fill-primary text-primary scale-110"
                     : "text-muted-foreground"
                 )}
               />
