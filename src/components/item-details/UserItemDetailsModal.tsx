@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PersonalTagsSection } from "@/components/personal-tags/PersonalTagsSection";
 import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
 import { useItemShare } from "@/hooks/useItemShare";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UserItemDetailsModalProps {
   isOpen: boolean;
@@ -40,6 +41,7 @@ export function UserItemDetailsModal({
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { shareItem, isSharing } = useItemShare();
+  const { t } = useLanguage();
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [isEditingPurchaseDate, setIsEditingPurchaseDate] = useState(false);
   const [noteValue, setNoteValue] = useState("");
@@ -104,16 +106,16 @@ export function UserItemDetailsModal({
 
       if (error) throw error;
       
-      toast.success("保存しました");
+      toast.success(t("itemDetails.userItem.saved"));
       setIsEditingNote(false);
       queryClient.invalidateQueries({ queryKey: ["user-item-details", itemId] });
     } catch (error) {
       console.error("Error saving note:", error);
-      toast.error("保存に失敗しました");
+      toast.error(t("itemDetails.userItem.saveFailed"));
     } finally {
       setIsSaving(false);
     }
-  }, [noteValue, itemId, queryClient]);
+  }, [noteValue, itemId, queryClient, t]);
 
   // 購入日を保存
   const handleSavePurchaseDate = useCallback(async () => {
@@ -126,21 +128,21 @@ export function UserItemDetailsModal({
 
       if (error) throw error;
 
-      toast.success("購入日を保存しました");
+      toast.success(t("itemDetails.userItem.purchaseDateSaved"));
       setIsEditingPurchaseDate(false);
       queryClient.invalidateQueries({ queryKey: ["user-item-details", itemId] });
     } catch (error) {
       console.error("Error saving purchase date:", error);
-      toast.error("保存に失敗しました");
+      toast.error(t("itemDetails.userItem.saveFailed"));
     } finally {
       setIsSaving(false);
     }
-  }, [purchaseDateValue, itemId, queryClient]);
+  }, [purchaseDateValue, itemId, queryClient, t]);
 
   // 思い出を追加
   const handleAddMemory = useCallback(async () => {
     if (!memoryComment.trim() && !memoryImage) {
-      toast.error("コメントか画像を入力してください");
+      toast.error(t("itemDetails.memories.needInput"));
       return;
     }
 
@@ -177,18 +179,18 @@ export function UserItemDetailsModal({
 
       if (error) throw error;
 
-      toast.success("思い出を追加しました");
+      toast.success(t("itemDetails.memories.added"));
       setMemoryComment("");
       setMemoryImage(null);
       setIsAddingMemory(false);
       queryClient.invalidateQueries({ queryKey: ["item-memories", itemId] });
     } catch (error) {
       console.error("Error adding memory:", error);
-      toast.error("追加に失敗しました");
+      toast.error(t("itemDetails.memories.addFailed"));
     } finally {
       setIsSaving(false);
     }
-  }, [memoryComment, memoryImage, itemId, user?.id, queryClient]);
+  }, [memoryComment, memoryImage, itemId, user?.id, queryClient, t]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -230,8 +232,8 @@ export function UserItemDetailsModal({
                 }
                 disabled={isSharing}
                 className="absolute top-2 right-2 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm flex items-center justify-center transition-colors disabled:opacity-60"
-                aria-label="このグッズをシェア"
-                title="シェア"
+                aria-label={t("itemDetails.userItem.shareAria")}
+                title={t("itemDetails.userItem.shareTitle")}
               >
                 {isSharing ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -246,7 +248,7 @@ export function UserItemDetailsModal({
               {itemDetails?.content_name && (
                 <div className="flex items-center gap-2 text-sm">
                   <Tag className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">コンテンツ:</span>
+                  <span className="text-muted-foreground">{t("itemDetails.userItem.contentLabel")}</span>
                   <span className="font-medium">{itemDetails.content_name}</span>
                 </div>
               )}
@@ -255,7 +257,7 @@ export function UserItemDetailsModal({
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm flex-wrap">
                   <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-muted-foreground">購入日:</span>
+                  <span className="text-muted-foreground">{t("itemDetails.userItem.purchaseDateLabel")}</span>
                   {isEditingPurchaseDate ? (
                     <div className="flex items-center gap-1 flex-1 min-w-0">
                       <Input
@@ -270,7 +272,7 @@ export function UserItemDetailsModal({
                         onClick={handleSavePurchaseDate}
                         disabled={isSaving}
                       >
-                        {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : "保存"}
+                        {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : t("itemDetails.common.save")}
                       </Button>
                       <Button
                         variant="outline"
@@ -289,7 +291,7 @@ export function UserItemDetailsModal({
                       <span className="font-medium">
                         {itemDetails?.purchase_date
                           ? format(new Date(itemDetails.purchase_date), "yyyy年M月d日", { locale: ja })
-                          : "未設定"}
+                          : t("itemDetails.common.notSet")}
                       </span>
                       <Button
                         variant="ghost"
@@ -297,7 +299,7 @@ export function UserItemDetailsModal({
                         className="h-6 text-xs ml-auto"
                         onClick={() => setIsEditingPurchaseDate(true)}
                       >
-                        編集
+                        {t("itemDetails.common.edit")}
                       </Button>
                     </>
                   )}
@@ -315,18 +317,18 @@ export function UserItemDetailsModal({
                 return (
                   <div className="flex items-center gap-1.5 text-sm bg-primary/5 border border-primary/10 rounded-lg px-2.5 py-1.5 w-fit">
                     <Heart className="w-3.5 h-3.5 text-primary fill-primary/30" />
-                    <span className="text-muted-foreground">お迎えして</span>
+                    <span className="text-muted-foreground">{t("itemDetails.userItem.togetherPrefix")}</span>
                     <span className="font-bold text-primary tabular-nums">
                       {days.toLocaleString()}
                     </span>
-                    <span className="text-muted-foreground">日いっしょ</span>
+                    <span className="text-muted-foreground">{t("itemDetails.userItem.togetherSuffix")}</span>
                   </div>
                 );
               })()}
 
               {itemDetails?.quantity && itemDetails.quantity > 1 && (
                 <div className="text-sm">
-                  <span className="text-muted-foreground">所持数:</span>
+                  <span className="text-muted-foreground">{t("itemDetails.userItem.quantityLabel")}</span>
                   <Badge variant="secondary" className="ml-2">
                     ×{itemDetails.quantity}
                   </Badge>
@@ -336,7 +338,7 @@ export function UserItemDetailsModal({
               {/* 一言メモ */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">一言メモ:</span>
+                  <span className="text-sm text-muted-foreground">{t("itemDetails.userItem.noteLabel")}</span>
                   {!isEditingNote && (
                     <Button
                       variant="ghost"
@@ -344,7 +346,7 @@ export function UserItemDetailsModal({
                       className="h-6 text-xs"
                       onClick={() => setIsEditingNote(true)}
                     >
-                      編集
+                      {t("itemDetails.common.edit")}
                     </Button>
                   )}
                 </div>
@@ -353,7 +355,7 @@ export function UserItemDetailsModal({
                     <Textarea
                       value={noteValue}
                       onChange={(e) => setNoteValue(e.target.value)}
-                      placeholder="このグッズについての一言メモ..."
+                      placeholder={t("itemDetails.userItem.notePlaceholder")}
                       className="min-h-[80px]"
                     />
                     <div className="flex gap-2 justify-end">
@@ -365,20 +367,20 @@ export function UserItemDetailsModal({
                           setNoteValue(itemDetails?.note || "");
                         }}
                       >
-                        キャンセル
+                        {t("itemDetails.common.cancel")}
                       </Button>
                       <Button
                         size="sm"
                         onClick={handleSaveNote}
                         disabled={isSaving}
                       >
-                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "保存"}
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : t("itemDetails.common.save")}
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <p className="text-sm text-foreground bg-muted p-2 rounded min-h-[40px]">
-                    {itemDetails?.note || "メモはありません"}
+                    {itemDetails?.note || t("itemDetails.userItem.noteEmpty")}
                   </p>
                 )}
               </div>
@@ -386,7 +388,7 @@ export function UserItemDetailsModal({
               {/* タグ */}
               {itemDetails?.user_item_tags && itemDetails.user_item_tags.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-sm text-muted-foreground">タグ:</span>
+                  <span className="text-sm text-muted-foreground">{t("itemDetails.userItem.tagsLabel")}</span>
                   <div className="flex flex-wrap gap-1">
                     {itemDetails.user_item_tags.map((tagItem: any) => (
                       <Badge key={tagItem.id} variant="outline" className="text-xs">
@@ -406,7 +408,7 @@ export function UserItemDetailsModal({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <BookHeart className="w-4 h-4 text-primary" />
-                  <span className="font-medium text-sm">思い出記録</span>
+                  <span className="font-medium text-sm">{t("itemDetails.memories.sectionTitle")}</span>
                 </div>
                 {!isAddingMemory && (
                   <Button
@@ -416,7 +418,7 @@ export function UserItemDetailsModal({
                     onClick={() => setIsAddingMemory(true)}
                   >
                     <Plus className="w-3 h-3" />
-                    追加
+                    {t("itemDetails.common.add")}
                   </Button>
                 )}
               </div>
@@ -427,7 +429,7 @@ export function UserItemDetailsModal({
                   <Textarea
                     value={memoryComment}
                     onChange={(e) => setMemoryComment(e.target.value)}
-                    placeholder="思い出のコメント..."
+                    placeholder={t("itemDetails.memories.commentPlaceholder")}
                     className="min-h-[60px] bg-background"
                   />
                   <div className="flex items-center gap-2">
@@ -440,7 +442,7 @@ export function UserItemDetailsModal({
                       />
                       <div className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
                         <ImagePlus className="w-4 h-4" />
-                        {memoryImage ? memoryImage.name : "画像を追加"}
+                        {memoryImage ? memoryImage.name : t("itemDetails.memories.addImage")}
                       </div>
                     </label>
                   </div>
@@ -454,14 +456,14 @@ export function UserItemDetailsModal({
                         setMemoryImage(null);
                       }}
                     >
-                      キャンセル
+                      {t("itemDetails.common.cancel")}
                     </Button>
                     <Button
                       size="sm"
                       onClick={handleAddMemory}
                       disabled={isSaving}
                     >
-                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "記録"}
+                      {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : t("itemDetails.memories.record")}
                     </Button>
                   </div>
                 </div>
@@ -475,7 +477,7 @@ export function UserItemDetailsModal({
                       {memory.image_url && (
                         <img
                           src={memory.image_url}
-                          alt="思い出の画像"
+                          alt={t("itemDetails.memories.imageAlt")}
                           className="w-full rounded aspect-video object-cover"
                         />
                       )}
@@ -490,7 +492,7 @@ export function UserItemDetailsModal({
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-2">
-                  まだ思い出がありません
+                  {t("itemDetails.memories.empty")}
                 </p>
               )}
             </div>

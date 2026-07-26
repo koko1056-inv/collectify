@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserItemPosts, ItemPost } from "@/hooks/item-posts/useItemPosts";
 import { ItemPostDetailModal } from "@/components/item-posts/ItemPostDetailModal";
 import { ItemPostGrid } from "@/components/item-posts/ItemPostGrid";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileItemPostsProps {
   userId: string;
@@ -16,6 +17,7 @@ export function ProfileItemPosts({ userId }: ProfileItemPostsProps) {
   const { user } = useAuth();
   const { data: posts = [], isLoading } = useUserItemPosts(userId);
   const [selectedPost, setSelectedPost] = useState<ItemPost | null>(null);
+  const { t } = useLanguage();
 
   const isOwnProfile = user?.id === userId;
 
@@ -28,7 +30,7 @@ export function ProfileItemPosts({ userId }: ProfileItemPostsProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold flex items-center gap-1.5">
           <Camera className="w-4 h-4 text-primary" />
-          投稿
+          {t("profileScreen.posts.title")}
           {posts.length > 0 && (
             <span className="text-xs text-muted-foreground font-normal">
               ({posts.length})
@@ -53,8 +55,8 @@ export function ProfileItemPosts({ userId }: ProfileItemPostsProps) {
           </div>
           <p className="text-xs text-muted-foreground">
             {isOwnProfile
-              ? "まだ投稿がありません\n好きなグッズから投稿してみましょう"
-              : "まだ投稿がありません"}
+              ? t("profileScreen.posts.emptyOwn")
+              : t("profileScreen.posts.empty")}
           </p>
         </div>
       ) : (

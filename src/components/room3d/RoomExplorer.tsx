@@ -16,6 +16,7 @@ import {
   Crown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FeaturedRoom {
   id: string;
@@ -34,6 +35,7 @@ interface FeaturedRoom {
 
 export function RoomExplorer() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"trending" | "featured" | "new">("trending");
 
@@ -119,7 +121,7 @@ export function RoomExplorer() {
               size="sm"
               onClick={() => navigate("/")}
             >
-              マイルームへ
+              {t("roomEditor.explorer.myRoom")}
             </Button>
           </div>
           
@@ -129,7 +131,7 @@ export function RoomExplorer() {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ルームを検索..."
+              placeholder={t("roomEditor.explorer.searchPlaceholder")}
               className="pl-10"
             />
           </div>
@@ -143,20 +145,20 @@ export function RoomExplorer() {
               className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none pb-3 text-muted-foreground data-[state=active]:text-foreground"
             >
               <TrendingUp className="w-4 h-4 mr-2" />
-              トレンド
+              {t("roomEditor.explorer.tabTrending")}
             </TabsTrigger>
             <TabsTrigger 
               value="featured"
               className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none pb-3 text-muted-foreground data-[state=active]:text-foreground"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              注目
+              {t("roomEditor.explorer.tabFeatured")}
             </TabsTrigger>
             <TabsTrigger 
               value="new"
               className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none pb-3 text-muted-foreground data-[state=active]:text-foreground"
             >
-              新着
+              {t("roomEditor.explorer.tabNew")}
             </TabsTrigger>
           </TabsList>
         </Tabs>

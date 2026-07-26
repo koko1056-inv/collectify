@@ -19,18 +19,20 @@ import { ProfileItemPosts } from "./ProfileItemPosts";
 import { ProfileBookmarks } from "./ProfileBookmarks";
 import { ProfileShowcase } from "./ProfileShowcase";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type Tab = "collection" | "posts" | "wishlist" | "saved";
 
-const TABS: { id: Tab; label: string; icon: typeof Package }[] = [
-  { id: "collection", label: "コレクション", icon: Package },
-  { id: "posts", label: "投稿", icon: Camera },
-  { id: "wishlist", label: "ウィッシュ", icon: Heart },
-  { id: "saved", label: "保存", icon: Bookmark },
+const TABS: { id: Tab; labelKey: string; icon: typeof Package }[] = [
+  { id: "collection", labelKey: "profileScreen.tabs.collection", icon: Package },
+  { id: "posts", labelKey: "profileScreen.tabs.posts", icon: Camera },
+  { id: "wishlist", labelKey: "profileScreen.tabs.wishlist", icon: Heart },
+  { id: "saved", labelKey: "profileScreen.tabs.saved", icon: Bookmark },
 ];
 
 export function ProfilePage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { profile, refetchProfile } = useProfile(user?.id);
   const [activeTab, setActiveTab] = useState<Tab>("collection");
@@ -121,11 +123,11 @@ export function ProfilePage() {
                     )}
                   >
                     {isActive ? (
-                      <span className="text-[12px] sm:text-sm font-semibold whitespace-nowrap">{tab.label}</span>
+                      <span className="text-[12px] sm:text-sm font-semibold whitespace-nowrap">{t(tab.labelKey)}</span>
                     ) : (
                       <>
                         <Icon className="w-4 h-4 shrink-0" />
-                        <span className="hidden sm:inline text-sm whitespace-nowrap">{tab.label}</span>
+                        <span className="hidden sm:inline text-sm whitespace-nowrap">{t(tab.labelKey)}</span>
                       </>
                     )}
                   </button>

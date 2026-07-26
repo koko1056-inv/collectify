@@ -2,6 +2,7 @@ import { Heart, Calendar, Sparkles } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Memory {
   id: string;
@@ -15,13 +16,15 @@ interface MemoriesSectionProps {
 }
 
 export function MemoriesSection({ memories }: MemoriesSectionProps) {
+  const { t } = useLanguage();
+
   if (memories.length === 0) return null;
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Sparkles className="w-5 h-5 text-primary" />
-        <h4 className="font-bold text-lg">思い出のストーリー</h4>
+        <h4 className="font-bold text-lg">{t("itemDetails.memories.storyTitle")}</h4>
       </div>
       
       {/* タイムライン形式で表示 */}
@@ -59,7 +62,7 @@ export function MemoriesSection({ memories }: MemoriesSectionProps) {
                   <div className="relative mb-3 overflow-hidden rounded-lg">
                     <img
                       src={memory.image_url}
-                      alt="思い出の写真"
+                      alt={t("itemDetails.memories.photoAlt")}
                       className="w-full rounded-lg object-cover max-h-64 hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />

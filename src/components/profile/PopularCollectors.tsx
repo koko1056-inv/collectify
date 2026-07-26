@@ -7,8 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function PopularCollectors() {
+  const { t } = useLanguage();
   const [selectedContent, setSelectedContent] = useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -66,14 +68,14 @@ export function PopularCollectors() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between pl-4">
-        <h2 className="text-[15px] font-semibold">人気のコレクター</h2>
+        <h2 className="text-[15px] font-semibold">{t("profileScreen.collectors.title")}</h2>
         <Button 
           size="sm" 
           variant="outline"
           className="text-[10px]"
           onClick={() => setIsFilterOpen(true)}
         >
-          フィルター
+          {t("profileScreen.collectors.filter")}
         </Button>
       </div>
 
@@ -85,7 +87,7 @@ export function PopularCollectors() {
             className="text-[10px]"
             onClick={() => setSelectedContent(null)}
           >
-            すべて
+            {t("profileScreen.collectors.all")}
           </Button>
           {contentNames.map((content) => (
             <Button
@@ -104,7 +106,7 @@ export function PopularCollectors() {
       <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>推しコンテンツを選択</DialogTitle>
+            <DialogTitle>{t("profileScreen.collectors.pickContent")}</DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-[300px] pr-4">
             <div className="grid grid-cols-2 gap-2">
@@ -116,7 +118,7 @@ export function PopularCollectors() {
                   setIsFilterOpen(false);
                 }}
               >
-                すべて
+                {t("profileScreen.collectors.all")}
               </Button>
               {contentNames.map((content) => (
                 <Button
@@ -171,7 +173,7 @@ export function PopularCollectors() {
               />
             ))
           ) : (
-            <p className="text-gray-500 p-4 col-span-full">表示するコレクターがいません</p>
+            <p className="text-gray-500 p-4 col-span-full">{t("profileScreen.collectors.empty")}</p>
           )}
         </div>
       )}

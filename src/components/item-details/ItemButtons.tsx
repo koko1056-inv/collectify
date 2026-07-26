@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { addToCollection } from "@/utils/collection-actions";
+import { useLanguage } from "@/contexts/LanguageContext";
 interface ItemButtonsProps {
   isInCollection: boolean;
   itemId: string;
@@ -36,13 +37,14 @@ export function ItemButtons({
   } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   // コレクションにアイテムを追加する関数
   const handleAddToCollection = async () => {
     if (!user) {
       toast({
-        title: "エラー",
-        description: "コレクションに追加するにはログインが必要です。",
+        title: t("itemDetails.common.error"),
+        description: t("itemDetails.buttons.collectionLoginRequired"),
         variant: "destructive"
       });
       return;
@@ -62,15 +64,15 @@ export function ItemButtons({
       if (!result.success) {
         if (result.isAtLimit) {
           toast({
-            title: "コレクション枠が上限です",
-            description: "ポイントショップで枠を追加購入してください。",
+            title: t("itemDetails.buttons.limitTitle"),
+            description: t("itemDetails.buttons.limitDescription"),
             variant: "destructive",
           });
           navigate("/shop");
         } else {
           toast({
-            title: "エラー",
-            description: result.error || "コレクションへの追加に失敗しました。",
+            title: t("itemDetails.common.error"),
+            description: result.error || t("itemDetails.buttons.collectionAddFailed"),
             variant: "destructive",
           });
         }
@@ -104,14 +106,14 @@ export function ItemButtons({
       await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
       
       toast({
-        title: "コレクションに追加しました",
-        description: result.pointsAwarded ? `+${result.pointsAwarded}ポイント獲得` : undefined,
+        title: t("itemDetails.buttons.addedToCollection"),
+        description: result.pointsAwarded ? `+${result.pointsAwarded}${t("itemDetails.buttons.pointsEarnedSuffix")}` : undefined,
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
       toast({
-        title: "エラー",
-        description: "コレクションへの追加に失敗しました。",
+        title: t("itemDetails.common.error"),
+        description: t("itemDetails.buttons.collectionAddFailed"),
         variant: "destructive"
       });
     } finally {
@@ -123,8 +125,8 @@ export function ItemButtons({
   const handleAddToWishlist = async () => {
     if (!user) {
       toast({
-        title: "エラー",
-        description: "ウィッシュリストに追加するにはログインが必要です。",
+        title: t("itemDetails.common.error"),
+        description: t("itemDetails.buttons.wishlistLoginRequired"),
         variant: "destructive"
       });
       return;
@@ -149,14 +151,14 @@ export function ItemButtons({
         queryKey: ["wishlist-counts"]
       });
       toast({
-        title: "成功",
-        description: "ウィッシュリストに追加しました"
+        title: t("itemDetails.buttons.success"),
+        description: t("itemDetails.buttons.wishlistAdded")
       });
     } catch (error) {
       console.error("Error adding to wishlist:", error);
       toast({
-        title: "エラー",
-        description: "ウィッシュリストへの追加に失敗しました。",
+        title: t("itemDetails.common.error"),
+        description: t("itemDetails.buttons.wishlistAddFailed"),
         variant: "destructive"
       });
     } finally {
@@ -173,11 +175,11 @@ export function ItemButtons({
           disabled={isAddingToCollection}
           className="w-full"
         >
-          {isAddingToCollection ? "追加中..." : "コレクションに追加"}
+          {isAddingToCollection ? t("itemDetails.common.adding") : t("itemDetails.info.addToCollection")}
         </Button>
       ) : (
         <Button variant="secondary" disabled className="w-full">
-          コレクション済み
+          {t("itemDetails.buttons.inCollection")}
         </Button>
       )}
       <Button 
@@ -185,7 +187,7 @@ export function ItemButtons({
         onClick={handleAddToWishlist} 
         disabled={isAddingToWishlist}
       >
-        {isAddingToWishlist ? "追加中..." : "ウィッシュリスト"}
+        {isAddingToWishlist ? t("itemDetails.common.adding") : t("itemDetails.buttons.wishlist")}
       </Button>
     </div>
   );

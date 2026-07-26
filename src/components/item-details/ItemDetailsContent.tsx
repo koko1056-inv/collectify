@@ -13,6 +13,7 @@ import { ItemNoteField } from "./ItemNoteField";
 import { ItemDetailInfo } from "./ItemDetailInfo";
 import { ItemPostsSection } from "./ItemPostsSection";
 import { SimpleItemTag } from "@/utils/tag/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemDetailsContentProps {
   image: string;
@@ -47,6 +48,7 @@ export function ItemDetailsContent({
   price,
   itemId
 }: ItemDetailsContentProps) {
+  const { t } = useLanguage();
   // イメージ更新ハンドラを実装
   const handleImageUpdate = (newImageUrl: string) => {
     setEditedData({
@@ -113,7 +115,7 @@ export function ItemDetailsContent({
           </div>}
 
         {isUserItem === false && !isEditing && tags.length > 0 && <div className="space-y-2">
-            <h3 className="text-sm font-medium">タグ</h3>
+            <h3 className="text-sm font-medium">{t("itemDetails.common.tags")}</h3>
             <div className="space-y-1">
               {Object.entries(groupedTags).map(([category, categoryTags]) => categoryTags.length > 0 && <div key={category} className="flex flex-wrap gap-1">
                     {categoryTags.map((tag, idx) => tag.tags && <Badge key={idx} variant="secondary" className="text-xs">
@@ -133,15 +135,15 @@ export function ItemDetailsContent({
                 })} />
                 
                 <div className="space-y-4 mt-4">
-                  <CategoryTagSelect category="character" label="キャラクター・人物名" value={editedData.characterTag} onChange={value => setEditedData({
+                  <CategoryTagSelect category="character" label={t("itemDetails.fields.characterLabel")} value={editedData.characterTag} onChange={value => setEditedData({
                     ...editedData,
                     characterTag: value
                   })} />
-                  <CategoryTagSelect category="type" label="グッズタイプ" value={editedData.typeTag} onChange={value => setEditedData({
+                  <CategoryTagSelect category="type" label={t("itemDetails.common.goodsType")} value={editedData.typeTag} onChange={value => setEditedData({
                     ...editedData,
                     typeTag: value
                   })} />
-                  <CategoryTagSelect category="series" label="グッズシリーズ" value={editedData.seriesTag} onChange={value => setEditedData({
+                  <CategoryTagSelect category="series" label={t("itemDetails.common.goodsSeries")} value={editedData.seriesTag} onChange={value => setEditedData({
                     ...editedData,
                     seriesTag: value
                   })} />
@@ -154,7 +156,7 @@ export function ItemDetailsContent({
                 {description && <ItemDescriptionField isEditing={false} description={description} onChange={() => {}} />}
                 
                 {releaseDate && <div className="space-y-1">
-                    <h3 className="text-sm font-medium">登録された日付</h3>
+                    <h3 className="text-sm font-medium">{t("itemDetails.fields.registeredDateLabel")}</h3>
                     <p className="text-sm text-gray-600">{releaseDate}</p>
                   </div>}
               </>}

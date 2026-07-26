@@ -14,7 +14,7 @@ interface ProfileSettingsSheetProps {
 
 export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsSheetProps) {
   const navigate = useNavigate();
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -25,7 +25,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
         <SheetHeader className="px-5 pt-5 pb-3 border-b">
-          <SheetTitle className="text-left">設定</SheetTitle>
+          <SheetTitle className="text-left">{t("profileScreen.settings.title")}</SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
@@ -43,7 +43,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
           <section className="bg-card rounded-2xl border border-border divide-y divide-border">
             <SettingRow
               icon={<MessageSquare className="w-4 h-4" />}
-              label="メッセージ一覧"
+              label={t("profileScreen.settings.messages")}
               onClick={() => {
                 onOpenChange(false);
                 navigate("/messages");
@@ -51,7 +51,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
             />
             <SettingRow
               icon={<HelpCircle className="w-4 h-4" />}
-              label="使い方"
+              label={t("profileScreen.settings.howTo")}
               onClick={() => {
                 onOpenChange(false);
                 navigate("/how-to-use");
@@ -72,7 +72,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
             className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/5 border-destructive/20"
           >
             <LogOut className="w-4 h-4" />
-            ログアウト
+            {t("profileScreen.logout.title")}
           </Button>
         </div>
       </SheetContent>

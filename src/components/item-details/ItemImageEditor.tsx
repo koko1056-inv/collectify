@@ -6,6 +6,7 @@ import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { SUPABASE_URL, supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemImageEditorProps {
   image: string;
@@ -18,6 +19,7 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
   const [isImageEditModalOpen, setIsImageEditModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleImageChange = async (file: File | null) => {
     if (!file) return;
@@ -40,14 +42,14 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
       setIsImageEditModalOpen(false);
       
       toast({
-        title: "画像を更新しました",
-        description: "アイテムの画像が正常に更新されました。",
+        title: t("itemDetails.image.updated"),
+        description: t("itemDetails.image.updatedDescription"),
       });
     } catch (error) {
       console.error('Error updating image:', error);
       toast({
-        title: "エラー",
-        description: "画像の更新中にエラーが発生しました。もう一度お試しください。",
+        title: t("itemDetails.common.error"),
+        description: t("itemDetails.image.updateFailed"),
         variant: "destructive",
       });
     }
@@ -80,7 +82,7 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
 
       <Dialog open={isImageEditModalOpen} onOpenChange={setIsImageEditModalOpen}>
         <DialogContent>
-          <h3 className="text-lg font-semibold mb-4">画像を編集</h3>
+          <h3 className="text-lg font-semibold mb-4">{t("itemDetails.image.editTitle")}</h3>
           <ItemImageUpload
             onImageChange={handleImageChange}
             previewUrl={previewUrl}

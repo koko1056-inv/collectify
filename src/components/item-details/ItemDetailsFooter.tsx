@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemDetailsFooterProps {
   isEditing: boolean;
@@ -17,6 +18,7 @@ export function ItemDetailsFooter({
   onEdit,
   showEditButton = true,
 }: ItemDetailsFooterProps) {
+  const { t } = useLanguage();
   return (
     <div className="flex justify-end space-x-2 pt-4 border-t">
       {isEditing ? (
@@ -26,17 +28,17 @@ export function ItemDetailsFooter({
             onClick={onCancel}
             disabled={isSaving}
           >
-            キャンセル
+            {t("itemDetails.common.cancel")}
           </Button>
-          <Button 
+          <Button
             onClick={onSave}
             disabled={isSaving}
           >
-            {isSaving ? "保存中..." : "保存"}
+            {isSaving ? t("itemDetails.common.saving") : t("itemDetails.common.save")}
           </Button>
         </>
       ) : (
-        showEditButton && <Button onClick={onEdit}>編集</Button>
+        showEditButton && <Button onClick={onEdit}>{t("itemDetails.common.edit")}</Button>
       )}
     </div>
   );

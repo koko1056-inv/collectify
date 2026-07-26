@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { deleteUserItem } from "@/utils/tag/user-item-operations";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemDetailsDeleteDialogProps {
   open: boolean;
@@ -28,6 +29,7 @@ export function ItemDetailsDeleteDialog({
 }: ItemDetailsDeleteDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const handleDelete = async () => {
     if (!isUserItem || !itemId) return;
@@ -42,14 +44,14 @@ export function ItemDetailsDeleteDialog({
         queryClient.invalidateQueries({ queryKey: ["item-owners-count", officialItemId] });
       }
       toast({
-        title: "アイテムを削除しました",
-        description: "コレクションからアイテムを削除しました。",
+        title: t("itemDetails.remove.success"),
+        description: t("itemDetails.remove.successDescription"),
       });
       onCloseModal();
     } catch (error) {
       toast({
-        title: "エラー",
-        description: "アイテムの削除に失敗しました。",
+        title: t("itemDetails.common.error"),
+        description: t("itemDetails.remove.failed"),
         variant: "destructive",
       });
     }
@@ -58,14 +60,14 @@ export function ItemDetailsDeleteDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[425px]">
-        <h2 className="text-lg font-bold mb-2">アイテムの削除</h2>
-        <p className="mb-4">「{title}」をコレクションから削除しますか？</p>
+        <h2 className="text-lg font-bold mb-2">{t("itemDetails.remove.title")}</h2>
+        <p className="mb-4">{t("itemDetails.remove.confirmPrefix")}{title}{t("itemDetails.remove.confirmSuffix")}</p>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setOpen(false)}>
-            キャンセル
+            {t("itemDetails.common.cancel")}
           </Button>
           <Button variant="destructive" onClick={handleDelete}>
-            削除する
+            {t("itemDetails.remove.confirmButton")}
           </Button>
         </div>
       </DialogContent>

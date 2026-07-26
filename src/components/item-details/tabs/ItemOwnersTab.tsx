@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemOwnersTabProps {
   officialItemId: string;
@@ -20,6 +21,7 @@ interface ItemOwnersTabProps {
  */
 export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const { data: owners = [], isLoading } = useQuery({
     queryKey: ["item-owners-tab", officialItemId],
@@ -76,7 +78,7 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
     return (
       <div className="text-center py-10 text-muted-foreground">
         <Package className="h-10 w-10 mx-auto mb-2 opacity-40" />
-        <p className="text-sm">まだ誰も登録していません</p>
+        <p className="text-sm">{t("itemDetails.owners.empty")}</p>
       </div>
     );
   }
@@ -84,7 +86,7 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground px-1 mb-1">
-        {owners.length}人のコレクター
+        {owners.length}{t("itemDetails.owners.collectorsSuffix")}
       </p>
       {owners.map((owner) => {
         const isMe = owner.user_id === user?.id;
@@ -111,8 +113,8 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="font-medium text-sm truncate">
-                      {owner.profile?.display_name || owner.profile?.username || "ユーザー"}
-                      {isMe && <span className="text-primary ml-1">(あなた)</span>}
+                      {owner.profile?.display_name || owner.profile?.username || t("itemDetails.common.user")}
+                      {isMe && <span className="text-primary ml-1">{t("itemDetails.common.you")}</span>}
                     </p>
                     {!isMe && score && (
                       <TrustBadge score={score} size="xs" showLabel={false} />
@@ -126,7 +128,7 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
                 </div>
               </Link>
               <Badge variant="outline" className="flex-shrink-0">
-                {owner.quantity}個
+                {owner.quantity}{t("itemDetails.owners.quantitySuffix")}
               </Badge>
             </div>
             {!isMe && user && (
@@ -136,7 +138,7 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
                   contextType="item"
                   contextId={officialItemId}
                   size="sm"
-                  label="あいさつ"
+                  label={t("itemDetails.common.greeting")}
                 />
               </div>
             )}

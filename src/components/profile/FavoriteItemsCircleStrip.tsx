@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Star } from "lucide-react";
 import { useFavoriteItems } from "@/hooks/useFavoriteItems";
 import { ItemDetailsModal } from "@/components/ItemDetailsModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   userId: string;
@@ -16,6 +17,7 @@ interface Props {
 export function FavoriteItemsCircleStrip({ userId }: Props) {
   const { data: items = [], isLoading } = useFavoriteItems(userId);
   const [detailItemId, setDetailItemId] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   if (isLoading || items.length === 0) return null;
 
@@ -23,7 +25,7 @@ export function FavoriteItemsCircleStrip({ userId }: Props) {
     <div className="px-4 mt-4">
       <div className="flex items-center gap-1.5 mb-2">
         <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-        <h3 className="text-[13px] font-bold tracking-wide">推し</h3>
+        <h3 className="text-[13px] font-bold tracking-wide">{t("profileScreen.favorites.oshiHeading")}</h3>
       </div>
       <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
         {items.map((item) => (

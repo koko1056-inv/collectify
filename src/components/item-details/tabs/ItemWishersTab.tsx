@@ -11,6 +11,7 @@ import { useSoundEffect } from "@/hooks/useSoundEffect";
 import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemWishersTabProps {
   officialItemId: string;
@@ -31,6 +32,7 @@ export function ItemWishersTab({
   const { toast } = useToast();
   const qc = useQueryClient();
   const { playWishlistSound } = useSoundEffect();
+  const { t } = useLanguage();
 
   const { data: wishers = [], isLoading } = useQuery({
     queryKey: ["item-wishers-tab", officialItemId],
@@ -72,7 +74,7 @@ export function ItemWishersTab({
 
   const toggleMut = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("itemDetails.wishers.loginRequired"));
       if (isInWishlist) {
         const { error } = await supabase
           .from("wishlists")
@@ -94,12 +96,12 @@ export function ItemWishersTab({
       qc.invalidateQueries({ queryKey: ["item-wishers-tab", officialItemId] });
       qc.invalidateQueries({ queryKey: ["item-wishlist-count", officialItemId] });
       toast({
-        title: r.added ? "ウィッシュリストに追加" : "ウィッシュリストから削除",
+        title: r.added ? t("itemDetails.wishers.addedToast") : t("itemDetails.wishers.removedToast"),
         description: itemTitle,
       });
     },
     onError: (e: any) => {
-      toast({ title: "エラー", description: e?.message, variant: "destructive" });
+      toast({ title: t("itemDetails.common.error"), description: e?.message, variant: "destructive" });
     },
   });
 
@@ -118,19 +120,19 @@ export function ItemWishersTab({
           {isInWishlist ? (
             <>
               <HeartOff className="h-4 w-4" />
-              ウィッシュリストから削除
+              {t("itemDetails.wishers.removeButton")}
             </>
           ) : (
             <>
               <Heart className="h-4 w-4" />
-              ウィッシュリストに追加
+              {t("itemDetails.wishers.addButton")}
             </>
           )}
         </Button>
       )}
 
       <p className="text-xs text-muted-foreground px-1">
-        {wishers.length}人がほしいリストに追加
+        {wishers.length}{t("itemDetails.wishers.countSuffix")}
       </p>
 
       {isLoading ? (
@@ -145,7 +147,7 @@ export function ItemWishersTab({
       ) : wishers.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <Heart className="h-10 w-10 mx-auto mb-2 opacity-40" />
-          <p className="text-sm">まだ誰もほしいリストに追加していません</p>
+          <p className="text-sm">{t("itemDetails.wishers.empty")}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -172,8 +174,8 @@ export function ItemWishersTab({
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <p className="font-medium text-sm truncate">
-                          {w.profile?.display_name || w.profile?.username || "ユーザー"}
-                          {isMe && <span className="text-primary ml-1">(あなた)</span>}
+                          {w.profile?.display_name || w.profile?.username || t("itemDetails.common.user")}
+                          {isMe && <span className="text-primary ml-1">{t("itemDetails.common.you")}</span>}
                         </p>
                         {!isMe && score && (
                           <TrustBadge score={score} size="xs" showLabel={false} />
@@ -194,7 +196,7 @@ export function ItemWishersTab({
                       contextType="item"
                       contextId={officialItemId}
                       size="sm"
-                      label="あいさつ"
+                      label={t("itemDetails.common.greeting")}
                     />
                   </div>
                 )}

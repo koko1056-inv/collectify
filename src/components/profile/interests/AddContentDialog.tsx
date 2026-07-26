@@ -4,8 +4,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { AddContentDialogProps } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AddContentDialog({ isOpen, onClose, onAdd }: AddContentDialogProps) {
+  const { t } = useLanguage();
   const [newContentName, setNewContentName] = useState("");
 
   const handleSubmit = () => {
@@ -19,16 +21,16 @@ export function AddContentDialog({ isOpen, onClose, onAdd }: AddContentDialogPro
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>新しいコンテンツを追加</DialogTitle>
+          <DialogTitle>{t("profileScreen.interests.newTitle")}</DialogTitle>
           <DialogDescription>
-            推しコンテンツとして表示したい作品名などを追加できます
+            {t("profileScreen.interests.newDesc")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <Input
             value={newContentName}
             onChange={(e) => setNewContentName(e.target.value)}
-            placeholder="コンテンツ名を入力"
+            placeholder={t("profileScreen.interests.newPlaceholder")}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -38,10 +40,10 @@ export function AddContentDialog({ isOpen, onClose, onAdd }: AddContentDialogPro
           />
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={onClose}>
-              キャンセル
+              {t("profileScreen.common.cancel")}
             </Button>
             <Button onClick={handleSubmit}>
-              追加する
+              {t("profileScreen.interests.addButton")}
             </Button>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { Bookmark, Sparkles, User } from "lucide-react";
 import { useBookmarkedAiWorks } from "@/hooks/ai-room/useAiBookmarks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 /**
  * マイページの「保存」タブ
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils";
 export function ProfileBookmarks() {
   const navigate = useNavigate();
   const { data, isLoading } = useBookmarkedAiWorks();
+  const { t } = useLanguage();
 
   if (isLoading) {
     return (
@@ -31,11 +33,11 @@ export function ProfileBookmarks() {
           <div className="w-14 h-14 mx-auto rounded-full bg-muted flex items-center justify-center mb-3">
             <Bookmark className="w-6 h-6 text-muted-foreground" />
           </div>
-          <p className="font-semibold text-sm mb-1">まだ保存した作品はありません</p>
+          <p className="font-semibold text-sm mb-1">{t("profileScreen.bookmarks.empty")}</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            探索ページで気になるAI作品を見つけたら
+            {t("profileScreen.bookmarks.emptyHint1")}
             <br />
-            ブックマークして自分のコレクションに 📌
+            {t("profileScreen.bookmarks.emptyHint2")}
           </p>
         </div>
       </div>
@@ -58,7 +60,7 @@ export function ProfileBookmarks() {
             >
               <img
                 src={w.image_url}
-                alt={w.title || w.name || "AI作品"}
+                alt={w.title || w.name || t("profileScreen.bookmarks.aiWorkAlt")}
                 loading="lazy"
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
@@ -66,11 +68,11 @@ export function ProfileBookmarks() {
                 <div className="flex items-center gap-1 text-[10px] text-white/90 font-medium">
                   {isRoom ? (
                     <>
-                      <Sparkles className="w-3 h-3" /> AIルーム
+                      <Sparkles className="w-3 h-3" /> {t("profileScreen.bookmarks.aiRoom")}
                     </>
                   ) : (
                     <>
-                      <User className="w-3 h-3" /> アバター
+                      <User className="w-3 h-3" /> {t("profileScreen.bookmarks.avatar")}
                     </>
                   )}
                 </div>

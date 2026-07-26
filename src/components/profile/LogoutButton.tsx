@@ -15,25 +15,27 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function LogoutButton() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "ログアウトに失敗しました",
+        title: t("profileScreen.common.error"),
+        description: t("profileScreen.logout.failed"),
       });
       return;
     }
-    
+
     toast({
-      title: "ログアウト完了",
-      description: "ログアウトしました",
+      title: t("profileScreen.logout.doneTitle"),
+      description: t("profileScreen.logout.doneDesc"),
     });
     navigate("/login");
   };
@@ -51,14 +53,14 @@ export function LogoutButton() {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>ログアウト</AlertDialogTitle>
+          <AlertDialogTitle>{t("profileScreen.logout.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            本当にログアウトしますか？
+            {t("profileScreen.logout.confirm")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>キャンセル</AlertDialogCancel>
-          <AlertDialogAction onClick={handleLogout}>ログアウト</AlertDialogAction>
+          <AlertDialogCancel>{t("profileScreen.common.cancel")}</AlertDialogCancel>
+          <AlertDialogAction onClick={handleLogout}>{t("profileScreen.logout.title")}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

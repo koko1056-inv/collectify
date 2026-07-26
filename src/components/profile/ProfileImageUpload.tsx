@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileImageUploadProps {
   onImageChange: (file: File | null) => Promise<void>;
@@ -28,6 +29,7 @@ export function ProfileImageUpload({
   isUploading = false,
   onAvatarSelect,
 }: ProfileImageUploadProps) {
+  const { t } = useLanguage();
   const [isHovering, setIsHovering] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
@@ -135,7 +137,7 @@ export function ProfileImageUpload({
             disabled={showLoading}
           >
             <UploadCloud className="w-4 h-4 mr-3" />
-            <span className="text-sm">ファイルを選択</span>
+            <span className="text-sm">{t("profileScreen.imageUpload.selectFile")}</span>
           </Button>
           {avatarGallery.length > 0 && (
             <Button
@@ -145,7 +147,7 @@ export function ProfileImageUpload({
               disabled={showLoading}
             >
               <Images className="w-4 h-4 mr-3" />
-              <span className="text-sm">アバターから選択</span>
+              <span className="text-sm">{t("profileScreen.imageUpload.selectAvatar")}</span>
             </Button>
           )}
         </PopoverContent>
@@ -164,7 +166,7 @@ export function ProfileImageUpload({
       <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>アバターを選択</DialogTitle>
+            <DialogTitle>{t("profileScreen.imageUpload.dialogTitle")}</DialogTitle>
           </DialogHeader>
           <ScrollArea className="max-h-80">
             <div className="grid grid-cols-3 gap-3 p-1">
@@ -178,13 +180,13 @@ export function ProfileImageUpload({
                 >
                   <img
                     src={avatar.image_url}
-                    alt={avatar.name || "アバター"}
+                    alt={avatar.name || t("profileScreen.imageUpload.avatarAlt")}
                     className="w-full h-full object-cover"
                     onError={handleImageError}
                   />
                   {avatar.is_current && (
                     <div className="absolute bottom-1 right-1 bg-primary text-primary-foreground text-xs px-1 rounded">
-                      現在
+                      {t("profileScreen.imageUpload.current")}
                     </div>
                   )}
                 </button>

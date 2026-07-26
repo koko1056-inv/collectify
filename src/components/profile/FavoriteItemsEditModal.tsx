@@ -21,6 +21,7 @@ import {
   useUpdateFavoriteItems,
   FAVORITE_ITEMS_LIMIT,
 } from "@/hooks/useFavoriteItems";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FavoriteItemsEditModalProps {
   open: boolean;
@@ -40,6 +41,7 @@ export function FavoriteItemsEditModal({
   onOpenChange,
   userId,
 }: FavoriteItemsEditModalProps) {
+  const { t } = useLanguage();
   const { data: currentFavorites = [] } = useFavoriteItems(userId);
   const updateMutation = useUpdateFavoriteItems(userId);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -103,7 +105,9 @@ export function FavoriteItemsEditModal({
         return prev.filter((x) => x !== id);
       }
       if (prev.length >= FAVORITE_ITEMS_LIMIT) {
-        toast.error(`最大${FAVORITE_ITEMS_LIMIT}個までです`);
+        toast.error(
+          `${t("profileScreen.favorites.limitToastPrefix")}${FAVORITE_ITEMS_LIMIT}${t("profileScreen.favorites.limitToastSuffix")}`
+        );
         return prev;
       }
       return [...prev, id];
@@ -136,17 +140,17 @@ export function FavoriteItemsEditModal({
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-            お気に入り TOP{FAVORITE_ITEMS_LIMIT} を編集
+            {t("profileScreen.favorites.top5Prefix")}{FAVORITE_ITEMS_LIMIT}{t("profileScreen.favorites.editTitleSuffix")}
           </DialogTitle>
           <DialogDescription className="text-xs">
-            最大{FAVORITE_ITEMS_LIMIT}個まで選んで、矢印で順位を変更できます
+            {t("profileScreen.favorites.editDescPrefix")}{FAVORITE_ITEMS_LIMIT}{t("profileScreen.favorites.editDescSuffix")}
           </DialogDescription>
         </DialogHeader>
 
         {/* 選択中の枠 */}
         <div className="px-4 pt-3 pb-2">
           <p className="text-[11px] font-semibold text-muted-foreground mb-2">
-            選択中（{selectedIds.length}/{FAVORITE_ITEMS_LIMIT}）
+            {t("profileScreen.favorites.selectedPrefix")}{selectedIds.length}/{FAVORITE_ITEMS_LIMIT}{t("profileScreen.favorites.selectedSuffix")}
           </p>
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
             {Array.from({ length: FAVORITE_ITEMS_LIMIT }).map((_, idx) => {
@@ -184,7 +188,7 @@ export function FavoriteItemsEditModal({
                       </>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        <span className="text-[10px]">{idx + 1}位</span>
+                        <span className="text-[10px]">{idx + 1}{t("profileScreen.favorites.rankSuffix")}</span>
                       </div>
                     )}
                   </div>
@@ -219,7 +223,7 @@ export function FavoriteItemsEditModal({
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="コレクションから検索..."
+              placeholder={t("profileScreen.favorites.searchPlaceholder")}
               className="pl-8 h-9 text-sm"
             />
           </div>
@@ -236,8 +240,8 @@ export function FavoriteItemsEditModal({
           ) : filteredItems.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-12">
               {search
-                ? "該当するアイテムがありません"
-                : "コレクションにアイテムがありません"}
+                ? t("profileScreen.favorites.noMatch")
+                : t("profileScreen.favorites.emptyCollection")}
             </p>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -293,14 +297,14 @@ export function FavoriteItemsEditModal({
             onClick={() => onOpenChange(false)}
             className="flex-1"
           >
-            キャンセル
+            {t("profileScreen.common.cancel")}
           </Button>
           <Button
             onClick={handleSave}
             disabled={updateMutation.isPending}
             className="flex-1"
           >
-            {updateMutation.isPending ? "保存中..." : "保存"}
+            {updateMutation.isPending ? t("profileScreen.common.saving") : t("profileScreen.common.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

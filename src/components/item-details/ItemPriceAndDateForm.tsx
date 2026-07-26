@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemPriceAndDateFormProps {
   isEditing: boolean;
@@ -16,10 +17,11 @@ export function ItemPriceAndDateForm({
   setEditedData,
   isUserItem = false,
 }: ItemPriceAndDateFormProps) {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-sm font-medium">登録日</label>
+        <label className="text-sm font-medium">{t("itemDetails.fields.registeredDate")}</label>
         {isEditing ? (
           <Input
             type="date"
@@ -30,7 +32,7 @@ export function ItemPriceAndDateForm({
           />
         ) : (
           <p className="text-sm text-gray-600">
-            {editedData.releaseDate || "未設定"}
+            {editedData.releaseDate || t("itemDetails.common.notSet")}
           </p>
         )}
       </div>

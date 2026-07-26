@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemStatisticsProps {
   likesCount: number;
@@ -13,20 +14,21 @@ export function ItemStatistics({
   ownersCount,
   tradesCount
 }: ItemStatisticsProps) {
+  const { t } = useLanguage();
   return (
     <div className="flex justify-between items-center px-4 py-3 border-t border-border">
       <div className="flex space-x-6">
         <div className="text-center">
           <div className="text-sm font-medium">{likesCount}</div>
-          <div className="text-xs text-muted-foreground">いいね</div>
+          <div className="text-xs text-muted-foreground">{t("itemDetails.stats.likes")}</div>
         </div>
         <div className="text-center">
           <div className="text-sm font-medium">{ownersCount}</div>
-          <div className="text-xs text-muted-foreground">オーナー</div>
+          <div className="text-xs text-muted-foreground">{t("itemDetails.stats.owners")}</div>
         </div>
         <div className="text-center">
           <div className="text-sm font-medium">{tradesCount}</div>
-          <div className="text-xs text-muted-foreground">トレード</div>
+          <div className="text-xs text-muted-foreground">{t("itemDetails.stats.trades")}</div>
         </div>
       </div>
       <Button variant="ghost" size="sm" className="rounded-full p-2 h-8 w-8">

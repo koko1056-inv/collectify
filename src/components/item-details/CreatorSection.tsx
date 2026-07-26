@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreatorSectionProps {
   isEditing: boolean;
@@ -15,6 +16,7 @@ export function CreatorSection({
   isEditing,
   createdBy,
 }: CreatorSectionProps) {
+  const { t } = useLanguage();
   const { data: creatorProfile, isLoading: isProfileLoading, error: profileError } = useQuery({
     queryKey: ["creator-profile", createdBy],
     queryFn: async () => {
@@ -56,7 +58,7 @@ export function CreatorSection({
                 </AvatarFallback>
               </Avatar>
               <div>
-                <div className="font-medium">登録者</div>
+                <div className="font-medium">{t("itemDetails.creator.registeredBy")}</div>
                 <div>{creatorProfile.display_name || creatorProfile.username}</div>
               </div>
             </>
@@ -70,7 +72,7 @@ export function CreatorSection({
             className="w-full"
           >
             <Link to={`/user/${createdBy}`}>
-              プロフィールを見る
+              {t("itemDetails.creator.viewProfile")}
             </Link>
           </Button>
         )}
@@ -79,27 +81,27 @@ export function CreatorSection({
       <div className="text-sm space-y-2">
         <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
           <div>
-            <div className="font-medium">アイテム情報</div>
+            <div className="font-medium">{t("itemDetails.creator.itemInfo")}</div>
             <div className="text-muted-foreground">
-              このアイテムは
+              {t("itemDetails.creator.addedByPrefix")}
               {createdBy ? (
                 isProfileLoading ? (
-                  <span className="font-medium"> 読み込み中... </span>
+                  <span className="font-medium"> {t("itemDetails.common.loading")} </span>
                 ) : creatorProfile ? (
                   <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
                 ) : profileError ? (
-                  <span className="font-medium"> 登録ユーザー（取得エラー） </span>
+                  <span className="font-medium"> {t("itemDetails.creator.registeredUserError")} </span>
                 ) : (
-                  <span className="font-medium"> 登録ユーザー </span>
+                  <span className="font-medium"> {t("itemDetails.creator.registeredUser")} </span>
                 )
               ) : (
-                <span className="font-medium"> 管理者 </span>
+                <span className="font-medium"> {t("itemDetails.creator.admin")} </span>
               )}
-              によって登録されました。
+              {t("itemDetails.creator.addedBySuffix")}
             </div>
             {createdBy && creatorProfile && (
               <div className="text-green-600 font-medium mt-1">
-                登録してくれてありがとう！
+                {t("itemDetails.creator.thanks")}
               </div>
             )}
           </div>
