@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
 import { Button } from "../ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CollectionLikeButtonProps {
   collectionOwnerId: string;
@@ -13,6 +14,7 @@ export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButton
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const { data: likeCount = 0 } = useQuery({
     queryKey: ["collection-likes-count", collectionOwnerId],
@@ -45,8 +47,8 @@ export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButton
     
     if (!user) {
       toast({
-        title: "ログインが必要です",
-        description: "いいねをするにはログインしてください。",
+        title: t("collectionScreen.like.loginRequired"),
+        description: t("collectionScreen.like.loginRequiredDesc"),
       });
       return;
     }
@@ -75,14 +77,14 @@ export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButton
       queryClient.invalidateQueries({ queryKey: ["collection-is-liked", collectionOwnerId, user.id] });
 
       toast({
-        title: isLiked ? "いいねを取り消しました" : "いいねしました",
-        description: isLiked ? "コレクションのいいねを取り消しました。" : "コレクションにいいねしました。",
+        title: isLiked ? t("collectionScreen.like.unliked") : t("collectionScreen.like.liked"),
+        description: isLiked ? t("collectionScreen.like.unlikedDesc") : t("collectionScreen.like.likedDesc"),
       });
     } catch (error) {
       console.error("Error toggling collection like:", error);
       toast({
-        title: "エラー",
-        description: "いいねの更新に失敗しました。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.like.failed"),
         variant: "destructive",
       });
     }

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface ItemPostComment {
   id: string;
@@ -23,10 +24,11 @@ export interface ItemPostComment {
 export function useToggleItemPostLike() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ postId, currentlyLiked }: { postId: string; currentlyLiked: boolean }) => {
-      if (!user?.id) throw new Error("ログインが必要です");
+      if (!user?.id) throw new Error(t("notices.common.loginRequired"));
       if (currentlyLiked) {
         const { error } = await supabase
           .from("item_post_likes")
@@ -75,7 +77,7 @@ export function useToggleItemPostLike() {
       });
     },
     onError: (err) => {
-      toast.error((err as Error).message || "いいねに失敗しました");
+      toast.error((err as Error).message || t("notices.itemPosts.likeFailed"));
       qc.invalidateQueries({ queryKey: ["item-posts"] });
       qc.invalidateQueries({ queryKey: ["item-post"] });
     },
@@ -117,12 +119,13 @@ export function useItemPostComments(postId: string | null) {
 export function useCreateItemPostComment() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
-      if (!user?.id) throw new Error("ログインが必要です");
+      if (!user?.id) throw new Error(t("notices.common.loginRequired"));
       const trimmed = content.trim();
-      if (!trimmed) throw new Error("コメントを入力してください");
+      if (!trimmed) throw new Error(t("notices.itemPosts.commentRequired"));
       const { data, error } = await supabase
         .from("item_post_comments")
         .insert({ post_id: postId, user_id: user.id, content: trimmed })
@@ -136,7 +139,7 @@ export function useCreateItemPostComment() {
       qc.invalidateQueries({ queryKey: ["item-posts"] });
       qc.invalidateQueries({ queryKey: ["item-post"] });
     },
-    onError: (e) => toast.error((e as Error).message || "コメントに失敗しました"),
+    onError: (e) => toast.error((e as Error).message || t("notices.itemPosts.commentFailed")),
   });
 }
 

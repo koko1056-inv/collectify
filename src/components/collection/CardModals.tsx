@@ -2,6 +2,7 @@ import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
 import { TagManageModal } from "@/components/tag/TagManageModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ItemDetailsModal } from "../ItemDetailsModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CardModalsProps {
   itemId: string;
@@ -40,6 +41,7 @@ export function CardModals({
   onDetailsClose,
   onDeleteConfirm,
 }: CardModalsProps) {
+  const { t } = useLanguage();
   return (
     <>
       <ItemMemoriesModal
@@ -58,18 +60,18 @@ export function CardModals({
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={onDeleteClose}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>コレクションの削除</AlertDialogTitle>
+            <AlertDialogTitle>{t("collectionScreen.deleteCollection.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              このコレクションを削除してもよろしいですか？この操作は取り消せません。
+              {t("collectionScreen.deleteCollection.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogCancel>{t("collectionScreen.common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={onDeleteConfirm}
               className="bg-red-500 hover:bg-red-600"
             >
-              削除
+              {t("collectionScreen.common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

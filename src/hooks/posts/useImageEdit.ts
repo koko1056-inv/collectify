@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useImageEdit() {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const editImage = async (imageUrl: string, prompt: string, avatarUrl?: string): Promise<string> => {
     setIsEditing(true);
@@ -15,26 +17,26 @@ export function useImageEdit() {
 
       if (error) {
         console.error('Edge function error:', error);
-        throw new Error(error.message || '画像の編集に失敗しました');
+        throw new Error(error.message || t('notices.imageEdit.failed'));
       }
 
       if (!data?.editedImageUrl) {
-        throw new Error('編集された画像が取得できませんでした');
+        throw new Error(t('notices.imageEdit.noResult'));
       }
 
       toast({
-        title: "画像編集完了",
-        description: "画像の編集が完了しました",
+        title: t("notices.imageEdit.doneTitle"),
+        description: t("notices.imageEdit.doneDesc"),
       });
 
       return data.editedImageUrl;
     } catch (error) {
       console.error("画像編集エラー:", error);
       
-      const errorMessage = error instanceof Error ? error.message : "画像の編集に失敗しました";
+      const errorMessage = error instanceof Error ? error.message : t("notices.imageEdit.failed");
       
       toast({
-        title: "エラー",
+        title: t("notices.common.errorTitle"),
         description: errorMessage,
         variant: "destructive",
       });

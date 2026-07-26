@@ -10,6 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { RandomItemContent } from "./random-item/RandomItemContent";
 import { RandomItemActionButtons } from "./random-item/RandomItemActionButtons";
 import { useRandomItem } from "./random-item/useRandomItem";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RandomCollectionItemModalProps {
   isOpen: boolean;
@@ -28,7 +29,8 @@ export function RandomCollectionItemModal({
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isMemoriesModalOpen, setIsMemoriesModalOpen] = useState(false);
   const effectiveUserId = userId || user?.id;
-  
+  const { t } = useLanguage();
+
   const { randomItem, isLoading, isSpinning, fetchRandomItem } = useRandomItem(
     effectiveUserId,
     isOpen
@@ -54,7 +56,7 @@ export function RandomCollectionItemModal({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="relative z-10 bg-white/80 backdrop-blur-sm py-2 rounded-t-md">
-            <DialogTitle className="text-center text-primary font-bold">今日のコレクション</DialogTitle>
+            <DialogTitle className="text-center text-primary font-bold">{t("collectionScreen.random.title")}</DialogTitle>
           </DialogHeader>
           
           <div className="py-4">
@@ -84,7 +86,7 @@ export function RandomCollectionItemModal({
           <ShareModal
             isOpen={isShareModalOpen}
             onClose={() => setIsShareModalOpen(false)}
-            title={`コレクション: ${randomItem.title}`}
+            title={`${t("collectionScreen.random.sharePrefix")}${randomItem.title}`}
             url={window.location.href}
             image={randomItem.image}
           />

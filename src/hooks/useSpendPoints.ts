@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface SpendPointsParams {
   cost: number;
@@ -18,10 +19,11 @@ export interface SpendPointsParams {
 export function useSpendPoints() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ cost, transactionType, description, referenceId }: SpendPointsParams) => {
-      if (!user?.id) throw new Error("ログインが必要です");
+      if (!user?.id) throw new Error(t("notices.common.loginRequired"));
       if (cost <= 0) return { newBalance: 0 };
 
       const { data: row, error: balErr } = await supabase
@@ -33,7 +35,7 @@ export function useSpendPoints() {
 
       const balance = row?.total_points ?? 0;
       if (balance < cost) {
-        throw new Error(`ポイントが不足しています（必要: ${cost}pt / 現在: ${balance}pt）`);
+        throw new Error(t("notices.points.insufficientCostBalance", { cost, balance }));
       }
 
       const { error: rpcErr } = await supabase.rpc("add_user_points", {
@@ -52,7 +54,7 @@ export function useSpendPoints() {
       qc.invalidateQueries({ queryKey: ["pointTransactions"] });
     },
     onError: (e) => {
-      toast.error((e as Error).message || "ポイント消費に失敗しました");
+      toast.error((e as Error).message || t("notices.points.spendFailed"));
     },
   });
 }
@@ -61,10 +63,11 @@ export function useSpendPoints() {
 export function useExpandCollectionSlots() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async () => {
-      if (!user?.id) throw new Error("ログインが必要です");
+      if (!user?.id) throw new Error(t("notices.common.loginRequired"));
 
       // サーバー側で残高検証 + ポイント減算 + 枠拡張 + 履歴記録を原子化
       const { error } = await supabase.rpc("expand_collection_slots", {
@@ -73,7 +76,7 @@ export function useExpandCollectionSlots() {
       });
       if (error) {
         if (error.message?.includes("Insufficient points")) {
-          throw new Error("ポイントが不足しています（必要: 30pt）");
+          throw new Error(t("notices.points.insufficient30"));
         }
         throw error;
       }
@@ -83,10 +86,10 @@ export function useExpandCollectionSlots() {
       qc.invalidateQueries({ queryKey: ["collectionCount"] });
       qc.invalidateQueries({ queryKey: ["userPoints"] });
       qc.invalidateQueries({ queryKey: ["pointTransactions"] });
-      toast.success("コレクション枠を +10 拡張しました ✨");
+      toast.success(t("notices.collection.slotsExpanded"));
     },
     onError: (e) => {
-      toast.error((e as Error).message || "枠拡張に失敗しました");
+      toast.error((e as Error).message || t("notices.collection.slotsExpandFailed"));
     },
   });
 }

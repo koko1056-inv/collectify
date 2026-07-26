@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ShareItemParams {
   title: string;
@@ -18,11 +19,12 @@ interface ShareItemParams {
  */
 export function useItemShare() {
   const [isSharing, setIsSharing] = useState(false);
+  const { t } = useLanguage();
 
   const shareItem = useCallback(async ({ title, imageUrl, contentName }: ShareItemParams) => {
     const text = contentName
-      ? `${title}（${contentName}）をコレクションに追加したよ！ #Collectify`
-      : `${title}をコレクションに追加したよ！ #Collectify`;
+      ? t("notices.share.itemTextWithContent", { title, contentName })
+      : t("notices.share.itemText", { title });
 
     setIsSharing(true);
     try {
@@ -56,14 +58,14 @@ export function useItemShare() {
 
       // 3. クリップボードにコピー
       await navigator.clipboard.writeText(text);
-      toast.success("シェア用のテキストをコピーしました");
+      toast.success(t("notices.share.textCopied"));
     } catch (e) {
       console.error("Item share failed:", e);
-      toast.error("シェアに失敗しました");
+      toast.error(t("notices.share.failed"));
     } finally {
       setIsSharing(false);
     }
-  }, []);
+  }, [t]);
 
   return { shareItem, isSharing };
 }

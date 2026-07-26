@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ContentNameSectionProps {
   contentName: string | null;
@@ -15,6 +16,7 @@ interface ContentNameSectionProps {
 
 export function ContentNameSection({ contentName, onContentChange }: ContentNameSectionProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [isAddingNewContent, setIsAddingNewContent] = useState(false);
   const [newContentName, setNewContentName] = useState("");
@@ -46,8 +48,8 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
   const handleAddNewContent = async () => {
     if (!newContentName.trim()) {
       toast({
-        title: "エラー",
-        description: "コンテンツ名を入力してください",
+        title: t("tagManage.common.error"),
+        description: t("tagManage.content.nameRequired"),
         variant: "destructive",
       });
       return;
@@ -70,14 +72,14 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
       setNewContentName("");
       
       toast({
-        title: "コンテンツを追加しました",
-        description: `${data.name}を追加しました`,
+        title: t("tagManage.content.added"),
+        description: `${t("tagManage.common.addedPrefix")}${data.name}${t("tagManage.common.addedSuffix")}`,
       });
     } catch (error) {
       console.error("Error adding content:", error);
       toast({
-        title: "エラー",
-        description: "コンテンツの追加に失敗しました",
+        title: t("tagManage.common.error"),
+        description: t("tagManage.content.addFailed"),
         variant: "destructive",
       });
     }
@@ -85,18 +87,18 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium">コンテンツ</h3>
+      <h3 className="text-sm font-medium">{t("tagManage.content.heading")}</h3>
       
       {isAddingNewContent ? (
         <div className="flex gap-2">
           <Input
             value={newContentName}
             onChange={(e) => setNewContentName(e.target.value)}
-            placeholder="新しいコンテンツ名"
+            placeholder={t("tagManage.content.newPlaceholder")}
             className="flex-1"
           />
           <Button onClick={handleAddNewContent}>
-            追加
+            {t("tagManage.common.add")}
           </Button>
           <Button 
             variant="outline" 
@@ -105,14 +107,14 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
               setNewContentName("");
             }}
           >
-            キャンセル
+            {t("tagManage.common.cancel")}
           </Button>
         </div>
       ) : (
         isContentLoading ? (
           <div className="flex items-center space-x-2">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>読み込み中...</span>
+            <span>{t("tagManage.common.loading")}</span>
           </div>
         ) : (
           <Select
@@ -120,16 +122,16 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
             onValueChange={handleContentChange}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="コンテンツを選択" />
+              <SelectValue placeholder={t("tagManage.content.selectPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">選択なし</SelectItem>
+              <SelectItem value="none">{t("tagManage.content.none")}</SelectItem>
               {contentNames.map((content) => (
                 <SelectItem key={content.id} value={content.name}>
                   {content.name}
                 </SelectItem>
               ))}
-              <SelectItem value="other">その他（新規追加）</SelectItem>
+              <SelectItem value="other">{t("tagManage.content.other")}</SelectItem>
             </SelectContent>
           </Select>
         )

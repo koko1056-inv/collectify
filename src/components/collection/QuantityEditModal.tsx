@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface QuantityEditModalProps {
   isOpen: boolean;
@@ -27,12 +28,13 @@ export function QuantityEditModal({
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const handleSave = async () => {
     if (quantity < 1) {
       toast({
-        title: "エラー",
-        description: "数量は1以上を指定してください。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.quantity.minError"),
         variant: "destructive",
       });
       return;
@@ -48,8 +50,8 @@ export function QuantityEditModal({
       if (error) throw error;
 
       toast({
-        title: "更新完了",
-        description: "アイテム数を更新しました。",
+        title: t("collectionScreen.common.updated"),
+        description: t("collectionScreen.quantity.updated"),
       });
 
       // Invalidate user items queries to refresh the UI
@@ -58,8 +60,8 @@ export function QuantityEditModal({
     } catch (error) {
       console.error("Error updating quantity:", error);
       toast({
-        title: "エラー",
-        description: "アイテム数の更新に失敗しました。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.quantity.updateFailed"),
         variant: "destructive",
       });
     } finally {
@@ -71,14 +73,14 @@ export function QuantityEditModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>所持数の編集</DialogTitle>
+          <DialogTitle>{t("collectionScreen.quantity.title")}</DialogTitle>
         </DialogHeader>
         <div className="py-4 space-y-4">
           <div className="text-sm font-medium mb-2">
-            "{itemTitle}" の所持数を編集
+            "{itemTitle}"{t("collectionScreen.quantity.editForSuffix")}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="quantity">所持数</Label>
+            <Label htmlFor="quantity">{t("collectionScreen.quantity.label")}</Label>
             <Input
               id="quantity"
               type="number"
@@ -90,10 +92,10 @@ export function QuantityEditModal({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            キャンセル
+            {t("collectionScreen.common.cancel")}
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? "保存中..." : "保存"}
+            {isSaving ? t("collectionScreen.common.saving") : t("collectionScreen.common.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

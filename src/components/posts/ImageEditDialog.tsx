@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useUserPoints } from "@/hooks/usePoints";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // 表示用のコスト（実際の消費は edit-image Edge Function 側で行う）
 const GENERATION_COST = 10;
@@ -39,6 +40,7 @@ export function ImageEditDialog({
   const [avatars, setAvatars] = useState<AvatarOption[]>([]);
   const [profileAvatar, setProfileAvatar] = useState<string | null>(null);
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { data: userPoints } = useUserPoints();
   const { toast } = useToast();
   useEffect(() => {
@@ -89,8 +91,8 @@ export function ImageEditDialog({
       if (currentPoints < GENERATION_COST) {
         toast({
           variant: "destructive",
-          title: "ポイント不足",
-          description: `画像生成には${GENERATION_COST}ポイント必要です（現在: ${currentPoints}pt）`,
+          title: t("social.posts.pointsShortTitle"),
+          description: t("social.posts.pointsShortDesc", { cost: GENERATION_COST, current: currentPoints }),
         });
         return;
       }
@@ -112,14 +114,15 @@ export function ImageEditDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            AIで画像を生成
+            {t("social.posts.aiGenerateTitle")}
             <span className="ml-auto flex items-center gap-1 text-sm font-normal text-muted-foreground">
               <Coins className="w-4 h-4" />
               {GENERATION_COST}pt
             </span>
           </DialogTitle>
           <p className="text-xs text-muted-foreground mt-1">
-            現在のポイント: <span className="font-medium text-foreground">{userPoints?.total_points || 0}pt</span>
+            {t("social.posts.currentPointsLabel")}{" "}
+            <span className="font-medium text-foreground">{userPoints?.total_points || 0}pt</span>
           </p>
         </DialogHeader>
         
@@ -128,7 +131,7 @@ export function ImageEditDialog({
           <div className="rounded-lg overflow-hidden border">
             <img
               src={imageUrl}
-              alt="参照画像"
+              alt={t("social.posts.referenceAlt")}
               className="w-full h-48 object-cover"
             />
           </div>
@@ -137,7 +140,7 @@ export function ImageEditDialog({
           <div className="space-y-2">
             <Label className="text-sm flex items-center gap-2">
               <User className="w-4 h-4" />
-              アバターを使用（任意）
+              {t("social.posts.useAvatar")}
             </Label>
             
             {allAvatarOptions.length > 0 ? (
@@ -171,7 +174,7 @@ export function ImageEditDialog({
                     )}
                     {avatar.isProfile && (
                       <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[8px] px-1.5 rounded-full">
-                        メイン
+                        {t("social.posts.avatarMain")}
                       </div>
                     )}
                   </button>
@@ -179,38 +182,38 @@ export function ImageEditDialog({
               </div>
             ) : (
               <p className="text-sm text-muted-foreground py-2">
-                アバターがありません。プロフィールでアバターを設定してください。
+                {t("social.posts.noAvatars")}
               </p>
             )}
             
             {selectedAvatarUrl && (
               <p className="text-xs text-primary">
-                選択したアバターが画像生成に使用されます
+                {t("social.posts.avatarSelected")}
               </p>
             )}
           </div>
 
           {/* プロンプト入力 */}
           <div className="space-y-2">
-            <Label htmlFor="edit-prompt">生成内容を入力</Label>
+            <Label htmlFor="edit-prompt">{t("social.posts.promptLabel")}</Label>
             <Input
               id="edit-prompt"
-              placeholder="例: アバターがグッズを持っている、背景を青空に"
+              placeholder={t("social.posts.promptPlaceholder")}
               value={editPrompt}
               onChange={(e) => setEditPrompt(e.target.value)}
               disabled={isEditing}
             />
             <p className="text-xs text-muted-foreground">
               {selectedAvatarUrl 
-                ? "選択したアバターとグッズ画像を参考にAIが画像を生成します"
-                : "グッズ画像を参考にAIが画像を生成します"
+                ? t("social.posts.promptHintWithAvatar")
+                : t("social.posts.promptHint")
               }
             </p>
           </div>
 
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={onClose} disabled={isEditing}>
-              キャンセル
+              {t("social.posts.cancel")}
             </Button>
             <Button 
               onClick={handleEdit}
@@ -219,12 +222,12 @@ export function ImageEditDialog({
               {isEditing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  生成中...
+                  {t("social.posts.generating")}
                 </>
               ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  生成する
+                  {t("social.posts.generate")}
                 </>
               )}
             </Button>

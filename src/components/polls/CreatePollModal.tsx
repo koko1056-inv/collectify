@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useCreatePoll } from "@/hooks/polls/usePollMutations";
 import { X, Plus } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreatePollModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface CreatePollModalProps {
 }
 
 export function CreatePollModal({ isOpen, onClose }: CreatePollModalProps) {
+  const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [options, setOptions] = useState<string[]>(["", ""]);
@@ -68,42 +70,42 @@ export function CreatePollModal({ isOpen, onClose }: CreatePollModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>投票を作成</DialogTitle>
+          <DialogTitle>{t("social.polls.createTitle")}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor="title">タイトル</Label>
+            <Label htmlFor="title">{t("social.polls.title")}</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="投票のタイトル"
+              placeholder={t("social.polls.titlePlaceholder")}
               className="mt-1"
             />
           </div>
 
           <div>
-            <Label htmlFor="description">説明（任意）</Label>
+            <Label htmlFor="description">{t("social.polls.descriptionOptional")}</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="投票の説明"
+              placeholder={t("social.polls.descriptionPlaceholder")}
               className="mt-1"
               rows={2}
             />
           </div>
 
           <div>
-            <Label>選択肢</Label>
+            <Label>{t("social.polls.options")}</Label>
             <div className="space-y-2 mt-2">
               {options.map((option, index) => (
                 <div key={index} className="flex gap-2">
                   <Input
                     value={option}
                     onChange={(e) => handleOptionChange(index, e.target.value)}
-                    placeholder={`選択肢 ${index + 1}`}
+                    placeholder={t("social.polls.optionPlaceholder", { index: index + 1 })}
                   />
                   {options.length > 2 && (
                     <Button
@@ -126,7 +128,7 @@ export function CreatePollModal({ isOpen, onClose }: CreatePollModalProps) {
               className="mt-2"
             >
               <Plus className="h-4 w-4 mr-2" />
-              選択肢を追加
+              {t("social.polls.addOption")}
             </Button>
           </div>
 
@@ -136,14 +138,14 @@ export function CreatePollModal({ isOpen, onClose }: CreatePollModalProps) {
               onClick={onClose}
               className="flex-1"
             >
-              キャンセル
+              {t("social.polls.cancel")}
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={!title.trim() || options.filter((o) => o.trim()).length < 2 || createPoll.isPending}
               className="flex-1"
             >
-              {createPoll.isPending ? "作成中..." : "作成"}
+              {createPoll.isPending ? t("social.polls.creating") : t("social.polls.create")}
             </Button>
           </div>
         </div>

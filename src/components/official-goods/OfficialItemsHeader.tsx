@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ContentTagManageModal } from "@/components/tag/ContentTagManageModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned";
 
@@ -33,6 +34,7 @@ export const OfficialItemsHeader = memo(function OfficialItemsHeader({
   showSelectionMode,
 }: OfficialItemsHeaderProps) {
   const [isTagManageOpen, setIsTagManageOpen] = useState(false);
+  const { t } = useLanguage();
 
   const handleTagManageOpen = useCallback(() => setIsTagManageOpen(true), []);
   const handleTagManageClose = useCallback(() => setIsTagManageOpen(false), []);
@@ -43,24 +45,24 @@ export const OfficialItemsHeader = memo(function OfficialItemsHeader({
   return (
     <div className="flex justify-between items-center gap-2 px-2">
       <div className="flex items-baseline gap-2 min-w-0">
-        <h1 className="text-sm sm:text-2xl font-bold text-foreground">グッズ</h1>
+        <h1 className="text-sm sm:text-2xl font-bold text-foreground">{t("collectionScreen.official.heading")}</h1>
         <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
-          全{totalItems}件
+          {t("collectionScreen.official.totalPrefix")}{totalItems}{t("collectionScreen.official.totalSuffix")}
         </span>
       </div>
 
       <div className="flex items-center gap-1.5 shrink-0">
         <Select value={sortBy} onValueChange={handleSortChange} defaultValue="newest">
           <SelectTrigger className="w-[110px] sm:w-[160px] h-8 sm:h-9 text-xs sm:text-sm">
-            <SelectValue placeholder="並び順" />
+            <SelectValue placeholder={t("collectionScreen.official.sortPlaceholder")} />
           </SelectTrigger>
           <SelectContent position="popper" className="bg-popover border border-border z-50">
-            <SelectItem value="newest">新しい順</SelectItem>
-            <SelectItem value="oldest">古い順</SelectItem>
-            <SelectItem value="wishlist">ウィッシュリスト順</SelectItem>
-            <SelectItem value="owners-desc">保有者数（多）</SelectItem>
-            <SelectItem value="owners-asc">保有者数（少）</SelectItem>
-            <SelectItem value="not-owned">未所持</SelectItem>
+            <SelectItem value="newest">{t("collectionScreen.official.sortNewest")}</SelectItem>
+            <SelectItem value="oldest">{t("collectionScreen.official.sortOldest")}</SelectItem>
+            <SelectItem value="wishlist">{t("collectionScreen.official.sortWishlist")}</SelectItem>
+            <SelectItem value="owners-desc">{t("collectionScreen.official.sortOwnersDesc")}</SelectItem>
+            <SelectItem value="owners-asc">{t("collectionScreen.official.sortOwnersAsc")}</SelectItem>
+            <SelectItem value="not-owned">{t("collectionScreen.official.sortNotOwned")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -73,18 +75,18 @@ export const OfficialItemsHeader = memo(function OfficialItemsHeader({
           <DropdownMenuContent align="end" className="bg-popover z-50">
             <DropdownMenuItem onClick={handleTagManageOpen}>
               <Tags className="h-4 w-4 mr-2" />
-              タグ管理
+              {t("collectionScreen.official.manageTags")}
             </DropdownMenuItem>
             {showSelectionMode && (
               <DropdownMenuItem onClick={onSelectionModeClick}>
                 <CheckSquare className="h-4 w-4 mr-2" />
-                選択モード
+                {t("collectionScreen.official.selectionMode")}
               </DropdownMenuItem>
             )}
             {showBulkImport && (
               <DropdownMenuItem onClick={onBulkImportClick}>
                 <Upload className="h-4 w-4 mr-2" />
-                一括追加
+                {t("collectionScreen.official.bulkImport")}
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>

@@ -8,6 +8,7 @@ import { TagCategory } from "@/types/tag";
 
 // 循環参照を避けるために、必要な型だけをインポート
 import type { Tag } from "@/types/tag";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ export function TagDialog({
   onSelect,
   category
 }: TagDialogProps) {
+  const { t } = useLanguage();
   const [inputValue, setInputValue] = useState(initialValue || "");
   const [selectedTag, setSelectedTag] = useState<string | null>(initialValue);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
@@ -87,10 +89,10 @@ export function TagDialog({
         
         <div className="flex justify-end space-x-2">
           <Button variant="outline" onClick={onClose}>
-            キャンセル
+            {t("tagManage.common.cancel")}
           </Button>
           <Button onClick={handleConfirm}>
-            選択
+            {t("tagManage.common.select")}
           </Button>
         </div>
       </DialogContent>

@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
 import { BackgroundPreset, DEFAULT_PRESETS } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   backgroundImage: string | null;
@@ -32,8 +33,17 @@ export function BackgroundSelector({
   isOpen,
 }: Props) {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isGeneratingBackground, setIsGeneratingBackground] = useState(false);
+
+  // デフォルトプリセットの表示名（プロンプト等のデータは types.ts のまま）
+  const presetLabels: Record<string, string> = {
+    shelf: t("homeScreen.presets.shelf"),
+    room: t("homeScreen.presets.room"),
+    showcase: t("homeScreen.presets.showcase"),
+    display: t("homeScreen.presets.display"),
+  };
 
   const { data: userPresets = [] } = useQuery({
     queryKey: ["background-presets"],
@@ -115,18 +125,20 @@ export function BackgroundSelector({
 
           if (!saveError) {
             queryClient.invalidateQueries({ queryKey: ["background-presets"] });
-            toast.success("背景プリセットとして保存しました");
+            toast.success(t("homeScreen.background.savedAsPreset"));
           }
         }
-        toast.success("背景画像を生成しました");
+        toast.success(t("homeScreen.background.generated"));
         setSelectedCategory(null);
       } else {
-        throw new Error("背景画像の生成に失敗しました");
+        throw new Error(t("homeScreen.background.generateFailed"));
       }
     } catch (error) {
       console.error("Error generating background:", error);
       toast.error(
-        error instanceof Error ? error.message : "背景画像の生成に失敗しました"
+        error instanceof Error
+          ? error.message
+          : t("homeScreen.background.generateFailed")
       );
     } finally {
       setIsGeneratingBackground(false);
@@ -137,7 +149,7 @@ export function BackgroundSelector({
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      toast.error("画像ファイルを選択してください");
+      toast.error(t("homeScreen.background.selectImageFile"));
       return;
     }
     onSelectedPresetChange(null);
@@ -151,7 +163,7 @@ export function BackgroundSelector({
   return (
     <>
       <div className="space-y-2">
-        <label className="text-sm font-medium">背景画像</label>
+        <label className="text-sm font-medium">{t("homeScreen.background.label")}</label>
         {backgroundImage ? (
           <div className="relative border rounded-lg overflow-hidden">
             <img
@@ -168,14 +180,14 @@ export function BackgroundSelector({
                 onSelectedPresetChange(null);
               }}
             >
-              削除
+              {t("homeScreen.background.remove")}
             </Button>
           </div>
         ) : (
           <Tabs defaultValue="preset" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="preset">プリセット</TabsTrigger>
-              <TabsTrigger value="upload">カスタム</TabsTrigger>
+              <TabsTrigger value="preset">{t("homeScreen.background.tabPreset")}</TabsTrigger>
+              <TabsTrigger value="upload">{t("homeScreen.background.tabCustom")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="preset" className="space-y-3">
@@ -187,14 +199,14 @@ export function BackgroundSelector({
                       size="sm"
                       onClick={() => setSelectedCategory(null)}
                     >
-                      ← カテゴリ一覧に戻る
+                      {t("homeScreen.background.backToCategories")}
                     </Button>
                     <Button
                       size="sm"
                       onClick={() => onOpenUploadDialog(selectedCategory)}
                     >
                       <Plus className="w-4 h-4 mr-1" />
-                      背景を追加
+                      {t("homeScreen.background.addBackground")}
                     </Button>
                   </div>
 
@@ -225,14 +237,14 @@ export function BackgroundSelector({
                   {isGeneratingBackground && (
                     <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-4">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      背景画像を生成中...
+                      {t("homeScreen.background.generatingBackground")}
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground">
-                    カテゴリを選択して背景画像を管理
+                    {t("homeScreen.background.selectCategory")}
                   </p>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -244,12 +256,14 @@ export function BackgroundSelector({
                         onClick={() => setSelectedCategory(preset.category)}
                       >
                         {preset.icon && <preset.icon className="w-6 h-6" />}
-                        <span className="text-xs font-medium">{preset.name}</span>
+                        <span className="text-xs font-medium">
+                          {presetLabels[preset.id] ?? preset.name}
+                        </span>
                         <span className="text-[10px] text-muted-foreground">
                           {presetsByCategory[
                             preset.category as keyof typeof presetsByCategory
                           ]?.length || 0}
-                          件
+                          {t("homeScreen.background.countSuffix")}
                         </span>
                       </Button>
                     ))}
@@ -263,7 +277,7 @@ export function BackgroundSelector({
                 <label className="flex flex-col items-center gap-2 cursor-pointer">
                   <Upload className="w-8 h-8 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    クリックして背景画像をアップロード
+                    {t("homeScreen.background.uploadHint")}
                   </span>
                   <input
                     type="file"
@@ -281,12 +295,12 @@ export function BackgroundSelector({
       {backgroundImage && (
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            生成プロンプト（オプション）
+            {t("homeScreen.background.promptLabel")}
           </label>
           <Textarea
             value={customPrompt}
             onChange={(e) => onCustomPromptChange(e.target.value)}
-            placeholder="生成する画像の説明を入力してください。空白の場合はデフォルトプロンプトが使用されます。"
+            placeholder={t("homeScreen.background.promptPlaceholder")}
             className="min-h-[80px]"
           />
         </div>

@@ -25,8 +25,10 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { ShareModal } from "@/components/ShareModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function AiWorkDetail() {
+  const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data, isLoading } = useAiRoomDetail(id);
@@ -58,7 +60,7 @@ export default function AiWorkDetail() {
       parentImageUrl: room.image_url,
       parentTitle: room.title,
     });
-    toast.success("このスタイルでルームを作成します ✨");
+    toast.success(t("screens.aiWorkDetail.styleCloneToast"));
     navigate("/my-room?tab=studio&from=explore");
   };
 
@@ -79,7 +81,7 @@ export default function AiWorkDetail() {
       parentImageUrl: room.image_url,
       parentTitle: room.title,
     });
-    toast.success("同じ素材でリミックスします 🎨");
+    toast.success(t("screens.aiWorkDetail.remixToast"));
     navigate("/my-room?tab=studio&from=explore");
   };
 
@@ -95,7 +97,7 @@ export default function AiWorkDetail() {
             className="gap-1 text-muted-foreground hover:text-foreground -ml-2 mb-3"
           >
             <ArrowLeft className="w-4 h-4" />
-            戻る
+            {t("screens.aiWorkDetail.back")}
           </Button>
 
           {isLoading ? (
@@ -106,8 +108,8 @@ export default function AiWorkDetail() {
             </div>
           ) : !room ? (
             <div className="bg-card rounded-2xl border p-10 text-center">
-              <p className="font-semibold mb-2">作品が見つかりません</p>
-              <Button onClick={() => navigate("/explore")}>探索ページへ</Button>
+              <p className="font-semibold mb-2">{t("screens.aiWorkDetail.notFound")}</p>
+              <Button onClick={() => navigate("/explore")}>{t("screens.aiWorkDetail.toExplore")}</Button>
             </div>
           ) : (
             <>
@@ -115,7 +117,7 @@ export default function AiWorkDetail() {
               <div className="relative rounded-3xl overflow-hidden bg-muted border border-border/40 shadow-xl">
                 <img
                   src={room.image_url}
-                  alt={room.title || "AI作品"}
+                  alt={room.title || t("screens.aiWorkDetail.imageAlt")}
                   className="w-full h-auto max-h-[70vh] object-contain bg-black/5"
                 />
                 <div className="absolute top-3 left-3 flex items-center gap-2">
@@ -152,7 +154,7 @@ export default function AiWorkDetail() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h1 className="text-xl sm:text-2xl font-bold truncate">
-                      {room.title || "無題のAIルーム"}
+                      {room.title || t("screens.aiWorkDetail.untitledRoom")}
                     </h1>
                     {preset && (
                       <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
@@ -196,7 +198,7 @@ export default function AiWorkDetail() {
                 <div className="flex flex-wrap gap-2 pt-2">
                   <Button onClick={handleStyleClone} className="gap-1.5">
                     <Wand2 className="w-4 h-4" />
-                    このスタイルで作る
+                    {t("screens.aiWorkDetail.useThisStyle")}
                   </Button>
                   <Button
                     variant="secondary"
@@ -205,7 +207,7 @@ export default function AiWorkDetail() {
                     className="gap-1.5"
                   >
                     <Repeat className="w-4 h-4" />
-                    リミックス
+                    {t("screens.aiWorkDetail.remix")}
                   </Button>
                   <Button
                     variant="outline"
@@ -213,7 +215,7 @@ export default function AiWorkDetail() {
                     className="gap-1.5"
                   >
                     <Share2 className="w-4 h-4" />
-                    シェア
+                    {t("screens.aiWorkDetail.share")}
                   </Button>
                 </div>
               </div>
@@ -223,7 +225,7 @@ export default function AiWorkDetail() {
                 <section className="mt-8">
                   <h2 className="text-sm font-bold mb-3 flex items-center gap-1.5">
                     <Package className="w-4 h-4 text-primary" />
-                    使われた素材 ({room.source_item_images.length})
+                    {t("screens.aiWorkDetail.sourceItems", { count: room.source_item_images.length })}
                   </h2>
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {room.source_item_images.map((src, i) => (
@@ -243,7 +245,7 @@ export default function AiWorkDetail() {
                 <section className="mt-8">
                   <h2 className="text-sm font-bold mb-3 flex items-center gap-1.5">
                     <Repeat className="w-4 h-4 text-accent-foreground" />
-                    リミックス元
+                    {t("screens.aiWorkDetail.remixSource")}
                   </h2>
                   <button
                     onClick={() => navigate(`/ai-work/${lineage.parent!.id}`)}
@@ -256,7 +258,7 @@ export default function AiWorkDetail() {
                     />
                     <div className="p-2 text-left">
                       <p className="text-sm font-medium truncate">
-                        {lineage.parent.title || "無題のAIルーム"}
+                        {lineage.parent.title || t("screens.aiWorkDetail.untitledRoom")}
                       </p>
                     </div>
                   </button>
@@ -268,7 +270,7 @@ export default function AiWorkDetail() {
                 <section className="mt-8">
                   <h2 className="text-sm font-bold mb-3 flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    この作品から派生 ({lineage.children.length})
+                    {t("screens.aiWorkDetail.derivedWorks", { count: lineage.children.length })}
                   </h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {lineage.children.map((c) => (
@@ -284,7 +286,7 @@ export default function AiWorkDetail() {
                         />
                         <div className="p-2 text-left">
                           <p className="text-xs font-medium truncate">
-                            {c.title || "無題"}
+                            {c.title || t("screens.aiWorkDetail.untitled")}
                           </p>
                         </div>
                       </button>
@@ -301,7 +303,7 @@ export default function AiWorkDetail() {
         <ShareModal
           isOpen={shareOpen}
           onClose={() => setShareOpen(false)}
-          title={`${room.title || "AIで作った推しルーム"} 🏠✨ #Collectify`}
+          title={`${room.title || t("screens.aiWorkDetail.shareFallbackTitle")} 🏠✨ #Collectify`}
           url={typeof window !== "undefined" ? window.location.href : ""}
           image={room.image_url}
         />

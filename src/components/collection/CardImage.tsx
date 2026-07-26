@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { LazyImage } from "../ui/lazy-image";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import { Badge } from "../ui/badge";
 
@@ -31,6 +32,7 @@ const CardImage = memo(function CardImage({
     toast
   } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const handleImageChange = async (file: File | null) => {
     if (!file || !itemId) return;
     try {
@@ -77,15 +79,15 @@ const CardImage = memo(function CardImage({
         image: publicUrl
       }));
       toast({
-        title: "画像を更新しました",
-        description: "コレクションの画像が正常に更新されました。"
+        title: t("collectionScreen.cardImage.updated"),
+        description: t("collectionScreen.cardImage.updatedDesc")
       });
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating image:', error);
       toast({
-        title: "エラー",
-        description: "画像の更新中にエラーが発生しました。もう一度お試しください。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.cardImage.updateFailed"),
         variant: "destructive"
       });
     }
@@ -108,7 +110,7 @@ const CardImage = memo(function CardImage({
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent>
-          <DialogTitle>画像を編集</DialogTitle>
+          <DialogTitle>{t("collectionScreen.cardImage.editTitle")}</DialogTitle>
           <ItemImageUpload onImageChange={handleImageChange} previewUrl={previewUrl} setPreviewUrl={setPreviewUrl} />
         </DialogContent>
       </Dialog>

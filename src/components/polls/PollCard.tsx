@@ -8,12 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PollCardProps {
   poll: Poll;
 }
 
 export function PollCard({ poll }: PollCardProps) {
+  const { t } = useLanguage();
   const [userId, setUserId] = useState<string | null>(null);
   const [userVote, setUserVote] = useState<string | null>(null);
   const votePoll = useVotePoll();
@@ -78,10 +80,10 @@ export function PollCard({ poll }: PollCardProps) {
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
               {isExpired ? (
-                <span className="text-destructive font-semibold">投票終了</span>
+                <span className="text-destructive font-semibold">{t("social.polls.closed")}</span>
               ) : (
                 <span>
-                  残り{formatDistanceToNow(new Date(poll.ends_at), { locale: ja })}
+                  {t("social.polls.remaining", { time: formatDistanceToNow(new Date(poll.ends_at), { locale: ja }) })}
                 </span>
               )}
             </div>
@@ -116,7 +118,7 @@ export function PollCard({ poll }: PollCardProps) {
                     {option.text}
                   </span>
                   <span className="text-sm font-semibold">
-                    {voteCount}票 ({percentage.toFixed(0)}%)
+                    {t("social.polls.optionResult", { count: voteCount, percent: percentage.toFixed(0) })}
                   </span>
                 </div>
               </Button>
@@ -125,7 +127,7 @@ export function PollCard({ poll }: PollCardProps) {
         })}
         
         <div className="text-xs text-muted-foreground text-center pt-2">
-          合計 {totalVotes} 票
+          {t("social.polls.totalVotes", { count: totalVotes })}
         </div>
       </CardContent>
     </Card>

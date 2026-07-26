@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Package, Heart, Users, TrendingUp, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Stats {
   totalItems: number;
@@ -16,6 +17,7 @@ interface Stats {
 
 export function CollectionStats() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const { data: stats, isLoading } = useQuery<Stats>({
     queryKey: ["collection-stats", user?.id],
@@ -81,28 +83,28 @@ export function CollectionStats() {
   const statItems = [
     {
       icon: Package,
-      label: "コレクション",
+      label: t("homeScreen.stats.collection"),
       value: stats?.totalItems || 0,
       color: "text-stats-items",
       bgColor: "bg-stats-items-bg"
     },
     {
       icon: Heart,
-      label: "ウィッシュリスト",
+      label: t("homeScreen.stats.wishlist"),
       value: stats?.totalWishlists || 0,
       color: "text-stats-login",
       bgColor: "bg-stats-login-bg"
     },
     {
       icon: Users,
-      label: "フォロワー",
+      label: t("homeScreen.stats.followers"),
       value: stats?.totalFollowers || 0,
       color: "text-stats-content",
       bgColor: "bg-stats-content-bg"
     },
     {
       icon: TrendingUp,
-      label: "今週の追加",
+      label: t("homeScreen.stats.weeklyAdditions"),
       value: stats?.recentAdditions || 0,
       color: "text-stats-member",
       bgColor: "bg-stats-member-bg",
@@ -114,7 +116,7 @@ export function CollectionStats() {
     <div className="space-y-3">
       <h3 className="text-lg font-bold px-1 flex items-center gap-2">
         <Sparkles className="w-5 h-5 text-primary" />
-        マイ統計
+        {t("homeScreen.stats.title")}
       </h3>
       <div className="grid grid-cols-2 gap-3">
         {statItems.map((item) => (

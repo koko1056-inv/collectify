@@ -1,8 +1,10 @@
 import { useCallback, useRef } from "react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useRoomScreenshot() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const { t } = useLanguage();
 
   // Find the three.js canvas element
   const getCanvas = useCallback((): HTMLCanvasElement | null => {
@@ -16,7 +18,7 @@ export function useRoomScreenshot() {
   const takeScreenshot = useCallback(async (): Promise<Blob | null> => {
     const canvas = getCanvas();
     if (!canvas) {
-      toast.error("スクリーンショットの取得に失敗しました");
+      toast.error(t("notices.screenshot.captureFailed"));
       return null;
     }
 
@@ -26,7 +28,7 @@ export function useRoomScreenshot() {
           if (blob) {
             resolve(blob);
           } else {
-            toast.error("画像の生成に失敗しました");
+            toast.error(t("notices.screenshot.renderFailed"));
             resolve(null);
           }
         },
@@ -34,7 +36,7 @@ export function useRoomScreenshot() {
         1.0
       );
     });
-  }, [getCanvas]);
+  }, [getCanvas, t]);
 
   // Download screenshot
   const downloadScreenshot = useCallback(async () => {
@@ -49,8 +51,8 @@ export function useRoomScreenshot() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("スクリーンショットを保存しました！");
-  }, [takeScreenshot]);
+    toast.success(t("notices.screenshot.saved"));
+  }, [takeScreenshot, t]);
 
   // Share via Web Share API (mobile) or copy to clipboard (desktop)
   const shareScreenshot = useCallback(async (roomTitle?: string) => {
@@ -59,8 +61,8 @@ export function useRoomScreenshot() {
 
     const file = new File([blob], "collectify-room.png", { type: "image/png" });
     const shareData = {
-      title: roomTitle || "マイルーム - Collectify",
-      text: "自分だけの推し部屋を作ったよ！ #Collectify",
+      title: roomTitle || t("notices.screenshot.shareTitle"),
+      text: t("notices.screenshot.shareText"),
       files: [file],
     };
 
@@ -68,7 +70,7 @@ export function useRoomScreenshot() {
     if (navigator.canShare && navigator.canShare(shareData)) {
       try {
         await navigator.share(shareData);
-        toast.success("シェアしました！");
+        toast.success(t("notices.screenshot.shared"));
         return;
       } catch (e) {
         // User cancelled or share failed — fall through to clipboard
@@ -81,12 +83,12 @@ export function useRoomScreenshot() {
       await navigator.clipboard.write([
         new ClipboardItem({ "image/png": blob }),
       ]);
-      toast.success("画像をクリップボードにコピーしました！SNSに貼り付けできます");
+      toast.success(t("notices.screenshot.copiedToClipboard"));
     } catch {
       // Last resort: download
       await downloadScreenshot();
     }
-  }, [takeScreenshot, downloadScreenshot]);
+  }, [takeScreenshot, downloadScreenshot, t]);
 
   return { takeScreenshot, downloadScreenshot, shareScreenshot };
 }

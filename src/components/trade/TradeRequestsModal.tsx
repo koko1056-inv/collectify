@@ -176,7 +176,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
       toast({
         variant: "destructive",
         title: t("common.error"),
-        description: "トレードリクエストの更新に失敗しました",
+        description: t("trade.requestsModal.updateErrorDesc"),
       });
       return;
     }
@@ -212,8 +212,8 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
         setShowChatModal(true);
       } else {
         toast({
-          title: "更新完了",
-          description: "トレードリクエストを拒否しました",
+          title: t("trade.requestsModal.rejectedTitle"),
+          description: t("trade.requestsModal.rejectedDesc"),
         });
       }
     }
@@ -232,7 +232,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px] h-[90vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>トレードリクエスト</DialogTitle>
+            <DialogTitle>{t("trade.requestsModal.title")}</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="pending" className="flex-1 flex flex-col">
             <TabsList className="grid w-full grid-cols-3 mb-4">
@@ -240,19 +240,19 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
                 value="pending"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                保留中
+                {t("trade.tabs.pending")}
               </TabsTrigger>
               <TabsTrigger 
                 value="accepted"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                進行中
+                {t("trade.tabs.accepted")}
               </TabsTrigger>
               <TabsTrigger 
                 value="completed"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
-                完了
+                {t("trade.tabs.completed")}
               </TabsTrigger>
             </TabsList>
             <TabsContent value="pending" className="flex-1 mt-0">

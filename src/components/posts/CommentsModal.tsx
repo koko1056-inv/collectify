@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePostComments, useAddComment } from "@/hooks/posts";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CommentsModalProps {
   postId: string;
@@ -15,6 +16,7 @@ interface CommentsModalProps {
 }
 
 export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
+  const { t } = useLanguage();
   const [newComment, setNewComment] = useState("");
   const { data: comments, isLoading, error } = usePostComments(postId);
   const addComment = useAddComment();
@@ -35,15 +37,15 @@ export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md h-[70vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>コメント</DialogTitle>
+          <DialogTitle>{t("social.posts.commentsTitle")}</DialogTitle>
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto space-y-4 pr-2">
           {isLoading ? (
-            <div className="text-center py-4">読み込み中...</div>
+            <div className="text-center py-4">{t("social.posts.loading")}</div>
           ) : error ? (
             <div className="text-center py-4 text-red-500">
-              コメントの読み込みに失敗しました
+              {t("social.posts.commentsLoadError")}
             </div>
           ) : comments && comments.length > 0 ? (
             comments.map((comment) => (
@@ -74,7 +76,7 @@ export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
             ))
           ) : (
             <div className="text-center py-4 text-gray-500">
-              まだコメントがありません
+              {t("social.posts.noComments")}
             </div>
           )}
         </div>
@@ -83,7 +85,7 @@ export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
           <Input
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="コメントを追加..."
+            placeholder={t("social.posts.commentPlaceholder")}
             className="flex-1"
             disabled={addComment.isPending}
           />
@@ -91,7 +93,7 @@ export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
             type="submit"
             disabled={!newComment.trim() || addComment.isPending}
           >
-            {addComment.isPending ? "送信中..." : "送信"}
+            {addComment.isPending ? t("social.posts.sending") : t("social.posts.send")}
           </Button>
         </form>
       </DialogContent>

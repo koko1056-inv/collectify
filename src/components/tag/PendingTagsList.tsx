@@ -1,5 +1,6 @@
 
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagUpdate {
   category: string;
@@ -11,11 +12,13 @@ interface PendingTagsListProps {
 }
 
 export function PendingTagsList({ pendingUpdates }: PendingTagsListProps) {
+  const { t } = useLanguage();
+
   if (pendingUpdates.length === 0) return null;
 
   return (
     <div className="mt-4">
-      <h3 className="text-sm font-medium mb-2">追加するタグ:</h3>
+      <h3 className="text-sm font-medium mb-2">{t("tagManage.pending.heading")}</h3>
       <div className="flex flex-wrap gap-2">
         {pendingUpdates.filter(update => update.value).map((update) => (
           <Badge key={update.category} variant="outline">

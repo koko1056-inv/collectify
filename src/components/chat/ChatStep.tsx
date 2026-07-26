@@ -3,6 +3,7 @@ import { Truck, Sparkles } from "lucide-react";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import type { Message, PartnerProfile } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChatStepProps {
   messages: Message[];
@@ -12,11 +13,11 @@ interface ChatStepProps {
   partnerProfile?: PartnerProfile | null;
 }
 
-const MESSAGE_TEMPLATES = [
-  "はじめまして！欲しいものリストで見つけました😊",
-  "こんにちは！お持ちのグッズに興味があります✨",
-  "交換についてご相談させてください🤝",
-  "フォローさせていただきました！よろしくお願いします🙌",
+const MESSAGE_TEMPLATE_KEYS = [
+  "social.chat.template1",
+  "social.chat.template2",
+  "social.chat.template3",
+  "social.chat.template4",
 ];
 
 export function ChatStep({ 
@@ -26,6 +27,7 @@ export function ChatStep({
   showShippingButton,
   partnerProfile
 }: ChatStepProps) {
+  const { t } = useLanguage();
   const showTemplates = messages.length === 0;
 
   const handleTemplateClick = (template: string) => {
@@ -42,18 +44,18 @@ export function ChatStep({
           <div className="space-y-2 pb-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Sparkles className="w-3 h-3" />
-              <span>定型文を選択</span>
+              <span>{t("social.chat.templatePrompt")}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {MESSAGE_TEMPLATES.map((template, idx) => (
+              {MESSAGE_TEMPLATE_KEYS.map((templateKey, idx) => (
                 <Button
                   key={idx}
                   variant="outline"
                   size="sm"
                   className="text-xs h-auto py-1.5 px-2.5 rounded-full whitespace-normal text-left"
-                  onClick={() => handleTemplateClick(template)}
+                  onClick={() => handleTemplateClick(t(templateKey))}
                 >
-                  {template}
+                  {t(templateKey)}
                 </Button>
               ))}
             </div>
@@ -70,7 +72,7 @@ export function ChatStep({
             size="sm"
           >
             <Truck className="mr-2 h-4 w-4" />
-            郵送手続きに進む
+            {t("social.chat.proceedToShipping")}
           </Button>
         )}
       </div>

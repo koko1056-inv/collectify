@@ -38,6 +38,7 @@ import { Profile } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { AvatarStudioModal, type StudioTab } from "@/components/avatar";
 import { useAvatars, type AvatarRow } from "@/hooks/useAvatars";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AvatarCenterHomeProps {
   profile: Profile | undefined;
@@ -45,6 +46,7 @@ interface AvatarCenterHomeProps {
 
 export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const userId = user?.id || "";
   const avatars = useAvatars(userId);
 
@@ -59,7 +61,7 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
   if (!profile) {
     return (
       <div className="min-h-[40vh] flex items-center justify-center">
-        <p className="text-muted-foreground">プロフィールを読み込み中...</p>
+        <p className="text-muted-foreground">{t("homeScreen.avatarCenter.loadingProfile")}</p>
       </div>
     );
   }
@@ -88,13 +90,13 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-primary" />
-            <h2 className="text-base font-bold">AI推しアバター</h2>
+            <h2 className="text-base font-bold">{t("homeScreen.avatarCenter.title")}</h2>
             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
               NEW
             </span>
           </div>
           <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-            グッズで着せ替え、AIで生成。あなただけの分身を育てよう
+            {t("homeScreen.avatarCenter.subtitle")}
           </p>
         </div>
         {avatars.avatars.length > 0 && (
@@ -104,7 +106,7 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
             className="shrink-0 gap-1.5 shadow-md"
           >
             <Plus className="w-4 h-4" />
-            新規
+            {t("homeScreen.avatarCenter.newButton")}
           </Button>
         )}
       </div>
@@ -130,7 +132,7 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
       {!avatars.isLoading && currentUrl && (
         <HeroAvatar
           imageUrl={currentUrl}
-          name={avatars.currentAvatar?.name || "マイアバター"}
+          name={avatars.currentAvatar?.name || t("homeScreen.avatarCenter.defaultName")}
           onOpen={() => openStudio("gallery")}
           onDressUp={() => openStudio("dressup", currentUrl)}
           onGenerate={() => openStudio("generate")}
@@ -143,7 +145,7 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
         <>
           <div className="flex items-center justify-between pt-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              ギャラリー
+              {t("homeScreen.avatarCenter.gallery")}
               <span className="ml-1.5 normal-case font-normal">
                 ({restAvatars.length})
               </span>
@@ -152,7 +154,7 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
               onClick={() => openStudio("gallery")}
               className="text-xs text-primary font-medium hover:underline"
             >
-              すべて見る →
+              {t("homeScreen.avatarCenter.viewAll")}
             </button>
           </div>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
@@ -199,12 +201,12 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>アバター名を編集</DialogTitle>
-            <DialogDescription>このアバターの名前を変更できます</DialogDescription>
+            <DialogTitle>{t("homeScreen.avatarCenter.renameTitle")}</DialogTitle>
+            <DialogDescription>{t("homeScreen.avatarCenter.renameDescription")}</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input
-              placeholder="アバター名を入力..."
+              placeholder={t("homeScreen.avatarCenter.renamePlaceholder")}
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
               maxLength={50}
@@ -212,7 +214,7 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenameTarget(null)}>
-              キャンセル
+              {t("homeScreen.avatarCenter.cancel")}
             </Button>
             <Button
               onClick={() => {
@@ -222,7 +224,7 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
                 setRenameTarget(null);
               }}
             >
-              保存
+              {t("homeScreen.avatarCenter.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -237,13 +239,13 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>このアバターを削除しますか？</AlertDialogTitle>
+            <AlertDialogTitle>{t("homeScreen.avatarCenter.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              削除すると元に戻せません。
+              {t("homeScreen.avatarCenter.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogCancel>{t("homeScreen.avatarCenter.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deleteTarget) avatars.remove.mutate(deleteTarget.id);
@@ -251,7 +253,7 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              削除する
+              {t("homeScreen.avatarCenter.deleteConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -268,6 +270,7 @@ function EmptyHero({
   onStart: () => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -305,23 +308,23 @@ function EmptyHero({
 
         <div>
           <h2 className="text-xl sm:text-2xl font-bold mb-1.5">
-            あなただけの推しアバター
+            {t("homeScreen.avatarCenter.emptyTitle")}
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-            写真からつくる、AIで生成、グッズで着せ替え。
+            {t("homeScreen.avatarCenter.emptyDescriptionLine1")}
             <br className="hidden sm:block" />
-            自由に分身をデザインしよう ✨
+            {t("homeScreen.avatarCenter.emptyDescriptionLine2")}
           </p>
         </div>
 
         <div className="flex items-center justify-center gap-2">
           <Button size="lg" onClick={onStart} className="gap-2 h-12 px-6 shadow-lg">
             <Wand2 className="w-5 h-5" />
-            はじめて作る
+            {t("homeScreen.avatarCenter.emptyStart")}
           </Button>
           <label className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-md border border-border bg-background hover:bg-muted cursor-pointer text-sm font-medium">
             <UploadCloud className="w-4 h-4" />
-            画像から
+            {t("homeScreen.avatarCenter.fromImage")}
             <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
           </label>
         </div>
@@ -346,6 +349,7 @@ function HeroAvatar({
   onGenerate: () => void;
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -382,14 +386,14 @@ function HeroAvatar({
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute left-4 right-4 bottom-3 text-left text-white">
           <p className="text-[10px] uppercase tracking-widest opacity-80 mb-0.5">
-            現在のアバター
+            {t("homeScreen.avatarCenter.currentAvatar")}
           </p>
           <p className="text-base font-bold truncate drop-shadow-md">{name}</p>
         </div>
 
         {/* 右上バッジ */}
         <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur text-white text-xs font-semibold flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3" /> 着用中
+          <Sparkles className="w-3 h-3" /> {t("homeScreen.avatarCenter.wearing")}
         </div>
       </button>
 
@@ -397,21 +401,21 @@ function HeroAvatar({
       <div className="grid grid-cols-3 gap-1.5 p-2.5 border-t border-border/40">
         <ActionButton
           icon={Wand2}
-          label="生成"
-          hint="AIで作る"
+          label={t("homeScreen.avatarCenter.actionGenerate")}
+          hint={t("homeScreen.avatarCenter.actionGenerateHint")}
           onClick={onGenerate}
         />
         <ActionButton
           icon={Shirt}
-          label="着せ替え"
-          hint="グッズで装う"
+          label={t("homeScreen.avatarCenter.actionDressUp")}
+          hint={t("homeScreen.avatarCenter.actionDressUpHint")}
           onClick={onDressUp}
           accent
         />
         <label className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-lg hover:bg-muted/60 cursor-pointer transition-colors text-foreground/80">
           <UploadCloud className="w-4 h-4" />
-          <span className="text-[11px] font-semibold leading-none">アップ</span>
-          <span className="text-[9px] text-muted-foreground leading-none">写真から</span>
+          <span className="text-[11px] font-semibold leading-none">{t("homeScreen.avatarCenter.actionUpload")}</span>
+          <span className="text-[9px] text-muted-foreground leading-none">{t("homeScreen.avatarCenter.actionUploadHint")}</span>
           <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
         </label>
       </div>
@@ -459,6 +463,7 @@ function ActionButton({
  * 2枚以上 → 何も表示しない (上級者には邪魔をしない)
  */
 function NextStepHint({ onDressUp }: { onDressUp: () => void }) {
+  const { t } = useLanguage();
   return (
     <motion.button
       initial={{ opacity: 0, y: 10 }}
@@ -471,10 +476,10 @@ function NextStepHint({ onDressUp }: { onDressUp: () => void }) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold leading-tight">
-          グッズで着せ替えてみよう
+          {t("homeScreen.avatarCenter.hintTitle")}
         </p>
         <p className="text-[11px] text-muted-foreground mt-0.5">
-          お気に入りのグッズで、アバターを自分らしく
+          {t("homeScreen.avatarCenter.hintDescription")}
         </p>
       </div>
       <ArrowRight className="w-4 h-4 text-primary shrink-0" />
@@ -494,6 +499,7 @@ function AvatarThumbCard({
   onRename: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -531,7 +537,7 @@ function AvatarThumbCard({
             onRename();
           }}
           className="w-6 h-6 rounded-full bg-black/60 backdrop-blur hover:bg-black/80 flex items-center justify-center text-white"
-          aria-label="名前を編集"
+          aria-label={t("homeScreen.avatarCenter.editNameAria")}
         >
           <Edit2 className="w-3 h-3" />
         </button>
@@ -541,7 +547,7 @@ function AvatarThumbCard({
             onDelete();
           }}
           className="w-6 h-6 rounded-full bg-black/60 backdrop-blur hover:bg-destructive flex items-center justify-center text-white"
-          aria-label="削除"
+          aria-label={t("homeScreen.avatarCenter.deleteAria")}
         >
           <Trash2 className="w-3 h-3" />
         </button>

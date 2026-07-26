@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CollectionButtonProps {
   itemId: string;
@@ -19,6 +20,7 @@ export function CollectionButton({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isInCollection, setIsInCollection] = useState(initialIsInCollection);
+  const { t } = useLanguage();
 
   // 現在のユーザーがこのアイテムをコレクションに入れているか確認
   const { data: currentIsInCollection, refetch: refetchIsInCollection } = useQuery({
@@ -91,7 +93,7 @@ export function CollectionButton({
       onClick={onAddToCollection}
       disabled={isInCollection}
     >
-      {isInCollection ? "追加済み" : "コレクションに追加"}
+      {isInCollection ? t("collectionScreen.official.inCollection") : t("collectionScreen.official.addToCollection")}
     </Button>
   );
 }

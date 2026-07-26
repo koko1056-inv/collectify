@@ -4,10 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Notification } from '@/types/notification';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function useNotifications() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   // Fetch notifications
@@ -47,8 +49,8 @@ export function useNotifications() {
     },
     onError: (error) => {
       toast({
-        title: 'エラー',
-        description: '通知の更新に失敗しました',
+        title: t('notices.common.errorTitle'),
+        description: t('notices.notifications.updateFailed'),
         variant: 'destructive',
       });
     },
@@ -72,8 +74,8 @@ export function useNotifications() {
     },
     onError: (error) => {
       toast({
-        title: 'エラー',
-        description: '通知の更新に失敗しました',
+        title: t('notices.common.errorTitle'),
+        description: t('notices.notifications.updateFailed'),
         variant: 'destructive',
       });
     },
@@ -94,8 +96,8 @@ export function useNotifications() {
     },
     onError: (error) => {
       toast({
-        title: 'エラー',
-        description: '通知の削除に失敗しました',
+        title: t('notices.common.errorTitle'),
+        description: t('notices.notifications.deleteFailed'),
         variant: 'destructive',
       });
     },

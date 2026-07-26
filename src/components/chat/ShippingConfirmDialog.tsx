@@ -9,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ShippingConfirmDialogProps {
   isOpen: boolean;
@@ -21,20 +22,21 @@ export function ShippingConfirmDialog({
   onOpenChange, 
   onConfirm 
 }: ShippingConfirmDialogProps) {
+  const { t } = useLanguage();
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>発送の確認</AlertDialogTitle>
+          <AlertDialogTitle>{t("social.chat.shippingConfirmTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            運営本部への商品の発送は完了しましたか？
-            発送が完了している場合のみ、「発送完了」を押してください。
+            {t("social.chat.shippingConfirmDesc")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>キャンセル</AlertDialogCancel>
+          <AlertDialogCancel>{t("social.chat.cancel")}</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm}>
-            発送完了
+            {t("social.chat.shippingConfirmAction")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

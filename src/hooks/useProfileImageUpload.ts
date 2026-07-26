@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const PROFILE_IMAGES_BUCKET = "profile_images";
 
@@ -12,6 +13,7 @@ interface UseProfileImageUploadOptions {
 
 export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUploadOptions) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -20,8 +22,8 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
     if (!file || !userId) {
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "ファイルまたはユーザー情報が不足しています",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.upload.missingFileOrUser"),
       });
       return null;
     }
@@ -31,8 +33,8 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
     if (file.size > MAX_FILE_SIZE) {
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "ファイルサイズは5MB以下にしてください",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.upload.tooLarge"),
       });
       return null;
     }
@@ -42,8 +44,8 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
     if (!allowedTypes.includes(file.type)) {
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "JPEG、PNG、WebP、GIF形式のみ対応しています",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.upload.unsupportedFormat"),
       });
       return null;
     }
@@ -64,7 +66,7 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
         });
 
       if (uploadError) {
-        throw new Error(`アップロード失敗: ${uploadError.message}`);
+        throw new Error(t("notices.upload.uploadFailedPrefix", { message: uploadError.message }));
       }
 
       // 2. 公開URLを取得
@@ -75,7 +77,7 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
       const publicUrl = urlData.publicUrl;
 
       if (!publicUrl) {
-        throw new Error("公開URLの取得に失敗しました");
+        throw new Error(t("notices.upload.publicUrlFailed"));
       }
 
       // 3. プロフィールのavatar_urlを更新
@@ -85,7 +87,7 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
         .eq("id", userId);
 
       if (profileUpdateError) {
-        throw new Error(`プロフィール更新失敗: ${profileUpdateError.message}`);
+        throw new Error(t("notices.upload.profileUpdateFailedPrefix", { message: profileUpdateError.message }));
       }
 
       // 4. avatar_galleryの同期（トランザクション的に処理）
@@ -98,18 +100,18 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
       setPreviewUrl(publicUrl);
 
       toast({
-        title: "アップロード完了",
-        description: "プロフィール画像を更新しました",
+        title: t("notices.upload.doneTitle"),
+        description: t("notices.upload.profileImageUpdated"),
       });
 
       onSuccess?.(publicUrl);
       return publicUrl;
 
     } catch (error) {
-      const message = error instanceof Error ? error.message : "画像のアップロードに失敗しました";
+      const message = error instanceof Error ? error.message : t("notices.upload.imageUploadFailed");
       toast({
         variant: "destructive",
-        title: "エラー",
+        title: t("notices.common.errorTitle"),
         description: message,
       });
       console.error("Profile image upload error:", error);
@@ -118,7 +120,7 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
     } finally {
       setIsUploading(false);
     }
-  }, [userId, toast, queryClient, onSuccess]);
+  }, [userId, toast, queryClient, onSuccess, t]);
 
   const initializePreview = useCallback((url: string | null) => {
     setPreviewUrl(url);

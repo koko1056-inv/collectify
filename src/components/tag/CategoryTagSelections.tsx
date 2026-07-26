@@ -3,6 +3,7 @@ import { CategoryTagSelect } from "./CategoryTagSelect";
 import { TagUpdate } from "@/types/tag";
 import { SimpleItemTag } from "@/utils/tag/types";
 import { useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CategoryTagSelectionsProps {
   currentTags: SimpleItemTag[];
@@ -15,6 +16,8 @@ export function CategoryTagSelections({
   pendingUpdates, 
   onTagChange 
 }: CategoryTagSelectionsProps) {
+  const { t } = useLanguage();
+
   // 現在のタグ値を取得する関数
   const getCurrentTagValue = (category: string) => {
     // まず保留中の更新からタグ値を探す
@@ -65,7 +68,7 @@ export function CategoryTagSelections({
     <div className="space-y-3 sm:space-y-4">
       <CategoryTagSelect
         category="character"
-        label="キャラ・人物名"
+        label={t("tagManage.category.character")}
         value={characterValue}
         onChange={(value) => {
           console.log('[CategoryTagSelections] Character onChange called with:', value);
@@ -76,7 +79,7 @@ export function CategoryTagSelections({
       />
       <CategoryTagSelect
         category="type"
-        label="グッズタイプ"
+        label={t("tagManage.category.type")}
         value={typeValue}
         onChange={(value) => {
           console.log('[CategoryTagSelections] Type onChange called with:', value);
@@ -87,7 +90,7 @@ export function CategoryTagSelections({
       />
       <CategoryTagSelect
         category="series"
-        label="グッズシリーズ"
+        label={t("tagManage.category.series")}
         value={seriesValue}
         onChange={(value) => {
           console.log('[CategoryTagSelections] Series onChange called with:', value);

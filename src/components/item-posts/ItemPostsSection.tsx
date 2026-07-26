@@ -10,6 +10,7 @@ import {
 import { CreateItemPostModal } from "./CreateItemPostModal";
 import { ItemPostGrid } from "./ItemPostGrid";
 import { ItemPostDetailModal } from "./ItemPostDetailModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemPostsSectionProps {
   target: PostTarget;
@@ -28,6 +29,7 @@ export function ItemPostsSection({
   itemImage,
 }: ItemPostsSectionProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { data: posts = [], isLoading } = useItemPosts(target);
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<ItemPost | null>(null);
@@ -37,7 +39,7 @@ export function ItemPostsSection({
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold flex items-center gap-1.5">
           <Images className="w-4 h-4 text-primary" />
-          みんなの投稿
+          {t("social.itemPosts.sectionTitle")}
           {posts.length > 0 && (
             <span className="text-xs text-muted-foreground font-normal">
               ({posts.length})
@@ -51,7 +53,7 @@ export function ItemPostsSection({
             className="gap-1.5 rounded-full h-8"
           >
             <Camera className="w-3.5 h-3.5" />
-            投稿する
+            {t("social.itemPosts.postCta")}
           </Button>
         )}
       </div>

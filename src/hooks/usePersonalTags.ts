@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface PersonalTag {
   id: string;
@@ -13,6 +14,7 @@ export interface PersonalTag {
 export function usePersonalTags(userItemId?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   // アイテムのマイタグを取得
   const { data: personalTags = [], isLoading } = useQuery({
@@ -53,7 +55,7 @@ export function usePersonalTags(userItemId?: string) {
   // マイタグを追加
   const addTag = useMutation({
     mutationFn: async ({ userItemId, tagName }: { userItemId: string; tagName: string }) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
       
       const { error } = await supabase
         .from("user_personal_tags")
@@ -65,7 +67,7 @@ export function usePersonalTags(userItemId?: string) {
 
       if (error) {
         if (error.code === "23505") {
-          throw new Error("このタグは既に追加されています");
+          throw new Error(t("notices.tags.alreadyAdded"));
         }
         throw error;
       }
@@ -94,17 +96,17 @@ export function usePersonalTags(userItemId?: string) {
       queryClient.invalidateQueries({ queryKey: ["all-personal-tags", user?.id] });
     },
     onError: () => {
-      toast.error("タグの削除に失敗しました");
+      toast.error(t("notices.tags.deleteFailed"));
     },
   });
 
   // 複数アイテムへ同じタグを一括追加
   const addTagBulk = useMutation({
     mutationFn: async ({ userItemIds, tagName }: { userItemIds: string[]; tagName: string }) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
       const trimmed = tagName.trim();
-      if (!trimmed) throw new Error("タグ名を入力してください");
-      if (userItemIds.length === 0) throw new Error("対象のグッズが選択されていません");
+      if (!trimmed) throw new Error(t("notices.tags.nameRequired"));
+      if (userItemIds.length === 0) throw new Error(t("notices.tags.noItemsSelected"));
 
       const rows = userItemIds.map((id) => ({
         user_id: user.id,
@@ -130,11 +132,11 @@ export function usePersonalTags(userItemId?: string) {
       queryClient.invalidateQueries({ queryKey: ["personal-tag-filter"] });
       const skipped = totalCount - addedCount;
       if (addedCount === 0) {
-        toast.success("既にタグが付いています");
+        toast.success(t("notices.tags.alreadyTagged"));
       } else if (skipped > 0) {
-        toast.success(`${addedCount}件にタグを追加(${skipped}件は既存)`);
+        toast.success(t("notices.tags.bulkAddedPartial", { added: addedCount, skipped }));
       } else {
-        toast.success(`${addedCount}件にタグを追加しました`);
+        toast.success(t("notices.tags.bulkAdded", { added: addedCount }));
       }
     },
     onError: (error: Error) => {

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Trash2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CardActionsProps {
   onMemoriesClick: () => void;
@@ -18,6 +19,7 @@ export function CardActions({
   onCreatePostClick,
   hasMemories,
 }: CardActionsProps) {
+  const { t } = useLanguage();
   const stop =
     (fn: () => void) =>
     (e: React.MouseEvent) => {
@@ -37,7 +39,7 @@ export function CardActions({
             ? "text-primary hover:bg-primary/10"
             : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
         )}
-        title="思い出"
+        title={t("collectionScreen.cardActions.memories")}
       >
         <MessageSquare className="h-3.5 w-3.5" />
       </Button>
@@ -47,7 +49,7 @@ export function CardActions({
         size="sm"
         onClick={stop(onCreatePostClick)}
         className="h-7 w-7 p-0 rounded-full text-muted-foreground/60 hover:text-foreground hover:bg-muted"
-        title="投稿を作成"
+        title={t("collectionScreen.cardActions.createPost")}
       >
         <Plus className="h-3.5 w-3.5" />
       </Button>
@@ -57,7 +59,7 @@ export function CardActions({
         size="sm"
         onClick={stop(onDeleteClick)}
         className="h-7 w-7 p-0 rounded-full text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10"
-        title="削除"
+        title={t("collectionScreen.cardActions.delete")}
       >
         <Trash2 className="h-3.5 w-3.5" />
       </Button>

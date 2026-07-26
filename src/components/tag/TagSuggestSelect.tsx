@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagSuggestSelectProps {
   category: 'character' | 'type' | 'series';
@@ -70,6 +71,7 @@ export function TagSuggestSelect({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -183,15 +185,15 @@ export function TagSuggestSelect({
     },
     onSuccess: () => {
       toast({
-        title: "タグを提案しました",
-        description: "運営が確認後、正式なタグとして追加される場合があります。",
+        title: t("tagManage.suggest.suggested"),
+        description: t("tagManage.suggest.suggestedDesc"),
       });
       queryClient.invalidateQueries({ queryKey: ["tag-candidates"] });
     },
     onError: (error) => {
       console.error("Tag suggestion error:", error);
       toast({
-        title: "提案に失敗しました",
+        title: t("tagManage.suggest.failed"),
         variant: "destructive",
       });
     },
@@ -221,10 +223,10 @@ export function TagSuggestSelect({
   // カテゴリ別のプレースホルダー
   const getPlaceholder = () => {
     switch (category) {
-      case 'character': return 'キャラ・人物名を選択';
-      case 'type': return 'グッズタイプを選択';
-      case 'series': return 'グッズシリーズを選択';
-      default: return '選択してください';
+      case 'character': return t("tagManage.suggest.placeholderCharacter");
+      case 'type': return t("tagManage.suggest.placeholderType");
+      case 'series': return t("tagManage.suggest.placeholderSeries");
+      default: return t("tagManage.common.selectPlaceholder");
     }
   };
 
@@ -263,7 +265,7 @@ export function TagSuggestSelect({
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="検索 / 新しい名前を入力"
+                placeholder={t("tagManage.suggest.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
@@ -271,7 +273,7 @@ export function TagSuggestSelect({
               />
             </div>
             <p className="text-[11px] text-muted-foreground px-1">
-              候補にない場合は名前を入力 → 下の「追加」ボタンが出ます
+              {t("tagManage.suggest.hint")}
             </p>
           </div>
           
@@ -282,7 +284,7 @@ export function TagSuggestSelect({
                 <div className="px-2 py-1 mb-1">
                   <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <TrendingUp className="h-3 w-3" />
-                    人気のタグ
+                    {t("tagManage.suggest.popularTags")}
                   </span>
                 </div>
               )}
@@ -315,14 +317,14 @@ export function TagSuggestSelect({
                 ))
               ) : searchQuery.trim() ? (
                 <div className="p-3 text-sm text-center space-y-1">
-                  <p className="text-muted-foreground">該当するタグはありません</p>
+                  <p className="text-muted-foreground">{t("tagManage.empty.noMatchingTags")}</p>
                   <p className="text-xs text-primary">
-                    👇 下のボタンで新しいタグを追加できます
+                    {t("tagManage.suggest.addHint")}
                   </p>
                 </div>
               ) : (
                 <div className="p-2 text-sm text-muted-foreground text-center">
-                  タグがありません
+                  {t("tagManage.empty.noTags")}
                 </div>
               )}
             </div>
@@ -339,13 +341,13 @@ export function TagSuggestSelect({
                 disabled={suggestMutation.isPending}
               >
                 <Lightbulb className="h-4 w-4" />
-                「{searchQuery.trim()}」を追加する
+                {t("tagManage.suggest.addPrefix")}{searchQuery.trim()}{t("tagManage.suggest.addSuffix")}
               </Button>
             </div>
           )}
           {searchQuery.trim() && !hasExactMatch && !user && (
             <div className="p-2 border-t bg-muted/50 text-xs text-muted-foreground text-center">
-              タグの追加にはログインが必要です
+              {t("tagManage.suggest.loginRequired")}
             </div>
           )}
         </PopoverContent>

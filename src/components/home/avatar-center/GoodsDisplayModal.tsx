@@ -15,6 +15,7 @@ import {
   useSaveDisplayGallery,
   shareDisplayToTwitter,
 } from "./goods-display/useGoodsDisplayActions";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface GoodsDisplayModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ export function GoodsDisplayModal({
   userId,
   initialShowGallery = false,
 }: GoodsDisplayModalProps) {
+  const { t } = useLanguage();
   const [selectedItems, setSelectedItems] = useState<UserItem[]>([]);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -52,7 +54,7 @@ export function GoodsDisplayModal({
       const isSelected = prev.some((i) => i.id === item.id);
       if (isSelected) return prev.filter((i) => i.id !== item.id);
       if (prev.length >= 5) {
-        toast.error("最大5個まで選択できます");
+        toast.error(t("homeScreen.goodsDisplay.maxItems"));
         return prev;
       }
       return [...prev, item];
@@ -61,11 +63,11 @@ export function GoodsDisplayModal({
 
   const handleGenerate = async () => {
     if (selectedItems.length === 0) {
-      toast.error("グッズを選択してください");
+      toast.error(t("homeScreen.goodsDisplay.selectGoods"));
       return;
     }
     if (!backgroundImage) {
-      toast.error("背景画像をアップロードしてください");
+      toast.error(t("homeScreen.goodsDisplay.uploadBackground"));
       return;
     }
 
@@ -86,14 +88,16 @@ export function GoodsDisplayModal({
 
       if (data?.editedImageUrl) {
         setGeneratedImage(data.editedImageUrl);
-        toast.success("グッズ展示場の画像を生成しました！");
+        toast.success(t("homeScreen.goodsDisplay.generateSuccess"));
       } else {
-        throw new Error("画像の生成に失敗しました");
+        throw new Error(t("homeScreen.goodsDisplay.generateFailed"));
       }
     } catch (error) {
       console.error("Error generating display:", error);
       toast.error(
-        error instanceof Error ? error.message : "画像の生成に失敗しました"
+        error instanceof Error
+          ? error.message
+          : t("homeScreen.goodsDisplay.generateFailed")
       );
     } finally {
       setIsGenerating(false);
@@ -111,11 +115,11 @@ export function GoodsDisplayModal({
 
   const handleSaveGallery = async () => {
     if (!generatedImage || !userId) {
-      toast.error("保存する画像がありません");
+      toast.error(t("homeScreen.goodsDisplay.noImageToSave"));
       return;
     }
     if (!galleryTitle.trim()) {
-      toast.error("タイトルを入力してください");
+      toast.error(t("homeScreen.goodsDisplay.enterTitle"));
       return;
     }
     await saveGalleryMutation.mutateAsync({
@@ -142,7 +146,7 @@ export function GoodsDisplayModal({
           <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5" />
-              グッズ展示場
+              {t("homeScreen.goodsDisplay.title")}
             </DialogTitle>
           </DialogHeader>
 
@@ -173,14 +177,14 @@ export function GoodsDisplayModal({
                     className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
                     onClick={() => setShowGallery(false)}
                   >
-                    作成
+                    {t("homeScreen.goodsDisplay.tabCreate")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="gallery"
                     className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
                     onClick={() => setShowGallery(true)}
                   >
-                    ギャラリー
+                    {t("homeScreen.goodsDisplay.tabGallery")}
                   </TabsTrigger>
                 </TabsList>
 
@@ -229,12 +233,12 @@ export function GoodsDisplayModal({
                       {isGenerating ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          生成中...
+                          {t("homeScreen.goodsDisplay.generating")}
                         </>
                       ) : (
                         <>
                           <Sparkles className="w-4 h-4 mr-2" />
-                          グッズ展示場を生成
+                          {t("homeScreen.goodsDisplay.generate")}
                         </>
                       )}
                     </Button>

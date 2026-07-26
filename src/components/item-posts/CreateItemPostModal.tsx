@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const POST_IMAGE_COST = 50;
 
@@ -32,6 +33,7 @@ export function CreateItemPostModal({
   itemImage,
   onCreated,
 }: CreateItemPostModalProps) {
+  const { t } = useLanguage();
   const [caption, setCaption] = useState("");
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [aiPrompt, setAiPrompt] = useState("");
@@ -43,11 +45,11 @@ export function CreateItemPostModal({
 
   const requestGenerateAIImage = () => {
     if (!aiPrompt.trim()) {
-      toast.error("生成したい画像の説明を入力してください");
+      toast.error(t("social.itemPosts.promptRequired"));
       return;
     }
     if (images.length >= MAX_IMAGES) {
-      toast.error(`画像は最大${MAX_IMAGES}枚までです`);
+      toast.error(t("social.itemPosts.maxImages", { max: MAX_IMAGES }));
       return;
     }
     setConfirmOpen(true);
@@ -64,9 +66,9 @@ export function CreateItemPostModal({
         const msg = (error as any)?.context?.responseText
           ? (() => { try { return JSON.parse((error as any).context.responseText).error; } catch { return null; } })()
           : null;
-        throw new Error(msg || error.message || "画像生成に失敗しました");
+        throw new Error(msg || error.message || t("social.itemPosts.generateFailed"));
       }
-      if (!data?.imageUrl) throw new Error(data?.error || "画像が生成されませんでした");
+      if (!data?.imageUrl) throw new Error(data?.error || t("social.itemPosts.notGenerated"));
 
       const res = await fetch(data.imageUrl);
       const blob = await res.blob();
@@ -76,9 +78,9 @@ export function CreateItemPostModal({
       setAiPrompt("");
       qc.invalidateQueries({ queryKey: ["userPoints"] });
       qc.invalidateQueries({ queryKey: ["pointTransactions"] });
-      toast.success("画像を生成しました (-50pt)");
+      toast.success(t("social.itemPosts.generateSuccess"));
     } catch (e) {
-      toast.error((e as Error).message || "画像生成に失敗しました");
+      toast.error((e as Error).message || t("social.itemPosts.generateFailed"));
     } finally {
       setIsGenerating(false);
     }
@@ -134,7 +136,7 @@ export function CreateItemPostModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>投稿を作成</DialogTitle>
+          <DialogTitle>{t("social.itemPosts.createTitle")}</DialogTitle>
         </DialogHeader>
 
         {/* 対象グッズ情報 */}
@@ -147,14 +149,14 @@ export function CreateItemPostModal({
             />
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted-foreground">投稿対象</p>
+            <p className="text-xs text-muted-foreground">{t("social.itemPosts.target")}</p>
             <p className="text-sm font-medium truncate">{itemTitle}</p>
           </div>
         </div>
 
         {/* 画像選択 */}
         <div>
-          <p className="text-sm font-medium mb-2">画像 ({images.length}/{MAX_IMAGES})</p>
+          <p className="text-sm font-medium mb-2">{t("social.itemPosts.imagesCount", { current: images.length, max: MAX_IMAGES })}</p>
           <div className="grid grid-cols-2 gap-2">
             {images.map((img, i) => (
               <div
@@ -182,7 +184,7 @@ export function CreateItemPostModal({
                 )}
               >
                 <ImagePlus className="w-6 h-6" />
-                <span className="text-xs">画像を追加</span>
+                <span className="text-xs">{t("social.itemPosts.addImage")}</span>
               </button>
             )}
           </div>
@@ -204,20 +206,20 @@ export function CreateItemPostModal({
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 text-sm font-medium">
               <Sparkles className="w-4 h-4 text-primary" />
-              AIで画像を生成
+              {t("social.itemPosts.aiGenerate")}
             </div>
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary">
-              50pt / 回
+              {t("social.itemPosts.aiCost")}
             </span>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            このグッズを使った投稿画像をAIに作ってもらえます
+            {t("social.itemPosts.aiDesc")}
           </p>
           <div className="flex gap-2">
             <Input
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
-              placeholder="例: カフェのテーブルに置いた雰囲気で"
+              placeholder={t("social.itemPosts.aiPlaceholder")}
               disabled={isGenerating || createMutation.isPending}
               maxLength={200}
               className="h-9"
@@ -239,17 +241,17 @@ export function CreateItemPostModal({
               ) : (
                 <Wand2 className="w-3.5 h-3.5" />
               )}
-              生成
+              {t("social.itemPosts.generate")}
             </Button>
           </div>
         </div>
 
         <div>
-          <p className="text-sm font-medium mb-2">コメント（任意）</p>
+          <p className="text-sm font-medium mb-2">{t("social.itemPosts.commentOptional")}</p>
           <Textarea
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
-            placeholder="みんなに共有したいこと、撮影のこだわり、推しポイント..."
+            placeholder={t("social.itemPosts.commentPlaceholder")}
             className="resize-none"
             rows={4}
             maxLength={500}
@@ -268,7 +270,7 @@ export function CreateItemPostModal({
             disabled={createMutation.isPending}
             className="flex-1"
           >
-            キャンセル
+            {t("social.itemPosts.cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -278,10 +280,10 @@ export function CreateItemPostModal({
             {createMutation.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                投稿中...
+                {t("social.itemPosts.posting")}
               </>
             ) : (
-              "投稿する"
+              t("social.itemPosts.post")
             )}
           </Button>
         </div>
@@ -289,8 +291,8 @@ export function CreateItemPostModal({
         <SpendPointsDialog
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
-          title="AIで投稿画像を生成しますか？"
-          description={`「${itemTitle}」を題材に、AIが投稿用の画像を1枚生成します。`}
+          title={t("social.itemPosts.confirmAiTitle")}
+          description={t("social.itemPosts.confirmAiDesc", { title: itemTitle })}
           cost={POST_IMAGE_COST}
           loading={isGenerating}
           onConfirm={generateAIImage}

@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ROOM_STYLE_PRESETS } from "../roomStylePresets";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   stylePresetId: string | null;
@@ -22,6 +23,7 @@ export function SelectStyleStep({
   title,
   onTitleChange,
 }: Props) {
+  const { t } = useLanguage();
   return (
     <motion.div
       key="style"
@@ -32,9 +34,9 @@ export function SelectStyleStep({
     >
       <div className="flex items-end justify-between gap-2">
         <div>
-          <h3 className="text-base font-semibold mb-1">部屋のスタイル</h3>
+          <h3 className="text-base font-semibold mb-1">{t("aiRoom.style.title")}</h3>
           <p className="text-xs text-muted-foreground">
-            お気に入りのテイストを選んでください
+            {t("aiRoom.style.subtitle")}
           </p>
         </div>
         {stylePresetId && (
@@ -42,7 +44,7 @@ export function SelectStyleStep({
             onClick={() => onStylePresetChange(null)}
             className="text-[10px] text-muted-foreground hover:text-foreground underline underline-offset-2 shrink-0 pb-0.5"
           >
-            選択をクリア
+            {t("aiRoom.style.clear")}
           </button>
         )}
       </div>
@@ -116,10 +118,10 @@ export function SelectStyleStep({
                     active ? "text-primary" : "text-foreground"
                   )}
                 >
-                  {p.name}
+                  {t(`aiRoom.stylePresets.${p.id}.name`)}
                 </p>
                 <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
-                  {p.tagline}
+                  {t(`aiRoom.stylePresets.${p.id}.tagline`)}
                 </p>
               </div>
             </button>
@@ -129,12 +131,12 @@ export function SelectStyleStep({
 
       <div className="space-y-2 pt-2">
         <p className="text-sm font-medium">
-          追加の要望 <span className="text-xs text-muted-foreground font-normal">(任意)</span>
+          {t("aiRoom.style.extraRequest")} <span className="text-xs text-muted-foreground font-normal">{t("aiRoom.common.optional")}</span>
         </p>
         <Textarea
           value={customPrompt}
           onChange={(e) => onCustomPromptChange(e.target.value)}
-          placeholder="例: 窓から桜が見える、猫がいる、ぬいぐるみをたくさん..."
+          placeholder={t("aiRoom.style.promptPlaceholder")}
           maxLength={300}
           rows={3}
           className="resize-none"
@@ -146,12 +148,12 @@ export function SelectStyleStep({
 
       <div className="space-y-2">
         <p className="text-sm font-medium">
-          タイトル <span className="text-xs text-muted-foreground font-normal">(任意)</span>
+          {t("aiRoom.style.titleLabel")} <span className="text-xs text-muted-foreground font-normal">{t("aiRoom.common.optional")}</span>
         </p>
         <Input
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
-          placeholder="例: 私の理想のサイバー部屋"
+          placeholder={t("aiRoom.style.titlePlaceholder")}
           maxLength={50}
         />
       </div>

@@ -1,6 +1,7 @@
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Tag } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PersonalTagTabsProps {
   tags: string[];
@@ -19,13 +20,14 @@ export function PersonalTagTabs({
   onSelect,
   className,
 }: PersonalTagTabsProps) {
+  const { t } = useLanguage();
   const allTabs = ["すべて", ...tags];
 
   if (tags.length === 0) {
     return (
       <div className={cn("px-3 py-2 text-xs text-muted-foreground flex items-center gap-1.5", className)}>
         <Tag className="w-3.5 h-3.5" />
-        マイタグを追加すると、ここでカテゴリ別に絞り込めます
+        {t("collectionScreen.personalTags.emptyHint")}
       </div>
     );
   }
@@ -48,7 +50,7 @@ export function PersonalTagTabs({
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                {tab}
+                {tab === "すべて" ? t("collectionScreen.personalTags.all") : tab}
                 {isActive && (
                   <span className="absolute left-2 right-2 -bottom-px h-0.5 rounded-full bg-foreground" />
                 )}

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   userId?: string;
@@ -11,6 +12,7 @@ interface Props {
 
 export function GalleryListView({ userId, enabled }: Props) {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const { data: displayGallery = [], isLoading } = useQuery({
     queryKey: ["display-gallery-all"],
@@ -38,11 +40,11 @@ export function GalleryListView({ userId, enabled }: Props) {
 
   return (
     <div className="space-y-4 pb-4 pr-2">
-      <h3 className="text-lg font-semibold">みんなの展示場ギャラリー</h3>
+      <h3 className="text-lg font-semibold">{t("homeScreen.gallery.title")}</h3>
       {displayGallery.length === 0 ? (
         <div className="text-center text-muted-foreground py-12">
           <Frame className="mx-auto h-12 w-12 mb-4 opacity-50" />
-          <p>保存された展示はまだありません</p>
+          <p>{t("homeScreen.gallery.empty")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -105,11 +107,11 @@ export function GalleryListView({ userId, enabled }: Props) {
                         queryClient.invalidateQueries({
                           queryKey: ["display-gallery-all"],
                         });
-                        toast.success("削除しました");
+                        toast.success(t("homeScreen.gallery.deleted"));
                       }
                     }}
                   >
-                    削除
+                    {t("homeScreen.gallery.delete")}
                   </Button>
                 )}
               </div>

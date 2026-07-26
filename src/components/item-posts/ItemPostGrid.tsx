@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Heart, MessageCircle, Images } from "lucide-react";
 import { ItemPost } from "@/hooks/item-posts/useItemPosts";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemPostGridProps {
   posts: ItemPost[];
@@ -9,6 +10,8 @@ interface ItemPostGridProps {
 }
 
 export function ItemPostGrid({ posts, onPostClick }: ItemPostGridProps) {
+  const { t } = useLanguage();
+
   if (posts.length === 0) {
     return (
       <div className="py-10 text-center">
@@ -16,10 +19,10 @@ export function ItemPostGrid({ posts, onPostClick }: ItemPostGridProps) {
           <Images className="w-6 h-6 text-muted-foreground" />
         </div>
         <p className="text-sm font-medium text-foreground mb-1">
-          まだ投稿がありません
+          {t("social.itemPosts.noPosts")}
         </p>
         <p className="text-xs text-muted-foreground">
-          最初の投稿者になりませんか？
+          {t("social.itemPosts.beFirst")}
         </p>
       </div>
     );

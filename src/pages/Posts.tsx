@@ -92,7 +92,7 @@ const Posts = memo(function Posts() {
                     <TabsTrigger value="polls" className="flex-1">{t("tabs.polls")}</TabsTrigger>
                     <TabsTrigger value="challenges" className="flex-1 gap-1">
                       
-                      ランキング
+                      {t("screens.posts.rankingTab")}
                     </TabsTrigger>
                   </TabsList>
                   
@@ -171,7 +171,7 @@ const Posts = memo(function Posts() {
       <button
         onClick={handleCreateAction}
         className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 group"
-        aria-label={activeTab === "posts" ? t("common.newPost") : activeTab === "polls" ? "新規投票" : "新規チャレンジ"}>
+        aria-label={activeTab === "posts" ? t("common.newPost") : activeTab === "polls" ? t("screens.posts.newPoll") : t("screens.posts.newChallenge")}>
 
         {getCreateIcon()}
       </button>

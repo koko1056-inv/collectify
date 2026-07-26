@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const FAVORITE_ITEMS_LIMIT = 5;
 
@@ -56,6 +57,7 @@ export function useFavoriteItems(userId?: string | null) {
 
 export function useUpdateFavoriteItems(userId?: string | null) {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async (newIds: string[]) => {
@@ -71,11 +73,11 @@ export function useUpdateFavoriteItems(userId?: string | null) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["favorite-items", userId] });
       queryClient.invalidateQueries({ queryKey: ["profile", userId] });
-      toast.success("お気に入りを更新しました");
+      toast.success(t("notices.favorites.updated"));
     },
     onError: (err) => {
       console.error(err);
-      toast.error("お気に入りの更新に失敗しました");
+      toast.error(t("notices.favorites.updateFailed"));
     },
   });
 }

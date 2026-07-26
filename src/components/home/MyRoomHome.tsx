@@ -79,11 +79,11 @@ export function MyRoomHome({
           {/* メインコピー */}
           <div className="space-y-4">
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-              推しグッズを記録しよう
+              {t("homeScreen.signedOut.title")}
             </h2>
             <p className="text-muted-foreground text-base leading-relaxed">
-              あなたの大切なコレクションを管理・共有できるアプリ。<br className="hidden sm:block" />
-              同じ趣味の仲間と繋がろう
+              {t("homeScreen.signedOut.descriptionLine1")}<br className="hidden sm:block" />
+              {t("homeScreen.signedOut.descriptionLine2")}
             </p>
           </div>
 
@@ -93,26 +93,26 @@ export function MyRoomHome({
               <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
                 <Package className="w-5 h-5" />
               </div>
-              <span className="text-xs">コレクション</span>
+              <span className="text-xs">{t("homeScreen.signedOut.featureCollection")}</span>
             </div>
             <div className="flex flex-col items-center gap-1.5">
               <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
                 <Home className="w-5 h-5" />
               </div>
-              <span className="text-xs">マイルーム</span>
+              <span className="text-xs">{t("homeScreen.signedOut.featureMyRoom")}</span>
             </div>
             <div className="flex flex-col items-center gap-1.5">
               <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center">
                 <Heart className="w-5 h-5" />
               </div>
-              <span className="text-xs">交換・共有</span>
+              <span className="text-xs">{t("homeScreen.signedOut.featureTrade")}</span>
             </div>
           </div>
 
           {/* CTAボタン */}
           <Button size="lg" onClick={() => navigate("/login")} className="gap-2 h-12 px-8 text-base shadow-lg hover-scale">
             <User className="w-5 h-5" />
-            無料ではじめる
+            {t("homeScreen.signedOut.cta")}
             <ArrowRight className="w-4 h-4" />
           </Button>
 
@@ -123,7 +123,7 @@ export function MyRoomHome({
               className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
             >
               <TrendingUp className="w-4 h-4" />
-              グッズを見る
+              {t("homeScreen.signedOut.viewGoods")}
             </button>
             <span className="text-muted-foreground/30">|</span>
             <button 
@@ -131,7 +131,7 @@ export function MyRoomHome({
               className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
             >
               <Compass className="w-4 h-4" />
-              ルームを探す
+              {t("homeScreen.signedOut.exploreRooms")}
             </button>
           </div>
         </div>
@@ -164,13 +164,13 @@ export function MyRoomHome({
   // 2大タブ: AI Studio（ルーム+アバター） / コレクション（素材庫）
   const tabs = [
     { id: "studio" as const, icon: Sparkles, label: "AI Studio", badge: tabBadges.studio },
-    { id: "collection" as const, icon: Package, label: "コレクション", badge: tabBadges.collection },
+    { id: "collection" as const, icon: Package, label: t("homeScreen.tabs.collection"), badge: tabBadges.collection },
   ];
 
   // AI Studio内のサブ切替
   const studioSubTabs = [
-    { id: "room" as const, icon: Home, label: "ルーム" },
-    { id: "avatar" as const, icon: Shirt, label: "アバター" },
+    { id: "room" as const, icon: Home, label: t("homeScreen.tabs.room") },
+    { id: "avatar" as const, icon: Shirt, label: t("homeScreen.tabs.avatar") },
   ];
 
   return (
@@ -295,6 +295,7 @@ export function MyRoomHome({
  */
 function HeroCard({ profile, userId }: { profile: Profile; userId: string | undefined }) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   // 統計を一括取得（MiniStatのクエリを統合）
   const { data: stats = { items: 0, wishlists: 0, favorites: 0 } } = useQuery({
@@ -319,10 +320,10 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
   // 時間帯挨拶
   const greeting = (() => {
     const h = new Date().getHours();
-    if (h < 5) return "こんばんは";
-    if (h < 11) return "おはよう";
-    if (h < 18) return "こんにちは";
-    return "こんばんは";
+    if (h < 5) return t("homeScreen.hero.greetingNight");
+    if (h < 11) return t("homeScreen.hero.greetingMorning");
+    if (h < 18) return t("homeScreen.hero.greetingAfternoon");
+    return t("homeScreen.hero.greetingNight");
   })();
 
   // コレクターランク（アイテム数で段階）
@@ -336,7 +337,7 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
   })();
 
   const RankIcon = rank.icon;
-  const displayName = profile.display_name || profile.username || "コレクター";
+  const displayName = profile.display_name || profile.username || t("homeScreen.hero.defaultName");
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border/40 shadow-sm">
@@ -391,11 +392,11 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
           {/* 名前と挨拶 */}
           <div className="flex-1 min-w-0 pt-1">
             <p className="text-xs text-muted-foreground mb-0.5">
-              {greeting}、
+              {greeting}{t("homeScreen.hero.greetingComma")}
             </p>
             <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate leading-tight">
               {displayName}
-              <span className="text-muted-foreground font-medium text-sm">さん</span>
+              <span className="text-muted-foreground font-medium text-sm">{t("homeScreen.hero.honorific")}</span>
             </h1>
             <div className="flex items-center gap-1.5 mt-1">
               <div
@@ -407,7 +408,7 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
                 <RankIcon className="w-3 h-3" />
                 {rank.label}
               </div>
-              <span className="text-[10px] text-muted-foreground">コレクター</span>
+              <span className="text-[10px] text-muted-foreground">{t("homeScreen.hero.collector")}</span>
             </div>
           </div>
 
@@ -417,7 +418,7 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
             size="icon"
             onClick={() => navigate(`/user/${profile.id}`)}
             className="shrink-0 h-9 w-9 rounded-xl"
-            title="プロフィールを見る"
+            title={t("homeScreen.hero.viewProfile")}
           >
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -425,11 +426,11 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
 
         {/* 下段: ステータス 1ライン */}
         <div className="flex items-center justify-around gap-1 pt-3 border-t border-border/40">
-          <StatInline icon={Package} value={stats.items} label="グッズ" />
+          <StatInline icon={Package} value={stats.items} label={t("homeScreen.hero.statItems")} />
           <div className="w-px h-8 bg-border/60" />
-          <StatInline icon={Heart} value={stats.wishlists} label="ウィッシュ" />
+          <StatInline icon={Heart} value={stats.wishlists} label={t("homeScreen.hero.statWishlist")} />
           <div className="w-px h-8 bg-border/60" />
-          <StatInline icon={Star} value={stats.favorites} label="お気に入り" />
+          <StatInline icon={Star} value={stats.favorites} label={t("homeScreen.hero.statFavorites")} />
         </div>
       </div>
     </div>

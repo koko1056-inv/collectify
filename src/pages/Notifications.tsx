@@ -11,8 +11,10 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Loader2, Bell, CheckCheck, Trash2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Notifications() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -44,10 +46,10 @@ export default function Notifications() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Bell className="h-6 w-6" />
-              <h1 className="text-2xl font-bold">通知</h1>
+              <h1 className="text-2xl font-bold">{t("screens.notifications.title")}</h1>
               {unreadCount > 0 && (
                 <Badge variant="destructive" className="text-xs">
-                  {unreadCount}件の未読
+                  {t("screens.notifications.unreadBadge", { count: unreadCount })}
                 </Badge>
               )}
             </div>
@@ -62,12 +64,12 @@ export default function Notifications() {
                 {isMarkingAllAsRead ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    更新中...
+                    {t("screens.notifications.marking")}
                   </>
                 ) : (
                   <>
                     <CheckCheck className="h-4 w-4 mr-1" />
-                    すべて既読にする
+                    {t("screens.notifications.markAllRead")}
                   </>
                 )}
               </Button>
@@ -84,9 +86,9 @@ export default function Notifications() {
             <Card>
               <CardContent className="text-center p-8">
                 <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">通知はありません</h3>
+                <h3 className="text-lg font-medium mb-2">{t("screens.notifications.emptyTitle")}</h3>
                 <p className="text-muted-foreground">
-                  新しい通知があると、ここに表示されます
+                  {t("screens.notifications.emptyDesc")}
                 </p>
               </CardContent>
             </Card>
@@ -98,7 +100,7 @@ export default function Notifications() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Badge variant="destructive" className="h-2 w-2 p-0 rounded-full" />
-                      未読の通知 ({unreadNotifications.length})
+                      {t("screens.notifications.unreadSection", { count: unreadNotifications.length })}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -119,7 +121,7 @@ export default function Notifications() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-muted-foreground">
-                      既読の通知 ({readNotifications.length})
+                      {t("screens.notifications.readSection", { count: readNotifications.length })}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">

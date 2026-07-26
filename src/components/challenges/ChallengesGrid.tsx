@@ -4,12 +4,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChallengesGridProps {
   onCreateChallenge: () => void;
 }
 
 export function ChallengesGrid({ onCreateChallenge }: ChallengesGridProps) {
+  const { t } = useLanguage();
   const { data: challenges, isLoading, error, refetch } = useChallenges();
 
   if (isLoading) {
@@ -25,7 +27,7 @@ export function ChallengesGrid({ onCreateChallenge }: ChallengesGridProps) {
   if (error) {
     return (
       <QueryErrorState
-        title="チャレンジの読み込みに失敗しました"
+        title={t("social.challenges.loadError")}
         onRetry={() => refetch()}
       />
     );
@@ -35,12 +37,12 @@ export function ChallengesGrid({ onCreateChallenge }: ChallengesGridProps) {
     return (
       <div className="text-center py-12">
         <Trophy className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-        <h3 className="font-semibold text-lg mb-2">チャレンジがありません</h3>
+        <h3 className="font-semibold text-lg mb-2">{t("social.challenges.emptyTitle")}</h3>
         <p className="text-muted-foreground mb-4">
-          最初のチャレンジを作成して、コミュニティを盛り上げましょう！
+          {t("social.challenges.emptyDesc")}
         </p>
         <Button onClick={onCreateChallenge}>
-          チャレンジを作成
+          {t("social.challenges.create")}
         </Button>
       </div>
     );

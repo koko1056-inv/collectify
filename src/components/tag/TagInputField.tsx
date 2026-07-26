@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { addTagToItem } from '@/utils/tag/tag-mutations';
 import { TagCategory } from '@/types/tag';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagInputFieldProps {
   selectedTags: string[];
@@ -26,6 +27,7 @@ export function TagInputField({
 }: TagInputFieldProps) {
   const [tagInput, setTagInput] = useState("");
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const handleAddTag = async (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -36,8 +38,8 @@ export function TagInputField({
       // タグが既に選択済みかチェック
       if (selectedTags.includes(newTag)) {
         toast({
-          title: "注意",
-          description: "このタグは既に追加されています。",
+          title: t("tagManage.input.notice"),
+          description: t("tagManage.input.alreadyAdded"),
           variant: "default",
         });
         setTagInput("");
@@ -46,8 +48,8 @@ export function TagInputField({
 
       if (newTag.length > 50) {
         toast({
-          title: "エラー",
-          description: "タグは50文字以内で入力してください。",
+          title: t("tagManage.common.error"),
+          description: t("tagManage.input.tooLong"),
           variant: "destructive",
         });
         return;
@@ -103,14 +105,14 @@ export function TagInputField({
         setTagInput("");
         
         toast({
-          title: "タグを追加しました",
-          description: `${newTag}を追加しました。`,
+          title: t("tagManage.toast.tagAdded"),
+          description: `${t("tagManage.common.addedPrefix")}${newTag}${t("tagManage.common.addedSuffixDot")}`,
         });
       } catch (error) {
         console.error("Error adding tag:", error);
         toast({
-          title: "エラー",
-          description: "タグの追加に失敗しました。",
+          title: t("tagManage.common.error"),
+          description: t("tagManage.common.tagAddFailed"),
           variant: "destructive",
         });
       }
@@ -122,7 +124,7 @@ export function TagInputField({
       value={tagInput}
       onChange={(e) => setTagInput(e.target.value)}
       onKeyDown={handleAddTag}
-      placeholder="タグを入力してEnterを押してください"
+      placeholder={t("tagManage.input.placeholder")}
       maxLength={50}
     />
   );

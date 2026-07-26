@@ -5,6 +5,7 @@ import { TradeRequest } from "./types";
 import { TradeCard } from "./TradeCard";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Inbox } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PendingTradesListProps {
   trades: TradeRequest[];
@@ -13,14 +14,16 @@ interface PendingTradesListProps {
 }
 
 export function PendingTradesList({ trades, onAccept, onReject }: PendingTradesListProps) {
+  const { t } = useLanguage();
+
   return (
     <ScrollArea className="h-[calc(90vh-180px)]">
       <div className="space-y-6 pr-4">
         {trades.length === 0 ? (
           <EmptyState
             icon={Inbox}
-            title="受信したトレードリクエストはありません"
-            description="誰かがあなたのグッズと交換したくなったら、ここに届きます"
+            title={t("trade.list.noPendingTitle")}
+            description={t("trade.list.noPendingDesc")}
           />
         ) : (
           trades.map((trade) => (

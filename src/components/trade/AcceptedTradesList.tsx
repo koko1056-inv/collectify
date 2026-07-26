@@ -6,6 +6,7 @@ import { TradeCard } from "./TradeCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AcceptedTradesListProps {
   trades: TradeRequest[];
@@ -15,7 +16,8 @@ interface AcceptedTradesListProps {
 export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  
+  const { t } = useLanguage();
+
   const notShippedTrades = trades.filter(trade => trade.shipping_status === 'not_shipped');
   const shippedTrades = trades.filter(trade => trade.shipping_status === 'shipped');
 
@@ -33,15 +35,15 @@ export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListPro
     if (error) {
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "トレードの完了に失敗しました。",
+        title: t("common.error"),
+        description: t("trade.list.completeErrorDesc"),
       });
       return;
     }
 
     toast({
-      title: "トレード完了",
-      description: "トレードが完了しました。お疲れ様でした！",
+      title: t("trade.list.completedToastTitle"),
+      description: t("trade.list.completedToastDesc"),
     });
   };
 
@@ -49,12 +51,12 @@ export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListPro
     <ScrollArea className="h-[calc(90vh-180px)]">
       <div className="space-y-8 pr-4">
         {trades.length === 0 ? (
-          <p className="text-center text-gray-500">現在、進行中のトレードはありません</p>
+          <p className="text-center text-gray-500">{t("trade.list.noOngoing")}</p>
         ) : (
           <>
             {notShippedTrades.length > 0 && (
               <div className="space-y-4">
-                <h3 className="font-medium text-sm text-gray-500">郵送手続き待ち</h3>
+                <h3 className="font-medium text-sm text-gray-500">{t("trade.list.awaitingShipping")}</h3>
                 {notShippedTrades.map((trade) => (
                   <TradeCard
                     key={trade.id}
@@ -68,7 +70,7 @@ export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListPro
 
             {shippedTrades.length > 0 && (
               <div className="space-y-4">
-                <h3 className="font-medium text-sm text-gray-500">郵送済み - 到着待ち</h3>
+                <h3 className="font-medium text-sm text-gray-500">{t("trade.list.shippedAwaitingArrival")}</h3>
                 {shippedTrades.map((trade) => (
                   <TradeCard
                     key={trade.id}

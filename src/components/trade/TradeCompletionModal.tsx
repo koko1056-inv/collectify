@@ -7,6 +7,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { TradeReviewModal } from "@/features/trust/TradeReviewModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TradeCompletionModalProps {
   isOpen: boolean;
@@ -42,6 +43,7 @@ export function TradeCompletionModal({
   const [step, setStep] = useState<'confirmation' | 'shipping' | 'complete'>('confirmation');
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [showReview, setShowReview] = useState(false);
 
@@ -71,8 +73,8 @@ export function TradeCompletionModal({
       }
 
       toast({
-        title: "トレード完了",
-        description: "トレードが完了しました。お疲れ様でした！",
+        title: t("trade.list.completedToastTitle"),
+        description: t("trade.list.completedToastDesc"),
       });
 
       // 相手がいれば評価モーダルを表示
@@ -85,8 +87,8 @@ export function TradeCompletionModal({
       console.error("Error completing trade:", error);
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "トレードの完了に失敗しました。",
+        title: t("common.error"),
+        description: t("trade.list.completeErrorDesc"),
       });
     } finally {
       setIsLoading(false);
@@ -98,18 +100,18 @@ export function TradeCompletionModal({
       <Dialog open={isOpen && !showReview} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px] bg-white">
           <DialogHeader>
-            <DialogTitle>トレード手続き</DialogTitle>
+            <DialogTitle>{t("trade.completion.title")}</DialogTitle>
             <DialogDescription>
-              {step === 'confirmation' && "トレードの詳細を確認してください"}
-              {step === 'shipping' && "発送情報を入力してください"}
-              {step === 'complete' && "トレードを完了します"}
+              {step === 'confirmation' && t("trade.completion.descConfirmation")}
+              {step === 'shipping' && t("trade.completion.descShipping")}
+              {step === 'complete' && t("trade.completion.descComplete")}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh]">
             <div className="space-y-4 p-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">提供アイテム</p>
+                  <p className="text-sm text-gray-500">{t("trade.completion.offeredItem")}</p>
                   <img
                     src={tradeRequest.offered_item.image}
                     alt={tradeRequest.offered_item.title}
@@ -118,7 +120,7 @@ export function TradeCompletionModal({
                   <p className="mt-1 text-sm">{tradeRequest.offered_item.title}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">リクエストアイテム</p>
+                  <p className="text-sm text-gray-500">{t("trade.completion.requestedItem")}</p>
                   <img
                     src={tradeRequest.requested_item.image}
                     alt={tradeRequest.requested_item.title}
@@ -130,9 +132,9 @@ export function TradeCompletionModal({
 
               {step === 'shipping' && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">発送手続き</p>
+                  <p className="text-sm font-medium">{t("trade.completion.shippingHeading")}</p>
                   <p className="text-sm text-gray-500">
-                    トレード相手と連絡を取り、発送方法や住所を確認してください。
+                    {t("trade.completion.shippingHelp")}
                   </p>
                 </div>
               )}
@@ -141,12 +143,12 @@ export function TradeCompletionModal({
           <DialogFooter>
             {step === 'confirmation' && (
               <Button onClick={() => setStep('shipping')} className="bg-black text-white hover:bg-gray-800">
-                発送手続きへ進む
+                {t("trade.completion.toShipping")}
               </Button>
             )}
             {step === 'shipping' && (
               <Button onClick={() => setStep('complete')} className="bg-black text-white hover:bg-gray-800">
-                発送完了
+                {t("trade.completion.shipped")}
               </Button>
             )}
             {step === 'complete' && (
@@ -155,7 +157,7 @@ export function TradeCompletionModal({
                 disabled={isLoading}
                 className="bg-black text-white hover:bg-gray-800"
               >
-                トレードを完了する
+                {t("trade.completion.complete")}
               </Button>
             )}
           </DialogFooter>

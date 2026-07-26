@@ -5,8 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 import { useTrustScore } from "./useTrustScore";
 import { TrustBadge } from "./TrustBadge";
-import { CATEGORY_LABELS } from "./types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { formatDistanceToNow } from "date-fns";
 import { ja } from "date-fns/locale";
 
@@ -15,6 +15,7 @@ interface TrustScoreSectionProps {
 }
 
 export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
+  const { t } = useLanguage();
   const { data: score, isLoading: loadingScore } = useTrustScore(userId);
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({
@@ -64,15 +65,15 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
       {/* 3カテゴリのバッジ */}
       <Card className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-sm">信頼度</h3>
+          <h3 className="font-semibold text-sm">{t("trade.trust.heading")}</h3>
           <TrustBadge score={score} size="md" />
         </div>
         <div className="grid grid-cols-3 gap-3">
           {categories.map((c) => (
             <div key={c.key} className="text-center space-y-1">
-              <p className="text-xs text-muted-foreground">{CATEGORY_LABELS[c.key]}</p>
+              <p className="text-xs text-muted-foreground">{t(`trade.trustCategory.${c.key}`)}</p>
               <TrustBadge score={score} category={c.key} size="sm" />
-              <p className="text-[10px] text-muted-foreground">{c.count}件</p>
+              <p className="text-[10px] text-muted-foreground">{t("trade.trust.countSuffix", { count: c.count })}</p>
             </div>
           ))}
         </div>
@@ -80,11 +81,11 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
 
       {/* 取引レビュー */}
       <div>
-        <h4 className="font-semibold text-sm mb-2">取引レビュー</h4>
+        <h4 className="font-semibold text-sm mb-2">{t("trade.trust.reviewsHeading")}</h4>
         {loadingReviews ? (
           <Skeleton className="h-20 w-full" />
         ) : !reviews || reviews.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">まだレビューはありません</p>
+          <p className="text-sm text-muted-foreground py-6 text-center">{t("trade.trust.noReviews")}</p>
         ) : (
           <div className="space-y-2">
             {reviews.map((r) => (
@@ -97,7 +98,7 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-sm font-medium truncate">
-                        {r.reviewer?.display_name || r.reviewer?.username || "匿名"}
+                        {r.reviewer?.display_name || r.reviewer?.username || t("trade.trust.anonymous")}
                       </p>
                       <span className="text-[10px] text-muted-foreground">
                         {formatDistanceToNow(new Date(r.created_at), { addSuffix: true, locale: ja })}

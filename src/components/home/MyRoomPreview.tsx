@@ -15,6 +15,7 @@ import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Profile } from "@/types";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MyRoomPreviewProps {
   profile: Profile | undefined;
@@ -23,8 +24,9 @@ interface MyRoomPreviewProps {
 
 export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
-  const { 
+  const {
     mainRoom, 
     roomItems, 
     likeCount, 
@@ -49,9 +51,9 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
           </div>
           
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-foreground">マイルームを作ろう！</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t("homeScreen.room.createTitle")}</h2>
             <p className="text-muted-foreground">
-              自分だけの推し部屋を作って、グッズを飾りましょう
+              {t("homeScreen.room.createDescription")}
             </p>
           </div>
 
@@ -62,7 +64,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
             className="gap-2 shadow-lg hover:shadow-xl transition-all"
           >
             <Plus className="w-5 h-5" />
-            マイルームを作成
+            {t("homeScreen.room.createButton")}
           </Button>
         </div>
       </div>
@@ -133,7 +135,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
             <div className="text-center space-y-2 bg-white/80 backdrop-blur-sm p-6 rounded-xl">
               <Sparkles className="w-8 h-8 mx-auto text-primary" />
               <p className="text-sm text-muted-foreground">
-                クリックして部屋を編集
+                {t("homeScreen.room.clickToEdit")}
               </p>
             </div>
           </div>
@@ -146,7 +148,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
         )}>
           <Button variant="secondary" size="lg" className="gap-2 shadow-lg">
             <Pencil className="w-5 h-5" />
-            部屋を編集
+            {t("homeScreen.room.editRoom")}
           </Button>
         </div>
       </div>
@@ -154,14 +156,14 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
       {/* ルーム情報 */}
       <div className="relative z-10 mt-6 text-center space-y-4">
         <h2 className="text-xl font-bold text-foreground">
-          {mainRoom?.title || "マイルーム"}
+          {mainRoom?.title || t("homeScreen.room.defaultTitle")}
         </h2>
 
         {/* 統計情報 */}
         <div className="flex items-center justify-center gap-6">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Eye className="w-4 h-4" />
-            <span className="text-sm">{mainRoom?.visit_count || 0} 訪問</span>
+            <span className="text-sm">{mainRoom?.visit_count || 0} {t("homeScreen.room.visitsSuffix")}</span>
           </div>
           
           <button 
@@ -178,7 +180,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
             disabled={!user || isOwnRoom}
           >
             <Heart className={cn("w-4 h-4", isLiked && "fill-current")} />
-            <span className="text-sm">{likeCount} いいね</span>
+            <span className="text-sm">{likeCount} {t("homeScreen.room.likesSuffix")}</span>
           </button>
         </div>
 
@@ -191,7 +193,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
             onClick={() => navigate("/rooms/explore")}
           >
             <Users className="w-4 h-4" />
-            他の部屋を見る
+            {t("homeScreen.room.exploreRooms")}
           </Button>
         </div>
       </div>
@@ -201,8 +203,9 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
 
 // ルームアイテム表示コンポーネント
 function RoomItemDisplay({ item }: { item: RoomItem }) {
+  const { t } = useLanguage();
   const imageUrl = item.custom_image_url || item.item_data?.image;
-  
+
   if (!imageUrl) return null;
 
   return (
@@ -219,7 +222,7 @@ function RoomItemDisplay({ item }: { item: RoomItem }) {
     >
       <img
         src={imageUrl}
-        alt={item.item_data?.title || "アイテム"}
+        alt={item.item_data?.title || t("homeScreen.room.itemAlt")}
         className="w-full h-full object-contain drop-shadow-lg"
         draggable={false}
       />

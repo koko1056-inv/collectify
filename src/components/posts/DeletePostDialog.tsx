@@ -9,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DeletePostDialogProps {
   isOpen: boolean;
@@ -23,23 +24,25 @@ export function DeletePostDialog({
   onConfirm,
   isDeleting,
 }: DeletePostDialogProps) {
+  const { t } = useLanguage();
+
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>投稿の削除</AlertDialogTitle>
+          <AlertDialogTitle>{t("social.posts.deleteTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            この投稿を削除してもよろしいですか？この操作は取り消せません。
+            {t("social.posts.deleteDesc")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>キャンセル</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>{t("social.posts.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isDeleting}
             className="bg-red-500 hover:bg-red-600"
           >
-            {isDeleting ? "削除中..." : "削除する"}
+            {isDeleting ? t("social.posts.deleting") : t("social.posts.deleteConfirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

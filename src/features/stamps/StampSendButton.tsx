@@ -5,6 +5,7 @@ import { Sticker, Check } from "lucide-react";
 import { STAMPS, type StampContext } from "./types";
 import { useSendStamp, useRecentStampSent } from "./useGreetingStamp";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StampSendButtonProps {
   receiverId: string;
@@ -22,10 +23,11 @@ export function StampSendButton({
   contextId,
   variant = "outline",
   size = "sm",
-  label = "あいさつスタンプ",
+  label,
   fullWidth = false,
 }: StampSendButtonProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const { data: alreadySent } = useRecentStampSent(receiverId);
   const sendMutation = useSendStamp();
@@ -49,11 +51,11 @@ export function StampSendButton({
           className={fullWidth ? "w-full" : undefined}
         >
           {alreadySent ? <Check className="h-4 w-4 mr-1" /> : <Sticker className="h-4 w-4 mr-1" />}
-          {alreadySent ? "送信済み" : label}
+          {alreadySent ? t("trade.stamp.sent") : (label ?? t("trade.stamp.defaultLabel"))}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-3" align="start">
-        <p className="text-xs text-muted-foreground mb-2">気軽にスタンプを送ってみよう</p>
+        <p className="text-xs text-muted-foreground mb-2">{t("trade.stamp.hint")}</p>
         <div className="grid grid-cols-2 gap-2">
           {STAMPS.map((s) => (
             <button
@@ -63,12 +65,12 @@ export function StampSendButton({
               className="flex flex-col items-center gap-1 p-2 rounded-md border hover:bg-muted transition disabled:opacity-50"
             >
               <span className="text-2xl">{s.emoji}</span>
-              <span className="text-xs font-medium">{s.label}</span>
+              <span className="text-xs font-medium">{t(`trade.stampType.${s.type}`)}</span>
             </button>
           ))}
         </div>
         <p className="text-[10px] text-muted-foreground mt-2 text-center">
-          同じ相手に24時間に1回まで
+          {t("trade.stamp.limitNote")}
         </p>
       </PopoverContent>
     </Popover>

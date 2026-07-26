@@ -5,6 +5,7 @@ import { TradeRequest } from "./types";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Truck, Clock, CheckCircle, Globe, MessageCircle, X, Check, ArrowLeftRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -32,6 +33,7 @@ export function TradeCard({
   onComplete 
 }: TradeCardProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -89,14 +91,14 @@ export function TradeCard({
         return (
           <div className="flex items-center gap-1 text-gray-700 bg-gray-100 px-2 py-1 rounded-full text-xs">
             <Clock className="h-3 w-3" />
-            <span>郵送手続き待ち</span>
+            <span>{t("trade.card.shippingNotShipped")}</span>
           </div>
         );
       case 'shipped':
         return (
           <div className="flex items-center gap-1 text-gray-700 bg-gray-100 px-2 py-1 rounded-full text-xs">
             <Truck className="h-3 w-3" />
-            <span>発送済み - 到着待ち</span>
+            <span>{t("trade.card.shippingShipped")}</span>
           </div>
         );
       default:
@@ -113,14 +115,14 @@ export function TradeCard({
           {isOpenTrade && (
             <div className="flex items-center gap-1 text-gray-700 bg-gray-100 px-2 py-1 rounded-full text-xs">
               <Globe className="h-3 w-3" />
-              <span>オープントレード</span>
+              <span>{t("trade.card.openTradeBadge")}</span>
             </div>
           )}
         </div>
         {isPending && (
           <div className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs flex items-center">
             <Clock className="h-3 w-3 mr-1" />
-            <span>保留中</span>
+            <span>{t("trade.card.pending")}</span>
           </div>
         )}
         {renderShippingStatus()}
@@ -143,7 +145,7 @@ export function TradeCard({
             )}
             <AvatarFallback>{trade.sender.username?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <span className="text-xs mt-1">{trade.sender.id === user?.id ? 'あなた' : trade.sender.username}</span>
+          <span className="text-xs mt-1">{trade.sender.id === user?.id ? t("trade.card.you") : trade.sender.username}</span>
         </div>
         
         <ArrowLeftRight className="text-blue-500" size={20} />
@@ -163,13 +165,13 @@ export function TradeCard({
             )}
             <AvatarFallback>{trade.receiver?.username?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
           </Avatar>
-          <span className="text-xs mt-1">{trade.receiver?.id === user?.id ? 'あなた' : trade.receiver?.username || '未定'}</span>
+          <span className="text-xs mt-1">{trade.receiver?.id === user?.id ? t("trade.card.you") : trade.receiver?.username || t("trade.card.undecided")}</span>
         </div>
       </div>
 
       {/* 相手の提供アイテム */}
       <div className="space-y-1">
-        <p className="text-sm text-gray-700 font-medium">相手の提供アイテム:</p>
+        <p className="text-sm text-gray-700 font-medium">{t("trade.card.partnerOfferedItem")}</p>
         <div className="relative">
           <img
             src={trade.offered_item.image}
@@ -184,7 +186,7 @@ export function TradeCard({
       
       {/* あなたの提供アイテム */}
       <div className="space-y-1">
-        <p className="text-sm text-gray-700 font-medium">あなたの提供アイテム:</p>
+        <p className="text-sm text-gray-700 font-medium">{t("trade.card.yourOfferedItem")}</p>
         <div className="relative">
           <img
             src={trade.requested_item.image}
@@ -212,14 +214,14 @@ export function TradeCard({
             className="flex-1 rounded-lg border-red-300 hover:bg-red-50 hover:text-red-600 text-red-500"
           >
             <X className="mr-1 h-4 w-4" />
-            拒否する
+            {t("trade.card.reject")}
           </Button>
           <Button
             onClick={() => onAccept?.(trade.id)}
             className="flex-1 rounded-lg bg-blue-500 hover:bg-blue-600"
           >
             <Check className="mr-1 h-4 w-4" />
-            承認する
+            {t("trade.card.accept")}
           </Button>
         </div>
       ) : !isCompleted && (
@@ -229,7 +231,7 @@ export function TradeCard({
             onClick={() => onOpenChat?.(trade)}
           >
             <MessageCircle className="mr-1 h-4 w-4" />
-            チャットを開く
+            {t("trade.card.openChat")}
             {unreadCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
                 {unreadCount}
@@ -243,7 +245,7 @@ export function TradeCard({
               onClick={() => onComplete?.(trade)}
             >
               <CheckCircle className="mr-2 h-4 w-4" />
-              トレードを完了する
+              {t("trade.card.complete")}
             </Button>
           )}
         </div>

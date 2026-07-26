@@ -6,6 +6,7 @@ import { GoodsPost } from "@/types/posts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { EmptyPostsState } from "./EmptyPostsState";
 import { QueryErrorState } from "@/components/ui/query-error-state";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PostsGridProps {
   filters?: {
@@ -19,6 +20,7 @@ interface PostsGridProps {
 }
 
 export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", onCreatePost }: PostsGridProps) {
+  const { t } = useLanguage();
   const { data, isLoading, error, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = usePostsWithPagination();
   const [selectedPost, setSelectedPost] = useState<GoodsPost | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -150,7 +152,7 @@ export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", o
     console.error("投稿の取得に失敗:", error);
     return (
       <QueryErrorState
-        title="投稿の読み込みに失敗しました"
+        title={t("social.posts.loadError")}
         onRetry={() => refetch()}
       />
     );

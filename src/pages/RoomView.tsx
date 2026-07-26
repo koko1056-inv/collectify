@@ -17,8 +17,10 @@ import { FloatingReactions } from "@/components/room3d/FloatingReactions";
 import { ReactionPicker } from "@/components/room3d/ReactionPicker";
 import { toast } from "sonner";
 import { trackRoomView, trackRoomShare } from "@/utils/analytics";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function RoomView() {
+  const { t } = useLanguage();
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -192,7 +194,7 @@ export default function RoomView() {
       refetchLiked();
     } catch (error) {
       console.error("Error toggling like:", error);
-      toast.error("いいねの更新に失敗しました");
+      toast.error(t("screens.roomView.likeFailed"));
     }
   };
 
@@ -220,8 +222,8 @@ export default function RoomView() {
     return (
       <div className="min-h-screen bg-[#0f0f23] flex items-center justify-center text-white">
         <div className="text-center">
-          <p className="text-lg mb-4">ルームが見つかりません</p>
-          <Button onClick={() => navigate(-1)}>戻る</Button>
+          <p className="text-lg mb-4">{t("screens.roomView.notFound")}</p>
+          <Button onClick={() => navigate(-1)}>{t("screens.roomView.back")}</Button>
         </div>
       </div>
     );
@@ -255,7 +257,7 @@ export default function RoomView() {
                   "text-white hover:bg-white/10",
                   bgmEnabled && isPlaying && "bg-white/20"
                 )}
-                title={bgmEnabled ? "BGMオフ" : "BGMオン"}
+                title={bgmEnabled ? t("screens.roomView.bgmOff") : t("screens.roomView.bgmOn")}
               >
                 {bgmEnabled && isPlaying ? (
                   <Music className="w-5 h-5" />
@@ -342,7 +344,7 @@ export default function RoomView() {
                 className="bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60"
               >
                 <UserPlus className="w-4 h-4 mr-2" />
-                フォロー
+                {t("screens.roomView.follow")}
               </Button>
             )}
           </div>

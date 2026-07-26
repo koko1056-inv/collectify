@@ -40,15 +40,18 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
+// label は翻訳キー。モジュールスコープでは useLanguage が使えないため、描画時に t() で解決する。
 const SPEND_GUIDE = [
-  { icon: TagIcon, label: "カスタムタグを新規発行", cost: 10 },
-  { icon: Package, label: "コレクション枠 +10 拡張", cost: 30 },
-  { icon: ImageIcon, label: "AI画像生成 / 投稿画像生成", cost: 50 },
-  { icon: Home, label: "AIマイルーム生成", cost: 100 },
+  { icon: TagIcon, label: "screens.pointShop.spendCustomTag", cost: 10 },
+  { icon: Package, label: "screens.pointShop.spendCollectionSlots", cost: 30 },
+  { icon: ImageIcon, label: "screens.pointShop.spendAiImage", cost: 50 },
+  { icon: Home, label: "screens.pointShop.spendAiRoom", cost: 100 },
 ];
 
 export default function PointShop() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -82,9 +85,9 @@ export default function PointShop() {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="container max-w-4xl mx-auto px-4 py-8 text-center">
-          <p className="text-muted-foreground">ログインが必要です</p>
+          <p className="text-muted-foreground">{t("screens.pointShop.loginRequired")}</p>
           <Button onClick={() => navigate("/login")} className="mt-4">
-            ログイン
+            {t("screens.pointShop.login")}
           </Button>
         </div>
       </div>
@@ -99,8 +102,8 @@ export default function PointShop() {
 
     if (!nativeAvailable) {
       toast({
-        title: "購入はiOSアプリでのみ可能です",
-        description: "App Store版アプリからお手続きください。",
+        title: t("screens.pointShop.iosOnlyTitle"),
+        description: t("screens.pointShop.iosOnlyDesc"),
       });
       setConfirmPack(null);
       return;
@@ -109,8 +112,8 @@ export default function PointShop() {
     const rcId = pack.revenuecat_package_id;
     if (!rcId) {
       toast({
-        title: "購入できません",
-        description: "このパックの製品設定が見つかりません。",
+        title: t("screens.pointShop.cannotPurchase"),
+        description: t("screens.pointShop.noProductConfig"),
         variant: "destructive",
       });
       setConfirmPack(null);
@@ -120,8 +123,8 @@ export default function PointShop() {
     const match = rcPackages.find((p) => p.identifier === rcId);
     if (!match) {
       toast({
-        title: "購入できません",
-        description: "App Storeの製品が読み込めませんでした。再度お試しください。",
+        title: t("screens.pointShop.cannotPurchase"),
+        description: t("screens.pointShop.storeLoadFailed"),
         variant: "destructive",
       });
       setConfirmPack(null);
@@ -134,8 +137,8 @@ export default function PointShop() {
       // Server-side webhook grants the points; refresh balance after a short delay.
       queryClient.invalidateQueries({ queryKey: ["userPoints"] });
       toast({
-        title: "購入が完了しました",
-        description: "ポイントが反映されるまで数秒かかります。",
+        title: t("screens.pointShop.purchaseComplete"),
+        description: t("screens.pointShop.purchaseCompleteDesc"),
       });
       setConfirmPack(null);
     } catch (err) {
@@ -145,8 +148,8 @@ export default function PointShop() {
       } else {
         console.error("[PointShop] purchase failed", err);
         toast({
-          title: "購入に失敗しました",
-          description: err instanceof Error ? err.message : "もう一度お試しください。",
+          title: t("screens.pointShop.purchaseFailed"),
+          description: err instanceof Error ? err.message : t("screens.pointShop.tryAgain"),
           variant: "destructive",
         });
       }
@@ -168,10 +171,10 @@ export default function PointShop() {
           <div className="flex-1">
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Coins className="w-6 h-6 text-primary" />
-              ポイント
+              {t("screens.pointShop.title")}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              ポイントパックを購入したり、無料で貯めたポイントを各機能で使えます
+              {t("screens.pointShop.subtitle")}
             </p>
           </div>
         </div>
@@ -184,7 +187,7 @@ export default function PointShop() {
                 <Star className="w-6 h-6 text-primary fill-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">保有ポイント</p>
+                <p className="text-sm text-muted-foreground">{t("screens.pointShop.balance")}</p>
                 {pointsLoading ? (
                   <Skeleton className="h-8 w-24" />
                 ) : (
@@ -203,10 +206,10 @@ export default function PointShop() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />
-              ポイントパック
+              {t("screens.pointShop.packsHeading")}
             </h2>
             {!nativeAvailable && (
-              <Badge variant="outline" className="text-[10px]">iOSアプリのみ対応</Badge>
+              <Badge variant="outline" className="text-[10px]">{t("screens.pointShop.iosOnlyBadge")}</Badge>
             )}
           </div>
 
@@ -220,7 +223,7 @@ export default function PointShop() {
             <Card>
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
                 <Gift className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                ポイントパックはまもなく登場します
+                {t("screens.pointShop.packsComingSoon")}
               </CardContent>
             </Card>
           ) : (
@@ -235,7 +238,7 @@ export default function PointShop() {
                         <CardTitle className="text-base">{pack.name}</CardTitle>
                         {hasBonus && (
                           <Badge className="bg-amber-500/15 text-amber-700 border-amber-500/30 dark:text-amber-300">
-                            +{pack.bonus_points}pt ボーナス
+                            {t("screens.pointShop.bonusBadge", { points: pack.bonus_points })}
                           </Badge>
                         )}
                       </div>
@@ -250,7 +253,7 @@ export default function PointShop() {
                     <CardFooter className="pt-2 flex items-center justify-between">
                       <span className="text-base font-semibold">¥{pack.price.toLocaleString()}</span>
                       <Button size="sm" onClick={() => setConfirmPack(pack)}>
-                        購入する
+                        {t("screens.pointShop.buy")}
                       </Button>
                     </CardFooter>
                   </Card>
@@ -264,7 +267,7 @@ export default function PointShop() {
         <section className="mb-8">
           <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
             <Info className="w-5 h-5 text-primary" />
-            ポイントの使いみち
+            {t("screens.pointShop.spendHeading")}
           </h2>
           <Card>
             <CardContent className="pt-4 space-y-2">
@@ -274,7 +277,7 @@ export default function PointShop() {
                   <div key={g.label} className="flex items-center justify-between py-2 border-b last:border-b-0">
                     <div className="flex items-center gap-2 text-sm">
                       <Icon className="w-4 h-4 text-muted-foreground" />
-                      <span>{g.label}</span>
+                      <span>{t(g.label)}</span>
                     </div>
                     <Badge variant="secondary" className="gap-1">
                       <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -284,7 +287,7 @@ export default function PointShop() {
                 );
               })}
               <p className="text-[11px] text-muted-foreground pt-2">
-                各機能を使うときに、その場で確認の上ポイントが消費されます。
+                {t("screens.pointShop.spendNote")}
               </p>
             </CardContent>
           </Card>
@@ -295,14 +298,14 @@ export default function PointShop() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Gift className="w-5 h-5 text-green-500" />
-              無料でポイントを獲得
+              {t("screens.pointShop.freeHeading")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <Row label="ログインボーナス" value="+10pt / 日" />
-            <Row label="グッズ登録" value="+1pt" />
-            <Row label="コンテンツ追加" value="+10pt" />
-            <Row label="連続ログインボーナス" value="ストリーク数に応じて加算" />
+            <Row label={t("screens.pointShop.freeLoginBonus")} value={t("screens.pointShop.freeLoginBonusValue")} />
+            <Row label={t("screens.pointShop.freeAddGoods")} value="+1pt" />
+            <Row label={t("screens.pointShop.freeAddContent")} value="+10pt" />
+            <Row label={t("screens.pointShop.freeStreak")} value={t("screens.pointShop.freeStreakValue")} />
           </CardContent>
         </Card>
       </div>
@@ -315,24 +318,24 @@ export default function PointShop() {
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-sm">
                 <p>
-                  <strong>¥{confirmPack?.price.toLocaleString()}</strong> で{" "}
+                  <strong>¥{confirmPack?.price.toLocaleString()}</strong> {t("screens.pointShop.confirmMid")}{" "}
                   <strong>
                     {((confirmPack?.points ?? 0) + (confirmPack?.bonus_points ?? 0)).toLocaleString()}pt
                   </strong>{" "}
-                  を獲得します。
+                  {t("screens.pointShop.confirmSuffix")}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {nativeAvailable
-                    ? "※ 購入後、ポイントが反映されるまで数秒かかる場合があります。"
-                    : "※ 購入はiOSアプリでのみ可能です。"}
+                    ? t("screens.pointShop.confirmNoteNative")
+                    : t("screens.pointShop.confirmNoteWeb")}
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={purchasing}>キャンセル</AlertDialogCancel>
+            <AlertDialogCancel disabled={purchasing}>{t("screens.pointShop.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmPurchase} disabled={purchasing}>
-              {purchasing ? "処理中..." : "続ける"}
+              {purchasing ? t("screens.pointShop.processing") : t("screens.pointShop.continue")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -19,17 +19,20 @@ import { Badge } from "@/components/ui/badge";
 import { TrustBadge } from "@/features/trust/TrustBadge";
 import { TrustScoreSection } from "@/features/trust/TrustScoreSection";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type Tab = "collection" | "posts" | "wishlist" | "trust";
 
+// label は翻訳キー。モジュールスコープでは useLanguage が使えないため、描画時に t() で解決する。
 const TABS: { id: Tab; label: string; icon: typeof Package }[] = [
-  { id: "collection", label: "コレクション", icon: Package },
-  { id: "posts", label: "投稿", icon: Camera },
-  { id: "wishlist", label: "ウィッシュ", icon: Heart },
-  { id: "trust", label: "評価", icon: ShieldCheck },
+  { id: "collection", label: "screens.userProfile.tabCollection", icon: Package },
+  { id: "posts", label: "screens.userProfile.tabPosts", icon: Camera },
+  { id: "wishlist", label: "screens.userProfile.tabWishlist", icon: Heart },
+  { id: "trust", label: "screens.userProfile.tabTrust", icon: ShieldCheck },
 ];
 
 export default function UserProfile() {
+  const { t } = useLanguage();
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -76,7 +79,7 @@ export default function UserProfile() {
               className="gap-1 text-muted-foreground hover:text-foreground -ml-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              戻る
+              {t("screens.userProfile.back")}
             </Button>
           </div>
 
@@ -109,7 +112,7 @@ export default function UserProfile() {
           {/* 推しコンテンツ (読み取り専用) */}
           {interests.length > 0 && (
             <div className="px-4 mt-4">
-              <h3 className="text-sm font-semibold mb-2">推しコンテンツ</h3>
+              <h3 className="text-sm font-semibold mb-2">{t("screens.userProfile.favoriteContent")}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {interests.map((name: string) => (
                   <Badge key={name} variant="secondary" className="bg-primary/10 text-primary border-primary/20">
@@ -148,7 +151,7 @@ export default function UserProfile() {
                     )}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
-                    <span className="text-xs sm:text-sm whitespace-nowrap">{tab.label}</span>
+                    <span className="text-xs sm:text-sm whitespace-nowrap">{t(tab.label)}</span>
                   </button>
                 );
               })}

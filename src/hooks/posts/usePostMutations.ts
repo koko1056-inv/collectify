@@ -3,10 +3,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { user } = useAuth();
 
   return useMutation({
@@ -15,7 +17,7 @@ export function useCreatePost() {
       caption?: string; 
       imageUrl: string; 
     }) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
 
       console.log("投稿を作成中...", { userItemId, caption, imageUrl });
 
@@ -52,15 +54,15 @@ export function useCreatePost() {
       console.log("キャッシュ更新完了");
       
       toast({
-        title: "投稿しました",
-        description: "投稿が正常に作成されました。",
+        title: t("notices.posts.createdTitle"),
+        description: t("notices.posts.createdDesc"),
       });
     },
     onError: (error) => {
       console.error("投稿作成エラー:", error);
       toast({
-        title: "エラー",
-        description: "投稿の作成に失敗しました。",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.posts.createFailedDesc"),
         variant: "destructive",
       });
     },
@@ -70,10 +72,11 @@ export function useCreatePost() {
 export function useToggleLike() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({ postId, isLiked }: { postId: string; isLiked: boolean }) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
 
       if (isLiked) {
         const { error } = await supabase

@@ -8,6 +8,7 @@ import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
 import { addToCollection } from "@/utils/collection-actions";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UseOfficialGoodsCardProps {
   id: string;
@@ -24,6 +25,7 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const queryClient = useQueryClient();
   const { playSuccessSound } = useSoundEffect();
+  const { t } = useLanguage();
 
   const { data: isInCollection = false, refetch: refetchIsInCollection } = useQuery({
     queryKey: ["user-item-exists", id, user?.id],
@@ -90,8 +92,8 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
   const handleAddToCollection = async () => {
     if (!user) {
       toast({
-        title: "エラー",
-        description: "コレクションに追加するにはログインが必要です。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.official.loginToAdd"),
         variant: "destructive",
       });
       return;
@@ -107,8 +109,8 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
 
       if (count && count > 0) {
         toast({
-          title: "既に追加済み",
-          description: "このアイテムは既にコレクションに追加されています。",
+          title: t("collectionScreen.official.alreadyAdded"),
+          description: t("collectionScreen.official.alreadyAddedDesc"),
         });
         await refetchIsInCollection();
         return;
@@ -127,14 +129,14 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       if (!result.success) {
         if (result.isAtLimit) {
           toast({
-            title: "コレクション枠が上限です",
-            description: "ポイントショップで枠を追加購入してください。",
+            title: t("collectionScreen.official.limitTitle"),
+            description: t("collectionScreen.official.limitDesc"),
             variant: "destructive",
           });
         } else {
           toast({
-            title: "エラー",
-            description: result.error || "コレクションへの追加に失敗しました。",
+            title: t("collectionScreen.common.error"),
+            description: result.error || t("collectionScreen.official.addFailed"),
             variant: "destructive",
           });
         }
@@ -160,14 +162,14 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       playSuccessSound();
 
       toast({
-        title: "コレクションに追加しました",
-        description: result.pointsAwarded ? `+${result.pointsAwarded}ポイント獲得` : undefined,
+        title: t("collectionScreen.official.added"),
+        description: result.pointsAwarded ? `+${result.pointsAwarded}${t("collectionScreen.official.pointsEarnedSuffix")}` : undefined,
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
       toast({
-        title: "エラー",
-        description: "コレクションへの追加に失敗しました。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.official.addFailed"),
         variant: "destructive",
       });
     }

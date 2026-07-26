@@ -1,6 +1,7 @@
 import { memo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tags, PlusCircle, Grid, List } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CollectionActionsProps {
   isCompact: boolean;
@@ -18,6 +19,7 @@ export const CollectionActions = memo(function CollectionActions({
   const handleTagManage = useCallback(() => onTagManage(), [onTagManage]);
   const handleMemoryAdd = useCallback(() => onMemoryAdd(), [onMemoryAdd]);
   const handleViewToggle = useCallback(() => onViewToggle(), [onViewToggle]);
+  const { t } = useLanguage();
 
   return (
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4">
@@ -29,7 +31,7 @@ export const CollectionActions = memo(function CollectionActions({
           className="gap-2 w-full sm:w-auto whitespace-nowrap"
         >
           <Tags className="h-4 w-4" />
-          <span>タグを管理</span>
+          <span>{t("collectionScreen.actions.manageTags")}</span>
         </Button>
         <Button
           variant="outline"
@@ -38,7 +40,7 @@ export const CollectionActions = memo(function CollectionActions({
           className="gap-2 w-full sm:w-auto whitespace-nowrap"
         >
           <PlusCircle className="h-4 w-4" />
-          <span>記録を追加</span>
+          <span>{t("collectionScreen.actions.addRecord")}</span>
         </Button>
         <Button
           variant="outline"
@@ -49,12 +51,12 @@ export const CollectionActions = memo(function CollectionActions({
           {isCompact ? (
             <>
               <Grid className="h-4 w-4" />
-              <span>通常表示</span>
+              <span>{t("collectionScreen.actions.normalView")}</span>
             </>
           ) : (
             <>
               <List className="h-4 w-4" />
-              <span>一覧表示</span>
+              <span>{t("collectionScreen.actions.listView")}</span>
             </>
           )}
         </Button>

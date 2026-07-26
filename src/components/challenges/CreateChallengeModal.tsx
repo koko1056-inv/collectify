@@ -11,6 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useUserPoints } from "@/hooks/usePoints";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreateChallengeModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface OfficialItem {
 }
 
 export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalProps) {
+  const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [duration, setDuration] = useState("3");
@@ -110,30 +112,30 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
         <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-primary" />
-            チャレンジを作成
+            {t("social.challenges.create")}
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-6">
           <div className="space-y-4 pb-4">
             <div>
-              <Label htmlFor="title">テーマ</Label>
+              <Label htmlFor="title">{t("social.challenges.theme")}</Label>
               <Input
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="例: グッズのおしゃれな飾り方"
+                placeholder={t("social.challenges.themePlaceholder")}
                 className="mt-1"
               />
             </div>
 
             <div>
-              <Label htmlFor="description">説明（任意）</Label>
+              <Label htmlFor="description">{t("social.challenges.descriptionOptional")}</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="チャレンジの詳細や参加条件など"
+                placeholder={t("social.challenges.descriptionPlaceholder")}
                 className="mt-1"
                 rows={3}
               />
@@ -143,7 +145,7 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
             <div>
               <Label className="flex items-center gap-2 mb-2">
                 <Package className="h-4 w-4" />
-                対象グッズ（任意）
+                {t("social.challenges.targetGoodsOptional")}
               </Label>
               
               {selectedItem ? (
@@ -173,7 +175,7 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="グッズを検索..."
+                      placeholder={t("social.challenges.searchGoodsPlaceholder")}
                       value={searchQuery}
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
@@ -189,11 +191,11 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
                       <div className="max-h-48 overflow-y-auto">
                         {isLoadingItems ? (
                           <div className="p-4 text-center text-sm text-muted-foreground">
-                            読み込み中...
+                            {t("social.challenges.loading")}
                           </div>
                         ) : officialItems.length === 0 ? (
                           <div className="p-4 text-center text-sm text-muted-foreground">
-                            グッズが見つかりません
+                            {t("social.challenges.goodsNotFound")}
                           </div>
                         ) : (
                           <div className="divide-y">
@@ -225,23 +227,23 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
                 </div>
               )}
               <p className="text-xs text-muted-foreground mt-1.5">
-                特定のグッズに関連するチャレンジの場合に選択してください
+                {t("social.challenges.goodsHint")}
               </p>
             </div>
 
             <div>
               <Label className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                開催期間
+                {t("social.challenges.duration")}
               </Label>
               <Select value={duration} onValueChange={setDuration}>
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1日間</SelectItem>
-                  <SelectItem value="3">3日間</SelectItem>
-                  <SelectItem value="7">1週間</SelectItem>
+                  <SelectItem value="1">{t("social.challenges.duration1")}</SelectItem>
+                  <SelectItem value="3">{t("social.challenges.duration3")}</SelectItem>
+                  <SelectItem value="7">{t("social.challenges.duration7")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -249,11 +251,11 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
             <div>
               <Label className="flex items-center gap-2 mb-2">
                 <Trophy className="h-4 w-4" />
-                入賞ポイント
+                {t("social.challenges.prizePoints")}
               </Label>
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <Label className="text-xs text-muted-foreground">🥇 1位</Label>
+                  <Label className="text-xs text-muted-foreground">{t("social.challenges.prize1")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -264,7 +266,7 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">🥈 2位</Label>
+                  <Label className="text-xs text-muted-foreground">{t("social.challenges.prize2")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -275,7 +277,7 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">🥉 3位</Label>
+                  <Label className="text-xs text-muted-foreground">{t("social.challenges.prize3")}</Label>
                   <Input
                     type="number"
                     min="0"
@@ -292,12 +294,12 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
                 <div className="flex items-center justify-between text-sm">
                   <span className="flex items-center gap-1.5">
                     <Coins className="h-4 w-4" />
-                    必要ポイント
+                    {t("social.challenges.requiredPoints")}
                   </span>
                   <span className="font-bold">{totalPrizePoints}pt</span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1">
-                  <span className="text-muted-foreground">あなたの残高</span>
+                  <span className="text-muted-foreground">{t("social.challenges.yourBalance")}</span>
                   <span className={hasEnoughPoints ? 'text-muted-foreground' : 'text-destructive font-medium'}>
                     {currentBalance}pt
                   </span>
@@ -305,13 +307,13 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
                 {!hasEnoughPoints && (
                   <div className="flex items-center gap-1.5 text-xs text-destructive mt-2">
                     <AlertCircle className="h-3.5 w-3.5" />
-                    ポイントが不足しています
+                    {t("social.challenges.notEnoughPoints")}
                   </div>
                 )}
               </div>
               
               <p className="text-xs text-muted-foreground mt-1.5">
-                作成時にあなたのポイントから賞金プールが差し引かれます
+                {t("social.challenges.prizeNote")}
               </p>
             </div>
           </div>
@@ -319,14 +321,14 @@ export function CreateChallengeModal({ isOpen, onClose }: CreateChallengeModalPr
 
         <div className="flex gap-2 px-6 py-4 border-t shrink-0">
           <Button variant="outline" onClick={onClose} className="flex-1">
-            キャンセル
+            {t("social.challenges.cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!title.trim() || createChallenge.isPending || !hasEnoughPoints}
             className="flex-1"
           >
-            {createChallenge.isPending ? "作成中..." : `作成 (-${totalPrizePoints}pt)`}
+            {createChallenge.isPending ? t("social.challenges.creating") : t("social.challenges.createWithCost", { points: totalPrizePoints })}
           </Button>
         </div>
       </DialogContent>

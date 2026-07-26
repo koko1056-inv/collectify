@@ -8,6 +8,7 @@ import { ja } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FeedPost {
   id: string;
@@ -25,6 +26,7 @@ interface FeedPost {
 
 export function IntegratedFeed() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const { data: feedPosts = [], isLoading } = useQuery<FeedPost[]>({
@@ -97,7 +99,7 @@ export function IntegratedFeed() {
           created_at: post.created_at,
           user: {
             id: post.user_id,
-            username: profile?.username || "ユーザー",
+            username: profile?.username || t("homeScreen.feed.defaultUsername"),
             avatar_url: profile?.avatar_url || null
           },
           likes_count: likesCount[post.id] || 0,
@@ -111,7 +113,7 @@ export function IntegratedFeed() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <h3 className="text-lg font-bold px-1">最新の投稿</h3>
+        <h3 className="text-lg font-bold px-1">{t("homeScreen.feed.latestPosts")}</h3>
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {[1, 2, 3].map(i => (
             <div key={i} className="flex-shrink-0 w-48">
@@ -134,12 +136,12 @@ export function IntegratedFeed() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-lg font-bold">最新の投稿</h3>
-        <button 
+        <h3 className="text-lg font-bold">{t("homeScreen.feed.latestPosts")}</h3>
+        <button
           onClick={() => navigate("/posts")}
           className="text-sm text-primary hover:underline"
         >
-          すべて見る
+          {t("homeScreen.feed.viewAll")}
         </button>
       </div>
       

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserStats, calculateAndAwardHistoricalPoints, UserStats } from "@/utils/user-stats";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useUserStats() {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ export function useUserStats() {
 export function useCalculateHistoricalPoints() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -29,13 +31,13 @@ export function useCalculateHistoricalPoints() {
     onSuccess: (data) => {
       if (data.pointsAdded > 0) {
         toast({
-          title: "過去の活動ポイントを付与しました！",
-          description: `${data.pointsAdded}ポイントが追加されました`,
+          title: t("notices.stats.historicalPointsTitle"),
+          description: t("notices.stats.historicalPointsDesc", { points: data.pointsAdded }),
         });
       } else {
         toast({
-          title: "ポイント計算完了",
-          description: "すべての活動に対してポイントは既に付与済みです",
+          title: t("notices.stats.calcDoneTitle"),
+          description: t("notices.stats.calcAlreadyAwardedDesc"),
         });
       }
       
@@ -47,8 +49,8 @@ export function useCalculateHistoricalPoints() {
     },
     onError: (error) => {
       toast({
-        title: "エラー",
-        description: "ポイント計算中にエラーが発生しました",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.stats.calcErrorDesc"),
         variant: "destructive",
       });
     },

@@ -1,7 +1,9 @@
 import { Sparkles, Wand2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function GeneratingStep() {
+  const { t } = useLanguage();
   return (
     <motion.div
       key="generating"
@@ -33,9 +35,9 @@ export function GeneratingStep() {
         ))}
       </div>
       <div className="text-center space-y-1">
-        <p className="font-semibold text-base">AIが部屋を描いています...</p>
+        <p className="font-semibold text-base">{t("aiRoom.generating.title")}</p>
         <p className="text-xs text-muted-foreground">
-          30〜60秒ほどかかります。お楽しみに！
+          {t("aiRoom.generating.subtitle")}
         </p>
       </div>
     </motion.div>

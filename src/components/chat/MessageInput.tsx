@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Send, Smile } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MessageInputProps {
   onSendMessage: (message: string) => Promise<void>;
@@ -16,6 +17,7 @@ const EMOJI_LIST = [
 ];
 
 export function MessageInput({ onSendMessage }: MessageInputProps) {
+  const { t } = useLanguage();
   const [newMessage, setNewMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -62,7 +64,7 @@ export function MessageInput({ onSendMessage }: MessageInputProps) {
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="メッセージを入力..."
+          placeholder={t("social.chat.inputPlaceholder")}
           className="min-h-[44px] max-h-[120px] resize-none pr-10 rounded-2xl border-muted-foreground/20 focus-visible:ring-primary/30"
           rows={1}
         />

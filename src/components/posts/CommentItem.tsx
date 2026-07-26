@@ -7,6 +7,7 @@ import { MessageCircle, Heart } from "lucide-react";
 import { useToggleCommentLike } from "@/hooks/posts";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CommentItemProps {
   comment: PostComment;
@@ -16,6 +17,7 @@ interface CommentItemProps {
 
 export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const toggleLike = useToggleCommentLike();
   
   const isLiked = comment.comment_likes?.some(like => like.user_id === user?.id) || false;
@@ -58,7 +60,7 @@ export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
                 onClick={() => onReply(comment.id, comment.profiles?.username || 'Unknown User')}
               >
                 <MessageCircle className="h-3 w-3 mr-1" />
-                返信
+                {t("social.posts.commentReply")}
               </Button>
             )}
             <Button

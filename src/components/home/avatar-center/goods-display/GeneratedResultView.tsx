@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, Save, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   generatedImage: string;
@@ -34,6 +35,8 @@ export function GeneratedResultView({
   onShareTwitter,
   isSaving,
 }: Props) {
+  const { t } = useLanguage();
+
   const handleDownload = () => {
     const link = document.createElement("a");
     link.href = generatedImage;
@@ -41,7 +44,7 @@ export function GeneratedResultView({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("画像をダウンロードしました");
+    toast.success(t("homeScreen.result.downloaded"));
   };
 
   const handleShareToFacebook = () => {
@@ -49,7 +52,7 @@ export function GeneratedResultView({
       window.location.href
     )}`;
     window.open(shareUrl, "_blank", "width=600,height=400");
-    toast.success("Facebookシェア画面を開きました");
+    toast.success(t("homeScreen.result.facebookOpened"));
   };
 
   const handleShareNative = async () => {
@@ -60,18 +63,18 @@ export function GeneratedResultView({
 
       if (navigator.share) {
         await navigator.share({
-          title: galleryTitle || "グッズ展示場",
-          text: galleryDescription || "グッズ展示場を作成しました！",
+          title: galleryTitle || t("homeScreen.result.shareTitle"),
+          text: galleryDescription || t("homeScreen.result.shareText"),
           files: [file],
         });
-        toast.success("シェアしました");
+        toast.success(t("homeScreen.result.shared"));
       } else {
-        toast.error("このブラウザではシェア機能がサポートされていません");
+        toast.error(t("homeScreen.result.shareUnsupported"));
       }
     } catch (error) {
       if ((error as Error).name !== "AbortError") {
         console.error("Error sharing:", error);
-        toast.error("シェアに失敗しました");
+        toast.error(t("homeScreen.result.shareFailed"));
       }
     }
   };
@@ -84,23 +87,23 @@ export function GeneratedResultView({
         </div>
 
         <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
-          <h3 className="font-semibold">ギャラリーに保存</h3>
+          <h3 className="font-semibold">{t("homeScreen.result.saveToGallery")}</h3>
           <div className="space-y-2">
-            <Label htmlFor="gallery-title">タイトル</Label>
+            <Label htmlFor="gallery-title">{t("homeScreen.result.titleLabel")}</Label>
             <Input
               id="gallery-title"
               value={galleryTitle}
               onChange={(e) => onTitleChange(e.target.value)}
-              placeholder="展示のタイトルを入力"
+              placeholder={t("homeScreen.result.titlePlaceholder")}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="gallery-description">説明（任意）</Label>
+            <Label htmlFor="gallery-description">{t("homeScreen.result.descriptionLabel")}</Label>
             <Textarea
               id="gallery-description"
               value={galleryDescription}
               onChange={(e) => onDescriptionChange(e.target.value)}
-              placeholder="展示の説明を入力"
+              placeholder={t("homeScreen.result.descriptionPlaceholder")}
               rows={3}
             />
           </div>
@@ -108,12 +111,12 @@ export function GeneratedResultView({
             {isSaving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                保存中...
+                {t("homeScreen.result.saving")}
               </>
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                ギャラリーを保存
+                {t("homeScreen.result.saveGallery")}
               </>
             )}
           </Button>
@@ -121,13 +124,13 @@ export function GeneratedResultView({
 
         <div className="flex gap-2">
           <Button onClick={handleDownload} variant="outline" className="flex-1">
-            ダウンロード
+            {t("homeScreen.result.download")}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex-1">
                 <Share2 className="w-4 h-4 mr-2" />
-                シェア
+                {t("homeScreen.result.share")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -145,12 +148,12 @@ export function GeneratedResultView({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleShareNative}>
                 <Share2 className="w-4 h-4 mr-2" />
-                その他
+                {t("homeScreen.result.other")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button onClick={onReset} variant="outline" className="flex-1">
-            最初から作り直す
+            {t("homeScreen.result.restart")}
           </Button>
         </div>
       </div>

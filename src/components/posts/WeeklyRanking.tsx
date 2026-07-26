@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Heart, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RankingUser {
   user_id: string;
@@ -25,6 +26,7 @@ interface RankingPost {
 }
 
 export function WeeklyRanking() {
+  const { t } = useLanguage();
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -181,7 +183,7 @@ export function WeeklyRanking() {
       <div>
         <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">
           <TrendingUp className="h-4 w-4 text-primary" />
-          週間人気投稿
+          {t("social.posts.weeklyTopPosts")}
         </h3>
         <div className="space-y-2">
           {isLoadingPosts ? (
@@ -214,7 +216,7 @@ export function WeeklyRanking() {
             ))
           ) : (
             <p className="text-xs text-muted-foreground text-center py-2">
-              まだデータがありません
+              {t("social.posts.noRankingData")}
             </p>
           )}
         </div>
@@ -224,7 +226,7 @@ export function WeeklyRanking() {
       <div>
         <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">
           <Trophy className="h-4 w-4 text-primary" />
-          週間アクティブユーザー
+          {t("social.posts.weeklyTopUsers")}
         </h3>
         <div className="space-y-2">
           {isLoadingUsers ? (
@@ -246,14 +248,14 @@ export function WeeklyRanking() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{user.username}</p>
                   <p className="text-xs text-muted-foreground">
-                    {user.posts_count}投稿 · {user.likes_count}いいね
+                    {t("social.posts.rankingUserStats", { posts: user.posts_count, likes: user.likes_count })}
                   </p>
                 </div>
               </Link>
             ))
           ) : (
             <p className="text-xs text-muted-foreground text-center py-2">
-              まだデータがありません
+              {t("social.posts.noRankingData")}
             </p>
           )}
         </div>

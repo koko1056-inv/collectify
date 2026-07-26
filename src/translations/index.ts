@@ -51,9 +51,23 @@ function lookup(dict: Dict, key: string): string | undefined {
  * ここでキー文字列をそのまま返すと、移行途中の画面に "collection.add" のような
  * 生のキーが表示されてしまうため。日本語も無い場合だけ最後の手段としてキーを返す。
  */
-export function getTranslation(language: Language, key: string): string {
+export type TranslationVars = Record<string, string | number>;
+
+/** "{name}" 形式のプレースホルダを埋める。 */
+function interpolate(template: string, vars?: TranslationVars): string {
+  if (!vars) return template;
+  return template.replace(/\{(\w+)\}/g, (whole, name) =>
+    Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : whole
+  );
+}
+
+export function getTranslation(
+  language: Language,
+  key: string,
+  vars?: TranslationVars
+): string {
   const primary = lookup(translations[language] as Dict, key);
-  if (primary !== undefined) return primary;
+  if (primary !== undefined) return interpolate(primary, vars);
 
   if (language !== "ja") {
     const ja = lookup(translations.ja as Dict, key);
@@ -61,7 +75,7 @@ export function getTranslation(language: Language, key: string): string {
       if (import.meta.env?.DEV) {
         console.warn(`[i18n] missing ${language} translation, falling back to ja: ${key}`);
       }
-      return ja;
+      return interpolate(ja, vars);
     }
   }
 

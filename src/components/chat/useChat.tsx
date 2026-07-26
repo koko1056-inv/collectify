@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import type { Message, PartnerProfile } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UseChatProps {
   partnerId: string;
@@ -14,6 +15,7 @@ interface UseChatProps {
 export function useChat({ partnerId, tradeRequestId, isOpen }: UseChatProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [partnerProfile, setPartnerProfile] = useState<PartnerProfile | null>(null);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -140,15 +142,15 @@ export function useChat({ partnerId, tradeRequestId, isOpen }: UseChatProps) {
     if (error) {
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "発送状態の更新に失敗しました。",
+        title: t("social.chat.toastError"),
+        description: t("social.chat.toastShippingUpdateFailed"),
       });
       return;
     }
 
     toast({
-      title: "発送完了",
-      description: "発送状態を更新しました。",
+      title: t("social.chat.toastShippingDone"),
+      description: t("social.chat.toastShippingUpdated"),
     });
 
     setIsShippingConfirmOpen(false);
@@ -170,15 +172,15 @@ export function useChat({ partnerId, tradeRequestId, isOpen }: UseChatProps) {
       }
 
       toast({
-        title: "トレード完了",
-        description: "トレードが完了しました。お疲れ様でした！",
+        title: t("social.chat.toastTradeComplete"),
+        description: t("social.chat.toastTradeCompleteDesc"),
       });
     } catch (error) {
       console.error("Error completing trade:", error);
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "トレードの完了に失敗しました。",
+        title: t("social.chat.toastError"),
+        description: t("social.chat.toastTradeCompleteFailed"),
       });
     } finally {
       setIsCompleting(false);

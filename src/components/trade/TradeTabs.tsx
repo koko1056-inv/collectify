@@ -8,6 +8,7 @@ import { TradeRequest } from "./types";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, Gift, Send, Inbox, ArrowLeftRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TradeTabsProps {
   tradeRequests: TradeRequest[];
@@ -30,6 +31,7 @@ export function TradeTabs({
 }: TradeTabsProps) {
   const [showTradeTabs, setShowTradeTabs] = useState(true);
   const [showOpenTrades, setShowOpenTrades] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <div className="space-y-4">
@@ -43,7 +45,7 @@ export function TradeTabs({
           className={`flex-1 rounded-r-none ${showTradeTabs ? "bg-black text-white" : "text-gray-600"}`}
         >
           <Inbox className="mr-2 h-4 w-4" />
-          マイトレード
+          {t("trade.tabs.myTrades")}
         </Button>
         <Button 
           variant={showOpenTrades ? "default" : "outline"}
@@ -54,7 +56,7 @@ export function TradeTabs({
           className={`flex-1 rounded-l-none ${showOpenTrades ? "bg-black text-white" : "text-gray-600"}`}
         >
           <ArrowLeftRight className="mr-2 h-4 w-4" />
-          オープントレード
+          {t("trade.tabs.openTrades")}
         </Button>
       </div>
 
@@ -67,7 +69,7 @@ export function TradeTabs({
             >
               <div className="flex items-center space-x-1">
                 <Inbox className="h-4 w-4" />
-                <span>保留中</span>
+                <span>{t("trade.tabs.pending")}</span>
               </div>
             </TabsTrigger>
             <TabsTrigger 
@@ -76,7 +78,7 @@ export function TradeTabs({
             >
               <div className="flex items-center space-x-1">
                 <Gift className="h-4 w-4" />
-                <span>進行中</span>
+                <span>{t("trade.tabs.accepted")}</span>
               </div>
             </TabsTrigger>
             <TabsTrigger 
@@ -85,7 +87,7 @@ export function TradeTabs({
             >
               <div className="flex items-center space-x-1">
                 <Heart className="h-4 w-4" />
-                <span>完了</span>
+                <span>{t("trade.tabs.completed")}</span>
               </div>
             </TabsTrigger>
           </TabsList>

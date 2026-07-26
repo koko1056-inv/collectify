@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tag, Loader2 } from "lucide-react";
 import { usePersonalTags } from "@/hooks/usePersonalTags";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BulkPersonalTagDialogProps {
   open: boolean;
@@ -27,6 +28,7 @@ export function BulkPersonalTagDialog({
 }: BulkPersonalTagDialogProps) {
   const { allUserTags, addTagBulk } = usePersonalTags();
   const [tagInput, setTagInput] = useState("");
+  const { t } = useLanguage();
 
   const handleSubmit = async () => {
     const name = tagInput.trim();
@@ -43,21 +45,21 @@ export function BulkPersonalTagDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Tag className="w-4 h-4 text-primary" />
-            マイタグを一括追加
+            {t("collectionScreen.bulkTag.title")}
           </DialogTitle>
           <DialogDescription>
-            選択中の {selectedItemIds.length} 件のグッズに同じマイタグを付けます。
+            {t("collectionScreen.bulkTag.descPrefix")}{selectedItemIds.length}{t("collectionScreen.bulkTag.descSuffix")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* タグ入力 */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">タグ名</label>
+            <label className="text-sm font-medium">{t("collectionScreen.bulkTag.tagName")}</label>
             <Input
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              placeholder="例: お気に入り、推し1番、撮影用..."
+              placeholder={t("collectionScreen.bulkTag.tagPlaceholder")}
               maxLength={30}
               autoFocus
               onKeyDown={(e) => {
@@ -73,7 +75,7 @@ export function BulkPersonalTagDialog({
           {allUserTags.length > 0 && (
             <div className="space-y-2">
               <label className="text-xs text-muted-foreground">
-                既存のマイタグから選ぶ
+                {t("collectionScreen.bulkTag.pickExisting")}
               </label>
               <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                 {allUserTags.map((tag) => (
@@ -103,7 +105,7 @@ export function BulkPersonalTagDialog({
               onClick={() => onOpenChange(false)}
               disabled={addTagBulk.isPending}
             >
-              キャンセル
+              {t("collectionScreen.common.cancel")}
             </Button>
             <Button
               size="sm"
@@ -113,7 +115,7 @@ export function BulkPersonalTagDialog({
               {addTagBulk.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                `${selectedItemIds.length}件に追加`
+                <>{t("collectionScreen.bulkTag.addPrefix")}{selectedItemIds.length}{t("collectionScreen.bulkTag.addSuffix")}</>
               )}
             </Button>
           </div>

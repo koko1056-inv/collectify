@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagManageDialogFooterProps {
   onCancel: () => void;
@@ -13,6 +14,7 @@ export function TagManageDialogFooter({
   onSubmit,
   itemCount = 1
 }: TagManageDialogFooterProps) {
+  const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -40,14 +42,14 @@ export function TagManageDialogFooter({
         onClick={onCancel}
         disabled={isSubmitting}
       >
-        キャンセル
+        {t("tagManage.common.cancel")}
       </Button>
       
       <Button
         onClick={handleSubmit}
         disabled={isSubmitting}
       >
-        {isSubmitting ? '保存中...' : (itemCount > 1 ? `${itemCount}件のアイテムを更新` : '保存')}
+        {isSubmitting ? t("tagManage.common.saving") : (itemCount > 1 ? `${t("tagManage.manage.updateItemsPrefix")}${itemCount}${t("tagManage.manage.updateItemsSuffix")}` : t("tagManage.common.save"))}
       </Button>
     </div>
   );

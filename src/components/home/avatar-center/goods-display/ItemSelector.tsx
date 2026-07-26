@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserItem } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   userId?: string;
@@ -18,6 +19,7 @@ export function ItemSelector({
   onItemToggle,
   isOpen,
 }: Props) {
+  const { t } = useLanguage();
   const { data: userItems = [], isLoading: isLoadingItems } = useQuery({
     queryKey: ["user-items", userId],
     queryFn: async () => {
@@ -36,7 +38,7 @@ export function ItemSelector({
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium">
-        展示するグッズを選択 ({selectedItems.length}/5)
+        {t("homeScreen.itemSelector.label")} ({selectedItems.length}/5)
       </label>
       <ScrollArea className="h-[400px] border rounded-lg p-4">
         {isLoadingItems ? (
@@ -45,7 +47,7 @@ export function ItemSelector({
           </div>
         ) : userItems.length === 0 ? (
           <p className="text-center text-muted-foreground p-8">
-            コレクションにグッズがありません
+            {t("homeScreen.itemSelector.empty")}
           </p>
         ) : (
           <div className="grid grid-cols-3 gap-3">

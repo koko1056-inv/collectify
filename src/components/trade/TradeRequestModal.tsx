@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TradeRequestModalProps {
   isOpen: boolean;
@@ -39,6 +40,7 @@ export function TradeRequestModal({
   const [step, setStep] = useState<"selectOffer" | "selectDesired" | "addMessage">("selectOffer");
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   // Reset state when modal opens/closes or tab changes
   useEffect(() => {
@@ -109,8 +111,8 @@ export function TradeRequestModal({
   const handleSubmit = async () => {
     if (!selectedItem) {
       toast({
-        title: "エラー",
-        description: "交換するアイテムを選択してください",
+        title: t("common.error"),
+        description: t("trade.request.errSelectOffer"),
         variant: "destructive",
       });
       return;
@@ -118,8 +120,8 @@ export function TradeRequestModal({
 
     if (activeTab === "openTrade" && !desiredItemId) {
       toast({
-        title: "エラー",
-        description: "希望するアイテムを選択してください",
+        title: t("common.error"),
+        description: t("trade.request.errSelectDesired"),
         variant: "destructive",
       });
       return;
@@ -141,8 +143,8 @@ export function TradeRequestModal({
         if (error) throw error;
 
         toast({
-          title: "トレードリクエストを送信しました",
-          description: "相手からの返信をお待ちください",
+          title: t("trade.request.sentTitle"),
+          description: t("trade.request.sentDesc"),
         });
       } 
       // For open trade where anyone can accept
@@ -161,8 +163,8 @@ export function TradeRequestModal({
         if (error) throw error;
 
         toast({
-          title: "オープントレードを作成しました",
-          description: "他のユーザーからの申し込みをお待ちください",
+          title: t("trade.request.openCreatedTitle"),
+          description: t("trade.request.openCreatedDesc"),
         });
       }
       
@@ -174,8 +176,8 @@ export function TradeRequestModal({
     } catch (error) {
       console.error("Error sending trade request:", error);
       toast({
-        title: "エラー",
-        description: "トレードリクエストの送信に失敗しました",
+        title: t("common.error"),
+        description: t("trade.request.sendErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -186,15 +188,15 @@ export function TradeRequestModal({
   // Get the current step title
   const getStepTitle = () => {
     if (activeTab === "directTrade") {
-      return `「${requestedItemTitle}」との交換をリクエストします`;
+      return t("trade.request.stepTitleDirect", { title: requestedItemTitle });
     }
-    
+
     if (step === "selectOffer") {
-      return "交換に出すアイテムを選択";
+      return t("trade.request.stepSelectOffer");
     } else if (step === "selectDesired") {
-      return "希望するアイテムを選択";
+      return t("trade.request.stepSelectDesired");
     } else {
-      return "メッセージを追加";
+      return t("trade.request.stepAddMessage");
     }
   };
 
@@ -202,7 +204,7 @@ export function TradeRequestModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
-          <DialogTitle>トレードリクエスト</DialogTitle>
+          <DialogTitle>{t("trade.request.title")}</DialogTitle>
           <DialogDescription>
             {getStepTitle()}
           </DialogDescription>
@@ -210,8 +212,8 @@ export function TradeRequestModal({
         
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "directTrade" | "openTrade")} className="w-full flex-1 flex flex-col overflow-hidden">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="directTrade">直接トレード</TabsTrigger>
-            <TabsTrigger value="openTrade">オープントレード</TabsTrigger>
+            <TabsTrigger value="directTrade">{t("trade.request.tabDirect")}</TabsTrigger>
+            <TabsTrigger value="openTrade">{t("trade.request.tabOpen")}</TabsTrigger>
           </TabsList>
           
           <ScrollArea className="flex-1 pr-2 overflow-y-auto">
@@ -221,12 +223,12 @@ export function TradeRequestModal({
                 <>
                   {/* Offered item selection */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">交換に出すアイテムを選択してください</label>
+                    <label className="text-sm font-medium">{t("trade.request.selectOfferLabel")}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {itemsLoading ? (
-                        <div className="col-span-2 py-4 text-center text-gray-500">読み込み中...</div>
+                        <div className="col-span-2 py-4 text-center text-gray-500">{t("common.loading")}</div>
                       ) : userItems?.length === 0 ? (
-                        <div className="col-span-2 py-4 text-center text-gray-500">アイテムがありません</div>
+                        <div className="col-span-2 py-4 text-center text-gray-500">{t("trade.request.noItems")}</div>
                       ) : (
                         userItems?.map((item) => (
                           <button
@@ -251,11 +253,11 @@ export function TradeRequestModal({
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">メッセージ</label>
+                    <label className="text-sm font-medium">{t("trade.request.messageLabel")}</label>
                     <Textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      placeholder="交換の理由や希望などを記入してください"
+                      placeholder={t("trade.request.messagePlaceholder")}
                       className="resize-none"
                     />
                   </div>
@@ -268,13 +270,13 @@ export function TradeRequestModal({
                     />
                     <Label htmlFor="open-trade" className="flex items-center gap-1">
                       <Globe className="h-4 w-4 text-green-600" />
-                      オープントレードとして公開する
+                      {t("trade.request.publishAsOpen")}
                     </Label>
                   </div>
                   
                   {isOpenTrade && (
                     <div className="text-sm text-gray-500 bg-gray-50 p-2 rounded">
-                      オープントレードにすると、特定のユーザーだけでなく、全てのユーザーがこのトレードリクエストを見ることができます。
+                      {t("trade.request.openTradeNote")}
                     </div>
                   )}
                 </>
@@ -283,12 +285,12 @@ export function TradeRequestModal({
               {/* Open Trade Tab Content - Step 1: Select Offer Item */}
               {activeTab === "openTrade" && step === "selectOffer" && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">交換に出すアイテムを選択してください</label>
+                  <label className="text-sm font-medium">{t("trade.request.selectOfferLabel")}</label>
                   <div className="grid grid-cols-2 gap-2">
                     {itemsLoading ? (
-                      <div className="col-span-2 py-4 text-center text-gray-500">読み込み中...</div>
+                      <div className="col-span-2 py-4 text-center text-gray-500">{t("common.loading")}</div>
                     ) : userItems?.length === 0 ? (
-                      <div className="col-span-2 py-4 text-center text-gray-500">アイテムがありません</div>
+                      <div className="col-span-2 py-4 text-center text-gray-500">{t("trade.request.noItems")}</div>
                     ) : (
                       userItems?.map((item) => (
                         <button
@@ -316,12 +318,12 @@ export function TradeRequestModal({
               {/* Open Trade Tab Content - Step 2: Select Desired Item */}
               {activeTab === "openTrade" && step === "selectDesired" && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">希望するアイテムを選択してください</label>
+                  <label className="text-sm font-medium">{t("trade.request.selectDesiredLabel")}</label>
                   <div className="grid grid-cols-2 gap-2">
                     {allItemsLoading ? (
-                      <div className="col-span-2 py-4 text-center text-gray-500">読み込み中...</div>
+                      <div className="col-span-2 py-4 text-center text-gray-500">{t("common.loading")}</div>
                     ) : allItems?.length === 0 ? (
-                      <div className="col-span-2 py-4 text-center text-gray-500">アイテムがありません</div>
+                      <div className="col-span-2 py-4 text-center text-gray-500">{t("trade.request.noItems")}</div>
                     ) : (
                       allItems?.map((item) => (
                         <button
@@ -352,7 +354,7 @@ export function TradeRequestModal({
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm font-medium mb-2">交換に出すアイテム</p>
+                      <p className="text-sm font-medium mb-2">{t("trade.request.offerItemHeading")}</p>
                       {selectedItem && userItems && (
                         <div className="border rounded p-2">
                           {userItems.filter(item => item.id === selectedItem).map(item => (
@@ -369,7 +371,7 @@ export function TradeRequestModal({
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-medium mb-2">希望するアイテム</p>
+                      <p className="text-sm font-medium mb-2">{t("trade.request.desiredItemHeading")}</p>
                       {desiredItemId && allItems && (
                         <div className="border rounded p-2">
                           {allItems.filter(item => item.id === desiredItemId).map(item => (
@@ -388,11 +390,11 @@ export function TradeRequestModal({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">メッセージ</label>
+                    <label className="text-sm font-medium">{t("trade.request.messageLabel")}</label>
                     <Textarea
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      placeholder="交換の理由や希望などを記入してください"
+                      placeholder={t("trade.request.messagePlaceholder")}
                       className="resize-none"
                     />
                   </div>
@@ -405,7 +407,7 @@ export function TradeRequestModal({
             {activeTab === "directTrade" && (
               <>
                 <Button variant="outline" onClick={onClose}>
-                  キャンセル
+                  {t("common.cancel")}
                 </Button>
                 <Button onClick={handleSubmit} disabled={isLoading}>
                   {isLoading ? (
@@ -413,7 +415,7 @@ export function TradeRequestModal({
                   ) : (
                     <Send className="h-4 w-4 mr-2" />
                   )}
-                  送信
+                  {t("trade.request.send")}
                 </Button>
               </>
             )}
@@ -421,14 +423,14 @@ export function TradeRequestModal({
             {activeTab === "openTrade" && step === "selectOffer" && (
               <>
                 <Button variant="outline" onClick={onClose}>
-                  キャンセル
+                  {t("common.cancel")}
                 </Button>
                 <Button 
                   onClick={handleNextStep} 
                   disabled={!selectedItem}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  希望アイテムを選択する
+                  {t("trade.request.selectDesiredCta")}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </>
@@ -437,14 +439,14 @@ export function TradeRequestModal({
             {activeTab === "openTrade" && step === "selectDesired" && (
               <>
                 <Button variant="outline" onClick={handlePreviousStep}>
-                  戻る
+                  {t("trade.request.back")}
                 </Button>
                 <Button 
                   onClick={handleNextStep} 
                   disabled={!desiredItemId}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  次へ
+                  {t("trade.request.next")}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </>
@@ -453,7 +455,7 @@ export function TradeRequestModal({
             {activeTab === "openTrade" && step === "addMessage" && (
               <>
                 <Button variant="outline" onClick={handlePreviousStep}>
-                  戻る
+                  {t("trade.request.back")}
                 </Button>
                 <Button onClick={handleSubmit} disabled={isLoading}>
                   {isLoading ? (
@@ -461,7 +463,7 @@ export function TradeRequestModal({
                   ) : (
                     <Send className="h-4 w-4 mr-2" />
                   )}
-                  送信
+                  {t("trade.request.send")}
                 </Button>
               </>
             )}

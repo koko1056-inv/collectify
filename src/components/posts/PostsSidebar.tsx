@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { TrendingTags } from "./TrendingTags";
 import { WeeklyRanking } from "./WeeklyRanking";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PostsSidebarProps {
   onFiltersChange?: (filters: {
@@ -21,6 +22,7 @@ interface PostsSidebarProps {
 }
 
 export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: PostsSidebarProps) {
+  const { t } = useLanguage();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedContent, setSelectedContent] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -203,15 +205,15 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Filter className="h-4 w-4" />
-            投稿を絞り込み
+            {t("social.posts.filterPosts")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="search">キーワード検索</Label>
+            <Label htmlFor="search">{t("social.posts.keywordSearch")}</Label>
             <Input
               id="search"
-              placeholder="投稿を検索..."
+              placeholder={t("social.posts.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="h-9"
@@ -226,7 +228,7 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
               className="w-full"
             >
               <X className="h-4 w-4 mr-2" />
-              すべてクリア
+              {t("social.posts.clearAll")}
             </Button>
           )}
         </CardContent>
@@ -237,15 +239,15 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <ShoppingBag className="h-4 w-4" />
-            グッズで絞り込み
+            {t("social.posts.filterByGoods")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-2">
-            <Label htmlFor="item-search">グッズを検索</Label>
+            <Label htmlFor="item-search">{t("social.posts.searchGoods")}</Label>
             <Input
               id="item-search"
-              placeholder="グッズ名で検索..."
+              placeholder={t("social.posts.goodsNamePlaceholder")}
               value={itemSearchQuery}
               onChange={(e) => setItemSearchQuery(e.target.value)}
               className="h-9"
@@ -255,7 +257,7 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
             <div className="space-y-2 pr-4">
               {isLoadingItems ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  グッズを読み込み中...
+                  {t("social.posts.goodsLoading")}
                 </p>
               ) : filteredItems.length > 0 ? (
                 filteredItems.map((item: any) => (
@@ -285,7 +287,7 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  {itemSearchQuery ? "検索結果がありません" : "グッズがありません"}
+                  {itemSearchQuery ? t("social.posts.noResults") : t("social.posts.noGoods")}
                 </p>
               )}
             </div>
@@ -298,14 +300,14 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Package className="h-4 w-4" />
-            作品で絞り込み
+            {t("social.posts.filterByContent")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {isLoadingContent ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                作品を読み込み中...
+                {t("social.posts.contentLoading")}
               </p>
             ) : contentNames.length > 0 ? (
               contentNames.map((content) => (
@@ -321,7 +323,7 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
               ))
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                作品がありません
+                {t("social.posts.noContent")}
               </p>
             )}
           </div>
@@ -333,7 +335,7 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Hash className="h-4 w-4" />
-            タグで絞り込み
+            {t("social.posts.filterByTag")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -353,7 +355,7 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
               </div>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
-                タグを読み込み中...
+                {t("social.posts.tagLoading")}
               </p>
             )}
           </div>
@@ -365,21 +367,21 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center justify-between">
-              <span>適用中のフィルター</span>
+              <span>{t("social.posts.activeFilters")}</span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
                 className="h-7 text-xs"
               >
-                すべてクリア
+                {t("social.posts.clearAll")}
               </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {searchQuery && (
               <div>
-                <Label className="text-xs text-muted-foreground mb-1">キーワード</Label>
+                <Label className="text-xs text-muted-foreground mb-1">{t("social.posts.keyword")}</Label>
                 <Badge variant="outline" className="text-xs">
                   {searchQuery}
                 </Badge>
@@ -389,7 +391,7 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
             {selectedItemIds.length > 0 && (
               <div>
                 <Label className="text-xs text-muted-foreground mb-1">
-                  グッズ ({selectedItemIds.length})
+                  {t("social.posts.goodsWithCount", { count: selectedItemIds.length })}
                 </Label>
                 <div className="flex flex-wrap gap-1">
                   {selectedItemIds.map((itemId) => {
@@ -421,7 +423,7 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
 
             {selectedContent && (
               <div>
-                <Label className="text-xs text-muted-foreground mb-1">作品</Label>
+                <Label className="text-xs text-muted-foreground mb-1">{t("social.posts.content")}</Label>
                 <Badge variant="outline" className="text-xs gap-1 pr-1">
                   {selectedContent}
                   <button
@@ -441,7 +443,7 @@ export const PostsSidebar = memo(function PostsSidebar({ onFiltersChange }: Post
             {selectedTags.length > 0 && (
               <div>
                 <Label className="text-xs text-muted-foreground mb-1">
-                  タグ ({selectedTags.length})
+                  {t("social.posts.tagsWithCount", { count: selectedTags.length })}
                 </Label>
                 <div className="flex flex-wrap gap-1">
                   {selectedTags.map((tag) => (

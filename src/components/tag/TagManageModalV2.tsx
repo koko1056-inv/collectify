@@ -6,6 +6,7 @@ import { TagSuggestSelect } from "./TagSuggestSelect";
 import { useSimpleTagManage } from "@/hooks/useSimpleTagManage";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagManageModalV2Props {
   isOpen: boolean;
@@ -20,10 +21,11 @@ export function TagManageModalV2({
   isOpen,
   onClose,
   itemIds,
-  title = "タグ管理",
+  title,
   itemTitle,
   isUserItem = false
 }: TagManageModalV2Props) {
+  const { t } = useLanguage();
   const {
     tagSelections,
     contentName,
@@ -35,11 +37,13 @@ export function TagManageModalV2({
     handleSubmit
   } = useSimpleTagManage(isOpen, itemIds, isUserItem, onClose);
 
+  const baseTitle = title ?? t("tagManage.manage.title");
+
   const modalTitle = itemIds.length > 1 
-    ? `${title} (${itemIds.length}件のアイテム)` 
+    ? `${baseTitle} (${itemIds.length}${t("tagManage.manage.itemCountSuffix")}` 
     : itemTitle 
-      ? `${title}: ${itemTitle}` 
-      : title;
+      ? `${baseTitle}: ${itemTitle}` 
+      : baseTitle;
 
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
@@ -47,7 +51,7 @@ export function TagManageModalV2({
         <TagManageDialogHeader title={modalTitle} />
         
         {isLoading ? (
-          <div className="py-4 text-center">読み込み中...</div>
+          <div className="py-4 text-center">{t("tagManage.common.loading")}</div>
         ) : (
           <ScrollArea className="max-h-[60vh] pr-4">
             <div className="space-y-6 py-2">
@@ -63,14 +67,14 @@ export function TagManageModalV2({
               
               {/* タグ選択セクション（新しいPinterest型UI） */}
               <div className="space-y-4">
-                <h4 className="text-sm font-medium">タグ設定</h4>
+                <h4 className="text-sm font-medium">{t("tagManage.manage.tagSettings")}</h4>
                 <p className="text-xs text-muted-foreground">
-                  候補にない場合は、検索して「追加を提案」できます
+                  {t("tagManage.manage.suggestHint")}
                 </p>
                 
                 <TagSuggestSelect 
                   category="character" 
-                  label="キャラ・人物名" 
+                  label={t("tagManage.category.character")} 
                   value={tagSelections.character} 
                   onChange={value => handleTagChange('character', value)}
                   contentId={contentId}
@@ -78,14 +82,14 @@ export function TagManageModalV2({
                 
                 <TagSuggestSelect 
                   category="type" 
-                  label="グッズタイプ" 
+                  label={t("tagManage.category.type")} 
                   value={tagSelections.type} 
                   onChange={value => handleTagChange('type', value)}
                 />
                 
                 <TagSuggestSelect 
                   category="series" 
-                  label="グッズシリーズ" 
+                  label={t("tagManage.category.series")} 
                   value={tagSelections.series} 
                   onChange={value => handleTagChange('series', value)}
                   contentId={contentId}

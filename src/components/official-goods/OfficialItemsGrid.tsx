@@ -2,6 +2,7 @@ import { OfficialItem } from "@/types";
 import { MemoizedOfficialGoodsCard } from "./MemoizedOfficialGoodsCard";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OfficialItemsGridProps {
   items: OfficialItem[];
@@ -16,6 +17,7 @@ export function OfficialItemsGrid({
   selectedIds,
   onToggleSelect,
 }: OfficialItemsGridProps) {
+  const { t } = useLanguage();
   return (
     <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-1 sm:gap-4 px-1 sm:px-2">
       {items.map((item) => {
@@ -31,7 +33,7 @@ export function OfficialItemsGrid({
                   onToggleSelect?.(item.id);
                 }}
                 className="absolute inset-0 z-20 cursor-pointer"
-                aria-label={isSelected ? "選択解除" : "選択"}
+                aria-label={isSelected ? t("collectionScreen.official.deselect") : t("collectionScreen.official.select")}
               >
                 <span
                   className={cn(

@@ -1,6 +1,7 @@
 import { Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface UserItemLite {
   id: string;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function SelectItemsStep({ items, selectedItems, onToggle, maxItems }: Props) {
+  const { t } = useLanguage();
   return (
     <motion.div
       key="items"
@@ -25,17 +27,17 @@ export function SelectItemsStep({ items, selectedItems, onToggle, maxItems }: Pr
       className="p-5 space-y-4"
     >
       <div>
-        <h3 className="text-base font-semibold mb-1">推しグッズを選ぶ</h3>
+        <h3 className="text-base font-semibold mb-1">{t("aiRoom.items.title")}</h3>
         <p className="text-xs text-muted-foreground">
-          1〜{maxItems}個のグッズを選ぶと、AIがあなたの部屋に配置します
+          {t("aiRoom.items.descPrefix")}{maxItems}{t("aiRoom.items.descSuffix")}
         </p>
       </div>
 
       {items.length === 0 ? (
         <div className="py-10 text-center text-sm text-muted-foreground">
-          コレクションにアイテムがありません。
+          {t("aiRoom.items.empty1")}
           <br />
-          まずはグッズを追加してください。
+          {t("aiRoom.items.empty2")}
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-2">

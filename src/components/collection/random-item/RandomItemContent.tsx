@@ -2,6 +2,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { RandomItemImage } from "./RandomItemImage";
 import { RandomItemTags } from "./RandomItemTags";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RandomItemContentProps {
   randomItem: any | null;
@@ -16,6 +17,8 @@ export function RandomItemContent({
   isSpinning, 
   onImageClick 
 }: RandomItemContentProps) {
+  const { t } = useLanguage();
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -33,7 +36,7 @@ export function RandomItemContent({
   if (!randomItem) {
     return (
       <p className="text-center text-gray-500">
-        コレクションにアイテムがありません。
+        {t("collectionScreen.random.emptyItems")}
       </p>
     );
   }

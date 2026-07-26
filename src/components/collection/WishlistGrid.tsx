@@ -7,6 +7,7 @@ import { CheckCircle, Trash2, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { PriceSearchModal } from "@/components/wishlist/PriceSearchModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WishlistGridProps {
   userId: string;
@@ -17,7 +18,8 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { toast } = useToast();
-  
+  const { t } = useLanguage();
+
   // Price search modal state
   const [priceSearchItem, setPriceSearchItem] = useState<{
     title: string;
@@ -52,8 +54,8 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
   const handleAddToCollection = async (officialItem: any, wishlistId: string) => {
     if (!user) {
       toast({
-        title: "エラー",
-        description: "コレクションに追加するにはログインが必要です。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.wishlist.loginRequiredDesc"),
         variant: "destructive",
       });
       return;
@@ -82,14 +84,14 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
 
       toast({
-        title: "成功",
-        description: "コレクションに追加しました",
+        title: t("collectionScreen.common.success"),
+        description: t("collectionScreen.wishlist.addedToCollection"),
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
       toast({
-        title: "エラー",
-        description: "コレクションへの追加に失敗しました。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.wishlist.addFailed"),
         variant: "destructive",
       });
     }
@@ -101,14 +103,14 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       toast({
-        title: "成功",
-        description: "ウィッシュリストから削除しました。",
+        title: t("collectionScreen.common.success"),
+        description: t("collectionScreen.wishlist.removed"),
       });
     } catch (error) {
       console.error("Error removing from wishlist:", error);
       toast({
-        title: "エラー",
-        description: "ウィッシュリストからの削除に失敗しました。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.wishlist.removeFailed"),
         variant: "destructive",
       });
     }
@@ -135,7 +137,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
   }
 
   if (!wishlistItems || wishlistItems.length === 0) {
-    return <p className="text-center text-muted-foreground py-4">欲しい物リストは空です</p>;
+    return <p className="text-center text-muted-foreground py-4">{t("collectionScreen.wishlist.empty")}</p>;
   }
 
   return (
@@ -153,7 +155,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
             />
             <div className="text-center w-full">
               <h3 className="font-medium text-sm line-clamp-2">{item.official_items?.title}</h3>
-              {item.note && <p className="text-xs text-muted-foreground mt-1">メモ: {item.note}</p>}
+              {item.note && <p className="text-xs text-muted-foreground mt-1">{t("collectionScreen.wishlist.notePrefix")}{item.note}</p>}
               <p className="text-xs text-muted-foreground mt-1">{item.official_items?.price}</p>
             </div>
             
@@ -165,7 +167,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
               className="mt-2 w-full gap-1 text-xs"
             >
               <Search className="w-3 h-3" />
-              価格検索
+              {t("collectionScreen.wishlist.priceSearch")}
             </Button>
             
             {enableActions && user && user.id === userId && (
@@ -177,7 +179,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
                   className="flex-1 text-xs"
                 >
                   <CheckCircle className="w-3 h-3 mr-1" />
-                  ゲット
+                  {t("collectionScreen.wishlist.got")}
                 </Button>
                 <Button
                   onClick={() => handleRemoveFromWishlist(item.id)}

@@ -23,135 +23,139 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // スクリーンショット画像
 import guideSearchImg from "@/assets/guide-search.png";
 import guideCollectionImg from "@/assets/guide-collection.png";
 
+// title/subtitle/description/steps/action は翻訳キー。
+// モジュールスコープでは useLanguage が使えないため、描画時に t() で解決する。
 const featureShowcase = [
   {
     id: "search",
-    title: "グッズを発見",
-    subtitle: "お気に入りを見つけよう",
-    description:
-      "作品名・キャラ・タグでグッズを検索。気になったものはワンタップでコレクションやウィッシュリストに追加できます。",
+    title: "screens.howToUse.feature.search.title",
+    subtitle: "screens.howToUse.feature.search.subtitle",
+    description: "screens.howToUse.feature.search.description",
     image: guideSearchImg,
     color: "from-blue-500 to-cyan-500",
     steps: [
-      "発見ページでキーワード検索",
-      "コンテンツやタグで絞り込み",
-      "気になるグッズをタップして詳細へ",
+      "screens.howToUse.feature.search.step1",
+      "screens.howToUse.feature.search.step2",
+      "screens.howToUse.feature.search.step3",
     ],
-    action: "発見ページへ",
+    action: "screens.howToUse.feature.search.action",
     path: "/search",
   },
   {
     id: "collection",
-    title: "コレクション管理",
-    subtitle: "持っているグッズを記録",
-    description:
-      "持っているグッズを登録して一覧で管理。購入日・価格・思い出の写真も一緒に保存できます。",
+    title: "screens.howToUse.feature.collection.title",
+    subtitle: "screens.howToUse.feature.collection.subtitle",
+    description: "screens.howToUse.feature.collection.description",
     image: guideCollectionImg,
     color: "from-green-500 to-emerald-500",
     steps: [
-      "グッズをコレクションに追加",
-      "詳細情報やメモを記録",
-      "タグで整理して見つけやすく",
+      "screens.howToUse.feature.collection.step1",
+      "screens.howToUse.feature.collection.step2",
+      "screens.howToUse.feature.collection.step3",
     ],
-    action: "コレクションへ",
+    action: "screens.howToUse.feature.collection.action",
     path: "/collection",
   },
   {
     id: "ai-room",
-    title: "AIで推し部屋を生成",
-    subtitle: "あなたのグッズで世界に一つの部屋を",
-    description:
-      "登録したグッズからAIが推し部屋のイメージを生成。スタイルを選ぶだけで、写真のような空間が完成します。",
+    title: "screens.howToUse.feature.aiRoom.title",
+    subtitle: "screens.howToUse.feature.aiRoom.subtitle",
+    description: "screens.howToUse.feature.aiRoom.description",
     image: guideCollectionImg,
     color: "from-purple-500 to-pink-500",
     steps: [
-      "コレクションからグッズを選択",
-      "好みのスタイルプリセットを指定",
-      "AIが部屋イメージを自動生成",
+      "screens.howToUse.feature.aiRoom.step1",
+      "screens.howToUse.feature.aiRoom.step2",
+      "screens.howToUse.feature.aiRoom.step3",
     ],
-    action: "AIルームへ",
+    action: "screens.howToUse.feature.aiRoom.action",
     path: "/ai-rooms",
   },
 ];
 
+// title/description は翻訳キー（描画時に t() で解決）。
 const quickTips = [
   {
     icon: Plus,
-    title: "グッズを追加",
-    description: "発見ページからワンタップで追加",
+    title: "screens.howToUse.tip.add.title",
+    description: "screens.howToUse.tip.add.description",
     color: "bg-blue-500",
   },
   {
     icon: Heart,
-    title: "ウィッシュリスト",
-    description: "欲しいグッズをブックマーク",
+    title: "screens.howToUse.tip.wishlist.title",
+    description: "screens.howToUse.tip.wishlist.description",
     color: "bg-pink-500",
   },
   {
     icon: ArrowRightLeft,
-    title: "トレード",
-    description: "他のコレクターとグッズを交換",
+    title: "screens.howToUse.tip.trade.title",
+    description: "screens.howToUse.tip.trade.description",
     color: "bg-orange-500",
   },
   {
     icon: Home,
-    title: "マイルーム",
-    description: "あなたのコレクションのホーム画面",
+    title: "screens.howToUse.tip.myRoom.title",
+    description: "screens.howToUse.tip.myRoom.description",
     color: "bg-purple-500",
   },
   {
     icon: UserCircle2,
-    title: "AIアバター",
-    description: "AIで自分だけのアバターを生成",
+    title: "screens.howToUse.tip.avatar.title",
+    description: "screens.howToUse.tip.avatar.description",
     color: "bg-cyan-500",
   },
   {
     icon: Wand2,
-    title: "AIルーム",
-    description: "グッズから推し部屋イメージを生成",
+    title: "screens.howToUse.tip.aiRoom.title",
+    description: "screens.howToUse.tip.aiRoom.description",
     color: "bg-fuchsia-500",
   },
 ];
 
+// label は翻訳キー（描画時に t() で解決）。
 const onboardingSteps = [
-  { label: "アカウント作成", points: 10, icon: "👤" },
-  { label: "プロフィール設定", points: 10, icon: "✏️" },
-  { label: "推しの作品を登録", points: 10, icon: "⭐" },
-  { label: "最初のグッズを追加", points: 20, icon: "📦" },
-  { label: "AIアバターを作る", points: 30, icon: "🧑‍🎨" },
-  { label: "AIで推し部屋を生成", points: 30, icon: "🏠" },
-  { label: "最初の投稿", points: 20, icon: "📸" },
+  { label: "screens.howToUse.onboarding.account", points: 10, icon: "👤" },
+  { label: "screens.howToUse.onboarding.profile", points: 10, icon: "✏️" },
+  { label: "screens.howToUse.onboarding.interests", points: 10, icon: "⭐" },
+  { label: "screens.howToUse.onboarding.firstGoods", points: 20, icon: "📦" },
+  { label: "screens.howToUse.onboarding.avatar", points: 30, icon: "🧑‍🎨" },
+  { label: "screens.howToUse.onboarding.aiRoom", points: 30, icon: "🏠" },
+  { label: "screens.howToUse.onboarding.firstPost", points: 20, icon: "📸" },
 ];
 
+// q/a は翻訳キー（描画時に t() で解決）。
 const faqs = [
   {
-    q: "グッズが見つからない場合は？",
-    a: "発見ページに無いグッズはコレクションページから直接追加できます。「+」ボタンから写真を撮って登録しましょう。",
+    q: "screens.howToUse.faq.notFound.q",
+    a: "screens.howToUse.faq.notFound.a",
     icon: "🔍",
   },
   {
-    q: "ポイントは何に使えますか？",
-    a: "ポイントショップでコレクション枠の追加やAI画像生成の追加回数を購入できます。ログインやグッズ追加、はじめのステップ達成でポイントが貯まります。",
+    q: "screens.howToUse.faq.points.q",
+    a: "screens.howToUse.faq.points.a",
     icon: "💎",
   },
   {
-    q: "マイルームは誰でも見れますか？",
-    a: "公開設定にすると他のユーザーも訪問できます。非公開にしたい場合はルーム設定からいつでも変更できます。",
+    q: "screens.howToUse.faq.roomVisibility.q",
+    a: "screens.howToUse.faq.roomVisibility.a",
     icon: "🏠",
   },
   {
-    q: "トレードはどうやって始めますか？",
-    a: "コレクションのグッズを「トレード可」に設定すると、他のユーザーから交換リクエストが届くようになります。マッチした相手とチャットで詳細を相談しましょう。",
+    q: "screens.howToUse.faq.trade.q",
+    a: "screens.howToUse.faq.trade.a",
     icon: "🔄",
   },
 ];
 
 export default function HowToUse() {
+  const { t } = useLanguage();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
@@ -168,18 +172,18 @@ export default function HowToUse() {
           >
             <Badge variant="secondary" className="px-4 py-2 text-sm font-medium">
               <Lightbulb className="w-4 h-4 mr-2" />
-              はじめての方へ
+              {t("screens.howToUse.heroBadge")}
             </Badge>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
               <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
                 Collectify
               </span>
-              の使い方
+              {t("screens.howToUse.heroTitleSuffix")}
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              推しグッズを記録・管理して、AIで推し部屋まで作れるアプリ。
+              {t("screens.howToUse.heroLead1")}
               <br className="hidden md:block" />
-              コレクションをもっと楽しくしましょう！
+              {t("screens.howToUse.heroLead2")}
             </p>
           </motion.section>
 
@@ -193,10 +197,10 @@ export default function HowToUse() {
             <div className="text-center">
               <h2 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-6 h-6 text-primary" />
-                はじめの7ステップ
+                {t("screens.howToUse.onboardingHeading")}
               </h2>
               <p className="text-muted-foreground mt-2">
-                ステップを達成するごとに自動でポイントがもらえます
+                {t("screens.howToUse.onboardingSub")}
               </p>
             </div>
             <Card className="border-2 border-primary/20 overflow-hidden">
@@ -212,7 +216,7 @@ export default function HowToUse() {
                       </span>
                       <span className="text-xl">{step.icon}</span>
                       <span className="flex-1 text-sm font-medium">
-                        {step.label}
+                        {t(step.label)}
                       </span>
                       <Badge variant="secondary" className="font-bold">
                         +{step.points}pt
@@ -221,7 +225,7 @@ export default function HowToUse() {
                   ))}
                 </ol>
                 <p className="text-xs text-muted-foreground mt-4 text-center">
-                  マイルーム上のチェックリストから進捗を確認できます
+                  {t("screens.howToUse.onboardingNote")}
                 </p>
               </CardContent>
             </Card>
@@ -230,9 +234,9 @@ export default function HowToUse() {
           {/* メイン機能ショーケース */}
           <section className="space-y-8">
             <div className="text-center">
-              <h2 className="text-2xl md:text-3xl font-bold">主な機能</h2>
+              <h2 className="text-2xl md:text-3xl font-bold">{t("screens.howToUse.featuresHeading")}</h2>
               <p className="text-muted-foreground mt-2">
-                Collectifyの中心となる3つの機能
+                {t("screens.howToUse.featuresSub")}
               </p>
             </div>
 
@@ -262,7 +266,7 @@ export default function HowToUse() {
                         />
                         <img
                           src={feature.image}
-                          alt={feature.title}
+                          alt={t(feature.title)}
                           className="w-full h-full object-cover object-top aspect-video md:aspect-auto"
                         />
                         <div
@@ -286,14 +290,14 @@ export default function HowToUse() {
                             <p
                               className={`text-sm font-medium bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`}
                             >
-                              {feature.subtitle}
+                              {t(feature.subtitle)}
                             </p>
                             <h3 className="text-2xl md:text-3xl font-bold mt-1">
-                              {feature.title}
+                              {t(feature.title)}
                             </h3>
                           </div>
                           <p className="text-muted-foreground leading-relaxed">
-                            {feature.description}
+                            {t(feature.description)}
                           </p>
 
                           <div className="space-y-2 pt-2">
@@ -307,7 +311,7 @@ export default function HowToUse() {
                                 >
                                   {stepIndex + 1}
                                 </div>
-                                <span className="text-sm">{step}</span>
+                                <span className="text-sm">{t(step)}</span>
                               </div>
                             ))}
                           </div>
@@ -316,7 +320,7 @@ export default function HowToUse() {
                             className={`mt-4 bg-gradient-to-r ${feature.color} hover:opacity-90 transition-opacity text-white`}
                             onClick={() => navigate(feature.path)}
                           >
-                            {feature.action}
+                            {t(feature.action)}
                             <ArrowRight className="w-4 h-4 ml-2" />
                           </Button>
                         </div>
@@ -333,10 +337,10 @@ export default function HowToUse() {
             <div className="text-center">
               <h2 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-2">
                 <Zap className="w-6 h-6 text-primary" />
-                便利な機能
+                {t("screens.howToUse.quickTipsHeading")}
               </h2>
               <p className="text-muted-foreground mt-2">
-                もっと楽しく使いこなそう
+                {t("screens.howToUse.quickTipsSub")}
               </p>
             </div>
 
@@ -357,9 +361,9 @@ export default function HowToUse() {
                         <tip.icon className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-bold">{tip.title}</h3>
+                        <h3 className="font-bold">{t(tip.title)}</h3>
                         <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                          {tip.description}
+                          {t(tip.description)}
                         </p>
                       </div>
                     </CardContent>
@@ -383,28 +387,28 @@ export default function HowToUse() {
                   </div>
                   <div className="flex-1 space-y-3">
                     <h3 className="text-xl md:text-2xl font-bold">
-                      ポイントを貯めてお得に！
+                      {t("screens.howToUse.pointsHeading")}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                       <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
                         <Package className="w-5 h-5 text-primary" />
                         <div>
-                          <div className="font-medium">グッズ追加</div>
+                          <div className="font-medium">{t("screens.howToUse.pointsAddGoods")}</div>
                           <div className="text-primary font-bold">+10pt</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
                         <CheckCircle2 className="w-5 h-5 text-primary" />
                         <div>
-                          <div className="font-medium">毎日ログイン</div>
+                          <div className="font-medium">{t("screens.howToUse.pointsDailyLogin")}</div>
                           <div className="text-primary font-bold">+5pt</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
                         <Sparkles className="w-5 h-5 text-primary" />
                         <div>
-                          <div className="font-medium">ステップ達成</div>
-                          <div className="text-primary font-bold">最大+130pt</div>
+                          <div className="font-medium">{t("screens.howToUse.pointsStepsDone")}</div>
+                          <div className="text-primary font-bold">{t("screens.howToUse.pointsStepsValue")}</div>
                         </div>
                       </div>
                     </div>
@@ -417,8 +421,8 @@ export default function HowToUse() {
           {/* よくある質問 */}
           <section className="space-y-8">
             <div className="text-center">
-              <h2 className="text-2xl md:text-3xl font-bold">よくある質問</h2>
-              <p className="text-muted-foreground mt-2">困ったときはこちら</p>
+              <h2 className="text-2xl md:text-3xl font-bold">{t("screens.howToUse.faqHeading")}</h2>
+              <p className="text-muted-foreground mt-2">{t("screens.howToUse.faqSub")}</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -435,9 +439,9 @@ export default function HowToUse() {
                       <div className="flex items-start gap-4">
                         <span className="text-2xl">{faq.icon}</span>
                         <div className="space-y-2">
-                          <h3 className="font-bold text-base">{faq.q}</h3>
+                          <h3 className="font-bold text-base">{t(faq.q)}</h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">
-                            {faq.a}
+                            {t(faq.a)}
                           </p>
                         </div>
                       </div>
@@ -456,10 +460,10 @@ export default function HowToUse() {
             className="text-center py-12 space-y-6"
           >
             <h2 className="text-3xl md:text-4xl font-bold">
-              さっそく始めましょう！
+              {t("screens.howToUse.ctaHeading")}
             </h2>
             <p className="text-muted-foreground text-lg">
-              あなたのコレクションライフを、もっと楽しく。
+              {t("screens.howToUse.ctaSub")}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button
@@ -468,7 +472,7 @@ export default function HowToUse() {
                 onClick={() => navigate("/search")}
               >
                 <Search className="w-5 h-5 mr-2" />
-                グッズを探す
+                {t("screens.howToUse.ctaFindGoods")}
               </Button>
               <Button
                 size="lg"
@@ -477,7 +481,7 @@ export default function HowToUse() {
                 onClick={() => navigate("/my-room")}
               >
                 <Home className="w-5 h-5 mr-2" />
-                マイルームへ
+                {t("screens.howToUse.ctaMyRoom")}
               </Button>
             </div>
           </motion.section>

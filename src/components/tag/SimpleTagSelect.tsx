@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { AddTagDialog } from "./AddTagDialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SimpleTagSelectProps {
   category: string;
@@ -24,6 +25,7 @@ export function SimpleTagSelect({
 }: SimpleTagSelectProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const { data: tags = [] } = useQuery({
     queryKey: ["tags-by-category", category, contentId],
@@ -131,10 +133,10 @@ export function SimpleTagSelect({
           onValueChange={handleValueChange}
         >
           <SelectTrigger className="w-full bg-white">
-            <SelectValue placeholder={value || "選択してください"} />
+            <SelectValue placeholder={value || t("tagManage.common.selectPlaceholder")} />
           </SelectTrigger>
           <SelectContent className="bg-white">
-            <SelectItem value="clear">クリア</SelectItem>
+            <SelectItem value="clear">{t("tagManage.common.clear")}</SelectItem>
             {tags.map((tag) => (
               <SelectItem key={tag.id} value={tag.id}>
                 {tag.name}
