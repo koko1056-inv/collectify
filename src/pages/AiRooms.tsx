@@ -109,9 +109,9 @@ export default function AiRoomsPage() {
       {/* ヒーローヘッダー */}
       <div className="relative overflow-hidden border-b border-border/40">
         {/* 背景装飾 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-400/10" />
-        <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-pink-400/20 blur-3xl" />
-        <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-purple-400/20 blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5" />
+        <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-primary/20 blur-3xl" />
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-3">
           {/* タイトル行 */}
@@ -480,10 +480,10 @@ function AvatarPanel({
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={onGenerate}
-          className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-pink-500/15 via-purple-500/15 to-orange-400/15 border border-border/40 hover:shadow-md transition"
+          className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 border border-border/40 hover:shadow-md transition"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-2">
-            <Wand2 className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-2">
+            <Wand2 className="w-5 h-5 text-primary-foreground" />
           </div>
           <p className="text-sm font-semibold">AIで生成</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -508,7 +508,7 @@ function AvatarPanel({
       {/* 空状態 */}
       {avatars.avatars.length === 0 && (
         <div className="rounded-3xl border border-dashed border-border/60 p-8 text-center space-y-3">
-          <div className="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
+          <div className="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
             <Sparkles className="w-7 h-7 text-primary" />
           </div>
           <div>
@@ -590,9 +590,9 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
       animate={{ opacity: 1, y: 0 }}
       className="relative rounded-3xl overflow-hidden border border-border/40 shadow-sm mb-6"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 via-purple-500/15 to-orange-400/20" />
-      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-pink-400/30 blur-3xl" />
-      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-purple-400/30 blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10" />
+      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-primary/30 blur-3xl" />
+      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-primary/30 blur-3xl" />
 
       <div className="relative p-6 sm:p-8 text-center space-y-5">
         <div className="relative w-20 h-20 mx-auto">
@@ -614,7 +614,7 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
               animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
               transition={{ duration: 2, repeat: Infinity, delay: i * 0.5 }}
             >
-              <Sparkles className="w-4 h-4 text-pink-500" />
+              <Sparkles className="w-4 h-4 text-primary" />
             </motion.div>
           ))}
         </div>

@@ -37,8 +37,8 @@ export default function InviteRedirect() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="text-center space-y-4 max-w-sm">
         <div className="flex justify-center">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-            <Gift className="h-8 w-8 text-white" />
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+            <Gift className="h-8 w-8 text-primary-foreground" />
           </div>
         </div>
         <h1 className="text-xl font-bold">招待を確認しています…</h1>

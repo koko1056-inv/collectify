@@ -211,7 +211,7 @@ export default function RoomView() {
   if (loadingRoom) {
     return (
       <div className="min-h-screen bg-[#0f0f23] flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -310,14 +310,14 @@ export default function RoomView() {
             onClick={() => navigate(`/user/${room.user_id}`)}
             className="flex items-center gap-3 group"
           >
-            <Avatar className="w-12 h-12 border-2 border-purple-500">
+            <Avatar className="w-12 h-12 border-2 border-primary">
               <AvatarImage src={ownerProfile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-purple-900 text-white">
+              <AvatarFallback className="bg-primary text-primary-foreground">
                 {ownerProfile?.username?.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div className="text-left">
-              <p className="text-white font-medium group-hover:text-purple-400 transition-colors">
+              <p className="text-white font-medium group-hover:text-primary transition-colors">
                 {ownerProfile?.display_name || ownerProfile?.username}
               </p>
               <p className="text-white/50 text-sm">@{ownerProfile?.username}</p>
@@ -339,7 +339,7 @@ export default function RoomView() {
             {user && room.user_id !== user.id && (
               <Button
                 size="sm"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                className="bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60"
               >
                 <UserPlus className="w-4 h-4 mr-2" />
                 フォロー
