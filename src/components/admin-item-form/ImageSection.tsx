@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -53,7 +53,6 @@ export function ImageSection({
   }>>([]);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [showImageSelector, setShowImageSelector] = useState(false);
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const handleImageChange = (file: File | null) => {
@@ -66,10 +65,8 @@ export function ImageSection({
 
   const handleAnalyzeImage = async () => {
     if (!previewUrl) {
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("addItem.selectImage"),
-        variant: "destructive",
       });
       return;
     }
@@ -102,17 +99,14 @@ export function ImageSection({
 
       if (data && onAnalysisComplete) {
         onAnalysisComplete(data);
-        toast({
-          title: t("addItem.analysisComplete"),
+        toast.success(t("addItem.analysisComplete"), {
           description: t("addItem.analysisCompleteDesc"),
         });
       }
     } catch (error) {
       console.error('Error analyzing image:', error);
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("addItem.analysisError"),
-        variant: "destructive",
       });
     } finally {
       setIsAnalyzing(false);
@@ -121,10 +115,8 @@ export function ImageSection({
 
   const handleScrapeImages = async () => {
     if (!urlInput) {
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("addItem.enterUrl"),
-        variant: "destructive",
       });
       return;
     }
@@ -139,10 +131,8 @@ export function ImageSection({
 
       const images = data.images;
       if (images.length === 0) {
-        toast({
-          title: t("addItem.noImagesFound"),
+        toast.error(t("addItem.noImagesFound"), {
           description: t("addItem.noImagesFoundDesc"),
-          variant: "destructive",
         });
         return;
       }
@@ -151,10 +141,8 @@ export function ImageSection({
       setShowImageSelector(true);
     } catch (error) {
       console.error('Error scraping images:', error);
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("addItem.fetchError"),
-        variant: "destructive",
       });
     } finally {
       setIsScrapingImages(false);
@@ -175,10 +163,8 @@ export function ImageSection({
 
   const handleConfirmSelection = () => {
     if (selectedImages.size === 0) {
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("addItem.selectAtLeastOne"),
-        variant: "destructive",
       });
       return;
     }
@@ -197,8 +183,7 @@ export function ImageSection({
       });
     }
     
-    toast({
-      title: t("addItem.imageSelectedTitle"),
+    toast.success(t("addItem.imageSelectedTitle"), {
       description: t("misc.itemForm.imagesSelected", { n: selectedImages.size }),
     });
     
@@ -210,10 +195,8 @@ export function ImageSection({
 
   const handleSetImageUrl = async () => {
     if (!imageUrlInput) {
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("addItem.enterImageUrl"),
-        variant: "destructive",
       });
       return;
     }
@@ -232,35 +215,28 @@ export function ImageSection({
           handleImageChange(file);
           setImageUrlInput("");
           
-          toast({
-            title: t("addItem.imageSet"),
+          toast.success(t("addItem.imageSet"), {
             description: t("addItem.imageSetDesc"),
           });
         } catch (error) {
           console.error('Error fetching image:', error);
-          toast({
-            title: t("common.error"),
+          toast.error(t("common.error"), {
             description: t("addItem.imageFetchError"),
-            variant: "destructive",
           });
         }
       };
       
       img.onerror = () => {
-        toast({
-          title: t("common.error"),
+        toast.error(t("common.error"), {
           description: t("addItem.invalidImageUrl"),
-          variant: "destructive",
         });
       };
       
       img.src = imageUrlInput;
     } catch (error) {
       console.error('Error setting image URL:', error);
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("addItem.imageSetError"),
-        variant: "destructive",
       });
     }
   };

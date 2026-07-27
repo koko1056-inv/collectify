@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,6 @@ interface ContentNameSectionProps {
 }
 
 export function ContentNameSection({ contentName, onContentChange }: ContentNameSectionProps) {
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [isAddingNewContent, setIsAddingNewContent] = useState(false);
@@ -47,10 +46,8 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
 
   const handleAddNewContent = async () => {
     if (!newContentName.trim()) {
-      toast({
-        title: t("tagManage.common.error"),
+      toast.error(t("tagManage.common.error"), {
         description: t("tagManage.content.nameRequired"),
-        variant: "destructive",
       });
       return;
     }
@@ -71,16 +68,13 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
       setIsAddingNewContent(false);
       setNewContentName("");
       
-      toast({
-        title: t("tagManage.content.added"),
+      toast.success(t("tagManage.content.added"), {
         description: `${t("tagManage.common.addedPrefix")}${data.name}${t("tagManage.common.addedSuffix")}`,
       });
     } catch (error) {
       console.error("Error adding content:", error);
-      toast({
-        title: t("tagManage.common.error"),
+      toast.error(t("tagManage.common.error"), {
         description: t("tagManage.content.addFailed"),
-        variant: "destructive",
       });
     }
   };

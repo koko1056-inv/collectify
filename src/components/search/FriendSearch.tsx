@@ -10,6 +10,8 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Users, Search, Sparkles, ChevronRight, UserPlus } from "lucide-react";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { useNavigate } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Profile {
@@ -222,14 +224,14 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
         </div>
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-background rounded-xl p-4 border animate-pulse">
+            <div key={i} className="bg-background rounded-xl p-4 border">
               <div className="flex items-center gap-3">
-                <div className="h-14 w-14 bg-muted rounded-full" />
+                <Skeleton className="h-14 w-14 rounded-full" />
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-muted rounded w-1/3" />
-                  <div className="h-3 bg-muted rounded w-1/2" />
+                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
-                <div className="h-9 w-24 bg-muted rounded-full" />
+                <Skeleton className="h-9 w-24 rounded-full" />
               </div>
             </div>
           ))}
@@ -323,13 +325,11 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
         </div>
         
         {filteredProfiles.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <div className="bg-muted/50 rounded-full p-6 w-fit mx-auto mb-4">
-              <UserPlus className="h-10 w-10 opacity-50" />
-            </div>
-            <p className="font-medium">{t("chrome.friendSearch.noUsers")}</p>
-            <p className="text-sm mt-1">{t("chrome.friendSearch.noUsersDesc")}</p>
-          </div>
+          <EmptyState
+            icon={UserPlus}
+            title={t("chrome.friendSearch.noUsers")}
+            description={t("chrome.friendSearch.noUsersDesc")}
+          />
         ) : (
           <div className="space-y-2">
             {filteredProfiles.map((profile) => (

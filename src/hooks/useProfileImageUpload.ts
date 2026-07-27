@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -12,7 +12,6 @@ interface UseProfileImageUploadOptions {
 }
 
 export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUploadOptions) {
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
@@ -20,9 +19,7 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
 
   const uploadImage = useCallback(async (file: File): Promise<string | null> => {
     if (!file || !userId) {
-      toast({
-        variant: "destructive",
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.upload.missingFileOrUser"),
       });
       return null;
@@ -31,9 +28,7 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
     // ファイルサイズチェック (5MB以下)
     const MAX_FILE_SIZE = 5 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
-      toast({
-        variant: "destructive",
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.upload.tooLarge"),
       });
       return null;
@@ -42,9 +37,7 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
     // ファイル形式チェック
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
-      toast({
-        variant: "destructive",
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.upload.unsupportedFormat"),
       });
       return null;
@@ -99,8 +92,7 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
       // 6. プレビューURLを更新
       setPreviewUrl(publicUrl);
 
-      toast({
-        title: t("notices.upload.doneTitle"),
+      toast.success(t("notices.upload.doneTitle"), {
         description: t("notices.upload.profileImageUpdated"),
       });
 
@@ -109,9 +101,7 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
 
     } catch (error) {
       const message = error instanceof Error ? error.message : t("notices.upload.imageUploadFailed");
-      toast({
-        variant: "destructive",
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: message,
       });
       console.error("Profile image upload error:", error);
@@ -120,7 +110,7 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
     } finally {
       setIsUploading(false);
     }
-  }, [userId, toast, queryClient, onSuccess, t]);
+  }, [userId, queryClient, onSuccess, t]);
 
   const initializePreview = useCallback((url: string | null) => {
     setPreviewUrl(url);

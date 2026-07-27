@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, Send, Globe, ArrowRight } from "lucide-react";
@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface TradeRequestModalProps {
   isOpen: boolean;
@@ -38,7 +39,6 @@ export function TradeRequestModal({
   const [activeTab, setActiveTab] = useState<"directTrade" | "openTrade">(initialTab);
   const [desiredItemId, setDesiredItemId] = useState<string | null>(null);
   const [step, setStep] = useState<"selectOffer" | "selectDesired" | "addMessage">("selectOffer");
-  const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useLanguage();
 
@@ -110,19 +110,15 @@ export function TradeRequestModal({
 
   const handleSubmit = async () => {
     if (!selectedItem) {
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("trade.request.errSelectOffer"),
-        variant: "destructive",
       });
       return;
     }
 
     if (activeTab === "openTrade" && !desiredItemId) {
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("trade.request.errSelectDesired"),
-        variant: "destructive",
       });
       return;
     }
@@ -142,8 +138,7 @@ export function TradeRequestModal({
 
         if (error) throw error;
 
-        toast({
-          title: t("trade.request.sentTitle"),
+        toast.success(t("trade.request.sentTitle"), {
           description: t("trade.request.sentDesc"),
         });
       } 
@@ -162,8 +157,7 @@ export function TradeRequestModal({
 
         if (error) throw error;
 
-        toast({
-          title: t("trade.request.openCreatedTitle"),
+        toast.success(t("trade.request.openCreatedTitle"), {
           description: t("trade.request.openCreatedDesc"),
         });
       }
@@ -175,10 +169,8 @@ export function TradeRequestModal({
       setStep("selectOffer");
     } catch (error) {
       console.error("Error sending trade request:", error);
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("trade.request.sendErrorDesc"),
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -226,9 +218,9 @@ export function TradeRequestModal({
                     <label className="text-sm font-medium">{t("trade.request.selectOfferLabel")}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {itemsLoading ? (
-                        <div className="col-span-2 py-4 text-center text-gray-500">{t("common.loading")}</div>
+                        <div className="col-span-2 py-4 text-center text-muted-foreground">{t("common.loading")}</div>
                       ) : userItems?.length === 0 ? (
-                        <div className="col-span-2 py-4 text-center text-gray-500">{t("trade.request.noItems")}</div>
+                        <EmptyState className="col-span-2 py-6" title={t("trade.request.noItems")} />
                       ) : (
                         userItems?.map((item) => (
                           <button
@@ -237,7 +229,7 @@ export function TradeRequestModal({
                             className={`p-2 rounded-lg border transition-colors ${
                               selectedItem === item.id
                                 ? "border-primary bg-primary/5"
-                                : "border-gray-200 hover:border-gray-300"
+                                : "border-border hover:border-border"
                             }`}
                           >
                             <img
@@ -275,7 +267,7 @@ export function TradeRequestModal({
                   </div>
                   
                   {isOpenTrade && (
-                    <div className="text-sm text-gray-500 bg-gray-50 p-2 rounded">
+                    <div className="text-sm text-muted-foreground bg-muted p-2 rounded">
                       {t("trade.request.openTradeNote")}
                     </div>
                   )}
@@ -288,9 +280,9 @@ export function TradeRequestModal({
                   <label className="text-sm font-medium">{t("trade.request.selectOfferLabel")}</label>
                   <div className="grid grid-cols-2 gap-2">
                     {itemsLoading ? (
-                      <div className="col-span-2 py-4 text-center text-gray-500">{t("common.loading")}</div>
+                      <div className="col-span-2 py-4 text-center text-muted-foreground">{t("common.loading")}</div>
                     ) : userItems?.length === 0 ? (
-                      <div className="col-span-2 py-4 text-center text-gray-500">{t("trade.request.noItems")}</div>
+                      <EmptyState className="col-span-2 py-6" title={t("trade.request.noItems")} />
                     ) : (
                       userItems?.map((item) => (
                         <button
@@ -299,7 +291,7 @@ export function TradeRequestModal({
                           className={`p-2 rounded-lg border transition-colors ${
                             selectedItem === item.id
                               ? "border-primary bg-primary/5"
-                              : "border-gray-200 hover:border-gray-300"
+                              : "border-border hover:border-border"
                           }`}
                         >
                           <img
@@ -321,9 +313,9 @@ export function TradeRequestModal({
                   <label className="text-sm font-medium">{t("trade.request.selectDesiredLabel")}</label>
                   <div className="grid grid-cols-2 gap-2">
                     {allItemsLoading ? (
-                      <div className="col-span-2 py-4 text-center text-gray-500">{t("common.loading")}</div>
+                      <div className="col-span-2 py-4 text-center text-muted-foreground">{t("common.loading")}</div>
                     ) : allItems?.length === 0 ? (
-                      <div className="col-span-2 py-4 text-center text-gray-500">{t("trade.request.noItems")}</div>
+                      <EmptyState className="col-span-2 py-6" title={t("trade.request.noItems")} />
                     ) : (
                       allItems?.map((item) => (
                         <button
@@ -332,7 +324,7 @@ export function TradeRequestModal({
                           className={`p-2 rounded-lg border transition-colors ${
                             desiredItemId === item.id
                               ? "border-primary bg-primary/5"
-                              : "border-gray-200 hover:border-gray-300"
+                              : "border-border hover:border-border"
                           }`}
                           disabled={selectedItem === item.id} // Can't select same item for both
                         >

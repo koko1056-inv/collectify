@@ -1,13 +1,12 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const { user } = useAuth();
 
@@ -53,17 +52,14 @@ export function useCreatePost() {
       
       console.log("キャッシュ更新完了");
       
-      toast({
-        title: t("notices.posts.createdTitle"),
+      toast.success(t("notices.posts.createdTitle"), {
         description: t("notices.posts.createdDesc"),
       });
     },
     onError: (error) => {
       console.error("投稿作成エラー:", error);
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.posts.createFailedDesc"),
-        variant: "destructive",
       });
     },
   });

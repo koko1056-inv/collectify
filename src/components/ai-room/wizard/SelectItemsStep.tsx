@@ -1,5 +1,6 @@
 import { Check } from "lucide-react";
 import { motion } from "framer-motion";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -34,11 +35,11 @@ export function SelectItemsStep({ items, selectedItems, onToggle, maxItems }: Pr
       </div>
 
       {items.length === 0 ? (
-        <div className="py-10 text-center text-sm text-muted-foreground">
-          {t("aiRoom.items.empty1")}
-          <br />
-          {t("aiRoom.items.empty2")}
-        </div>
+        <EmptyState
+          title={t("aiRoom.items.empty1")}
+          description={t("aiRoom.items.empty2")}
+          className="py-10"
+        />
       ) : (
         <div className="grid grid-cols-3 gap-2">
           {items.map((item) => {

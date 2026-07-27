@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreateChallengeData {
@@ -18,7 +18,6 @@ interface CreateChallengeData {
 export function useCreateChallenge() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   return useMutation({
@@ -76,10 +75,12 @@ export function useCreateChallenge() {
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
       queryClient.invalidateQueries({ queryKey: ["userPoints"] });
       queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
-      toast({ title: t("notices.challenges.created") });
+      toast.success(t("notices.challenges.created"));
     },
     onError: (error) => {
-      toast({ title: t("notices.common.errorTitle"), description: error.message, variant: "destructive" });
+      toast.error(t("notices.common.errorTitle"), {
+        description: error.message,
+      });
     },
   });
 }
@@ -94,7 +95,6 @@ interface CreateEntryData {
 export function useCreateChallengeEntry() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   return useMutation({
@@ -124,10 +124,12 @@ export function useCreateChallengeEntry() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["challenge-entries", variables.challenge_id] });
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
-      toast({ title: t("notices.challenges.entered") });
+      toast.success(t("notices.challenges.entered"));
     },
     onError: (error) => {
-      toast({ title: t("notices.common.errorTitle"), description: error.message, variant: "destructive" });
+      toast.error(t("notices.common.errorTitle"), {
+        description: error.message,
+      });
     },
   });
 }
@@ -135,7 +137,6 @@ export function useCreateChallengeEntry() {
 export function useVoteForEntry() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   return useMutation({
@@ -174,14 +175,15 @@ export function useVoteForEntry() {
       queryClient.invalidateQueries({ queryKey: ["challenge-entries", variables.challengeId] });
     },
     onError: (error) => {
-      toast({ title: t("notices.common.errorTitle"), description: error.message, variant: "destructive" });
+      toast.error(t("notices.common.errorTitle"), {
+        description: error.message,
+      });
     },
   });
 }
 
 export function useEndChallenge() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   return useMutation({
@@ -244,10 +246,12 @@ export function useEndChallenge() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
-      toast({ title: t("notices.challenges.endedWithPoints") });
+      toast.success(t("notices.challenges.endedWithPoints"));
     },
     onError: (error) => {
-      toast({ title: t("notices.common.errorTitle"), description: error.message, variant: "destructive" });
+      toast.error(t("notices.common.errorTitle"), {
+        description: error.message,
+      });
     },
   });
 }

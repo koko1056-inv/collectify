@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useImageEdit() {
   const [isEditing, setIsEditing] = useState(false);
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const editImage = async (imageUrl: string, prompt: string, avatarUrl?: string): Promise<string> => {
@@ -24,8 +23,7 @@ export function useImageEdit() {
         throw new Error(t('notices.imageEdit.noResult'));
       }
 
-      toast({
-        title: t("notices.imageEdit.doneTitle"),
+      toast.success(t("notices.imageEdit.doneTitle"), {
         description: t("notices.imageEdit.doneDesc"),
       });
 
@@ -35,10 +33,8 @@ export function useImageEdit() {
       
       const errorMessage = error instanceof Error ? error.message : t("notices.imageEdit.failed");
       
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: errorMessage,
-        variant: "destructive",
       });
       throw error;
     } finally {

@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Camera, ImageIcon, Upload } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -17,10 +17,8 @@ export function ImageSearchUpload({ onImageSelect }: ImageSearchUploadProps) {
     const file = acceptedFiles[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: t("misc.imageSearch.fileTooLarge"),
+        toast.error(t("misc.imageSearch.fileTooLarge"), {
           description: t("misc.imageSearch.fileTooLargeDesc"),
-          variant: "destructive",
         });
         return;
       }
@@ -43,10 +41,8 @@ export function ImageSearchUpload({ onImageSelect }: ImageSearchUploadProps) {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: t("misc.imageSearch.fileTooLarge"),
+        toast.error(t("misc.imageSearch.fileTooLarge"), {
           description: t("misc.imageSearch.fileTooLargeDesc"),
-          variant: "destructive",
         });
         return;
       }

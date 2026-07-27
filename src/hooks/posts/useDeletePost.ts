@@ -1,12 +1,11 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useDeletePost() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   return useMutation({
@@ -34,17 +33,14 @@ export function useDeletePost() {
       
       console.log("キャッシュ更新完了");
       
-      toast({
-        title: t("notices.posts.deletedTitle"),
+      toast.success(t("notices.posts.deletedTitle"), {
         description: t("notices.posts.deletedDesc"),
       });
     },
     onError: (error) => {
       console.error("投稿削除エラー:", error);
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.posts.deleteFailedDesc"),
-        variant: "destructive",
       });
     },
   });

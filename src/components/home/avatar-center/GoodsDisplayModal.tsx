@@ -171,17 +171,17 @@ export function GoodsDisplayModal({
                 defaultValue={showGallery ? "gallery" : "create"}
                 className="h-full flex flex-col"
               >
-                <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-white border border-gray-200 rounded-full mb-4">
+                <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-card border border-border rounded-full mb-4">
                   <TabsTrigger
                     value="create"
-                    className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+                    className="data-[state=active]:bg-foreground data-[state=active]:text-background rounded-full"
                     onClick={() => setShowGallery(false)}
                   >
                     {t("homeScreen.goodsDisplay.tabCreate")}
                   </TabsTrigger>
                   <TabsTrigger
                     value="gallery"
-                    className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+                    className="data-[state=active]:bg-foreground data-[state=active]:text-background rounded-full"
                     onClick={() => setShowGallery(true)}
                   >
                     {t("homeScreen.goodsDisplay.tabGallery")}

@@ -1,5 +1,6 @@
 import { Loader2, Frame } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -44,10 +45,7 @@ export function GalleryListView({ userId, enabled }: Props) {
     <div className="space-y-4 pb-4 pr-2">
       <h3 className="text-lg font-semibold">{t("homeScreen.gallery.title")}</h3>
       {displayGallery.length === 0 ? (
-        <div className="text-center text-muted-foreground py-12">
-          <Frame className="mx-auto h-12 w-12 mb-4 opacity-50" />
-          <p>{t("homeScreen.gallery.empty")}</p>
-        </div>
+        <EmptyState icon={Frame} title={t("homeScreen.gallery.empty")} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {displayGallery.map((gallery: any) => (

@@ -12,6 +12,7 @@ import { TradeRequestModal } from "./TradeRequestModal";
 import { InlineFollowButton } from "./InlineFollowButton";
 import { ChatModal } from "@/components/chat/ChatModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface MatchedUser {
   user_id: string;
@@ -370,15 +371,12 @@ export function TradeMatchingSection() {
         </CardHeader>
         <CardContent>
           {!matchedUsers?.length ? (
-            <div className="text-center py-6">
-              <Heart className="w-12 h-12 mx-auto text-muted-foreground/30 mb-2" />
-              <p className="text-muted-foreground text-sm">
-                {t("trade.matching.noMatches")}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {t("trade.matching.hintWishlist")}
-              </p>
-            </div>
+            <EmptyState
+              className="py-6"
+              icon={Heart}
+              title={t("trade.matching.noMatches")}
+              description={t("trade.matching.hintWishlist")}
+            />
           ) : (
             <div className="space-y-3">
               {matchedUsers.map((matchedUser) => (
@@ -473,15 +471,12 @@ export function TradeMatchingSection() {
         </CardHeader>
         <CardContent>
           {!wantingUsers?.length ? (
-            <div className="text-center py-6">
-              <Gift className="w-12 h-12 mx-auto text-muted-foreground/30 mb-2" />
-              <p className="text-muted-foreground text-sm">
-                {t("trade.matching.noMatches")}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {t("trade.matching.hintOwned")}
-              </p>
-            </div>
+            <EmptyState
+              className="py-6"
+              icon={Gift}
+              title={t("trade.matching.noMatches")}
+              description={t("trade.matching.hintOwned")}
+            />
           ) : (
             <div className="space-y-3">
               {wantingUsers.map((wantingUser) => (

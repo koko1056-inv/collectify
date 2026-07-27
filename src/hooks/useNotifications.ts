@@ -3,12 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Notification } from '@/types/notification';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export function useNotifications() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
@@ -48,10 +47,8 @@ export function useNotifications() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error) => {
-      toast({
-        title: t('notices.common.errorTitle'),
+      toast.error(t('notices.common.errorTitle'), {
         description: t('notices.notifications.updateFailed'),
-        variant: 'destructive',
       });
     },
   });
@@ -73,10 +70,8 @@ export function useNotifications() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error) => {
-      toast({
-        title: t('notices.common.errorTitle'),
+      toast.error(t('notices.common.errorTitle'), {
         description: t('notices.notifications.updateFailed'),
-        variant: 'destructive',
       });
     },
   });
@@ -95,10 +90,8 @@ export function useNotifications() {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
     onError: (error) => {
-      toast({
-        title: t('notices.common.errorTitle'),
+      toast.error(t('notices.common.errorTitle'), {
         description: t('notices.notifications.deleteFailed'),
-        variant: 'destructive',
       });
     },
   });
@@ -121,8 +114,7 @@ export function useNotifications() {
           const newNotification = payload.new as Notification;
           
           // Show toast for new notification
-          toast({
-            title: newNotification.title,
+          toast(newNotification.title, {
             description: newNotification.message,
             duration: 5000,
           });
@@ -136,7 +128,7 @@ export function useNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, toast, queryClient]);
+  }, [user?.id, queryClient]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 

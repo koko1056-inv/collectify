@@ -52,14 +52,14 @@ export function TitleSection({
               {similarItems.map((item) => (
                 <div 
                   key={item.id} 
-                  className="flex items-center gap-3 p-2 bg-white rounded border border-yellow-200"
+                  className="flex items-center gap-3 p-2 bg-card rounded border border-yellow-200"
                 >
                   <img 
                     src={item.image} 
                     alt={item.title}
                     className="w-12 h-12 object-cover rounded"
                   />
-                  <span className="text-sm text-gray-700 flex-1">{item.title}</span>
+                  <span className="text-sm text-foreground flex-1">{item.title}</span>
                 </div>
               ))}
             </div>

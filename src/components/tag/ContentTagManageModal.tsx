@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface ContentTagManageModalProps {
   isOpen: boolean;
@@ -654,14 +655,10 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
           </Card>
 
           {!selectedContent && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="p-4 bg-muted/50 rounded-full mb-4">
-                <AlertCircle className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <p className="text-muted-foreground">
-                {t("tagManage.manage.selectContentPrompt")}
-              </p>
-            </div>
+            <EmptyState
+              icon={AlertCircle}
+              title={t("tagManage.manage.selectContentPrompt")}
+            />
           )}
 
           {selectedContent && (

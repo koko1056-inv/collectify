@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Send, Image, Bot, User, Loader2, Check, X, Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -76,7 +76,6 @@ export function ChatAddItem() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -136,10 +135,8 @@ export function ChatAddItem() {
       }
     } catch (error) {
       console.error("Error:", error);
-      toast({
-        title: t("misc.common.error"),
+      toast.error(t("misc.common.error"), {
         description: t("misc.chatAdd.sendFailed"),
-        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
@@ -157,10 +154,8 @@ export function ChatAddItem() {
       reader.readAsDataURL(file);
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast({
-        title: t("misc.common.error"),
+      toast.error(t("misc.common.error"), {
         description: t("misc.chatAdd.uploadFailed"),
-        variant: "destructive"
       });
     }
   };
@@ -172,10 +167,8 @@ export function ChatAddItem() {
     try {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) {
-        toast({
-          title: t("misc.common.error"),
+        toast.error(t("misc.common.error"), {
           description: t("misc.chatAdd.loginRequired"),
-          variant: "destructive"
         });
         return;
       }
@@ -261,10 +254,8 @@ export function ChatAddItem() {
 
         if (uploadError) {
           console.error("Failed to upload image:", uploadError);
-          toast({
-            title: t("misc.common.error"),
+          toast.error(t("misc.common.error"), {
             description: t("misc.chatAdd.uploadFailedRetry"),
-            variant: "destructive"
           });
           setIsSubmitting(false);
           return;
@@ -365,9 +356,8 @@ export function ChatAddItem() {
         }
       }
 
-      toast({
-        title: t("misc.chatAdd.registeredTitle"),
-        description: t("misc.chatAdd.registeredDesc")
+      toast.success(t("misc.chatAdd.registeredTitle"), {
+        description: t("misc.chatAdd.registeredDesc"),
       });
 
       // Reset chat
@@ -381,10 +371,8 @@ export function ChatAddItem() {
       setIsConfirmed(false);
     } catch (error) {
       console.error("Error submitting:", error);
-      toast({
-        title: t("misc.common.error"),
+      toast.error(t("misc.common.error"), {
         description: t("misc.chatAdd.registerFailed"),
-        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);

@@ -4,7 +4,7 @@ import { getTagsForItem } from "@/utils/tag/tag-queries";
 import { updateTagsForMultipleItems } from "@/utils/tag/tag-mutations";
 import { setItemContent } from "@/utils/tag/content-operations";
 import { SimpleItemTag } from "@/utils/tag/types";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagSelection {
@@ -29,7 +29,6 @@ export function useSimpleTagManage(
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   // 現在のタグを取得
@@ -227,23 +226,20 @@ export function useSimpleTagManage(
 
       console.log('[SimpleTagManage] Save completed successfully');
       
-      toast({
-        title: t("notices.tags.savedTitle"),
+      toast.success(t("notices.tags.savedTitle"), {
         description: t("notices.tags.savedDesc"),
       });
       
       onClose();
     } catch (error) {
       console.error("[SimpleTagManage] Save failed:", error);
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.tags.saveErrorDesc"),
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
-  }, [isSubmitting, tagSelections, contentName, itemIds, isUserItem, currentTags, queryClient, toast, onClose, t]);
+  }, [isSubmitting, tagSelections, contentName, itemIds, isUserItem, currentTags, queryClient, onClose, t]);
 
   return {
     tagSelections,

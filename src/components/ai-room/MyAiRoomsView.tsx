@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getOptimizedImageUrl } from "@/utils/optimized-image";
 import {
   AlertDialog,
@@ -150,13 +151,10 @@ export function MyAiRoomsView() {
       {/* ローディング */}
       {isLoading && (
         <div className="space-y-3">
-          <div className="aspect-video rounded-3xl bg-muted/60 animate-pulse" />
+          <Skeleton className="aspect-video rounded-3xl" />
           <div className="grid grid-cols-2 gap-3">
             {[0, 1].map((i) => (
-              <div
-                key={i}
-                className="aspect-video rounded-2xl bg-muted/60 animate-pulse"
-              />
+              <Skeleton key={i} className="aspect-video rounded-2xl" />
             ))}
           </div>
         </div>

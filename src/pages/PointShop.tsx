@@ -39,7 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // label は翻訳キー。モジュールスコープでは useLanguage が使えないため、描画時に t() で解決する。
@@ -54,7 +54,6 @@ export default function PointShop() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [confirmPack, setConfirmPack] = useState<PointPackage | null>(null);
   const [purchasing, setPurchasing] = useState(false);
@@ -101,8 +100,7 @@ export default function PointShop() {
     if (!pack) return;
 
     if (!nativeAvailable) {
-      toast({
-        title: t("screens.pointShop.iosOnlyTitle"),
+      toast(t("screens.pointShop.iosOnlyTitle"), {
         description: t("screens.pointShop.iosOnlyDesc"),
       });
       setConfirmPack(null);
@@ -111,10 +109,8 @@ export default function PointShop() {
 
     const rcId = pack.revenuecat_package_id;
     if (!rcId) {
-      toast({
-        title: t("screens.pointShop.cannotPurchase"),
+      toast.error(t("screens.pointShop.cannotPurchase"), {
         description: t("screens.pointShop.noProductConfig"),
-        variant: "destructive",
       });
       setConfirmPack(null);
       return;
@@ -122,10 +118,8 @@ export default function PointShop() {
 
     const match = rcPackages.find((p) => p.identifier === rcId);
     if (!match) {
-      toast({
-        title: t("screens.pointShop.cannotPurchase"),
+      toast.error(t("screens.pointShop.cannotPurchase"), {
         description: t("screens.pointShop.storeLoadFailed"),
-        variant: "destructive",
       });
       setConfirmPack(null);
       return;
@@ -136,8 +130,7 @@ export default function PointShop() {
       await purchasePointPackage(match.package);
       // Server-side webhook grants the points; refresh balance after a short delay.
       queryClient.invalidateQueries({ queryKey: ["userPoints"] });
-      toast({
-        title: t("screens.pointShop.purchaseComplete"),
+      toast.success(t("screens.pointShop.purchaseComplete"), {
         description: t("screens.pointShop.purchaseCompleteDesc"),
       });
       setConfirmPack(null);
@@ -147,10 +140,8 @@ export default function PointShop() {
         setConfirmPack(null);
       } else {
         console.error("[PointShop] purchase failed", err);
-        toast({
-          title: t("screens.pointShop.purchaseFailed"),
+        toast.error(t("screens.pointShop.purchaseFailed"), {
           description: err instanceof Error ? err.message : t("screens.pointShop.tryAgain"),
-          variant: "destructive",
         });
       }
     } finally {

@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { 
-  Home, 
-  Heart, 
-  Eye, 
-  Pencil, 
-  Plus, 
+import {
+  Home,
+  Heart,
+  Eye,
+  Loader2,
+  Pencil,
+  Plus,
   Sparkles,
   Users
 } from "lucide-react";
@@ -75,7 +76,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
       </div>
     );
   }
@@ -132,7 +133,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
         {/* アイテムがない場合のヒント */}
         {roomItems.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center space-y-2 bg-white/80 backdrop-blur-sm p-6 rounded-xl">
+            <div className="text-center space-y-2 bg-card/80 backdrop-blur-sm p-6 rounded-xl">
               <Sparkles className="w-8 h-8 mx-auto text-primary" />
               <p className="text-sm text-muted-foreground">
                 {t("homeScreen.room.clickToEdit")}

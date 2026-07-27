@@ -20,7 +20,7 @@ export function PreviousTags({ tags, selectedTags, onTagSelect, title }: Previou
           <Badge
             key={tag.id}
             variant="outline"
-            className="cursor-pointer hover:bg-secondary bg-white truncate max-w-[150px] sm:max-w-xs"
+            className="cursor-pointer hover:bg-secondary bg-card truncate max-w-[150px] sm:max-w-xs"
             onClick={() => {
               if (!selectedTags.includes(tag.name)) {
                 onTagSelect(tag.name);

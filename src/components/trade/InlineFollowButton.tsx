@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UserPlus, UserCheck } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,7 +14,6 @@ interface InlineFollowButtonProps {
 
 export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -47,8 +46,7 @@ export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonPr
           .eq("follower_id", user.id)
           .eq("following_id", userId);
 
-        toast({
-          title: t("trade.follow.unfollowedTitle"),
+        toast.success(t("trade.follow.unfollowedTitle"), {
           description: t("trade.follow.unfollowedDesc"),
         });
       } else {
@@ -57,8 +55,7 @@ export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonPr
           following_id: userId,
         });
 
-        toast({
-          title: t("trade.follow.followedTitle"),
+        toast.success(t("trade.follow.followedTitle"), {
           description: t("trade.follow.followedDesc"),
         });
       }
@@ -70,9 +67,7 @@ export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonPr
         queryKey: ["profile", userId],
       });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("trade.follow.errorDesc"),
       });
     } finally {

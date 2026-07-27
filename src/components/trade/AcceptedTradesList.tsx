@@ -5,7 +5,9 @@ import { TradeRequest } from "./types";
 import { TradeCard } from "./TradeCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ArrowLeftRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AcceptedTradesListProps {
@@ -15,7 +17,6 @@ interface AcceptedTradesListProps {
 
 export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const notShippedTrades = trades.filter(trade => trade.shipping_status === 'not_shipped');
@@ -33,16 +34,13 @@ export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListPro
       .eq("id", trade.id);
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("trade.list.completeErrorDesc"),
       });
       return;
     }
 
-    toast({
-      title: t("trade.list.completedToastTitle"),
+    toast.success(t("trade.list.completedToastTitle"), {
       description: t("trade.list.completedToastDesc"),
     });
   };
@@ -51,12 +49,12 @@ export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListPro
     <ScrollArea className="h-[calc(90vh-180px)]">
       <div className="space-y-8 pr-4">
         {trades.length === 0 ? (
-          <p className="text-center text-gray-500">{t("trade.list.noOngoing")}</p>
+          <EmptyState icon={ArrowLeftRight} title={t("trade.list.noOngoing")} />
         ) : (
           <>
             {notShippedTrades.length > 0 && (
               <div className="space-y-4">
-                <h3 className="font-medium text-sm text-gray-500">{t("trade.list.awaitingShipping")}</h3>
+                <h3 className="font-medium text-sm text-muted-foreground">{t("trade.list.awaitingShipping")}</h3>
                 {notShippedTrades.map((trade) => (
                   <TradeCard
                     key={trade.id}
@@ -70,7 +68,7 @@ export function AcceptedTradesList({ trades, onOpenChat }: AcceptedTradesListPro
 
             {shippedTrades.length > 0 && (
               <div className="space-y-4">
-                <h3 className="font-medium text-sm text-gray-500">{t("trade.list.shippedAwaitingArrival")}</h3>
+                <h3 className="font-medium text-sm text-muted-foreground">{t("trade.list.shippedAwaitingArrival")}</h3>
                 {shippedTrades.map((trade) => (
                   <TradeCard
                     key={trade.id}

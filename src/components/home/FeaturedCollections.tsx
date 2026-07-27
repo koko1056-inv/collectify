@@ -132,17 +132,17 @@ export function FeaturedCollections() {
       <h2 className="text-xl font-bold">{t("homeScreen.featured.title")}</h2>
       
       <Tabs defaultValue="today" className="w-full" onValueChange={setCurrentTab}>
-        <TabsList className="mb-4 bg-gray-100">
+        <TabsList className="mb-4 bg-muted">
           <TabsTrigger 
-            value="today" 
-            className="flex items-center gap-1 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:border text-gray-500 rounded-full px-3 py-1 text-xs transition-colors"
+            value="today"
+            className="flex items-center gap-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:border text-muted-foreground rounded-full px-3 py-1 text-xs transition-colors"
           >
             <Calendar className="h-4 w-4" />
             <span>{t("homeScreen.featured.latest")}</span>
           </TabsTrigger>
           <TabsTrigger 
-            value="trending" 
-            className="flex items-center gap-1 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:border text-gray-500 rounded-full px-3 py-1 text-xs transition-colors"
+            value="trending"
+            className="flex items-center gap-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:border text-muted-foreground rounded-full px-3 py-1 text-xs transition-colors"
           >
             <TrendingUp className="h-4 w-4" />
             <span>{t("homeScreen.featured.trending")}</span>

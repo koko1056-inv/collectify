@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -11,7 +11,6 @@ interface ExistingTagsProps {
 }
 
 export function ExistingTags({ itemIds, isUserItem = false, isCategory = false }: ExistingTagsProps) {
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
@@ -45,16 +44,13 @@ export function ExistingTags({ itemIds, isUserItem = false, isCategory = false }
         queryKey: isUserItem ? ["user-item-tags", itemIds] : ["item-tags", itemIds],
       });
 
-      toast({
-        title: isCategory ? t("tagManage.existing.categoryAdded") : t("tagManage.toast.tagAdded"),
+      toast.success(isCategory ? t("tagManage.existing.categoryAdded") : t("tagManage.toast.tagAdded"), {
         description: `${t("tagManage.existing.addedToItemsPrefix")}${tagName}${t("tagManage.existing.addedToItemsMid")}${itemIds.length}${t("tagManage.existing.addedToItemsSuffix")}`,
       });
     } catch (error) {
       console.error("Error adding existing tag:", error);
-      toast({
-        title: t("tagManage.common.error"),
+      toast.error(t("tagManage.common.error"), {
         description: isCategory ? t("tagManage.existing.categoryAddFailed") : t("tagManage.common.tagAddFailed"),
-        variant: "destructive",
       });
     }
   };

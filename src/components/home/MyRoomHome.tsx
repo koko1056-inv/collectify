@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Heart, Eye, Pencil, Plus, Sparkles, User, Image, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy, Wand2, Shirt } from "lucide-react";
+import { Home, Heart, Eye, Loader2, Pencil, Plus, Sparkles, User, Image, Compass, Package, ArrowRight, TrendingUp, ChevronRight, Star, BookOpen, Crown, Award, Trophy, Wand2, Shirt } from "lucide-react";
 import { motion } from "framer-motion";
 import { useMyRoom, RoomItem } from "@/hooks/useMyRoom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -143,7 +143,7 @@ export function MyRoomHome({
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
           <p className="text-muted-foreground">{t("common.loading")}</p>
         </div>
       </div>

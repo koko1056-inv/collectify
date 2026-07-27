@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, RefreshCw } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useMyOpenTrades } from "@/hooks/trade/useMyOpenTrades";
 import { MyOpenTradeCard } from "./MyOpenTradeCard";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,14 +36,16 @@ export function OpenTradeRequests() {
       </div>
       
       {tradeRequests.length === 0 ? (
-        <Card className="border-dashed border-2 border-gray-200 bg-gray-50">
-          <CardContent className="pt-6 pb-6">
-            <p className="text-center text-gray-500">{t("trade.myOpen.empty")}</p>
-            <div className="mt-2 text-center">
-              <span className="inline-block bg-primary/10 text-primary text-xs px-3 py-1 rounded-full">
-                {t("trade.myOpen.createPrompt")}
-              </span>
-            </div>
+        <Card className="border-dashed border-2 border-border bg-muted">
+          <CardContent className="p-0">
+            <EmptyState
+              title={t("trade.myOpen.empty")}
+              action={
+                <span className="inline-block bg-primary/10 text-primary text-xs px-3 py-1 rounded-full">
+                  {t("trade.myOpen.createPrompt")}
+                </span>
+              }
+            />
           </CardContent>
         </Card>
       ) : (

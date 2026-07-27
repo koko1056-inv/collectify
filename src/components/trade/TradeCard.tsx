@@ -89,14 +89,14 @@ export function TradeCard({
     switch (trade.shipping_status) {
       case 'not_shipped':
         return (
-          <div className="flex items-center gap-1 text-gray-700 bg-gray-100 px-2 py-1 rounded-full text-xs">
+          <div className="flex items-center gap-1 text-muted-foreground bg-muted px-2 py-1 rounded-full text-xs">
             <Clock className="h-3 w-3" />
             <span>{t("trade.card.shippingNotShipped")}</span>
           </div>
         );
       case 'shipped':
         return (
-          <div className="flex items-center gap-1 text-gray-700 bg-gray-100 px-2 py-1 rounded-full text-xs">
+          <div className="flex items-center gap-1 text-muted-foreground bg-muted px-2 py-1 rounded-full text-xs">
             <Truck className="h-3 w-3" />
             <span>{t("trade.card.shippingShipped")}</span>
           </div>
@@ -107,13 +107,13 @@ export function TradeCard({
   };
 
   return (
-    <div className="border border-gray-200 rounded-xl p-4 space-y-4 bg-white shadow-sm hover:shadow-md transition-shadow duration-300 animate-fade-in">
+    <div className="border border-border rounded-xl p-4 space-y-4 bg-card shadow-sm hover:shadow-md transition-shadow duration-300 animate-fade-in">
       {/* ヘッダー部分 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-md font-medium text-gray-900">{tradePartnerName}</span>
+          <span className="text-md font-medium text-foreground">{tradePartnerName}</span>
           {isOpenTrade && (
-            <div className="flex items-center gap-1 text-gray-700 bg-gray-100 px-2 py-1 rounded-full text-xs">
+            <div className="flex items-center gap-1 text-muted-foreground bg-muted px-2 py-1 rounded-full text-xs">
               <Globe className="h-3 w-3" />
               <span>{t("trade.card.openTradeBadge")}</span>
             </div>
@@ -171,7 +171,7 @@ export function TradeCard({
 
       {/* 相手の提供アイテム */}
       <div className="space-y-1">
-        <p className="text-sm text-gray-700 font-medium">{t("trade.card.partnerOfferedItem")}</p>
+        <p className="text-sm text-foreground font-medium">{t("trade.card.partnerOfferedItem")}</p>
         <div className="relative">
           <img
             src={trade.offered_item.image}
@@ -186,7 +186,7 @@ export function TradeCard({
       
       {/* あなたの提供アイテム */}
       <div className="space-y-1">
-        <p className="text-sm text-gray-700 font-medium">{t("trade.card.yourOfferedItem")}</p>
+        <p className="text-sm text-foreground font-medium">{t("trade.card.yourOfferedItem")}</p>
         <div className="relative">
           <img
             src={trade.requested_item.image}
@@ -200,7 +200,7 @@ export function TradeCard({
       </div>
 
       {trade.message && (
-        <div className="text-sm bg-gray-50 rounded-lg p-3 border-l-4 border-gray-300 italic">
+        <div className="text-sm bg-muted rounded-lg p-3 border-l-4 border-border italic">
           {trade.message}
         </div>
       )}
@@ -241,7 +241,7 @@ export function TradeCard({
           {trade.shipping_status === 'shipped' && (
             <Button
               variant="outline"
-              className="w-full rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="w-full rounded-lg border-border text-foreground hover:bg-muted"
               onClick={() => onComplete?.(trade)}
             >
               <CheckCircle className="mr-2 h-4 w-4" />

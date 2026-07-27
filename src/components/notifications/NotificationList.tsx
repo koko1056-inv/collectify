@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { NotificationItem } from './NotificationItem';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Loader2 } from 'lucide-react';
 
 export function NotificationList() {
@@ -25,9 +26,7 @@ export function NotificationList() {
 
   if (notifications.length === 0) {
     return (
-      <div className="p-8 text-center text-muted-foreground">
-        <p>{t("misc.notifications.empty")}</p>
-      </div>
+      <EmptyState title={t("misc.notifications.empty")} className="py-8" />
     );
   }
 

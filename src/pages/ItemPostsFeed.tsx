@@ -4,6 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
 import { Flame, Sparkles, Users, Camera } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useItemPostsFeed, FeedMode } from "@/hooks/item-posts/useItemPostsFeed";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -171,9 +172,9 @@ export default function ItemPostsFeed() {
           {isLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div
+                <Skeleton
                   key={i}
-                  className="aspect-square rounded-xl bg-muted animate-pulse"
+                  className="aspect-square rounded-xl"
                 />
               ))}
             </div>

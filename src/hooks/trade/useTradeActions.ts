@@ -1,5 +1,5 @@
 
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { TradeRequest } from "@/components/trade/types";
 import { updateTradeRequestStatus, createTradeMessages } from "@/services/trade/tradeService";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -17,7 +17,6 @@ export function useTradeActions({
   setActiveChatTradeId,
   setShowChatModal
 }: TradeStateProps) {
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const openChat = (trade: TradeRequest) => {
@@ -42,9 +41,7 @@ export function useTradeActions({
       );
 
       if (!success) {
-        toast({
-          variant: "destructive",
-          title: t("notices.common.errorTitle"),
+        toast.error(t("notices.common.errorTitle"), {
           description: t("notices.trade.updateFailed"),
         });
         return;
@@ -67,8 +64,7 @@ export function useTradeActions({
         setActiveChatTradeId(trade.id);
         setShowChatModal(true);
       } else {
-        toast({
-          title: t("notices.trade.updateDoneTitle"),
+        toast.success(t("notices.trade.updateDoneTitle"), {
           description: t("notices.trade.rejected"),
         });
       }

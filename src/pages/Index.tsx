@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useSearchParams } from "react-router-dom";
@@ -45,7 +46,7 @@ const Index = () => {
         <main className="container mx-auto px-3 py-4 pt-0 pb-24 sm:px-4 sm:py-8 sm:pb-8">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
               <p className="text-muted-foreground">{t("screens.index.loading")}</p>
             </div>
           </div>

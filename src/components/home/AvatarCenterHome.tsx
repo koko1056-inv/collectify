@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -114,10 +115,10 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
       {/* ローディング */}
       {avatars.isLoading && (
         <div className="space-y-3">
-          <div className="aspect-square sm:aspect-video rounded-3xl bg-muted/60 animate-pulse" />
+          <Skeleton className="aspect-square sm:aspect-video rounded-3xl" />
           <div className="grid grid-cols-3 gap-3">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="aspect-square rounded-2xl bg-muted/60 animate-pulse" />
+              <Skeleton key={i} className="aspect-square rounded-2xl" />
             ))}
           </div>
         </div>

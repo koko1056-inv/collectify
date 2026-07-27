@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,7 +31,6 @@ export function useItemSubmit({
   resetForm,
 }: UseItemSubmitProps) {
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -39,10 +38,8 @@ export function useItemSubmit({
   const validateForm = () => {
     // タイトルのバリデーション
     if (!formData.title.trim()) {
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.adminItem.titleRequiredDesc"),
-        variant: "destructive",
       });
       return false;
     }
@@ -216,8 +213,7 @@ export function useItemSubmit({
         console.error("ポイント付与エラー:", pointError);
       }
 
-      toast({
-        title: t("notices.adminItem.addedTitle"),
+      toast.success(t("notices.adminItem.addedTitle"), {
         description: t("notices.adminItem.addedDesc"),
       });
 
@@ -227,10 +223,8 @@ export function useItemSubmit({
       await queryClient.invalidateQueries({ queryKey: ["item-tags-count"] });
     } catch (error) {
       console.error("Error:", error);
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.adminItem.addFailedDesc"),
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

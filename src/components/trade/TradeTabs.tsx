@@ -42,7 +42,7 @@ export function TradeTabs({
             setShowTradeTabs(true);
             setShowOpenTrades(false);
           }}
-          className={`flex-1 rounded-r-none ${showTradeTabs ? "bg-black text-white" : "text-gray-600"}`}
+          className={`flex-1 rounded-r-none ${showTradeTabs ? "bg-black text-white" : "text-muted-foreground"}`}
         >
           <Inbox className="mr-2 h-4 w-4" />
           {t("trade.tabs.myTrades")}
@@ -53,7 +53,7 @@ export function TradeTabs({
             setShowTradeTabs(false);
             setShowOpenTrades(true);
           }}
-          className={`flex-1 rounded-l-none ${showOpenTrades ? "bg-black text-white" : "text-gray-600"}`}
+          className={`flex-1 rounded-l-none ${showOpenTrades ? "bg-black text-white" : "text-muted-foreground"}`}
         >
           <ArrowLeftRight className="mr-2 h-4 w-4" />
           {t("trade.tabs.openTrades")}
@@ -62,7 +62,7 @@ export function TradeTabs({
 
       {showTradeTabs && (
         <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4 bg-gray-100 p-1 rounded-xl">
+          <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted p-1 rounded-xl">
             <TabsTrigger 
               value="pending"
               className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"

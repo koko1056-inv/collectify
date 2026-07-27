@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ShelfView } from "@/components/room2d/ShelfView";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Heart, Eye, Share2, UserPlus, Camera, Music, Music2 } from "lucide-react";
+import { ArrowLeft, Heart, Eye, Share2, UserPlus, Camera, Music, Music2, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RoomItem } from "@/hooks/useMyRoom";
 import { useRoomFurniture } from "@/hooks/useRoomFurniture";
@@ -213,7 +213,7 @@ export default function RoomView() {
   if (loadingRoom) {
     return (
       <div className="min-h-screen bg-[#0f0f23] flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        <Loader2 className="w-16 h-16 animate-spin text-primary" />
       </div>
     );
   }

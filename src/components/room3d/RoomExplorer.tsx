@@ -15,6 +15,7 @@ import {
   Eye,
   Crown
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -208,9 +209,9 @@ export function RoomExplorer() {
           {loadingTrending ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {[...Array(8)].map((_, i) => (
-                <div 
-                  key={i} 
-                  className="aspect-square rounded-2xl bg-muted animate-pulse"
+                <Skeleton
+                  key={i}
+                  className="aspect-square rounded-2xl"
                 />
               ))}
             </div>

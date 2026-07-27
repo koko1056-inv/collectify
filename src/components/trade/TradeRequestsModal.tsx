@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
@@ -19,7 +19,6 @@ interface TradeRequestsModalProps {
 
 export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const [tradeRequests, setTradeRequests] = useState<TradeRequest[]>([]);
   const [acceptedTrades, setAcceptedTrades] = useState<TradeRequest[]>([]);
@@ -173,9 +172,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
       .eq("id", tradeId);
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("trade.requestsModal.updateErrorDesc"),
       });
       return;
@@ -211,8 +208,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
         setActiveChatTradeId(tradeId);
         setShowChatModal(true);
       } else {
-        toast({
-          title: t("trade.requestsModal.rejectedTitle"),
+        toast.success(t("trade.requestsModal.rejectedTitle"), {
           description: t("trade.requestsModal.rejectedDesc"),
         });
       }

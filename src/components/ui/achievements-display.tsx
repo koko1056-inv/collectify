@@ -1,5 +1,6 @@
 import { useUserAchievements } from "@/hooks/usePoints";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Award, Trophy, Star, Zap } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -20,7 +21,7 @@ export function AchievementsDisplay({
     return (
       <div className="flex gap-2">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="w-8 h-8 bg-muted animate-pulse rounded-full" />
+          <Skeleton key={i} className="w-8 h-8 rounded-full" />
         ))}
       </div>
     );
@@ -68,7 +69,7 @@ export function AchievementsDisplay({
       case "クリエイター":
         return "bg-pink-100 text-pink-800 border-pink-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-muted text-foreground border-border";
     }
   };
 

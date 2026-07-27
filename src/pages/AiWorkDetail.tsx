@@ -3,6 +3,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ArrowLeft,
@@ -107,10 +108,13 @@ export default function AiWorkDetail() {
               <Skeleton className="h-24 w-full" />
             </div>
           ) : !room ? (
-            <div className="bg-card rounded-2xl border p-10 text-center">
-              <p className="font-semibold mb-2">{t("screens.aiWorkDetail.notFound")}</p>
-              <Button onClick={() => navigate("/explore")}>{t("screens.aiWorkDetail.toExplore")}</Button>
-            </div>
+            <EmptyState
+              className="bg-card rounded-2xl border"
+              title={t("screens.aiWorkDetail.notFound")}
+              action={
+                <Button onClick={() => navigate("/explore")}>{t("screens.aiWorkDetail.toExplore")}</Button>
+              }
+            />
           ) : (
             <>
               {/* Hero */}

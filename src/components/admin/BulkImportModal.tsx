@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -52,7 +52,6 @@ interface BulkImportModalProps {
 }
 
 export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
-  const { toast } = useToast();
   const { t } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -70,10 +69,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
 
   const handleScrape = async () => {
     if (!url.trim()) {
-      toast({
-        title: t("misc.common.error"),
+      toast.error(t("misc.common.error"), {
         description: t("misc.bulkImport.urlRequired"),
-        variant: "destructive",
       });
       return;
     }
@@ -88,26 +85,21 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
 
       const images = data.images || [];
       if (images.length === 0) {
-        toast({
-          title: t("misc.bulkImport.noImagesTitle"),
+        toast.error(t("misc.bulkImport.noImagesTitle"), {
           description: t("misc.bulkImport.noImagesDesc"),
-          variant: "destructive",
         });
         return;
       }
 
       setScrapedImages(images);
       setStep("select");
-      toast({
-        title: t("misc.bulkImport.scrapeDoneTitle"),
+      toast.success(t("misc.bulkImport.scrapeDoneTitle"), {
         description: t("misc.bulkImport.scrapeDoneDesc", { n: images.length }),
       });
     } catch (error) {
       console.error("Scrape error:", error);
-      toast({
-        title: t("misc.bulkImport.scrapeErrorTitle"),
+      toast.error(t("misc.bulkImport.scrapeErrorTitle"), {
         description: t("misc.bulkImport.scrapeErrorDesc"),
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -120,10 +112,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
       newSelected.delete(imageUrl);
     } else {
       if (newSelected.size >= 20) {
-        toast({
-          title: t("misc.bulkImport.selectLimitTitle"),
+        toast.error(t("misc.bulkImport.selectLimitTitle"), {
           description: t("misc.bulkImport.selectLimitDesc"),
-          variant: "destructive",
         });
         return;
       }
@@ -144,10 +134,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
 
   const handleAnalyze = async () => {
     if (selectedImages.size === 0) {
-      toast({
-        title: t("misc.common.error"),
+      toast.error(t("misc.common.error"), {
         description: t("misc.bulkImport.selectImagesRequired"),
-        variant: "destructive",
       });
       return;
     }
@@ -233,10 +221,8 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
     );
 
     if (itemsToImport.length === 0) {
-      toast({
-        title: t("misc.common.error"),
+      toast.error(t("misc.common.error"), {
         description: t("misc.bulkImport.selectItemsRequired"),
-        variant: "destructive",
       });
       return;
     }
@@ -283,8 +269,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
 
     await queryClient.invalidateQueries({ queryKey: ["official-items"] });
 
-    toast({
-      title: t("misc.bulkImport.importDoneTitle"),
+    toast.success(t("misc.bulkImport.importDoneTitle"), {
       description: t("misc.bulkImport.importDoneDesc", { n: successCount }),
     });
 
@@ -318,8 +303,7 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
     setAnalyzedItems((prev) =>
       prev.map((item) => ({ ...item, contentName: name }))
     );
-    toast({
-      title: t("misc.bulkImport.appliedTitle"),
+    toast.success(t("misc.bulkImport.appliedTitle"), {
       description: t("misc.bulkImport.appliedDesc", { n: analyzedItems.length, name }),
     });
   };

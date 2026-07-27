@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ChevronRight, Loader2, Shirt, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -142,12 +143,11 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
           </RadioGroup>
         </div>
       ) : (
-        <div className="p-6 bg-muted/30 rounded-xl border text-center">
-          <User className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground mb-3">
-            {t("misc.avatar.generateFirst")}
-          </p>
-        </div>
+        <EmptyState
+          icon={User}
+          title={t("misc.avatar.generateFirst")}
+          className="p-6 bg-muted/30 rounded-xl border"
+        />
       )}
 
       {/* グッズ */}
@@ -163,9 +163,7 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground text-sm">
-            {t("misc.avatar.noGoods")}
-          </div>
+          <EmptyState title={t("misc.avatar.noGoods")} className="py-8" />
         ) : (
           <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
             {items.map((item) => (

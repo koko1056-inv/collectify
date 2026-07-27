@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { EmptyState } from "@/components/ui/empty-state";
 import { NotificationItem } from "@/components/notifications/NotificationItem";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,7 +39,7 @@ export default function Notifications() {
   const readNotifications = notifications.filter(n => n.is_read);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <main className={`container mx-auto ${isMobile ? 'pt-4 pb-20 px-2' : 'pt-6 pb-8 px-4'}`}>
         <div className={`${isMobile ? '' : 'max-w-4xl mx-auto'} space-y-6`}>
@@ -84,12 +85,12 @@ export default function Notifications() {
             </Card>
           ) : notifications.length === 0 ? (
             <Card>
-              <CardContent className="text-center p-8">
-                <Bell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">{t("screens.notifications.emptyTitle")}</h3>
-                <p className="text-muted-foreground">
-                  {t("screens.notifications.emptyDesc")}
-                </p>
+              <CardContent className="p-0">
+                <EmptyState
+                  icon={Bell}
+                  title={t("screens.notifications.emptyTitle")}
+                  description={t("screens.notifications.emptyDesc")}
+                />
               </CardContent>
             </Card>
           ) : (

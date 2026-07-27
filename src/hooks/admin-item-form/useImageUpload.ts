@@ -1,13 +1,12 @@
 
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useImageUpload() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const uploadImage = async () => {
@@ -30,10 +29,8 @@ export function useImageUpload() {
       return publicUrl;
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.adminItem.imageUploadFailedDesc"),
-        variant: "destructive",
       });
       throw error;
     }

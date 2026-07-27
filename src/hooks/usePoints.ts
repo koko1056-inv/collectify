@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface UserPoints {
@@ -149,7 +149,6 @@ export function useUserAchievements() {
 
 export function useAwardPoints() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   
@@ -204,16 +203,13 @@ export function useAwardPoints() {
       queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
       queryClient.invalidateQueries({ queryKey: ["userAchievements"] });
       
-      toast({
-        title: t("notices.points.earnedTitle"),
+      toast.success(t("notices.points.earnedTitle"), {
         description: t("notices.points.earnedDesc", { points: data.points }),
       });
     },
     onError: (error) => {
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: error.message,
-        variant: "destructive",
       });
     },
   });
@@ -221,7 +217,6 @@ export function useAwardPoints() {
 
 export function useDeductPoints() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   
@@ -277,10 +272,8 @@ export function useDeductPoints() {
       queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
     },
     onError: (error) => {
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: error.message,
-        variant: "destructive",
       });
     },
   });

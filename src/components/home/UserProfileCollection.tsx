@@ -44,12 +44,12 @@ export function UserProfileCollection({ viewedProfile, userId }: UserProfileColl
 
   return (
     <>
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 px-2">
+      <h1 className="text-xl sm:text-2xl font-bold text-foreground px-2">
         {viewedProfile?.username}{t("homeScreen.profile.collectionSuffix")}
       </h1>
 
       {!isMobile && (
-        <div className={`z-10 bg-gray-50 ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
+        <div className={`z-10 bg-muted ${isMobile ? "sticky top-0 pb-0" : "pb-2"}`}>
           <FilterBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}

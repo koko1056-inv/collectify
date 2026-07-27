@@ -6,7 +6,7 @@ import { ContentNameSection } from "./ContentNameSection";
 import { OfficialTagsSection } from "./OfficialTagsSection";
 import { TagUpdate } from "@/types/tag";
 import { removeTagFromItem } from "@/utils/tag/tag-mutations";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { SimpleItemTag } from "@/utils/tag/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -35,7 +35,6 @@ export function TagManageModalContent({
   onContentChange,
   officialTags = []
 }: TagManageModalContentProps) {
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
@@ -67,18 +66,15 @@ export function TagManageModalContent({
       // 念のため最新化
       await queryClient.invalidateQueries({ queryKey });
 
-      toast({
-        title: t("tagManage.toast.tagDeleted"),
+      toast.success(t("tagManage.toast.tagDeleted"), {
         description: t("tagManage.toast.tagDeletedDesc"),
       });
     } catch (error) {
       console.error("Error removing tag:", error);
       // ロールバック
       queryClient.setQueryData(queryKey, previous);
-      toast({
-        title: t("tagManage.common.error"),
+      toast.error(t("tagManage.common.error"), {
         description: t("tagManage.toast.deleteErrorDesc"),
-        variant: "destructive",
       });
     }
   };
@@ -86,7 +82,7 @@ export function TagManageModalContent({
     <ScrollArea className="max-h-[60vh] pr-4">
       <div className="space-y-6 py-2">
         {/* 現在のタグ */}
-        <Card className="border-0 shadow-none bg-gray-50/50">
+        <Card className="border-0 shadow-none bg-muted/50">
           <CardContent className="p-4">
             <CurrentTagsList 
               currentTags={currentTags} 
@@ -125,7 +121,7 @@ export function TagManageModalContent({
         <Separator className="my-4" />
         
         {/* タグ選択 */}
-        <Card className="border border-gray-200">
+        <Card className="border border-border">
           <CardContent className="p-4">
             <CategoryTagSelections 
               currentTags={currentTags}
