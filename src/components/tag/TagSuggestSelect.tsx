@@ -6,7 +6,7 @@ import { Check, ChevronDown, Lightbulb, Search, X, TrendingUp } from "lucide-rea
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   Popover,
   PopoverContent,
@@ -72,7 +72,6 @@ export function TagSuggestSelect({
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
   const { t } = useLanguage();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // 承認済みタグを取得
@@ -184,18 +183,14 @@ export function TagSuggestSelect({
       }
     },
     onSuccess: () => {
-      toast({
-        title: t("tagManage.suggest.suggested"),
+      toast.success(t("tagManage.suggest.suggested"), {
         description: t("tagManage.suggest.suggestedDesc"),
       });
       queryClient.invalidateQueries({ queryKey: ["tag-candidates"] });
     },
     onError: (error) => {
       console.error("Tag suggestion error:", error);
-      toast({
-        title: t("tagManage.suggest.failed"),
-        variant: "destructive",
-      });
+      toast.error(t("tagManage.suggest.failed"));
     },
   });
 

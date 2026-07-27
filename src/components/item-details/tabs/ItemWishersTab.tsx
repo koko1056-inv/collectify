@@ -3,10 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Heart, HeartOff, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
 import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
@@ -29,7 +30,6 @@ export function ItemWishersTab({
   onCloseModal,
 }: ItemWishersTabProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const qc = useQueryClient();
   const { playWishlistSound } = useSoundEffect();
   const { t } = useLanguage();
@@ -95,13 +95,13 @@ export function ItemWishersTab({
       qc.invalidateQueries({ queryKey: ["is-in-wishlist", officialItemId, user?.id] });
       qc.invalidateQueries({ queryKey: ["item-wishers-tab", officialItemId] });
       qc.invalidateQueries({ queryKey: ["item-wishlist-count", officialItemId] });
-      toast({
-        title: r.added ? t("itemDetails.wishers.addedToast") : t("itemDetails.wishers.removedToast"),
-        description: itemTitle,
-      });
+      toast.success(
+        r.added ? t("itemDetails.wishers.addedToast") : t("itemDetails.wishers.removedToast"),
+        { description: itemTitle }
+      );
     },
     onError: (e: any) => {
-      toast({ title: t("itemDetails.common.error"), description: e?.message, variant: "destructive" });
+      toast.error(t("itemDetails.common.error"), { description: e?.message });
     },
   });
 
@@ -145,10 +145,11 @@ export function ItemWishersTab({
           ))}
         </div>
       ) : wishers.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          <Heart className="h-10 w-10 mx-auto mb-2 opacity-40" />
-          <p className="text-sm">{t("itemDetails.wishers.empty")}</p>
-        </div>
+        <EmptyState
+          icon={Heart}
+          title={t("itemDetails.wishers.empty")}
+          className="py-8"
+        />
       ) : (
         <div className="space-y-2">
           {wishers.map((w: any) => {

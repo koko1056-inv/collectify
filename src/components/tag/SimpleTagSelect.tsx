@@ -132,10 +132,10 @@ export function SimpleTagSelect({
           value={selectedTagId || ""}
           onValueChange={handleValueChange}
         >
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full bg-background">
             <SelectValue placeholder={value || t("tagManage.common.selectPlaceholder")} />
           </SelectTrigger>
-          <SelectContent className="bg-white">
+          <SelectContent className="bg-popover">
             <SelectItem value="clear">{t("tagManage.common.clear")}</SelectItem>
             {tags.map((tag) => (
               <SelectItem key={tag.id} value={tag.id}>

@@ -7,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/ui/empty-state";
+import { QueryErrorState } from "@/components/ui/query-error-state";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { Check, X, Merge, Search, Tag, Clock, User } from "lucide-react";
@@ -56,13 +58,12 @@ export function TagCandidatesManager() {
   const [selectedMergeTagId, setSelectedMergeTagId] = useState<string>("");
   const [displayContext, setDisplayContext] = useState("");
   
-  const { toast } = useToast();
   const { t } = useLanguage();
   const { formatPaddedDateTime } = useDateFormat();
   const queryClient = useQueryClient();
 
   // タグ候補を取得
-  const { data: candidates = [], isLoading } = useQuery({
+  const { data: candidates = [], isLoading, error, refetch } = useQuery({
     queryKey: ["tag-candidates", statusFilter, categoryFilter, searchQuery],
     queryFn: async () => {
       let query = supabase
@@ -159,14 +160,14 @@ export function TagCandidatesManager() {
       return newTag;
     },
     onSuccess: () => {
-      toast({ title: t("misc.admin.approved") });
+      toast.success(t("misc.admin.approved"));
       queryClient.invalidateQueries({ queryKey: ["tag-candidates"] });
       queryClient.invalidateQueries({ queryKey: ["approved-tags"] });
       queryClient.invalidateQueries({ queryKey: ["tags"] });
     },
     onError: (error) => {
       console.error("Approve error:", error);
-      toast({ title: t("misc.admin.approveFailed"), variant: "destructive" });
+      toast.error(t("misc.admin.approveFailed"));
     },
   });
 
@@ -184,11 +185,11 @@ export function TagCandidatesManager() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast({ title: t("misc.admin.rejected") });
+      toast.success(t("misc.admin.rejected"));
       queryClient.invalidateQueries({ queryKey: ["tag-candidates"] });
     },
     onError: () => {
-      toast({ title: t("misc.admin.rejectFailed"), variant: "destructive" });
+      toast.error(t("misc.admin.rejectFailed"));
     },
   });
 
@@ -218,7 +219,7 @@ export function TagCandidatesManager() {
       if (updateError) throw updateError;
     },
     onSuccess: () => {
-      toast({ title: t("misc.admin.merged") });
+      toast.success(t("misc.admin.merged"));
       queryClient.invalidateQueries({ queryKey: ["tag-candidates"] });
       queryClient.invalidateQueries({ queryKey: ["tag-aliases"] });
       setMergeDialogOpen(false);
@@ -227,7 +228,7 @@ export function TagCandidatesManager() {
     },
     onError: (error) => {
       console.error("Merge error:", error);
-      toast({ title: t("misc.admin.mergeFailed"), variant: "destructive" });
+      toast.error(t("misc.admin.mergeFailed"));
     },
   });
 
@@ -322,10 +323,13 @@ export function TagCandidatesManager() {
         {/* 候補リスト */}
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">{t("misc.common.loading")}</div>
+        ) : error ? (
+          <QueryErrorState
+            title={t("misc.common.error")}
+            onRetry={() => refetch()}
+          />
         ) : candidates.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            {t("misc.admin.noCandidates")}
-          </div>
+          <EmptyState icon={Tag} title={t("misc.admin.noCandidates")} />
         ) : (
           <ScrollArea className="h-[400px]">
             <div className="space-y-3">

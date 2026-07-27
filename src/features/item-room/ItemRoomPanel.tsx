@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Loader2, MessageCircle, Send, Users, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -41,10 +42,7 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-        <Lock className="h-8 w-8 mb-3" />
-        <p className="text-sm">{t("trade.room.loginPrompt")}</p>
-      </div>
+      <EmptyState icon={Lock} title={t("trade.room.loginPrompt")} />
     );
   }
 
@@ -117,11 +115,11 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-            <MessageCircle className="h-8 w-8 mb-3 opacity-50" />
-            <p className="text-sm">{t("trade.room.emptyTitle")}</p>
-            <p className="text-xs mt-1">{t("trade.room.emptyDesc")}</p>
-          </div>
+          <EmptyState
+            icon={MessageCircle}
+            title={t("trade.room.emptyTitle")}
+            description={t("trade.room.emptyDesc")}
+          />
         ) : (
           <div className="space-y-2">
             {messages.map((msg, i) => {

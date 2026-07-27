@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/Navbar";
+import { Loader2 } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { MyRoomHome } from "@/components/home/MyRoomHome";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +16,7 @@ export default function MyRoom() {
   if (user && !isInitialized) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
       </div>
     );
   }

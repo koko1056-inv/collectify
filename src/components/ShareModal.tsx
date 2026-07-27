@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Share2, Facebook, Instagram } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -16,7 +16,6 @@ interface ShareModalProps {
 }
 
 export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode = false }: ShareModalProps) {
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const handleShare = async (platform: string) => {
@@ -44,8 +43,7 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
         }
         // フォールバック: URLをコピー
         await navigator.clipboard.writeText(url);
-        toast({
-          title: t("chrome.share.urlCopiedTitle"),
+        toast.success(t("chrome.share.urlCopiedTitle"), {
           description: t("chrome.share.urlCopiedDesc"),
         });
         onClose();
@@ -87,16 +85,14 @@ export function ShareModal({ isOpen, onClose, title, url, image, showInviteCode 
             console.error('Error sharing:', error);
           }
         }
-        toast({
-          title: t("chrome.share.title"),
+        toast(t("chrome.share.title"), {
           description: t("chrome.share.unsupported"),
         });
         return;
     }
 
     window.open(shareLink, '_blank', 'noopener,noreferrer');
-    toast({
-      title: t("chrome.share.doneTitle"),
+    toast.success(t("chrome.share.doneTitle"), {
       description: t("chrome.share.doneDesc", { platform }),
     });
     onClose();

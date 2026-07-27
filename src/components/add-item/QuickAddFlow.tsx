@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -55,7 +55,6 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const submitLockRef = useRef(false);
-  const { toast } = useToast();
   const { user } = useAuth();
 
   // コンテンツ名からcontent_idを取得
@@ -109,10 +108,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
       setStep("confirm");
     } catch (error) {
       console.error("Error analyzing image:", error);
-      toast({
-        title: t("misc.addItem.analyzeErrorTitle"),
+      toast.error(t("misc.addItem.analyzeErrorTitle"), {
         description: t("misc.addItem.analyzeErrorDesc"),
-        variant: "destructive",
       });
       // エラー時も確認画面へ（空のデータで）
       const emptyResult: AnalysisResult = {
@@ -127,7 +124,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
       setEditedData(emptyResult);
       setStep("confirm");
     }
-  }, [toast]);
+  }, []);
 
   const handleSubmit = async () => {
     if (!user || !imageFile || !editedData) return;
@@ -254,10 +251,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
 
     } catch (error) {
       console.error("Error saving item:", error);
-      toast({
-        title: t("misc.addItem.saveErrorTitle"),
+      toast.error(t("misc.addItem.saveErrorTitle"), {
         description: t("misc.addItem.saveErrorDesc"),
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -295,18 +290,15 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
       setAnalysisResult(result);
       setEditedData(result);
       
-      toast({
-        title: t("misc.addItem.barcodeReadTitle"),
+      toast.success(t("misc.addItem.barcodeReadTitle"), {
         description: t("misc.addItem.barcodeReadDesc", { code: barcode }),
       });
       
       setStep("confirm");
     } catch (error) {
       console.error("Barcode lookup error:", error);
-      toast({
-        title: t("misc.common.error"),
+      toast.error(t("misc.common.error"), {
         description: t("misc.addItem.barcodeLookupFailed"),
-        variant: "destructive",
       });
       setStep("capture");
     }

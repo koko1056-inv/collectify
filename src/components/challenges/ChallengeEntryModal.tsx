@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChallengeEntryModalProps {
@@ -19,7 +19,6 @@ interface ChallengeEntryModalProps {
 
 export function ChallengeEntryModal({ challengeId, isOpen, onClose }: ChallengeEntryModalProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const [caption, setCaption] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -76,10 +75,8 @@ export function ChallengeEntryModal({ challengeId, isOpen, onClose }: ChallengeE
       setImagePreview(null);
       onClose();
     } catch (error: any) {
-      toast({
-        title: t("social.challenges.error"),
+      toast.error(t("social.challenges.error"), {
         description: error.message || t("social.challenges.uploadFailed"),
-        variant: "destructive",
       });
     } finally {
       setUploading(false);

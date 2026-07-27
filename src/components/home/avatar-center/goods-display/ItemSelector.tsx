@@ -1,6 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserItem } from "./types";
@@ -46,9 +47,7 @@ export function ItemSelector({
             <Loader2 className="w-6 h-6 animate-spin" />
           </div>
         ) : userItems.length === 0 ? (
-          <p className="text-center text-muted-foreground p-8">
-            {t("homeScreen.itemSelector.empty")}
-          </p>
+          <EmptyState title={t("homeScreen.itemSelector.empty")} className="py-8" />
         ) : (
           <div className="grid grid-cols-3 gap-3">
             {userItems.map((item) => {

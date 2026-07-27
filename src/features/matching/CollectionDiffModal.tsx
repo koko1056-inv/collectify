@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Package } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -91,10 +92,7 @@ export function CollectionDiffModal({ meId, otherId, open, onOpenChange }: Props
             {TAB_ORDER.map((tab) => (
               <TabsContent key={tab} value={tab} className="flex-1 overflow-y-auto mt-3">
                 {grouped[tab].length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Package className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                    <p className="text-sm">{t("trade.diff.empty")}</p>
-                  </div>
+                  <EmptyState icon={Package} title={t("trade.diff.empty")} />
                 ) : (
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                     {grouped[tab].map((id) => {

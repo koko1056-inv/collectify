@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
@@ -17,7 +17,6 @@ interface UseOfficialGoodsCardProps {
 }
 
 export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardProps) {
-  const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
@@ -91,10 +90,8 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
 
   const handleAddToCollection = async () => {
     if (!user) {
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.official.loginToAdd"),
-        variant: "destructive",
       });
       return;
     }
@@ -108,8 +105,7 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
         .eq("official_item_id", id);
 
       if (count && count > 0) {
-        toast({
-          title: t("collectionScreen.official.alreadyAdded"),
+        toast(t("collectionScreen.official.alreadyAdded"), {
           description: t("collectionScreen.official.alreadyAddedDesc"),
         });
         await refetchIsInCollection();
@@ -128,16 +124,12 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
 
       if (!result.success) {
         if (result.isAtLimit) {
-          toast({
-            title: t("collectionScreen.official.limitTitle"),
+          toast.error(t("collectionScreen.official.limitTitle"), {
             description: t("collectionScreen.official.limitDesc"),
-            variant: "destructive",
           });
         } else {
-          toast({
-            title: t("collectionScreen.common.error"),
+          toast.error(t("collectionScreen.common.error"), {
             description: result.error || t("collectionScreen.official.addFailed"),
-            variant: "destructive",
           });
         }
         return;
@@ -161,16 +153,13 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
       // 効果音を再生
       playSuccessSound();
 
-      toast({
-        title: t("collectionScreen.official.added"),
+      toast.success(t("collectionScreen.official.added"), {
         description: result.pointsAwarded ? `+${result.pointsAwarded}${t("collectionScreen.official.pointsEarnedSuffix")}` : undefined,
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.official.addFailed"),
-        variant: "destructive",
       });
     }
   };

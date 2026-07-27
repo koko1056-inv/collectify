@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
@@ -12,7 +12,6 @@ interface LikeButtonProps {
 
 export function LikeButton({ itemId }: LikeButtonProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
@@ -46,8 +45,7 @@ export function LikeButton({ itemId }: LikeButtonProps) {
     e.stopPropagation();
     
     if (!user) {
-      toast({
-        title: t("collectionScreen.like.loginRequired"),
+      toast(t("collectionScreen.like.loginRequired"), {
         description: t("collectionScreen.like.loginRequiredDesc"),
       });
       return;
@@ -77,16 +75,13 @@ export function LikeButton({ itemId }: LikeButtonProps) {
       queryClient.invalidateQueries({ queryKey: ["item-is-liked", itemId, user.id] });
       queryClient.invalidateQueries({ queryKey: ["user-items", user.id] });
 
-      toast({
-        title: isLiked ? t("collectionScreen.like.unliked") : t("collectionScreen.like.liked"),
+      toast.success(isLiked ? t("collectionScreen.like.unliked") : t("collectionScreen.like.liked"), {
         description: isLiked ? t("collectionScreen.like.unlikedDesc") : t("collectionScreen.like.likedDesc"),
       });
     } catch (error) {
       console.error("Error toggling like:", error);
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.like.failed"),
-        variant: "destructive",
       });
     }
   };
@@ -98,12 +93,12 @@ export function LikeButton({ itemId }: LikeButtonProps) {
         size="icon"
         onClick={handleLikeToggle}
         className={`h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${
-          isLiked ? "text-red-500 hover:text-red-600" : "text-gray-500 hover:text-gray-600"
+          isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-foreground"
         }`}
       >
         <Heart className={`h-full w-full ${isLiked ? "fill-current" : ""}`} />
       </Button>
-      <span className="text-[10px] sm:text-xs text-gray-500 -mt-1">{likeCount}</span>
+      <span className="text-[10px] sm:text-xs text-muted-foreground -mt-1">{likeCount}</span>
     </div>
   );
 }

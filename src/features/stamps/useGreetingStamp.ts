@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { StampType, StampContext } from "./types";
 
@@ -14,7 +14,6 @@ interface SendStampParams {
 
 export function useSendStamp() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
@@ -46,10 +45,10 @@ export function useSendStamp() {
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ["received-stamps"] });
       queryClient.invalidateQueries({ queryKey: ["sent-stamps", user?.id, vars.receiverId] });
-      toast({ title: t("trade.stamp.sentTitle"), description: t("trade.stamp.sentDesc") });
+      toast.success(t("trade.stamp.sentTitle"), { description: t("trade.stamp.sentDesc") });
     },
     onError: (e: Error) => {
-      toast({ title: t("trade.stamp.sendFailedTitle"), description: e.message, variant: "destructive" });
+      toast.error(t("trade.stamp.sendFailedTitle"), { description: e.message });
     },
   });
 }

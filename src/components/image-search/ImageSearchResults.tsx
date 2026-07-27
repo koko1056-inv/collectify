@@ -4,6 +4,7 @@ import { WebSearchResult } from "@/utils/image-search";
 import { ExternalLink, Globe, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ImageSearchResultsProps {
@@ -111,9 +112,7 @@ export function ImageSearchResults({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                {t("misc.imageSearch.noAppResults")}
-              </div>
+              <EmptyState icon={ImageIcon} title={t("misc.imageSearch.noAppResults")} />
             )}
           </TabsContent>
 
@@ -179,9 +178,7 @@ export function ImageSearchResults({
               )}
 
               {!hasWebResults && (
-                <div className="text-center py-8 text-muted-foreground">
-                  {t("misc.imageSearch.noWebResults")}
-                </div>
+                <EmptyState icon={Globe} title={t("misc.imageSearch.noWebResults")} />
               )}
             </div>
           </TabsContent>

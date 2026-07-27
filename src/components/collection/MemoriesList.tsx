@@ -1,3 +1,5 @@
+import { ImageOff } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 
@@ -18,9 +20,11 @@ export function MemoriesList({ memories }: MemoriesListProps) {
 
   if (memories.length === 0) {
     return (
-      <p className="text-center text-gray-500 py-4">
-        {t("collectionScreen.memories.empty")}
-      </p>
+      <EmptyState
+        icon={ImageOff}
+        title={t("collectionScreen.memories.empty")}
+        className="py-6"
+      />
     );
   }
 
@@ -41,9 +45,9 @@ export function MemoriesList({ memories }: MemoriesListProps) {
             </div>
           )}
           {memory.comment && (
-            <p className="text-gray-700">{memory.comment}</p>
+            <p className="text-foreground">{memory.comment}</p>
           )}
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             {formatNumericDate(memory.created_at)}
           </p>
         </div>

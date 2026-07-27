@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,7 +41,6 @@ export function TradeCompletionModal({
   tradeRequest,
 }: TradeCompletionModalProps) {
   const [step, setStep] = useState<'confirmation' | 'shipping' | 'complete'>('confirmation');
-  const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
@@ -72,8 +71,7 @@ export function TradeCompletionModal({
         throw error;
       }
 
-      toast({
-        title: t("trade.list.completedToastTitle"),
+      toast.success(t("trade.list.completedToastTitle"), {
         description: t("trade.list.completedToastDesc"),
       });
 
@@ -85,9 +83,7 @@ export function TradeCompletionModal({
       }
     } catch (error) {
       console.error("Error completing trade:", error);
-      toast({
-        variant: "destructive",
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("trade.list.completeErrorDesc"),
       });
     } finally {
@@ -98,7 +94,7 @@ export function TradeCompletionModal({
   return (
     <>
       <Dialog open={isOpen && !showReview} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[425px] bg-white">
+        <DialogContent className="sm:max-w-[425px] bg-popover">
           <DialogHeader>
             <DialogTitle>{t("trade.completion.title")}</DialogTitle>
             <DialogDescription>
@@ -111,7 +107,7 @@ export function TradeCompletionModal({
             <div className="space-y-4 p-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">{t("trade.completion.offeredItem")}</p>
+                  <p className="text-sm text-muted-foreground">{t("trade.completion.offeredItem")}</p>
                   <img
                     src={tradeRequest.offered_item.image}
                     alt={tradeRequest.offered_item.title}
@@ -120,7 +116,7 @@ export function TradeCompletionModal({
                   <p className="mt-1 text-sm">{tradeRequest.offered_item.title}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">{t("trade.completion.requestedItem")}</p>
+                  <p className="text-sm text-muted-foreground">{t("trade.completion.requestedItem")}</p>
                   <img
                     src={tradeRequest.requested_item.image}
                     alt={tradeRequest.requested_item.title}
@@ -133,7 +129,7 @@ export function TradeCompletionModal({
               {step === 'shipping' && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium">{t("trade.completion.shippingHeading")}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     {t("trade.completion.shippingHelp")}
                   </p>
                 </div>
@@ -142,12 +138,12 @@ export function TradeCompletionModal({
           </ScrollArea>
           <DialogFooter>
             {step === 'confirmation' && (
-              <Button onClick={() => setStep('shipping')} className="bg-black text-white hover:bg-gray-800">
+              <Button onClick={() => setStep('shipping')} className="bg-foreground text-background hover:bg-foreground/90">
                 {t("trade.completion.toShipping")}
               </Button>
             )}
             {step === 'shipping' && (
-              <Button onClick={() => setStep('complete')} className="bg-black text-white hover:bg-gray-800">
+              <Button onClick={() => setStep('complete')} className="bg-foreground text-background hover:bg-foreground/90">
                 {t("trade.completion.shipped")}
               </Button>
             )}
@@ -155,7 +151,7 @@ export function TradeCompletionModal({
               <Button 
                 onClick={handleComplete}
                 disabled={isLoading}
-                className="bg-black text-white hover:bg-gray-800"
+                className="bg-foreground text-background hover:bg-foreground/90"
               >
                 {t("trade.completion.complete")}
               </Button>

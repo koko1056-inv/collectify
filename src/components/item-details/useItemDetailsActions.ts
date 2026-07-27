@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import { deleteUserItem } from '@/utils/tag/user-item-operations';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -13,7 +13,6 @@ export function useItemDetailsActions(
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const handleDeleteItem = async () => {
@@ -35,18 +34,15 @@ export function useItemDetailsActions(
         });
       }
       
-      toast({
-        title: t("itemDetails.remove.success"),
+      toast.success(t("itemDetails.remove.success"), {
         description: t("itemDetails.remove.successDescription"),
       });
 
       onClose();
     } catch (error) {
       console.error("Error deleting item:", error);
-      toast({
-        title: t("itemDetails.common.error"),
+      toast.error(t("itemDetails.common.error"), {
         description: t("itemDetails.remove.failed"),
-        variant: "destructive",
       });
     } finally {
       setIsSaving(false);

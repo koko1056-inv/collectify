@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Check, ChevronRight, Image as ImageIcon, Loader2, Shirt, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -36,14 +37,16 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
 
   if (avatars.avatars.length === 0) {
     return (
-      <div className="text-center py-12">
-        <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-        <p className="text-muted-foreground mb-4">{t("misc.avatar.galleryEmpty")}</p>
-        <Button variant="outline" onClick={onSwitchToGenerate}>
-          {t("misc.avatar.generateCta")}
-          <ChevronRight className="w-4 h-4 ml-1" />
-        </Button>
-      </div>
+      <EmptyState
+        icon={ImageIcon}
+        title={t("misc.avatar.galleryEmpty")}
+        action={
+          <Button variant="outline" onClick={onSwitchToGenerate}>
+            {t("misc.avatar.generateCta")}
+            <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        }
+      />
     );
   }
 

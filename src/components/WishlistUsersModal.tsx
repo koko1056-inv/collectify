@@ -3,11 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { UserRound, Heart, HeartOff } from "lucide-react";
+import { UserRound, Heart, HeartOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -26,7 +27,6 @@ export function WishlistUsersModal({
 }: WishlistUsersModalProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const { playWishlistSound } = useSoundEffect();
@@ -160,8 +160,7 @@ export function WishlistUsersModal({
       queryClient.invalidateQueries({ queryKey: ["wishlist-count", itemId] });
       queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] });
       
-      toast({
-        title: data.added ? t("chrome.wishlistUsers.addedTitle") : t("chrome.wishlistUsers.removedTitle"),
+      toast.success(data.added ? t("chrome.wishlistUsers.addedTitle") : t("chrome.wishlistUsers.removedTitle"), {
         description: data.added
           ? t("chrome.wishlistUsers.addedDesc", { title: itemTitle })
           : t("chrome.wishlistUsers.removedDesc", { title: itemTitle }),
@@ -172,10 +171,8 @@ export function WishlistUsersModal({
       if (context?.previousIsInWishlist !== undefined) {
         queryClient.setQueryData(["is-in-wishlist", itemId, user?.id], context.previousIsInWishlist);
       }
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.wishlistUsers.actionFailed"),
-        variant: "destructive",
       });
       console.error("Error toggling wishlist:", error);
     },
@@ -190,10 +187,8 @@ export function WishlistUsersModal({
 
   const handleToggleWishlist = () => {
     if (!user) {
-      toast({
-        title: t("chrome.wishlist.loginRequiredTitle"),
+      toast.error(t("chrome.wishlist.loginRequiredTitle"), {
         description: t("chrome.wishlistUsers.loginRequiredDesc"),
-        variant: "destructive",
       });
       return;
     }
@@ -237,18 +232,20 @@ export function WishlistUsersModal({
             <h3 className="font-medium text-sm mb-3">{t("chrome.wishlistUsers.listHeading")}</h3>
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
             ) : wishlistUsers.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
-                {t("chrome.wishlistUsers.empty")}
-              </p>
+              <EmptyState
+                icon={Heart}
+                title={t("chrome.wishlistUsers.empty")}
+                className="py-8"
+              />
             ) : (
               <div className="space-y-3 max-h-[300px] overflow-y-auto">
               {wishlistUsers.map((wishlistItem) => (
                 <div
                   key={wishlistItem.id}
-                  className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-gray-50 transition-colors"
+                  className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted transition-colors"
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage src={wishlistItem.profiles?.avatar_url || ""} />
@@ -262,7 +259,7 @@ export function WishlistUsersModal({
                        wishlistItem.profiles?.username || 
                        "Unknown User"}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       @{wishlistItem.profiles?.username || "unknown"}
                     </p>
                   </div>

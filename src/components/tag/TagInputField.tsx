@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { addTagToItem } from '@/utils/tag/tag-mutations';
@@ -26,7 +26,6 @@ export function TagInputField({
   category
 }: TagInputFieldProps) {
   const [tagInput, setTagInput] = useState("");
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
@@ -37,20 +36,16 @@ export function TagInputField({
 
       // タグが既に選択済みかチェック
       if (selectedTags.includes(newTag)) {
-        toast({
-          title: t("tagManage.input.notice"),
+        toast(t("tagManage.input.notice"), {
           description: t("tagManage.input.alreadyAdded"),
-          variant: "default",
         });
         setTagInput("");
         return;
       }
 
       if (newTag.length > 50) {
-        toast({
-          title: t("tagManage.common.error"),
+        toast.error(t("tagManage.common.error"), {
           description: t("tagManage.input.tooLong"),
-          variant: "destructive",
         });
         return;
       }
@@ -104,16 +99,13 @@ export function TagInputField({
 
         setTagInput("");
         
-        toast({
-          title: t("tagManage.toast.tagAdded"),
+        toast.success(t("tagManage.toast.tagAdded"), {
           description: `${t("tagManage.common.addedPrefix")}${newTag}${t("tagManage.common.addedSuffixDot")}`,
         });
       } catch (error) {
         console.error("Error adding tag:", error);
-        toast({
-          title: t("tagManage.common.error"),
+        toast.error(t("tagManage.common.error"), {
           description: t("tagManage.common.tagAddFailed"),
-          variant: "destructive",
         });
       }
     }

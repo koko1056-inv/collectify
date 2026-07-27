@@ -6,6 +6,7 @@ import { Star } from "lucide-react";
 import { useTrustScore } from "./useTrustScore";
 import { TrustBadge } from "./TrustBadge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 
@@ -85,7 +86,7 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
         {loadingReviews ? (
           <Skeleton className="h-20 w-full" />
         ) : !reviews || reviews.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-6 text-center">{t("trade.trust.noReviews")}</p>
+          <EmptyState icon={Star} title={t("trade.trust.noReviews")} />
         ) : (
           <div className="space-y-2">
             {reviews.map((r) => (

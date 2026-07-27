@@ -6,6 +6,8 @@ import { UserCard } from "./UserCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Users } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -141,7 +143,7 @@ export function PopularCollectors() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="p-4 bg-white rounded-lg shadow-sm">
+            <div key={i} className="p-4 bg-card rounded-lg shadow-sm">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-12 w-12 rounded-full" />
                 <div className="flex-1">
@@ -173,7 +175,11 @@ export function PopularCollectors() {
               />
             ))
           ) : (
-            <p className="text-gray-500 p-4 col-span-full">{t("profileScreen.collectors.empty")}</p>
+            <EmptyState
+              className="col-span-full"
+              icon={Users}
+              title={t("profileScreen.collectors.empty")}
+            />
           )}
         </div>
       )}

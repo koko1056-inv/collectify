@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ExternalLink, Search, RefreshCw, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SearchResult {
@@ -32,7 +33,6 @@ export function PriceSearchModal({
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const handleSearch = async () => {
@@ -49,8 +49,7 @@ export function PriceSearchModal({
       if (data.success) {
         setResults(data.data || []);
         if (data.data?.length === 0) {
-          toast({
-            title: t("chrome.priceSearch.doneTitle"),
+          toast(t("chrome.priceSearch.doneTitle"), {
             description: t("chrome.priceSearch.noResults"),
           });
         }
@@ -59,10 +58,8 @@ export function PriceSearchModal({
       }
     } catch (error) {
       console.error('Price search error:', error);
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.priceSearch.failedDesc"),
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -138,13 +135,16 @@ export function PriceSearchModal({
             ))}
           </div>
         ) : results.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-4">
-            <p className="text-muted-foreground">{t("chrome.priceSearch.noResults")}</p>
-            <Button onClick={handleSearch} variant="outline" className="gap-2">
-              <RefreshCw className="w-4 h-4" />
-              {t("chrome.priceSearch.searchAgain")}
-            </Button>
-          </div>
+          <EmptyState
+            icon={Search}
+            title={t("chrome.priceSearch.noResults")}
+            action={
+              <Button onClick={handleSearch} variant="outline" className="gap-2">
+                <RefreshCw className="w-4 h-4" />
+                {t("chrome.priceSearch.searchAgain")}
+              </Button>
+            }
+          />
         ) : (
           <div className="flex-1 overflow-auto space-y-6 py-4">
             {Object.entries(groupedResults).map(([shop, shopResults]) => (

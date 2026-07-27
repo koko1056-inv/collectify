@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { UserInfo } from "./UserInfo";
 import { ShoppingBasket, User, Search, Globe, Palette, HelpCircle, Compass, Package } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -31,9 +31,6 @@ export function Navbar() {
   const {
     user
   } = useAuth();
-  const {
-    toast
-  } = useToast();
   const {
     t,
     language,
@@ -86,15 +83,12 @@ export function Navbar() {
       error
     } = await supabase.auth.signOut();
     if (error) {
-      toast({
-        variant: "destructive",
-        title: t("common.error"),
-        description: t("chrome.nav.logoutFailed")
+      toast.error(t("common.error"), {
+        description: t("chrome.nav.logoutFailed"),
       });
     } else {
-      toast({
-        title: t("chrome.nav.logoutDoneTitle"),
-        description: t("chrome.nav.logoutDoneDesc")
+      toast.success(t("chrome.nav.logoutDoneTitle"), {
+        description: t("chrome.nav.logoutDoneDesc"),
       });
     }
   };

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreatePollData {
@@ -16,7 +16,6 @@ interface CreatePollData {
 
 export function useCreatePoll() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   return useMutation({
@@ -56,17 +55,14 @@ export function useCreatePoll() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["polls"] });
-      toast({
-        title: t("notices.polls.createdTitle"),
+      toast.success(t("notices.polls.createdTitle"), {
         description: t("notices.polls.createdDesc"),
       });
     },
     onError: (error) => {
       console.error("投票作成エラー:", error);
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.polls.createFailedDesc"),
-        variant: "destructive",
       });
     },
   });
@@ -74,7 +70,6 @@ export function useCreatePoll() {
 
 export function useVotePoll() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   return useMutation({
@@ -106,17 +101,14 @@ export function useVotePoll() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["polls"] });
-      toast({
-        title: t("notices.polls.votedTitle"),
+      toast.success(t("notices.polls.votedTitle"), {
         description: t("notices.polls.votedDesc"),
       });
     },
     onError: (error) => {
       console.error("投票エラー:", error);
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.polls.voteFailedDesc"),
-        variant: "destructive",
       });
     },
   });

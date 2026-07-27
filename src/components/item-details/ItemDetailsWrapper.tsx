@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { TagManageModal } from "@/components/tag/TagManageModal";
 import { ShareModal } from "@/components/ShareModal";
@@ -46,7 +46,6 @@ export function ItemDetailsWrapper({
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("info");
-  const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
@@ -160,10 +159,8 @@ export function ItemDetailsWrapper({
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
       if (!userId) {
-        toast({
-          title: t("itemDetails.common.error"),
+        toast.error(t("itemDetails.common.error"), {
           description: t("itemDetails.wrapper.wishlistLoginRequired"),
-          variant: "destructive",
         });
         return;
       }
@@ -171,14 +168,12 @@ export function ItemDetailsWrapper({
         .from("wishlists")
         .insert({ official_item_id: itemId, user_id: userId });
       if (error) throw error;
-      toast({ title: t("itemDetails.wrapper.wishlistAdded") });
+      toast.success(t("itemDetails.wrapper.wishlistAdded"));
       await queryClient.invalidateQueries({ queryKey: ["item-wishlist-count", itemId] });
       await queryClient.invalidateQueries({ queryKey: ["item-wishers-tab", itemId] });
     } catch (e: any) {
-      toast({
-        title: t("itemDetails.common.error"),
+      toast.error(t("itemDetails.common.error"), {
         description: e?.message ?? t("itemDetails.wrapper.addFailed"),
-        variant: "destructive",
       });
     }
   };

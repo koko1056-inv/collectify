@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { getUserStats, calculateAndAwardHistoricalPoints, UserStats } from "@/utils/user-stats";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useUserStats() {
@@ -19,7 +19,6 @@ export function useUserStats() {
 
 export function useCalculateHistoricalPoints() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   
@@ -30,13 +29,11 @@ export function useCalculateHistoricalPoints() {
     },
     onSuccess: (data) => {
       if (data.pointsAdded > 0) {
-        toast({
-          title: t("notices.stats.historicalPointsTitle"),
+        toast.success(t("notices.stats.historicalPointsTitle"), {
           description: t("notices.stats.historicalPointsDesc", { points: data.pointsAdded }),
         });
       } else {
-        toast({
-          title: t("notices.stats.calcDoneTitle"),
+        toast.success(t("notices.stats.calcDoneTitle"), {
           description: t("notices.stats.calcAlreadyAwardedDesc"),
         });
       }
@@ -48,10 +45,8 @@ export function useCalculateHistoricalPoints() {
       queryClient.invalidateQueries({ queryKey: ["userAchievements"] });
     },
     onError: (error) => {
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.stats.calcErrorDesc"),
-        variant: "destructive",
       });
     },
   });

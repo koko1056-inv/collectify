@@ -39,16 +39,16 @@ export function CollectionTabs({
 
   return (
     <Tabs defaultValue="official" className="space-y-4 sm:space-y-6" onValueChange={handleTabChange}>
-      <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-white border border-gray-200 rounded-full">
+      <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-card border border-border rounded-full">
         <TabsTrigger 
           value="official" 
-          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+          className="data-[state=active]:bg-foreground data-[state=active]:text-background rounded-full"
         >
           {t("tabs.official")}
         </TabsTrigger>
         <TabsTrigger 
           value="collection" 
-          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+          className="data-[state=active]:bg-foreground data-[state=active]:text-background rounded-full"
         >
           {t("tabs.collection")}
         </TabsTrigger>

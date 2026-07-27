@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Search,
   Sparkles,
@@ -182,9 +184,9 @@ function RoomsTab({ searchQuery }: { searchQuery: string }) {
     return (
       <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
         {[...Array(8)].map((_, i) => (
-          <div
+          <Skeleton
             key={i}
-            className="break-inside-avoid mb-3 rounded-2xl bg-muted animate-pulse"
+            className="break-inside-avoid mb-3 rounded-2xl"
             style={{ height: 160 + ((i * 37) % 120) }}
           />
         ))}
@@ -277,7 +279,7 @@ function CollectionsTab({ searchQuery }: { searchQuery: string }) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />
+          <Skeleton key={i} className="h-24 rounded-2xl" />
         ))}
       </div>
     );
@@ -361,9 +363,9 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
           {matchesLoading ? (
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
               {[...Array(3)].map((_, i) => (
-                <div
+                <Skeleton
                   key={i}
-                  className="shrink-0 w-[280px] h-72 rounded-2xl bg-muted animate-pulse"
+                  className="shrink-0 w-[280px] h-72 rounded-2xl"
                 />
               ))}
             </div>
@@ -393,7 +395,7 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-32 rounded-2xl bg-muted animate-pulse" />
+              <Skeleton key={i} className="h-32 rounded-2xl" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -437,27 +439,6 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
         open={!!compareWith}
         onOpenChange={(o) => !o && setCompareWith(null)}
       />
-    </div>
-  );
-}
-
-// ============= 共通: 空ステート =============
-function EmptyState({
-  icon: Icon,
-  message,
-  description,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  message: string;
-  description?: string;
-}) {
-  return (
-    <div className="text-center py-16">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
-        <Icon className="w-8 h-8 text-muted-foreground" />
-      </div>
-      <p className="text-foreground font-medium mb-1">{message}</p>
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
     </div>
   );
 }

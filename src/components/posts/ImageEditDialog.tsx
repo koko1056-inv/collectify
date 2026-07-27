@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useUserPoints } from "@/hooks/usePoints";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // 表示用のコスト（実際の消費は edit-image Edge Function 側で行う）
@@ -42,7 +42,6 @@ export function ImageEditDialog({
   const { user } = useAuth();
   const { t } = useLanguage();
   const { data: userPoints } = useUserPoints();
-  const { toast } = useToast();
   useEffect(() => {
     if (user && isOpen) {
       loadUserAvatars();
@@ -89,9 +88,7 @@ export function ImageEditDialog({
       // ポイント残高チェック（実際の消費は edit-image Edge Function 側で行う）
       const currentPoints = userPoints?.total_points || 0;
       if (currentPoints < GENERATION_COST) {
-        toast({
-          variant: "destructive",
-          title: t("social.posts.pointsShortTitle"),
+        toast.error(t("social.posts.pointsShortTitle"), {
           description: t("social.posts.pointsShortDesc", { cost: GENERATION_COST, current: currentPoints }),
         });
         return;

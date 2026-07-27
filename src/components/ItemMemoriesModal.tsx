@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +17,6 @@ interface ItemMemoriesModalProps {
 }
 
 export function ItemMemoriesModal({ isOpen, onClose, itemIds, itemTitles, userId }: ItemMemoriesModalProps) {
-  const { toast } = useToast();
   const { t } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -95,20 +94,17 @@ export function ItemMemoriesModal({ isOpen, onClose, itemIds, itemTitles, userId
       await queryClient.invalidateQueries({ queryKey: ["item-memories", itemIds] });
       await refetch();
 
-      toast({
-        title: isOwner ? t("chrome.memories.addedMemoryTitle") : t("chrome.memories.addedCommentTitle"),
+      toast.success(isOwner ? t("chrome.memories.addedMemoryTitle") : t("chrome.memories.addedCommentTitle"), {
         description: isOwner 
           ? t("chrome.memories.addedMemoryDesc")
           : t("chrome.memories.addedCommentDesc"),
       });
     } catch (error) {
       console.error("Error adding memory:", error);
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: isOwner 
           ? t("chrome.memories.addMemoryFailed")
           : t("chrome.memories.addCommentFailed"),
-        variant: "destructive",
       });
     }
   };

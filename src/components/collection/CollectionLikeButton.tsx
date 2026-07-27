@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart } from "lucide-react";
@@ -12,7 +12,6 @@ interface CollectionLikeButtonProps {
 
 export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButtonProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
@@ -46,8 +45,7 @@ export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButton
     e.stopPropagation();
     
     if (!user) {
-      toast({
-        title: t("collectionScreen.like.loginRequired"),
+      toast(t("collectionScreen.like.loginRequired"), {
         description: t("collectionScreen.like.loginRequiredDesc"),
       });
       return;
@@ -76,16 +74,13 @@ export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButton
       queryClient.invalidateQueries({ queryKey: ["collection-likes-count", collectionOwnerId] });
       queryClient.invalidateQueries({ queryKey: ["collection-is-liked", collectionOwnerId, user.id] });
 
-      toast({
-        title: isLiked ? t("collectionScreen.like.unliked") : t("collectionScreen.like.liked"),
+      toast.success(isLiked ? t("collectionScreen.like.unliked") : t("collectionScreen.like.liked"), {
         description: isLiked ? t("collectionScreen.like.unlikedDesc") : t("collectionScreen.like.likedDesc"),
       });
     } catch (error) {
       console.error("Error toggling collection like:", error);
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.like.failed"),
-        variant: "destructive",
       });
     }
   };
@@ -97,12 +92,12 @@ export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButton
         size="icon"
         onClick={handleLikeToggle}
         className={`${
-          isLiked ? "text-red-500 hover:text-red-600" : "text-gray-500 hover:text-gray-600"
+          isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-foreground"
         }`}
       >
         <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
       </Button>
-      <span className="text-sm text-gray-500">{likeCount}</span>
+      <span className="text-sm text-muted-foreground">{likeCount}</span>
     </div>
   );
 }

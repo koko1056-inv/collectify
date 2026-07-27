@@ -211,9 +211,7 @@ export function UserCollection({
   }, [items, queryClient, effectiveUserId, selectedTags]);
 
   if (!effectiveUserId) {
-    return <div className="text-center py-8">
-        <p className="text-gray-500">{t("collection.empty")}</p>
-      </div>;
+    return <EmptyState title={t("collection.empty")} className="py-8" />;
   }
   if (isItemsLoading) {
     return <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">

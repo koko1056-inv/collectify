@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Star } from "lucide-react";
 import { useUserPoints } from "@/hooks/usePoints";
@@ -23,7 +23,6 @@ const TAG_CREATE_COST = 10;
 export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId }: AddTagDialogProps) {
   const [newTagName, setNewTagName] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { toast } = useToast();
   const { t } = useLanguage();
   const { data: userPoints } = useUserPoints();
   const spendPoints = useSpendPoints();
@@ -31,10 +30,8 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
 
   const handleAddNewTag = async () => {
     if (!newTagName.trim()) {
-      toast({
-        title: t("tagManage.common.error"),
+      toast.error(t("tagManage.common.error"), {
         description: t("tagManage.addDialog.nameRequired"),
-        variant: "destructive",
       });
       return;
     }
@@ -57,8 +54,7 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
         onTagAdded(existingTag.name);
         setNewTagName("");
         onClose();
-        toast({
-          title: t("tagManage.addDialog.existingSelected"),
+        toast.success(t("tagManage.addDialog.existingSelected"), {
           description: `${t("tagManage.common.selectedPrefix")}${existingTag.name}${t("tagManage.common.selectedSuffixDot")}`,
         });
         return;
@@ -67,16 +63,14 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
       const trimmedName = newTagName.trim();
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmedName);
       if (isUUID) {
-        toast({ title: t("tagManage.common.error"), description: t("tagManage.addDialog.invalidName"), variant: "destructive" });
+        toast.error(t("tagManage.common.error"), { description: t("tagManage.addDialog.invalidName") });
         return;
       }
 
       // 残高チェック
       if (balance < TAG_CREATE_COST) {
-        toast({
-          title: t("tagManage.addDialog.insufficientPoints"),
+        toast.error(t("tagManage.addDialog.insufficientPoints"), {
           description: `${t("tagManage.addDialog.insufficientPrefix")}${TAG_CREATE_COST}${t("tagManage.addDialog.insufficientMid")}${balance}${t("tagManage.addDialog.insufficientSuffix")}`,
-          variant: "destructive",
         });
         return;
       }
@@ -106,8 +100,7 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
 
       if (newTag) {
         onTagAdded(newTag.name);
-        toast({
-          title: t("tagManage.addDialog.tagAdded"),
+        toast.success(t("tagManage.addDialog.tagAdded"), {
           description: `${trimmedName}${t("tagManage.addDialog.addedDescMid")}${TAG_CREATE_COST}${t("tagManage.addDialog.addedDescSuffix")}`,
         });
       }
@@ -116,10 +109,8 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
       onClose();
     } catch (error: any) {
       console.error("Error adding new tag:", error);
-      toast({
-        title: t("tagManage.common.error"),
+      toast.error(t("tagManage.common.error"), {
         description: error?.message || t("tagManage.common.tagAddFailed"),
-        variant: "destructive",
       });
     } finally {
       setSubmitting(false);

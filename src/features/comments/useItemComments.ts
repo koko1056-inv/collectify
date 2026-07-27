@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { CommentReaction, ItemCommentNode } from "./types";
 
@@ -90,7 +90,6 @@ async function attachReactions(rows: any[], myUserId?: string): Promise<ItemComm
 export function useCreateItemComment(officialItemId: string) {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   return useMutation({
@@ -118,10 +117,8 @@ export function useCreateItemComment(officialItemId: string) {
       qc.invalidateQueries({ queryKey: KEY(officialItemId) });
     },
     onError: (e: any) => {
-      toast({
-        title: t("trade.comments.postFailedTitle"),
+      toast.error(t("trade.comments.postFailedTitle"), {
         description: e?.message ?? t("trade.comments.retryLater"),
-        variant: "destructive",
       });
     },
   });
@@ -129,7 +126,6 @@ export function useCreateItemComment(officialItemId: string) {
 
 export function useDeleteItemComment(officialItemId: string) {
   const qc = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
   return useMutation({
     mutationFn: async (commentId: string) => {
@@ -138,10 +134,10 @@ export function useDeleteItemComment(officialItemId: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY(officialItemId) });
-      toast({ title: t("trade.comments.deletedTitle") });
+      toast.success(t("trade.comments.deletedTitle"));
     },
     onError: (e: any) => {
-      toast({ title: t("trade.comments.deleteFailedTitle"), description: e?.message, variant: "destructive" });
+      toast.error(t("trade.comments.deleteFailedTitle"), { description: e?.message });
     },
   });
 }
@@ -149,7 +145,6 @@ export function useDeleteItemComment(officialItemId: string) {
 export function useToggleCommentReaction(officialItemId: string) {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   return useMutation({
@@ -184,10 +179,8 @@ export function useToggleCommentReaction(officialItemId: string) {
       qc.invalidateQueries({ queryKey: KEY(officialItemId) });
     },
     onError: (e: any) => {
-      toast({
-        title: t("trade.comments.reactionFailedTitle"),
+      toast.error(t("trade.comments.reactionFailedTitle"), {
         description: e?.message,
-        variant: "destructive",
       });
     },
   });

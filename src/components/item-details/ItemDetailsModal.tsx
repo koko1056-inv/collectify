@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { isItemInUserCollection } from "@/utils/tag/tag-queries";
 import { ModalHeader } from "./ModalHeader";
 import { ItemButtons } from "./ItemButtons";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { TagManageModal } from "../tag/TagManageModal";
 import { deleteUserItem } from "@/utils/tag/user-item-operations";
 import { SimpleItemTag } from "@/utils/tag/types";
@@ -71,7 +71,6 @@ export function ItemDetailsModal({
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -102,17 +101,14 @@ export function ItemDetailsModal({
         .eq("id", itemId);
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
-      toast({
-        title: t("itemDetails.save.success"),
+      toast.success(t("itemDetails.save.success"), {
         description: t("itemDetails.save.successDescription"),
       });
       setIsEditing(false);
       onClose();
     } catch (error) {
-      toast({
-        title: t("itemDetails.common.error"),
+      toast.error(t("itemDetails.common.error"), {
         description: t("itemDetails.save.failed"),
-        variant: "destructive",
       });
     } finally {
       setIsSaving(false);

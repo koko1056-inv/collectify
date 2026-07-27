@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SimpleItemTag } from "@/utils/tag/types";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface CurrentTagsListProps {
   currentTags: SimpleItemTag[];
@@ -14,17 +15,18 @@ export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListPro
 
   if (currentTags.length === 0) {
     return (
-      <div className="text-center py-6">
-        <p className="text-sm text-muted-foreground">{t("tagManage.current.empty")}</p>
-        <p className="text-xs text-muted-foreground mt-1">{t("tagManage.current.emptyHint")}</p>
-      </div>
+      <EmptyState
+        className="py-6"
+        title={t("tagManage.current.empty")}
+        description={t("tagManage.current.emptyHint")}
+      />
     );
   }
 
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-semibold text-gray-900">{t("tagManage.current.heading")}</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("tagManage.current.heading")}</h3>
         <Badge variant="secondary" className="text-xs">
           {currentTags.length}
         </Badge>

@@ -4,7 +4,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ItemImageUpload } from "@/components/item/ItemImageUpload";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { SUPABASE_URL, supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -18,7 +18,6 @@ interface ItemImageEditorProps {
 export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: ItemImageEditorProps) {
   const [isImageEditModalOpen, setIsImageEditModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const handleImageChange = async (file: File | null) => {
@@ -41,16 +40,13 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
       onImageUpdate(publicUrl);
       setIsImageEditModalOpen(false);
       
-      toast({
-        title: t("itemDetails.image.updated"),
+      toast.success(t("itemDetails.image.updated"), {
         description: t("itemDetails.image.updatedDescription"),
       });
     } catch (error) {
       console.error('Error updating image:', error);
-      toast({
-        title: t("itemDetails.common.error"),
+      toast.error(t("itemDetails.common.error"), {
         description: t("itemDetails.image.updateFailed"),
-        variant: "destructive",
       });
     }
   };
@@ -62,7 +58,7 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
 
   return (
     <div className="w-full h-full relative group">
-      <div className="w-full h-full flex items-center justify-center bg-gray-50">
+      <div className="w-full h-full flex items-center justify-center bg-muted">
         <img
           src={displayImageUrl}
           alt={title}

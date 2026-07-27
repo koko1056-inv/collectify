@@ -12,6 +12,7 @@ import { useState } from "react";
 import { DeletePostDialog } from "./DeletePostDialog";
 import { ShareModal } from "@/components/ShareModal";
 import { CommentItem } from "./CommentItem";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -198,9 +199,11 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-4 text-sm text-muted-foreground">
-                        {t("social.posts.noComments")}
-                      </div>
+                      <EmptyState
+                        icon={MessageCircle}
+                        title={t("social.posts.noComments")}
+                        className="py-4"
+                      />
                     )}
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import type { Message, PartnerProfile } from "./types";
@@ -14,7 +14,6 @@ interface UseChatProps {
 
 export function useChat({ partnerId, tradeRequestId, isOpen }: UseChatProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [partnerProfile, setPartnerProfile] = useState<PartnerProfile | null>(null);
@@ -140,16 +139,13 @@ export function useChat({ partnerId, tradeRequestId, isOpen }: UseChatProps) {
       .eq("id", tradeRequestId);
 
     if (error) {
-      toast({
-        variant: "destructive",
-        title: t("social.chat.toastError"),
+      toast.error(t("social.chat.toastError"), {
         description: t("social.chat.toastShippingUpdateFailed"),
       });
       return;
     }
 
-    toast({
-      title: t("social.chat.toastShippingDone"),
+    toast.success(t("social.chat.toastShippingDone"), {
       description: t("social.chat.toastShippingUpdated"),
     });
 
@@ -171,15 +167,12 @@ export function useChat({ partnerId, tradeRequestId, isOpen }: UseChatProps) {
         throw error;
       }
 
-      toast({
-        title: t("social.chat.toastTradeComplete"),
+      toast.success(t("social.chat.toastTradeComplete"), {
         description: t("social.chat.toastTradeCompleteDesc"),
       });
     } catch (error) {
       console.error("Error completing trade:", error);
-      toast({
-        variant: "destructive",
-        title: t("social.chat.toastError"),
+      toast.error(t("social.chat.toastError"), {
         description: t("social.chat.toastTradeCompleteFailed"),
       });
     } finally {

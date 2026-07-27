@@ -4,13 +4,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
-import { Pencil, CheckCircle, Trash2, Share } from "lucide-react";
+import { Pencil, CheckCircle, Trash2, Share, Heart } from "lucide-react";
 import { useState } from "react";
 import { WishlistModal } from "./WishlistModal";
 import { ItemDetailsModal } from "./ItemDetailsModal";
 import { ShareModal } from "./ShareModal";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -29,7 +30,6 @@ export function WishlistViewModal({
   onClose: () => void;
 }) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [editingWishlist, setEditingWishlist] = useState<EditingWishlist | null>(null);
@@ -65,10 +65,8 @@ export function WishlistViewModal({
 
   const handleAddToCollection = async (item: any) => {
     if (!user) {
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.wishlistView.loginRequired"),
-        variant: "destructive"
       });
       return;
     }
@@ -92,16 +90,13 @@ export function WishlistViewModal({
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       
-      toast({
-        title: t("chrome.common.success"),
-        description: t("chrome.wishlistView.addedToCollection")
+      toast.success(t("chrome.common.success"), {
+        description: t("chrome.wishlistView.addedToCollection"),
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.wishlistView.addFailed"),
-        variant: "destructive"
       });
     }
   };
@@ -112,16 +107,13 @@ export function WishlistViewModal({
       if (error) throw error;
 
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
-      toast({
-        title: t("chrome.common.success"),
-        description: t("chrome.wishlistView.removed")
+      toast.success(t("chrome.common.success"), {
+        description: t("chrome.wishlistView.removed"),
       });
     } catch (error) {
       console.error("Error removing from wishlist:", error);
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.wishlistView.removeFailed"),
-        variant: "destructive"
       });
     }
   };
@@ -151,9 +143,7 @@ export function WishlistViewModal({
                       <Skeleton className="h-4 w-3/4" />
                       <Skeleton className="h-4 w-1/4" />
                     </div>
-                  </div>) : wishlistItems?.length === 0 ? <p className="text-center text-gray-500 py-4 text-sm">
-                  {t("chrome.wishlistView.empty")}
-                </p> : wishlistItems?.map(item => <div key={item.id} className="flex gap-2 items-center border rounded-lg p-2 cursor-pointer hover:bg-gray-50 transition-colors" onClick={() => setSelectedItem({
+                  </div>) : wishlistItems?.length === 0 ? <EmptyState icon={Heart} title={t("chrome.wishlistView.empty")} className="py-8" /> : wishlistItems?.map(item => <div key={item.id} className="flex gap-2 items-center border rounded-lg p-2 cursor-pointer hover:bg-muted transition-colors" onClick={() => setSelectedItem({
               id: item.official_item_id,
               title: item.official_items.title,
               image: item.official_items.image,
@@ -166,7 +156,7 @@ export function WishlistViewModal({
                       <div className="flex justify-between items-start">
                         <div>
                           <h3 className="font-medium text-sm">{item.official_items.title}</h3>
-                          {item.note && <p className="text-xs text-gray-500 mt-1">{t("chrome.wishlistView.note", { note: item.note })}</p>}
+                          {item.note && <p className="text-xs text-muted-foreground mt-1">{t("chrome.wishlistView.note", { note: item.note })}</p>}
                         </div>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={e => {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { LoginFormData } from "@/types/auth";
 import { handleAdminLogin, handleUserLogin, handleUserSignup } from "@/utils/auth";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -13,7 +13,6 @@ export function useLoginForm() {
   // URLに招待コードがあれば、初期状態をサインアップモードにする
   const [isLogin, setIsLogin] = useState(!inviteCodeFromUrl);
   const [inviteCode, setInviteCode] = useState(inviteCodeFromUrl);
-  const { toast } = useToast();
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
@@ -56,8 +55,7 @@ export function useLoginForm() {
           navigate(redirectTo);
         }
         
-        toast({
-          title: t("notices.auth.loginSuccessTitle"),
+        toast.success(t("notices.auth.loginSuccessTitle"), {
           description: t("notices.auth.loginSuccessDesc"),
         });
       } else {
@@ -66,14 +64,12 @@ export function useLoginForm() {
         // その場合「ログインしてください」と出すと矛盾するため文言を分ける。
         const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
         if (session) {
-          toast({
-            title: t("notices.auth.signupDoneTitle"),
+          toast.success(t("notices.auth.signupDoneTitle"), {
             description: t("notices.auth.signupWelcomeDesc"),
           });
           navigate(redirectTo);
         } else {
-          toast({
-            title: t("notices.auth.signupDoneTitle"),
+          toast.success(t("notices.auth.signupDoneTitle"), {
             description: t("notices.auth.signupThenLoginDesc"),
           });
           setIsLogin(true);
@@ -82,9 +78,7 @@ export function useLoginForm() {
     } catch (error) {
       console.error("Authentication error:", error);
       setError(error instanceof Error ? error.message : t("notices.auth.genericError"));
-      toast({
-        variant: "destructive",
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: error instanceof Error ? error.message : t("notices.auth.genericError"),
       });
     } finally {

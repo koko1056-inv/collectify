@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useToggleAiBookmark } from "@/hooks/ai-room/useAiBookmarks";
@@ -132,7 +133,7 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
           )}
         />
         {!imgLoaded && (
-          <div className="absolute inset-0 bg-muted animate-pulse" />
+          <Skeleton className="absolute inset-0 rounded-none" />
         )}
 
         {/* AI バッジ */}

@@ -4,6 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserItemPosts, ItemPost } from "@/hooks/item-posts/useItemPosts";
 import { ItemPostDetailModal } from "@/components/item-posts/ItemPostDetailModal";
 import { ItemPostGrid } from "@/components/item-posts/ItemPostGrid";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileItemPostsProps {
@@ -42,23 +44,18 @@ export function ProfileItemPosts({ userId }: ProfileItemPostsProps) {
       {isLoading ? (
         <div className="grid grid-cols-3 gap-1.5">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-square rounded-lg bg-muted animate-pulse"
-            />
+            <Skeleton key={i} className="aspect-square rounded-lg" />
           ))}
         </div>
       ) : posts.length === 0 ? (
-        <div className="py-8 text-center">
-          <div className="w-12 h-12 rounded-full bg-muted/60 flex items-center justify-center mx-auto mb-2">
-            <Images className="w-5 h-5 text-muted-foreground" />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {isOwnProfile
+        <EmptyState
+          icon={Images}
+          title={
+            isOwnProfile
               ? t("profileScreen.posts.emptyOwn")
-              : t("profileScreen.posts.empty")}
-          </p>
-        </div>
+              : t("profileScreen.posts.empty")
+          }
+        />
       ) : (
         <ItemPostGrid posts={posts} onPostClick={setSelectedPost} />
       )}

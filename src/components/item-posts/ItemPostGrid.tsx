@@ -3,6 +3,7 @@ import { Heart, MessageCircle, Images } from "lucide-react";
 import { ItemPost } from "@/hooks/item-posts/useItemPosts";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface ItemPostGridProps {
   posts: ItemPost[];
@@ -14,17 +15,12 @@ export function ItemPostGrid({ posts, onPostClick }: ItemPostGridProps) {
 
   if (posts.length === 0) {
     return (
-      <div className="py-10 text-center">
-        <div className="w-14 h-14 rounded-full bg-muted/60 flex items-center justify-center mx-auto mb-3">
-          <Images className="w-6 h-6 text-muted-foreground" />
-        </div>
-        <p className="text-sm font-medium text-foreground mb-1">
-          {t("social.itemPosts.noPosts")}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {t("social.itemPosts.beFirst")}
-        </p>
-      </div>
+      <EmptyState
+        icon={Images}
+        title={t("social.itemPosts.noPosts")}
+        description={t("social.itemPosts.beFirst")}
+        className="py-10"
+      />
     );
   }
 

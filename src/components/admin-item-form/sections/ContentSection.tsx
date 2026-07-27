@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -19,7 +19,6 @@ export function ContentSection({
   onChange,
 }: ContentSectionProps) {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isAddingNewContent, setIsAddingNewContent] = useState(false);
   const [newContentName, setNewContentName] = useState("");
@@ -63,16 +62,13 @@ export function ContentSection({
       onChange(changeEvent);
       setIsAddingNewContent(false);
       setNewContentName("");
-      toast({
-        title: t("misc.itemForm.contentAddedTitle"),
+      toast.success(t("misc.itemForm.contentAddedTitle"), {
         description: t("misc.itemForm.contentAddedDesc", { name: data.name }),
       });
     },
     onError: (error) => {
-      toast({
-        title: t("misc.common.error"),
+      toast.error(t("misc.common.error"), {
         description: t("misc.itemForm.contentAddFailed"),
-        variant: "destructive",
       });
       console.error("Error adding content:", error);
     },
@@ -100,10 +96,8 @@ export function ContentSection({
 
   const handleAddNewContent = () => {
     if (!newContentName.trim()) {
-      toast({
-        title: t("misc.common.error"),
+      toast.error(t("misc.common.error"), {
         description: t("misc.itemForm.contentNameRequired"),
-        variant: "destructive",
       });
       return;
     }
@@ -141,21 +135,21 @@ export function ContentSection({
           value={contentName || "none"}
           onValueChange={handleContentChange}
         >
-          <SelectTrigger className="w-full bg-white">
+          <SelectTrigger className="w-full bg-background">
             <SelectValue placeholder={t("misc.itemForm.contentPlaceholder")} />
           </SelectTrigger>
-          <SelectContent className="bg-white">
-            <SelectItem value="none" className="hover:bg-gray-100">{t("misc.itemForm.contentNone")}</SelectItem>
+          <SelectContent className="bg-popover">
+            <SelectItem value="none" className="hover:bg-muted">{t("misc.itemForm.contentNone")}</SelectItem>
             {contentNames.map((content) => (
               <SelectItem 
                 key={content.id} 
                 value={content.name}
-                className="hover:bg-gray-100"
+                className="hover:bg-muted"
               >
                 {content.name}
               </SelectItem>
             ))}
-            <SelectItem value="other" className="hover:bg-gray-100">{t("misc.itemForm.contentOther")}</SelectItem>
+            <SelectItem value="other" className="hover:bg-muted">{t("misc.itemForm.contentOther")}</SelectItem>
           </SelectContent>
         </Select>
       )}

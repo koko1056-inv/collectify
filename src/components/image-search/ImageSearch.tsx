@@ -3,7 +3,7 @@ import { ImageSearchUpload } from './ImageSearchUpload';
 import { ImageSearchResults } from './ImageSearchResults';
 import { analyzeImageFile, ImageAnalysisResult, WebSearchResult } from '@/utils/image-search';
 import { Loader2, ScanSearch } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { OfficialItem } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -39,22 +39,18 @@ export function ImageSearch() {
         (analysisResult.webResults?.visuallySimilarImages?.length || 0);
 
       if (totalResults === 0) {
-        toast({
-          title: t("misc.imageSearch.resultTitle"),
+        toast(t("misc.imageSearch.resultTitle"), {
           description: t("misc.imageSearch.noSimilar"),
         });
       } else {
-        toast({
-          title: t("misc.imageSearch.searchDone"),
+        toast.success(t("misc.imageSearch.searchDone"), {
           description: t("misc.imageSearch.foundCount", { n: totalResults }),
         });
       }
     } catch (error) {
       console.error('画像アップロードエラー:', error);
-      toast({
-        title: t("misc.common.error"),
+      toast.error(t("misc.common.error"), {
         description: t("misc.imageSearch.analyzeError"),
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

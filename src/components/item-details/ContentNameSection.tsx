@@ -2,7 +2,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -22,7 +22,6 @@ export function ContentNameSection({
 }: ContentNameSectionProps) {
   const [isAddingNewContent, setIsAddingNewContent] = useState(false);
   const [newContentName, setNewContentName] = useState("");
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
@@ -56,16 +55,13 @@ export function ContentNameSection({
       setIsAddingNewContent(false);
       setNewContentName("");
 
-      toast({
-        title: t("itemDetails.contentSection.added"),
+      toast.success(t("itemDetails.contentSection.added"), {
         description: t("itemDetails.contentSection.addedDescription", { name: data.name }),
       });
     } catch (error) {
       console.error("Error adding content:", error);
-      toast({
-        title: t("itemDetails.common.error"),
+      toast.error(t("itemDetails.common.error"), {
         description: t("itemDetails.contentSection.addFailed"),
-        variant: "destructive",
       });
     }
   };

@@ -22,12 +22,12 @@ export function SlideFilterBar({
 
   // コンテンツ選択用のボタンスタイル
   const getContentButtonStyle = (isSelected: boolean) => {
-    return isSelected ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-white text-gray-700 hover:bg-gray-100";
+    return isSelected ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-card text-foreground hover:bg-muted";
   };
 
   // タグ選択用のボタンスタイル
   const getTagButtonStyle = (isSelected: boolean) => {
-    return isSelected ? "bg-primary/10 text-primary border-primary/30" : "bg-white text-gray-700 border-gray-200";
+    return isSelected ? "bg-primary/10 text-primary border-primary/30" : "bg-card text-foreground border-border";
   };
   return <div className="space-y-4">
       <ScrollArea className="w-full whitespace-nowrap">

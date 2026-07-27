@@ -11,6 +11,7 @@ import { CreateItemPostModal } from "./CreateItemPostModal";
 import { ItemPostGrid } from "./ItemPostGrid";
 import { ItemPostDetailModal } from "./ItemPostDetailModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ItemPostsSectionProps {
   target: PostTarget;
@@ -61,7 +62,7 @@ export function ItemPostsSection({
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="aspect-square rounded-xl bg-muted animate-pulse" />
+            <Skeleton key={i} className="aspect-square rounded-xl" />
           ))}
         </div>
       ) : (

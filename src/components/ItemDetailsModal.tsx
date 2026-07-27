@@ -10,7 +10,7 @@ import { ItemDetailInfo } from "./item-details/ItemDetailInfo";
 import { ItemButtons } from "./item-details/ItemButtons";
 import { Button } from "@/components/ui/button";
 import { Tag, Trash2 } from "lucide-react";
-import { useToast } from "./ui/use-toast";
+import { toast } from "sonner";
 import { TagManageModal } from "./tag/TagManageModal";
 import { deleteUserItem } from "@/utils/tag/user-item-operations";
 import { ItemDetailsContent } from "./item-details/ItemDetailsContent";
@@ -55,7 +55,6 @@ export function ItemDetailsModal({
 }: ItemDetailsModalProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -271,17 +270,14 @@ export function ItemDetailsModal({
           queryKey: ["item-owners-count", officialItemId]
         });
       }
-      toast({
-        title: t("chrome.itemDetails.deletedTitle"),
-        description: t("chrome.itemDetails.deletedDesc")
+      toast.success(t("chrome.itemDetails.deletedTitle"), {
+        description: t("chrome.itemDetails.deletedDesc"),
       });
       onClose();
     } catch (error) {
       console.error("Error deleting item:", error);
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.itemDetails.deleteFailed"),
-        variant: "destructive"
       });
     }
   };
@@ -301,18 +297,15 @@ export function ItemDetailsModal({
       await queryClient.invalidateQueries({
         queryKey: ["user-items"]
       });
-      toast({
-        title: t("chrome.itemDetails.savedTitle"),
-        description: t("chrome.itemDetails.savedDesc")
+      toast.success(t("chrome.itemDetails.savedTitle"), {
+        description: t("chrome.itemDetails.savedDesc"),
       });
       setIsQuantityEditing(false);
       setIsEditing(false);
       onClose();
     } catch (error) {
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.itemDetails.saveFailed"),
-        variant: "destructive"
       });
     } finally {
       setIsSaving(false);
@@ -354,7 +347,7 @@ export function ItemDetailsModal({
           />
 
           {isUserItem && isEditing && (
-            <div className="p-4 pt-0 pb-0 border-t border-gray-100 space-y-4">
+            <div className="p-4 pt-0 pb-0 border-t border-border space-y-4">
               <div>
                 <label className="text-sm font-medium">{t("chrome.itemDetails.quantityOwned")}</label>
                 <QuantityInput 
@@ -380,7 +373,7 @@ export function ItemDetailsModal({
           )}
 
           {isUserItem && (
-            <div className="flex justify-between items-center p-4 border-t border-gray-100">
+            <div className="flex justify-between items-center p-4 border-t border-border">
               {isEditing ? (
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={handleSaveUserItemFields} disabled={isSaving}>

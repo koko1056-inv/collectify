@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +23,6 @@ export function ProfileInterests({
   onUpdate 
 }: ProfileInterestsProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const [selectedInterests, setSelectedInterests] = useState<string[]>(currentInterests || []);
   const [saving, setSaving] = useState(false);
@@ -64,18 +63,15 @@ export function ProfileInterests({
       await queryClient.invalidateQueries({ queryKey: ["content-names"] });
       setIsAddingContent(false);
       
-      toast({
-        title: t("profileScreen.interests.addedTitle"),
+      toast.success(t("profileScreen.interests.addedTitle"), {
         description: t("profileScreen.interests.addedDesc", { name: newContentName }),
       });
 
       setSelectedInterests(prev => [...prev, newContentName]);
     } catch (error) {
       console.error("Error adding content:", error);
-      toast({
-        title: t("profileScreen.common.error"),
+      toast.error(t("profileScreen.common.error"), {
         description: t("profileScreen.interests.addFailed"),
-        variant: "destructive",
       });
     }
   };
@@ -92,16 +88,13 @@ export function ProfileInterests({
 
       if (error) throw error;
 
-      toast({
-        title: t("profileScreen.interests.updatedTitle"),
+      toast.success(t("profileScreen.interests.updatedTitle"), {
         description: t("profileScreen.interests.updatedDesc"),
       });
       onUpdate();
     } catch (error) {
       console.error("Error updating interests:", error);
-      toast({
-        variant: "destructive",
-        title: t("profileScreen.common.error"),
+      toast.error(t("profileScreen.common.error"), {
         description: t("profileScreen.interests.updateFailed"),
       });
     } finally {

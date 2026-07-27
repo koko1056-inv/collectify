@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface PointPackage {
@@ -152,7 +152,6 @@ export function useUserPurchases() {
 // ショップアイテムを購入
 export function usePurchaseShopItem() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   
@@ -181,16 +180,13 @@ export function usePurchaseShopItem() {
       queryClient.invalidateQueries({ queryKey: ["userPurchases"] });
       queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
       
-      toast({
-        title: t("notices.shop.purchasedTitle"),
+      toast.success(t("notices.shop.purchasedTitle"), {
         description: t("notices.shop.purchasedDesc", { name: data.item.name }),
       });
     },
     onError: (error: Error) => {
-      toast({
-        title: t("notices.shop.purchaseErrorTitle"),
+      toast.error(t("notices.shop.purchaseErrorTitle"), {
         description: error.message,
-        variant: "destructive",
       });
     },
   });

@@ -1,5 +1,7 @@
 
+import { Package } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { RandomItemImage } from "./RandomItemImage";
 import { RandomItemTags } from "./RandomItemTags";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,9 +37,11 @@ export function RandomItemContent({
 
   if (!randomItem) {
     return (
-      <p className="text-center text-gray-500">
-        {t("collectionScreen.random.emptyItems")}
-      </p>
+      <EmptyState
+        icon={Package}
+        title={t("collectionScreen.random.emptyItems")}
+        className="py-6"
+      />
     );
   }
 

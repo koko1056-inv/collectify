@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PostComment } from "@/types/posts";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -116,7 +116,6 @@ export function usePostComments(postId: string) {
 
 export function useAddComment() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const { user } = useAuth();
 
@@ -170,17 +169,14 @@ export function useAddComment() {
       queryClient.invalidateQueries({ queryKey: ["comments", variables.postId] });
       queryClient.refetchQueries({ queryKey: ["comments", variables.postId] });
       
-      toast({
-        title: t("notices.comments.addedTitle"),
+      toast.success(t("notices.comments.addedTitle"), {
         description: t("notices.comments.addedDesc"),
       });
     },
     onError: (error) => {
       console.error("コメント追加エラー:", error);
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.comments.addFailedDesc"),
-        variant: "destructive",
       });
     },
   });
@@ -188,7 +184,6 @@ export function useAddComment() {
 
 export function useToggleCommentLike() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const { user } = useAuth();
 
@@ -223,10 +218,8 @@ export function useToggleCommentLike() {
     },
     onError: (error) => {
       console.error("いいね操作エラー:", error);
-      toast({
-        title: t("notices.common.errorTitle"),
+      toast.error(t("notices.common.errorTitle"), {
         description: t("notices.comments.likeFailedDesc"),
-        variant: "destructive",
       });
     },
   });

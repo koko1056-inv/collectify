@@ -27,13 +27,13 @@ export function TagSelectContent({ searchQuery, setSearchQuery, filteredTags }: 
             <SelectItem 
               key={tag.id} 
               value={tag.id}
-              className="cursor-pointer hover:bg-gray-100"
+              className="cursor-pointer hover:bg-muted"
             >
               {tag.name}
             </SelectItem>
           ))
         ) : (
-          <div className="p-2 text-sm text-gray-500 text-center">
+          <div className="p-2 text-sm text-muted-foreground text-center">
             {searchQuery.trim() !== '' ? t("tagManage.empty.noMatchingTags") : t("tagManage.empty.noTags")}
           </div>
         )}

@@ -1,6 +1,7 @@
 import { ImagePlus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface EmptyPostsStateProps {
   hasFilters?: boolean;
@@ -12,15 +13,12 @@ export function EmptyPostsState({ hasFilters, onCreatePost }: EmptyPostsStatePro
 
   if (hasFilters) {
     return (
-      <div className="text-center py-16 px-4">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-          <ImagePlus className="w-8 h-8 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-medium mb-2">{t("social.posts.emptyFilteredTitle")}</h3>
-        <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-          {t("social.posts.emptyFilteredDesc")}
-        </p>
-      </div>
+      <EmptyState
+        icon={ImagePlus}
+        title={t("social.posts.emptyFilteredTitle")}
+        description={t("social.posts.emptyFilteredDesc")}
+        className="py-16"
+      />
     );
   }
 

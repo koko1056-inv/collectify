@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UserPlus, UserMinus } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,7 +14,6 @@ interface FollowButtonProps {
 
 export function FollowButton({ userId }: FollowButtonProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -46,8 +45,7 @@ export function FollowButton({ userId }: FollowButtonProps) {
           .eq("follower_id", user.id)
           .eq("following_id", userId);
 
-        toast({
-          title: t("profileScreen.follow.unfollowedTitle"),
+        toast.success(t("profileScreen.follow.unfollowedTitle"), {
           description: t("profileScreen.follow.unfollowedDesc"),
         });
       } else {
@@ -56,8 +54,7 @@ export function FollowButton({ userId }: FollowButtonProps) {
           following_id: userId,
         });
 
-        toast({
-          title: t("profileScreen.follow.followedTitle"),
+        toast.success(t("profileScreen.follow.followedTitle"), {
           description: t("profileScreen.follow.followedDesc"),
         });
       }
@@ -69,9 +66,7 @@ export function FollowButton({ userId }: FollowButtonProps) {
         queryKey: ["profile", userId],
       });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: t("profileScreen.common.error"),
+      toast.error(t("profileScreen.common.error"), {
         description: t("profileScreen.follow.actionFailed"),
       });
     } finally {

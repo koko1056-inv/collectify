@@ -137,6 +137,10 @@ export const profileScreen = {
       saved: "保存",
     },
     settings: {
+      appearance: "表示テーマ",
+      appearanceLight: "ライト",
+      appearanceDark: "ダーク",
+      appearanceSystem: "端末に合わせる",
       title: "設定",
       messages: "メッセージ一覧",
       howTo: "使い方",
@@ -315,6 +319,10 @@ export const profileScreen = {
       saved: "Saved",
     },
     settings: {
+      appearance: "Appearance",
+      appearanceLight: "Light",
+      appearanceDark: "Dark",
+      appearanceSystem: "System",
       title: "Settings",
       messages: "Messages",
       howTo: "How to use",

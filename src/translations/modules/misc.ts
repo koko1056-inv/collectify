@@ -7,6 +7,10 @@
  */
 export const misc = {
   ja: {
+    imageUpload: {
+      prompt: "クリックまたはドラッグ&ドロップで画像をアップロード",
+      formats: "対応形式: PNG, JPG, GIF",
+    },
     common: {
       cancel: "キャンセル",
       delete: "削除",
@@ -449,6 +453,10 @@ export const misc = {
   },
 
   en: {
+    imageUpload: {
+      prompt: "Click or drag & drop to upload an image",
+      formats: "Supported: PNG, JPG, GIF",
+    },
     common: {
       cancel: "Cancel",
       delete: "Delete",

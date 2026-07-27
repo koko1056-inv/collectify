@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -58,7 +58,6 @@ export function OnboardingChecklist() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
   // Collapsed by default so room/avatar content stays above the fold.
   const [isExpanded, setIsExpanded] = useState(false);
@@ -288,8 +287,7 @@ export function OnboardingChecklist() {
             continue;
           }
           if (data === true) {
-            toast({
-              title: t('misc.checklist.achievedTitle', { label: t(item.labelKey) }),
+            toast.success(t('misc.checklist.achievedTitle', { label: t(item.labelKey) }), {
               description: t('misc.checklist.achievedDesc', { points: item.points }),
             });
           }
@@ -302,7 +300,7 @@ export function OnboardingChecklist() {
       queryClient.invalidateQueries({ queryKey: ['userPoints'] });
       queryClient.invalidateQueries({ queryKey: ['pointTransactions'] });
     })();
-  }, [items, checklistData, user?.id, queryClient, toast]);
+  }, [items, checklistData, user?.id, queryClient]);
 
   const handleDismiss = () => {
     if (user?.id) {

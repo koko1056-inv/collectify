@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CreatePostModal } from "./CreatePostModal";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Search, X, Plus, ImageIcon, CheckCircle2, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTags } from "@/hooks/useTags";
@@ -429,22 +430,17 @@ export function CreatePostFromCollectionModal({
               })}
             </div>
           ) : hasActiveFilters ? (
-            <div className="text-center py-16">
-              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                <Search className="h-10 w-10 text-muted-foreground" />
-              </div>
-              <p className="text-lg font-medium">{t("social.posts.noResults")}</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                {t("social.posts.noResultsDesc")}
-              </p>
-              <Button 
-                variant="outline" 
-                onClick={clearAllFilters}
-                className="mt-4"
-              >
-                {t("social.posts.clearFilters")}
-              </Button>
-            </div>
+            <EmptyState
+              icon={Search}
+              title={t("social.posts.noResults")}
+              description={t("social.posts.noResultsDesc")}
+              action={
+                <Button variant="outline" onClick={clearAllFilters}>
+                  {t("social.posts.clearFilters")}
+                </Button>
+              }
+              className="py-16"
+            />
           ) : (
             <div className="text-center py-16">
               <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">

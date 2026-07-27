@@ -226,10 +226,10 @@ export function CategoryTagSelect({
           }}
           disabled={disabled}
         >
-          <SelectTrigger className="w-full bg-white" disabled={disabled}>
+          <SelectTrigger className="w-full bg-background" disabled={disabled}>
             <SelectValue placeholder={getPlaceholderText()} />
           </SelectTrigger>
-          <SelectContent className="bg-white w-full max-h-60 overflow-hidden" side="bottom">
+          <SelectContent className="bg-popover w-full max-h-60 overflow-hidden" side="bottom">
             <TagSelectContent 
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}

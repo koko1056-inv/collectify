@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,9 +32,6 @@ export function ItemButtons({
   const {
     user
   } = useAuth();
-  const {
-    toast
-  } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -42,10 +39,8 @@ export function ItemButtons({
   // コレクションにアイテムを追加する関数
   const handleAddToCollection = async () => {
     if (!user) {
-      toast({
-        title: t("itemDetails.common.error"),
-        description: t("itemDetails.buttons.collectionLoginRequired"),
-        variant: "destructive"
+      toast.error(t("itemDetails.common.error"), {
+        description: t("itemDetails.buttons.collectionLoginRequired")
       });
       return;
     }
@@ -63,17 +58,13 @@ export function ItemButtons({
 
       if (!result.success) {
         if (result.isAtLimit) {
-          toast({
-            title: t("itemDetails.buttons.limitTitle"),
+          toast.error(t("itemDetails.buttons.limitTitle"), {
             description: t("itemDetails.buttons.limitDescription"),
-            variant: "destructive",
           });
           navigate("/shop");
         } else {
-          toast({
-            title: t("itemDetails.common.error"),
+          toast.error(t("itemDetails.common.error"), {
             description: result.error || t("itemDetails.buttons.collectionAddFailed"),
-            variant: "destructive",
           });
         }
         return;
@@ -105,18 +96,15 @@ export function ItemButtons({
       await queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" });
       await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
       
-      toast({
-        title: t("itemDetails.buttons.addedToCollection"),
+      toast.success(t("itemDetails.buttons.addedToCollection"), {
         description: result.pointsAwarded
           ? t("itemDetails.buttons.pointsEarned", { count: result.pointsAwarded })
           : undefined,
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
-      toast({
-        title: t("itemDetails.common.error"),
-        description: t("itemDetails.buttons.collectionAddFailed"),
-        variant: "destructive"
+      toast.error(t("itemDetails.common.error"), {
+        description: t("itemDetails.buttons.collectionAddFailed")
       });
     } finally {
       setIsAddingToCollection(false);
@@ -126,10 +114,8 @@ export function ItemButtons({
   // ウィッシュリストにアイテムを追加する関数
   const handleAddToWishlist = async () => {
     if (!user) {
-      toast({
-        title: t("itemDetails.common.error"),
-        description: t("itemDetails.buttons.wishlistLoginRequired"),
-        variant: "destructive"
+      toast.error(t("itemDetails.common.error"), {
+        description: t("itemDetails.buttons.wishlistLoginRequired")
       });
       return;
     }
@@ -152,16 +138,13 @@ export function ItemButtons({
       await queryClient.invalidateQueries({
         queryKey: ["wishlist-counts"]
       });
-      toast({
-        title: t("itemDetails.buttons.success"),
+      toast.success(t("itemDetails.buttons.success"), {
         description: t("itemDetails.buttons.wishlistAdded")
       });
     } catch (error) {
       console.error("Error adding to wishlist:", error);
-      toast({
-        title: t("itemDetails.common.error"),
-        description: t("itemDetails.buttons.wishlistAddFailed"),
-        variant: "destructive"
+      toast.error(t("itemDetails.common.error"), {
+        description: t("itemDetails.buttons.wishlistAddFailed")
       });
     } finally {
       setIsAddingToWishlist(false);

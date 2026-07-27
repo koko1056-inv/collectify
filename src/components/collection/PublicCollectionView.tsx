@@ -8,8 +8,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Grid, Share2, ChevronRight, Sparkles, Package, Crown, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CollectionOwner {
@@ -30,12 +32,11 @@ interface CollectionOwner {
 export function PublicCollectionView() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
   // 人気のコレクションを取得
-  const { data: collections, isLoading } = useQuery({
+  const { data: collections, isLoading, error, refetch } = useQuery({
     queryKey: ["public-collections", user?.id],
     queryFn: async () => {
       const { data: likesCounts, error: likesError } = await supabase
@@ -140,9 +141,7 @@ export function PublicCollectionView() {
       queryClient.invalidateQueries({ queryKey: ["public-collections"] });
     },
     onError: () => {
-      toast({
-        variant: "destructive",
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.publicCollections.operationFailed"),
       });
     },
@@ -158,7 +157,7 @@ export function PublicCollectionView() {
       });
     } catch {
       navigator.clipboard.writeText(url);
-      toast({ title: t("collectionScreen.publicCollections.linkCopied") });
+      toast.success(t("collectionScreen.publicCollections.linkCopied"));
     }
   };
 
@@ -170,17 +169,17 @@ export function PublicCollectionView() {
           <Skeleton className="h-6 w-40" />
         </div>
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-background rounded-xl border p-4 animate-pulse">
+          <div key={i} className="bg-background rounded-xl border p-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-12 w-12 bg-muted rounded-full" />
+              <Skeleton className="h-12 w-12 rounded-full" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-muted rounded w-24" />
-                <div className="h-3 bg-muted rounded w-16" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-16" />
               </div>
             </div>
             <div className="grid grid-cols-4 gap-2">
               {[...Array(4)].map((_, j) => (
-                <div key={j} className="aspect-square bg-muted rounded-lg" />
+                <Skeleton key={j} className="aspect-square rounded-lg" />
               ))}
             </div>
           </div>
@@ -189,17 +188,22 @@ export function PublicCollectionView() {
     );
   }
 
+  if (error) {
+    return (
+      <QueryErrorState
+        title={t("collectionScreen.common.error")}
+        onRetry={() => refetch()}
+      />
+    );
+  }
+
   if (!collections?.length) {
     return (
-      <div className="text-center py-12">
-        <div className="bg-muted/50 rounded-full p-6 w-fit mx-auto mb-4">
-          <Package className="h-10 w-10 text-muted-foreground/50" />
-        </div>
-        <p className="font-medium text-muted-foreground">{t("collectionScreen.publicCollections.emptyTitle")}</p>
-        <p className="text-sm text-muted-foreground/70 mt-1">
-          {t("collectionScreen.publicCollections.emptyDescription")}
-        </p>
-      </div>
+      <EmptyState
+        icon={Package}
+        title={t("collectionScreen.publicCollections.emptyTitle")}
+        description={t("collectionScreen.publicCollections.emptyDescription")}
+      />
     );
   }
 

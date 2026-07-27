@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PasswordResetProps {
@@ -15,7 +15,6 @@ export function PasswordReset({ onBack }: PasswordResetProps) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,8 +32,7 @@ export function PasswordReset({ onBack }: PasswordResetProps) {
         throw error;
       }
 
-      toast({
-        title: t("chrome.passwordReset.sentTitle"),
+      toast.success(t("chrome.passwordReset.sentTitle"), {
         description: t("chrome.passwordReset.sentDesc"),
       });
       onBack();

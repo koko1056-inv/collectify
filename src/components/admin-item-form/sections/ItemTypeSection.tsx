@@ -28,12 +28,12 @@ export function ItemTypeSection({
         value={itemType || "official"}
         onValueChange={handleItemTypeChange}
       >
-        <SelectTrigger className="w-full bg-white">
+        <SelectTrigger className="w-full bg-background">
           <SelectValue placeholder={t("misc.itemForm.itemTypePlaceholder")} />
         </SelectTrigger>
-        <SelectContent className="bg-white">
-          <SelectItem value="official" className="hover:bg-gray-100">{t("misc.itemForm.itemTypeOfficial")}</SelectItem>
-          <SelectItem value="original" className="hover:bg-gray-100">{t("misc.itemForm.itemTypeOriginal")}</SelectItem>
+        <SelectContent className="bg-popover">
+          <SelectItem value="official" className="hover:bg-muted">{t("misc.itemForm.itemTypeOfficial")}</SelectItem>
+          <SelectItem value="original" className="hover:bg-muted">{t("misc.itemForm.itemTypeOriginal")}</SelectItem>
         </SelectContent>
       </Select>
     </div>

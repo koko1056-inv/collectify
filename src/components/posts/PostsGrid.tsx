@@ -6,6 +6,7 @@ import { GoodsPost } from "@/types/posts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { EmptyPostsState } from "./EmptyPostsState";
 import { QueryErrorState } from "@/components/ui/query-error-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PostsGridProps {
@@ -133,13 +134,13 @@ export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", o
             <div className="rounded-xl border border-border/50 overflow-hidden">
               {/* 高さは index から決める。Math.random() だと再レンダーごとに変わり、
                   読み込み中にカードがガタガタ動いてしまう。 */}
-              <div
-                className="w-full bg-muted animate-pulse"
+              <Skeleton
+                className="w-full rounded-none"
                 style={{ height: `${150 + ((i * 37) % 100)}px` }}
               />
               <div className="p-2.5 space-y-1.5">
-                <div className="h-3 bg-muted rounded animate-pulse w-2/3" />
-                <div className="h-2.5 bg-muted rounded animate-pulse w-1/2" />
+                <Skeleton className="h-3 w-2/3" />
+                <Skeleton className="h-2.5 w-1/2" />
               </div>
             </div>
           </div>
@@ -204,8 +205,8 @@ export const PostsGrid = memo(function PostsGrid({ filters, sortBy = "newest", o
               <div className="rounded-xl border border-border/50 overflow-hidden">
                 {/* 高さは index から決める。Math.random() だと再レンダーごとに変わり、
                   読み込み中にカードがガタガタ動いてしまう。 */}
-              <div
-                className="w-full bg-muted animate-pulse"
+              <Skeleton
+                className="w-full rounded-none"
                 style={{ height: `${150 + ((i * 37) % 100)}px` }}
               />
               </div>

@@ -16,6 +16,8 @@ import {
   Shirt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
@@ -167,7 +169,7 @@ export default function AiRoomsPage() {
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-white/90 text-[9px] font-bold text-foreground flex items-center gap-1">
+                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-card/90 text-[9px] font-bold text-foreground flex items-center gap-1">
                       <Home className="w-2.5 h-2.5" /> {t("screens.aiRooms.latestRoom")}
                     </div>
                     <p className="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold truncate text-left">
@@ -195,7 +197,7 @@ export default function AiRoomsPage() {
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-white/90 text-[9px] font-bold text-foreground flex items-center gap-1">
+                    <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-card/90 text-[9px] font-bold text-foreground flex items-center gap-1">
                       <Shirt className="w-2.5 h-2.5" /> {t("screens.aiRooms.currentAvatar")}
                     </div>
                     <p className="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold truncate text-left">
@@ -264,9 +266,9 @@ export default function AiRoomsPage() {
             {isLoading && (
               <div className="grid grid-cols-2 gap-3">
                 {[0, 1, 2, 3].map((i) => (
-                  <div
+                  <Skeleton
                     key={i}
-                    className="aspect-video rounded-2xl bg-muted/60 animate-pulse"
+                    className="aspect-video rounded-2xl"
                   />
                 ))}
               </div>
@@ -468,9 +470,9 @@ function AvatarPanel({
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {[0, 1, 2, 3].map((i) => (
-          <div
+          <Skeleton
             key={i}
-            className="aspect-[3/4] rounded-2xl bg-muted/60 animate-pulse"
+            className="aspect-[3/4] rounded-2xl"
           />
         ))}
       </div>
@@ -510,21 +512,18 @@ function AvatarPanel({
 
       {/* 空状態 */}
       {avatars.avatars.length === 0 && (
-        <div className="rounded-3xl border border-dashed border-border/60 p-8 text-center space-y-3">
-          <div className="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-            <Sparkles className="w-7 h-7 text-primary" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold">{t("screens.aiRooms.avatarEmptyTitle")}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {t("screens.aiRooms.avatarEmptyDesc")}
-            </p>
-          </div>
-          <Button onClick={onGenerate} className="gap-1.5">
-            <Wand2 className="w-4 h-4" />
-            {t("screens.aiRooms.avatarStartGenerating")}
-          </Button>
-        </div>
+        <EmptyState
+          className="rounded-3xl border border-dashed border-border/60"
+          icon={Sparkles}
+          title={t("screens.aiRooms.avatarEmptyTitle")}
+          description={t("screens.aiRooms.avatarEmptyDesc")}
+          action={
+            <Button onClick={onGenerate} className="gap-1.5">
+              <Wand2 className="w-4 h-4" />
+              {t("screens.aiRooms.avatarStartGenerating")}
+            </Button>
+          }
+        />
       )}
 
       {/* ギャラリー */}

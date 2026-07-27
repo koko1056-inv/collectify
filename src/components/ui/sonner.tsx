@@ -1,14 +1,17 @@
-import { useTheme } from "next-themes"
 import { Toaster as Sonner } from "sonner"
+import { useColorScheme } from "@/contexts/ColorSchemeContext"
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
 
+// next-themes の useTheme を使っていたが、そのプロバイダはマウントされておらず
+// 常に "system" になっていた（アプリ内のテーマ設定に追従しない）。
+// 解決済みの配色を自前のコンテキストから受け取る。
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const { resolved } = useColorScheme()
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={resolved}
       className="toaster group"
       closeButton
       toastOptions={{

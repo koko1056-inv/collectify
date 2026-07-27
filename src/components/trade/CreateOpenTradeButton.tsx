@@ -28,12 +28,12 @@ export function CreateOpenTradeButton({ onTradeCreated }: CreateOpenTradeButtonP
     <>
       <Button 
         onClick={handleOpenModal}
-        className="w-full mb-4 bg-black hover:bg-gray-800 text-white rounded-xl shadow-md hover:shadow-lg transition-all py-6"
+        className="w-full mb-4 bg-foreground hover:bg-foreground/90 text-background rounded-xl shadow-md hover:shadow-lg transition-all py-6"
       >
         <div className="flex items-center justify-center gap-2">
           <div className="relative">
             <Plus className="h-5 w-5" />
-            <Sparkles className="h-3 w-3 absolute -top-1 -right-1 text-gray-300" />
+            <Sparkles className="h-3 w-3 absolute -top-1 -right-1 text-background/70" />
           </div>
           <span className="font-medium">{t("trade.list.createNew")}</span>
         </div>
