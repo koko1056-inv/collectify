@@ -61,7 +61,7 @@ export function ItemDetailsDeleteDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <h2 className="text-lg font-bold mb-2">{t("itemDetails.remove.title")}</h2>
-        <p className="mb-4">{t("itemDetails.remove.confirmPrefix")}{title}{t("itemDetails.remove.confirmSuffix")}</p>
+        <p className="mb-4">{t("itemDetails.remove.confirm", { title })}</p>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setOpen(false)}>
             {t("itemDetails.common.cancel")}

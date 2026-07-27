@@ -9,9 +9,8 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 import { Check, X, Merge, Search, Tag, Clock, User } from "lucide-react";
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
 import {
   Select,
   SelectContent,
@@ -59,6 +58,7 @@ export function TagCandidatesManager() {
   
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { formatPaddedDateTime } = useDateFormat();
   const queryClient = useQueryClient();
 
   // タグ候補を取得
@@ -357,7 +357,7 @@ export function TagCandidatesManager() {
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {format(new Date(candidate.created_at), "MM/dd HH:mm", { locale: ja })}
+                        {formatPaddedDateTime(candidate.created_at)}
                       </span>
                     </div>
                   </div>
@@ -405,9 +405,7 @@ export function TagCandidatesManager() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <p className="text-sm text-muted-foreground">
-                {t("misc.admin.mergeDescPrefix")}
-                <span className="font-medium">{selectedCandidate?.name}</span>
-                {t("misc.admin.mergeDescSuffix")}
+                {t("misc.admin.mergeDesc", { name: selectedCandidate?.name ?? "" })}
               </p>
               <div className="space-y-2">
                 <Label>{t("misc.admin.mergeTarget")}</Label>

@@ -197,7 +197,7 @@ export const screens = {
     },
     howToUse: {
       heroBadge: "はじめての方へ",
-      heroTitleSuffix: "の使い方",
+      heroTitle: "{app}の使い方",
       heroLead1: "推しグッズを記録・管理して、AIで推し部屋まで作れるアプリ。",
       heroLead2: "コレクションをもっと楽しくしましょう！",
       onboardingHeading: "はじめの7ステップ",
@@ -709,7 +709,7 @@ export const screens = {
     },
     howToUse: {
       heroBadge: "New here?",
-      heroTitleSuffix: " guide",
+      heroTitle: "How to use {app}",
       heroLead1: "Track your Goods and let AI build your dream Room.",
       heroLead2: "Make your Collection even more fun!",
       onboardingHeading: "Your first 7 steps",

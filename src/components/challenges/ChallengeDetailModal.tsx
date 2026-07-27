@@ -7,13 +7,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy, Users, Clock, Vote, ImagePlus, Medal, Package, TrendingUp } from "lucide-react";
 import { useChallenge, useChallengeEntries, useVoteForEntry, useEndChallenge } from "@/hooks/challenges";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDistanceToNow, isPast, parseISO, format } from "date-fns";
-import { ja } from "date-fns/locale";
+import { isPast, parseISO } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChallengeEntryModal } from "./ChallengeEntryModal";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface ChallengeDetailModalProps {
   challengeId: string;
@@ -24,6 +24,7 @@ interface ChallengeDetailModalProps {
 export function ChallengeDetailModal({ challengeId, isOpen, onClose }: ChallengeDetailModalProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { formatShortDate, formatRelative } = useDateFormat();
   const { data: challenge, isLoading: challengeLoading } = useChallenge(challengeId);
   const { data: entries, isLoading: entriesLoading } = useChallengeEntries(challengeId);
   const voteForEntry = useVoteForEntry();
@@ -124,8 +125,8 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
               <span className="flex items-center gap-1 text-muted-foreground">
                 <Clock className="h-4 w-4" />
                 {isEnded 
-                  ? t("social.challenges.endedOn", { date: format(parseISO(challenge.ends_at), "M/d", { locale: ja }) }) 
-                  : formatDistanceToNow(parseISO(challenge.ends_at), { locale: ja, addSuffix: true })}
+                  ? t("social.challenges.endedOn", { date: formatShortDate(challenge.ends_at) }) 
+                  : formatRelative(challenge.ends_at)}
               </span>
             </div>
 

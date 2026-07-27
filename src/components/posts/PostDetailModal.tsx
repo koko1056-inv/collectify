@@ -7,8 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Share, Trash2, MoreHorizontal, X, XCircle } from "lucide-react";
 import { useToggleLike, useDeletePost, usePostComments, useAddComment } from "@/hooks/posts";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { DeletePostDialog } from "./DeletePostDialog";
@@ -21,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface PostDetailModalProps {
   post: GoodsPost | null;
@@ -31,6 +30,7 @@ interface PostDetailModalProps {
 export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const navigate = useNavigate();
   const toggleLike = useToggleLike();
   const deletePost = useDeletePost();
@@ -130,10 +130,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                 <div className="flex-1">
                   <p className="font-semibold text-sm">{post.profiles?.username}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(post.created_at), { 
-                      addSuffix: true, 
-                      locale: ja 
-                    })}
+                    {formatRelative(post.created_at)}
                   </p>
                 </div>
                 {isOwner && (

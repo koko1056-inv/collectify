@@ -7,8 +7,7 @@ import { useTrustScore } from "./useTrustScore";
 import { TrustBadge } from "./TrustBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface TrustScoreSectionProps {
   userId: string;
@@ -16,6 +15,7 @@ interface TrustScoreSectionProps {
 
 export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
   const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const { data: score, isLoading: loadingScore } = useTrustScore(userId);
 
   const { data: reviews, isLoading: loadingReviews } = useQuery({
@@ -101,7 +101,7 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
                         {r.reviewer?.display_name || r.reviewer?.username || t("trade.trust.anonymous")}
                       </p>
                       <span className="text-[10px] text-muted-foreground">
-                        {formatDistanceToNow(new Date(r.created_at), { addSuffix: true, locale: ja })}
+                        {formatRelative(r.created_at)}
                       </span>
                     </div>
                     <div className="flex items-center gap-0.5 mt-0.5">

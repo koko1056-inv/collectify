@@ -106,7 +106,7 @@ export function FavoriteItemsEditModal({
       }
       if (prev.length >= FAVORITE_ITEMS_LIMIT) {
         toast.error(
-          `${t("profileScreen.favorites.limitToastPrefix")}${FAVORITE_ITEMS_LIMIT}${t("profileScreen.favorites.limitToastSuffix")}`
+          t("profileScreen.favorites.limitToast", { count: FAVORITE_ITEMS_LIMIT })
         );
         return prev;
       }
@@ -140,17 +140,20 @@ export function FavoriteItemsEditModal({
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-            {t("profileScreen.favorites.top5Prefix")}{FAVORITE_ITEMS_LIMIT}{t("profileScreen.favorites.editTitleSuffix")}
+            {t("profileScreen.favorites.editTitle", { count: FAVORITE_ITEMS_LIMIT })}
           </DialogTitle>
           <DialogDescription className="text-xs">
-            {t("profileScreen.favorites.editDescPrefix")}{FAVORITE_ITEMS_LIMIT}{t("profileScreen.favorites.editDescSuffix")}
+            {t("profileScreen.favorites.editDesc", { count: FAVORITE_ITEMS_LIMIT })}
           </DialogDescription>
         </DialogHeader>
 
         {/* 選択中の枠 */}
         <div className="px-4 pt-3 pb-2">
           <p className="text-[11px] font-semibold text-muted-foreground mb-2">
-            {t("profileScreen.favorites.selectedPrefix")}{selectedIds.length}/{FAVORITE_ITEMS_LIMIT}{t("profileScreen.favorites.selectedSuffix")}
+            {t("profileScreen.favorites.selected", {
+              count: selectedIds.length,
+              limit: FAVORITE_ITEMS_LIMIT,
+            })}
           </p>
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
             {Array.from({ length: FAVORITE_ITEMS_LIMIT }).map((_, idx) => {
@@ -188,7 +191,9 @@ export function FavoriteItemsEditModal({
                       </>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        <span className="text-[10px]">{idx + 1}{t("profileScreen.favorites.rankSuffix")}</span>
+                        <span className="text-[10px]">
+                          {t("profileScreen.favorites.rank", { rank: idx + 1 })}
+                        </span>
                       </div>
                     )}
                   </div>

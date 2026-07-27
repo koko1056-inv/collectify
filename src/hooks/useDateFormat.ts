@@ -40,6 +40,13 @@ export function useDateFormat() {
       formatShortDate: (value: DateInput) =>
         format(toDate(value), "M/d", { locale }),
 
+      /**
+       * 2026/5/1 / 5/1/2026
+       * toLocaleDateString("ja-JP") の置き換え用。日本語側の見た目を変えずに英語だけ切り替える。
+       */
+      formatNumericDate: (value: DateInput) =>
+        format(toDate(value), isEn ? "M/d/yyyy" : "yyyy/M/d", { locale }),
+
       /** 5/1 12:34 */
       formatShortDateTime: (value: DateInput) =>
         format(toDate(value), "M/d HH:mm", { locale }),

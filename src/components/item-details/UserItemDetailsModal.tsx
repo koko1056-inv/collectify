@@ -8,13 +8,13 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { format, differenceInCalendarDays } from "date-fns";
-import { ja } from "date-fns/locale";
+import { differenceInCalendarDays } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { PersonalTagsSection } from "@/components/personal-tags/PersonalTagsSection";
 import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
 import { useItemShare } from "@/hooks/useItemShare";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface UserItemDetailsModalProps {
   isOpen: boolean;
@@ -42,6 +42,7 @@ export function UserItemDetailsModal({
   const { user } = useAuth();
   const { shareItem, isSharing } = useItemShare();
   const { t } = useLanguage();
+  const { formatDate } = useDateFormat();
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [isEditingPurchaseDate, setIsEditingPurchaseDate] = useState(false);
   const [noteValue, setNoteValue] = useState("");
@@ -290,7 +291,7 @@ export function UserItemDetailsModal({
                     <>
                       <span className="font-medium">
                         {itemDetails?.purchase_date
-                          ? format(new Date(itemDetails.purchase_date), "yyyy年M月d日", { locale: ja })
+                          ? formatDate(itemDetails.purchase_date)
                           : t("itemDetails.common.notSet")}
                       </span>
                       <Button
@@ -485,7 +486,7 @@ export function UserItemDetailsModal({
                         <p className="text-xs text-foreground">{memory.comment}</p>
                       )}
                       <p className="text-[10px] text-muted-foreground">
-                        {format(new Date(memory.created_at), "yyyy年M月d日", { locale: ja })}
+                        {formatDate(memory.created_at)}
                       </p>
                     </div>
                   ))}

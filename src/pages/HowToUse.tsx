@@ -159,6 +159,12 @@ export default function HowToUse() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
 
+  // ブランド名だけグラデーションを当てたいので、{app} の前後で分割して描画する。
+  // 文全体を1キーで持つことで、日英で語順が変わっても崩れない。
+  const [heroTitleBefore, heroTitleAfter = ""] = t(
+    "screens.howToUse.heroTitle"
+  ).split("{app}");
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
       <Navbar />
@@ -175,10 +181,11 @@ export default function HowToUse() {
               {t("screens.howToUse.heroBadge")}
             </Badge>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
+              {heroTitleBefore}
               <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
                 Collectify
               </span>
-              {t("screens.howToUse.heroTitleSuffix")}
+              {heroTitleAfter}
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               {t("screens.howToUse.heroLead1")}

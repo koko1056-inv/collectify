@@ -249,6 +249,7 @@ function ShowcaseCard({
   onEdit?: () => void;
   emptyHint: string;
 }) {
+  const { t } = useLanguage();
   const isEmpty = !imageUrl;
   return (
     <div className="relative group">
@@ -280,7 +281,7 @@ function ShowcaseCard({
               {isOwnProfile ? <Plus className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
             </div>
             <p className="text-[11px] font-medium px-2 text-center">
-              {isOwnProfile ? emptyHint : `${label}は未設定`}
+              {isOwnProfile ? emptyHint : t("profileScreen.showcase.slotNotSet", { label })}
             </p>
           </>
         )}
@@ -292,7 +293,7 @@ function ShowcaseCard({
             onEdit?.();
           }}
           className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm flex items-center justify-center"
-          aria-label="変更"
+          aria-label={t("profileScreen.showcase.change")}
         >
           <Pencil className="w-3.5 h-3.5" />
         </button>

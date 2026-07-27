@@ -3,12 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, MessageCircle, User } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface FeedPost {
   id: string;
@@ -27,6 +26,7 @@ interface FeedPost {
 export function IntegratedFeed() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const navigate = useNavigate();
 
   const { data: feedPosts = [], isLoading } = useQuery<FeedPost[]>({
@@ -184,7 +184,7 @@ export function IntegratedFeed() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{post.user.username}</p>
                 <p className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ja })}
+                  {formatRelative(post.created_at)}
                 </p>
               </div>
             </div>

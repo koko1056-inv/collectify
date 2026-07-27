@@ -2,11 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
 import { ChatModal } from "./ChatModal";
 import { MessageCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface Conversation {
   partnerId: string;
@@ -23,6 +22,7 @@ interface Conversation {
 export function ConversationList() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -251,10 +251,7 @@ export function ConversationList() {
                     {conv.partnerName}
                   </span>
                   <span className="text-xs text-muted-foreground shrink-0">
-                    {formatDistanceToNow(new Date(conv.lastMessageTime), { 
-                      addSuffix: true, 
-                      locale: ja 
-                    })}
+                    {formatRelative(conv.lastMessageTime)}
                   </span>
                 </div>
                 <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>

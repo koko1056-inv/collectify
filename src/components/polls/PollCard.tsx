@@ -6,9 +6,8 @@ import { Poll } from "@/types/polls";
 import { useVotePoll } from "@/hooks/polls/usePollMutations";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Clock } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface PollCardProps {
   poll: Poll;
@@ -16,6 +15,7 @@ interface PollCardProps {
 
 export function PollCard({ poll }: PollCardProps) {
   const { t } = useLanguage();
+  const { formatNumericDate, formatDistance } = useDateFormat();
   const [userId, setUserId] = useState<string | null>(null);
   const [userVote, setUserVote] = useState<string | null>(null);
   const votePoll = useVotePoll();
@@ -73,7 +73,7 @@ export function PollCard({ poll }: PollCardProps) {
           <div className="flex-1">
             <p className="font-semibold text-sm">{poll.profiles?.username}</p>
             <p className="text-xs text-muted-foreground">
-              {new Date(poll.created_at).toLocaleDateString("ja-JP")}
+              {formatNumericDate(poll.created_at)}
             </p>
           </div>
           {poll.ends_at && (
@@ -83,7 +83,7 @@ export function PollCard({ poll }: PollCardProps) {
                 <span className="text-destructive font-semibold">{t("social.polls.closed")}</span>
               ) : (
                 <span>
-                  {t("social.polls.remaining", { time: formatDistanceToNow(new Date(poll.ends_at), { locale: ja }) })}
+                  {t("social.polls.remaining", { time: formatDistance(poll.ends_at) })}
                 </span>
               )}
             </div>

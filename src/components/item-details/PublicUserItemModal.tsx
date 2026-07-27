@@ -9,9 +9,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { addToCollection } from "@/utils/collection-actions";
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface PublicUserItemModalProps {
   isOpen: boolean;
@@ -43,6 +42,7 @@ export function PublicUserItemModal({
   const [adding, setAdding] = useState(false);
   const [wishing, setWishing] = useState(false);
   const { t } = useLanguage();
+  const { formatDate } = useDateFormat();
 
   // 該当ユーザーアイテムを取得 (official_item_id を引き当てる)
   const { data: itemDetails, isLoading } = useQuery({
@@ -220,9 +220,7 @@ export function PublicUserItemModal({
             {officialItem?.release_date && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
-                {format(new Date(officialItem.release_date), "yyyy年M月d日", {
-                  locale: ja,
-                })}
+                {formatDate(officialItem.release_date)}
                 {officialItem.price && officialItem.price !== "0" && (
                   <span className="ml-auto font-semibold text-foreground">
                     ¥{officialItem.price}

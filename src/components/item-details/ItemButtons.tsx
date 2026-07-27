@@ -107,7 +107,9 @@ export function ItemButtons({
       
       toast({
         title: t("itemDetails.buttons.addedToCollection"),
-        description: result.pointsAwarded ? `+${result.pointsAwarded}${t("itemDetails.buttons.pointsEarnedSuffix")}` : undefined,
+        description: result.pointsAwarded
+          ? t("itemDetails.buttons.pointsEarned", { count: result.pointsAwarded })
+          : undefined,
       });
     } catch (error) {
       console.error("Error adding to collection:", error);

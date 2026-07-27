@@ -226,7 +226,7 @@ export function FollowList({ userId, type }: FollowListProps) {
       ) : filteredProfiles.length === 0 && searchQuery ? (
         <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
           <Search className="w-8 h-8 text-muted-foreground mb-2" />
-          <p className="text-muted-foreground">{t("profileScreen.follow.noSearchResultPrefix")}{searchQuery}{t("profileScreen.follow.noSearchResultSuffix")}</p>
+          <p className="text-muted-foreground">{t("profileScreen.follow.noSearchResult", { query: searchQuery })}</p>
         </div>
       ) : (
         <ScrollArea className="flex-1 -mx-6 px-6">

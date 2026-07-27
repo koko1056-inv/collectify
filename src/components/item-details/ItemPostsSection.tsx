@@ -40,7 +40,7 @@ export function ItemPostsSection({ userItemId }: ItemPostsSectionProps) {
   return (
     <>
       <div className="space-y-2">
-        <h3 className="text-sm font-medium">{t("itemDetails.posts.title")} ({posts.length}{t("itemDetails.posts.countSuffix")})</h3>
+        <h3 className="text-sm font-medium">{t("itemDetails.posts.titleWithCount", { count: posts.length })}</h3>
         <ScrollArea className="h-64">
           <div className="space-y-3 pr-2">
             {posts.map((post) => (

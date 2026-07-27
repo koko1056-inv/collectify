@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePostComments, useAddComment } from "@/hooks/posts";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface CommentsModalProps {
   postId: string;
@@ -17,6 +16,7 @@ interface CommentsModalProps {
 
 export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
   const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const [newComment, setNewComment] = useState("");
   const { data: comments, isLoading, error } = usePostComments(postId);
   const addComment = useAddComment();
@@ -66,10 +66,7 @@ export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
                     </p>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    {formatDistanceToNow(new Date(comment.created_at), {
-                      addSuffix: true,
-                      locale: ja,
-                    })}
+                    {formatRelative(comment.created_at)}
                   </p>
                 </div>
               </div>

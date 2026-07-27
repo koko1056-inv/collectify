@@ -38,7 +38,7 @@ export function ItemInfoTab({
   const { t } = useLanguage();
   return (
     <div className="space-y-4">
-      {ownersCount > 0 && <Badge>{ownersCount}{t("itemDetails.info.ownersSuffix")}</Badge>}
+      {ownersCount > 0 && <Badge>{t("itemDetails.info.ownersCount", { count: ownersCount })}</Badge>}
 
       <div className="space-y-3">
         <img

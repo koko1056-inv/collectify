@@ -58,7 +58,7 @@ export function ContentNameSection({
 
       toast({
         title: t("itemDetails.contentSection.added"),
-        description: `${data.name}${t("itemDetails.contentSection.addedSuffix")}`,
+        description: t("itemDetails.contentSection.addedDescription", { name: data.name }),
       });
     } catch (error) {
       console.error("Error adding content:", error);

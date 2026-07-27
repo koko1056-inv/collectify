@@ -178,7 +178,7 @@ export function AdminItemForm() {
                       
                       toast({
                         title: t("addItem.imageSelectedTitle"),
-                        description: `${result.selectedImages.length}${t("addItem.imagesSelected")}`,
+                        description: t("chrome.adminForm.imagesSelectedDesc", { n: result.selectedImages.length }),
                       });
                     } else {
                       const updates: any = {};
@@ -318,7 +318,9 @@ export function AdminItemForm() {
 
                           toast({
                             title: t("addItem.registrationComplete"),
-                            description: `${successCount}${t("addItem.itemsRegistered")}${errorCount > 0 ? `（${errorCount}${t("addItem.itemsFailed")}）` : ''}`,
+                            description: errorCount > 0
+                              ? t("chrome.adminForm.registeredWithFailuresDesc", { n: successCount, failed: errorCount })
+                              : t("chrome.adminForm.registeredDesc", { n: successCount }),
                           });
                           resetForm();
                         } else {

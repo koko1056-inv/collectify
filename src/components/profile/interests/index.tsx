@@ -66,7 +66,7 @@ export function ProfileInterests({
       
       toast({
         title: t("profileScreen.interests.addedTitle"),
-        description: `${newContentName}${t("profileScreen.interests.addedDescSuffix")}`,
+        description: t("profileScreen.interests.addedDesc", { name: newContentName }),
       });
 
       setSelectedInterests(prev => [...prev, newContentName]);
@@ -125,7 +125,7 @@ export function ProfileInterests({
           <h3 className="text-[13px] font-bold tracking-wide">{t("profileScreen.interests.title")}</h3>
           {selectedInterests.length > 0 && (
             <span className="text-[10px] text-muted-foreground">
-              {selectedInterests.length}{t("profileScreen.interests.countSuffix")}
+              {t("profileScreen.interests.count", { count: selectedInterests.length })}
             </span>
           )}
         </div>

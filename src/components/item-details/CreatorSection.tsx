@@ -45,6 +45,16 @@ export function CreatorSection({
 
   if (isEditing) return null;
 
+  const creatorName = !createdBy
+    ? t("itemDetails.creator.admin")
+    : isProfileLoading
+      ? t("itemDetails.common.loading")
+      : creatorProfile
+        ? creatorProfile.display_name || creatorProfile.username
+        : profileError
+          ? t("itemDetails.creator.registeredUserError")
+          : t("itemDetails.creator.registeredUser");
+
   return (
     <div className="space-y-4">
       <div className="text-sm space-y-2">
@@ -83,21 +93,7 @@ export function CreatorSection({
           <div>
             <div className="font-medium">{t("itemDetails.creator.itemInfo")}</div>
             <div className="text-muted-foreground">
-              {t("itemDetails.creator.addedByPrefix")}
-              {createdBy ? (
-                isProfileLoading ? (
-                  <span className="font-medium"> {t("itemDetails.common.loading")} </span>
-                ) : creatorProfile ? (
-                  <span className="font-medium"> {creatorProfile.display_name || creatorProfile.username} </span>
-                ) : profileError ? (
-                  <span className="font-medium"> {t("itemDetails.creator.registeredUserError")} </span>
-                ) : (
-                  <span className="font-medium"> {t("itemDetails.creator.registeredUser")} </span>
-                )
-              ) : (
-                <span className="font-medium"> {t("itemDetails.creator.admin")} </span>
-              )}
-              {t("itemDetails.creator.addedBySuffix")}
+              {t("itemDetails.creator.addedBy", { name: creatorName })}
             </div>
             {createdBy && creatorProfile && (
               <div className="text-green-600 font-medium mt-1">

@@ -3,9 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Loader2, MessageCircle } from "lucide-react";
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface PublicItemDetailsModalProps {
   isOpen: boolean;
@@ -34,6 +33,7 @@ export function PublicItemDetailsModal({
   image,
 }: PublicItemDetailsModalProps) {
   const { t } = useLanguage();
+  const { formatDate, formatWith } = useDateFormat();
   const { data: itemDetails, isLoading } = useQuery({
     queryKey: ["public-user-item-details", itemId],
     queryFn: async () => {
@@ -111,9 +111,7 @@ export function PublicItemDetailsModal({
                   <Calendar className="w-4 h-4" />
                   <span>
                     {t("misc.publicCollection.acquiredOn", {
-                      date: format(new Date(itemDetails.purchase_date), "yyyy年M月d日", {
-                        locale: ja,
-                      }),
+                      date: formatDate(itemDetails.purchase_date),
                     })}
                   </span>
                 </div>
@@ -166,9 +164,7 @@ export function PublicItemDetailsModal({
                               {m.comment}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1.5">
-                              {format(new Date(m.created_at), "yyyy/M/d", {
-                                locale: ja,
-                              })}
+                              {formatWith(m.created_at, "yyyy/M/d")}
                             </p>
                           </div>
                         )}

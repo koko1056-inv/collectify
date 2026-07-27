@@ -44,7 +44,7 @@ export function FavoriteItemsTop5({ userId, isOwnProfile }: FavoriteItemsTop5Pro
           <div className="flex items-center gap-1.5 min-w-0">
             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 shrink-0" />
             <h3 className="text-sm font-bold truncate">
-              {t("profileScreen.favorites.top5Prefix")}{FAVORITE_ITEMS_LIMIT}{t("profileScreen.favorites.top5Suffix")}
+              {t("profileScreen.favorites.top5", { count: FAVORITE_ITEMS_LIMIT })}
             </h3>
             {items.length > 0 && (
               <span className="text-[10px] text-muted-foreground shrink-0">

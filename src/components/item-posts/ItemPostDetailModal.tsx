@@ -18,8 +18,6 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -36,6 +34,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface ItemPostDetailModalProps {
   open: boolean;
@@ -53,6 +52,7 @@ export function ItemPostDetailModal({
 }: ItemPostDetailModalProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const navigate = useNavigate();
   const { data: fetchedPost, isLoading } = useItemPost(open ? postId : null);
   const post = fetchedPost ?? initialPost ?? null;
@@ -188,10 +188,7 @@ export function ItemPostDetailModal({
                 {post.profile?.display_name || post.profile?.username || t("social.itemPosts.collector")}
               </p>
               <p className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(post.created_at), {
-                  addSuffix: true,
-                  locale: ja,
-                })}
+                {formatRelative(post.created_at)}
               </p>
             </div>
             {isOwner && (
@@ -264,10 +261,7 @@ export function ItemPostDetailModal({
                       {c.profile?.display_name || c.profile?.username || t("social.itemPosts.anonymous")}
                     </p>
                     <p className="text-[10px] text-muted-foreground shrink-0">
-                      {formatDistanceToNow(new Date(c.created_at), {
-                        addSuffix: true,
-                        locale: ja,
-                      })}
+                      {formatRelative(c.created_at)}
                     </p>
                   </div>
                   <p className="text-sm whitespace-pre-wrap break-words">

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface Props {
   userId?: string;
@@ -13,6 +14,7 @@ interface Props {
 export function GalleryListView({ userId, enabled }: Props) {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const { formatNumericDate } = useDateFormat();
 
   const { data: displayGallery = [], isLoading } = useQuery({
     queryKey: ["display-gallery-all"],
@@ -90,7 +92,7 @@ export function GalleryListView({ userId, enabled }: Props) {
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(gallery.created_at).toLocaleDateString("ja-JP")}
+                    {formatNumericDate(gallery.created_at)}
                   </span>
                 </div>
                 {gallery.user_id === userId && (

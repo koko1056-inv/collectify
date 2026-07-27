@@ -1,11 +1,10 @@
-import { formatDistanceToNow } from 'date-fns';
-import { ja } from 'date-fns/locale';
 import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Notification, NotificationData } from '@/types/notification';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDateFormat } from '@/hooks/useDateFormat';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { STAMP_BY_TYPE, type StampType } from '@/features/stamps/types';
@@ -17,6 +16,7 @@ interface NotificationItemProps {
 
 export function NotificationItem({ notification }: NotificationItemProps) {
   const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const { markAsRead, deleteNotification } = useNotifications();
   const navigate = useNavigate();
   const replyStamp = useReplyStamp();
@@ -84,10 +84,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     markAsRead(notification.id);
   };
 
-  const timeAgo = formatDistanceToNow(new Date(notification.created_at), {
-    addSuffix: true,
-    locale: ja,
-  });
+  const timeAgo = formatRelative(notification.created_at);
 
   const data = notification.data as NotificationData;
 

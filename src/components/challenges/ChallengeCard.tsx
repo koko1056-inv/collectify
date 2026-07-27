@@ -5,10 +5,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Users, Clock, ChevronRight, Package } from "lucide-react";
 import { Challenge } from "@/types/challenges";
-import { formatDistanceToNow, isPast, parseISO } from "date-fns";
-import { ja } from "date-fns/locale";
+import { isPast, parseISO } from "date-fns";
 import { ChallengeDetailModal } from "./ChallengeDetailModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface ChallengeCardProps {
   challenge: Challenge;
@@ -16,9 +16,10 @@ interface ChallengeCardProps {
 
 export function ChallengeCard({ challenge }: ChallengeCardProps) {
   const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const isEnded = challenge.status === "ended" || isPast(parseISO(challenge.ends_at));
-  const timeLeft = formatDistanceToNow(parseISO(challenge.ends_at), { locale: ja, addSuffix: true });
+  const timeLeft = formatRelative(challenge.ends_at);
 
   return (
     <>

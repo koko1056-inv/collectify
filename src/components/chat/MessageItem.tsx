@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { format } from "date-fns";
+import { useDateFormat } from "@/hooks/useDateFormat";
 import type { Message, PartnerProfile } from "./types";
 
 interface MessageItemProps {
@@ -11,11 +11,12 @@ interface MessageItemProps {
 
 export function MessageItem({ message, partnerProfile, showAvatar = true }: MessageItemProps) {
   const { user } = useAuth();
+  const { formatWith } = useDateFormat();
   const isOwnMessage = message.sender_id === user?.id;
 
   const formatTime = (dateString: string) => {
     try {
-      return format(new Date(dateString), "HH:mm");
+      return formatWith(dateString, "HH:mm");
     } catch {
       return "";
     }

@@ -121,7 +121,7 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">
-          {items.length}{t("addItem.registerItems")}
+          {t("misc.itemForm.registerItems", { n: items.length })}
         </h3>
         <div className="flex gap-2">
           <Button variant="outline" onClick={onBack} disabled={loading}>
@@ -134,7 +134,7 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
                 {t("addItem.registering")}
               </>
             ) : (
-              `${items.length}${t("addItem.bulkRegister")}`
+              t("misc.itemForm.bulkRegister", { n: items.length })
             )}
           </Button>
         </div>
@@ -144,17 +144,17 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
       <Card className="p-4 bg-muted/30 border-dashed">
         <div className="flex items-center gap-2 mb-3">
           <Wand2 className="h-4 w-4 text-primary" />
-          <h4 className="text-sm font-semibold">一括設定（全{items.length}件に適用）</h4>
+          <h4 className="text-sm font-semibold">{t("misc.itemForm.bulkTitle", { n: items.length })}</h4>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
           <div className="space-y-1.5">
-            <Label className="text-xs">コンテンツ</Label>
+            <Label className="text-xs">{t("misc.itemForm.contentLabel")}</Label>
             <Select value={bulkContent || "none"} onValueChange={(v) => setBulkContent(v === "none" ? "" : v)}>
               <SelectTrigger className="bg-background">
-                <SelectValue placeholder="コンテンツを選択" />
+                <SelectValue placeholder={t("misc.itemForm.contentPlaceholder")} />
               </SelectTrigger>
               <SelectContent className="bg-background z-50 max-h-60">
-                <SelectItem value="none">選択なし</SelectItem>
+                <SelectItem value="none">{t("misc.itemForm.contentNone")}</SelectItem>
                 {contentNames.map((c) => (
                   <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
                 ))}
@@ -162,19 +162,19 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">商品タイプ</Label>
+            <Label className="text-xs">{t("misc.itemForm.itemTypeLabel")}</Label>
             <Select value={bulkItemType} onValueChange={setBulkItemType}>
               <SelectTrigger className="bg-background">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
-                <SelectItem value="official">公式グッズ</SelectItem>
-                <SelectItem value="original">オリジナルグッズ</SelectItem>
+                <SelectItem value="official">{t("misc.itemForm.itemTypeOfficial")}</SelectItem>
+                <SelectItem value="original">{t("misc.itemForm.itemTypeOriginal")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <Button type="button" onClick={applyToAll} variant="secondary" className="w-full">
-            全件に適用
+            {t("misc.itemForm.applyToAll")}
           </Button>
         </div>
       </Card>

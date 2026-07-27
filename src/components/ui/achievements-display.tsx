@@ -1,6 +1,7 @@
 import { useUserAchievements } from "@/hooks/usePoints";
 import { Badge } from "@/components/ui/badge";
 import { Award, Trophy, Star, Zap } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AchievementsDisplayProps {
   userId?: string;
@@ -12,6 +13,7 @@ export function AchievementsDisplay({
   showAll = false, 
   maxDisplay = 3 
 }: AchievementsDisplayProps) {
+  const { t } = useLanguage();
   const { data: userAchievements, isLoading } = useUserAchievements();
 
   if (isLoading) {
@@ -27,7 +29,7 @@ export function AchievementsDisplay({
   if (!userAchievements || userAchievements.length === 0) {
     return (
       <div className="text-muted-foreground text-sm">
-        称号なし
+        {t("misc.achievements.none")}
       </div>
     );
   }

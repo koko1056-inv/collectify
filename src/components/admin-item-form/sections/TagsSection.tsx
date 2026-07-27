@@ -2,6 +2,7 @@
 import { CategoryTagSelect } from "../../tag/CategoryTagSelect";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagsSectionProps {
   characterTag: string | null;
@@ -18,6 +19,8 @@ export function TagsSection({
   contentName,
   onTagChange,
 }: TagsSectionProps) {
+  const { t } = useLanguage();
+
   // コンテンツ名からコンテンツIDを取得
   const { data: contentData } = useQuery({
     queryKey: ["content-by-name", contentName],
@@ -46,7 +49,7 @@ export function TagsSection({
     <div className="space-y-4">
       <CategoryTagSelect
         category="character"
-        label="キャラクター・人物名"
+        label={t("misc.itemForm.tagCharacterLabel")}
         value={characterTag}
         onChange={(value, tagId) => onTagChange('character', value, tagId)}
         contentId={contentId}
@@ -55,14 +58,14 @@ export function TagsSection({
 
       <CategoryTagSelect
         category="type"
-        label="グッズタイプ"
+        label={t("misc.itemForm.tagTypeLabel")}
         value={typeTag}
         onChange={(value, tagId) => onTagChange('type', value, tagId)}
       />
 
       <CategoryTagSelect
         category="series"
-        label="グッズシリーズ"
+        label={t("misc.itemForm.tagSeriesLabel")}
         value={seriesTag}
         onChange={(value, tagId) => onTagChange('series', value, tagId)}
         contentId={contentId}

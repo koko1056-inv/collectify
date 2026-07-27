@@ -1,6 +1,7 @@
 
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface ItemNoteFieldProps {
   isEditing: boolean;
@@ -16,6 +17,7 @@ export function ItemNoteField({
   memories = [],
 }: ItemNoteFieldProps) {
   const { t } = useLanguage();
+  const { formatNumericDate } = useDateFormat();
   return (
     <div>
       <label className="text-sm font-medium">{t("itemDetails.common.note")}</label>
@@ -49,7 +51,7 @@ export function ItemNoteField({
                 <p className="text-xs text-gray-700">{memory.comment}</p>
               )}
               <p className="text-[10px] text-gray-500 mt-1">
-                {new Date(memory.created_at).toLocaleDateString("ja-JP")}
+                {formatNumericDate(memory.created_at)}
               </p>
             </div>
           ))}

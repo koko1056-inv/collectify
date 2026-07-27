@@ -11,12 +11,17 @@ const ThemeColorContext = createContext<ThemeColorContextType | undefined>(undef
 
 const THEME_COLOR_KEY = "collectify-theme-color";
 
-export const themeColors: { value: ThemeColor; label: string; emoji: string }[] = [
-  { value: "rose", label: "ローズ", emoji: "🌹" },
-  { value: "blue", label: "ブルー", emoji: "💙" },
-  { value: "green", label: "グリーン", emoji: "💚" },
-  { value: "purple", label: "パープル", emoji: "💜" },
-  { value: "orange", label: "オレンジ", emoji: "🧡" },
+/**
+ * テーマカラーの選択肢。
+ * 表示名は言語で変わるため、ここには持たせず `chrome.themeColor.<value>` を
+ * 描画側で t() で引く（value が翻訳キーの末尾になる）。
+ */
+export const themeColors: { value: ThemeColor; emoji: string }[] = [
+  { value: "rose", emoji: "🌹" },
+  { value: "blue", emoji: "💙" },
+  { value: "green", emoji: "💚" },
+  { value: "purple", emoji: "💜" },
+  { value: "orange", emoji: "🧡" },
 ];
 
 export function ThemeColorProvider({ children }: { children: ReactNode }) {

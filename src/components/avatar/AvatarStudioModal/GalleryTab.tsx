@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import type { useAvatars } from "@/hooks/useAvatars";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface Props {
   avatars: ReturnType<typeof useAvatars>;
@@ -22,6 +23,7 @@ interface Props {
 
 export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
   const { t } = useLanguage();
+  const { formatNumericDate } = useDateFormat();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   if (avatars.isLoading) {
@@ -95,7 +97,7 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
               </div>
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                 <p className="text-xs text-white truncate">
-                  {a.name || new Date(a.created_at).toLocaleDateString("ja-JP")}
+                  {a.name || formatNumericDate(a.created_at)}
                 </p>
               </div>
             </div>

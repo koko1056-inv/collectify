@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useSimilarItemsCheck } from '@/hooks/admin-item-form/useSimilarItemsCheck';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TitleSectionProps {
   title: string;
@@ -15,19 +16,20 @@ export function TitleSection({
   title,
   onChange,
 }: TitleSectionProps) {
+  const { t } = useLanguage();
   const { similarItems, isChecking } = useSimilarItemsCheck(title);
   const hasSimilarItems = similarItems.length > 0;
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="title" className="text-sm font-medium">タイトル</Label>
+      <Label htmlFor="title" className="text-sm font-medium">{t("misc.itemForm.titleLabel")}</Label>
       <div className="relative">
         <Input
           id="title"
           name="title"
           value={title}
           onChange={onChange}
-          placeholder="アイテム名を入力"
+          placeholder={t("misc.itemForm.titlePlaceholder")}
           required
           className={cn(
             "font-medium text-lg",
@@ -45,7 +47,7 @@ export function TitleSection({
         <Alert className="border-yellow-500 bg-yellow-50">
           <AlertTriangle className="h-4 w-4 text-yellow-600" />
           <AlertDescription className="text-yellow-800">
-            <div className="font-semibold mb-2">似たようなグッズが既に登録されています:</div>
+            <div className="font-semibold mb-2">{t("misc.itemForm.similarHeading")}</div>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {similarItems.map((item) => (
                 <div 
@@ -62,7 +64,7 @@ export function TitleSection({
               ))}
             </div>
             <p className="text-xs mt-2 text-yellow-700">
-              重複登録を避けるため、既存のグッズではないことを確認してください。
+              {t("misc.itemForm.similarNote")}
             </p>
           </AlertDescription>
         </Alert>

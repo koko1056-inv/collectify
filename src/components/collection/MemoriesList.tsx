@@ -1,4 +1,5 @@
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface Memory {
   id: string;
@@ -13,6 +14,7 @@ interface MemoriesListProps {
 
 export function MemoriesList({ memories }: MemoriesListProps) {
   const { t } = useLanguage();
+  const { formatNumericDate } = useDateFormat();
 
   if (memories.length === 0) {
     return (
@@ -42,7 +44,7 @@ export function MemoriesList({ memories }: MemoriesListProps) {
             <p className="text-gray-700">{memory.comment}</p>
           )}
           <p className="text-sm text-gray-500 mt-2">
-            {new Date(memory.created_at).toLocaleDateString("ja-JP")}
+            {formatNumericDate(memory.created_at)}
           </p>
         </div>
       ))}

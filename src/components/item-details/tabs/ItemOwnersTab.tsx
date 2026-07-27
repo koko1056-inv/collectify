@@ -86,7 +86,7 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground px-1 mb-1">
-        {owners.length}{t("itemDetails.owners.collectorsSuffix")}
+        {t("itemDetails.owners.collectorsCount", { count: owners.length })}
       </p>
       {owners.map((owner) => {
         const isMe = owner.user_id === user?.id;
@@ -128,7 +128,7 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
                 </div>
               </Link>
               <Badge variant="outline" className="flex-shrink-0">
-                {owner.quantity}{t("itemDetails.owners.quantitySuffix")}
+                {t("itemDetails.owners.quantity", { count: owner.quantity })}
               </Badge>
             </div>
             {!isMe && user && (

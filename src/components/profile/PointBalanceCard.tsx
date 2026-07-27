@@ -2,9 +2,8 @@ import { Coins, Gift, ShoppingBag, TrendingUp } from "lucide-react";
 import { useUserPoints, usePointTransactions } from "@/hooks/usePoints";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 // ポイント獲得/消費履歴のラベル（翻訳キー）
 const TX_LABEL_KEYS: Record<string, string> = {
@@ -27,6 +26,7 @@ function txLabel(type: string, t: (key: string) => string): string {
 export function PointBalanceCard() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { formatShortDateTime } = useDateFormat();
   const { data: userPoints, isLoading } = useUserPoints();
   const { data: transactions = [] } = usePointTransactions();
 
@@ -75,7 +75,7 @@ export function PointBalanceCard() {
         {/* 生涯獲得 */}
         <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
           <TrendingUp className="w-3.5 h-3.5" />
-          <span>{t("profileScreen.points.lifetimePrefix")}{lifetimeEarned.toLocaleString()}pt</span>
+          <span>{t("profileScreen.points.lifetime", { points: lifetimeEarned.toLocaleString() })}</span>
         </div>
 
         {/* 装飾 */}
@@ -103,7 +103,7 @@ export function PointBalanceCard() {
                         {tx.description || txLabel(tx.transaction_type, t)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(tx.created_at), "M/d HH:mm", { locale: ja })}
+                        {formatShortDateTime(tx.created_at)}
                       </p>
                     </div>
                   </div>

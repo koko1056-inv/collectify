@@ -6,8 +6,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ThumbsUp, MessageSquare, Trash2, Loader2 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
+import { useDateFormat } from "@/hooks/useDateFormat";
 import {
   useCreateItemComment,
   useDeleteItemComment,
@@ -25,6 +24,7 @@ interface CommentItemProps {
 export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const [replyOpen, setReplyOpen] = useState(false);
   const [replyText, setReplyText] = useState("");
   const createMut = useCreateItemComment(officialItemId);
@@ -68,10 +68,7 @@ export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemP
 
         <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground px-1">
           <span>
-            {formatDistanceToNow(new Date(comment.created_at), {
-              addSuffix: true,
-              locale: ja,
-            })}
+            {formatRelative(comment.created_at)}
           </span>
           <button
             onClick={() =>

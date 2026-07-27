@@ -132,7 +132,7 @@ export function ItemWishersTab({
       )}
 
       <p className="text-xs text-muted-foreground px-1">
-        {wishers.length}{t("itemDetails.wishers.countSuffix")}
+        {t("itemDetails.wishers.wantCount", { count: wishers.length })}
       </p>
 
       {isLoading ? (
