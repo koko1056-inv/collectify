@@ -10,6 +10,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
+import { ColorSchemeProvider } from "@/contexts/ColorSchemeContext";
 import { Suspense, lazy } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { RootRedirect } from "@/components/RootRedirect";
@@ -145,6 +146,7 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
+        <ColorSchemeProvider>
         <ThemeColorProvider>
           <BrowserRouter>
             <AuthProvider>
@@ -198,6 +200,7 @@ const App: React.FC = () => {
             </AuthProvider>
           </BrowserRouter>
         </ThemeColorProvider>
+        </ColorSchemeProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );
