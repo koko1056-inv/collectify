@@ -227,7 +227,7 @@ export function TradeCard({
       ) : !isCompleted && (
         <div className="flex flex-col gap-2">
           <Button
-            className="w-full relative rounded-lg bg-black hover:bg-gray-800 transition-shadow"
+            className="w-full relative rounded-lg bg-foreground hover:bg-foreground/90 transition-shadow"
             onClick={() => onOpenChat?.(trade)}
           >
             <MessageCircle className="mr-1 h-4 w-4" />

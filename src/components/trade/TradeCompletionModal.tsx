@@ -138,12 +138,12 @@ export function TradeCompletionModal({
           </ScrollArea>
           <DialogFooter>
             {step === 'confirmation' && (
-              <Button onClick={() => setStep('shipping')} className="bg-black text-white hover:bg-gray-800">
+              <Button onClick={() => setStep('shipping')} className="bg-foreground text-background hover:bg-foreground/90">
                 {t("trade.completion.toShipping")}
               </Button>
             )}
             {step === 'shipping' && (
-              <Button onClick={() => setStep('complete')} className="bg-black text-white hover:bg-gray-800">
+              <Button onClick={() => setStep('complete')} className="bg-foreground text-background hover:bg-foreground/90">
                 {t("trade.completion.shipped")}
               </Button>
             )}
@@ -151,7 +151,7 @@ export function TradeCompletionModal({
               <Button 
                 onClick={handleComplete}
                 disabled={isLoading}
-                className="bg-black text-white hover:bg-gray-800"
+                className="bg-foreground text-background hover:bg-foreground/90"
               >
                 {t("trade.completion.complete")}
               </Button>

@@ -42,13 +42,13 @@ export function CollectionTabs({
       <TabsList className="grid w-full max-w-[280px] mx-auto grid-cols-2 bg-card border border-border rounded-full">
         <TabsTrigger 
           value="official" 
-          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+          className="data-[state=active]:bg-foreground data-[state=active]:text-background rounded-full"
         >
           {t("tabs.official")}
         </TabsTrigger>
         <TabsTrigger 
           value="collection" 
-          className="data-[state=active]:bg-gray-900 data-[state=active]:text-white rounded-full"
+          className="data-[state=active]:bg-foreground data-[state=active]:text-background rounded-full"
         >
           {t("tabs.collection")}
         </TabsTrigger>
