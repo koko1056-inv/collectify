@@ -5,6 +5,7 @@ import { CollectionWishlist } from "./CollectionWishlist";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { usePersonalTags } from "@/hooks/usePersonalTags";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CollectionViewToggleProps {
   userId: string;
@@ -33,6 +34,7 @@ export function CollectionViewToggle({
   onSelectItem,
 }: CollectionViewToggleProps) {
   const { allUserTags } = usePersonalTags();
+  const { t } = useLanguage();
   // 「通常表示 / 欲しい物リスト」の切替（マイタグ選択時は無効）
   const [viewType, setViewType] = useState<"grid" | "wishlist">("grid");
 
@@ -51,8 +53,8 @@ export function CollectionViewToggle({
   };
 
   const tabs: { value: string; label: string }[] = [
-    { value: "grid", label: "通常表示" },
-    { value: "wishlist", label: "欲しい物リスト" },
+    { value: "grid", label: t("collectionScreen.viewToggle.grid") },
+    { value: "wishlist", label: t("collectionScreen.viewToggle.wishlist") },
     ...allUserTags.map((tag) => ({ value: tag, label: tag })),
   ];
 
@@ -90,9 +92,15 @@ export function CollectionViewToggle({
         <CollectionWishlist userId={userId} />
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-sm text-muted-foreground">
-          {selectedPersonalTag
-            ? `「${selectedPersonalTag}」タグが付いたグッズはまだありません`
-            : "該当するグッズがありません"}
+          {selectedPersonalTag ? (
+            <>
+              {t("collectionScreen.viewToggle.taggedEmptyPrefix")}
+              {selectedPersonalTag}
+              {t("collectionScreen.viewToggle.taggedEmptySuffix")}
+            </>
+          ) : (
+            t("collectionScreen.viewToggle.empty")
+          )}
         </div>
       ) : (
         <CollectionGrid

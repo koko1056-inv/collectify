@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { MessageItem } from "./MessageItem";
 import type { Message, PartnerProfile } from "./types";
 import { MessageCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MessageListProps {
   messages: Message[];
@@ -10,6 +11,7 @@ interface MessageListProps {
 }
 
 export function MessageList({ messages, partnerProfile }: MessageListProps) {
+  const { t } = useLanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,8 +30,8 @@ export function MessageList({ messages, partnerProfile }: MessageListProps) {
         <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <MessageCircle className="h-8 w-8" />
         </div>
-        <p className="text-sm font-medium">メッセージはまだありません</p>
-        <p className="text-xs mt-1">最初のメッセージを送ってみましょう</p>
+        <p className="text-sm font-medium">{t("social.chat.emptyTitle")}</p>
+        <p className="text-xs mt-1">{t("social.chat.emptyDesc")}</p>
       </div>
     );
   }

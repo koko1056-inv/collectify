@@ -3,11 +3,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { deleteUserItem } from "@/utils/tag-operations";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const useCardEventHandlers = (itemId: string) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const handleDelete = async () => {
     try {
@@ -28,14 +30,14 @@ export const useCardEventHandlers = (itemId: string) => {
       }
       
       toast({
-        title: "アイテムを削除しました",
-        description: "コレクションからアイテムを削除しました。",
+        title: t("collectionScreen.cardActions.itemDeleted"),
+        description: t("collectionScreen.cardActions.itemDeletedDesc"),
       });
     } catch (error) {
       console.error("Error deleting item:", error);
       toast({
-        title: "エラー",
-        description: "アイテムの削除に失敗しました。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.cardActions.itemDeleteFailed"),
         variant: "destructive",
       });
     }

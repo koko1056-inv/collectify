@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Profile } from "@/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileEditSheetProps {
   open: boolean;
@@ -21,6 +22,7 @@ export function ProfileEditSheet({ open, onOpenChange, profile, onSaved }: Profi
   const [bio, setBio] = useState("");
   const [xUsername, setXUsername] = useState("");
   const [saving, setSaving] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (open) {
@@ -42,11 +44,11 @@ export function ProfileEditSheet({ open, onOpenChange, profile, onSaved }: Profi
         })
         .eq("id", profile.id);
       if (error) throw error;
-      toast.success("プロフィールを更新しました");
+      toast.success(t("profileScreen.editSheet.updated"));
       onSaved?.();
       onOpenChange(false);
     } catch (e) {
-      toast.error("更新に失敗しました");
+      toast.error(t("profileScreen.editSheet.updateFailed"));
     } finally {
       setSaving(false);
     }
@@ -56,17 +58,17 @@ export function ProfileEditSheet({ open, onOpenChange, profile, onSaved }: Profi
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[85vh] p-0 flex flex-col">
         <SheetHeader className="px-5 pt-5 pb-3 border-b">
-          <SheetTitle className="text-left">プロフィール編集</SheetTitle>
+          <SheetTitle className="text-left">{t("profileScreen.editSheet.title")}</SheetTitle>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="displayName">表示名</Label>
+            <Label htmlFor="displayName">{t("profileScreen.editSheet.displayName")}</Label>
             <Input
               id="displayName"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="推し活ネーム"
+              placeholder={t("profileScreen.editSheet.displayNamePlaceholder")}
               maxLength={30}
             />
             <p className="text-[10px] text-muted-foreground text-right">
@@ -75,12 +77,12 @@ export function ProfileEditSheet({ open, onOpenChange, profile, onSaved }: Profi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio">自己紹介</Label>
+            <Label htmlFor="bio">{t("profileScreen.editSheet.bio")}</Label>
             <Textarea
               id="bio"
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              placeholder="推しのこと、コレクションへの想い、好きなジャンル..."
+              placeholder={t("profileScreen.editSheet.bioPlaceholder")}
               rows={4}
               maxLength={200}
               className="resize-none"
@@ -113,11 +115,11 @@ export function ProfileEditSheet({ open, onOpenChange, profile, onSaved }: Profi
             disabled={saving}
             className="flex-1 rounded-xl"
           >
-            キャンセル
+            {t("profileScreen.common.cancel")}
           </Button>
           <Button onClick={handleSave} disabled={saving} className="flex-1 rounded-xl gap-2">
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-            保存
+            {t("profileScreen.common.save")}
           </Button>
         </div>
       </SheetContent>

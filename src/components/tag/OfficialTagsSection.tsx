@@ -1,17 +1,20 @@
 
 import { Badge } from "@/components/ui/badge";
 import { SimpleItemTag } from "@/utils/tag/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OfficialTagsSectionProps {
   officialTags: SimpleItemTag[];
 }
 
 export function OfficialTagsSection({ officialTags }: OfficialTagsSectionProps) {
+  const { t } = useLanguage();
+
   if (officialTags.length === 0) return null;
 
   return (
     <div className="mb-4">
-      <h3 className="text-sm font-medium mb-2">公式アイテムのタグ:</h3>
+      <h3 className="text-sm font-medium mb-2">{t("tagManage.official.heading")}</h3>
       <div className="flex flex-wrap gap-2">
         {officialTags.map((tag) => (
           <Badge 

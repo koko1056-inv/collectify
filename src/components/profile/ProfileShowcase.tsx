@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Home, User, Pencil, Sparkles, Plus, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   profileId: string;
@@ -40,6 +41,7 @@ export function ProfileShowcase({
   featuredAvatarId,
 }: Props) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [pickerOpen, setPickerOpen] = useState<"room" | "avatar" | null>(null);
 
   // 表示中の featured room / avatar
@@ -87,14 +89,14 @@ export function ProfileShowcase({
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <h2 className="text-[13px] font-bold tracking-wide">マイステージ</h2>
+          <h2 className="text-[13px] font-bold tracking-wide">{t("profileScreen.showcase.title")}</h2>
         </div>
         {isOwnProfile && hasAny && (
           <button
             onClick={() => setPickerOpen(featuredRoom ? "room" : "avatar")}
             className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
           >
-            <Pencil className="w-3 h-3" /> 編集
+            <Pencil className="w-3 h-3" /> {t("profileScreen.common.edit")}
           </button>
         )}
       </div>
@@ -106,11 +108,11 @@ export function ProfileShowcase({
           <button
             onClick={openRoomDetail}
             className="absolute inset-0 w-full h-full group"
-            aria-label="ルームを開く"
+            aria-label={t("profileScreen.showcase.openRoom")}
           >
             <img
               src={featuredRoom.image_url}
-              alt={featuredRoom.title || "マイルーム"}
+              alt={featuredRoom.title || t("profileScreen.showcase.myRoom")}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/20" />
@@ -123,11 +125,11 @@ export function ProfileShowcase({
           >
             <Home className="w-8 h-8 opacity-40" />
             <p className="text-xs font-medium">
-              {isOwnProfile ? "お気に入りルームを設定" : "ルーム未設定"}
+              {isOwnProfile ? t("profileScreen.showcase.setRoom") : t("profileScreen.showcase.noRoom")}
             </p>
             {isOwnProfile && (
               <span className="mt-1 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                <Plus className="w-3 h-3" /> 追加
+                <Plus className="w-3 h-3" /> {t("profileScreen.common.add")}
               </span>
             )}
           </button>
@@ -137,7 +139,7 @@ export function ProfileShowcase({
         {featuredRoom && (
           <div className="absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md text-white text-[10px] font-medium">
             <Home className="w-3 h-3" />
-            {featuredRoom.title || "マイルーム"}
+            {featuredRoom.title || t("profileScreen.showcase.myRoom")}
           </div>
         )}
 
@@ -149,7 +151,7 @@ export function ProfileShowcase({
               setPickerOpen("room");
             }}
             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md text-white flex items-center justify-center"
-            aria-label="ルーム変更"
+            aria-label={t("profileScreen.showcase.changeRoom")}
           >
             <Pencil className="w-3.5 h-3.5" />
           </button>
@@ -163,14 +165,14 @@ export function ProfileShowcase({
                 <div className="absolute inset-0 rounded-2xl bg-primary/40 blur-lg" />
                 <img
                   src={featuredAvatar.image_url}
-                  alt={featuredAvatar.name || "マイアバター"}
+                  alt={featuredAvatar.name || t("profileScreen.showcase.myAvatar")}
                   className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-white shadow-xl"
                 />
                 {isOwnProfile && (
                   <button
                     onClick={() => setPickerOpen("avatar")}
                     className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md border-2 border-background"
-                    aria-label="アバター変更"
+                    aria-label={t("profileScreen.showcase.changeAvatar")}
                   >
                     <Pencil className="w-3 h-3" />
                   </button>
@@ -189,7 +191,7 @@ export function ProfileShowcase({
               >
                 <User className="w-5 h-5 opacity-80" />
                 <span className="text-[9px] font-medium leading-tight text-center px-1">
-                  {isOwnProfile ? "アバター追加" : "未設定"}
+                  {isOwnProfile ? t("profileScreen.showcase.addAvatar") : t("profileScreen.showcase.notSet")}
                 </span>
               </button>
             )}
@@ -207,7 +209,7 @@ export function ProfileShowcase({
                 "text-[9px]",
                 featuredRoom ? "text-white/80" : "text-muted-foreground"
               )}>
-                マイアバター
+                {t("profileScreen.showcase.myAvatar")}
               </p>
             </div>
           )}
@@ -247,6 +249,7 @@ function ShowcaseCard({
   onEdit?: () => void;
   emptyHint: string;
 }) {
+  const { t } = useLanguage();
   const isEmpty = !imageUrl;
   return (
     <div className="relative group">
@@ -278,7 +281,7 @@ function ShowcaseCard({
               {isOwnProfile ? <Plus className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
             </div>
             <p className="text-[11px] font-medium px-2 text-center">
-              {isOwnProfile ? emptyHint : `${label}は未設定`}
+              {isOwnProfile ? emptyHint : t("profileScreen.showcase.slotNotSet", { label })}
             </p>
           </>
         )}
@@ -290,7 +293,7 @@ function ShowcaseCard({
             onEdit?.();
           }}
           className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm flex items-center justify-center"
-          aria-label="変更"
+          aria-label={t("profileScreen.showcase.change")}
         >
           <Pencil className="w-3.5 h-3.5" />
         </button>
@@ -313,6 +316,7 @@ function ShowcasePicker({
   onClose: () => void;
 }) {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const isOpen = open !== null;
   const tab = open ?? "room";
 
@@ -350,10 +354,10 @@ function ShowcasePicker({
       .update(patch)
       .eq("id", profileId);
     if (error) {
-      toast.error("更新に失敗しました");
+      toast.error(t("profileScreen.showcase.updateFailed"));
       return;
     }
-    toast.success("ショーケースを更新しました");
+    toast.success(t("profileScreen.showcase.updated"));
     await queryClient.invalidateQueries({ queryKey: ["profile", profileId] });
     await queryClient.invalidateQueries({ queryKey: ["featured-room"] });
     await queryClient.invalidateQueries({ queryKey: ["featured-avatar"] });
@@ -364,19 +368,19 @@ function ShowcasePicker({
     <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>ショーケースを設定</DialogTitle>
+          <DialogTitle>{t("profileScreen.showcase.pickerTitle")}</DialogTitle>
           <DialogDescription>
-            プロフィールに表示するルームとアバターを選びましょう
+            {t("profileScreen.showcase.pickerDesc")}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={tab} className="flex-1 overflow-hidden flex flex-col">
           <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="room" disabled>
-              <Home className="w-4 h-4 mr-1.5" /> ルーム
+              <Home className="w-4 h-4 mr-1.5" /> {t("profileScreen.showcase.tabRoom")}
             </TabsTrigger>
             <TabsTrigger value="avatar" disabled>
-              <User className="w-4 h-4 mr-1.5" /> アバター
+              <User className="w-4 h-4 mr-1.5" /> {t("profileScreen.showcase.tabAvatar")}
             </TabsTrigger>
           </TabsList>
 
@@ -385,7 +389,7 @@ function ShowcasePicker({
               items={rooms}
               loading={roomsLoading}
               currentId={currentRoomId}
-              emptyMessage="まだルームがありません。AIスタジオで作成してください。"
+              emptyMessage={t("profileScreen.showcase.noRooms")}
               onSelect={(id) => update({ featured_room_id: id })}
               onClear={currentRoomId ? () => update({ featured_room_id: null }) : undefined}
             />
@@ -396,7 +400,7 @@ function ShowcasePicker({
               items={avatars}
               loading={avatarsLoading}
               currentId={currentAvatarId}
-              emptyMessage="まだアバターがありません。AIスタジオで作成してください。"
+              emptyMessage={t("profileScreen.showcase.noAvatars")}
               onSelect={(id) => update({ featured_avatar_id: id })}
               onClear={currentAvatarId ? () => update({ featured_avatar_id: null }) : undefined}
             />
@@ -422,6 +426,8 @@ function PickerGrid({
   onSelect: (id: string) => void;
   onClear?: () => void;
 }) {
+  const { t } = useLanguage();
+
   if (loading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1">
@@ -441,7 +447,7 @@ function PickerGrid({
       {onClear && (
         <Button variant="outline" size="sm" onClick={onClear} className="gap-1.5">
           <X className="w-3.5 h-3.5" />
-          ピン留めを解除
+          {t("profileScreen.showcase.unpin")}
         </Button>
       )}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

@@ -24,6 +24,7 @@ export interface DisplayFurniturePreset {
   icon: string;
   category: FurnitureCategory;
   description: string;
+  descriptionEn: string;
   // 初期サイズ（vw, vh）
   widthVw: number;  // 横幅（vw）
   heightVw: number; // 縦幅（vw）基準でアスペクト維持
@@ -42,6 +43,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "🗄️",
     category: "shelf",
     description: "コンパクトな2段の白い棚",
+    descriptionEn: "A compact white two-tier shelf",
     widthVw: 18,
     heightVw: 20,
     slots: [
@@ -57,6 +59,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "📚",
     category: "shelf",
     description: "たっぷり飾れる3段の棚",
+    descriptionEn: "A three-tier shelf with plenty of display space",
     widthVw: 22,
     heightVw: 26,
     slots: [
@@ -73,6 +76,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "🪟",
     category: "shelf",
     description: "横に長いワイドタイプ",
+    descriptionEn: "A long, wide shelf",
     widthVw: 32,
     heightVw: 18,
     slots: [
@@ -88,6 +92,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "📐",
     category: "shelf",
     description: "壁掛けタイプの横長棚",
+    descriptionEn: "A wall-mounted horizontal shelf",
     widthVw: 24,
     heightVw: 5,
     slots: [
@@ -104,6 +109,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "⚪",
     category: "stand",
     description: "1つのアイテムを際立たせる小さな台座",
+    descriptionEn: "A small pedestal that spotlights a single item",
     widthVw: 6,
     heightVw: 4,
     slots: [{ x: 0.5, y: 0.4 }],
@@ -116,6 +122,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "🫧",
     category: "stand",
     description: "円形のディスプレイ台",
+    descriptionEn: "A round display stand",
     widthVw: 10,
     heightVw: 8,
     slots: [{ x: 0.5, y: 0.3 }],
@@ -128,6 +135,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "🔲",
     category: "stand",
     description: "高さを出す四角い台",
+    descriptionEn: "A square riser that adds height",
     widthVw: 8,
     heightVw: 6,
     slots: [{ x: 0.5, y: 0.3 }],
@@ -142,6 +150,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "🪪",
     category: "board",
     description: "アクリルスタンドを並べるベース",
+    descriptionEn: "A base for lining up acrylic stands",
     widthVw: 20,
     heightVw: 4,
     slots: [
@@ -156,6 +165,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "🎯",
     category: "board",
     description: "缶バッジを飾るコルクボード",
+    descriptionEn: "A cork board for displaying pin badges",
     widthVw: 18,
     heightVw: 14,
     slots: [
@@ -172,6 +182,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "🎌",
     category: "hanging",
     description: "縦長の布ポスター",
+    descriptionEn: "A tall fabric poster",
     widthVw: 10,
     heightVw: 18,
     slots: [{ x: 0.5, y: 0.5 }],
@@ -186,6 +197,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "📦",
     category: "case",
     description: "ホコリから守るガラスケース",
+    descriptionEn: "A glass case that keeps dust out",
     widthVw: 14,
     heightVw: 16,
     slots: [
@@ -201,6 +213,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "🗳️",
     category: "case",
     description: "オープンタイプのディスプレイ箱",
+    descriptionEn: "An open-front display box",
     widthVw: 12,
     heightVw: 10,
     slots: [{ x: 0.3, y: 0.5 }, { x: 0.7, y: 0.5 }],
@@ -215,6 +228,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "⛩️",
     category: "altar",
     description: "コンパクトな祭壇・神棚",
+    descriptionEn: "A compact shrine altar",
     widthVw: 16,
     heightVw: 22,
     slots: [
@@ -231,6 +245,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "🏛️",
     category: "altar",
     description: "キンキラの豪華祭壇",
+    descriptionEn: "A lavish, gold-trimmed altar",
     widthVw: 28,
     heightVw: 30,
     slots: [
@@ -250,6 +265,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     icon: "🖼️",
     category: "board",
     description: "写真・ポスター用の額縁",
+    descriptionEn: "A frame for photos and posters",
     widthVw: 8,
     heightVw: 10,
     slots: [{ x: 0.5, y: 0.5 }],
@@ -257,13 +273,13 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
   },
 ];
 
-export const FURNITURE_CATEGORY_LABELS: Record<FurnitureCategory, { label: string; icon: string }> = {
-  shelf: { label: "棚", icon: "🗄️" },
-  stand: { label: "台座", icon: "⚪" },
-  board: { label: "ボード", icon: "🪪" },
-  case: { label: "ケース", icon: "📦" },
-  altar: { label: "祭壇", icon: "⛩️" },
-  hanging: { label: "壁掛け", icon: "🎌" },
+export const FURNITURE_CATEGORY_LABELS: Record<FurnitureCategory, { label: string; labelEn: string; icon: string }> = {
+  shelf: { label: "棚", labelEn: "Shelves", icon: "🗄️" },
+  stand: { label: "台座", labelEn: "Pedestals", icon: "⚪" },
+  board: { label: "ボード", labelEn: "Boards", icon: "🪪" },
+  case: { label: "ケース", labelEn: "Cases", icon: "📦" },
+  altar: { label: "祭壇", labelEn: "Altars", icon: "⛩️" },
+  hanging: { label: "壁掛け", labelEn: "Wall hanging", icon: "🎌" },
 };
 
 export function getFurnitureById(id: string): DisplayFurniturePreset | undefined {

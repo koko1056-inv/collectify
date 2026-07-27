@@ -3,8 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Loader2, MessageCircle } from "lucide-react";
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface PublicItemDetailsModalProps {
   isOpen: boolean;
@@ -32,6 +32,8 @@ export function PublicItemDetailsModal({
   title,
   image,
 }: PublicItemDetailsModalProps) {
+  const { t } = useLanguage();
+  const { formatDate, formatWith } = useDateFormat();
   const { data: itemDetails, isLoading } = useQuery({
     queryKey: ["public-user-item-details", itemId],
     queryFn: async () => {
@@ -108,10 +110,9 @@ export function PublicItemDetailsModal({
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4" />
                   <span>
-                    {format(new Date(itemDetails.purchase_date), "yyyy年M月d日", {
-                      locale: ja,
+                    {t("misc.publicCollection.acquiredOn", {
+                      date: formatDate(itemDetails.purchase_date),
                     })}
-                    入手
                   </span>
                 </div>
               )}
@@ -141,7 +142,7 @@ export function PublicItemDetailsModal({
                 <div className="border-t border-border pt-4 space-y-3">
                   <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                     <MessageCircle className="w-4 h-4" />
-                    思い出 ({memories.length})
+                    {t("misc.publicCollection.memories", { n: memories.length })}
                   </div>
                   <div className="space-y-3">
                     {memories.slice(0, 5).map((m) => (
@@ -163,9 +164,7 @@ export function PublicItemDetailsModal({
                               {m.comment}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1.5">
-                              {format(new Date(m.created_at), "yyyy/M/d", {
-                                locale: ja,
-                              })}
+                              {formatWith(m.created_at, "yyyy/M/d")}
                             </p>
                           </div>
                         )}

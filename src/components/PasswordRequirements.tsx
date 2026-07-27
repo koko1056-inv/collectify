@@ -1,10 +1,13 @@
 import { Check, X } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PasswordRequirementsProps {
   password: string;
 }
 
 export function PasswordRequirements({ password }: PasswordRequirementsProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="text-sm space-y-1 mt-2">
       <div className="flex items-center gap-2">
@@ -13,7 +16,7 @@ export function PasswordRequirements({ password }: PasswordRequirementsProps) {
         ) : (
           <X className="h-4 w-4 text-destructive" />
         )}
-        <span>パスワードは6文字以上である必要があります</span>
+        <span>{t("chrome.password.minLength")}</span>
       </div>
     </div>
   );

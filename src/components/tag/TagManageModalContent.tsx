@@ -12,6 +12,7 @@ import { SimpleItemTag } from "@/utils/tag/types";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagManageModalContentProps {
   currentTags: SimpleItemTag[];
@@ -35,6 +36,7 @@ export function TagManageModalContent({
   officialTags = []
 }: TagManageModalContentProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const handleRemoveTag = async (tagId: string) => {
@@ -66,16 +68,16 @@ export function TagManageModalContent({
       await queryClient.invalidateQueries({ queryKey });
 
       toast({
-        title: "タグを削除しました",
-        description: "タグが正常に削除されました。",
+        title: t("tagManage.toast.tagDeleted"),
+        description: t("tagManage.toast.tagDeletedDesc"),
       });
     } catch (error) {
       console.error("Error removing tag:", error);
       // ロールバック
       queryClient.setQueryData(queryKey, previous);
       toast({
-        title: "エラー",
-        description: "タグの削除中にエラーが発生しました。",
+        title: t("tagManage.common.error"),
+        description: t("tagManage.toast.deleteErrorDesc"),
         variant: "destructive",
       });
     }

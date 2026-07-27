@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { TradeRequestModal } from "./TradeRequestModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreateOpenTradeButtonProps {
   onTradeCreated?: () => void;
@@ -10,6 +11,7 @@ interface CreateOpenTradeButtonProps {
 
 export function CreateOpenTradeButton({ onTradeCreated }: CreateOpenTradeButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { t } = useLanguage();
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -33,7 +35,7 @@ export function CreateOpenTradeButton({ onTradeCreated }: CreateOpenTradeButtonP
             <Plus className="h-5 w-5" />
             <Sparkles className="h-3 w-3 absolute -top-1 -right-1 text-gray-300" />
           </div>
-          <span className="font-medium">新しいトレードを作成する</span>
+          <span className="font-medium">{t("trade.list.createNew")}</span>
         </div>
       </Button>
 

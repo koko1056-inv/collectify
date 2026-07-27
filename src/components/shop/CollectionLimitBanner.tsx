@@ -6,6 +6,7 @@ import { useCollectionCount, useRoomCount } from "@/hooks/useCollectionLimit";
 import { useUserLimits } from "@/hooks/usePointShop";
 import { useExpandCollectionSlots } from "@/hooks/useSpendPoints";
 import { SpendPointsDialog } from "./SpendPointsDialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CollectionLimitBannerProps {
   type?: "collection" | "room";
@@ -19,6 +20,7 @@ const EXPAND_AMOUNT = 10;
  * ルーム枠は現状ポイント拡張対象外（コレクション枠のみ即時拡張可）。
  */
 export function CollectionLimitBanner({ type = "collection" }: CollectionLimitBannerProps) {
+  const { t } = useLanguage();
   const { data: limits } = useUserLimits();
   const { data: collectionCount } = useCollectionCount();
   const { data: roomCount } = useRoomCount();
@@ -52,7 +54,9 @@ export function CollectionLimitBanner({ type = "collection" }: CollectionLimitBa
           <div className="flex items-center gap-2 min-w-0">
             <Package className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
             <span className="text-amber-800 dark:text-amber-300 truncate">
-              残り{remaining}{isCollection ? "個" : "部屋"}で上限
+              {isCollection
+                ? t("misc.shop.remainingItems", { n: remaining })
+                : t("misc.shop.remainingRooms", { n: remaining })}
             </span>
           </div>
           {isCollection && (
@@ -61,7 +65,7 @@ export function CollectionLimitBanner({ type = "collection" }: CollectionLimitBa
               className="text-amber-700 dark:text-amber-400 font-medium whitespace-nowrap flex items-center gap-1 hover:underline"
             >
               <Plus className="w-3 h-3" />
-              +{EXPAND_AMOUNT}枠 ({EXPAND_COST}pt)
+              {t("misc.shop.expandSlots", { n: EXPAND_AMOUNT, cost: EXPAND_COST })}
             </button>
           )}
         </div>
@@ -69,10 +73,14 @@ export function CollectionLimitBanner({ type = "collection" }: CollectionLimitBa
           <SpendPointsDialog
             open={confirmOpen}
             onOpenChange={setConfirmOpen}
-            title="コレクション枠を拡張"
-            description={`コレクション枠を +${EXPAND_AMOUNT} 拡張します。現在の上限 ${maxSlots} → ${maxSlots + EXPAND_AMOUNT}`}
+            title={t("misc.shop.expandTitle")}
+            description={t("misc.shop.expandDesc", {
+              amount: EXPAND_AMOUNT,
+              from: maxSlots,
+              to: maxSlots + EXPAND_AMOUNT,
+            })}
             cost={EXPAND_COST}
-            confirmLabel={`${EXPAND_COST}pt 消費して拡張`}
+            confirmLabel={t("misc.shop.expandConfirm", { cost: EXPAND_COST })}
             loading={expand.isPending}
             onConfirm={handleExpand}
           />
@@ -90,7 +98,9 @@ export function CollectionLimitBanner({ type = "collection" }: CollectionLimitBa
           <div className="flex-1 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold text-destructive">
-                {isCollection ? "コレクション" : "ルーム"}枠が上限に達しました
+                {isCollection
+                  ? t("misc.shop.limitReachedCollection")
+                  : t("misc.shop.limitReachedRoom")}
               </p>
               <span className="text-xs text-muted-foreground whitespace-nowrap">
                 {currentCount} / {maxSlots}
@@ -100,8 +110,8 @@ export function CollectionLimitBanner({ type = "collection" }: CollectionLimitBa
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs text-muted-foreground">
                 {isCollection
-                  ? `${EXPAND_COST}ptで枠を +${EXPAND_AMOUNT} 拡張できます`
-                  : "ルーム枠の拡張は現在準備中です"}
+                  ? t("misc.shop.canExpand", { cost: EXPAND_COST, amount: EXPAND_AMOUNT })
+                  : t("misc.shop.roomExpandComingSoon")}
               </p>
               {isCollection && (
                 <Button
@@ -111,7 +121,7 @@ export function CollectionLimitBanner({ type = "collection" }: CollectionLimitBa
                   disabled={expand.isPending}
                 >
                   <Plus className="w-3 h-3" />
-                  +{EXPAND_AMOUNT}枠
+                  {t("misc.shop.expandSlotsShort", { n: EXPAND_AMOUNT })}
                 </Button>
               )}
             </div>
@@ -122,10 +132,14 @@ export function CollectionLimitBanner({ type = "collection" }: CollectionLimitBa
         <SpendPointsDialog
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
-          title="コレクション枠を拡張"
-          description={`コレクション枠を +${EXPAND_AMOUNT} 拡張します。現在の上限 ${maxSlots} → ${maxSlots + EXPAND_AMOUNT}`}
+          title={t("misc.shop.expandTitle")}
+          description={t("misc.shop.expandDesc", {
+            amount: EXPAND_AMOUNT,
+            from: maxSlots,
+            to: maxSlots + EXPAND_AMOUNT,
+          })}
           cost={EXPAND_COST}
-          confirmLabel={`${EXPAND_COST}pt 消費して拡張`}
+          confirmLabel={t("misc.shop.expandConfirm", { cost: EXPAND_COST })}
           loading={expand.isPending}
           onConfirm={handleExpand}
         />

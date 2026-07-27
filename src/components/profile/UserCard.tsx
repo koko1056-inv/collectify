@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { User, Package, Users, UserCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UserCardProps {
   id: string;
@@ -28,6 +29,8 @@ export function UserCard({
   isFollowing,
   onFollow,
 }: UserCardProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/50 hover:border-border hover:shadow-sm transition-all">
       <Link to={`/user/${id}`} className="flex-shrink-0">
@@ -80,10 +83,10 @@ export function UserCard({
           {isFollowing ? (
             <>
               <UserCheck className="w-3.5 h-3.5 mr-1" />
-              フォロー中
+              {t("profileScreen.follow.following")}
             </>
           ) : (
-            "フォロー"
+            t("profileScreen.follow.follow")
           )}
         </Button>
       )}

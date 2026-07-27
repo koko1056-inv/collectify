@@ -1,10 +1,10 @@
-import { formatDistanceToNow } from 'date-fns';
-import { ja } from 'date-fns/locale';
 import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Notification, NotificationData } from '@/types/notification';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useDateFormat } from '@/hooks/useDateFormat';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { STAMP_BY_TYPE, type StampType } from '@/features/stamps/types';
@@ -15,6 +15,8 @@ interface NotificationItemProps {
 }
 
 export function NotificationItem({ notification }: NotificationItemProps) {
+  const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const { markAsRead, deleteNotification } = useNotifications();
   const navigate = useNavigate();
   const replyStamp = useReplyStamp();
@@ -30,7 +32,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       case 'like':
         return <Heart className="h-4 w-4 text-red-500" />;
       case 'greeting_stamp':
-        return <Sticker className="h-4 w-4 text-pink-500" />;
+        return <Sticker className="h-4 w-4 text-primary" />;
       case 'match_success':
         return <Sparkles className="h-4 w-4 text-violet-500" />;
       case 'success':
@@ -82,10 +84,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     markAsRead(notification.id);
   };
 
-  const timeAgo = formatDistanceToNow(new Date(notification.created_at), {
-    addSuffix: true,
-    locale: ja,
-  });
+  const timeAgo = formatRelative(notification.created_at);
 
   const data = notification.data as NotificationData;
 
@@ -140,12 +139,12 @@ export function NotificationItem({ notification }: NotificationItemProps) {
             <div className="flex items-center gap-2 mb-2">
               <img
                 src={data.image}
-                alt="投稿画像"
+                alt={t("misc.notifications.postImageAlt")}
                 className="w-8 h-8 rounded object-cover"
               />
               {data.comment_text && (
                 <p className="text-xs text-muted-foreground line-clamp-1 flex-1">
-                  「{data.comment_text}」
+                  {t("misc.notifications.quotedComment", { text: data.comment_text })}
                 </p>
               )}
             </div>
@@ -153,10 +152,10 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
           {/* Greeting stamp notification */}
           {notification.type === 'greeting_stamp' && data.stamp_type && (
-            <div className="flex items-center gap-2 mb-2 p-2 rounded-md bg-pink-50 border border-pink-100">
+            <div className="flex items-center gap-2 mb-2 p-2 rounded-md bg-primary/5 border border-primary/10">
               <span className="text-2xl">{STAMP_BY_TYPE[data.stamp_type as StampType]?.emoji ?? '👋'}</span>
               <p className="text-xs flex-1 font-medium">
-                {STAMP_BY_TYPE[data.stamp_type as StampType]?.label ?? 'あいさつ'}
+                {STAMP_BY_TYPE[data.stamp_type as StampType]?.label ?? t("misc.notifications.greetingFallback")}
               </p>
               {data.stamp_id && (
                 <Button
@@ -170,7 +169,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
                   }}
                   disabled={replyStamp.isPending}
                 >
-                  ありがとう💌
+                  {t("misc.notifications.thanks")}
                 </Button>
               )}
             </div>
@@ -187,7 +186,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
                 navigate(`/user/${data.matched_user_id}`);
               }}
             >
-              プロフィールを見る →
+              {t("misc.notifications.viewProfile")}
             </Button>
           )}
 
@@ -203,7 +202,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
                 size="sm"
                 className="h-8 w-8 p-0 touch-target"
                 onClick={handleMarkAsRead}
-                title="既読にする"
+                title={t("misc.notifications.markRead")}
               >
                 <Eye className="h-4 w-4" />
               </Button>
@@ -214,7 +213,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
                 size="sm"
                 className="h-8 w-8 p-0 touch-target hover:bg-destructive hover:text-destructive-foreground"
                 onClick={handleDelete}
-                title="削除"
+                title={t("misc.common.delete")}
               >
                 <X className="h-4 w-4" />
               </Button>

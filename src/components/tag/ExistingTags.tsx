@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ExistingTagsProps {
   itemIds: string[];
@@ -11,6 +12,7 @@ interface ExistingTagsProps {
 
 export function ExistingTags({ itemIds, isUserItem = false, isCategory = false }: ExistingTagsProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const { data: existingTags = [] } = useQuery({
@@ -44,14 +46,14 @@ export function ExistingTags({ itemIds, isUserItem = false, isCategory = false }
       });
 
       toast({
-        title: isCategory ? "カテゴリを追加しました" : "タグを追加しました",
-        description: `${tagName}を${itemIds.length}個のアイテムに追加しました。`,
+        title: isCategory ? t("tagManage.existing.categoryAdded") : t("tagManage.toast.tagAdded"),
+        description: `${t("tagManage.existing.addedToItemsPrefix")}${tagName}${t("tagManage.existing.addedToItemsMid")}${itemIds.length}${t("tagManage.existing.addedToItemsSuffix")}`,
       });
     } catch (error) {
       console.error("Error adding existing tag:", error);
       toast({
-        title: "エラー",
-        description: isCategory ? "カテゴリの追加に失敗しました。" : "タグの追加に失敗しました。",
+        title: t("tagManage.common.error"),
+        description: isCategory ? t("tagManage.existing.categoryAddFailed") : t("tagManage.common.tagAddFailed"),
         variant: "destructive",
       });
     }
@@ -59,7 +61,7 @@ export function ExistingTags({ itemIds, isUserItem = false, isCategory = false }
 
   return (
     <div className="space-y-2">
-      <h4 className="text-sm font-medium">{isCategory ? "既存のカテゴリ" : "既存のタグ"}</h4>
+      <h4 className="text-sm font-medium">{isCategory ? t("tagManage.existing.categoriesHeading") : t("tagManage.existing.tagsHeading")}</h4>
       <div className="flex flex-wrap gap-2">
         {existingTags.map((tag) => (
           <Badge

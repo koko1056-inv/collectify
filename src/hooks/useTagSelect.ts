@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tag } from "@/types/tag";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function useTagSelect(category: string, initialValue: string | null) {
   const [searchQuery, setSearchQuery] = useState("");
+  const { t } = useLanguage();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -43,13 +45,13 @@ export function useTagSelect(category: string, initialValue: string | null) {
   const getPlaceholderText = () => {
     switch (category) {
       case 'character':
-        return 'キャラクターを選択';
+        return t('notices.tagSelect.character');
       case 'type':
-        return 'グッズタイプを選択';
+        return t('notices.tagSelect.type');
       case 'series':
-        return 'グッズシリーズを選択';
+        return t('notices.tagSelect.series');
       default:
-        return '選択してください';
+        return t('notices.tagSelect.default');
     }
   };
 

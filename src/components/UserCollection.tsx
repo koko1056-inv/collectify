@@ -186,10 +186,10 @@ export function UserCollection({
   }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, isPersonalTagLoading, sortOption]);
 
   const sortLabels: Record<SortOption, string> = {
-    newest: "新しい順",
-    oldest: "古い順",
-    title: "タイトル順",
-    content: "コンテンツ順",
+    newest: t("chrome.collection.sortNewest"),
+    oldest: t("chrome.collection.sortOldest"),
+    title: t("chrome.collection.sortTitle"),
+    content: t("chrome.collection.sortContent"),
   };
 
   const sortIcons: Record<SortOption, React.ReactNode> = {
@@ -240,10 +240,10 @@ export function UserCollection({
             {/* テキスト */}
             <div className="space-y-2">
               <h3 className="text-lg font-bold text-foreground">
-                最初のグッズを追加しよう！
+                {t("chrome.collection.emptyTitle")}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                あなたの大切なコレクションを<br />記録してみましょう
+                {t("chrome.collection.emptyDescLine1")}<br />{t("chrome.collection.emptyDescLine2")}
               </p>
             </div>
 
@@ -255,7 +255,7 @@ export function UserCollection({
                 className="gap-2 w-full h-12 hover-scale shadow-lg"
               >
                 <Plus className="w-5 h-5" />
-                グッズを追加
+                {t("chrome.collection.addGoods")}
               </Button>
               
               <div className="flex gap-2">
@@ -266,7 +266,7 @@ export function UserCollection({
                   className="flex-1 gap-1.5"
                 >
                   <Search className="w-4 h-4" />
-                  発見から探す
+                  {t("chrome.collection.browseDiscover")}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -275,14 +275,14 @@ export function UserCollection({
                   className="flex-1 gap-1.5"
                 >
                   <Camera className="w-4 h-4" />
-                  写真で追加
+                  {t("chrome.collection.addByPhoto")}
                 </Button>
               </div>
             </div>
 
             {/* ヒント */}
             <p className="text-xs text-muted-foreground/70">
-              💡 ヒント: 写真を撮るだけで自動登録できます
+              {t("chrome.collection.emptyHint")}
             </p>
           </CardContent>
         </Card>
@@ -364,8 +364,8 @@ export function UserCollection({
                     onClick={onOpenFilter}
                     disabled={!onOpenFilter}
                     className="relative h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
-                    title="フィルター"
-                    aria-label="フィルター"
+                    title={t("chrome.collection.filter")}
+                    aria-label={t("chrome.collection.filter")}
                   >
                     <SlidersHorizontal className="h-4 w-4" />
                     {hasFilter && (
@@ -388,8 +388,8 @@ export function UserCollection({
                   variant="ghost"
                   size="icon"
                   className="h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
-                  title="複数選択"
-                  aria-label="複数選択"
+                  title={t("chrome.collection.multiSelect")}
+                  aria-label={t("chrome.collection.multiSelect")}
                 >
                   <CheckSquare className="h-4 w-4" />
                 </Button>
@@ -401,7 +401,7 @@ export function UserCollection({
                 className="gap-1.5 h-9 px-3 rounded-lg bg-primary/10 text-primary hover:bg-primary/15 shadow-none group"
               >
                 <Dices className="h-4 w-4 shrink-0 group-hover:rotate-12 transition-transform" />
-                <span className="text-xs font-semibold whitespace-nowrap">今日のグッズ</span>
+                <span className="text-xs font-semibold whitespace-nowrap">{t("chrome.collection.todaysGoods")}</span>
               </Button>
             </div>
           </>
@@ -415,12 +415,12 @@ export function UserCollection({
             >
               <span className="text-sm font-medium">
                 {selectedItemIds.length === filteredItems.length && filteredItems.length > 0
-                  ? "選択解除"
-                  : "全て選択"}
+                  ? t("chrome.collection.deselectAll")
+                  : t("chrome.collection.selectAll")}
               </span>
             </Button>
             <span className="text-sm text-muted-foreground">
-              {selectedItemIds.length}件選択中
+              {t("chrome.collection.selectedCount", { n: selectedItemIds.length })}
             </span>
             <div className="flex-1" />
             <Button
@@ -430,7 +430,7 @@ export function UserCollection({
               className="h-9 px-3 rounded-full"
             >
               <X className="h-4 w-4 mr-1" />
-              キャンセル
+              {t("chrome.common.cancel")}
             </Button>
           </>
         )}
@@ -439,8 +439,8 @@ export function UserCollection({
       {filteredItems.length === 0 ? (
         <EmptyState
           icon={Search}
-          title="該当するグッズがありません"
-          description="検索条件やフィルターを変えてみてください"
+          title={t("chrome.collection.noMatchTitle")}
+          description={t("chrome.collection.noMatchDesc")}
         />
       ) : (
         <CollectionViewToggle
@@ -457,12 +457,13 @@ export function UserCollection({
         />
       )}
 
-      {/* 選択モード時のフローティングアクションバー */}
+      {/* 選択モード時のフローティングアクションバー。
+          下部ナビ中央の「みつける」ボタンが上へ張り出しているため、それより上に配置する。 */}
       {isSelectionMode && selectedItemIds.length > 0 && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-40 px-4 w-full max-w-lg">
+        <div className="fixed bottom-[calc(7rem+env(safe-area-inset-bottom))] sm:bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-lg">
           <div className="bg-background/95 backdrop-blur-md border border-border rounded-2xl shadow-xl flex items-center gap-2 p-2">
             <span className="text-sm font-medium pl-3 shrink-0">
-              {selectedItemIds.length}件
+              {t("chrome.collection.itemCount", { n: selectedItemIds.length })}
             </span>
             <div className="flex-1" />
             <Button
@@ -472,7 +473,7 @@ export function UserCollection({
               className="rounded-full gap-1.5"
             >
               <Tag className="w-4 h-4" />
-              <span className="hidden sm:inline">マイタグ</span>
+              <span className="hidden sm:inline">{t("chrome.collection.myTags")}</span>
             </Button>
             <Button
               size="sm"
@@ -480,7 +481,7 @@ export function UserCollection({
                 const picked = filteredItems.filter((i) => selectedItemIds.includes(i.id));
                 if (picked.length === 0) return;
                 if (picked.length > 3) {
-                  toast.info("AI生成では最大3点まで使えます。先頭3点を引き継ぎます。");
+                  toast.info(t("chrome.collection.aiMaxThree"));
                 }
                 setPendingAiItems(
                   picked.slice(0, 3).map((i) => ({
@@ -492,10 +493,12 @@ export function UserCollection({
                 handleBulkComplete();
                 navigate("/my-room?tab=studio&from=collection");
               }}
+              // violet→fuchsia は AI 機能の識別色（AIスタジオ/FAB/オンボーディングでも共通）。
+              // テーマ色に寄せると AI 機能の見分けが付かなくなるため、あえてトークン化しない。
               className="rounded-full gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-primary-foreground"
             >
               <Sparkles className="w-4 h-4" />
-              AIで作る
+              {t("chrome.collection.makeWithAi")}
             </Button>
           </div>
         </div>

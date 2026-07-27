@@ -1,6 +1,7 @@
 import { Clock, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchHistoryItem } from "@/hooks/useSearchHistory";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SearchHistoryProps {
   history: SearchHistoryItem[];
@@ -17,6 +18,8 @@ export function SearchHistory({
   onClearAll,
   visible,
 }: SearchHistoryProps) {
+  const { t } = useLanguage();
+
   if (!visible || history.length === 0) {
     return null;
   }
@@ -27,7 +30,7 @@ export function SearchHistory({
       <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-muted/30">
         <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
           <Clock className="w-3 h-3" />
-          最近の検索
+          {t("chrome.search.recentSearches")}
         </span>
         <Button
           variant="ghost"
@@ -39,7 +42,7 @@ export function SearchHistory({
           className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
         >
           <Trash2 className="w-3 h-3 mr-1" />
-          クリア
+          {t("chrome.common.clear")}
         </Button>
       </div>
 
@@ -61,7 +64,7 @@ export function SearchHistory({
                 onRemove(item.query);
               }}
               className="opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-muted transition-all"
-              aria-label="削除"
+              aria-label={t("chrome.common.delete")}
             >
               <X className="w-3.5 h-3.5 text-muted-foreground" />
             </button>

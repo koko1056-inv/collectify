@@ -5,18 +5,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Users, Clock, ChevronRight, Package } from "lucide-react";
 import { Challenge } from "@/types/challenges";
-import { formatDistanceToNow, isPast, parseISO } from "date-fns";
-import { ja } from "date-fns/locale";
+import { isPast, parseISO } from "date-fns";
 import { ChallengeDetailModal } from "./ChallengeDetailModal";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface ChallengeCardProps {
   challenge: Challenge;
 }
 
 export function ChallengeCard({ challenge }: ChallengeCardProps) {
+  const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const isEnded = challenge.status === "ended" || isPast(parseISO(challenge.ends_at));
-  const timeLeft = formatDistanceToNow(parseISO(challenge.ends_at), { locale: ja, addSuffix: true });
+  const timeLeft = formatRelative(challenge.ends_at);
 
   return (
     <>
@@ -33,7 +36,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               </div>
             </div>
             <Badge variant={isEnded ? "secondary" : "default"} className="flex-shrink-0">
-              {isEnded ? "終了" : "開催中"}
+              {isEnded ? t("social.challenges.ended") : t("social.challenges.active")}
             </Badge>
           </div>
         </CardHeader>
@@ -50,7 +53,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Package className="h-3 w-3" />
-                  対象グッズ
+                  {t("social.challenges.targetGoods")}
                 </div>
                 <p className="text-sm font-medium truncate">{challenge.official_items.title}</p>
               </div>
@@ -67,11 +70,11 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <Users className="h-4 w-4" />
-              {challenge._count?.entries || 0}人参加
+              {t("social.challenges.participants", { count: challenge._count?.entries || 0 })}
             </span>
             <span className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
-              {isEnded ? "終了" : timeLeft}
+              {isEnded ? t("social.challenges.ended") : timeLeft}
             </span>
           </div>
         </CardContent>
@@ -80,7 +83,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Trophy className="h-3.5 w-3.5 text-yellow-500" />
-              <span>1位 {challenge.first_place_points}pt</span>
+              <span>{t("social.challenges.firstPlacePrize", { points: challenge.first_place_points })}</span>
             </div>
             <Button 
               variant="ghost" 
@@ -88,7 +91,7 @@ export function ChallengeCard({ challenge }: ChallengeCardProps) {
               onClick={() => setIsDetailOpen(true)}
               className="gap-1"
             >
-              詳細を見る
+              {t("social.challenges.viewDetails")}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

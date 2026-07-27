@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Tag, Trash2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemDetailsActionsProps {
   isEditing: boolean;
@@ -21,24 +22,25 @@ export function ItemDetailsActions({
   onTag,
   onDelete,
 }: ItemDetailsActionsProps) {
+  const { t } = useLanguage();
   return (
     <div className="flex gap-2 mb-2">
       {!isEditing ? (
         <>
           <Button
             variant="outline"
-            className="flex-1 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+            className="flex-1 border-primary/20 hover:bg-primary/5 hover:border-primary/30"
             onClick={onTag}
           >
             <Tag className="h-4 w-4 mr-2" />
-            タグを管理
+            {t("itemDetails.actions.manageTags")}
           </Button>
           <Button
             variant="outline"
             className="flex-1 border-border hover:bg-accent"
             onClick={onEdit}
           >
-            編集
+            {t("itemDetails.common.edit")}
           </Button>
           <Button
             variant="outline"
@@ -46,7 +48,7 @@ export function ItemDetailsActions({
             onClick={onDelete}
           >
             <Trash2 className="h-4 w-4 mr-2" />
-            削除
+            {t("itemDetails.common.delete")}
           </Button>
         </>
       ) : (
@@ -57,7 +59,7 @@ export function ItemDetailsActions({
             onClick={onSave}
             disabled={isSaving}
           >
-            {isSaving ? "保存中..." : "保存"}
+            {isSaving ? t("itemDetails.common.saving") : t("itemDetails.common.save")}
           </Button>
           <Button
             variant="outline"
@@ -65,7 +67,7 @@ export function ItemDetailsActions({
             onClick={onCancel}
             disabled={isSaving}
           >
-            キャンセル
+            {t("itemDetails.common.cancel")}
           </Button>
         </>
       )}

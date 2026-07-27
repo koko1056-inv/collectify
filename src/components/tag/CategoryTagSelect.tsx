@@ -8,6 +8,7 @@ import { AddTagDialog } from "./AddTagDialog";
 import { TagSelectContent } from "./TagSelectContent";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CategoryTagSelectProps {
   category: string;
@@ -29,6 +30,7 @@ export function CategoryTagSelect({
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   // valueがリセットされたときに内部状態をリセット
   useEffect(() => {
@@ -85,13 +87,13 @@ export function CategoryTagSelect({
       if (isUUID) {
         // UUIDの場合は対応するタグ名を探す
         const matchingTag = tags.find(tag => tag.id === value);
-        return matchingTag?.name || "タグが見つかりません";
+        return matchingTag?.name || t("tagManage.select.notFound");
       } else {
         // タグ名の場合はそのまま表示
         return value;
       }
     }
-    return "選択してください";
+    return t("tagManage.common.selectPlaceholder");
   };
 
   // 現在の値を正規化する（Select コンポーネント用にUUIDに変換）

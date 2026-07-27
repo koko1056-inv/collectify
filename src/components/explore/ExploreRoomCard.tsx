@@ -23,6 +23,7 @@ import { useToggleAiBookmark } from "@/hooks/ai-room/useAiBookmarks";
 import { setPendingRemix } from "@/utils/ai-studio-handoff";
 import { getOptimizedImageUrl } from "@/utils/optimized-image";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface ExploreRoom {
   id: string;
@@ -52,6 +53,7 @@ interface Props {
 export function ExploreRoomCard({ room, isBookmarked }: Props) {
   const navigate = useNavigate();
   const toggleBookmark = useToggleAiBookmark();
+  const { t } = useLanguage();
   const [imgLoaded, setImgLoaded] = useState(false);
   // フィードではオリジナル(1.5MB超)ではなくリサイズ版(約50KB)を配信。
   // 変換に失敗した場合のみ元URLへフォールバックする。
@@ -78,7 +80,7 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
       parentImageUrl: room.image_url,
       parentTitle: room.title,
     });
-    toast.success("このスタイルでルームを作成します ✨");
+    toast.success(t("chrome.exploreCard.styleCloneToast"));
     navigate("/my-room?tab=studio&from=explore");
   };
 
@@ -99,7 +101,7 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
       parentImageUrl: room.image_url,
       parentTitle: room.title,
     });
-    toast.success("同じ素材でリミックスします 🎨");
+    toast.success(t("chrome.exploreCard.remixToast"));
     navigate("/my-room?tab=studio&from=explore");
   };
 
@@ -118,7 +120,7 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
       >
         <img
           src={displaySrc}
-          alt={room.title || "AI生成ルーム"}
+          alt={room.title || t("chrome.exploreCard.roomImageAlt")}
           loading="lazy"
           onLoad={() => setImgLoaded(true)}
           onError={() => {
@@ -176,7 +178,7 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
               className="flex-1 h-8 text-xs gap-1"
             >
               <Wand2 className="w-3 h-3" />
-              このスタイルで作る
+              {t("chrome.exploreCard.useThisStyle")}
             </Button>
             <Button
               size="sm"
@@ -186,7 +188,7 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
               disabled={!room.source_item_ids?.length}
             >
               <Repeat className="w-3 h-3" />
-              リミックス
+              {t("chrome.exploreCard.remix")}
             </Button>
           </div>
         </div>
@@ -209,7 +211,7 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
               </AvatarFallback>
             </Avatar>
             <span className="text-xs text-muted-foreground truncate">
-              {room.profile?.display_name || room.profile?.username || "ユーザー"}
+              {room.profile?.display_name || room.profile?.username || t("chrome.exploreCard.userFallback")}
             </span>
           </button>
           <div className="flex items-center gap-2 text-[10px] text-muted-foreground shrink-0">
@@ -226,18 +228,18 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
               <DropdownMenuContent align="end" className="bg-popover">
                 <DropdownMenuItem onClick={() => navigate(`/user/${room.user_id}`)}>
                   <Package className="w-4 h-4 mr-2" />
-                  この人の素材を見る
+                  {t("chrome.exploreCard.viewTheirGoods")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleStyleClone}>
                   <Wand2 className="w-4 h-4 mr-2" />
-                  このスタイルで作る
+                  {t("chrome.exploreCard.useThisStyle")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleRemix}
                   disabled={!room.source_item_ids?.length}
                 >
                   <Repeat className="w-4 h-4 mr-2" />
-                  リミックス
+                  {t("chrome.exploreCard.remix")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

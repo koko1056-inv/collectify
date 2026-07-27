@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Dialog } from "@/components/ui/dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ICON_MAP: Record<string, any> = {
   BookOpen,
@@ -72,6 +73,7 @@ export function InitialInterestSelection({
   const [newContentName, setNewContentName] = useState("");
   const [creatingContent, setCreatingContent] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { user } = useAuth();
   const { completeWalkthrough } = useOnboarding();
   const queryClient = useQueryClient();
@@ -129,10 +131,10 @@ export function InitialInterestSelection({
       queryClient.invalidateQueries({ queryKey: ['content-names'] });
       setNewContentName("");
       setShowNewContentDialog(false);
-      toast({ title: `「${newContentName.trim()}」を追加しました` });
+      toast({ title: t("chrome.interests.contentAdded", { name: newContentName.trim() }) });
     } catch (error) {
       console.error('Error creating content:', error);
-      toast({ title: "エラーが発生しました", variant: "destructive" });
+      toast({ title: t("chrome.common.error"), variant: "destructive" });
     } finally {
       setCreatingContent(false);
     }
@@ -157,8 +159,8 @@ export function InitialInterestSelection({
       completeWalkthrough();
 
       toast({
-        title: selectedContents.length > 0 ? "興味のあるコンテンツを保存しました" : "設定をスキップしました",
-        description: selectedContents.length > 0 ? "おすすめのアイテムが表示されます" : "後からプロフィールで設定できます",
+        title: selectedContents.length > 0 ? t("chrome.interests.savedTitle") : t("chrome.interests.skippedTitle"),
+        description: selectedContents.length > 0 ? t("chrome.interests.savedDesc") : t("chrome.interests.skippedDesc"),
       });
       
       if (onComplete) {
@@ -169,8 +171,8 @@ export function InitialInterestSelection({
     } catch (error) {
       console.error('Error saving interests:', error);
       toast({
-        title: "エラーが発生しました",
-        description: "興味のあるコンテンツの保存に失敗しました",
+        title: t("chrome.common.error"),
+        description: t("chrome.interests.saveFailed"),
         variant: "destructive",
       });
     } finally {
@@ -186,13 +188,13 @@ export function InitialInterestSelection({
     return (
       <div className="space-y-4">
         <p className="text-center text-muted-foreground text-sm">
-          好みに合わせたグッズを表示するために、興味のあるコンテンツを選んでください
+          {t("chrome.interests.description")}
         </p>
         
         {/* 検索バー */}
         <div className="relative">
           <Input
-            placeholder="コンテンツを検索..."
+            placeholder={t("chrome.interests.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 bg-card border-border rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary"
@@ -268,7 +270,7 @@ export function InitialInterestSelection({
                 <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center">
                   <PlusCircle className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <span className="text-sm font-medium text-muted-foreground">その他</span>
+                <span className="text-sm font-medium text-muted-foreground">{t("chrome.interests.other")}</span>
               </button>
             )}
           </div>
@@ -278,21 +280,21 @@ export function InitialInterestSelection({
         <Dialog open={showNewContentDialog} onOpenChange={setShowNewContentDialog}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>新しいコンテンツを追加</DialogTitle>
+              <DialogTitle>{t("chrome.interests.newContentTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
               <Input
-                placeholder="コンテンツ名を入力..."
+                placeholder={t("chrome.interests.newContentPlaceholder")}
                 value={newContentName}
                 onChange={(e) => setNewContentName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleCreateNewContent()}
               />
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" size="sm" onClick={() => setShowNewContentDialog(false)}>
-                  キャンセル
+                  {t("chrome.common.cancel")}
                 </Button>
                 <Button size="sm" onClick={handleCreateNewContent} disabled={!newContentName.trim() || creatingContent}>
-                  {creatingContent ? '追加中...' : '追加する'}
+                  {creatingContent ? t("chrome.interests.adding") : t("chrome.interests.add")}
                 </Button>
               </div>
             </div>
@@ -307,12 +309,12 @@ export function InitialInterestSelection({
             className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2"
             disabled={saving}
           >
-            {saving ? "保存中..." : selectedContents.length > 0 ? (
+            {saving ? t("chrome.interests.saving") : selectedContents.length > 0 ? (
               <>
-                次へ
+                {t("chrome.interests.next")}
                 <ArrowRight className="w-5 h-5" />
               </>
-            ) : "スキップする"}
+            ) : t("chrome.interests.skip")}
           </Button>
         </div>
       </div>
@@ -324,17 +326,17 @@ export function InitialInterestSelection({
       <DialogContent className="max-w-lg bg-card border-border shadow-lg">
         <DialogHeader className="pb-2">
           <DialogTitle className="text-2xl font-bold text-center text-foreground">
-            興味のあるコンテンツ
+            {t("chrome.interests.title")}
           </DialogTitle>
         </DialogHeader>
         
         <p className="text-center text-muted-foreground mb-4 px-4 text-sm">
-          好みに合わせたグッズを表示するために、興味のあるコンテンツを選んでください
+          {t("chrome.interests.description")}
         </p>
         
         <div className="relative px-4">
           <Input
-            placeholder="コンテンツを検索..."
+            placeholder={t("chrome.interests.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="mb-4 pl-10 bg-card border-border rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary"
@@ -403,7 +405,7 @@ export function InitialInterestSelection({
                 <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center">
                   <PlusCircle className="h-5 w-5 text-muted-foreground" />
                 </div>
-                <span className="text-sm font-medium text-muted-foreground">その他</span>
+                <span className="text-sm font-medium text-muted-foreground">{t("chrome.interests.other")}</span>
               </button>
             )}
           </div>
@@ -416,7 +418,7 @@ export function InitialInterestSelection({
             className="w-full h-12 text-base font-semibold rounded-2xl shadow-lg"
             disabled={saving}
           >
-            {saving ? "保存中..." : selectedContents.length > 0 ? "設定を保存する" : "スキップする"}
+            {saving ? t("chrome.interests.saving") : selectedContents.length > 0 ? t("chrome.interests.save") : t("chrome.interests.skip")}
           </Button>
         </div>
       </DialogContent>

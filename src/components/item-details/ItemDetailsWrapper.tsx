@@ -16,6 +16,7 @@ import { ItemOwnersTab } from "./tabs/ItemOwnersTab";
 import { ItemWishersTab } from "./tabs/ItemWishersTab";
 import { ItemCommentsSection } from "@/features/comments/ItemCommentsSection";
 import { ItemRoomPanel } from "@/features/item-room/ItemRoomPanel";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemDetailsWrapperProps {
   itemId: string;
@@ -48,6 +49,7 @@ export function ItemDetailsWrapper({
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const { data: itemDetails, isLoading: isItemDetailsLoading } = useQuery({
     queryKey: ["official-item-details", itemId],
@@ -159,8 +161,8 @@ export function ItemDetailsWrapper({
       const userId = userData.user?.id;
       if (!userId) {
         toast({
-          title: "エラー",
-          description: "ウィッシュリストに追加するにはログインが必要です。",
+          title: t("itemDetails.common.error"),
+          description: t("itemDetails.wrapper.wishlistLoginRequired"),
           variant: "destructive",
         });
         return;
@@ -169,13 +171,13 @@ export function ItemDetailsWrapper({
         .from("wishlists")
         .insert({ official_item_id: itemId, user_id: userId });
       if (error) throw error;
-      toast({ title: "ウィッシュリストに追加しました" });
+      toast({ title: t("itemDetails.wrapper.wishlistAdded") });
       await queryClient.invalidateQueries({ queryKey: ["item-wishlist-count", itemId] });
       await queryClient.invalidateQueries({ queryKey: ["item-wishers-tab", itemId] });
     } catch (e: any) {
       toast({
-        title: "エラー",
-        description: e?.message ?? "追加に失敗しました",
+        title: t("itemDetails.common.error"),
+        description: e?.message ?? t("itemDetails.wrapper.addFailed"),
         variant: "destructive",
       });
     }
@@ -196,7 +198,7 @@ export function ItemDetailsWrapper({
   if (!itemDetails) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
-        アイテムが見つかりませんでした
+        {t("itemDetails.wrapper.notFound")}
       </div>
     );
   }
@@ -218,32 +220,32 @@ export function ItemDetailsWrapper({
           <TabsList className="grid w-full grid-cols-5 h-auto">
             <TabsTrigger value="info" className="flex flex-col gap-0.5 py-2 text-xs">
               <Info className="h-4 w-4" />
-              情報
+              {t("itemDetails.tabs.info")}
             </TabsTrigger>
             <TabsTrigger value="owners" className="flex flex-col gap-0.5 py-2 text-xs">
               <Users className="h-4 w-4" />
-              持ってる
+              {t("itemDetails.tabs.owners")}
               {ownersCount > 0 && (
                 <span className="text-[10px] text-muted-foreground">({ownersCount})</span>
               )}
             </TabsTrigger>
             <TabsTrigger value="wishers" className="flex flex-col gap-0.5 py-2 text-xs">
               <Heart className="h-4 w-4" />
-              欲しい
+              {t("itemDetails.tabs.wishers")}
               {wishlistCount > 0 && (
                 <span className="text-[10px] text-muted-foreground">({wishlistCount})</span>
               )}
             </TabsTrigger>
             <TabsTrigger value="comments" className="flex flex-col gap-0.5 py-2 text-xs">
               <MessageSquare className="h-4 w-4" />
-              コメント
+              {t("itemDetails.tabs.comments")}
               {commentsCount > 0 && (
                 <span className="text-[10px] text-muted-foreground">({commentsCount})</span>
               )}
             </TabsTrigger>
             <TabsTrigger value="room" className="flex flex-col gap-0.5 py-2 text-xs">
               <MessageCircle className="h-4 w-4" />
-              ルーム
+              {t("itemDetails.tabs.room")}
             </TabsTrigger>
           </TabsList>
 
@@ -294,7 +296,7 @@ export function ItemDetailsWrapper({
       <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        title={itemDetails?.title || itemTitle || "アイテム"}
+        title={itemDetails?.title || itemTitle || t("itemDetails.wrapper.fallbackTitle")}
         url={window.location.href}
         image={itemDetails?.image || itemImage || ""}
       />

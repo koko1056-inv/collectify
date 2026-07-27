@@ -4,6 +4,7 @@ import { SelectItem } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CategoryTagSearch } from "./CategoryTagSearch";
 import type { Tag } from "@/types/tag";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagSelectContentProps {
   searchQuery: string;
@@ -12,6 +13,8 @@ interface TagSelectContentProps {
 }
 
 export function TagSelectContent({ searchQuery, setSearchQuery, filteredTags }: TagSelectContentProps) {
+  const { t } = useLanguage();
+
   return (
     <>
       <CategoryTagSearch 
@@ -31,7 +34,7 @@ export function TagSelectContent({ searchQuery, setSearchQuery, filteredTags }: 
           ))
         ) : (
           <div className="p-2 text-sm text-gray-500 text-center">
-            {searchQuery.trim() !== '' ? '該当するタグはありません' : 'タグがありません'}
+            {searchQuery.trim() !== '' ? t("tagManage.empty.noMatchingTags") : t("tagManage.empty.noTags")}
           </div>
         )}
       </ScrollArea>

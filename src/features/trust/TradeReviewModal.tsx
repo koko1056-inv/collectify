@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Star } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TradeReviewModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export function TradeReviewModal({
 }: TradeReviewModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [rating, setRating] = useState<number>(0);
   const [hover, setHover] = useState<number>(0);
@@ -44,7 +46,7 @@ export function TradeReviewModal({
       });
       if (error) {
         if (error.code === "23505") {
-          toast({ title: "既に評価済みです" });
+          toast({ title: t("trade.trust.alreadyReviewed") });
           onClose();
           return;
         }
@@ -52,11 +54,11 @@ export function TradeReviewModal({
       }
       queryClient.invalidateQueries({ queryKey: ["trust-score", revieweeId] });
       queryClient.invalidateQueries({ queryKey: ["trade-reviews", revieweeId] });
-      toast({ title: "評価を送信しました", description: "ありがとうございました" });
+      toast({ title: t("trade.trust.reviewSentTitle"), description: t("trade.trust.reviewSentDesc") });
       onClose();
     } catch (e) {
       console.error(e);
-      toast({ title: "送信失敗", variant: "destructive" });
+      toast({ title: t("trade.trust.sendFailed"), variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
@@ -66,9 +68,11 @@ export function TradeReviewModal({
     <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
-          <DialogTitle>取引相手を評価</DialogTitle>
+          <DialogTitle>{t("trade.trust.reviewTitle")}</DialogTitle>
           <DialogDescription>
-            {revieweeName ? `${revieweeName}さんとの` : ""}取引はいかがでしたか？評価はお互いの信頼度に反映されます
+            {revieweeName
+              ? t("trade.trust.reviewDescWithName", { name: revieweeName })
+              : t("trade.trust.reviewDesc")}
           </DialogDescription>
         </DialogHeader>
 
@@ -92,7 +96,7 @@ export function TradeReviewModal({
         </div>
 
         <Textarea
-          placeholder="任意：お礼や良かった点をひとこと"
+          placeholder={t("trade.trust.commentPlaceholder")}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           maxLength={300}
@@ -102,10 +106,10 @@ export function TradeReviewModal({
 
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={submitting}>
-            あとで
+            {t("trade.trust.later")}
           </Button>
           <Button onClick={submit} disabled={rating === 0 || submitting}>
-            {submitting ? "送信中..." : "評価を送信"}
+            {submitting ? t("trade.trust.submitting") : t("trade.trust.submitReview")}
           </Button>
         </div>
       </DialogContent>

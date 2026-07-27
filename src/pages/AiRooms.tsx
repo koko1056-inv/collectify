@@ -43,10 +43,12 @@ import { AiRoomCreateWizard } from "@/components/ai-room/AiRoomCreateWizard";
 import { getStylePresetById } from "@/components/ai-room/roomStylePresets";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type ActiveTab = "rooms" | "avatar";
 
 export default function AiRoomsPage() {
+  const { t } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ActiveTab>("rooms");
@@ -63,7 +65,7 @@ export default function AiRoomsPage() {
   const toggleMutation = useToggleAiRoomPublic();
 
   const handleShare = async (room: AiGeneratedRoom) => {
-    const text = `AIで作った推し部屋 🏠✨\n#Collectify`;
+    const text = `${t("screens.aiRooms.shareText")}\n#Collectify`;
     try {
       if (navigator.share) {
         try {
@@ -78,7 +80,7 @@ export default function AiRoomsPage() {
         await navigator.share({ text, url: room.image_url });
       } else {
         await navigator.clipboard.writeText(room.image_url);
-        toast.success("画像URLをコピーしました");
+        toast.success(t("screens.aiRooms.imageUrlCopied"));
       }
     } catch {}
   };
@@ -109,9 +111,9 @@ export default function AiRoomsPage() {
       {/* ヒーローヘッダー */}
       <div className="relative overflow-hidden border-b border-border/40">
         {/* 背景装飾 */}
-        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-orange-400/10" />
-        <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-pink-400/20 blur-3xl" />
-        <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-purple-400/20 blur-3xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5" />
+        <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-primary/20 blur-3xl" />
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-3">
           {/* タイトル行 */}
@@ -134,7 +136,7 @@ export default function AiRoomsPage() {
                   <Wand2 className="w-3.5 h-3.5 text-white" />
                 </motion.div>
                 <h1 className="text-lg sm:text-xl font-bold tracking-tight">
-                  AIスタジオ
+                  {t("screens.aiRooms.studioTitle")}
                 </h1>
                 {totalCreations > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[10px] font-bold">
@@ -143,7 +145,7 @@ export default function AiRoomsPage() {
                 )}
               </div>
               <p className="text-[11px] text-muted-foreground mt-0.5 ml-9">
-                推しグッズから世界を生成 ✨
+                {t("screens.aiRooms.studioSubtitle")}
               </p>
             </div>
           </div>
@@ -166,16 +168,16 @@ export default function AiRoomsPage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                     <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-white/90 text-[9px] font-bold text-foreground flex items-center gap-1">
-                      <Home className="w-2.5 h-2.5" /> 最新ルーム
+                      <Home className="w-2.5 h-2.5" /> {t("screens.aiRooms.latestRoom")}
                     </div>
                     <p className="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold truncate text-left">
-                      {latestRoom.title || "無題のルーム"}
+                      {latestRoom.title || t("screens.aiRooms.untitledRoom")}
                     </p>
                   </>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
                     <Home className="w-6 h-6" />
-                    <span className="text-[10px]">ルーム未作成</span>
+                    <span className="text-[10px]">{t("screens.aiRooms.noRoomYet")}</span>
                   </div>
                 )}
               </button>
@@ -194,16 +196,16 @@ export default function AiRoomsPage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                     <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-white/90 text-[9px] font-bold text-foreground flex items-center gap-1">
-                      <Shirt className="w-2.5 h-2.5" /> 使用中アバター
+                      <Shirt className="w-2.5 h-2.5" /> {t("screens.aiRooms.currentAvatar")}
                     </div>
                     <p className="absolute bottom-2 left-2 right-2 text-white text-xs font-semibold truncate text-left">
-                      {currentAvatar.name || "あなたの分身"}
+                      {currentAvatar.name || t("screens.aiRooms.avatarFallbackName")}
                     </p>
                   </>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-1 text-muted-foreground">
                     <Shirt className="w-6 h-6" />
-                    <span className="text-[10px]">アバター未設定</span>
+                    <span className="text-[10px]">{t("screens.aiRooms.noAvatarYet")}</span>
                   </div>
                 )}
               </button>
@@ -220,7 +222,7 @@ export default function AiRoomsPage() {
               <TabsList className="grid grid-cols-2 w-full h-10 bg-background/60 backdrop-blur">
                 <TabsTrigger value="rooms" className="gap-1.5 text-xs">
                   <Home className="w-3.5 h-3.5" />
-                  ルーム
+                  {t("screens.aiRooms.roomsTab")}
                   {rooms.length > 0 && (
                     <span className="ml-0.5 px-1 py-px rounded text-[9px] bg-muted text-muted-foreground">
                       {rooms.length}
@@ -229,7 +231,7 @@ export default function AiRoomsPage() {
                 </TabsTrigger>
                 <TabsTrigger value="avatar" className="gap-1.5 text-xs">
                   <Shirt className="w-3.5 h-3.5" />
-                  アバター
+                  {t("screens.aiRooms.avatarTab")}
                   {avatarsHook.avatars.length > 0 && (
                     <span className="ml-0.5 px-1 py-px rounded text-[9px] bg-muted text-muted-foreground">
                       {avatarsHook.avatars.length}
@@ -244,7 +246,7 @@ export default function AiRoomsPage() {
               className="h-10 gap-1 bg-brand-gradient text-white hover:opacity-95 shadow-md shrink-0"
             >
               <Plus className="w-4 h-4" />
-              新規作成
+              {t("screens.aiRooms.createNew")}
             </Button>
           </div>
         </div>
@@ -276,10 +278,10 @@ export default function AiRoomsPage() {
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                     <Home className="w-4 h-4 text-primary" />
-                    マイAIルーム
+                    {t("screens.aiRooms.myAiRooms")}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
-                    タップで拡大表示
+                    {t("screens.aiRooms.tapToEnlarge")}
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -337,13 +339,13 @@ export default function AiRoomsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>このアバターを削除しますか？</AlertDialogTitle>
+            <AlertDialogTitle>{t("screens.aiRooms.deleteAvatarTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              削除すると元に戻せません。
+              {t("screens.aiRooms.deleteIrreversible")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogCancel>{t("screens.aiRooms.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deletingAvatarId) {
@@ -353,7 +355,7 @@ export default function AiRoomsPage() {
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              削除する
+              {t("screens.aiRooms.deleteConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -395,7 +397,7 @@ export default function AiRoomsPage() {
                     className="flex-1 gap-1.5"
                   >
                     <Download className="w-4 h-4" />
-                    保存
+                    {t("screens.aiRooms.save")}
                   </Button>
                   <Button
                     size="sm"
@@ -403,7 +405,7 @@ export default function AiRoomsPage() {
                     className="flex-1 gap-1.5"
                   >
                     <Share2 className="w-4 h-4" />
-                    シェア
+                    {t("screens.aiRooms.share")}
                   </Button>
                 </div>
               </div>
@@ -419,13 +421,13 @@ export default function AiRoomsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>このAIルームを削除しますか？</AlertDialogTitle>
+            <AlertDialogTitle>{t("screens.aiRooms.deleteRoomTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              削除すると元に戻せません。
+              {t("screens.aiRooms.deleteIrreversible")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogCancel>{t("screens.aiRooms.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deletingId) {
@@ -435,7 +437,7 @@ export default function AiRoomsPage() {
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              削除する
+              {t("screens.aiRooms.deleteConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -461,6 +463,7 @@ function AvatarPanel({
   onOpenGallery: () => void;
   onDelete: (id: string) => void;
 }) {
+  const { t } = useLanguage();
   if (avatars.isLoading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -480,14 +483,14 @@ function AvatarPanel({
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={onGenerate}
-          className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-pink-500/15 via-purple-500/15 to-orange-400/15 border border-border/40 hover:shadow-md transition"
+          className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 border border-border/40 hover:shadow-md transition"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mb-2">
-            <Wand2 className="w-5 h-5 text-white" />
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-2">
+            <Wand2 className="w-5 h-5 text-primary-foreground" />
           </div>
-          <p className="text-sm font-semibold">AIで生成</p>
+          <p className="text-sm font-semibold">{t("screens.aiRooms.avatarGenerate")}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            プロンプトから新しい姿に
+            {t("screens.aiRooms.avatarGenerateDesc")}
           </p>
         </button>
         <button
@@ -498,9 +501,9 @@ function AvatarPanel({
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 flex items-center justify-center mb-2">
             <Shirt className="w-5 h-5 text-white" />
           </div>
-          <p className="text-sm font-semibold">着せ替え</p>
+          <p className="text-sm font-semibold">{t("screens.aiRooms.avatarDressUp")}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">
-            グッズで着せ替えて変身
+            {t("screens.aiRooms.avatarDressUpDesc")}
           </p>
         </button>
       </div>
@@ -508,18 +511,18 @@ function AvatarPanel({
       {/* 空状態 */}
       {avatars.avatars.length === 0 && (
         <div className="rounded-3xl border border-dashed border-border/60 p-8 text-center space-y-3">
-          <div className="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center">
+          <div className="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
             <Sparkles className="w-7 h-7 text-primary" />
           </div>
           <div>
-            <p className="text-sm font-semibold">まだアバターがありません</p>
+            <p className="text-sm font-semibold">{t("screens.aiRooms.avatarEmptyTitle")}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              AI生成で最初のアバターを作りましょう
+              {t("screens.aiRooms.avatarEmptyDesc")}
             </p>
           </div>
           <Button onClick={onGenerate} className="gap-1.5">
             <Wand2 className="w-4 h-4" />
-            生成をはじめる
+            {t("screens.aiRooms.avatarStartGenerating")}
           </Button>
         </div>
       )}
@@ -529,13 +532,13 @@ function AvatarPanel({
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold text-foreground">
-              マイアバター
+              {t("screens.aiRooms.myAvatars")}
               <span className="ml-1.5 text-xs text-muted-foreground font-normal">
                 ({avatars.avatars.length})
               </span>
             </p>
             <Button variant="ghost" size="sm" onClick={onOpenGallery} className="text-xs">
-              詳しく管理
+              {t("screens.aiRooms.manageAvatars")}
             </Button>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -562,7 +565,7 @@ function AvatarPanel({
                   </button>
                   {isCurrent && (
                     <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
-                      使用中
+                      {t("screens.aiRooms.inUse")}
                     </div>
                   )}
                   <button
@@ -584,15 +587,16 @@ function AvatarPanel({
 // ==================== EmptyHero ====================
 
 function EmptyHero({ onStart }: { onStart: () => void }) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="relative rounded-3xl overflow-hidden border border-border/40 shadow-sm mb-6"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 via-purple-500/15 to-orange-400/20" />
-      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-pink-400/30 blur-3xl" />
-      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-purple-400/30 blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10" />
+      <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-primary/30 blur-3xl" />
+      <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-primary/30 blur-3xl" />
 
       <div className="relative p-6 sm:p-8 text-center space-y-5">
         <div className="relative w-20 h-20 mx-auto">
@@ -614,19 +618,19 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
               animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
               transition={{ duration: 2, repeat: Infinity, delay: i * 0.5 }}
             >
-              <Sparkles className="w-4 h-4 text-pink-500" />
+              <Sparkles className="w-4 h-4 text-primary" />
             </motion.div>
           ))}
         </div>
 
         <div>
           <h2 className="text-xl sm:text-2xl font-bold mb-1.5">
-            あなただけの推しルーム
+            {t("screens.aiRooms.emptyHeroTitle")}
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-            コレクションから好きなグッズを選ぶと、AIがあなた専用の
+            {t("screens.aiRooms.emptyHeroLead1")}
             <br className="hidden sm:block" />
-            一度きりの部屋を描きます ✨
+            {t("screens.aiRooms.emptyHeroLead2")}
           </p>
         </div>
 
@@ -636,7 +640,7 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
           className="gap-2 h-12 px-6 bg-brand-gradient text-white hover:opacity-95 shadow-lg"
         >
           <Wand2 className="w-5 h-5" />
-          はじめて作る
+          {t("screens.aiRooms.emptyHeroCta")}
         </Button>
       </div>
     </motion.div>
@@ -656,6 +660,7 @@ function RoomCard({
   onDelete: () => void;
   onTogglePublic: () => void;
 }) {
+  const { t } = useLanguage();
   const preset = room.style_preset
     ? getStylePresetById(room.style_preset)
     : null;
@@ -696,11 +701,11 @@ function RoomCard({
         >
           {room.is_public ? (
             <>
-              <Globe className="w-3 h-3" /> 公開
+              <Globe className="w-3 h-3" /> {t("screens.aiRooms.public")}
             </>
           ) : (
             <>
-              <Lock className="w-3 h-3" /> 非公開
+              <Lock className="w-3 h-3" /> {t("screens.aiRooms.private")}
             </>
           )}
         </div>
@@ -723,12 +728,12 @@ function RoomCard({
           {room.is_public ? (
             <>
               <Lock className="w-3.5 h-3.5 mr-1" />
-              非公開にする
+              {t("screens.aiRooms.makePrivate")}
             </>
           ) : (
             <>
               <Globe className="w-3.5 h-3.5 mr-1" />
-              公開する
+              {t("screens.aiRooms.makePublic")}
             </>
           )}
         </Button>

@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FollowButtonProps {
   userId: string;
@@ -14,6 +15,7 @@ interface FollowButtonProps {
 export function FollowButton({ userId }: FollowButtonProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -45,8 +47,8 @@ export function FollowButton({ userId }: FollowButtonProps) {
           .eq("following_id", userId);
 
         toast({
-          title: "フォロー解除",
-          description: "フォローを解除しました",
+          title: t("profileScreen.follow.unfollowedTitle"),
+          description: t("profileScreen.follow.unfollowedDesc"),
         });
       } else {
         await supabase.from("follows").insert({
@@ -55,8 +57,8 @@ export function FollowButton({ userId }: FollowButtonProps) {
         });
 
         toast({
-          title: "フォロー完了",
-          description: "フォローしました",
+          title: t("profileScreen.follow.followedTitle"),
+          description: t("profileScreen.follow.followedDesc"),
         });
       }
 
@@ -69,8 +71,8 @@ export function FollowButton({ userId }: FollowButtonProps) {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "操作に失敗しました",
+        title: t("profileScreen.common.error"),
+        description: t("profileScreen.follow.actionFailed"),
       });
     } finally {
       setIsLoading(false);
@@ -90,12 +92,12 @@ export function FollowButton({ userId }: FollowButtonProps) {
       {isFollowing ? (
         <>
           <UserMinus className="h-4 w-4" />
-          フォロー解除
+          {t("profileScreen.follow.unfollow")}
         </>
       ) : (
         <>
           <UserPlus className="h-4 w-4" />
-          フォロー
+          {t("profileScreen.follow.follow")}
         </>
       )}
     </Button>

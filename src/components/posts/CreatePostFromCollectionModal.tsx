@@ -228,9 +228,9 @@ export function CreatePostFromCollectionModal({
               <div className="text-xs text-muted-foreground">/ 2</div>
             </div>
             <div className="flex-1">
-              <h2 className="text-lg font-bold">投稿するグッズを選択</h2>
+              <h2 className="text-lg font-bold">{t("social.posts.selectGoodsTitle")}</h2>
               <p className="text-sm text-muted-foreground">
-                {isSelectionMode ? "複数選択中 - チェックを入れて確定してください" : "タップで選択、または複数選択モードを使用"}
+                {isSelectionMode ? t("social.posts.selectingMulti") : t("social.posts.selectHint")}
               </p>
             </div>
             <div className="flex items-center gap-2 text-sm font-medium">
@@ -252,7 +252,7 @@ export function CreatePostFromCollectionModal({
                   className="bg-background hover:bg-primary hover:text-primary-foreground transition-colors"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-1.5" />
-                  複数選択
+                  {t("social.posts.multiSelect")}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -264,7 +264,7 @@ export function CreatePostFromCollectionModal({
                   className="bg-background hover:bg-background"
                 >
                   <Plus className="h-4 w-4 mr-1.5" />
-                  新しく追加
+                  {t("social.posts.addNew")}
                 </Button>
               </>
             ) : (
@@ -287,7 +287,7 @@ export function CreatePostFromCollectionModal({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input 
               type="text" 
-              placeholder="グッズ名・コンテンツ名で検索..." 
+              placeholder={t("social.posts.goodsSearchPlaceholder")} 
               value={searchQuery} 
               onChange={e => setSearchQuery(e.target.value)} 
               className="pl-10 h-10" 
@@ -353,7 +353,7 @@ export function CreatePostFromCollectionModal({
                 onClick={clearAllFilters}
                 className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
               >
-                すべてクリア
+                {t("social.posts.clearAll")}
               </Button>
             </div>
           )}
@@ -419,7 +419,7 @@ export function CreatePostFromCollectionModal({
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
                           <div className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-xs font-medium flex items-center gap-1.5 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform">
                             <Sparkles className="h-3.5 w-3.5" />
-                            選択して投稿
+                            {t("social.posts.selectAndPost")}
                           </div>
                         </div>
                       )}
@@ -433,16 +433,16 @@ export function CreatePostFromCollectionModal({
               <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
                 <Search className="h-10 w-10 text-muted-foreground" />
               </div>
-              <p className="text-lg font-medium">検索結果がありません</p>
+              <p className="text-lg font-medium">{t("social.posts.noResults")}</p>
               <p className="text-sm text-muted-foreground mt-2">
-                条件を変更してもう一度お試しください
+                {t("social.posts.noResultsDesc")}
               </p>
               <Button 
                 variant="outline" 
                 onClick={clearAllFilters}
                 className="mt-4"
               >
-                フィルターをクリア
+                {t("social.posts.clearFilters")}
               </Button>
             </div>
           ) : (
@@ -450,9 +450,9 @@ export function CreatePostFromCollectionModal({
               <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                 <ImageIcon className="h-10 w-10 text-primary" />
               </div>
-              <p className="text-lg font-medium">グッズがありません</p>
+              <p className="text-lg font-medium">{t("social.posts.noGoods")}</p>
               <p className="text-sm text-muted-foreground mt-2">
-                コレクションにグッズを追加しましょう
+                {t("social.posts.noGoodsDesc")}
               </p>
               <Button 
                 onClick={() => {
@@ -462,7 +462,7 @@ export function CreatePostFromCollectionModal({
                 className="mt-4"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                グッズを追加
+                {t("social.posts.addGoods")}
               </Button>
             </div>
           )}
@@ -472,11 +472,11 @@ export function CreatePostFromCollectionModal({
         <div className="px-4 py-3 border-t bg-muted/30 flex items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground flex items-center gap-1.5">
             <Sparkles className="h-3.5 w-3.5" />
-            グッズをタップして次のステップへ
+            {t("social.posts.tapHint")}
           </p>
           {isSelectionMode && selectedItemIds.length > 0 && (
             <Button onClick={handleConfirmSelection} size="sm">
-              {selectedItemIds.length}件を選択して次へ
+              {t("social.posts.selectCountNext", { count: selectedItemIds.length })}
             </Button>
           )}
         </div>

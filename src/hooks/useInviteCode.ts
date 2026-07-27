@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 function generateCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -15,6 +16,7 @@ function generateCode(): string {
 export function useInviteCode() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { t } = useLanguage();
   const key = ["invite-codes", user?.id];
 
   // Fetch my invite codes
@@ -70,9 +72,9 @@ export function useInviteCode() {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: key });
-      toast.success(`招待コードを作成しました: ${data.code}`);
+      toast.success(t("notices.invite.created", { code: data.code }));
     },
-    onError: () => toast.error("招待コードの作成に失敗しました"),
+    onError: () => toast.error(t("notices.invite.createFailed")),
   });
 
   // Redeem an invite code
@@ -88,11 +90,11 @@ export function useInviteCode() {
         .is("used_by", null)
         .single();
 
-      if (findError || !invite) throw new Error("無効な招待コードです");
+      if (findError || !invite) throw new Error(t("notices.invite.invalid"));
       if (invite.creator_id === user.id)
-        throw new Error("自分の招待コードは使えません");
+        throw new Error(t("notices.invite.ownCode"));
       if (invite.expires_at && new Date(invite.expires_at) < new Date())
-        throw new Error("招待コードの有効期限が切れています");
+        throw new Error(t("notices.invite.expired"));
 
       // Mark as used
       const { error: updateError } = await supabase
@@ -130,7 +132,7 @@ export function useInviteCode() {
       return invite;
     },
     onSuccess: () => {
-      toast.success("招待コードを適用しました！50ポイント獲得！");
+      toast.success(t("notices.invite.redeemed"));
       qc.invalidateQueries({ queryKey: ["user-points"] });
     },
     onError: (error: Error) => toast.error(error.message),

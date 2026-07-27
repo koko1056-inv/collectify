@@ -7,8 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Heart, MessageCircle, Share, Trash2, MoreHorizontal, X, XCircle } from "lucide-react";
 import { useToggleLike, useDeletePost, usePostComments, useAddComment } from "@/hooks/posts";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { DeletePostDialog } from "./DeletePostDialog";
@@ -20,6 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface PostDetailModalProps {
   post: GoodsPost | null;
@@ -29,6 +29,8 @@ interface PostDetailModalProps {
 
 export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const navigate = useNavigate();
   const toggleLike = useToggleLike();
   const deletePost = useDeletePost();
@@ -110,7 +112,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
               </Button>
               <img
                 src={post.image_url}
-                alt={post.caption || "投稿画像"}
+                alt={post.caption || t("social.posts.postImageAlt")}
                 className="max-h-[90vh] w-full object-contain"
               />
             </div>
@@ -128,10 +130,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                 <div className="flex-1">
                   <p className="font-semibold text-sm">{post.profiles?.username}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(post.created_at), { 
-                      addSuffix: true, 
-                      locale: ja 
-                    })}
+                    {formatRelative(post.created_at)}
                   </p>
                 </div>
                 {isOwner && (
@@ -147,7 +146,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                         className="text-destructive focus:text-destructive"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        削除
+                        {t("social.posts.delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -185,9 +184,9 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
 
                   {/* コメント一覧 */}
                   <div className="border-t pt-4">
-                    <h3 className="text-sm font-semibold mb-3">コメント</h3>
+                    <h3 className="text-sm font-semibold mb-3">{t("social.posts.commentsTitle")}</h3>
                     {commentsLoading ? (
-                      <div className="text-center py-4 text-sm text-muted-foreground">読み込み中...</div>
+                      <div className="text-center py-4 text-sm text-muted-foreground">{t("social.posts.loading")}</div>
                     ) : comments && comments.length > 0 ? (
                       <div className="space-y-4">
                         {comments.map((comment) => (
@@ -200,7 +199,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                       </div>
                     ) : (
                       <div className="text-center py-4 text-sm text-muted-foreground">
-                        まだコメントがありません
+                        {t("social.posts.noComments")}
                       </div>
                     )}
                   </div>
@@ -232,7 +231,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                 {replyTo && (
                   <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-md">
                     <span className="text-sm text-muted-foreground flex-1">
-                      {replyTo.username}に返信中
+                      {t("social.posts.replyingTo", { username: replyTo.username })}
                     </span>
                     <Button
                       variant="ghost"
@@ -250,7 +249,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                   <Input
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder={replyTo ? `${replyTo.username}に返信...` : "コメントを追加..."}
+                    placeholder={replyTo ? t("social.posts.replyPlaceholder", { username: replyTo.username }) : t("social.posts.commentPlaceholder")}
                     className="flex-1"
                     disabled={addComment.isPending}
                   />
@@ -259,7 +258,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     size="sm"
                     disabled={!newComment.trim() || addComment.isPending}
                   >
-                    {addComment.isPending ? "送信中..." : "送信"}
+                    {addComment.isPending ? t("social.posts.sending") : t("social.posts.send")}
                   </Button>
                 </form>
               </div>
@@ -279,7 +278,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         url={`${window.location.origin}/posts/${post.id}`}
-        title="投稿を共有"
+        title={t("social.posts.shareTitle")}
         image={post.image_url}
       />
     </>

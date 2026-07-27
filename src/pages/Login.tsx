@@ -8,8 +8,10 @@ import { useLoginForm } from "@/hooks/useLoginForm";
 import { PasswordReset } from "@/components/PasswordReset";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Login() {
+  const { t } = useLanguage();
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -38,11 +40,10 @@ export default function Login() {
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
-              パスワードをお忘れですか？
+              {t("screens.login.resetTitle")}
             </CardTitle>
             <CardDescription className="text-center">
-              登録したメールアドレスを入力してください。
-              パスワードリセット用のリンクをお送りします。
+              {t("screens.login.resetDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -58,12 +59,12 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            Collectifyにようこそ
+            {t("screens.login.welcome")}
           </CardTitle>
           <CardDescription className="text-center">
             {isLogin
-              ? "アカウントにログインしてコレクションを管理"
-              : "新規アカウントを作成してコレクションを始めましょう"}
+              ? t("screens.login.subtitleLogin")
+              : t("screens.login.subtitleSignup")}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -84,7 +85,7 @@ export default function Login() {
                     setFormData({ ...formData, username: e.target.value })
                   }
                   required
-                  placeholder="ユーザー名"
+                  placeholder={t("screens.login.usernamePlaceholder")}
                   className="pl-10"
                 />
               </div>
@@ -99,7 +100,7 @@ export default function Login() {
                     setFormData({ ...formData, password: e.target.value })
                   }
                   required
-                  placeholder="パスワード"
+                  placeholder={t("screens.login.passwordPlaceholder")}
                   className="pl-10"
                 />
               </div>
@@ -112,7 +113,7 @@ export default function Login() {
               disabled={loading}
               size="lg"
             >
-              {loading ? "処理中..." : isLogin ? "ログイン" : "アカウント作成"}
+              {loading ? t("screens.login.processing") : isLogin ? t("screens.login.loginButton") : t("screens.login.signupButton")}
             </Button>
             {isLogin && (
               <Button
@@ -121,7 +122,7 @@ export default function Login() {
                 onClick={() => setShowPasswordReset(true)}
                 className="w-full text-sm"
               >
-                パスワードをお忘れの方はこちら
+                {t("screens.login.forgotPassword")}
               </Button>
             )}
             <Button
@@ -132,8 +133,8 @@ export default function Login() {
               disabled={loading}
             >
               {isLogin
-                ? "アカウントをお持ちでない方はこちら"
-                : "すでにアカウントをお持ちの方はこちら"}
+                ? t("screens.login.toSignup")
+                : t("screens.login.toLogin")}
             </Button>
           </CardFooter>
         </form>

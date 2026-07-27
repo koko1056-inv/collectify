@@ -13,6 +13,7 @@ import { CategoryTagSearch } from "@/components/tag/CategoryTagSearch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagGroupedCollectionProps {
   userId: string;
@@ -25,7 +26,8 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
   const [groupViewMode, setGroupViewMode] = useState<"tags" | "groups">("tags");
   const [isCreateGroupDialogOpen, setIsCreateGroupDialogOpen] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
-  
+  const { t } = useLanguage();
+
   // タグでグループ化したアイテムを取得
   const { data: itemsByTag = {}, isLoading: isTagLoading } = useQuery({
     queryKey: ["items-by-tag", userId],
@@ -111,7 +113,7 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
   if (Object.keys(currentItems).length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">コレクションに追加されたアイテムがありません。</p>
+        <p className="text-gray-500">{t("collectionScreen.tagGroups.empty")}</p>
       </div>
     );
   }
@@ -123,11 +125,11 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
           <TabsList className="bg-white">
             <TabsTrigger value="tags" className="data-[state=active]:bg-gray-100">
               <Tag className="h-4 w-4 mr-2" />
-              タグ別
+              {t("collectionScreen.tagGroups.byTag")}
             </TabsTrigger>
             <TabsTrigger value="groups" className="data-[state=active]:bg-gray-100">
               <FolderPlus className="h-4 w-4 mr-2" />
-              グループ別
+              {t("collectionScreen.tagGroups.byGroup")}
             </TabsTrigger>
           </TabsList>
           
@@ -139,7 +141,7 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
               className="text-xs"
             >
               <FolderPlus className="h-3.5 w-3.5 mr-1" />
-              グループ作成
+              {t("collectionScreen.tagGroups.createGroup")}
             </Button>
           )}
         </div>
@@ -169,7 +171,7 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
           {activeTag && currentItems[activeTag] && (
             <>
               <h3 className="text-lg font-semibold mb-3">
-                {activeTag} <span className="text-sm text-gray-500">({currentItems[activeTag].length}アイテム)</span>
+                {activeTag} <span className="text-sm text-gray-500">({currentItems[activeTag].length}{t("collectionScreen.tagGroups.itemsSuffix")})</span>
               </h3>
               <CollectionGrid
                 items={currentItems[activeTag]}
@@ -188,27 +190,27 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
       <Dialog open={isCreateGroupDialogOpen} onOpenChange={setIsCreateGroupDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>新しいグループを作成</DialogTitle>
+            <DialogTitle>{t("collectionScreen.tagGroups.createDialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <label htmlFor="group-name" className="text-sm font-medium">
-                グループ名
+                {t("collectionScreen.tagGroups.groupName")}
               </label>
               <Input
                 id="group-name"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
-                placeholder="グループ名を入力"
+                placeholder={t("collectionScreen.tagGroups.groupNamePlaceholder")}
               />
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setIsCreateGroupDialogOpen(false)}>
-              キャンセル
+              {t("collectionScreen.common.cancel")}
             </Button>
             <Button type="button" onClick={handleCreateGroup}>
-              作成
+              {t("collectionScreen.common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -2,6 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { TagInput } from "@/components/TagInput";
 import { SimpleItemTag } from "@/utils/tag/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagsSectionProps {
   isEditing: boolean;
@@ -16,6 +17,7 @@ export function TagsSection({
   editedData,
   setEditedData,
 }: TagsSectionProps) {
+  const { t } = useLanguage();
   // タグのリストを処理（nullチェックを含む）
   const validTags = tags.filter(tag => tag.tags !== null);
   const selectedTags = validTags.map(tag => tag.tags?.name || "");
@@ -27,7 +29,7 @@ export function TagsSection({
   if (isEditing) {
     return (
       <div className="space-y-2">
-        <div className="text-sm font-medium">タグ</div>
+        <div className="text-sm font-medium">{t("itemDetails.common.tags")}</div>
         <TagInput
           selectedTags={editedData.tags || selectedTags}
           onTagsChange={handleTagsChange}
@@ -40,7 +42,7 @@ export function TagsSection({
 
   return (
     <div className="space-y-2">
-      <div className="text-sm font-medium">タグ</div>
+      <div className="text-sm font-medium">{t("itemDetails.common.tags")}</div>
       <div className="flex flex-wrap gap-2">
         {validTags.map((tag) => (
           tag.tags && (

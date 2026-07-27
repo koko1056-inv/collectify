@@ -42,7 +42,7 @@ export function FurniturePiece2D({
       className={cn(
         "relative pointer-events-auto",
         isEditing && "cursor-pointer",
-        isSelected && "ring-4 ring-purple-500 ring-offset-2 ring-offset-transparent rounded-sm"
+        isSelected && "ring-4 ring-primary ring-offset-2 ring-offset-transparent rounded-sm"
       )}
       style={{
         width: "100%",
@@ -51,7 +51,7 @@ export function FurniturePiece2D({
         transformOrigin: "center bottom",
       }}
       animate={{
-        filter: isSelected ? "drop-shadow(0 0 12px rgba(168,85,247,0.6))" : "none",
+        filter: isSelected ? "drop-shadow(0 0 12px hsl(var(--primary) / 0.6))" : "none",
       }}
     >
       <FurnitureSvg preset={preset} colors={c} />

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, ArrowLeft, User } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Profile {
   id: string;
@@ -18,6 +19,7 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [suggestions, setSuggestions] = useState<Profile[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -54,8 +56,8 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
   const handleSearch = async () => {
     if (!username.trim()) {
       toast({
-        title: "エラー",
-        description: "ユーザー名を入力してください",
+        title: t("chrome.common.error"),
+        description: t("chrome.userSearch.enterUsername"),
         variant: "destructive",
       });
       return;
@@ -69,8 +71,8 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
 
     if (error || !profile) {
       toast({
-        title: "エラー",
-        description: "ユーザーが見つかりませんでした",
+        title: t("chrome.common.error"),
+        description: t("chrome.friends.noUsersFound"),
         variant: "destructive",
       });
       return;
@@ -93,7 +95,7 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
             <div className="flex-1 flex items-center gap-2 bg-accent rounded-full px-4 py-2">
               <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               <Input
-                placeholder="ユーザー名を検索"
+                placeholder={t("chrome.userSearch.searchPlaceholder")}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0"
@@ -128,7 +130,7 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
           )}
           {username && suggestions.length === 0 && (
             <Button onClick={handleSearch} className="w-full">
-              「{username}」を検索
+              {t("chrome.userSearch.searchFor", { name: username })}
             </Button>
           )}
         </div>

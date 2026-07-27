@@ -10,6 +10,7 @@ import { ChevronRight, Loader2, Shirt, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { useAvatars } from "@/hooks/useAvatars";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UserItem {
   id: string;
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Props) {
+  const { t } = useLanguage();
   const [items, setItems] = useState<UserItem[]>([]);
   const [loadingItems, setLoadingItems] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -64,11 +66,11 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
 
   const handleDressUp = async () => {
     if (!selectedAvatarUrl) {
-      toast.error("ベースアバターを選択してください");
+      toast.error(t("misc.avatar.selectBaseError"));
       return;
     }
     if (selectedItems.length === 0) {
-      toast.error("グッズを選択してください");
+      toast.error(t("misc.avatar.selectGoodsError"));
       return;
     }
     setIsWorking(true);
@@ -88,7 +90,7 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
         },
       });
       if (error) throw error;
-      if (!data?.editedImageUrl) throw new Error("画像が生成されませんでした");
+      if (!data?.editedImageUrl) throw new Error(t("misc.avatar.noImageGenerated"));
 
       await avatars.saveGenerated.mutateAsync({
         imageUrl: data.editedImageUrl,
@@ -96,12 +98,12 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
         itemIds: selectedItems,
       });
 
-      toast.success("🎉 着せ替えが完了しました");
+      toast.success(t("misc.avatar.dressUpSuccess"));
       setSelectedItems([]);
       setCustomPrompt("");
       onDone();
     } catch (e: any) {
-      toast.error(e?.message ?? "着せ替えに失敗しました");
+      toast.error(e?.message ?? t("misc.avatar.dressUpFailed"));
     } finally {
       setIsWorking(false);
     }
@@ -112,7 +114,7 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
       {/* ベースアバター */}
       {avatars.baseAvatars.length > 0 ? (
         <div className="space-y-2 p-4 bg-muted/30 rounded-xl border">
-          <Label className="text-sm">ベースアバター</Label>
+          <Label className="text-sm">{t("misc.avatar.baseAvatar")}</Label>
           <RadioGroup value={selectedAvatarUrl} onValueChange={setSelectedAvatarUrl}>
             <div className="flex gap-3 overflow-x-auto pb-2">
               {avatars.baseAvatars.slice(0, 8).map((a) => (
@@ -143,7 +145,7 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
         <div className="p-6 bg-muted/30 rounded-xl border text-center">
           <User className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
           <p className="text-sm text-muted-foreground mb-3">
-            まずAIアバターを生成してください
+            {t("misc.avatar.generateFirst")}
           </p>
         </div>
       )}
@@ -151,9 +153,9 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
       {/* グッズ */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label>グッズを選択</Label>
+          <Label>{t("misc.avatar.selectGoods")}</Label>
           {selectedItems.length > 0 && (
-            <Badge variant="default">{selectedItems.length}個選択中</Badge>
+            <Badge variant="default">{t("misc.avatar.selectedCount", { n: selectedItems.length })}</Badge>
           )}
         </div>
         {loadingItems ? (
@@ -162,7 +164,7 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
           </div>
         ) : items.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm">
-            グッズがありません
+            {t("misc.avatar.noGoods")}
           </div>
         ) : (
           <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
@@ -198,11 +200,11 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
       {/* カスタム指示 */}
       <div className="space-y-2">
         <Label htmlFor="custom-prompt" className="text-muted-foreground text-xs">
-          カスタム指示（オプション）
+          {t("misc.avatar.customPrompt")}
         </Label>
         <Textarea
           id="custom-prompt"
-          placeholder="例：Tシャツとして着せてください..."
+          placeholder={t("misc.avatar.customPromptPlaceholder")}
           value={customPrompt}
           onChange={(e) => setCustomPrompt(e.target.value)}
           rows={2}
@@ -218,12 +220,12 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
         {isWorking ? (
           <>
             <Loader2 className="w-5 h-5 animate-spin" />
-            着せ替え中...
+            {t("misc.avatar.dressingUp")}
           </>
         ) : (
           <>
             <Shirt className="w-5 h-5" />
-            着せ替えを実行
+            {t("misc.avatar.dressUpRun")}
             <ChevronRight className="w-4 h-4" />
           </>
         )}

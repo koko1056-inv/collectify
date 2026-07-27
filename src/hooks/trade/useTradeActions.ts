@@ -2,6 +2,7 @@
 import { useToast } from "@/hooks/use-toast";
 import { TradeRequest } from "@/components/trade/types";
 import { updateTradeRequestStatus, createTradeMessages } from "@/services/trade/tradeService";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type TradeStateProps = {
   setShowCompletionModal: (show: boolean) => void;
@@ -17,6 +18,7 @@ export function useTradeActions({
   setShowChatModal
 }: TradeStateProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const openChat = (trade: TradeRequest) => {
     setSelectedRequest(trade);
@@ -42,8 +44,8 @@ export function useTradeActions({
       if (!success) {
         toast({
           variant: "destructive",
-          title: "エラー",
-          description: "トレードリクエストの更新に失敗しました",
+          title: t("notices.common.errorTitle"),
+          description: t("notices.trade.updateFailed"),
         });
         return;
       }
@@ -66,8 +68,8 @@ export function useTradeActions({
         setShowChatModal(true);
       } else {
         toast({
-          title: "更新完了",
-          description: "トレードリクエストを拒否しました",
+          title: t("notices.trade.updateDoneTitle"),
+          description: t("notices.trade.rejected"),
         });
       }
 

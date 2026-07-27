@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ImagePlus, Loader2 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChallengeEntryModalProps {
   challengeId: string;
@@ -19,6 +20,7 @@ interface ChallengeEntryModalProps {
 export function ChallengeEntryModal({ challengeId, isOpen, onClose }: ChallengeEntryModalProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [caption, setCaption] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -75,8 +77,8 @@ export function ChallengeEntryModal({ challengeId, isOpen, onClose }: ChallengeE
       onClose();
     } catch (error: any) {
       toast({
-        title: "エラー",
-        description: error.message || "画像のアップロードに失敗しました",
+        title: t("social.challenges.error"),
+        description: error.message || t("social.challenges.uploadFailed"),
         variant: "destructive",
       });
     } finally {
@@ -97,12 +99,12 @@ export function ChallengeEntryModal({ challengeId, isOpen, onClose }: ChallengeE
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>チャレンジに参加</DialogTitle>
+          <DialogTitle>{t("social.challenges.entryTitle")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <Label>画像</Label>
+            <Label>{t("social.challenges.image")}</Label>
             <div
               {...getRootProps()}
               className={`mt-1 border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
@@ -122,7 +124,7 @@ export function ChallengeEntryModal({ challengeId, isOpen, onClose }: ChallengeE
                 <div className="py-8">
                   <ImagePlus className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    {isDragActive ? "ドロップして画像を追加" : "クリックまたはドラッグして画像を追加"}
+                    {isDragActive ? t("social.challenges.dropToAdd") : t("social.challenges.clickOrDrag")}
                   </p>
                 </div>
               )}
@@ -130,12 +132,12 @@ export function ChallengeEntryModal({ challengeId, isOpen, onClose }: ChallengeE
           </div>
 
           <div>
-            <Label htmlFor="caption">コメント（任意）</Label>
+            <Label htmlFor="caption">{t("social.challenges.commentOptional")}</Label>
             <Textarea
               id="caption"
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
-              placeholder="あなたの作品について一言..."
+              placeholder={t("social.challenges.captionPlaceholder")}
               className="mt-1"
               rows={2}
             />
@@ -143,7 +145,7 @@ export function ChallengeEntryModal({ challengeId, isOpen, onClose }: ChallengeE
 
           <div className="flex gap-2 pt-2">
             <Button variant="outline" onClick={handleClose} disabled={uploading} className="flex-1">
-              キャンセル
+              {t("social.challenges.cancel")}
             </Button>
             <Button
               onClick={handleSubmit}
@@ -153,10 +155,10 @@ export function ChallengeEntryModal({ challengeId, isOpen, onClose }: ChallengeE
               {uploading || createEntry.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  送信中...
+                  {t("social.challenges.submitting")}
                 </>
               ) : (
-                "参加する"
+                t("social.challenges.join")
               )}
             </Button>
           </div>

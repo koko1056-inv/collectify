@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Star, Gift } from "lucide-react";
 import { useUserPoints } from "@/hooks/usePoints";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SpendPointsDialogProps {
   open: boolean;
@@ -35,11 +36,12 @@ export function SpendPointsDialog({
   title,
   description,
   cost,
-  confirmLabel = "消費して実行",
+  confirmLabel,
   loading,
   onConfirm,
   freeTrial = false,
 }: SpendPointsDialogProps) {
+  const { t } = useLanguage();
   const { data: userPoints } = useUserPoints();
   const balance = userPoints?.total_points ?? 0;
   const effectiveCost = freeTrial ? 0 : cost;
@@ -55,7 +57,7 @@ export function SpendPointsDialog({
               <p>{description}</p>
 
               <div className="flex items-center justify-between rounded-lg bg-muted px-3 py-2">
-                <span className="text-muted-foreground">消費ポイント</span>
+                <span className="text-muted-foreground">{t("misc.shop.cost")}</span>
                 {freeTrial ? (
                   <span className="flex items-center gap-2 font-semibold">
                     <span className="text-xs text-muted-foreground line-through">
@@ -63,7 +65,7 @@ export function SpendPointsDialog({
                     </span>
                     <span className="flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-primary">
                       <Gift className="h-3.5 w-3.5" />
-                      初回無料
+                      {t("misc.common.freeFirstTime")}
                     </span>
                   </span>
                 ) : (
@@ -75,7 +77,7 @@ export function SpendPointsDialog({
               </div>
 
               <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">現在の残高</span>
+                <span className="text-muted-foreground">{t("misc.shop.balance")}</span>
                 <span className={insufficient ? "text-destructive font-medium" : "font-medium"}>
                   {balance.toLocaleString()} pt
                 </span>
@@ -83,19 +85,19 @@ export function SpendPointsDialog({
 
               {freeTrial && (
                 <p className="text-xs text-muted-foreground">
-                  🎁 初回お試し中。次回からは {cost}pt が消費されます。
+                  {t("misc.shop.freeTrialNote", { cost })}
                 </p>
               )}
               {insufficient && (
                 <p className="text-xs text-destructive">
-                  ポイントが不足しています。ログインボーナスやグッズ登録で獲得できます。
+                  {t("misc.shop.insufficient")}
                 </p>
               )}
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>キャンセル</AlertDialogCancel>
+          <AlertDialogCancel disabled={loading}>{t("misc.common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={(e) => {
               e.preventDefault();
@@ -104,10 +106,10 @@ export function SpendPointsDialog({
             disabled={insufficient || loading}
           >
             {loading
-              ? "処理中…"
+              ? t("misc.common.processing")
               : freeTrial
-                ? "無料で実行"
-                : confirmLabel}
+                ? t("misc.shop.runFree")
+                : (confirmLabel ?? t("misc.shop.spendDefaultConfirm"))}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

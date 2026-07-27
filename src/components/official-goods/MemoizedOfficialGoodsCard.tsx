@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MemoizedOfficialGoodsCardProps {
   id: string;
@@ -34,12 +35,13 @@ const OfficialGoodsCardWithSwipe = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isInCollection, handleAddToCollection } = useOfficialGoodsCard({ id, title, image });
+  const { t } = useLanguage();
 
   const handleSwipeRight = () => {
     if (isInCollection) {
       toast({
-        title: "既に追加済み",
-        description: "このアイテムは既にコレクションに追加されています。",
+        title: t("collectionScreen.official.alreadyAdded"),
+        description: t("collectionScreen.official.alreadyAddedDesc"),
       });
       return;
     }
@@ -49,8 +51,8 @@ const OfficialGoodsCardWithSwipe = ({
   const handleSwipeLeft = async () => {
     if (!user) {
       toast({
-        title: "ログインが必要です",
-        description: "ウィッシュリストに追加するにはログインしてください。",
+        title: t("collectionScreen.official.wishlistLoginRequired"),
+        description: t("collectionScreen.official.wishlistLoginDesc"),
         variant: "destructive",
       });
       return;
@@ -67,7 +69,7 @@ const OfficialGoodsCardWithSwipe = ({
 
       if (existing) {
         toast({
-          title: "既にウィッシュリストまたはコレクションに追加済み",
+          title: t("collectionScreen.official.alreadyInWishlistOrCollection"),
         });
         return;
       }
@@ -89,14 +91,14 @@ const OfficialGoodsCardWithSwipe = ({
       await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
 
       toast({
-        title: "ウィッシュリストに追加しました！",
-        description: "左スワイプで追加されました。",
+        title: t("collectionScreen.official.wishlistAdded"),
+        description: t("collectionScreen.official.wishlistAddedDesc"),
       });
     } catch (error) {
       console.error("Error adding to wishlist:", error);
       toast({
-        title: "エラー",
-        description: "ウィッシュリストへの追加に失敗しました。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.official.wishlistAddFailed"),
         variant: "destructive",
       });
     }

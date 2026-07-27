@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Hash, TrendingUp } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TrendingTagsProps {
   onTagClick?: (tagName: string) => void;
@@ -10,6 +11,7 @@ interface TrendingTagsProps {
 }
 
 export function TrendingTags({ onTagClick, selectedTags = [] }: TrendingTagsProps) {
+  const { t } = useLanguage();
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
@@ -116,7 +118,7 @@ export function TrendingTags({ onTagClick, selectedTags = [] }: TrendingTagsProp
     <div className="space-y-3">
       <h3 className="text-sm font-semibold flex items-center gap-2">
         <TrendingUp className="h-4 w-4 text-primary" />
-        トレンドタグ
+        {t("social.posts.trendingTags")}
       </h3>
       <div className="flex flex-wrap gap-2">
         {trendingTags.map((tag) => {

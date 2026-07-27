@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SaveGalleryParams {
   userId: string;
@@ -13,6 +14,7 @@ interface SaveGalleryParams {
 
 export function useSaveDisplayGallery() {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   return useMutation({
     mutationFn: async ({
       userId,
@@ -34,12 +36,12 @@ export function useSaveDisplayGallery() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("ギャラリーを保存しました！");
+      toast.success(t("homeScreen.actions.gallerySaved"));
       queryClient.invalidateQueries({ queryKey: ["display-gallery-all"] });
     },
     onError: (error) => {
       console.error("Error saving gallery:", error);
-      toast.error("ギャラリーの保存に失敗しました");
+      toast.error(t("homeScreen.actions.gallerySaveFailed"));
     },
   });
 }
@@ -53,6 +55,7 @@ interface UploadPresetParams {
 
 export function useUploadBackgroundPreset() {
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   return useMutation({
     mutationFn: async ({ userId, file, name, category }: UploadPresetParams) => {
       const fileExt = file.name.split(".").pop();
@@ -79,11 +82,11 @@ export function useUploadBackgroundPreset() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["background-presets"] });
-      toast.success("背景プリセットを追加しました");
+      toast.success(t("homeScreen.actions.presetAdded"));
     },
     onError: (error) => {
       console.error("Error uploading preset:", error);
-      toast.error("背景プリセットの追加に失敗しました");
+      toast.error(t("homeScreen.actions.presetAddFailed"));
     },
   });
 }

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
 export type AiWorkType = "room" | "avatar";
@@ -34,6 +35,7 @@ export function useMyAiBookmarks() {
 /** ブックマークの作成 / 削除トグル */
 export function useToggleAiBookmark() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({
@@ -45,7 +47,7 @@ export function useToggleAiBookmark() {
       workType: AiWorkType;
       isBookmarked: boolean;
     }) => {
-      if (!user?.id) throw new Error("ログインしてください");
+      if (!user?.id) throw new Error(t("aiRoom.toast.loginRequired"));
       if (isBookmarked) {
         const { error } = await supabase
           .from("ai_work_bookmarks")
@@ -68,9 +70,9 @@ export function useToggleAiBookmark() {
     onSuccess: (added) => {
       qc.invalidateQueries({ queryKey: ["ai-bookmarks", user?.id] });
       qc.invalidateQueries({ queryKey: ["ai-bookmarks-list", user?.id] });
-      toast.success(added ? "ブックマークしました 📌" : "ブックマークを解除しました");
+      toast.success(added ? t("aiRoom.toast.bookmarked") : t("aiRoom.toast.unbookmarked"));
     },
-    onError: (e) => toast.error((e as Error).message || "更新に失敗しました"),
+    onError: (e) => toast.error((e as Error).message || t("aiRoom.toast.updateFailed")),
   });
 }
 

@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface MyRoom {
   id: string;
@@ -54,6 +55,7 @@ export function useMyRoom(userId?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const targetUserId = userId || user?.id;
+  const { t } = useLanguage();
 
   // メインルームを取得
   const { data: mainRoom, isLoading: isLoadingRoom } = useQuery({
@@ -166,7 +168,7 @@ export function useMyRoom(userId?: string) {
   // メインルームを作成
   const createMainRoom = useMutation({
     mutationFn: async (title: string = "マイルーム") => {
-      if (!user?.id) throw new Error("ログインが必要です");
+      if (!user?.id) throw new Error(t("notices.common.loginRequired"));
 
       const { data, error } = await supabase
         .from("binder_pages")
@@ -185,18 +187,18 @@ export function useMyRoom(userId?: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["main-room", user?.id] });
-      toast.success("マイルームを作成しました！");
+      toast.success(t("notices.room.created"));
     },
     onError: (error) => {
       console.error("Error creating main room:", error);
-      toast.error("マイルームの作成に失敗しました");
+      toast.error(t("notices.room.createFailed"));
     },
   });
 
   // いいね切り替え
   const toggleLike = useMutation({
     mutationFn: async () => {
-      if (!mainRoom?.id || !user?.id) throw new Error("ログインが必要です");
+      if (!mainRoom?.id || !user?.id) throw new Error(t("notices.common.loginRequired"));
 
       if (isLiked) {
         const { error } = await supabase

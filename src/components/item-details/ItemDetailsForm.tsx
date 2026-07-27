@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { addTagToItem, removeTagFromItem } from "@/utils/tag/tag-mutations";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemDetailsFormProps {
   itemId: string;
@@ -28,6 +29,7 @@ export function ItemDetailsForm({
 }: ItemDetailsFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,16 +96,16 @@ export function ItemDetailsForm({
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
 
       toast({
-        title: "更新完了",
-        description: "アイテム情報を更新しました。",
+        title: t("itemDetails.save.updateSuccess"),
+        description: t("itemDetails.save.updateSuccessDescription"),
       });
 
       onEditComplete();
     } catch (error) {
       console.error("Error updating item:", error);
       toast({
-        title: "エラー",
-        description: "アイテムの更新に失敗しました。",
+        title: t("itemDetails.common.error"),
+        description: t("itemDetails.save.updateFailed"),
         variant: "destructive",
       });
     } finally {
@@ -118,7 +120,7 @@ export function ItemDetailsForm({
           type="submit"
           disabled={isSaving}
         >
-          {isSaving ? "保存中..." : "保存"}
+          {isSaving ? t("itemDetails.common.saving") : t("itemDetails.common.save")}
         </Button>
       </div>
     </form>

@@ -11,6 +11,7 @@ import { InterestsList } from "./InterestsList";
 import { ContentSelectionDialog } from "./ContentSelectionDialog";
 import { AddContentDialog } from "./AddContentDialog";
 import { ContentNameType } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileInterestsProps {
   currentInterests: string[] | null;
@@ -23,6 +24,7 @@ export function ProfileInterests({
 }: ProfileInterestsProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [selectedInterests, setSelectedInterests] = useState<string[]>(currentInterests || []);
   const [saving, setSaving] = useState(false);
   const [isSelectingContent, setIsSelectingContent] = useState(false);
@@ -63,16 +65,16 @@ export function ProfileInterests({
       setIsAddingContent(false);
       
       toast({
-        title: "コンテンツを追加しました",
-        description: `${newContentName}を追加しました`,
+        title: t("profileScreen.interests.addedTitle"),
+        description: t("profileScreen.interests.addedDesc", { name: newContentName }),
       });
 
       setSelectedInterests(prev => [...prev, newContentName]);
     } catch (error) {
       console.error("Error adding content:", error);
       toast({
-        title: "エラー",
-        description: "コンテンツの追加に失敗しました",
+        title: t("profileScreen.common.error"),
+        description: t("profileScreen.interests.addFailed"),
         variant: "destructive",
       });
     }
@@ -91,16 +93,16 @@ export function ProfileInterests({
       if (error) throw error;
 
       toast({
-        title: "更新完了",
-        description: "推しコンテンツを更新しました",
+        title: t("profileScreen.interests.updatedTitle"),
+        description: t("profileScreen.interests.updatedDesc"),
       });
       onUpdate();
     } catch (error) {
       console.error("Error updating interests:", error);
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "推しコンテンツの更新に失敗しました",
+        title: t("profileScreen.common.error"),
+        description: t("profileScreen.interests.updateFailed"),
       });
     } finally {
       setSaving(false);
@@ -119,11 +121,11 @@ export function ProfileInterests({
     <div className="space-y-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500/30" />
-          <h3 className="text-[13px] font-bold tracking-wide">推しコンテンツ</h3>
+          <Heart className="w-3.5 h-3.5 text-primary fill-primary/30" />
+          <h3 className="text-[13px] font-bold tracking-wide">{t("profileScreen.interests.title")}</h3>
           {selectedInterests.length > 0 && (
             <span className="text-[10px] text-muted-foreground">
-              {selectedInterests.length}件
+              {t("profileScreen.interests.count", { count: selectedInterests.length })}
             </span>
           )}
         </div>
@@ -131,7 +133,7 @@ export function ProfileInterests({
           onClick={() => setIsSelectingContent(true)}
           className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
         >
-          <Plus className="w-3 h-3" /> 編集
+          <Plus className="w-3 h-3" /> {t("profileScreen.common.edit")}
         </button>
       </div>
 
@@ -141,7 +143,7 @@ export function ProfileInterests({
           className="w-full rounded-2xl border border-dashed border-border bg-muted/40 hover:bg-muted/60 transition-colors py-5 flex flex-col items-center justify-center gap-1.5 text-muted-foreground"
         >
           <Heart className="w-5 h-5 opacity-50" />
-          <span className="text-xs font-medium">推しコンテンツを追加</span>
+          <span className="text-xs font-medium">{t("profileScreen.interests.addCta")}</span>
         </button>
       ) : (
         <div className="flex flex-wrap gap-2">
@@ -153,7 +155,7 @@ export function ProfileInterests({
             onClick={() => setIsSelectingContent(true)}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border border-dashed border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
           >
-            <Plus className="w-3 h-3" /> 追加
+            <Plus className="w-3 h-3" /> {t("profileScreen.common.add")}
           </button>
         </div>
       )}

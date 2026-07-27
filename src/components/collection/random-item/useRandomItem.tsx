@@ -2,9 +2,11 @@
 import { useState, useEffect } from "react";
 import { getRandomUserItem } from "@/utils/tag-operations";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useRandomItem(userId: string | null | undefined, isOpen: boolean) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [randomItem, setRandomItem] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -25,16 +27,16 @@ export function useRandomItem(userId: string | null | undefined, isOpen: boolean
       
       if (!item) {
         toast({
-          title: "アイテムがありません",
-          description: "コレクションにアイテムがありません。",
+          title: t("collectionScreen.random.noItemTitle"),
+          description: t("collectionScreen.random.emptyItems"),
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Error fetching random item:", error);
       toast({
-        title: "エラーが発生しました",
-        description: "ランダムアイテムの取得に失敗しました。",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.random.fetchFailed"),
         variant: "destructive",
       });
     } finally {

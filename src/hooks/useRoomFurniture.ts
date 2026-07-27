@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { RoomFurniture } from "@/components/room3d/FurnitureItem3D";
 import { PlacementType } from "@/hooks/useMyRoom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Default furniture for new rooms (2D shelf layout)
 // 棚+台座を置いた簡素な初期状態
@@ -15,6 +16,7 @@ const DEFAULT_FURNITURE: Omit<RoomFurniture, "id">[] = [
 export function useRoomFurniture(roomId: string | undefined) {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { t } = useLanguage();
   const key = ["room-furniture", roomId];
 
   // Fetch furniture from DB
@@ -67,7 +69,7 @@ export function useRoomFurniture(roomId: string | undefined) {
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: key }),
-    onError: () => toast.error("家具の追加に失敗しました"),
+    onError: () => toast.error(t("notices.furniture.addFailed")),
   });
 
   // Update furniture position/scale
@@ -93,9 +95,9 @@ export function useRoomFurniture(roomId: string | undefined) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: key });
-      toast.success("家具を削除しました");
+      toast.success(t("notices.furniture.deleted"));
     },
-    onError: () => toast.error("削除に失敗しました"),
+    onError: () => toast.error(t("notices.furniture.deleteFailed")),
   });
 
   // Seed default furniture for a new room

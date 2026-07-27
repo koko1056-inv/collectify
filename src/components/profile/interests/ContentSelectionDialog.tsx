@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus } from "lucide-react";
 import { ContentSelectionDialogProps } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function ContentSelectionDialog({
   isOpen,
@@ -14,13 +15,15 @@ export function ContentSelectionDialog({
   contentNames,
   onAddNew
 }: ContentSelectionDialogProps) {
+  const { t } = useLanguage();
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>推しコンテンツを選択</DialogTitle>
+          <DialogTitle>{t("profileScreen.interests.selectTitle")}</DialogTitle>
           <DialogDescription>
-            あなたの推しコンテンツを選んでください
+            {t("profileScreen.interests.selectDesc")}
           </DialogDescription>
         </DialogHeader>
         
@@ -31,7 +34,7 @@ export function ContentSelectionDialog({
             onClick={onAddNew}
           >
             <Plus className="h-4 w-4 mr-1" />
-            新規追加
+            {t("profileScreen.interests.addNew")}
           </Button>
         </div>
 
@@ -52,13 +55,13 @@ export function ContentSelectionDialog({
 
         <div className="flex justify-end gap-2 mt-4">
           <Button variant="outline" onClick={onClose}>
-            キャンセル
+            {t("profileScreen.common.cancel")}
           </Button>
           <Button onClick={() => {
             onSave();
             onClose();
           }}>
-            保存する
+            {t("profileScreen.interests.saveButton")}
           </Button>
         </div>
       </DialogContent>

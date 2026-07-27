@@ -8,6 +8,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { NotificationList } from './NotificationList';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
 interface NotificationBellProps {
@@ -15,6 +16,7 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ className }: NotificationBellProps) {
+  const { t } = useLanguage();
   const { unreadCount } = useNotifications();
 
   return (
@@ -38,10 +40,10 @@ export function NotificationBell({ className }: NotificationBellProps) {
       </PopoverTrigger>
       <PopoverContent className="w-80 sm:w-80 w-[calc(100vw-2rem)] p-0 bg-background shadow-lg" align="end">
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold">通知</h3>
+          <h3 className="font-semibold">{t("misc.notifications.title")}</h3>
           {unreadCount > 0 && (
             <Badge variant="secondary" className="text-xs">
-              {unreadCount}件の未読
+              {t("misc.notifications.unreadCount", { n: unreadCount })}
             </Badge>
           )}
         </div>

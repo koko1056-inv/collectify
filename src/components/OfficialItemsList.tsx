@@ -8,6 +8,8 @@ import { useSortedItems } from "./official-goods/hooks/useSortedItems";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, CheckSquare, X, Tags, Package } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 import { TagManageModal } from "./tag/TagManageModal";
 import { 
   Drawer,
@@ -21,6 +23,7 @@ import { Tag } from "@/types";
 import { Button } from "@/components/ui/button";
 import { BulkImportModal } from "./admin/BulkImportModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OfficialItemsListProps {
   items: OfficialItem[];
@@ -31,6 +34,12 @@ interface OfficialItemsListProps {
   selectedContent?: string;
   onContentChange?: (content: string) => void;
   tags?: Tag[];
+  /** 初回データ取得中かどうか。true の間は空状態ではなくスケルトンを表示する。 */
+  isInitialLoading?: boolean;
+  /** 取得に失敗したかどうか。true なら空状態ではなくエラー表示にする。 */
+  isError?: boolean;
+  /** エラー表示の「再試行」で呼ばれる。 */
+  onRetry?: () => void;
 }
 
 type SortOption = "newest" | "oldest" | "wishlist" | "owners-desc" | "owners-asc" | "not-owned";
@@ -43,7 +52,10 @@ export function OfficialItemsList({
   onTagsChange = () => {},
   selectedContent = "",
   onContentChange = () => {},
-  tags = []
+  tags = [],
+  isInitialLoading = false,
+  isError = false,
+  onRetry
 }: OfficialItemsListProps) {
   const isMobile = useIsMobile();
   const { user } = useAuth();
@@ -85,6 +97,7 @@ export function OfficialItemsList({
   const loaderRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const loadMoreItems = useCallback(() => {
     if (visibleCount >= sortedItems.length || isLoading) return;
@@ -99,8 +112,8 @@ export function OfficialItemsList({
         // 全アイテムを表示した場合は通知を表示
         if (newCount >= sortedItems.length) {
           toast({
-            title: "全てのアイテムを表示しました",
-            description: `${sortedItems.length}件のアイテムを表示しています。`,
+            title: t("chrome.officialItems.allShownTitle"),
+            description: t("chrome.officialItems.allShownDesc", { n: sortedItems.length }),
           });
         }
         
@@ -108,7 +121,7 @@ export function OfficialItemsList({
       });
       setIsLoading(false);
     }, 500);
-  }, [visibleCount, sortedItems.length, isMobile, isLoading, toast]);
+  }, [visibleCount, sortedItems.length, isMobile, isLoading, toast, t]);
 
   useEffect(() => {
     // IntersectionObserverを使って無限スクロールを実装
@@ -161,10 +174,10 @@ export function OfficialItemsList({
           <div className="flex items-center gap-2">
             <Button size="sm" variant="ghost" onClick={exitSelectionMode} className="h-8 px-2">
               <X className="h-4 w-4 mr-1" />
-              キャンセル
+              {t("chrome.common.cancel")}
             </Button>
             <span className="text-xs text-muted-foreground">
-              {selectedIds.size}件選択中
+              {t("chrome.collection.selectedCount", { n: selectedIds.size })}
             </span>
           </div>
           <Button
@@ -174,7 +187,7 @@ export function OfficialItemsList({
             className="h-8"
           >
             <Tags className="h-4 w-4 mr-1" />
-            タグ一括編集
+            {t("chrome.officialItems.bulkTagEdit")}
           </Button>
         </div>
       )}
@@ -182,10 +195,10 @@ export function OfficialItemsList({
       <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
         <DrawerContent className="max-h-[90vh] px-4 pt-4 pb-8">
           <div className="mx-auto w-full max-w-sm">
-            <DrawerTitle className="text-center font-medium mb-4">フィルター</DrawerTitle>
+            <DrawerTitle className="text-center font-medium mb-4">{t("chrome.filter.title")}</DrawerTitle>
             <DrawerClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none">
               <button className="text-sm text-muted-foreground">
-                完了
+                {t("chrome.officialItems.done")}
               </button>
             </DrawerClose>
             <ScrollArea className="h-[70vh] pr-4">
@@ -218,11 +231,25 @@ export function OfficialItemsList({
         isUserItem={false}
       />
       
-      {sortedItems.length === 0 ? (
+      {isInitialLoading ? (
+        // 取得完了前に空状態を出すと「グッズがありません」と誤解させてしまうため、
+        // 読み込み中はグリッド形のスケルトンを表示する。
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="aspect-[3/4] w-full rounded-xl" />
+          ))}
+        </div>
+      ) : isError ? (
+        // 通信失敗を空状態で見せると「グッズが無い」と誤解されるため区別する
+        <QueryErrorState
+          title={t("chrome.officialItems.loadFailed")}
+          onRetry={onRetry}
+        />
+      ) : sortedItems.length === 0 ? (
         <EmptyState
           icon={Package}
-          title="公式グッズがまだありません"
-          description="検索条件やフィルターを変えてみてください"
+          title={t("chrome.officialItems.emptyTitle")}
+          description={t("chrome.collection.noMatchDesc")}
         />
       ) : (
         <OfficialItemsGrid
@@ -241,7 +268,7 @@ export function OfficialItemsList({
           {isLoading ? (
             <div className="flex flex-col items-center">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              <p className="text-sm text-muted-foreground mt-2">読み込み中...</p>
+              <p className="text-sm text-muted-foreground mt-2">{t("chrome.common.loading")}</p>
             </div>
           ) : (
             <div className="h-8" />

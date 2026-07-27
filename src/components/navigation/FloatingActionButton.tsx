@@ -3,6 +3,7 @@ import { Plus, Camera, X, Sparkles, Home, Shirt } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FloatingActionButtonProps {
   className?: string;
@@ -11,29 +12,30 @@ interface FloatingActionButtonProps {
 export function FloatingActionButton({ className }: FloatingActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   // メインアクション = グッズ追加。AI生成はサブメニュー。
   const actions = [
     {
       icon: Camera,
-      label: "写真でグッズ追加",
+      label: t("chrome.fab.addByPhoto"),
       onClick: () => navigate("/image-search"),
       gradient: "from-sky-500 to-blue-500",
-      description: "撮るだけで自動登録",
+      description: t("chrome.fab.addByPhotoDesc"),
     },
     {
       icon: Home,
-      label: "AIでルームを作る",
+      label: t("chrome.fab.createRoom"),
       onClick: () => navigate("/my-room?tab=studio"),
       gradient: "from-violet-500 to-fuchsia-500",
-      description: "AIが部屋を生成",
+      description: t("chrome.fab.createRoomDesc"),
     },
     {
       icon: Shirt,
-      label: "AIでアバターを作る",
+      label: t("chrome.fab.createAvatar"),
       onClick: () => navigate("/my-room?tab=avatar"),
       gradient: "from-pink-500 to-rose-500",
-      description: "好きな姿に変身",
+      description: t("chrome.fab.createAvatarDesc"),
     },
   ];
 
@@ -98,7 +100,7 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
             "hover:shadow-xl transition-all"
           )}
           whileTap={{ scale: 0.95 }}
-          aria-label="グッズを追加"
+          aria-label={t("chrome.fab.addGoods")}
         >
           <Plus className="h-7 w-7" />
         </motion.button>
@@ -108,7 +110,7 @@ export function FloatingActionButton({ className }: FloatingActionButtonProps) {
             e.stopPropagation();
             setIsOpen(!isOpen);
           }}
-          aria-label="その他のアクション"
+          aria-label={t("chrome.fab.moreActions")}
           className={cn(
             "absolute -top-1 -right-1 h-7 w-7 rounded-full z-[51] flex items-center justify-center shadow-md transition-transform",
             "bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 text-primary-foreground",

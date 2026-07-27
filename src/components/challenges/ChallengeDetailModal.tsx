@@ -7,12 +7,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy, Users, Clock, Vote, ImagePlus, Medal, Package, TrendingUp } from "lucide-react";
 import { useChallenge, useChallengeEntries, useVoteForEntry, useEndChallenge } from "@/hooks/challenges";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDistanceToNow, isPast, parseISO, format } from "date-fns";
-import { ja } from "date-fns/locale";
+import { isPast, parseISO } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChallengeEntryModal } from "./ChallengeEntryModal";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface ChallengeDetailModalProps {
   challengeId: string;
@@ -22,6 +23,8 @@ interface ChallengeDetailModalProps {
 
 export function ChallengeDetailModal({ challengeId, isOpen, onClose }: ChallengeDetailModalProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { formatShortDate, formatRelative } = useDateFormat();
   const { data: challenge, isLoading: challengeLoading } = useChallenge(challengeId);
   const { data: entries, isLoading: entriesLoading } = useChallengeEntries(challengeId);
   const voteForEntry = useVoteForEntry();
@@ -55,24 +58,24 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
     if (index === 0) return (
       <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500 text-white text-xs font-bold">
         <Medal className="h-3.5 w-3.5" />
-        1位
+        {t("social.challenges.rank1")}
       </div>
     );
     if (index === 1) return (
       <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gray-400 text-white text-xs font-bold">
         <Medal className="h-3.5 w-3.5" />
-        2位
+        {t("social.challenges.rank2")}
       </div>
     );
     if (index === 2) return (
       <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-600 text-white text-xs font-bold">
         <Medal className="h-3.5 w-3.5" />
-        3位
+        {t("social.challenges.rank3")}
       </div>
     );
     return (
       <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
-        {index + 1}位
+        {t("social.challenges.rankN", { rank: index + 1 })}
       </div>
     );
   };
@@ -103,7 +106,7 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
                 )}
               </div>
               <Badge variant={isEnded ? "secondary" : "default"}>
-                {isEnded ? "終了" : "開催中"}
+                {isEnded ? t("social.challenges.ended") : t("social.challenges.active")}
               </Badge>
             </div>
 
@@ -117,13 +120,13 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
               </div>
               <span className="flex items-center gap-1 text-muted-foreground">
                 <Users className="h-4 w-4" />
-                {entries?.length || 0}人参加
+                {t("social.challenges.participants", { count: entries?.length || 0 })}
               </span>
               <span className="flex items-center gap-1 text-muted-foreground">
                 <Clock className="h-4 w-4" />
                 {isEnded 
-                  ? `${format(parseISO(challenge.ends_at), "M/d", { locale: ja })}に終了` 
-                  : formatDistanceToNow(parseISO(challenge.ends_at), { locale: ja, addSuffix: true })}
+                  ? t("social.challenges.endedOn", { date: formatShortDate(challenge.ends_at) }) 
+                  : formatRelative(challenge.ends_at)}
               </span>
             </div>
 
@@ -138,7 +141,7 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground mb-0.5">
                     <Package className="h-3 w-3" />
-                    対象グッズ
+                    {t("social.challenges.targetGoods")}
                   </div>
                   <p className="font-medium truncate">{challenge.official_items.title}</p>
                 </div>
@@ -161,10 +164,11 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
               <div className="flex items-center justify-between mb-4 p-3 rounded-lg bg-muted/50">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-primary" />
-                  <span className="font-medium text-sm">リアルタイムランキング</span>
+                  <span className="font-medium text-sm">{t("social.challenges.liveRanking")}</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  総投票数: <span className="font-bold text-foreground">{totalVotes}</span>票
+                  {t("social.challenges.totalVotesLabel")}{" "}
+                  <span className="font-bold text-foreground">{totalVotes}</span>{t("social.challenges.totalVotesSuffix")}
                 </div>
               </div>
             )}
@@ -178,8 +182,8 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
             ) : sortedEntries.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <ImagePlus className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>まだ参加者がいません</p>
-                <p className="text-sm">最初の参加者になりましょう！</p>
+                <p>{t("social.challenges.noEntries")}</p>
+                <p className="text-sm">{t("social.challenges.beFirstEntry")}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -249,7 +253,7 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
                                   animate={{ scale: 1 }}
                                   className="font-bold text-primary"
                                 >
-                                  {voteCount}票
+                                  {t("social.challenges.votesCount", { count: voteCount })}
                                 </motion.span>
                                 <span className="text-muted-foreground">
                                   {votePercentage.toFixed(0)}%
@@ -283,7 +287,7 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
                                 disabled={voteForEntry.isPending}
                               >
                                 <Vote className="h-4 w-4" />
-                                {isMyVote ? "済" : "投票"}
+                                {isMyVote ? t("social.challenges.voted") : t("social.challenges.vote")}
                               </Button>
                             </div>
                           )}
@@ -300,7 +304,7 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
             {!isEnded && !hasEntered && user && (
               <Button onClick={() => setIsEntryModalOpen(true)} className="flex-1 gap-2">
                 <ImagePlus className="h-4 w-4" />
-                参加する
+                {t("social.challenges.join")}
               </Button>
             )}
             {isOwner && !isEnded && (
@@ -309,11 +313,11 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
                 onClick={handleEndChallenge}
                 disabled={endChallenge.isPending}
               >
-                {endChallenge.isPending ? "終了処理中..." : "チャレンジを終了"}
+                {endChallenge.isPending ? t("social.challenges.ending") : t("social.challenges.endChallenge")}
               </Button>
             )}
             <Button variant="outline" onClick={onClose}>
-              閉じる
+              {t("social.challenges.close")}
             </Button>
           </div>
         </DialogContent>

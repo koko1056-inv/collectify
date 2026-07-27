@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
 export interface AiGeneratedRoom {
@@ -70,6 +71,7 @@ export interface GenerateInput {
 /** AIルーム生成 (Edge Function呼び出し) */
 export function useGenerateAiRoom() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const qc = useQueryClient();
 
   return useMutation({
@@ -90,9 +92,9 @@ export function useGenerateAiRoom() {
             msg = data.error;
           }
         } catch {}
-        throw new Error(msg || "生成に失敗しました");
+        throw new Error(msg || t("aiRoom.toast.generateFailed"));
       }
-      if (!data?.room) throw new Error(data?.error || "生成に失敗しました");
+      if (!data?.room) throw new Error(data?.error || t("aiRoom.toast.generateFailed"));
       return data.room as AiGeneratedRoom;
     },
     onSuccess: () => {
@@ -105,10 +107,10 @@ export function useGenerateAiRoom() {
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
       qc.invalidateQueries({ queryKey: ["userPoints"] });
       qc.invalidateQueries({ queryKey: ["pointTransactions"] });
-      toast.success("AIルームを生成しました！(-100pt)");
+      toast.success(t("aiRoom.toast.generateSuccess"));
     },
     onError: (e) => {
-      toast.error((e as Error).message || "生成に失敗しました");
+      toast.error((e as Error).message || t("aiRoom.toast.generateFailed"));
     },
   });
 }
@@ -116,6 +118,7 @@ export function useGenerateAiRoom() {
 /** 削除 */
 export function useDeleteAiRoom() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (roomId: string) => {
@@ -127,15 +130,16 @@ export function useDeleteAiRoom() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["ai-rooms", user?.id] });
-      toast.success("削除しました");
+      toast.success(t("aiRoom.toast.deleted"));
     },
-    onError: () => toast.error("削除に失敗しました"),
+    onError: () => toast.error(t("aiRoom.toast.deleteFailed")),
   });
 }
 
 /** タイトル(ルーム名)を更新 */
 export function useUpdateAiRoomTitle() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ roomId, title }: { roomId: string; title: string }) => {
@@ -149,15 +153,16 @@ export function useUpdateAiRoomTitle() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["ai-rooms", user?.id] });
       qc.invalidateQueries({ queryKey: ["ai-rooms-public"] });
-      toast.success("ルーム名を更新しました");
+      toast.success(t("aiRoom.toast.titleUpdated"));
     },
-    onError: () => toast.error("更新に失敗しました"),
+    onError: () => toast.error(t("aiRoom.toast.updateFailed")),
   });
 }
 
 /** 公開/非公開切り替え (投稿への反映も同期) */
 export function useToggleAiRoomPublic() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ roomId, isPublic }: { roomId: string; isPublic: boolean }) => {
@@ -168,7 +173,7 @@ export function useToggleAiRoomPublic() {
         .eq("id", roomId)
         .single();
       if (roomErr) throw roomErr;
-      if (!room) throw new Error("ルームが見つかりません");
+      if (!room) throw new Error(t("aiRoom.toast.roomNotFound"));
 
       // is_public 更新
       const { error: updErr } = await supabase
@@ -276,12 +281,12 @@ export function useToggleAiRoomPublic() {
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
       toast.success(
         variables.isPublic
-          ? "公開しました。投稿にも反映されます ✨"
-          : "非公開にしました。投稿からも削除しました"
+          ? t("aiRoom.toast.published")
+          : t("aiRoom.toast.unpublished")
       );
     },
     onError: (e) => {
-      toast.error((e as Error).message || "更新に失敗しました");
+      toast.error((e as Error).message || t("aiRoom.toast.updateFailed"));
     },
   });
 }

@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, Search, RefreshCw, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SearchResult {
   shop: string;
@@ -32,6 +33,7 @@ export function PriceSearchModal({
   const [results, setResults] = useState<SearchResult[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSearch = async () => {
     setIsLoading(true);
@@ -48,8 +50,8 @@ export function PriceSearchModal({
         setResults(data.data || []);
         if (data.data?.length === 0) {
           toast({
-            title: "検索完了",
-            description: "該当する商品が見つかりませんでした",
+            title: t("chrome.priceSearch.doneTitle"),
+            description: t("chrome.priceSearch.noResults"),
           });
         }
       } else {
@@ -58,8 +60,8 @@ export function PriceSearchModal({
     } catch (error) {
       console.error('Price search error:', error);
       toast({
-        title: "エラー",
-        description: "価格検索に失敗しました。しばらく経ってから再試行してください。",
+        title: t("chrome.common.error"),
+        description: t("chrome.priceSearch.failedDesc"),
         variant: "destructive",
       });
     } finally {
@@ -88,7 +90,7 @@ export function PriceSearchModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShoppingBag className="w-5 h-5" />
-            価格検索
+            {t("chrome.priceSearch.title")}
           </DialogTitle>
         </DialogHeader>
 
@@ -108,12 +110,12 @@ export function PriceSearchModal({
         {!hasSearched ? (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <p className="text-muted-foreground text-center">
-              メルカリ、Amazon、eBay、楽天、ヤフオクで<br />
-              このアイテムの価格を検索します
+              {t("chrome.priceSearch.introLine1")}<br />
+              {t("chrome.priceSearch.introLine2")}
             </p>
             <Button onClick={handleSearch} size="lg" className="gap-2">
               <Search className="w-4 h-4" />
-              価格を検索
+              {t("chrome.priceSearch.search")}
             </Button>
           </div>
         ) : isLoading ? (
@@ -137,10 +139,10 @@ export function PriceSearchModal({
           </div>
         ) : results.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-4">
-            <p className="text-muted-foreground">該当する商品が見つかりませんでした</p>
+            <p className="text-muted-foreground">{t("chrome.priceSearch.noResults")}</p>
             <Button onClick={handleSearch} variant="outline" className="gap-2">
               <RefreshCw className="w-4 h-4" />
-              再検索
+              {t("chrome.priceSearch.searchAgain")}
             </Button>
           </div>
         ) : (
@@ -151,7 +153,7 @@ export function PriceSearchModal({
                   <span>{shopResults[0]?.shopIcon}</span>
                   {shop}
                   <span className="text-muted-foreground text-xs">
-                    ({shopResults.length}件)
+                    ({t("chrome.priceSearch.resultCount", { n: shopResults.length })})
                   </span>
                 </h4>
                 <div className="space-y-2 pl-2">
@@ -192,7 +194,7 @@ export function PriceSearchModal({
             <div className="pt-4 border-t">
               <Button onClick={handleSearch} variant="outline" size="sm" className="gap-2 w-full">
                 <RefreshCw className="w-4 h-4" />
-                再検索
+                {t("chrome.priceSearch.searchAgain")}
               </Button>
             </div>
           </div>

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { CommentReaction, ItemCommentNode } from "./types";
 
 const KEY = (id: string) => ["item-comments", id] as const;
@@ -90,6 +91,7 @@ export function useCreateItemComment(officialItemId: string) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -99,10 +101,10 @@ export function useCreateItemComment(officialItemId: string) {
       content: string;
       parentId?: string | null;
     }) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("trade.comments.errLogin"));
       const trimmed = content.trim();
-      if (!trimmed) throw new Error("内容を入力してください");
-      if (trimmed.length > 1000) throw new Error("1000文字以内で入力してください");
+      if (!trimmed) throw new Error(t("trade.comments.errEmpty"));
+      if (trimmed.length > 1000) throw new Error(t("trade.comments.errTooLong"));
 
       const { error } = await supabase.from("item_comments").insert({
         official_item_id: officialItemId,
@@ -117,8 +119,8 @@ export function useCreateItemComment(officialItemId: string) {
     },
     onError: (e: any) => {
       toast({
-        title: "投稿に失敗しました",
-        description: e?.message ?? "しばらくしてから再度お試しください",
+        title: t("trade.comments.postFailedTitle"),
+        description: e?.message ?? t("trade.comments.retryLater"),
         variant: "destructive",
       });
     },
@@ -128,6 +130,7 @@ export function useCreateItemComment(officialItemId: string) {
 export function useDeleteItemComment(officialItemId: string) {
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
   return useMutation({
     mutationFn: async (commentId: string) => {
       const { error } = await supabase.from("item_comments").delete().eq("id", commentId);
@@ -135,10 +138,10 @@ export function useDeleteItemComment(officialItemId: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY(officialItemId) });
-      toast({ title: "コメントを削除しました" });
+      toast({ title: t("trade.comments.deletedTitle") });
     },
     onError: (e: any) => {
-      toast({ title: "削除に失敗しました", description: e?.message, variant: "destructive" });
+      toast({ title: t("trade.comments.deleteFailedTitle"), description: e?.message, variant: "destructive" });
     },
   });
 }
@@ -147,6 +150,7 @@ export function useToggleCommentReaction(officialItemId: string) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -158,7 +162,7 @@ export function useToggleCommentReaction(officialItemId: string) {
       reaction: CommentReaction;
       currentlyOn: boolean;
     }) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("trade.comments.errLogin"));
       if (currentlyOn) {
         const { error } = await supabase
           .from("item_comment_reactions")
@@ -181,7 +185,7 @@ export function useToggleCommentReaction(officialItemId: string) {
     },
     onError: (e: any) => {
       toast({
-        title: "リアクションに失敗しました",
+        title: t("trade.comments.reactionFailedTitle"),
         description: e?.message,
         variant: "destructive",
       });

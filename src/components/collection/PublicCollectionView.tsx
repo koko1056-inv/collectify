@@ -10,6 +10,7 @@ import { Heart, Grid, Share2, ChevronRight, Sparkles, Package, Crown, Eye } from
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CollectionOwner {
   id: string;
@@ -31,6 +32,7 @@ export function PublicCollectionView() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   // 人気のコレクションを取得
   const { data: collections, isLoading } = useQuery({
@@ -140,8 +142,8 @@ export function PublicCollectionView() {
     onError: () => {
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "操作に失敗しました",
+        title: t("collectionScreen.common.error"),
+        description: t("collectionScreen.publicCollections.operationFailed"),
       });
     },
   });
@@ -151,12 +153,12 @@ export function PublicCollectionView() {
     const url = `${window.location.origin}/user/${collection.id}`;
     try {
       await navigator.share({
-        title: `${collection.username}のコレクション`,
+        title: `${collection.username}${t("collectionScreen.publicCollections.shareTitleSuffix")}`,
         url,
       });
     } catch {
       navigator.clipboard.writeText(url);
-      toast({ title: "リンクをコピーしました" });
+      toast({ title: t("collectionScreen.publicCollections.linkCopied") });
     }
   };
 
@@ -193,9 +195,9 @@ export function PublicCollectionView() {
         <div className="bg-muted/50 rounded-full p-6 w-fit mx-auto mb-4">
           <Package className="h-10 w-10 text-muted-foreground/50" />
         </div>
-        <p className="font-medium text-muted-foreground">まだ公開コレクションがありません</p>
+        <p className="font-medium text-muted-foreground">{t("collectionScreen.publicCollections.emptyTitle")}</p>
         <p className="text-sm text-muted-foreground/70 mt-1">
-          他のユーザーがグッズを登録すると表示されます
+          {t("collectionScreen.publicCollections.emptyDescription")}
         </p>
       </div>
     );
@@ -209,11 +211,11 @@ export function PublicCollectionView() {
           <Sparkles className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-foreground">人気のコレクション</h2>
-          <p className="text-xs text-muted-foreground">みんなの素敵なコレクションをチェック</p>
+          <h2 className="text-lg font-bold text-foreground">{t("collectionScreen.publicCollections.heading")}</h2>
+          <p className="text-xs text-muted-foreground">{t("collectionScreen.publicCollections.subheading")}</p>
         </div>
         <Badge variant="secondary" className="ml-auto">
-          {collections.length}人
+          {collections.length}{t("collectionScreen.publicCollections.peopleSuffix")}
         </Badge>
       </div>
 
@@ -260,7 +262,7 @@ export function PublicCollectionView() {
                   <div className="flex items-center gap-3 mt-0.5">
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Package className="h-3 w-3" />
-                      {collection.items_count}個
+                      {collection.items_count}{t("collectionScreen.publicCollections.itemsSuffix")}
                     </span>
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Heart className="h-3 w-3" />
@@ -336,7 +338,7 @@ export function PublicCollectionView() {
               <div className="flex items-center justify-between bg-muted/30 rounded-lg px-3 py-2">
                 <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <Eye className="h-4 w-4" />
-                  コレクションを見る
+                  {t("collectionScreen.publicCollections.viewCollection")}
                 </span>
                 <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
               </div>

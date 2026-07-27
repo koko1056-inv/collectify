@@ -2,6 +2,7 @@ import { Sparkles, Share2, Download } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { AiGeneratedRoom } from "@/hooks/ai-room/useAiRooms";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   room: AiGeneratedRoom;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function ResultStep({ room, onShare, onDownload }: Props) {
+  const { t } = useLanguage();
   return (
     <motion.div
       key="result"
@@ -19,7 +21,7 @@ export function ResultStep({ room, onShare, onDownload }: Props) {
     >
       <div className="flex items-center gap-2 justify-center mb-2">
         <Sparkles className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-bold">完成！</h3>
+        <h3 className="text-lg font-bold">{t("aiRoom.result.done")}</h3>
       </div>
       <div className="relative rounded-2xl overflow-hidden border-2 border-border shadow-xl">
         <img src={room.image_url} alt="" className="w-full h-auto" />
@@ -30,11 +32,11 @@ export function ResultStep({ room, onShare, onDownload }: Props) {
       <div className="flex gap-2">
         <Button onClick={onDownload} variant="outline" className="flex-1 gap-2">
           <Download className="w-4 h-4" />
-          保存
+          {t("aiRoom.common.save")}
         </Button>
         <Button onClick={onShare} className="flex-1 gap-2">
           <Share2 className="w-4 h-4" />
-          シェア
+          {t("aiRoom.common.share")}
         </Button>
       </div>
     </motion.div>

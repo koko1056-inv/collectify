@@ -7,6 +7,7 @@ export interface RoomTheme {
   nameEn: string;
   icon: string;
   description: string;
+  descriptionEn: string;
   // Visual
   floorColor: string;
   wallColor: string;
@@ -35,6 +36,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Cyber Neon",
     icon: "🌃",
     description: "ネオンが映える夜の部屋",
+    descriptionEn: "A night room where neon glows",
     floorColor: "#0a0a1a",
     wallColor: "#12122a",
     accentColor: "#a855f7",
@@ -54,6 +56,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Gaming Den",
     icon: "🎮",
     description: "RGB全開のゲーマー空間",
+    descriptionEn: "A gamer space with RGB at full blast",
     floorColor: "#0f0f1a",
     wallColor: "#151525",
     accentColor: "#22c55e",
@@ -73,6 +76,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Midnight Lounge",
     icon: "🌙",
     description: "落ち着いた深夜のバー",
+    descriptionEn: "A calm late-night bar",
     floorColor: "#1a1520",
     wallColor: "#201a28",
     accentColor: "#f59e0b",
@@ -92,6 +96,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Sakura Night",
     icon: "🌸",
     description: "夜桜が舞う和モダン空間",
+    descriptionEn: "A modern Japanese space with night cherry blossoms",
     floorColor: "#1a1018",
     wallColor: "#201520",
     accentColor: "#ec4899",
@@ -113,6 +118,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Sunny Room",
     icon: "☀️",
     description: "陽光が差し込むナチュラル空間",
+    descriptionEn: "A natural space filled with sunlight",
     floorColor: "#f5f0e8",
     wallColor: "#faf8f2",
     accentColor: "#f59e0b",
@@ -132,6 +138,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Mint Cafe",
     icon: "🍃",
     description: "爽やかなカフェ風空間",
+    descriptionEn: "A fresh cafe-style space",
     floorColor: "#e8f5f0",
     wallColor: "#f0faf5",
     accentColor: "#10b981",
@@ -151,6 +158,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Cotton Candy",
     icon: "🍬",
     description: "パステルカラーの甘い空間",
+    descriptionEn: "A sweet space in pastel colors",
     floorColor: "#fce7f3",
     wallColor: "#fff0f7",
     accentColor: "#f472b6",
@@ -170,6 +178,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Ocean Breeze",
     icon: "🌊",
     description: "海辺のリゾート気分",
+    descriptionEn: "A seaside resort mood",
     floorColor: "#e0f2fe",
     wallColor: "#f0f9ff",
     accentColor: "#0ea5e9",
@@ -191,6 +200,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Enchanted Forest",
     icon: "🧚",
     description: "妖精が住む幻想的な空間",
+    descriptionEn: "A magical space where fairies live",
     floorColor: "#0a2010",
     wallColor: "#0f2a15",
     accentColor: "#4ade80",
@@ -210,6 +220,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Crystal Palace",
     icon: "💎",
     description: "氷の結晶に包まれた宮殿",
+    descriptionEn: "A palace wrapped in ice crystals",
     floorColor: "#e0eeff",
     wallColor: "#eef5ff",
     accentColor: "#818cf8",
@@ -229,6 +240,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Void Space",
     icon: "🕳️",
     description: "無限に広がる宇宙空間",
+    descriptionEn: "Endlessly expanding outer space",
     floorColor: "#050510",
     wallColor: "#08081a",
     accentColor: "#818cf8",
@@ -248,6 +260,7 @@ export const ROOM_THEMES: RoomTheme[] = [
     nameEn: "Sunset Shrine",
     icon: "⛩️",
     description: "黄昏時の神社",
+    descriptionEn: "A shrine at dusk",
     floorColor: "#2a1810",
     wallColor: "#351e15",
     accentColor: "#f97316",

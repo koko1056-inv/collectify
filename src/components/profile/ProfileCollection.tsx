@@ -21,8 +21,10 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { FavoriteItemsTop5 } from "./FavoriteItemsTop5";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function ProfileCollection({ userId }: { userId: string }) {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedContent, setSelectedContent] = useState("");
@@ -62,7 +64,7 @@ export function ProfileCollection({ userId }: { userId: string }) {
           <div className="flex items-center gap-2 mb-2">
             <Package className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium text-foreground">
-              コレクション枠
+              {t("profileScreen.collection.slots")}
             </span>
             <span className="ml-auto text-sm text-muted-foreground">
               {limitStatus.currentCount} / {limitStatus.maxSlots}
@@ -74,7 +76,7 @@ export function ProfileCollection({ userId }: { userId: string }) {
           />
           {limitStatus.isAtLimit && (
             <p className="text-xs text-destructive mt-1">
-              上限に達しています。ポイントショップで枠を追加できます。
+              {t("profileScreen.collection.atLimit")}
             </p>
           )}
         </div>
@@ -112,7 +114,7 @@ export function ProfileCollection({ userId }: { userId: string }) {
             </Badge>
           ))}
           <button onClick={clearAllFilters} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-            すべてクリア
+            {t("profileScreen.collection.clearAll")}
           </button>
         </div>
       )}
@@ -130,9 +132,9 @@ export function ProfileCollection({ userId }: { userId: string }) {
       <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
         <DrawerContent className="max-h-[85vh] px-4 pt-4 pb-8">
           <div className="mx-auto w-full max-w-sm">
-            <DrawerTitle className="text-center font-medium mb-4">フィルター</DrawerTitle>
+            <DrawerTitle className="text-center font-medium mb-4">{t("profileScreen.collection.filter")}</DrawerTitle>
             <DrawerClose className="absolute right-4 top-4">
-              <button className="text-sm text-primary font-medium">完了</button>
+              <button className="text-sm text-primary font-medium">{t("profileScreen.collection.done")}</button>
             </DrawerClose>
             <ScrollArea className="h-[65vh] pr-4">
               <FilterBar

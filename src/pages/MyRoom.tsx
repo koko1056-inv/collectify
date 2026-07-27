@@ -40,7 +40,7 @@ export default function MyRoom() {
         />
       </div>
       <Navbar />
-      <main className="relative z-10 w-full pb-24">
+      <main className="relative z-10 w-full pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-8">
         <MyRoomHome profile={profile} />
       </main>
       <Footer />

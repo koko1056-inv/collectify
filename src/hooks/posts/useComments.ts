@@ -5,6 +5,7 @@ import { PostComment } from "@/types/posts";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CommentLike {
   id: string;
@@ -116,11 +117,12 @@ export function usePostComments(postId: string) {
 export function useAddComment() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ postId, comment, parentCommentId }: { postId: string; comment: string; parentCommentId?: string }) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
 
       console.log("コメントを追加中:", { postId, comment });
 
@@ -169,15 +171,15 @@ export function useAddComment() {
       queryClient.refetchQueries({ queryKey: ["comments", variables.postId] });
       
       toast({
-        title: "コメントを追加しました",
-        description: "コメントが正常に追加されました。",
+        title: t("notices.comments.addedTitle"),
+        description: t("notices.comments.addedDesc"),
       });
     },
     onError: (error) => {
       console.error("コメント追加エラー:", error);
       toast({
-        title: "エラー",
-        description: "コメントの追加に失敗しました。",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.comments.addFailedDesc"),
         variant: "destructive",
       });
     },
@@ -187,11 +189,12 @@ export function useAddComment() {
 export function useToggleCommentLike() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ commentId, isLiked }: { commentId: string; isLiked: boolean }) => {
-      if (!user) throw new Error("ログインが必要です");
+      if (!user) throw new Error(t("notices.common.loginRequired"));
 
       if (isLiked) {
         // いいねを削除
@@ -221,8 +224,8 @@ export function useToggleCommentLike() {
     onError: (error) => {
       console.error("いいね操作エラー:", error);
       toast({
-        title: "エラー",
-        description: "いいね操作に失敗しました。",
+        title: t("notices.common.errorTitle"),
+        description: t("notices.comments.likeFailedDesc"),
         variant: "destructive",
       });
     },

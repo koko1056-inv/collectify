@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { CategoryTagSelect } from "@/components/tag/CategoryTagSelect";
 import { useQuery } from "@tanstack/react-query";
 import { BarcodeScanner } from "./BarcodeScanner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AnalysisResult {
   title: string;
@@ -37,6 +38,7 @@ interface QuickAddFlowProps {
 }
 
 export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
+  const { t } = useLanguage();
   const [step, setStep] = useState<Step>("capture");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -108,8 +110,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     } catch (error) {
       console.error("Error analyzing image:", error);
       toast({
-        title: "分析エラー",
-        description: "画像の分析に失敗しました。手動で入力してください。",
+        title: t("misc.addItem.analyzeErrorTitle"),
+        description: t("misc.addItem.analyzeErrorDesc"),
         variant: "destructive",
       });
       // エラー時も確認画面へ（空のデータで）
@@ -253,8 +255,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     } catch (error) {
       console.error("Error saving item:", error);
       toast({
-        title: "保存エラー",
-        description: "グッズの保存に失敗しました。",
+        title: t("misc.addItem.saveErrorTitle"),
+        description: t("misc.addItem.saveErrorDesc"),
         variant: "destructive",
       });
     } finally {
@@ -294,16 +296,16 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
       setEditedData(result);
       
       toast({
-        title: "バーコードを読み取りました",
-        description: `コード: ${barcode}`,
+        title: t("misc.addItem.barcodeReadTitle"),
+        description: t("misc.addItem.barcodeReadDesc", { code: barcode }),
       });
       
       setStep("confirm");
     } catch (error) {
       console.error("Barcode lookup error:", error);
       toast({
-        title: "エラー",
-        description: "バーコード情報の取得に失敗しました",
+        title: t("misc.common.error"),
+        description: t("misc.addItem.barcodeLookupFailed"),
         variant: "destructive",
       });
       setStep("capture");
@@ -323,9 +325,9 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
             className="flex-1 flex flex-col items-center justify-center p-4 space-y-6"
           >
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">グッズを追加</h2>
+              <h2 className="text-2xl font-bold">{t("misc.addItem.addGoods")}</h2>
               <p className="text-muted-foreground text-sm">
-                写真・バーコードから登録できます
+                {t("misc.addItem.addGoodsSubtitle")}
               </p>
             </div>
 
@@ -337,7 +339,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 onClick={() => cameraInputRef.current?.click()}
               >
                 <Camera className="w-8 h-8 text-primary" />
-                <span className="font-medium text-xs">カメラ</span>
+                <span className="font-medium text-xs">{t("misc.addItem.camera")}</span>
               </Button>
               <input
                 ref={cameraInputRef}
@@ -358,7 +360,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="w-8 h-8 text-primary" />
-                <span className="font-medium text-xs">ギャラリー</span>
+                <span className="font-medium text-xs">{t("misc.addItem.gallery")}</span>
               </Button>
               <input
                 ref={fileInputRef}
@@ -378,13 +380,13 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 onClick={() => setStep("barcode")}
               >
                 <ScanBarcode className="w-8 h-8 text-primary" />
-                <span className="font-medium text-xs">バーコード</span>
+                <span className="font-medium text-xs">{t("misc.addItem.barcode")}</span>
               </Button>
             </div>
 
             {onCancel && (
               <Button variant="ghost" onClick={onCancel} className="mt-4">
-                キャンセル
+                {t("misc.common.cancel")}
               </Button>
             )}
           </motion.div>
@@ -417,14 +419,14 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <div className="text-center space-y-3">
                     <Sparkles className="w-10 h-10 text-white mx-auto animate-pulse" />
-                    <p className="text-white font-medium text-sm">AI分析中...</p>
+                    <p className="text-white font-medium text-sm">{t("misc.addItem.aiAnalyzing")}</p>
                   </div>
                 </div>
               </div>
             )}
             <div className="flex items-center gap-2 text-muted-foreground">
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>グッズ情報を自動認識しています</span>
+              <span>{t("misc.addItem.autoRecognizing")}</span>
             </div>
           </motion.div>
         )}
@@ -442,7 +444,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               <Button variant="ghost" size="icon" onClick={handleReset}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <h2 className="text-xl font-bold flex-1">内容を確認</h2>
+              <h2 className="text-xl font-bold flex-1">{t("misc.addItem.confirmContent")}</h2>
             </div>
 
             {/* 画像プレビュー */}
@@ -455,7 +457,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 />
                 <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                   <Check className="w-3 h-3" />
-                  AI認識完了
+                  {t("misc.addItem.aiDone")}
                 </div>
               </div>
             )}
@@ -464,18 +466,18 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">商品名</Label>
+                  <Label htmlFor="title">{t("misc.addItem.itemName")}</Label>
                   <Input
                     id="title"
                     value={editedData.title}
                     onChange={(e) => setEditedData({ ...editedData, title: e.target.value })}
-                    placeholder="商品名を入力"
+                    placeholder={t("misc.addItem.itemNamePlaceholder")}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="price">価格</Label>
+                    <Label htmlFor="price">{t("misc.addItem.price")}</Label>
                     <Input
                       id="price"
                       value={editedData.price}
@@ -485,23 +487,23 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="category">カテゴリ</Label>
+                    <Label htmlFor="category">{t("misc.addItem.category")}</Label>
                     <Input
                       id="category"
                       value={editedData.category}
                       onChange={(e) => setEditedData({ ...editedData, category: e.target.value })}
-                      placeholder="カテゴリ"
+                      placeholder={t("misc.addItem.category")}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="contentName">作品名</Label>
+                  <Label htmlFor="contentName">{t("misc.addItem.contentName")}</Label>
                   <Input
                     id="contentName"
                     value={editedData.contentName}
                     onChange={(e) => setEditedData({ ...editedData, contentName: e.target.value })}
-                    placeholder="作品名を入力"
+                    placeholder={t("misc.addItem.contentNamePlaceholder")}
                   />
                 </div>
               </CardContent>
@@ -512,12 +514,12 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               <CardContent className="p-4 space-y-4">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Tag className="w-4 h-4" />
-                  タグを設定
+                  {t("misc.addItem.setTags")}
                 </div>
                 
                 <CategoryTagSelect
                   category="character"
-                  label="キャラクター"
+                  label={t("misc.addItem.tagCharacter")}
                   value={selectedTags.character}
                   onChange={(value) => setSelectedTags(prev => ({ ...prev, character: value }))}
                   contentId={contentId}
@@ -525,14 +527,14 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 
                 <CategoryTagSelect
                   category="type"
-                  label="グッズタイプ"
+                  label={t("misc.addItem.tagType")}
                   value={selectedTags.type}
                   onChange={(value) => setSelectedTags(prev => ({ ...prev, type: value }))}
                 />
                 
                 <CategoryTagSelect
                   category="series"
-                  label="シリーズ"
+                  label={t("misc.addItem.tagSeries")}
                   value={selectedTags.series}
                   onChange={(value) => setSelectedTags(prev => ({ ...prev, series: value }))}
                   contentId={contentId}
@@ -562,7 +564,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 className="flex-1"
                 onClick={handleReset}
               >
-                やり直す
+                {t("misc.addItem.startOver")}
               </Button>
               <Button
                 className="flex-1 gap-2"
@@ -572,12 +574,12 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    保存中...
+                    {t("misc.common.saving")}
                   </>
                 ) : (
                   <>
                     <Check className="w-4 h-4" />
-                    コレクションに追加
+                    {t("misc.addItem.addToCollection")}
                   </>
                 )}
               </Button>
@@ -610,7 +612,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 transition={{ delay: 0.3 }}
                 className="text-2xl font-bold text-green-600"
               >
-                追加しました！
+                {t("misc.addItem.addedTitle")}
               </motion.h2>
               <motion.p
                 initial={{ opacity: 0 }}
@@ -618,7 +620,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 transition={{ delay: 0.4 }}
                 className="text-muted-foreground"
               >
-                コレクションに追加されました
+                {t("misc.addItem.addedDesc")}
               </motion.p>
             </div>
 
@@ -644,10 +646,10 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
 
             <div className="flex gap-3 mt-4">
               <Button variant="outline" onClick={handleReset}>
-                もう1つ追加
+                {t("misc.addItem.addAnother")}
               </Button>
               <Button onClick={onComplete}>
-                完了
+                {t("misc.common.done")}
               </Button>
             </div>
           </motion.div>

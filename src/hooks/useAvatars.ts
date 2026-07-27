@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureProfileImagesPublicUrl } from "@/utils/avatar-storage";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface AvatarRow {
   id: string;
@@ -28,6 +29,7 @@ const QK = (userId?: string) => ["avatars", userId ?? "anon"] as const;
  */
 export function useAvatars(userId: string | undefined) {
   const qc = useQueryClient();
+  const { t } = useLanguage();
 
   const query = useQuery({
     queryKey: QK(userId),
@@ -74,10 +76,10 @@ export function useAvatars(userId: string | undefined) {
       return data;
     },
     onSuccess: () => {
-      toast.success("アバターを切り替えました");
+      toast.success(t("notices.avatars.switched"));
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message ?? "切り替えに失敗しました"),
+    onError: (e: any) => toast.error(e?.message ?? t("notices.avatars.switchFailed")),
   });
 
   const remove = useMutation({
@@ -86,10 +88,10 @@ export function useAvatars(userId: string | undefined) {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("アバターを削除しました");
+      toast.success(t("notices.avatars.deleted"));
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message ?? "削除に失敗しました"),
+    onError: (e: any) => toast.error(e?.message ?? t("notices.avatars.deleteFailed")),
   });
 
   const rename = useMutation({
@@ -101,10 +103,10 @@ export function useAvatars(userId: string | undefined) {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("名前を更新しました");
+      toast.success(t("notices.avatars.renamed"));
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message ?? "名前の更新に失敗しました"),
+    onError: (e: any) => toast.error(e?.message ?? t("notices.avatars.renameFailed")),
   });
 
   /**
@@ -133,10 +135,10 @@ export function useAvatars(userId: string | undefined) {
       return publicUrl;
     },
     onSuccess: () => {
-      toast.success("アバターをアップロードしました");
+      toast.success(t("notices.avatars.uploaded"));
       invalidate();
     },
-    onError: (e: any) => toast.error(e?.message ?? "アップロードに失敗しました"),
+    onError: (e: any) => toast.error(e?.message ?? t("notices.avatars.uploadFailed")),
   });
 
   /**

@@ -8,6 +8,7 @@ import { SearchHistory } from "@/components/search/SearchHistory";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { ProgressiveTooltip } from "@/components/onboarding/ProgressiveTooltip";
 import { Tag } from "@/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SearchBarProps {
   searchQuery: string;
@@ -33,6 +34,7 @@ export function SearchBar({
   searchQuery,
   onSearchChange,
 }: SearchBarProps) {
+  const { t } = useLanguage();
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isItemDetailsOpen, setIsItemDetailsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -102,8 +104,8 @@ export function SearchBar({
       <div className="w-full relative">
         <ProgressiveTooltip
           id="search"
-          title="グッズを検索しよう"
-          description="作品名やキャラクター名で検索できます。キーワードを入力してみましょう！"
+          title={t("chrome.searchBar.tipTitle")}
+          description={t("chrome.searchBar.tipDesc")}
           position="bottom"
         >
           <SearchInput

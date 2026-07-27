@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { StampType, StampContext } from "./types";
 
 interface SendStampParams {
@@ -14,12 +15,13 @@ interface SendStampParams {
 export function useSendStamp() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ receiverId, stampType, contextType, contextId }: SendStampParams) => {
-      if (!user) throw new Error("ログインが必要です");
-      if (user.id === receiverId) throw new Error("自分には送れません");
+      if (!user) throw new Error(t("trade.stamp.errLogin"));
+      if (user.id === receiverId) throw new Error(t("trade.stamp.errSelf"));
 
       const { data, error } = await supabase
         .from("greeting_stamps")
@@ -35,7 +37,7 @@ export function useSendStamp() {
 
       if (error) {
         if (error.code === "42501" || /violates row-level security/i.test(error.message)) {
-          throw new Error("24時間以内に既にスタンプを送っています");
+          throw new Error(t("trade.stamp.errRateLimit"));
         }
         throw error;
       }
@@ -44,10 +46,10 @@ export function useSendStamp() {
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ["received-stamps"] });
       queryClient.invalidateQueries({ queryKey: ["sent-stamps", user?.id, vars.receiverId] });
-      toast({ title: "スタンプを送りました", description: "相手の通知に届きます" });
+      toast({ title: t("trade.stamp.sentTitle"), description: t("trade.stamp.sentDesc") });
     },
     onError: (e: Error) => {
-      toast({ title: "送信できませんでした", description: e.message, variant: "destructive" });
+      toast({ title: t("trade.stamp.sendFailedTitle"), description: e.message, variant: "destructive" });
     },
   });
 }

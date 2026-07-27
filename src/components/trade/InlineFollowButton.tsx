@@ -4,6 +4,7 @@ import { UserPlus, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface InlineFollowButtonProps {
@@ -14,6 +15,7 @@ interface InlineFollowButtonProps {
 export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -46,8 +48,8 @@ export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonPr
           .eq("following_id", userId);
 
         toast({
-          title: "フォロー解除",
-          description: "フォローを解除しました",
+          title: t("trade.follow.unfollowedTitle"),
+          description: t("trade.follow.unfollowedDesc"),
         });
       } else {
         await supabase.from("follows").insert({
@@ -56,8 +58,8 @@ export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonPr
         });
 
         toast({
-          title: "フォロー完了",
-          description: "フォローしました",
+          title: t("trade.follow.followedTitle"),
+          description: t("trade.follow.followedDesc"),
         });
       }
 
@@ -70,8 +72,8 @@ export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonPr
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: "操作に失敗しました",
+        title: t("common.error"),
+        description: t("trade.follow.errorDesc"),
       });
     } finally {
       setIsLoading(false);
@@ -109,12 +111,12 @@ export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonPr
       {isFollowing ? (
         <>
           <UserCheck className="h-3 w-3" />
-          フォロー中
+          {t("trade.follow.following")}
         </>
       ) : (
         <>
           <UserPlus className="h-3 w-3" />
-          フォロー
+          {t("trade.follow.follow")}
         </>
       )}
     </Button>

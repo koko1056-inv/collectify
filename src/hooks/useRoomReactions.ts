@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface FloatingReaction {
   id: string;
@@ -17,6 +18,7 @@ export const REACTION_EMOJIS = [
 
 export function useRoomReactions(roomId: string | undefined) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [floatingReactions, setFloatingReactions] = useState<FloatingReaction[]>([]);
 
   // Realtime subscription to new reactions
@@ -60,7 +62,7 @@ export function useRoomReactions(roomId: string | undefined) {
   const sendReaction = useCallback(
     async (emoji: string) => {
       if (!roomId || !user?.id) {
-        toast.error("リアクションを送るにはログインが必要です");
+        toast.error(t("notices.reactions.loginRequired"));
         return;
       }
       try {
@@ -71,7 +73,7 @@ export function useRoomReactions(roomId: string | undefined) {
         console.error(e);
       }
     },
-    [roomId, user?.id]
+    [roomId, user?.id, t]
   );
 
   return { floatingReactions, sendReaction };

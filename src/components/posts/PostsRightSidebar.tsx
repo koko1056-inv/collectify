@@ -5,6 +5,7 @@ import { TrendingUp, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { memo } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PopularTag {
   name: string;
@@ -12,6 +13,8 @@ interface PopularTag {
 }
 
 export const PostsRightSidebar = memo(function PostsRightSidebar() {
+  const { t } = useLanguage();
+
   // 人気タグの取得
   const { data: popularTags = [] } = useQuery({
     queryKey: ["posts", "popular-tags"],
@@ -84,7 +87,7 @@ export const PostsRightSidebar = memo(function PostsRightSidebar() {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            人気のタグ
+            {t("social.posts.popularTags")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
@@ -98,7 +101,7 @@ export const PostsRightSidebar = memo(function PostsRightSidebar() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              タグ情報を読み込み中...
+              {t("social.posts.tagsLoading")}
             </p>
           )}
         </CardContent>
@@ -109,7 +112,7 @@ export const PostsRightSidebar = memo(function PostsRightSidebar() {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Users className="h-5 w-5" />
-            最近のアクティブユーザー
+            {t("social.posts.activeUsers")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -131,7 +134,7 @@ export const PostsRightSidebar = memo(function PostsRightSidebar() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              ユーザー情報を読み込み中...
+              {t("social.posts.usersLoading")}
             </p>
           )}
         </CardContent>

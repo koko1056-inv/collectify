@@ -18,6 +18,7 @@ import { SelectVisualStep } from "./wizard/SelectVisualStep";
 import { GeneratingStep } from "./wizard/GeneratingStep";
 import { ResultStep } from "./wizard/ResultStep";
 import { consumePendingAiItems, consumePendingRemix, type PendingRemix } from "@/utils/ai-studio-handoff";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ROOM_COST = 100;
 const MAX_ITEMS = 5;
@@ -33,6 +34,7 @@ interface AiRoomCreateWizardProps {
 
 export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCreateWizardProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [step, setStep] = useState<Step>("items");
   const [selectedItems, setSelectedItems] = useState<UserItemLite[]>([]);
   const [stylePresetId, setStylePresetId] = useState<string | null>(null);
@@ -97,15 +99,15 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
       }
       toast.success(
         pendingRemix.mode === "remix"
-          ? "リミックス元のスタイルと素材を引き継ぎました 🎨"
-          : "スタイルを引き継ぎました ✨"
+          ? t("aiRoom.wizard.remixHandedOff")
+          : t("aiRoom.wizard.styleHandedOff")
       );
       return;
     }
     const handed = consumePendingAiItems();
     if (handed.length > 0) {
       setSelectedItems(handed.slice(0, MAX_ITEMS));
-      toast.success(`${Math.min(handed.length, MAX_ITEMS)}点の素材を引き継ぎました`);
+      toast.success(`${Math.min(handed.length, MAX_ITEMS)}${t("aiRoom.wizard.handedOffSuffix")}`);
       setStep("style");
     }
   }, [open]);
@@ -130,7 +132,9 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
       const exists = prev.find((p) => p.id === item.id);
       if (exists) return prev.filter((p) => p.id !== item.id);
       if (prev.length >= MAX_ITEMS) {
-        toast.error(`最大${MAX_ITEMS}個まで選べます`);
+        toast.error(
+          `${t("aiRoom.wizard.maxItemsPrefix")}${MAX_ITEMS}${t("aiRoom.wizard.maxItemsSuffix")}`
+        );
         return prev;
       }
       return [...prev, item];
@@ -169,7 +173,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
 
   const handleShare = async () => {
     if (!resultRoom) return;
-    const text = `AIで作った推し部屋 🏠✨\n#Collectify`;
+    const text = `${t("aiRoom.share.prefix")}\n#Collectify`;
     try {
       if (navigator.share) {
         try {
@@ -184,7 +188,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         await navigator.share({ text, url: resultRoom.image_url });
       } else {
         await navigator.clipboard.writeText(resultRoom.image_url);
-        toast.success("画像URLをコピーしました");
+        toast.success(t("aiRoom.toast.imageUrlCopied"));
       }
     } catch {}
   };
@@ -206,7 +210,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Wand2 className="w-5 h-5 text-primary" />
-            AIで推しルームを作る
+            {t("aiRoom.wizard.title")}
             {stepIndex > 0 && (
               <span className="ml-auto text-xs font-normal text-muted-foreground">
                 Step {stepIndex}/{TOTAL_STEPS}
@@ -259,13 +263,13 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
             {step === "style" && (
               <Button variant="outline" onClick={() => setStep("items")} className="gap-1.5">
                 <ChevronLeft className="w-4 h-4" />
-                戻る
+                {t("aiRoom.common.back")}
               </Button>
             )}
             {step === "visual" && (
               <Button variant="outline" onClick={() => setStep("style")} className="gap-1.5">
                 <ChevronLeft className="w-4 h-4" />
-                戻る
+                {t("aiRoom.common.back")}
               </Button>
             )}
             <div className="flex-1" />
@@ -275,7 +279,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                 disabled={!canProceedFromItems}
                 className="gap-1.5"
               >
-                次へ ({selectedItems.length}/{MAX_ITEMS})
+                {t("aiRoom.common.next")} ({selectedItems.length}/{MAX_ITEMS})
                 <ChevronRight className="w-4 h-4" />
               </Button>
             )}
@@ -285,7 +289,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                 disabled={!canProceedFromStyle}
                 className="gap-1.5"
               >
-                次へ
+                {t("aiRoom.common.next")}
                 <ChevronRight className="w-4 h-4" />
               </Button>
             )}
@@ -300,7 +304,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                 ) : (
                   <Wand2 className="w-4 h-4" />
                 )}
-                生成する {isFirstTime ? "(初回無料 🎁)" : `(${ROOM_COST}pt)`}
+                {t("aiRoom.wizard.generate")} {isFirstTime ? t("aiRoom.wizard.firstFree") : `(${ROOM_COST}pt)`}
               </Button>
             )}
           </div>
@@ -313,7 +317,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
               onClick={() => onOpenChange(false)}
               className="w-full"
             >
-              閉じる
+              {t("aiRoom.common.close")}
             </Button>
           </div>
         )}
@@ -321,8 +325,8 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
         <SpendPointsDialog
           open={confirmOpen}
           onOpenChange={setConfirmOpen}
-          title="AI推しルームを生成しますか？"
-          description="選んだグッズと部屋スタイルから、AIがオリジナルの推しルーム画像を生成します。"
+          title={t("aiRoom.confirm.title")}
+          description={t("aiRoom.confirm.description")}
           cost={ROOM_COST}
           freeTrial={isFirstTime}
           loading={generateMutation.isPending}

@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { addToCollection } from "@/utils/collection-actions";
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface PublicUserItemModalProps {
   isOpen: boolean;
@@ -41,6 +41,8 @@ export function PublicUserItemModal({
   const qc = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [wishing, setWishing] = useState(false);
+  const { t } = useLanguage();
+  const { formatDate } = useDateFormat();
 
   // 該当ユーザーアイテムを取得 (official_item_id を引き当てる)
   const { data: itemDetails, isLoading } = useQuery({
@@ -109,11 +111,11 @@ export function PublicUserItemModal({
 
   const handleAddToCollection = async () => {
     if (!user) {
-      toast.error("ログインが必要です");
+      toast.error(t("itemDetails.publicItem.loginRequired"));
       return;
     }
     if (!officialItemId) {
-      toast.error("このグッズは公式アイテムと紐付いていないため追加できません");
+      toast.error(t("itemDetails.publicItem.noOfficialItem"));
       return;
     }
     setAdding(true);
@@ -128,10 +130,10 @@ export function PublicUserItemModal({
       });
       if (!result.success) {
         if (result.isAtLimit) {
-          toast.error("コレクション枠が上限です。ポイントショップで枠を追加してください");
+          toast.error(t("itemDetails.publicItem.limitError"));
           navigate("/point-shop");
         } else {
-          toast.error(result.error || "追加に失敗しました");
+          toast.error(result.error || t("itemDetails.publicItem.addFailed"));
         }
         return;
       }
@@ -155,10 +157,10 @@ export function PublicUserItemModal({
       await qc.invalidateQueries({ queryKey: ["user-items"] });
       await qc.invalidateQueries({ queryKey: ["already-owned", officialItemId, user.id] });
       await qc.invalidateQueries({ queryKey: ["collectionCount"] });
-      toast.success("コレクションに追加しました 🎉");
+      toast.success(t("itemDetails.publicItem.addedToCollection"));
     } catch (e) {
       console.error(e);
-      toast.error("追加に失敗しました");
+      toast.error(t("itemDetails.publicItem.addFailed"));
     } finally {
       setAdding(false);
     }
@@ -166,11 +168,11 @@ export function PublicUserItemModal({
 
   const handleAddToWishlist = async () => {
     if (!user) {
-      toast.error("ログインが必要です");
+      toast.error(t("itemDetails.publicItem.loginRequired"));
       return;
     }
     if (!officialItemId) {
-      toast.error("このグッズは公式アイテムと紐付いていないため追加できません");
+      toast.error(t("itemDetails.publicItem.noOfficialItem"));
       return;
     }
     setWishing(true);
@@ -182,13 +184,13 @@ export function PublicUserItemModal({
       if (error) throw error;
       await qc.invalidateQueries({ queryKey: ["wishlist", user.id] });
       await qc.invalidateQueries({ queryKey: ["already-wished", officialItemId, user.id] });
-      toast.success("ウィッシュリストに追加しました ❤️");
+      toast.success(t("itemDetails.publicItem.wishlistAdded"));
     } catch (e: any) {
       if (e?.code === "23505") {
-        toast.info("すでにウィッシュリストに入っています");
+        toast.info(t("itemDetails.publicItem.alreadyWishedToast"));
       } else {
         console.error(e);
-        toast.error("追加に失敗しました");
+        toast.error(t("itemDetails.publicItem.addFailed"));
       }
     } finally {
       setWishing(false);
@@ -218,9 +220,7 @@ export function PublicUserItemModal({
             {officialItem?.release_date && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="w-4 h-4" />
-                {format(new Date(officialItem.release_date), "yyyy年M月d日", {
-                  locale: ja,
-                })}
+                {formatDate(officialItem.release_date)}
                 {officialItem.price && officialItem.price !== "0" && (
                   <span className="ml-auto font-semibold text-foreground">
                     ¥{officialItem.price}
@@ -232,7 +232,7 @@ export function PublicUserItemModal({
             {tags.length > 0 && (
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Tag className="w-3.5 h-3.5" /> タグ
+                  <Tag className="w-3.5 h-3.5" /> {t("itemDetails.common.tags")}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {tags.map((t) => (
@@ -266,10 +266,10 @@ export function PublicUserItemModal({
                     <Plus className="w-4 h-4" />
                   )}
                   {alreadyOwned
-                    ? "すでに持っています"
+                    ? t("itemDetails.publicItem.alreadyOwned")
                     : adding
-                      ? "追加中..."
-                      : "自分のコレクションに追加"}
+                      ? t("itemDetails.common.adding")
+                      : t("itemDetails.publicItem.addToMyCollection")}
                 </Button>
                 <Button
                   variant="outline"
@@ -287,14 +287,14 @@ export function PublicUserItemModal({
                     />
                   )}
                   {alreadyWished
-                    ? "ウィッシュリストに追加済み"
+                    ? t("itemDetails.publicItem.alreadyWished")
                     : wishing
-                      ? "追加中..."
-                      : "ウィッシュリストに追加"}
+                      ? t("itemDetails.common.adding")
+                      : t("itemDetails.publicItem.addToWishlist")}
                 </Button>
                 {!officialItemId && (
                   <p className="text-[11px] text-muted-foreground text-center">
-                    ※ このグッズは公式アイテムと紐付いていないため追加できません
+                    {t("itemDetails.publicItem.noOfficialNote")}
                   </p>
                 )}
               </div>

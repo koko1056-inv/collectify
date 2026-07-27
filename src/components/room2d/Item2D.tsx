@@ -109,7 +109,7 @@ function ItemDisplay({
   isSelected?: boolean;
 }) {
   const selectionRing = isSelected
-    ? "ring-4 ring-purple-500 ring-offset-2 ring-offset-transparent"
+    ? "ring-4 ring-primary ring-offset-2 ring-offset-transparent"
     : "";
 
   switch (style) {

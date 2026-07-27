@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface PointPackage {
   id: string;
@@ -152,6 +153,7 @@ export function useUserPurchases() {
 export function usePurchaseShopItem() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -165,7 +167,7 @@ export function usePurchaseShopItem() {
 
       if (error) {
         if (error.message?.includes("Insufficient points")) {
-          throw new Error("ポイントが不足しています");
+          throw new Error(t("notices.points.insufficient"));
         }
         throw error;
       }
@@ -180,13 +182,13 @@ export function usePurchaseShopItem() {
       queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
       
       toast({
-        title: "購入完了！",
-        description: `${data.item.name}を購入しました`,
+        title: t("notices.shop.purchasedTitle"),
+        description: t("notices.shop.purchasedDesc", { name: data.item.name }),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "購入エラー",
+        title: t("notices.shop.purchaseErrorTitle"),
         description: error.message,
         variant: "destructive",
       });

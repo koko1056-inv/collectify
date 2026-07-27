@@ -6,6 +6,7 @@ import { TagInputField } from "./tag/TagInputField";
 import { CurrentTags } from "./tag/CurrentTags";
 import { PreviousTags } from "./tag/PreviousTags";
 import { Tag, TagCategory } from "@/types/tag";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagInputProps {
   selectedTags: string[];
@@ -23,6 +24,7 @@ export function TagInput({
   category = "character"
 }: TagInputProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   const { data: existingTags = [] } = useQuery<Tag[]>({
@@ -110,8 +112,8 @@ export function TagInput({
         ]);
 
         toast({
-          title: "タグを削除しました",
-          description: `${tagToRemove}を削除しました。`,
+          title: t("chrome.tagInput.removedTitle"),
+          description: t("chrome.tagInput.removedDesc", { tag: tagToRemove }),
         });
       }
     } catch (error) {
@@ -123,8 +125,8 @@ export function TagInput({
       }
       onTagsChange(prevSelected);
       toast({
-        title: "エラー",
-        description: "タグの削除に失敗しました。",
+        title: t("chrome.common.error"),
+        description: t("chrome.tagInput.removeFailed"),
         variant: "destructive",
       });
     }
@@ -133,7 +135,7 @@ export function TagInput({
   return (
     <div className="space-y-2">
       <label htmlFor="tags" className="text-sm font-medium">
-        タグ
+        {t("chrome.tagInput.label")}
       </label>
       <TagInputField
         selectedTags={selectedTags}
@@ -150,13 +152,13 @@ export function TagInput({
         tags={userPreviousTags}
         selectedTags={selectedTags}
         onTagSelect={(tagName) => onTagsChange([...selectedTags, tagName])}
-        title="使ったことのあるタグ"
+        title={t("chrome.tagInput.previouslyUsed")}
       />
       <PreviousTags
         tags={existingTags}
         selectedTags={selectedTags}
         onTagSelect={(tagName) => onTagsChange([...selectedTags, tagName])}
-        title="既存のタグ"
+        title={t("chrome.tagInput.existing")}
       />
     </div>
   );

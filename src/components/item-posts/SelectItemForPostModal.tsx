@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 import { Search, PackageOpen } from "lucide-react";
 import { PostTarget } from "@/hooks/item-posts/useItemPosts";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UserItemRow {
   id: string;
@@ -29,6 +30,7 @@ export function SelectItemForPostModal({
   onSelect,
 }: SelectItemForPostModalProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [q, setQ] = useState("");
 
   const { data: items = [], isLoading } = useQuery({
@@ -57,7 +59,7 @@ export function SelectItemForPostModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>投稿するグッズを選ぶ</DialogTitle>
+          <DialogTitle>{t("social.itemPosts.selectGoodsTitle")}</DialogTitle>
         </DialogHeader>
 
         <div className="relative">
@@ -65,7 +67,7 @@ export function SelectItemForPostModal({
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="グッズ名で検索"
+            placeholder={t("social.itemPosts.searchPlaceholder")}
             className="pl-9 h-9"
           />
         </div>
@@ -82,8 +84,8 @@ export function SelectItemForPostModal({
               <PackageOpen className="w-8 h-8" />
               <p className="text-sm">
                 {items.length === 0
-                  ? "コレクションにグッズがありません"
-                  : "該当するグッズが見つかりません"}
+                  ? t("social.itemPosts.emptyCollection")
+                  : t("social.itemPosts.noMatch")}
               </p>
             </div>
           ) : (

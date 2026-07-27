@@ -12,6 +12,7 @@ import { ImageEditDialog } from "./ImageEditDialog";
 import { Wand2, Upload, X, ArrowLeft, Send, Sparkles, Image as ImageIcon, MessageSquare } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export function CreatePostModal({
   onClose,
   selectedItems,
 }: CreatePostModalProps) {
+  const { t } = useLanguage();
   const [caption, setCaption] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const createPost = useCreatePost();
@@ -105,8 +107,8 @@ export function CreatePostModal({
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h2 className="font-bold text-base">投稿を作成</h2>
-              <p className="text-xs text-muted-foreground">写真とキャプションを追加</p>
+              <h2 className="font-bold text-base">{t("social.posts.createTitle")}</h2>
+              <p className="text-xs text-muted-foreground">{t("social.posts.createSubtitle")}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
@@ -123,8 +125,8 @@ export function CreatePostModal({
             <div className="space-y-3">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <ImageIcon className="h-4 w-4 text-primary" />
-                選択したグッズ
-                <span className="text-muted-foreground font-normal">({selectedItems.length}個)</span>
+                {t("social.posts.selectedGoods")}
+                <span className="text-muted-foreground font-normal">{t("social.posts.selectedGoodsCount", { count: selectedItems.length })}</span>
               </Label>
               
               <div className="flex gap-2 overflow-x-auto pb-2">
@@ -152,15 +154,15 @@ export function CreatePostModal({
             <div className="space-y-3">
               <Label className="text-sm font-medium flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
-                投稿画像
-                <span className="text-muted-foreground font-normal text-xs">(任意)</span>
+                {t("social.posts.postImage")}
+                <span className="text-muted-foreground font-normal text-xs">{t("social.posts.optional")}</span>
               </Label>
               
               {displayImage ? (
                 <div className="relative rounded-xl overflow-hidden border bg-muted">
                   <img
                     src={displayImage}
-                    alt="投稿プレビュー"
+                    alt={t("social.posts.previewAlt")}
                     className="w-full aspect-[4/3] object-cover"
                   />
                   
@@ -174,7 +176,7 @@ export function CreatePostModal({
                       className="flex-1 bg-background/90 backdrop-blur-sm hover:bg-background shadow-lg"
                     >
                       <Wand2 className="mr-1.5 h-4 w-4" />
-                      AIで編集
+                      {t("social.posts.editWithAi")}
                     </Button>
                     {previewUrl && (
                       <Button
@@ -194,7 +196,7 @@ export function CreatePostModal({
                     <div className="absolute top-3 left-3">
                       <div className="px-2 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium flex items-center gap-1">
                         <Sparkles className="h-3 w-3" />
-                        カスタム画像
+                        {t("social.posts.customImage")}
                       </div>
                     </div>
                   )}
@@ -207,9 +209,9 @@ export function CreatePostModal({
                       "hover:border-primary hover:bg-primary/5"
                     )}>
                       <Upload className="h-8 w-8 mx-auto mb-3 text-muted-foreground" />
-                      <p className="text-sm font-medium mb-1">画像をアップロード</p>
+                      <p className="text-sm font-medium mb-1">{t("social.posts.uploadImage")}</p>
                       <p className="text-xs text-muted-foreground">
-                        JPG, PNG, GIF (最大10MB)
+                        {t("social.posts.uploadHint")}
                       </p>
                     </div>
                     <Input
@@ -227,7 +229,7 @@ export function CreatePostModal({
                     className="w-full"
                   >
                     <Wand2 className="mr-2 h-4 w-4" />
-                    AIで投稿画像を生成
+                    {t("social.posts.generateWithAi")}
                   </Button>
                 </div>
               )}
@@ -237,12 +239,12 @@ export function CreatePostModal({
             <div className="space-y-3">
               <Label htmlFor="caption" className="text-sm font-medium flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-primary" />
-                キャプション
+                {t("social.posts.caption")}
               </Label>
               <div className="relative">
                 <Textarea
                   id="caption"
-                  placeholder="グッズへの想いやエピソードを書いてみましょう..."
+                  placeholder={t("social.posts.captionPlaceholder")}
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                   rows={4}
@@ -268,17 +270,17 @@ export function CreatePostModal({
             {createPost.isPending ? (
               <>
                 <div className="h-4 w-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                投稿中...
+                {t("social.posts.posting")}
               </>
             ) : (
               <>
                 <Send className="mr-2 h-5 w-5" />
-                投稿する
+                {t("social.posts.post")}
               </>
             )}
           </Button>
           <p className="text-center text-[10px] text-muted-foreground mt-2">
-            投稿は他のユーザーに公開されます
+            {t("social.posts.publicNote")}
           </p>
         </div>
       </DialogContent>

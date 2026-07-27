@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { cn } from "@/lib/utils";
@@ -15,15 +15,21 @@ import { Button } from "@/components/ui/button";
 import { SelectItemForPostModal } from "@/components/item-posts/SelectItemForPostModal";
 import { CreateItemPostModal } from "@/components/item-posts/CreateItemPostModal";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
+// label は翻訳キー。モジュールスコープでは useLanguage が使えないため、描画時に t() で解決する。
 const MODES: { id: FeedMode; label: string; icon: typeof Flame }[] = [
-  { id: "new", label: "新着", icon: Sparkles },
-  { id: "popular", label: "人気", icon: Flame },
-  { id: "following", label: "フォロー中", icon: Users },
+  { id: "new", label: "screens.itemPostsFeed.modeNew", icon: Sparkles },
+  { id: "popular", label: "screens.itemPostsFeed.modePopular", icon: Flame },
+  { id: "following", label: "screens.itemPostsFeed.modeFollowing", icon: Users },
 ];
 
 export default function ItemPostsFeed() {
+  const { t } = useLanguage();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  // /post/:postId で共有された投稿を開くためのパラメータ
+  const { postId: routePostId } = useParams<{ postId?: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [mode, setMode] = useState<FeedMode>("new");
   const hashtag = searchParams.get("tag");
@@ -41,6 +47,9 @@ export default function ItemPostsFeed() {
     hashtag,
     contentFilter,
   });
+
+  // グリッドから開いた投稿が優先。無ければ共有リンクの postId を使う。
+  const activePostId = selectedPost?.id ?? routePostId ?? null;
 
   // コンテンツ名一覧
   const { data: contentNames = [] } = useQuery({
@@ -80,16 +89,16 @@ export default function ItemPostsFeed() {
           {/* タイトル */}
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-baseline gap-2">
-              <h1 className="text-2xl font-bold">みんなの投稿</h1>
+              <h1 className="text-2xl font-bold">{t("screens.itemPostsFeed.title")}</h1>
               {posts.length > 0 && (
-                <span className="text-sm text-muted-foreground">{posts.length}件</span>
+                <span className="text-sm text-muted-foreground">{t("screens.itemPostsFeed.countSuffix", { count: posts.length })}</span>
               )}
             </div>
             <Button
               size="sm"
               onClick={() => {
                 if (!user) {
-                  toast.error("ログインが必要です");
+                  toast.error(t("screens.itemPostsFeed.loginRequired"));
                   return;
                 }
                 setPickerOpen(true);
@@ -97,7 +106,7 @@ export default function ItemPostsFeed() {
               className="gap-1.5 rounded-full h-9"
             >
               <Camera className="w-4 h-4" />
-              投稿する
+              {t("screens.itemPostsFeed.createPost")}
             </Button>
           </div>
 
@@ -120,7 +129,7 @@ export default function ItemPostsFeed() {
                   )}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="text-xs sm:text-sm">{m.label}</span>
+                  <span className="text-xs sm:text-sm">{t(m.label)}</span>
                 </button>
               );
             })}
@@ -132,7 +141,7 @@ export default function ItemPostsFeed() {
               active={!contentFilter}
               onClick={() => setContent(null)}
             >
-              すべて
+              {t("screens.itemPostsFeed.allFilter")}
             </FilterPill>
             {contentNames.slice(0, 12).map((c) => (
               <FilterPill
@@ -153,7 +162,7 @@ export default function ItemPostsFeed() {
                 onClick={clearHashtag}
                 className="ml-auto text-xs text-muted-foreground hover:text-foreground"
               >
-                解除
+                {t("screens.itemPostsFeed.clearTag")}
               </button>
             </div>
           )}
@@ -174,10 +183,16 @@ export default function ItemPostsFeed() {
         </div>
       </main>
 
+      {/* 共有リンク(/post/:postId)で来た場合も、その投稿を直接開く */}
       <ItemPostDetailModal
-        open={!!selectedPost}
-        onOpenChange={(o) => !o && setSelectedPost(null)}
-        postId={selectedPost?.id ?? null}
+        open={!!activePostId}
+        onOpenChange={(o) => {
+          if (o) return;
+          setSelectedPost(null);
+          // URL に postId が残ったままだと閉じても再度開いてしまうため、フィードへ戻す
+          if (routePostId) navigate("/item-posts", { replace: true });
+        }}
+        postId={activePostId}
         initialPost={selectedPost}
       />
 

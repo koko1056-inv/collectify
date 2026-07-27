@@ -44,6 +44,7 @@ import { setPendingRemix } from "@/utils/ai-studio-handoff";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ShareModal } from "@/components/ShareModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 /**
  * マイルームの「ルーム」タブで表示するAIルーム一覧。
@@ -53,6 +54,7 @@ import { ShareModal } from "@/components/ShareModal";
  */
 export function MyAiRoomsView() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [wizardOpen, setWizardOpen] = useState(false);
   const [viewing, setViewing] = useState<AiGeneratedRoom | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -113,7 +115,7 @@ export function MyAiRoomsView() {
       parentTitle: room.title,
     });
     setViewing(null);
-    toast.success("バリエーションを作成します 🎨");
+    toast.success(t("aiRoom.toast.variationStart"));
     setWizardOpen(true);
   };
 
@@ -124,13 +126,13 @@ export function MyAiRoomsView() {
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <Wand2 className="w-4 h-4 text-primary" />
-            <h2 className="text-base font-bold">AI推しルーム</h2>
+            <h2 className="text-base font-bold">{t("aiRoom.list.heading")}</h2>
             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
               NEW
             </span>
           </div>
           <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-            グッズを選ぶだけで、あなただけの一度きりの部屋が完成
+            {t("aiRoom.list.subtitle")}
           </p>
         </div>
         {rooms.length > 0 && (
@@ -140,7 +142,7 @@ export function MyAiRoomsView() {
             className="shrink-0 gap-1.5 shadow-md"
           >
             <Plus className="w-4 h-4" />
-            新規
+            {t("aiRoom.list.new")}
           </Button>
         )}
       </div>
@@ -186,7 +188,7 @@ export function MyAiRoomsView() {
         <>
           <div className="flex items-center justify-between pt-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              履歴
+              {t("aiRoom.list.history")}
               <span className="ml-1.5 normal-case font-normal">
                 ({rest.length})
               </span>
@@ -241,7 +243,7 @@ export function MyAiRoomsView() {
                       autoFocus
                       value={titleDraft}
                       onChange={(e) => setTitleDraft(e.target.value)}
-                      placeholder="ルーム名を入力"
+                      placeholder={t("aiRoom.viewer.titlePlaceholder")}
                       maxLength={60}
                       className="h-9 text-sm"
                       onKeyDown={(e) => {
@@ -290,7 +292,7 @@ export function MyAiRoomsView() {
                 ) : (
                   <div className="flex items-center gap-2 group/title">
                     <p className="font-semibold text-base flex-1 truncate">
-                      {viewing.title || "無題のAIルーム"}
+                      {viewing.title || t("aiRoom.common.untitled")}
                     </p>
                     <Button
                       variant="ghost"
@@ -302,15 +304,16 @@ export function MyAiRoomsView() {
                       }}
                     >
                       <Pencil className="w-3.5 h-3.5" />
-                      編集
+                      {t("aiRoom.viewer.edit")}
                     </Button>
                   </div>
                 )}
                 {viewing.style_preset && (
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Sparkles className="w-3.5 h-3.5" />
-                    {getStylePresetById(viewing.style_preset)?.name ||
-                      viewing.style_preset}
+                    {getStylePresetById(viewing.style_preset)
+                      ? t(`aiRoom.stylePresets.${viewing.style_preset}.name`)
+                      : viewing.style_preset}
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2">
@@ -321,7 +324,7 @@ export function MyAiRoomsView() {
                     disabled={!viewing.source_item_ids?.length}
                   >
                     <Repeat className="w-4 h-4" />
-                    バリエーション
+                    {t("aiRoom.viewer.variation")}
                   </Button>
                   <Button
                     variant="outline"
@@ -330,7 +333,7 @@ export function MyAiRoomsView() {
                     className="gap-1.5"
                   >
                     <ExternalLink className="w-4 h-4" />
-                    詳細
+                    {t("aiRoom.viewer.details")}
                   </Button>
                   <Button
                     variant="outline"
@@ -339,7 +342,7 @@ export function MyAiRoomsView() {
                     className="gap-1.5"
                   >
                     <Download className="w-4 h-4" />
-                    保存
+                    {t("aiRoom.common.save")}
                   </Button>
                   <Button
                     variant="outline"
@@ -348,7 +351,7 @@ export function MyAiRoomsView() {
                     className="gap-1.5"
                   >
                     <Share2 className="w-4 h-4" />
-                    シェア
+                    {t("aiRoom.common.share")}
                   </Button>
                   <Button
                     variant="outline"
@@ -375,13 +378,13 @@ export function MyAiRoomsView() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>このAIルームを削除しますか？</AlertDialogTitle>
+            <AlertDialogTitle>{t("aiRoom.delete.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              削除すると元に戻せません。
+              {t("aiRoom.delete.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogCancel>{t("aiRoom.common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deletingId) {
@@ -391,7 +394,7 @@ export function MyAiRoomsView() {
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              削除する
+              {t("aiRoom.delete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -402,7 +405,7 @@ export function MyAiRoomsView() {
         <ShareModal
           isOpen={!!sharingRoom}
           onClose={() => setSharingRoom(null)}
-          title={`AIで作った推し部屋 🏠✨ ${sharingRoom.title || ""} #Collectify`}
+          title={`${t("aiRoom.share.prefix")} ${sharingRoom.title || ""} #Collectify`}
           url={sharingRoom.image_url}
           image={sharingRoom.image_url}
         />
@@ -413,6 +416,7 @@ export function MyAiRoomsView() {
 
 // ==================== EmptyHero ====================
 function EmptyHero({ onStart }: { onStart: () => void }) {
+  const { t } = useLanguage();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -450,12 +454,12 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
 
         <div>
           <h2 className="text-xl sm:text-2xl font-bold mb-1.5">
-            あなただけの推しルーム
+            {t("aiRoom.empty.title")}
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-            コレクションから好きなグッズを選ぶと、AIがあなた専用の
+            {t("aiRoom.empty.desc1")}
             <br className="hidden sm:block" />
-            一度きりの部屋を描きます ✨
+            {t("aiRoom.empty.desc2")}
           </p>
         </div>
 
@@ -465,7 +469,7 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
           className="gap-2 h-12 px-6 shadow-lg"
         >
           <Wand2 className="w-5 h-5" />
-          はじめて作る
+          {t("aiRoom.empty.cta")}
         </Button>
       </div>
     </motion.div>
@@ -486,6 +490,7 @@ function HeroRoom({
   onDownload: () => void;
   onTogglePublic: () => void;
 }) {
+  const { t } = useLanguage();
   const preset = room.style_preset
     ? getStylePresetById(room.style_preset)
     : null;
@@ -514,7 +519,7 @@ function HeroRoom({
         {preset && (
           <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur text-white text-xs font-semibold flex items-center gap-1.5">
             <span>{preset.emoji}</span>
-            <span>{preset.name}</span>
+            <span>{t(`aiRoom.stylePresets.${preset.id}.name`)}</span>
           </div>
         )}
         <div
@@ -527,21 +532,21 @@ function HeroRoom({
         >
           {room.is_public ? (
             <>
-              <Globe className="w-3 h-3" /> 公開
+              <Globe className="w-3 h-3" /> {t("aiRoom.badge.public")}
             </>
           ) : (
             <>
-              <Lock className="w-3 h-3" /> 非公開
+              <Lock className="w-3 h-3" /> {t("aiRoom.badge.private")}
             </>
           )}
         </div>
 
         <div className="absolute left-4 right-4 bottom-3 text-left text-white">
           <p className="text-[10px] uppercase tracking-widest opacity-80 mb-0.5">
-            最新の推しルーム
+            {t("aiRoom.list.latest")}
           </p>
           <p className="text-base font-bold truncate drop-shadow-md">
-            {room.title || "無題のAIルーム"}
+            {room.title || t("aiRoom.common.untitled")}
           </p>
         </div>
       </button>
@@ -556,12 +561,12 @@ function HeroRoom({
           {room.is_public ? (
             <>
               <Lock className="w-3.5 h-3.5 mr-1" />
-              非公開
+              {t("aiRoom.actions.makePrivate")}
             </>
           ) : (
             <>
               <Globe className="w-3.5 h-3.5 mr-1" />
-              公開する
+              {t("aiRoom.actions.makePublic")}
             </>
           )}
         </Button>
@@ -579,7 +584,7 @@ function HeroRoom({
           className="text-xs h-9 gap-1.5"
         >
           <Share2 className="w-3.5 h-3.5" />
-          シェア
+          {t("aiRoom.common.share")}
         </Button>
       </div>
     </motion.div>
@@ -598,6 +603,7 @@ function RoomThumbCard({
   onDelete: () => void;
   onTogglePublic: () => void;
 }) {
+  const { t } = useLanguage();
   const preset = room.style_preset
     ? getStylePresetById(room.style_preset)
     : null;
@@ -649,12 +655,12 @@ function RoomThumbCard({
           {room.is_public ? (
             <>
               <Lock className="w-3 h-3 mr-0.5" />
-              非公開に
+              {t("aiRoom.actions.makePrivateShort")}
             </>
           ) : (
             <>
               <Globe className="w-3 h-3 mr-0.5" />
-              公開
+              {t("aiRoom.actions.makePublicShort")}
             </>
           )}
         </Button>

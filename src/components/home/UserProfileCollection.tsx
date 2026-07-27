@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Profile, OfficialItem, Tag } from "@/types";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface UserProfileCollectionProps {
   viewedProfile: Profile | undefined;
@@ -16,6 +17,7 @@ export function UserProfileCollection({ viewedProfile, userId }: UserProfileColl
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedContent, setSelectedContent] = useState("");
+  const { t } = useLanguage();
   const isMobile = useIsMobile();
   
   const { data: items = [] } = useOfficialItems();
@@ -43,7 +45,7 @@ export function UserProfileCollection({ viewedProfile, userId }: UserProfileColl
   return (
     <>
       <h1 className="text-xl sm:text-2xl font-bold text-gray-900 px-2">
-        {viewedProfile?.username}さんのコレクション
+        {viewedProfile?.username}{t("homeScreen.profile.collectionSuffix")}
       </h1>
 
       {!isMobile && (

@@ -3,6 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tag } from "@/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PopularTagsProps {
   tags: Tag[];
@@ -12,6 +13,8 @@ interface PopularTagsProps {
 }
 
 export function PopularTags({ tags, selectedTags, onTagSelect, onClearTags }: PopularTagsProps) {
+  const { t } = useLanguage();
+
   // タグの選択状態に応じてボタンをクリックしたときのハンドラー
   const handleTagClick = (tagName: string) => {
     console.log(`タグがクリックされました: ${tagName}`);
@@ -32,7 +35,7 @@ export function PopularTags({ tags, selectedTags, onTagSelect, onClearTags }: Po
               onClearTags();
             }}
           >
-            すべて
+            {t("tagManage.popular.all")}
           </Button>
           {tags.map((tag) => (
             <Button

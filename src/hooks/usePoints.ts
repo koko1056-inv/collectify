@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface UserPoints {
   id: string;
@@ -149,6 +150,7 @@ export function useUserAchievements() {
 export function useAwardPoints() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -170,7 +172,7 @@ export function useAwardPoints() {
         const { data: claimed, error } = await supabase
           .rpc('claim_login_bonus', { _user_id: user.id });
         if (error) throw error;
-        if (!claimed) throw new Error("今日は既にログインボーナスを受け取りました");
+        if (!claimed) throw new Error(t("notices.points.loginBonusAlreadyClaimed"));
         return { points, newTotal: 0 }; // newTotal will be refreshed by invalidation
       }
       
@@ -203,13 +205,13 @@ export function useAwardPoints() {
       queryClient.invalidateQueries({ queryKey: ["userAchievements"] });
       
       toast({
-        title: "ポイント獲得！",
-        description: `${data.points}ポイントを獲得しました`,
+        title: t("notices.points.earnedTitle"),
+        description: t("notices.points.earnedDesc", { points: data.points }),
       });
     },
     onError: (error) => {
       toast({
-        title: "エラー",
+        title: t("notices.common.errorTitle"),
         description: error.message,
         variant: "destructive",
       });
@@ -220,6 +222,7 @@ export function useAwardPoints() {
 export function useDeductPoints() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   
   return useMutation({
@@ -245,14 +248,14 @@ export function useDeductPoints() {
         
       if (fetchError) {
         if (fetchError.code === 'PGRST116') {
-          throw new Error("ポイントが不足しています");
+          throw new Error(t("notices.points.insufficient"));
         }
         throw fetchError;
       }
       
       const currentTotal = currentPoints?.total_points || 0;
       if (currentTotal < points) {
-        throw new Error(`ポイントが不足しています（現在: ${currentTotal}pt、必要: ${points}pt）`);
+        throw new Error(t("notices.points.insufficientDetail", { current: currentTotal, required: points }));
       }
       
       // Use server-side RPC for deduction (negative points)
@@ -275,7 +278,7 @@ export function useDeductPoints() {
     },
     onError: (error) => {
       toast({
-        title: "エラー",
+        title: t("notices.common.errorTitle"),
         description: error.message,
         variant: "destructive",
       });

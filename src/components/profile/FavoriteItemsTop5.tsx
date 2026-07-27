@@ -6,6 +6,7 @@ import { FavoriteItemsEditModal } from "./FavoriteItemsEditModal";
 import { ItemDetailsModal } from "@/components/ItemDetailsModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface FavoriteItemsTop5Props {
   userId: string;
@@ -22,6 +23,7 @@ export function FavoriteItemsTop5({ userId, isOwnProfile }: FavoriteItemsTop5Pro
   const { data: items = [], isLoading } = useFavoriteItems(userId);
   const [editOpen, setEditOpen] = useState(false);
   const [detailItemId, setDetailItemId] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   // 他人のページで0件は非表示
   if (!isOwnProfile && !isLoading && items.length === 0) {
@@ -42,7 +44,7 @@ export function FavoriteItemsTop5({ userId, isOwnProfile }: FavoriteItemsTop5Pro
           <div className="flex items-center gap-1.5 min-w-0">
             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 shrink-0" />
             <h3 className="text-sm font-bold truncate">
-              お気に入り TOP{FAVORITE_ITEMS_LIMIT}
+              {t("profileScreen.favorites.top5", { count: FAVORITE_ITEMS_LIMIT })}
             </h3>
             {items.length > 0 && (
               <span className="text-[10px] text-muted-foreground shrink-0">
@@ -58,7 +60,7 @@ export function FavoriteItemsTop5({ userId, isOwnProfile }: FavoriteItemsTop5Pro
               className="h-7 gap-1 text-xs"
             >
               <Pencil className="w-3 h-3" />
-              編集
+              {t("profileScreen.common.edit")}
             </Button>
           )}
         </div>
@@ -88,7 +90,7 @@ export function FavoriteItemsTop5({ userId, isOwnProfile }: FavoriteItemsTop5Pro
         {/* 自分のページで0件なら大きめCTA */}
         {isOwnProfile && !isLoading && items.length === 0 && (
           <p className="text-[11px] text-muted-foreground mt-2 text-center">
-            タップして、推しグッズを最大5個まで選ぼう ⭐
+            {t("profileScreen.favorites.emptyCta")}
           </p>
         )}
       </div>
@@ -136,6 +138,7 @@ function FavoriteSlot({
   onClickItem: () => void;
   onClickEmpty: () => void;
 }) {
+  const { t } = useLanguage();
   const rankColor =
     rank === 1
       ? "bg-yellow-400 text-yellow-950"
@@ -157,7 +160,7 @@ function FavoriteSlot({
         )}
       >
         <Plus className="w-5 h-5 text-muted-foreground" />
-        <span className="text-[10px] text-muted-foreground">追加</span>
+        <span className="text-[10px] text-muted-foreground">{t("profileScreen.common.add")}</span>
       </button>
     );
   }

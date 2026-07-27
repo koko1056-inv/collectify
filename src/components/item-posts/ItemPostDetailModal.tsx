@@ -18,8 +18,6 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -35,6 +33,8 @@ import {
 } from "@/hooks/item-posts/useItemPostInteractions";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface ItemPostDetailModalProps {
   open: boolean;
@@ -51,6 +51,8 @@ export function ItemPostDetailModal({
   initialPost,
 }: ItemPostDetailModalProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const navigate = useNavigate();
   const { data: fetchedPost, isLoading } = useItemPost(open ? postId : null);
   const post = fetchedPost ?? initialPost ?? null;
@@ -72,13 +74,13 @@ export function ItemPostDetailModal({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md">
           <DialogHeader className="sr-only">
-            <DialogTitle>投稿を読み込み中</DialogTitle>
+            <DialogTitle>{t("social.itemPosts.loadingPost")}</DialogTitle>
           </DialogHeader>
           <div className="py-10 flex justify-center">
             {isLoading ? (
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             ) : (
-              <p className="text-sm text-muted-foreground">投稿が見つかりません</p>
+              <p className="text-sm text-muted-foreground">{t("social.itemPosts.postNotFound")}</p>
             )}
           </div>
         </DialogContent>
@@ -94,10 +96,10 @@ export function ItemPostDetailModal({
     const shareUrl = `${window.location.origin}/post/${post.id}`;
     try {
       if (navigator.share) {
-        await navigator.share({ url: shareUrl, title: "Collectify投稿" });
+        await navigator.share({ url: shareUrl, title: t("social.itemPosts.shareTitle") });
       } else {
         await navigator.clipboard.writeText(shareUrl);
-        toast.success("URLをコピーしました");
+        toast.success(t("social.itemPosts.urlCopied"));
       }
     } catch {
       /* cancelled */
@@ -105,7 +107,7 @@ export function ItemPostDetailModal({
   };
 
   const handleDelete = async () => {
-    if (!confirm("この投稿を削除しますか？")) return;
+    if (!confirm(t("social.itemPosts.confirmDelete"))) return;
     try {
       await deletePost.mutateAsync(post.id);
       onOpenChange(false);
@@ -116,7 +118,7 @@ export function ItemPostDetailModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[92vh] p-0 overflow-y-auto">
         <DialogHeader className="sr-only">
-          <DialogTitle>投稿詳細</DialogTitle>
+          <DialogTitle>{t("social.itemPosts.postDetail")}</DialogTitle>
         </DialogHeader>
 
         {/* 画像カルーセル */}
@@ -183,13 +185,10 @@ export function ItemPostDetailModal({
             </button>
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm truncate">
-                {post.profile?.display_name || post.profile?.username || "コレクター"}
+                {post.profile?.display_name || post.profile?.username || t("social.itemPosts.collector")}
               </p>
               <p className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(post.created_at), {
-                  addSuffix: true,
-                  locale: ja,
-                })}
+                {formatRelative(post.created_at)}
               </p>
             </div>
             {isOwner && (
@@ -259,13 +258,10 @@ export function ItemPostDetailModal({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
                     <p className="text-xs font-medium truncate">
-                      {c.profile?.display_name || c.profile?.username || "匿名"}
+                      {c.profile?.display_name || c.profile?.username || t("social.itemPosts.anonymous")}
                     </p>
                     <p className="text-[10px] text-muted-foreground shrink-0">
-                      {formatDistanceToNow(new Date(c.created_at), {
-                        addSuffix: true,
-                        locale: ja,
-                      })}
+                      {formatRelative(c.created_at)}
                     </p>
                   </div>
                   <p className="text-sm whitespace-pre-wrap break-words">
@@ -286,7 +282,7 @@ export function ItemPostDetailModal({
             ))}
             {comments.length === 0 && (
               <p className="text-xs text-center text-muted-foreground py-2">
-                最初のコメントを送ってみよう
+                {t("social.itemPosts.firstComment")}
               </p>
             )}
           </div>
@@ -315,6 +311,7 @@ function CommentInput({
   disabled?: boolean;
   sending?: boolean;
 }) {
+  const { t } = useLanguage();
   const [value, setValue] = useState("");
   const submit = async () => {
     if (!value.trim()) return;
@@ -334,7 +331,7 @@ function CommentInput({
       <Input
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder={disabled ? "ログインしてコメント" : "コメントを追加..."}
+        placeholder={disabled ? t("social.itemPosts.loginToComment") : t("social.itemPosts.addComment")}
         disabled={disabled || sending}
         maxLength={500}
         className="flex-1 rounded-full"

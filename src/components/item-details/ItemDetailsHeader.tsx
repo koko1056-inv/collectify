@@ -1,5 +1,6 @@
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemDetailsHeaderProps {
   isEditing: boolean;
@@ -16,6 +17,7 @@ export function ItemDetailsHeader({
   editedData,
   setEditedData,
 }: ItemDetailsHeaderProps) {
+  const { t } = useLanguage();
   return (
     <DialogHeader>
       {isEditing ? (
@@ -25,7 +27,7 @@ export function ItemDetailsHeader({
             setEditedData({ ...editedData, title: e.target.value })
           }
           className="text-xl font-bold"
-          placeholder="タイトルを入力"
+          placeholder={t("itemDetails.fields.titlePlaceholder")}
           required
         />
       ) : (

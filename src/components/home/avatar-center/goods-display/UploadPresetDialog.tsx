@@ -13,6 +13,7 @@ import {
 import { Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { useUploadBackgroundPreset } from "./useGoodsDisplayActions";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   open: boolean;
@@ -27,6 +28,7 @@ export function UploadPresetDialog({
   userId,
   initialCategory,
 }: Props) {
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [category, setCategory] = useState(initialCategory);
   const [file, setFile] = useState<File | null>(null);
@@ -37,7 +39,7 @@ export function UploadPresetDialog({
     const f = e.target.files?.[0];
     if (!f) return;
     if (!f.type.startsWith("image/")) {
-      toast.error("画像ファイルを選択してください");
+      toast.error(t("homeScreen.uploadPreset.selectImageFile"));
       return;
     }
     setFile(f);
@@ -59,37 +61,37 @@ export function UploadPresetDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>背景プリセットを追加</DialogTitle>
+          <DialogTitle>{t("homeScreen.uploadPreset.title")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="preset-name">プリセット名</Label>
+            <Label htmlFor="preset-name">{t("homeScreen.uploadPreset.nameLabel")}</Label>
             <Input
               id="preset-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="例: マイ棚"
+              placeholder={t("homeScreen.uploadPreset.namePlaceholder")}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="preset-category">カテゴリ</Label>
+            <Label htmlFor="preset-category">{t("homeScreen.uploadPreset.categoryLabel")}</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger id="preset-category">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="shelf">棚</SelectItem>
-                <SelectItem value="room">部屋</SelectItem>
-                <SelectItem value="showcase">ショーケース</SelectItem>
-                <SelectItem value="display">展示台</SelectItem>
+                <SelectItem value="shelf">{t("homeScreen.presets.shelf")}</SelectItem>
+                <SelectItem value="room">{t("homeScreen.presets.room")}</SelectItem>
+                <SelectItem value="showcase">{t("homeScreen.presets.showcase")}</SelectItem>
+                <SelectItem value="display">{t("homeScreen.presets.display")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label>背景画像</Label>
+            <Label>{t("homeScreen.uploadPreset.imageLabel")}</Label>
             {preview ? (
               <div className="relative border rounded-lg overflow-hidden">
                 <img src={preview} alt="Preview" className="w-full h-48 object-cover" />
@@ -110,7 +112,7 @@ export function UploadPresetDialog({
                 <label className="flex flex-col items-center gap-2 cursor-pointer">
                   <Upload className="w-8 h-8 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">
-                    クリックして画像をアップロード
+                    {t("homeScreen.uploadPreset.uploadHint")}
                   </span>
                   <input
                     type="file"
@@ -131,10 +133,10 @@ export function UploadPresetDialog({
             {uploadMutation.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                アップロード中...
+                {t("homeScreen.uploadPreset.uploading")}
               </>
             ) : (
-              "背景プリセットを追加"
+              t("homeScreen.uploadPreset.title")
             )}
           </Button>
         </div>

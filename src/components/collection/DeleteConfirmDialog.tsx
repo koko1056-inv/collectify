@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
@@ -20,22 +21,23 @@ export function DeleteConfirmDialog({
   onOpenChange,
   onConfirm,
 }: DeleteConfirmDialogProps) {
+  const { t } = useLanguage();
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>アイテムの削除</AlertDialogTitle>
+          <AlertDialogTitle>{t("collectionScreen.deleteItem.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            このアイテムをコレクションから削除してもよろしいですか？この操作は取り消せません。
+            {t("collectionScreen.deleteItem.description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>キャンセル</AlertDialogCancel>
+          <AlertDialogCancel>{t("collectionScreen.common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             className="bg-red-500 hover:bg-red-600"
           >
-            削除する
+            {t("collectionScreen.common.deleteAction")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -13,8 +13,10 @@ export type DisplayStyle =
 export interface DisplayStylePreset {
   id: DisplayStyle;
   name: string;
+  nameEn: string;
   icon: string;
   description: string;
+  descriptionEn: string;
   // How to render in 3D
   frame: {
     type: "flat" | "standing" | "cute";
@@ -31,8 +33,10 @@ export const DISPLAY_STYLES: DisplayStylePreset[] = [
   {
     id: "poster",
     name: "ポスター",
+    nameEn: "Poster",
     icon: "🖼️",
     description: "壁に貼るシンプルなポスター",
+    descriptionEn: "A simple poster for the wall",
     frame: {
       type: "flat",
       baseColor: "#1a1a2e",
@@ -46,8 +50,10 @@ export const DISPLAY_STYLES: DisplayStylePreset[] = [
   {
     id: "framed",
     name: "額縁",
+    nameEn: "Framed",
     icon: "🏞️",
     description: "豪華な額縁に入ったアート風",
+    descriptionEn: "An art piece in an ornate frame",
     frame: {
       type: "flat",
       baseColor: "#8b5a2b",
@@ -61,8 +67,10 @@ export const DISPLAY_STYLES: DisplayStylePreset[] = [
   {
     id: "acrylic_stand",
     name: "アクスタ",
+    nameEn: "Acrylic Stand",
     icon: "🪪",
     description: "アクリルスタンド風、透明感のある立て看板",
+    descriptionEn: "A translucent standee in acrylic-stand style",
     frame: {
       type: "standing",
       baseColor: "#e0f2fe",
@@ -76,8 +84,10 @@ export const DISPLAY_STYLES: DisplayStylePreset[] = [
   {
     id: "figure",
     name: "フィギュア",
+    nameEn: "Figure",
     icon: "🗿",
     description: "台座付きで本格的なフィギュア風",
+    descriptionEn: "An authentic figure look with a base",
     frame: {
       type: "standing",
       baseColor: "#1e293b",
@@ -91,8 +101,10 @@ export const DISPLAY_STYLES: DisplayStylePreset[] = [
   {
     id: "plush",
     name: "ぬいぐるみ",
+    nameEn: "Plush",
     icon: "🧸",
     description: "ふわふわの丸みを帯びたぬいぐるみ風",
+    descriptionEn: "A soft, rounded plush look",
     frame: {
       type: "cute",
       baseColor: "#fce7f3",
@@ -106,8 +118,10 @@ export const DISPLAY_STYLES: DisplayStylePreset[] = [
   {
     id: "trophy",
     name: "トロフィー",
+    nameEn: "Trophy",
     icon: "🏆",
     description: "栄光の推しをトロフィー風に",
+    descriptionEn: "Your favorite, presented as a trophy",
     frame: {
       type: "standing",
       baseColor: "#fbbf24",

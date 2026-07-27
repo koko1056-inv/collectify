@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SimpleItemTag } from "@/utils/tag/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CurrentTagsListProps {
   currentTags: SimpleItemTag[];
@@ -9,12 +10,13 @@ interface CurrentTagsListProps {
 }
 
 export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListProps) {
-  
+  const { t } = useLanguage();
+
   if (currentTags.length === 0) {
     return (
       <div className="text-center py-6">
-        <p className="text-sm text-muted-foreground">現在タグは設定されていません</p>
-        <p className="text-xs text-muted-foreground mt-1">下からタグを選択してください</p>
+        <p className="text-sm text-muted-foreground">{t("tagManage.current.empty")}</p>
+        <p className="text-xs text-muted-foreground mt-1">{t("tagManage.current.emptyHint")}</p>
       </div>
     );
   }
@@ -22,14 +24,14 @@ export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListPro
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-semibold text-gray-900">現在のタグ</h3>
+        <h3 className="text-sm font-semibold text-gray-900">{t("tagManage.current.heading")}</h3>
         <Badge variant="secondary" className="text-xs">
           {currentTags.length}
         </Badge>
       </div>
       <div className="flex flex-wrap gap-2">
         {currentTags.map((tag) => {
-          const tagName = tag.tags?.name || tag.tag_id || 'タグ名なし';
+          const tagName = tag.tags?.name || tag.tag_id || t("tagManage.current.noName");
           
           return (
             <Badge 

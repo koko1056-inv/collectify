@@ -2,6 +2,7 @@
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Minus, Plus } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface QuantityInputProps {
   value: number;
@@ -18,6 +19,7 @@ export function QuantityInput({
   max = 999, 
   className = "" 
 }: QuantityInputProps) {
+  const { t } = useLanguage();
   const handleDecrease = () => {
     if (value > min) {
       onChange(value - 1);
@@ -54,7 +56,7 @@ export function QuantityInput({
         value={value}
         onChange={handleInputChange}
         className="w-20 text-center"
-        placeholder="数量"
+        placeholder={t("itemDetails.fields.quantityPlaceholder")}
       />
       <Button 
         type="button"

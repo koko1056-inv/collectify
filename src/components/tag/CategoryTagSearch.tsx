@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Search } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface CategoryTagSearchProps {
   searchQuery: string;
@@ -8,13 +9,15 @@ interface CategoryTagSearchProps {
 }
 
 export function CategoryTagSearch({ searchQuery, setSearchQuery }: CategoryTagSearchProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="px-2 py-2 bg-white">
       <div className="flex items-center border rounded-md px-2">
         <Search className="h-4 w-4 text-gray-400" />
         <input
           className="w-full p-2 bg-transparent focus:outline-none text-sm"
-          placeholder="タグを検索..."
+          placeholder={t("tagManage.search.placeholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />

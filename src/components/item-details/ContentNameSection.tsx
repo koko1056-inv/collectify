@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ContentNameSectionProps {
   isEditing: boolean;
@@ -23,6 +24,7 @@ export function ContentNameSection({
   const [newContentName, setNewContentName] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
@@ -55,14 +57,14 @@ export function ContentNameSection({
       setNewContentName("");
 
       toast({
-        title: "コンテンツを追加しました",
-        description: `${data.name}を追加しました`,
+        title: t("itemDetails.contentSection.added"),
+        description: t("itemDetails.contentSection.addedDescription", { name: data.name }),
       });
     } catch (error) {
       console.error("Error adding content:", error);
       toast({
-        title: "エラー",
-        description: "コンテンツの追加に失敗しました",
+        title: t("itemDetails.common.error"),
+        description: t("itemDetails.contentSection.addFailed"),
         variant: "destructive",
       });
     }
@@ -91,28 +93,28 @@ export function ContentNameSection({
     <div className="space-y-4">
       <div className="space-y-2">
         <label className="text-sm font-medium">
-          コンテンツ
+          {t("itemDetails.common.content")}
         </label>
         {isAddingNewContent ? (
           <div className="flex gap-2">
             <Input
               value={newContentName}
               onChange={(e) => setNewContentName(e.target.value)}
-              placeholder="新しいコンテンツ名"
+              placeholder={t("itemDetails.contentSection.newContentPlaceholder")}
             />
-            <Button 
+            <Button
               onClick={() => addContentMutation(newContentName)}
             >
-              追加
+              {t("itemDetails.common.add")}
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 setIsAddingNewContent(false);
                 setNewContentName("");
               }}
             >
-              キャンセル
+              {t("itemDetails.common.cancel")}
             </Button>
           </div>
         ) : (
@@ -121,16 +123,16 @@ export function ContentNameSection({
             onValueChange={handleContentChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="コンテンツを選択" />
+              <SelectValue placeholder={t("itemDetails.contentSection.selectPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">選択なし</SelectItem>
+              <SelectItem value="none">{t("itemDetails.contentSection.none")}</SelectItem>
               {contentNames.map((content) => (
                 <SelectItem key={content.id} value={content.name}>
                   {content.name}
                 </SelectItem>
               ))}
-              <SelectItem value="other">その他（新規追加）</SelectItem>
+              <SelectItem value="other">{t("itemDetails.contentSection.other")}</SelectItem>
             </SelectContent>
           </Select>
         )}
@@ -140,18 +142,18 @@ export function ContentNameSection({
       {"item_type" in editedData && (
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            商品タイプ
+            {t("itemDetails.contentSection.itemTypeLabel")}
           </label>
           <Select
             value={editedData.item_type || "official"}
             onValueChange={handleItemTypeChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="商品タイプを選択" />
+              <SelectValue placeholder={t("itemDetails.contentSection.itemTypePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="official">公式グッズ</SelectItem>
-              <SelectItem value="original">オリジナルグッズ</SelectItem>
+              <SelectItem value="official">{t("itemDetails.contentSection.official")}</SelectItem>
+              <SelectItem value="original">{t("itemDetails.contentSection.original")}</SelectItem>
             </SelectContent>
           </Select>
         </div>

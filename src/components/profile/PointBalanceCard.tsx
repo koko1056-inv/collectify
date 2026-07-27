@@ -2,28 +2,31 @@ import { Coins, Gift, ShoppingBag, TrendingUp } from "lucide-react";
 import { useUserPoints, usePointTransactions } from "@/hooks/usePoints";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { format } from "date-fns";
-import { ja } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
-// ポイント獲得/消費履歴のラベル
-const TX_LABELS: Record<string, string> = {
-  login_bonus: "ログインボーナス",
-  item_add: "グッズ追加",
-  content_add: "コンテンツ追加",
-  welcome_bonus: "ようこそボーナス",
-  referral_bonus: "招待ボーナス",
-  shop_purchase: "ショップ購入",
-  challenge_create: "チャレンジ作成",
-  challenge_reward: "チャレンジ入賞",
-  init: "初期化",
+// ポイント獲得/消費履歴のラベル（翻訳キー）
+const TX_LABEL_KEYS: Record<string, string> = {
+  login_bonus: "profileScreen.points.tx.login_bonus",
+  item_add: "profileScreen.points.tx.item_add",
+  content_add: "profileScreen.points.tx.content_add",
+  welcome_bonus: "profileScreen.points.tx.welcome_bonus",
+  referral_bonus: "profileScreen.points.tx.referral_bonus",
+  shop_purchase: "profileScreen.points.tx.shop_purchase",
+  challenge_create: "profileScreen.points.tx.challenge_create",
+  challenge_reward: "profileScreen.points.tx.challenge_reward",
+  init: "profileScreen.points.tx.init",
 };
 
-function txLabel(type: string): string {
-  return TX_LABELS[type] || type;
+function txLabel(type: string, t: (key: string) => string): string {
+  const key = TX_LABEL_KEYS[type];
+  return key ? t(key) : type;
 }
 
 export function PointBalanceCard() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  const { formatShortDateTime } = useDateFormat();
   const { data: userPoints, isLoading } = useUserPoints();
   const { data: transactions = [] } = usePointTransactions();
 
@@ -39,7 +42,7 @@ export function PointBalanceCard() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-lg font-semibold">
           <Coins className="w-5 h-5 text-amber-500" />
-          ポイント
+          {t("profileScreen.points.title")}
         </div>
         <Button
           variant="outline"
@@ -48,15 +51,15 @@ export function PointBalanceCard() {
           className="gap-1.5"
         >
           <ShoppingBag className="w-4 h-4" />
-          ショップへ
+          {t("profileScreen.points.toShop")}
         </Button>
       </div>
 
       {/* 残高表示 */}
-      <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-pink-950/30 border border-amber-200/60 dark:border-amber-900/40">
+      <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-amber-50 via-orange-50 to-primary/5 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-primary/10 border border-amber-200/60 dark:border-amber-900/40">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs text-muted-foreground mb-1">現在の残高</p>
+            <p className="text-xs text-muted-foreground mb-1">{t("profileScreen.points.currentBalance")}</p>
             <div className="flex items-baseline gap-1.5">
               <span className="text-3xl font-bold text-amber-600 dark:text-amber-400">
                 {isLoading ? "…" : balance.toLocaleString()}
@@ -72,18 +75,18 @@ export function PointBalanceCard() {
         {/* 生涯獲得 */}
         <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
           <TrendingUp className="w-3.5 h-3.5" />
-          <span>累計獲得 {lifetimeEarned.toLocaleString()}pt</span>
+          <span>{t("profileScreen.points.lifetime", { points: lifetimeEarned.toLocaleString() })}</span>
         </div>
 
         {/* 装飾 */}
-        <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-gradient-to-br from-pink-300/20 to-amber-300/20 blur-2xl pointer-events-none" />
+        <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-amber-300/20 blur-2xl pointer-events-none" />
       </div>
 
       {/* 最近の履歴 */}
       {recentFive.length > 0 && (
         <div>
           <p className="text-xs font-medium text-muted-foreground mb-2">
-            最近の動き
+            {t("profileScreen.points.recent")}
           </p>
           <div className="space-y-1.5">
             {recentFive.map((tx) => {
@@ -97,10 +100,10 @@ export function PointBalanceCard() {
                     <Gift className="w-4 h-4 text-muted-foreground shrink-0" />
                     <div className="min-w-0">
                       <p className="truncate">
-                        {tx.description || txLabel(tx.transaction_type)}
+                        {tx.description || txLabel(tx.transaction_type, t)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(tx.created_at), "M/d HH:mm", { locale: ja })}
+                        {formatShortDateTime(tx.created_at)}
                       </p>
                     </div>
                   </div>
@@ -123,7 +126,7 @@ export function PointBalanceCard() {
 
       {recentFive.length === 0 && (
         <p className="text-center text-xs text-muted-foreground py-4">
-          まだポイント履歴がありません
+          {t("profileScreen.points.empty")}
         </p>
       )}
     </div>

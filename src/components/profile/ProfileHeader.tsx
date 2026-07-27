@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { ChatModal } from "@/components/chat/ChatModal";
 import { PointsDisplay } from "@/components/ui/points-display";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileHeaderProps {
   username: string;
@@ -15,6 +16,7 @@ interface ProfileHeaderProps {
 
 export function ProfileHeader({ username, onShare, isOwnProfile, userId }: ProfileHeaderProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
@@ -41,7 +43,7 @@ export function ProfileHeader({ username, onShare, isOwnProfile, userId }: Profi
             className="gap-1.5 text-xs"
           >
             <Share2 className="h-3.5 w-3.5" />
-            プロフィールを共有
+            {t("profileScreen.header.share")}
           </Button>
 
           {!isOwnProfile && userId && user && (
@@ -52,7 +54,7 @@ export function ProfileHeader({ username, onShare, isOwnProfile, userId }: Profi
               className="gap-1.5 text-xs"
             >
               <MessageCircle className="h-3.5 w-3.5" />
-              メッセージを送る
+              {t("profileScreen.header.message")}
             </Button>
           )}
 

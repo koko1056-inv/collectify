@@ -38,6 +38,17 @@ const RouteReadyTracker: React.FC = () => {
   return null;
 };
 
+// 画面遷移のたびにスクロール位置を先頭へ戻す。
+// これが無いと、一覧を深くスクロールしたあとタブを切り替えた際に、
+// 次の画面が途中の位置で表示されてしまう。
+const ScrollToTop: React.FC = () => {
+  const { pathname } = useLocation();
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
 // 主要ページも lazy 化して初回バンドルを縮小（MyRoom はデフォルト遷移先なので即プリフェッチ）
 const MyRoom = lazy(() => import("./pages/MyRoom").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Search = lazy(() => import("./pages/Search").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -142,6 +153,7 @@ const App: React.FC = () => {
                   <Toaster />
                   <Sonner />
                   <RouteReadyTracker />
+                  <ScrollToTop />
                   <OfflineBanner />
                   <LiffAutoLink />
                   <AppErrorBoundary>
@@ -161,7 +173,7 @@ const App: React.FC = () => {
                       <Route path="/how-to-use" element={<HowToUse />} />
                       <Route path="/invite/:code" element={<InviteRedirect />} />
                       {/* Protected routes — require authentication */}
-                      <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+                      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Admin /></ProtectedRoute>} />
                       <Route path="/add-item" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
                       <Route path="/quick-add" element={<ProtectedRoute><QuickAdd /></ProtectedRoute>} />
                       <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />

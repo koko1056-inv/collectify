@@ -13,6 +13,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import type { useAvatars } from "@/hooks/useAvatars";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface Props {
   avatars: ReturnType<typeof useAvatars>;
@@ -20,6 +22,8 @@ interface Props {
 }
 
 export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
+  const { t } = useLanguage();
+  const { formatNumericDate } = useDateFormat();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   if (avatars.isLoading) {
@@ -34,9 +38,9 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
     return (
       <div className="text-center py-12">
         <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-        <p className="text-muted-foreground mb-4">まだアバターがありません</p>
+        <p className="text-muted-foreground mb-4">{t("misc.avatar.galleryEmpty")}</p>
         <Button variant="outline" onClick={onSwitchToGenerate}>
-          アバターを生成する
+          {t("misc.avatar.generateCta")}
           <ChevronRight className="w-4 h-4 ml-1" />
         </Button>
       </div>
@@ -68,7 +72,7 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
                 {isCurrent && (
                   <Badge className="text-xs">
                     <Check className="w-3 h-3 mr-1" />
-                    使用中
+                    {t("misc.avatar.inUse")}
                   </Badge>
                 )}
                 {a.item_ids && a.item_ids.length > 0 && (
@@ -85,7 +89,7 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
                   disabled={!!isCurrent || avatars.setCurrent.isPending}
                 >
                   <Check className="w-4 h-4 mr-1" />
-                  選択
+                  {t("misc.avatar.select")}
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => setDeleteId(a.id)}>
                   <Trash2 className="w-4 h-4" />
@@ -93,7 +97,7 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
               </div>
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                 <p className="text-xs text-white truncate">
-                  {a.name || new Date(a.created_at).toLocaleDateString("ja-JP")}
+                  {a.name || formatNumericDate(a.created_at)}
                 </p>
               </div>
             </div>
@@ -104,11 +108,11 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>アバターを削除しますか？</AlertDialogTitle>
-            <AlertDialogDescription>この操作は取り消せません。</AlertDialogDescription>
+            <AlertDialogTitle>{t("misc.avatar.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("misc.common.irreversible")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogCancel>{t("misc.common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deleteId) avatars.remove.mutate(deleteId);
@@ -116,7 +120,7 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              削除
+              {t("misc.common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

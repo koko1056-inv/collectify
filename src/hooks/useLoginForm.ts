@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { LoginFormData } from "@/types/auth";
 import { handleAdminLogin, handleUserLogin, handleUserSignup } from "@/utils/auth";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useLoginForm() {
   const [searchParams] = useSearchParams();
@@ -14,6 +15,7 @@ export function useLoginForm() {
   const [inviteCode, setInviteCode] = useState(inviteCodeFromUrl);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<LoginFormData>({
@@ -55,8 +57,8 @@ export function useLoginForm() {
         }
         
         toast({
-          title: "ログイン成功",
-          description: "ようこそ戻ってきました！",
+          title: t("notices.auth.loginSuccessTitle"),
+          description: t("notices.auth.loginSuccessDesc"),
         });
       } else {
         await handleUserSignup(formData);
@@ -65,25 +67,25 @@ export function useLoginForm() {
         const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
         if (session) {
           toast({
-            title: "登録完了",
-            description: "アカウントが作成されました。Collectifyへようこそ！",
+            title: t("notices.auth.signupDoneTitle"),
+            description: t("notices.auth.signupWelcomeDesc"),
           });
           navigate(redirectTo);
         } else {
           toast({
-            title: "登録完了",
-            description: "アカウントが作成されました。ログインしてください。",
+            title: t("notices.auth.signupDoneTitle"),
+            description: t("notices.auth.signupThenLoginDesc"),
           });
           setIsLogin(true);
         }
       }
     } catch (error) {
       console.error("Authentication error:", error);
-      setError(error instanceof Error ? error.message : "認証エラーが発生しました");
+      setError(error instanceof Error ? error.message : t("notices.auth.genericError"));
       toast({
         variant: "destructive",
-        title: "エラー",
-        description: error instanceof Error ? error.message : "認証エラーが発生しました",
+        title: t("notices.common.errorTitle"),
+        description: error instanceof Error ? error.message : t("notices.auth.genericError"),
       });
     } finally {
       setLoading(false);

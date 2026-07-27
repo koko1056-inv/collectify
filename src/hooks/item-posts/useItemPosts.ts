@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface ItemPost {
   id: string;
@@ -139,6 +140,7 @@ export function useItemPost(postId: string | null) {
 export function useCreateItemPost() {
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { t } = useLanguage();
 
   return useMutation({
     mutationFn: async ({
@@ -151,7 +153,7 @@ export function useCreateItemPost() {
       images: File[];
     }) => {
       if (!user?.id) throw new Error("Not logged in");
-      if (images.length === 0) throw new Error("画像を1枚以上選択してください");
+      if (images.length === 0) throw new Error(t("notices.itemPosts.imageRequired"));
 
       // 1. 投稿行作成
       const insertPayload: any = {
@@ -194,9 +196,9 @@ export function useCreateItemPost() {
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ["item-posts", variables.target.type, variables.target.id] });
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
-      toast.success("投稿しました！");
+      toast.success(t("notices.itemPosts.created"));
     },
-    onError: (e) => toast.error((e as Error).message || "投稿に失敗しました"),
+    onError: (e) => toast.error((e as Error).message || t("notices.itemPosts.createFailed")),
   });
 }
 
@@ -205,6 +207,7 @@ export function useCreateItemPost() {
  */
 export function useDeleteItemPost() {
   const qc = useQueryClient();
+  const { t } = useLanguage();
   return useMutation({
     mutationFn: async (postId: string) => {
       const { error } = await supabase.from("item_posts").delete().eq("id", postId);
@@ -213,9 +216,9 @@ export function useDeleteItemPost() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["item-posts"] });
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
-      toast.success("投稿を削除しました");
+      toast.success(t("notices.itemPosts.deleted"));
     },
-    onError: () => toast.error("削除に失敗しました"),
+    onError: () => toast.error(t("notices.itemPosts.deleteFailed")),
   });
 }
 

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SelectionModeControlsProps {
   selectedItems: string[];
@@ -15,6 +16,7 @@ export function SelectionModeControls({
   onConfirm,
   onCancel,
 }: SelectionModeControlsProps) {
+  const { t } = useLanguage();
   return (
     <div className="flex items-center gap-4">
       <div className="flex items-center gap-2">
@@ -23,10 +25,10 @@ export function SelectionModeControls({
           size="sm"
           onClick={onSelectAll}
         >
-          {selectedItems.length === totalItems ? "選択解除" : "全て選択"}
+          {selectedItems.length === totalItems ? t("collectionScreen.selection.deselectAll") : t("collectionScreen.selection.selectAll")}
         </Button>
         <span className="text-sm text-muted-foreground">
-          {selectedItems.length}個選択中
+          {selectedItems.length}{t("collectionScreen.selection.selectedSuffix")}
         </span>
       </div>
       <div className="flex items-center gap-2">
@@ -36,14 +38,14 @@ export function SelectionModeControls({
           onClick={onConfirm}
           disabled={selectedItems.length === 0}
         >
-          確定
+          {t("collectionScreen.selection.confirm")}
         </Button>
         <Button
           variant="ghost"
           size="sm"
           onClick={onCancel}
         >
-          キャンセル
+          {t("collectionScreen.common.cancel")}
         </Button>
       </div>
     </div>

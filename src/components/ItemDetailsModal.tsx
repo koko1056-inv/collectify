@@ -20,6 +20,7 @@ import { X } from "lucide-react";
 import { SimpleItemTag } from "@/utils/tag/types";
 import { ItemPostsSection } from "./item-posts/ItemPostsSection";
 import { ScrollArea } from "./ui/scroll-area";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemDetailsModalProps {
   isOpen: boolean;
@@ -55,6 +56,7 @@ export function ItemDetailsModal({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -270,15 +272,15 @@ export function ItemDetailsModal({
         });
       }
       toast({
-        title: "アイテムを削除しました",
-        description: "コレクションからアイテムを削除しました。"
+        title: t("chrome.itemDetails.deletedTitle"),
+        description: t("chrome.itemDetails.deletedDesc")
       });
       onClose();
     } catch (error) {
       console.error("Error deleting item:", error);
       toast({
-        title: "エラー",
-        description: "アイテムの削除に失敗しました。",
+        title: t("chrome.common.error"),
+        description: t("chrome.itemDetails.deleteFailed"),
         variant: "destructive"
       });
     }
@@ -300,16 +302,16 @@ export function ItemDetailsModal({
         queryKey: ["user-items"]
       });
       toast({
-        title: "保存完了",
-        description: "個数・メモ・コンテンツを保存しました。"
+        title: t("chrome.itemDetails.savedTitle"),
+        description: t("chrome.itemDetails.savedDesc")
       });
       setIsQuantityEditing(false);
       setIsEditing(false);
       onClose();
     } catch (error) {
       toast({
-        title: "エラー",
-        description: "保存に失敗しました。",
+        title: t("chrome.common.error"),
+        description: t("chrome.itemDetails.saveFailed"),
         variant: "destructive"
       });
     } finally {
@@ -354,7 +356,7 @@ export function ItemDetailsModal({
           {isUserItem && isEditing && (
             <div className="p-4 pt-0 pb-0 border-t border-gray-100 space-y-4">
               <div>
-                <label className="text-sm font-medium">所有個数</label>
+                <label className="text-sm font-medium">{t("chrome.itemDetails.quantityOwned")}</label>
                 <QuantityInput 
                   value={editedData.quantity} 
                   onChange={val => setEditedData(prev => ({
@@ -382,7 +384,7 @@ export function ItemDetailsModal({
               {isEditing ? (
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={handleSaveUserItemFields} disabled={isSaving}>
-                    {isSaving ? "保存中..." : "保存"}
+                    {isSaving ? t("chrome.itemDetails.saving") : t("chrome.itemDetails.save")}
                   </Button>
                   <Button variant="outline" onClick={() => {
                     setIsEditing(false);
@@ -396,12 +398,12 @@ export function ItemDetailsModal({
                       content_name: contentName ?? null
                     });
                   }}>
-                    キャンセル
+                    {t("chrome.common.cancel")}
                   </Button>
                 </div>
               ) : (
                 <Button onClick={() => setIsEditing(true)}>
-                  編集する
+                  {t("chrome.itemDetails.edit")}
                 </Button>
               )}
 
@@ -445,14 +447,14 @@ export function ItemDetailsModal({
       {isDeleteConfirmOpen && (
         <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
           <DialogContent className="sm:max-w-[425px]">
-            <h2 className="text-lg font-bold mb-2">アイテムの削除</h2>
-            <p className="mb-4">「{title}」をコレクションから削除しますか？</p>
+            <h2 className="text-lg font-bold mb-2">{t("chrome.itemDetails.deleteHeading")}</h2>
+            <p className="mb-4">{t("chrome.itemDetails.deleteConfirm", { title })}</p>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>
-                キャンセル
+                {t("chrome.common.cancel")}
               </Button>
               <Button variant="destructive" onClick={handleDeleteItem}>
-                削除する
+                {t("chrome.itemDetails.delete")}
               </Button>
             </div>
           </DialogContent>

@@ -8,8 +8,10 @@ import { HomeContent } from "@/components/home/HomeContent";
 import { UserProfileCollection } from "@/components/home/UserProfileCollection";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useProfile } from "@/hooks/useProfile";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Index = () => {
+  const { t } = useLanguage();
   const [showInterestDialog, setShowInterestDialog] = useState(false);
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
@@ -44,7 +46,7 @@ const Index = () => {
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">読み込み中...</p>
+              <p className="text-muted-foreground">{t("screens.index.loading")}</p>
             </div>
           </div>
         </main>

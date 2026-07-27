@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemOwnersModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export function ItemOwnersModal({
   officialItemId,
 }: ItemOwnersModalProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const { data: owners, isLoading } = useQuery({
     queryKey: ["item-owners", officialItemId || itemTitle, itemImage],
@@ -97,10 +99,10 @@ export function ItemOwnersModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
-            このグッズを持っているユーザー
+            {t("chrome.owners.title")}
           </DialogTitle>
           <DialogDescription>
-            {itemTitle}を持っている{totalOwners}人のコレクター
+            {t("chrome.owners.subtitle", { title: itemTitle, n: totalOwners })}
           </DialogDescription>
         </DialogHeader>
 
@@ -114,12 +116,12 @@ export function ItemOwnersModal({
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm truncate">{itemTitle}</p>
             <p className="text-xs text-muted-foreground">
-              {totalOwners}人が所有
+              {t("chrome.owners.ownedBy", { n: totalOwners })}
             </p>
           </div>
           {isUserOwner && (
             <Badge variant="secondary" className="text-xs">
-              所有中
+              {t("chrome.owners.owned")}
             </Badge>
           )}
         </div>
@@ -141,7 +143,7 @@ export function ItemOwnersModal({
             <div className="text-center py-8">
               <Package className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
               <p className="text-muted-foreground">
-                まだ誰も持っていません
+                {t("chrome.owners.empty")}
               </p>
             </div>
           ) : (
@@ -169,7 +171,7 @@ export function ItemOwnersModal({
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <p className="font-medium text-sm truncate">
                             {owner.profile?.display_name || owner.profile?.username}
-                            {isMe && <span className="text-primary ml-1">(あなた)</span>}
+                            {isMe && <span className="text-primary ml-1">{t("chrome.owners.you")}</span>}
                           </p>
                           {!isMe && score && (
                             <TrustBadge score={score} size="xs" showLabel={false} />
@@ -183,7 +185,7 @@ export function ItemOwnersModal({
                       </div>
                     </Link>
                     <Badge variant="outline" className="flex-shrink-0">
-                      {owner.quantity}個
+                      {t("chrome.owners.quantity", { n: owner.quantity })}
                     </Badge>
                   </div>
                   {!isMe && user && (
@@ -192,7 +194,7 @@ export function ItemOwnersModal({
                         receiverId={owner.user_id}
                         contextType="item"
                         size="sm"
-                        label="あいさつ"
+                        label={t("chrome.owners.greeting")}
                       />
                     </div>
                   )}

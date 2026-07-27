@@ -7,6 +7,9 @@ import { CreateOpenTradeButton } from "./CreateOpenTradeButton";
 import { OpenTradeRequests } from "./OpenTradeRequests";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ArrowLeftRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface OpenTradesListProps {
   trades: TradeRequest[];
@@ -24,6 +27,7 @@ export function OpenTradesList({
   onRefresh 
 }: OpenTradesListProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   // リアルタイムサブスクリプションの設定
   useEffect(() => {
@@ -52,14 +56,15 @@ export function OpenTradesList({
       <CreateOpenTradeButton onTradeCreated={onTradeCreated || onRefresh} />
       
       <div className="mt-4">
-        <h2 className="text-xl font-semibold mb-4">オープントレード一覧</h2>
+        <h2 className="text-xl font-semibold mb-4">{t("trade.list.openTradesHeading")}</h2>
         <ScrollArea className="h-[calc(50vh-220px)]">
           <div className="space-y-6 pr-4">
             {trades.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
-                <img src="/placeholder.svg" alt="No open trades" className="w-24 h-24 mb-4 opacity-50" />
-                <p>現在オープンなトレードリクエストはありません</p>
-              </div>
+              <EmptyState
+                icon={ArrowLeftRight}
+                title={t("trade.list.noOpenTitle")}
+                description={t("trade.list.noOpenDesc")}
+              />
             ) : (
               trades.map((trade) => (
                 <TradeCard

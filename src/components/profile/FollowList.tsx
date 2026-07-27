@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Users, UserPlus, Search } from "lucide-react";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Profile {
   id: string;
@@ -29,6 +30,7 @@ export function FollowList({ userId, type }: FollowListProps) {
   const [followState, setFollowState] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const filteredProfiles = useMemo(() => {
     if (!searchQuery.trim()) return profiles;
@@ -164,12 +166,12 @@ export function FollowList({ userId, type }: FollowListProps) {
           {type === "followers" ? (
             <>
               <Users className="w-5 h-5 text-primary" />
-              フォロワー
+              {t("profileScreen.follow.followers")}
             </>
           ) : (
             <>
               <UserPlus className="w-5 h-5 text-primary" />
-              フォロー中
+              {t("profileScreen.follow.following")}
             </>
           )}
           <span className="text-muted-foreground font-normal text-sm ml-1">
@@ -182,7 +184,7 @@ export function FollowList({ userId, type }: FollowListProps) {
         <div className="relative mt-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="ユーザーを検索..."
+            placeholder={t("profileScreen.follow.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -213,18 +215,18 @@ export function FollowList({ userId, type }: FollowListProps) {
             )}
           </div>
           <p className="text-muted-foreground font-medium">
-            {type === "followers" ? "フォロワーはいません" : "フォロー中のユーザーはいません"}
+            {type === "followers" ? t("profileScreen.follow.noFollowers") : t("profileScreen.follow.noFollowing")}
           </p>
           <p className="text-sm text-muted-foreground/70 mt-1">
-            {type === "followers" 
-              ? "あなたをフォローしているユーザーがここに表示されます" 
-              : "フォローしたユーザーがここに表示されます"}
+            {type === "followers"
+              ? t("profileScreen.follow.noFollowersHint")
+              : t("profileScreen.follow.noFollowingHint")}
           </p>
         </div>
       ) : filteredProfiles.length === 0 && searchQuery ? (
         <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
           <Search className="w-8 h-8 text-muted-foreground mb-2" />
-          <p className="text-muted-foreground">「{searchQuery}」に一致するユーザーがいません</p>
+          <p className="text-muted-foreground">{t("profileScreen.follow.noSearchResult", { query: searchQuery })}</p>
         </div>
       ) : (
         <ScrollArea className="flex-1 -mx-6 px-6">

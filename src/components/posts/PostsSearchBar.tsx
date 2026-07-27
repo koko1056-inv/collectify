@@ -1,5 +1,6 @@
 
 import { SearchInput } from "@/components/search/SearchInput";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PostsSearchBarProps {
   searchQuery: string;
@@ -10,6 +11,8 @@ export function PostsSearchBar({
   searchQuery,
   onSearchChange,
 }: PostsSearchBarProps) {
+  const { t } = useLanguage();
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     onSearchChange(value);
@@ -29,7 +32,7 @@ export function PostsSearchBar({
         onFocus={() => {}}
         onBlur={() => {}}
         onKeyDown={handleKeyDown}
-        placeholder="投稿を検索..."
+        placeholder={t("social.posts.searchPlaceholder")}
       />
     </div>
   );

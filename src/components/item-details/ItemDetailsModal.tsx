@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { ItemDetailsWrapper } from "./ItemDetailsWrapper";
 import { ItemDetailsDeleteDialog } from "./ItemDetailsDeleteDialog";
 import { ItemDetailsTagManageSection } from "./ItemDetailsTagManageSection";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // UserItemDetails型を型安全に定義
 interface ItemDetailsModalProps {
@@ -71,6 +72,7 @@ export function ItemDetailsModal({
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isTagModalOpen, setIsTagModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -101,15 +103,15 @@ export function ItemDetailsModal({
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       toast({
-        title: "保存完了",
-        description: "アイテム情報を保存しました。",
+        title: t("itemDetails.save.success"),
+        description: t("itemDetails.save.successDescription"),
       });
       setIsEditing(false);
       onClose();
     } catch (error) {
       toast({
-        title: "エラー",
-        description: "保存に失敗しました。",
+        title: t("itemDetails.common.error"),
+        description: t("itemDetails.save.failed"),
         variant: "destructive",
       });
     } finally {

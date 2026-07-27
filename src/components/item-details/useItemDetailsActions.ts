@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { deleteUserItem } from '@/utils/tag/user-item-operations';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function useItemDetailsActions(
   itemId: string,
@@ -13,6 +14,7 @@ export function useItemDetailsActions(
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleDeleteItem = async () => {
     if (!itemId) return;
@@ -34,16 +36,16 @@ export function useItemDetailsActions(
       }
       
       toast({
-        title: "アイテムを削除しました",
-        description: "コレクションからアイテムを削除しました。",
+        title: t("itemDetails.remove.success"),
+        description: t("itemDetails.remove.successDescription"),
       });
-      
+
       onClose();
     } catch (error) {
       console.error("Error deleting item:", error);
       toast({
-        title: "エラー",
-        description: "アイテムの削除に失敗しました。",
+        title: t("itemDetails.common.error"),
+        description: t("itemDetails.remove.failed"),
         variant: "destructive",
       });
     } finally {

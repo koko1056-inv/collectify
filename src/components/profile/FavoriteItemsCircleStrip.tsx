@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Star } from "lucide-react";
 import { useFavoriteItems } from "@/hooks/useFavoriteItems";
 import { ItemDetailsModal } from "@/components/ItemDetailsModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Props {
   userId: string;
@@ -16,6 +17,7 @@ interface Props {
 export function FavoriteItemsCircleStrip({ userId }: Props) {
   const { data: items = [], isLoading } = useFavoriteItems(userId);
   const [detailItemId, setDetailItemId] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   if (isLoading || items.length === 0) return null;
 
@@ -23,7 +25,7 @@ export function FavoriteItemsCircleStrip({ userId }: Props) {
     <div className="px-4 mt-4">
       <div className="flex items-center gap-1.5 mb-2">
         <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-        <h3 className="text-[13px] font-bold tracking-wide">推し</h3>
+        <h3 className="text-[13px] font-bold tracking-wide">{t("profileScreen.favorites.oshiHeading")}</h3>
       </div>
       <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
         {items.map((item) => (
@@ -33,7 +35,7 @@ export function FavoriteItemsCircleStrip({ userId }: Props) {
             className="flex flex-col items-center gap-1 shrink-0 w-16 group"
           >
             <div className="relative">
-              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-primary/50 to-pink-400/40 opacity-70" />
+              <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-primary/50 to-primary/40 opacity-70" />
               <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-background">
                 <img
                   src={item.image}

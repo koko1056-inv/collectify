@@ -4,6 +4,7 @@ import { useItemPosts } from "@/hooks/useItemPosts";
 import { PostDetailModal } from "@/components/posts/PostDetailModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { GoodsPost } from "@/types/posts";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemPostsSectionProps {
   userItemId: string;
@@ -12,13 +13,14 @@ interface ItemPostsSectionProps {
 export function ItemPostsSection({ userItemId }: ItemPostsSectionProps) {
   const { data: posts, isLoading } = useItemPosts(userItemId);
   const [selectedPost, setSelectedPost] = useState<GoodsPost | null>(null);
+  const { t } = useLanguage();
 
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <h3 className="text-sm font-medium">このアイテムの投稿</h3>
+        <h3 className="text-sm font-medium">{t("itemDetails.posts.title")}</h3>
         <div className="text-center py-4">
-          <div className="text-sm text-gray-500">読み込み中...</div>
+          <div className="text-sm text-gray-500">{t("itemDetails.common.loading")}</div>
         </div>
       </div>
     );
@@ -27,9 +29,9 @@ export function ItemPostsSection({ userItemId }: ItemPostsSectionProps) {
   if (!posts || posts.length === 0) {
     return (
       <div className="space-y-2">
-        <h3 className="text-sm font-medium">このアイテムの投稿</h3>
+        <h3 className="text-sm font-medium">{t("itemDetails.posts.title")}</h3>
         <div className="text-center py-4">
-          <p className="text-sm text-gray-500">まだ投稿がありません</p>
+          <p className="text-sm text-gray-500">{t("itemDetails.posts.empty")}</p>
         </div>
       </div>
     );
@@ -38,7 +40,7 @@ export function ItemPostsSection({ userItemId }: ItemPostsSectionProps) {
   return (
     <>
       <div className="space-y-2">
-        <h3 className="text-sm font-medium">このアイテムの投稿 ({posts.length}件)</h3>
+        <h3 className="text-sm font-medium">{t("itemDetails.posts.titleWithCount", { count: posts.length })}</h3>
         <ScrollArea className="h-64">
           <div className="space-y-3 pr-2">
             {posts.map((post) => (
@@ -49,7 +51,7 @@ export function ItemPostsSection({ userItemId }: ItemPostsSectionProps) {
               >
                 <img
                   src={post.image_url}
-                  alt={post.caption || "投稿画像"}
+                  alt={post.caption || t("itemDetails.posts.imageAlt")}
                   className="w-full h-32 object-cover"
                 />
                 <div className="p-2">

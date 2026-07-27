@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PartnerProfile } from "./types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface ChatModalProps {
 
 export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatModalProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const {
     messages,
     partnerProfile,
@@ -77,7 +79,7 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[480px] h-[85vh] max-h-[700px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden [&>button:last-child]:hidden">
           <VisuallyHidden.Root>
-            <DialogTitle>チャット</DialogTitle>
+            <DialogTitle>{t("social.chat.title")}</DialogTitle>
           </VisuallyHidden.Root>
           {/* カスタムヘッダー */}
           <div className="flex items-center gap-3 px-4 py-3 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -89,7 +91,7 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
             </Avatar>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-sm truncate">
-                {partnerProfile?.display_name || partnerProfile?.username || "ユーザー"}
+                {partnerProfile?.display_name || partnerProfile?.username || t("social.chat.user")}
               </h3>
               <p className="text-xs text-muted-foreground">
                 @{partnerProfile?.username || "unknown"}

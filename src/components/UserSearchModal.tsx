@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Profile {
   id: string;
@@ -18,6 +19,7 @@ export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [suggestions, setSuggestions] = useState<Profile[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -54,8 +56,8 @@ export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose:
   const handleSearch = async () => {
     if (!username.trim()) {
       toast({
-        title: "エラー",
-        description: "ユーザー名を入力してください",
+        title: t("chrome.common.error"),
+        description: t("chrome.userSearch.enterUsername"),
         variant: "destructive",
       });
       return;
@@ -69,8 +71,8 @@ export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose:
 
     if (error || !profile) {
       toast({
-        title: "エラー",
-        description: "ユーザーが見つかりませんでした",
+        title: t("chrome.common.error"),
+        description: t("chrome.friends.noUsersFound"),
         variant: "destructive",
       });
       return;
@@ -86,12 +88,12 @@ export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose:
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>ユーザー検索</DialogTitle>
+          <DialogTitle>{t("chrome.userSearch.title")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
             <Input
-              placeholder="ユーザー名を入力"
+              placeholder={t("chrome.userSearch.inputPlaceholder")}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
             />
@@ -122,7 +124,7 @@ export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose:
           )}
           {username && suggestions.length === 0 && (
             <Button onClick={handleSearch} className="w-full">
-              「{username}」を検索
+              {t("chrome.userSearch.searchFor", { name: username })}
             </Button>
           )}
         </div>

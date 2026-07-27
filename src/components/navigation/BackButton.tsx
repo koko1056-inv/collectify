@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface BackButtonProps {
   className?: string;
@@ -11,6 +12,7 @@ interface BackButtonProps {
 export function BackButton({ className, to }: BackButtonProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
 
   const handleBack = () => {
     if (to) {
@@ -32,7 +34,7 @@ export function BackButton({ className, to }: BackButtonProps) {
       onClick={handleBack}
     >
       <ArrowLeft className="mr-2 h-4 w-4 flex-shrink-0" />
-      戻る
+      {t("chrome.common.back")}
     </Button>
   );
 }

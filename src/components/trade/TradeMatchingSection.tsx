@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { TradeRequestModal } from "./TradeRequestModal";
 import { InlineFollowButton } from "./InlineFollowButton";
 import { ChatModal } from "@/components/chat/ChatModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MatchedUser {
   user_id: string;
@@ -45,6 +46,7 @@ interface WantingUser {
 
 export function TradeMatchingSection() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [selectedMatch, setSelectedMatch] = useState<{
     userId: string;
@@ -337,7 +339,7 @@ export function TradeMatchingSection() {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">ログインしてマッチングを確認</p>
+          <p className="text-muted-foreground">{t("trade.matching.loginPrompt")}</p>
         </CardContent>
       </Card>
     );
@@ -350,7 +352,7 @@ export function TradeMatchingSection() {
       <Card>
         <CardContent className="p-6 text-center">
           <Sparkles className="w-8 h-8 mx-auto text-primary animate-pulse" />
-          <p className="mt-2 text-muted-foreground">マッチングを検索中...</p>
+          <p className="mt-2 text-muted-foreground">{t("trade.matching.searching")}</p>
         </CardContent>
       </Card>
     );
@@ -363,7 +365,7 @@ export function TradeMatchingSection() {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Sparkles className="w-5 h-5 text-primary" />
-            あなたの欲しいものを持っている人
+            {t("trade.matching.haveYourWishlist")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -371,10 +373,10 @@ export function TradeMatchingSection() {
             <div className="text-center py-6">
               <Heart className="w-12 h-12 mx-auto text-muted-foreground/30 mb-2" />
               <p className="text-muted-foreground text-sm">
-                まだマッチングがありません
+                {t("trade.matching.noMatches")}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                ウィッシュリストに欲しいグッズを追加すると、マッチングが見つかります
+                {t("trade.matching.hintWishlist")}
               </p>
             </div>
           ) : (
@@ -403,7 +405,7 @@ export function TradeMatchingSection() {
                       </p>
                       <Badge variant="secondary" className="text-xs">
                         <Users className="w-3 h-3 mr-1" />
-                        {matchedUser.matched_items.length}個マッチ
+                        {t("trade.matching.matchCount", { count: matchedUser.matched_items.length })}
                       </Badge>
                     </div>
                     <InlineFollowButton userId={matchedUser.user_id} size="icon" />
@@ -452,7 +454,7 @@ export function TradeMatchingSection() {
                     className="w-full mt-3"
                     onClick={() => navigate(`/user/${matchedUser.user_id}`)}
                   >
-                    コレクションを見る
+                    {t("trade.matching.viewCollection")}
                   </Button>
                 </div>
               ))}
@@ -466,7 +468,7 @@ export function TradeMatchingSection() {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Gift className="w-5 h-5 text-amber-500" />
-            あなたのアイテムを欲しがっている人
+            {t("trade.matching.wantYourItems")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -474,10 +476,10 @@ export function TradeMatchingSection() {
             <div className="text-center py-6">
               <Gift className="w-12 h-12 mx-auto text-muted-foreground/30 mb-2" />
               <p className="text-muted-foreground text-sm">
-                まだマッチングがありません
+                {t("trade.matching.noMatches")}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                あなたのコレクションを欲しがっている人が見つかると表示されます
+                {t("trade.matching.hintOwned")}
               </p>
             </div>
           ) : (
@@ -506,7 +508,7 @@ export function TradeMatchingSection() {
                       </p>
                       <Badge variant="secondary" className="text-xs bg-amber-500/10 text-amber-700">
                         <Heart className="w-3 h-3 mr-1" />
-                        {wantingUser.wanted_items.length}個欲しがっている
+                        {t("trade.matching.wantCount", { count: wantingUser.wanted_items.length })}
                       </Badge>
                     </div>
                     <InlineFollowButton userId={wantingUser.user_id} size="icon" />
@@ -547,7 +549,7 @@ export function TradeMatchingSection() {
                     className="w-full mt-3 border-amber-500/30 hover:bg-amber-500/10"
                     onClick={() => navigate(`/user/${wantingUser.user_id}`)}
                   >
-                    相手のコレクションを見る
+                    {t("trade.matching.viewTheirCollection")}
                   </Button>
                 </div>
               ))}

@@ -1,10 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Language, TranslationKey, getTranslation } from "../translations";
+import { Language, TranslationKey, TranslationVars, getTranslation } from "../translations";
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey) => string;
+  /**
+   * 翻訳を引く。第2引数で "{n}件" のようなプレースホルダを埋められる。
+   * 語順が言語で変わるため、文を prefix/suffix に割らずこちらを使うこと。
+   */
+  t: (key: TranslationKey, vars?: TranslationVars) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -22,8 +26,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(LANGUAGE_KEY, lang);
   };
 
-  const t = (key: TranslationKey): string => {
-    return getTranslation(language, key);
+  const t = (key: TranslationKey, vars?: TranslationVars): string => {
+    return getTranslation(language, key, vars);
   };
 
   return (
@@ -44,7 +48,7 @@ export function useLanguage() {
     return {
       language: "ja",
       setLanguage: () => {},
-      t: (key: TranslationKey) => getTranslation("ja", key),
+      t: (key: TranslationKey, vars?: TranslationVars) => getTranslation("ja", key, vars),
     } as LanguageContextType;
   }
   return context;

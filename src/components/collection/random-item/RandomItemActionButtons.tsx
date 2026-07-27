@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Share2, BookOpen } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface RandomItemActionButtonsProps {
   onRandom: () => void;
@@ -23,6 +24,7 @@ export function RandomItemActionButtons({
   hasItem,
   isMobile
 }: RandomItemActionButtonsProps) {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-wrap justify-between gap-4">
       <div className="flex flex-wrap gap-2">
@@ -32,7 +34,7 @@ export function RandomItemActionButtons({
           disabled={isLoading}
           className={isSpinning ? "animate-pulse" : ""}
         >
-          抽選する
+          {t("collectionScreen.random.draw")}
         </Button>
         {hasItem && (
           <>
@@ -43,7 +45,7 @@ export function RandomItemActionButtons({
               size={isMobile ? "sm" : "default"}
             >
               <Share2 className="h-4 w-4 mr-1" />
-              共有
+              {t("collectionScreen.random.share")}
             </Button>
             <Button
               variant="outline"
@@ -52,12 +54,12 @@ export function RandomItemActionButtons({
               size={isMobile ? "sm" : "default"}
             >
               <BookOpen className="h-4 w-4 mr-1" />
-              思い出
+              {t("collectionScreen.random.memories")}
             </Button>
           </>
         )}
       </div>
-      <Button onClick={onClose}>閉じる</Button>
+      <Button onClick={onClose}>{t("collectionScreen.common.close")}</Button>
     </div>
   );
 }

@@ -1,3 +1,6 @@
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
+
 interface Memory {
   id: string;
   image_url: string | null;
@@ -10,10 +13,13 @@ interface MemoriesListProps {
 }
 
 export function MemoriesList({ memories }: MemoriesListProps) {
+  const { t } = useLanguage();
+  const { formatNumericDate } = useDateFormat();
+
   if (memories.length === 0) {
     return (
       <p className="text-center text-gray-500 py-4">
-        まだ思い出が登録されていません
+        {t("collectionScreen.memories.empty")}
       </p>
     );
   }
@@ -29,7 +35,7 @@ export function MemoriesList({ memories }: MemoriesListProps) {
             <div className="mb-3">
               <img
                 src={memory.image_url}
-                alt="思い出の画像"
+                alt={t("collectionScreen.memories.imageAlt")}
                 className="w-full rounded-md"
               />
             </div>
@@ -38,7 +44,7 @@ export function MemoriesList({ memories }: MemoriesListProps) {
             <p className="text-gray-700">{memory.comment}</p>
           )}
           <p className="text-sm text-gray-500 mt-2">
-            {new Date(memory.created_at).toLocaleDateString("ja-JP")}
+            {formatNumericDate(memory.created_at)}
           </p>
         </div>
       ))}

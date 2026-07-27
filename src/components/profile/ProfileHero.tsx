@@ -26,6 +26,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChatModal } from "@/components/chat/ChatModal";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ProfileHeroProps {
   profile: Profile;
@@ -55,6 +56,7 @@ export function ProfileHero({
   onLogout,
 }: ProfileHeroProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
@@ -65,11 +67,11 @@ export function ProfileHero({
   const handleCoverUpload = async (file: File) => {
     if (!isOwnProfile || !user?.id) return;
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("画像は5MB以下にしてください");
+      toast.error(t("profileScreen.hero.coverTooLarge"));
       return;
     }
     if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
-      toast.error("JPEG / PNG / WebP / GIF のみ対応しています");
+      toast.error(t("profileScreen.hero.coverType"));
       return;
     }
     setCoverUploading(true);
@@ -93,10 +95,10 @@ export function ProfileHero({
       if (updErr) throw updErr;
       setCoverPreview(publicUrl);
       await queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
-      toast.success("カバー画像を更新しました");
+      toast.success(t("profileScreen.hero.coverUpdated"));
     } catch (e) {
       console.error("Cover upload error:", e);
-      toast.error("アップロードに失敗しました");
+      toast.error(t("profileScreen.hero.uploadFailed"));
       setCoverPreview(null);
     } finally {
       setCoverUploading(false);
@@ -144,7 +146,7 @@ export function ProfileHero({
   })();
   const RankIcon = rank.icon;
 
-  const displayName = profile.display_name || profile.username || "コレクター";
+  const displayName = profile.display_name || profile.username || t("profileScreen.hero.defaultName");
   const avatarSrc = previewUrl || profile.avatar_url || undefined;
   const coverSrc = coverPreview || profile.cover_image_url || null;
   const hasCustomCover = !!coverSrc;
@@ -198,8 +200,8 @@ export function ProfileHero({
                   "w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center cursor-pointer transition-colors",
                   coverUploading && "pointer-events-none opacity-70"
                 )}
-                aria-label="カバー画像を変更"
-                title="カバー画像を変更"
+                aria-label={t("profileScreen.hero.changeCover")}
+                title={t("profileScreen.hero.changeCover")}
               >
                 {coverUploading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -224,14 +226,14 @@ export function ProfileHero({
                 <button
                   onClick={onOpenSettings}
                   className="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
-                  aria-label="設定"
+                  aria-label={t("profileScreen.hero.settings")}
                 >
                   <Settings className="w-4 h-4" />
                 </button>
                 <button
                   onClick={onLogout}
                   className="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
-                  aria-label="ログアウト"
+                  aria-label={t("profileScreen.logout.title")}
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -240,7 +242,7 @@ export function ProfileHero({
               <button
                 onClick={onShare}
                 className="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
-                aria-label="共有"
+                aria-label={t("profileScreen.hero.share")}
               >
                 <Share2 className="w-4 h-4" />
               </button>
@@ -333,17 +335,17 @@ export function ProfileHero({
 
           {/* 統計: 3つに絞る */}
           <div className="flex items-center justify-around gap-1 mt-4 pt-4 border-t border-border">
-            <StatButton value={stats?.items ?? 0} label="グッズ" />
+            <StatButton value={stats?.items ?? 0} label={t("profileScreen.hero.statItems")} />
             <div className="w-px h-8 bg-border" />
             <StatButton
               value={stats?.followers ?? 0}
-              label="フォロワー"
+              label={t("profileScreen.follow.followers")}
               onClick={() => setShowFollowers(true)}
             />
             <div className="w-px h-8 bg-border" />
             <StatButton
               value={stats?.following ?? 0}
-              label="フォロー中"
+              label={t("profileScreen.follow.following")}
               onClick={() => setShowFollowing(true)}
             />
           </div>
@@ -354,9 +356,9 @@ export function ProfileHero({
               <>
                 <Button variant="outline" onClick={onEdit} className="flex-1 gap-1.5 rounded-full">
                   <Pencil className="w-4 h-4" />
-                  プロフィール編集
+                  {t("profileScreen.editSheet.title")}
                 </Button>
-                <Button variant="outline" onClick={onShare} size="icon" className="rounded-full shrink-0" aria-label="共有">
+                <Button variant="outline" onClick={onShare} size="icon" className="rounded-full shrink-0" aria-label={t("profileScreen.hero.share")}>
                   <Share2 className="w-4 h-4" />
                 </Button>
               </>
@@ -371,7 +373,7 @@ export function ProfileHero({
                   className="flex-1 gap-1.5 rounded-full"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  メッセージ
+                  {t("profileScreen.hero.message")}
                 </Button>
               </>
             ) : null}

@@ -1,5 +1,6 @@
 
 import { Search, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SearchSuggestion {
   id: string;
@@ -27,6 +28,8 @@ export function SearchSuggestions({
   isLoading = false,
   error = null
 }: SearchSuggestionsProps) {
+  const { t } = useLanguage();
+
   if (!showSuggestions) {
     return null;
   }
@@ -36,19 +39,19 @@ export function SearchSuggestions({
       {isLoading && (
         <div className="px-4 py-4 flex items-center justify-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-          <span className="text-sm text-gray-500">検索中...</span>
+          <span className="text-sm text-gray-500">{t("chrome.search.searching")}</span>
         </div>
       )}
       
       {error && (
         <div className="px-4 py-2 text-sm text-red-500">
-          検索エラーが発生しました
+          {t("chrome.search.searchError")}
         </div>
       )}
       
       {!isLoading && !error && suggestions.length === 0 && (
         <div className="px-4 py-2 text-sm text-gray-500">
-          該当するアイテムが見つかりません
+          {t("chrome.search.noMatchingItems")}
         </div>
       )}
       
@@ -66,7 +69,7 @@ export function SearchSuggestions({
             )}
           </div>
           <span className="text-xs text-gray-400">
-            {suggestion.type === 'item' ? 'グッズ' : 'コンテンツ'}
+            {suggestion.type === 'item' ? t("chrome.search.typeGoods") : t("chrome.search.typeContent")}
           </span>
         </div>
       ))}

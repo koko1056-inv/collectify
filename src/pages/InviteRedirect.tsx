@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Gift } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 /**
  * 招待リンク `/invite/:code` の着地ページ。
@@ -10,6 +11,7 @@ import { Gift } from "lucide-react";
  * - ログイン済み: ホームへ。すでに登録済みの旨を表示する余地はあるがシンプル化
  */
 export default function InviteRedirect() {
+  const { t } = useLanguage();
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
 
@@ -37,13 +39,13 @@ export default function InviteRedirect() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="text-center space-y-4 max-w-sm">
         <div className="flex justify-center">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-            <Gift className="h-8 w-8 text-white" />
+          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
+            <Gift className="h-8 w-8 text-primary-foreground" />
           </div>
         </div>
-        <h1 className="text-xl font-bold">招待を確認しています…</h1>
+        <h1 className="text-xl font-bold">{t("screens.invite.checking")}</h1>
         <p className="text-sm text-muted-foreground">
-          Collectifyへようこそ！登録すると50ポイントもらえます🎁
+          {t("screens.invite.welcome")}
         </p>
         <Skeleton className="h-2 w-full" />
       </div>

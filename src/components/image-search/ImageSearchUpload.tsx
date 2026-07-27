@@ -3,12 +3,14 @@ import { useDropzone } from 'react-dropzone';
 import { Camera, ImageIcon, Upload } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ImageSearchUploadProps {
   onImageSelect: (file: File) => void;
 }
 
 export function ImageSearchUpload({ onImageSelect }: ImageSearchUploadProps) {
+  const { t } = useLanguage();
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -16,8 +18,8 @@ export function ImageSearchUpload({ onImageSelect }: ImageSearchUploadProps) {
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         toast({
-          title: "ファイルサイズが大きすぎます",
-          description: "10MB以下の画像をアップロードしてください",
+          title: t("misc.imageSearch.fileTooLarge"),
+          description: t("misc.imageSearch.fileTooLargeDesc"),
           variant: "destructive",
         });
         return;
@@ -42,8 +44,8 @@ export function ImageSearchUpload({ onImageSelect }: ImageSearchUploadProps) {
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         toast({
-          title: "ファイルサイズが大きすぎます",
-          description: "10MB以下の画像をアップロードしてください",
+          title: t("misc.imageSearch.fileTooLarge"),
+          description: t("misc.imageSearch.fileTooLargeDesc"),
           variant: "destructive",
         });
         return;
@@ -70,14 +72,14 @@ export function ImageSearchUpload({ onImageSelect }: ImageSearchUploadProps) {
           {isDragActive ? (
             <>
               <Upload className="h-10 w-10 text-primary animate-bounce" />
-              <p className="text-lg font-medium text-primary">ドロップしてアップロード</p>
+              <p className="text-lg font-medium text-primary">{t("misc.imageSearch.dropToUpload")}</p>
             </>
           ) : (
             <>
               <ImageIcon className="h-10 w-10 text-muted-foreground" />
-              <p className="text-base font-medium text-foreground">画像をドラッグするか、クリックして選択</p>
+              <p className="text-base font-medium text-foreground">{t("misc.imageSearch.dragOrClick")}</p>
               <p className="text-sm text-muted-foreground">
-                JPG, PNG, GIF, WebP (最大10MB)
+                {t("misc.imageSearch.formats")}
               </p>
             </>
           )}
@@ -99,7 +101,7 @@ export function ImageSearchUpload({ onImageSelect }: ImageSearchUploadProps) {
         onClick={handleCameraCapture}
       >
         <Camera className="h-5 w-5" />
-        カメラで撮影して検索
+        {t("misc.imageSearch.cameraSearch")}
       </Button>
     </div>
   );

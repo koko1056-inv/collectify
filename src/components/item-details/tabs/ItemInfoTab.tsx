@@ -6,6 +6,7 @@ import { TagList } from "@/components/collection/TagList";
 import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
 import { Item3DPreview } from "../Item3DPreview";
 import type { SimpleItemTag } from "@/utils/tag/types";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemInfoTabProps {
   itemDetails: any;
@@ -34,9 +35,10 @@ export function ItemInfoTab({
   onAddToCollection,
   onShare,
 }: ItemInfoTabProps) {
+  const { t } = useLanguage();
   return (
     <div className="space-y-4">
-      {ownersCount > 0 && <Badge>{ownersCount}人が所持</Badge>}
+      {ownersCount > 0 && <Badge>{t("itemDetails.info.ownersCount", { count: ownersCount })}</Badge>}
 
       <div className="space-y-3">
         <img
@@ -54,10 +56,10 @@ export function ItemInfoTab({
       )}
 
       <div className="space-y-1 text-sm text-muted-foreground">
-        {itemArtist && <p>アーティスト: {itemArtist}</p>}
-        {itemAnime && <p>アニメ: {itemAnime}</p>}
-        {itemDetails.release_date && <p>発売日: {itemDetails.release_date}</p>}
-        {itemDetails.price && <p>価格: {itemDetails.price}</p>}
+        {itemArtist && <p>{t("itemDetails.info.artist")} {itemArtist}</p>}
+        {itemAnime && <p>{t("itemDetails.info.anime")} {itemAnime}</p>}
+        {itemDetails.release_date && <p>{t("itemDetails.info.releaseDate")} {itemDetails.release_date}</p>}
+        {itemDetails.price && <p>{t("itemDetails.info.price")} {itemDetails.price}</p>}
         {itemLink && (
           <Link
             to={itemLink}
@@ -66,12 +68,12 @@ export function ItemInfoTab({
             className="flex items-center gap-1 hover:underline"
           >
             <Link2 className="h-4 w-4" />
-            公式サイト
+            {t("itemDetails.info.officialSite")}
           </Link>
         )}
         {itemCreator && (
           <p>
-            作成者:{" "}
+            {t("itemDetails.info.creator")}{" "}
             <Link to={`/profile/${itemCreator.id}`} className="hover:underline">
               {itemCreator.username}
             </Link>
@@ -84,14 +86,14 @@ export function ItemInfoTab({
       <div className="flex items-center flex-wrap gap-2">
         <Button size="sm" variant="outline" onClick={onAddToWishlist}>
           <BookMarked className="h-4 w-4 mr-2" />
-          ウィッシュリストに追加
+          {t("itemDetails.info.addToWishlist")}
         </Button>
         <Button size="sm" onClick={onAddToCollection}>
-          コレクションに追加
+          {t("itemDetails.info.addToCollection")}
         </Button>
         <Button size="sm" variant="outline" onClick={onShare}>
           <Share className="h-4 w-4 mr-2" />
-          シェア
+          {t("itemDetails.info.share")}
         </Button>
       </div>
 

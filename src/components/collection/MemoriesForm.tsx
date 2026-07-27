@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImagePlus } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const formSchema = z.object({
   comment: z.string().optional(),
@@ -25,6 +26,7 @@ interface MemoriesFormProps {
 
 export function MemoriesForm({ onSubmit }: MemoriesFormProps) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const { t } = useLanguage();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -57,7 +59,7 @@ export function MemoriesForm({ onSubmit }: MemoriesFormProps) {
           name="image"
           render={() => (
             <FormItem>
-              <FormLabel>画像</FormLabel>
+              <FormLabel>{t("collectionScreen.memories.image")}</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Button 
@@ -76,7 +78,11 @@ export function MemoriesForm({ onSubmit }: MemoriesFormProps) {
                       className="absolute inset-0 opacity-0 cursor-pointer"
                     />
                     <ImagePlus className="h-4 w-4" />
-                    {selectedImage ? `選択済み: ${selectedImage.name}` : "画像を選択"}
+                    {selectedImage ? (
+                      <>{t("collectionScreen.memories.selectedPrefix")}{selectedImage.name}</>
+                    ) : (
+                      t("collectionScreen.memories.selectImage")
+                    )}
                   </Button>
                 </div>
               </FormControl>
@@ -88,10 +94,10 @@ export function MemoriesForm({ onSubmit }: MemoriesFormProps) {
           name="comment"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>コメント</FormLabel>
+              <FormLabel>{t("collectionScreen.memories.comment")}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="思い出を書いてください"
+                  placeholder={t("collectionScreen.memories.commentPlaceholder")}
                   className="resize-none"
                   {...field}
                 />
@@ -100,7 +106,7 @@ export function MemoriesForm({ onSubmit }: MemoriesFormProps) {
           )}
         />
         <Button type="submit" className="w-full">
-          追加
+          {t("collectionScreen.memories.add")}
         </Button>
       </form>
     </Form>

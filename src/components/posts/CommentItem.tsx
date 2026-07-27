@@ -1,12 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { PostComment } from "@/types/posts";
-import { formatDistanceToNow } from "date-fns";
-import { ja } from "date-fns/locale";
 import { MessageCircle, Heart } from "lucide-react";
 import { useToggleCommentLike } from "@/hooks/posts";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useDateFormat } from "@/hooks/useDateFormat";
 
 interface CommentItemProps {
   comment: PostComment;
@@ -16,6 +16,8 @@ interface CommentItemProps {
 
 export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const { formatRelative } = useDateFormat();
   const toggleLike = useToggleCommentLike();
   
   const isLiked = comment.comment_likes?.some(like => like.user_id === user?.id) || false;
@@ -45,10 +47,7 @@ export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
           </div>
           <div className="flex items-center gap-3 mt-1">
             <p className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(comment.created_at), {
-                addSuffix: true,
-                locale: ja,
-              })}
+              {formatRelative(comment.created_at)}
             </p>
             {level < 2 && (
               <Button
@@ -58,7 +57,7 @@ export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
                 onClick={() => onReply(comment.id, comment.profiles?.username || 'Unknown User')}
               >
                 <MessageCircle className="h-3 w-3 mr-1" />
-                返信
+                {t("social.posts.commentReply")}
               </Button>
             )}
             <Button

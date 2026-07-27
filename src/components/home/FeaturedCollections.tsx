@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { OfficialGoodsCard } from "@/components/OfficialGoodsCard";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function FeaturedCollections() {
+  const { t } = useLanguage();
   const [currentTab, setCurrentTab] = useState<string>("today");
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
@@ -127,7 +129,7 @@ export function FeaturedCollections() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">注目のコレクション</h2>
+      <h2 className="text-xl font-bold">{t("homeScreen.featured.title")}</h2>
       
       <Tabs defaultValue="today" className="w-full" onValueChange={setCurrentTab}>
         <TabsList className="mb-4 bg-gray-100">
@@ -136,14 +138,14 @@ export function FeaturedCollections() {
             className="flex items-center gap-1 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:border text-gray-500 rounded-full px-3 py-1 text-xs transition-colors"
           >
             <Calendar className="h-4 w-4" />
-            <span>最新のコレクション</span>
+            <span>{t("homeScreen.featured.latest")}</span>
           </TabsTrigger>
           <TabsTrigger 
             value="trending" 
             className="flex items-center gap-1 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:border text-gray-500 rounded-full px-3 py-1 text-xs transition-colors"
           >
             <TrendingUp className="h-4 w-4" />
-            <span>トレンド</span>
+            <span>{t("homeScreen.featured.trending")}</span>
           </TabsTrigger>
         </TabsList>
         

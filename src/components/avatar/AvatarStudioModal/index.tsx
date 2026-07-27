@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Image as ImageIcon, Shirt, Sparkles, Wand2 } from "lucide-react";
 import { useAvatars } from "@/hooks/useAvatars";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { GenerateTab } from "./GenerateTab";
 import { DressUpTab } from "./DressUpTab";
 import { GalleryTab } from "./GalleryTab";
@@ -31,6 +32,7 @@ export function AvatarStudioModal({
   initialTab = "generate",
   initialBaseAvatarUrl,
 }: AvatarStudioModalProps) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<StudioTab>(initialTab);
   const avatars = useAvatars(userId);
 
@@ -46,9 +48,9 @@ export function AvatarStudioModal({
             <div className="p-2 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg">
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
-            アバタースタジオ
+            {t("misc.avatar.studioTitle")}
           </DialogTitle>
-          <DialogDescription>AIでアバターを生成・着せ替え・管理</DialogDescription>
+          <DialogDescription>{t("misc.avatar.studioDesc")}</DialogDescription>
         </DialogHeader>
 
         <Tabs
@@ -59,15 +61,15 @@ export function AvatarStudioModal({
           <TabsList className="mx-6 grid grid-cols-3 h-12">
             <TabsTrigger value="generate" className="gap-2">
               <Wand2 className="w-4 h-4" />
-              <span className="hidden sm:inline">生成</span>
+              <span className="hidden sm:inline">{t("misc.avatar.tabGenerate")}</span>
             </TabsTrigger>
             <TabsTrigger value="dressup" className="gap-2">
               <Shirt className="w-4 h-4" />
-              <span className="hidden sm:inline">着せ替え</span>
+              <span className="hidden sm:inline">{t("misc.avatar.tabDressUp")}</span>
             </TabsTrigger>
             <TabsTrigger value="gallery" className="gap-2 relative">
               <ImageIcon className="w-4 h-4" />
-              <span className="hidden sm:inline">ギャラリー</span>
+              <span className="hidden sm:inline">{t("misc.avatar.tabGallery")}</span>
               {avatars.avatars.length > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 min-w-5 text-xs">
                   {avatars.avatars.length}

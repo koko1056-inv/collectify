@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ContentTagManageModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
   const [editingTagName, setEditingTagName] = useState("");
   const [selectedUnlinkedTags, setSelectedUnlinkedTags] = useState<string[]>([]);
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   // Supabase Realtimeでtagsとitem_tagsの変更を監視
   useEffect(() => {
@@ -150,10 +152,10 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       queryClient.invalidateQueries({ queryKey: ["tags-with-count"] });
       queryClient.invalidateQueries({ queryKey: ["official-items"] });
       setNewTagName("");
-      toast.success("タグを追加しました");
+      toast.success(t("tagManage.toast.tagAdded"));
     },
     onError: (error: any) => {
-      toast.error("タグの追加に失敗しました: " + error.message);
+      toast.error(t("tagManage.toast.addFailedPrefix") + error.message);
     },
   });
 
@@ -245,7 +247,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       if (context?.previousTagsWithCount) {
         queryClient.setQueryData(["tags-with-count", selectedContent], context.previousTagsWithCount);
       }
-      toast.error("タグの削除に失敗しました");
+      toast.error(t("tagManage.toast.deleteFailed"));
     },
     onSuccess: async () => {
       // バックグラウンドでクエリを無効化して最新データを取得
@@ -257,7 +259,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         queryClient.invalidateQueries({ queryKey: ["tags-with-count"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "active" }),
       ]);
-      toast.success("タグを削除しました");
+      toast.success(t("tagManage.toast.tagDeleted"));
     },
   });
 
@@ -339,7 +341,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       if (context?.previousTagsWithCount) {
         queryClient.setQueryData(["tags-with-count", selectedContent], context.previousTagsWithCount);
       }
-      toast.error("タグの一括削除に失敗しました");
+      toast.error(t("tagManage.toast.bulkDeleteFailed"));
     },
     onSuccess: async (tagIds) => {
       // バックグラウンドでクエリを無効化
@@ -354,7 +356,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       
       const tagCount = tagIds.length;
       setSelectedUnlinkedTags([]);
-      toast.success(`${tagCount}件のタグを削除しました`);
+      toast.success(`${t("tagManage.toast.bulkDeletedPrefix")}${tagCount}${t("tagManage.toast.bulkDeletedSuffix")}`);
     },
   });
 
@@ -408,7 +410,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       if (context?.previousUnlinkedTags) {
         queryClient.setQueryData(["unlinked-tags"], context.previousUnlinkedTags);
       }
-      toast.error("タグの紐づけに失敗しました");
+      toast.error(t("tagManage.toast.linkFailed"));
     },
     onSuccess: async () => {
       await Promise.all([
@@ -418,7 +420,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         queryClient.invalidateQueries({ queryKey: ["tags-by-category"], refetchType: "active" }),
         queryClient.invalidateQueries({ queryKey: ["tags-with-count"], refetchType: "active" }),
       ]);
-      toast.success(`タグを紐づけました`);
+      toast.success(t("tagManage.toast.tagLinked"));
     },
   });
 
@@ -469,7 +471,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       if (context?.previousUnlinkedTags) {
         queryClient.setQueryData(["unlinked-tags"], context.previousUnlinkedTags);
       }
-      toast.error("タグの紐づけに失敗しました");
+      toast.error(t("tagManage.toast.linkFailed"));
     },
     onSuccess: async (tagIds) => {
       await Promise.all([
@@ -481,7 +483,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       ]);
       
       setSelectedUnlinkedTags([]);
-      toast.success(`${tagIds.length}件のタグを紐づけました`);
+      toast.success(`${t("tagManage.toast.bulkLinkedPrefix")}${tagIds.length}${t("tagManage.toast.bulkLinkedSuffix")}`);
     },
   });
 
@@ -504,21 +506,21 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
       queryClient.invalidateQueries({ queryKey: ["official-items"] });
       setEditingTagId(null);
       setEditingTagName("");
-      toast.success("タグを更新しました");
+      toast.success(t("tagManage.toast.tagUpdated"));
     },
     onError: (error: any) => {
-      toast.error("タグの更新に失敗しました: " + error.message);
+      toast.error(t("tagManage.toast.updateFailedPrefix") + error.message);
     },
   });
 
   const handleAddTag = () => {
     if (!newTagName.trim()) {
-      toast.error("タグ名を入力してください");
+      toast.error(t("tagManage.toast.nameRequired"));
       return;
     }
 
     if (!selectedContent) {
-      toast.error("コンテンツを選択してください");
+      toast.error(t("tagManage.toast.contentRequired"));
       return;
     }
 
@@ -537,7 +539,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
 
   const handleSaveEdit = (tagId: string) => {
     if (!editingTagName.trim()) {
-      toast.error("タグ名を入力してください");
+      toast.error(t("tagManage.toast.nameRequired"));
       return;
     }
 
@@ -554,7 +556,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
 
   const handleLinkSelectedTags = () => {
     if (selectedUnlinkedTags.length === 0) {
-      toast.error("タグを選択してください");
+      toast.error(t("tagManage.toast.selectTags"));
       return;
     }
     linkMultipleTagsMutation.mutate(selectedUnlinkedTags);
@@ -562,16 +564,16 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
 
   const handleDeleteSelectedTags = () => {
     if (selectedUnlinkedTags.length === 0) {
-      toast.error("削除するタグを選択してください");
+      toast.error(t("tagManage.toast.selectTagsToDelete"));
       return;
     }
-    if (!confirm(`選択した${selectedUnlinkedTags.length}件のタグを削除してもよろしいですか？`)) {
+    if (!confirm(`${t("tagManage.toast.confirmDeletePrefix")}${selectedUnlinkedTags.length}${t("tagManage.toast.confirmDeleteSuffix")}`)) {
       return;
     }
     deleteMultipleTagsMutation.mutate(selectedUnlinkedTags);
   };
 
-  const categoryLabel = selectedCategory === "character" ? "キャラクター・人物名" : "グッズシリーズ";
+  const categoryLabel = selectedCategory === "character" ? t("tagManage.category.characterFull") : t("tagManage.category.series");
 
   const [tagSearchQuery, setTagSearchQuery] = useState("");
 
@@ -594,9 +596,9 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                 <Tags className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-bold">タグ管理</DialogTitle>
+                <DialogTitle className="text-xl font-bold">{t("tagManage.manage.title")}</DialogTitle>
                 <DialogDescription className="text-sm text-muted-foreground mt-1">
-                  コンテンツごとにタグを整理・管理できます
+                  {t("tagManage.manage.description")}
                 </DialogDescription>
               </div>
             </div>
@@ -612,11 +614,11 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-sm font-medium">
                     <Layers className="h-4 w-4 text-muted-foreground" />
-                    コンテンツ
+                    {t("tagManage.content.heading")}
                   </Label>
                   <Select value={selectedContent} onValueChange={setSelectedContent}>
                     <SelectTrigger className="w-full bg-background">
-                      <SelectValue placeholder="選択してください" />
+                      <SelectValue placeholder={t("tagManage.common.selectPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
                       {contentNames.map((content) => (
@@ -632,7 +634,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2 text-sm font-medium">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    タグの種類
+                    {t("tagManage.manage.tagType")}
                   </Label>
                   <Select 
                     value={selectedCategory} 
@@ -642,8 +644,8 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="character">キャラクター・人物名</SelectItem>
-                      <SelectItem value="series">グッズシリーズ</SelectItem>
+                      <SelectItem value="character">{t("tagManage.category.characterFull")}</SelectItem>
+                      <SelectItem value="series">{t("tagManage.category.series")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -657,7 +659,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                 <AlertCircle className="h-8 w-8 text-muted-foreground" />
               </div>
               <p className="text-muted-foreground">
-                コンテンツを選択してタグを管理してください
+                {t("tagManage.manage.selectContentPrompt")}
               </p>
             </div>
           )}
@@ -669,7 +671,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="タグを検索..."
+                    placeholder={t("tagManage.search.placeholder")}
                     value={tagSearchQuery}
                     onChange={(e) => setTagSearchQuery(e.target.value)}
                     className="pl-10"
@@ -677,7 +679,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                 </div>
                 <div className="flex gap-2">
                   <Input
-                    placeholder={`新しい${categoryLabel}を追加`}
+                    placeholder={`${t("tagManage.manage.newTagPrefix")}${categoryLabel}${t("tagManage.manage.newTagSuffix")}`}
                     value={newTagName}
                     onChange={(e) => setNewTagName(e.target.value)}
                     onKeyDown={(e) => {
@@ -707,7 +709,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                     </Badge>
                     <span>{categoryLabel}</span>
                     <Badge variant="outline" className="ml-1">
-                      {filteredTags.length}件
+                      {filteredTags.length}{t("tagManage.common.countSuffix")}
                     </Badge>
                   </Label>
                 </div>
@@ -718,7 +720,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                       <div className="flex flex-col items-center justify-center h-full py-8 text-center">
                         <Tags className="h-8 w-8 text-muted-foreground/50 mb-2" />
                         <p className="text-sm text-muted-foreground">
-                          {tagSearchQuery ? "検索結果がありません" : `${categoryLabel}がまだ登録されていません`}
+                          {tagSearchQuery ? t("tagManage.empty.noSearchResults") : `${t("tagManage.empty.notRegisteredPrefix")}${categoryLabel}${t("tagManage.empty.notRegisteredSuffix")}`}
                         </p>
                       </div>
                     ) : (
@@ -797,12 +799,12 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <Label className="flex items-center gap-2 text-base font-semibold">
                     <Link2 className="h-4 w-4 text-muted-foreground" />
-                    未紐づけタグ
+                    {t("tagManage.manage.unlinkedTags")}
                     {unlinkedTags.length > 0 && (
                       <Badge variant="outline">
                         {selectedUnlinkedTags.length > 0 
-                          ? `${selectedUnlinkedTags.length}/${unlinkedTags.length}選択中`
-                          : `${unlinkedTags.length}件`
+                          ? `${selectedUnlinkedTags.length}/${unlinkedTags.length}${t("tagManage.manage.selectedSuffix")}`
+                          : `${unlinkedTags.length}${t("tagManage.common.countSuffix")}`
                         }
                       </Badge>
                     )}
@@ -817,7 +819,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                         className="text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                        削除
+                        {t("tagManage.common.delete")}
                       </Button>
                       <Button
                         size="sm"
@@ -825,7 +827,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                         disabled={linkMultipleTagsMutation.isPending}
                       >
                         <Link2 className="h-3.5 w-3.5 mr-1.5" />
-                        紐づけ
+                        {t("tagManage.manage.link")}
                       </Button>
                     </div>
                   )}
@@ -837,7 +839,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                       <div className="flex flex-col items-center justify-center h-full py-8 text-center">
                         <Check className="h-8 w-8 text-primary/50 mb-2" />
                         <p className="text-sm text-muted-foreground">
-                          {tagSearchQuery ? "検索結果がありません" : "未紐づけのタグはありません"}
+                          {tagSearchQuery ? t("tagManage.empty.noSearchResults") : t("tagManage.empty.noUnlinkedTags")}
                         </p>
                       </div>
                     ) : (
@@ -859,7 +861,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                             />
                             <span className="flex-1 text-sm truncate">{tag.name}</span>
                             <Badge variant="outline" className="text-xs shrink-0">
-                              {tag.category || "未分類"}
+                              {tag.category || t("tagManage.manage.uncategorized")}
                             </Badge>
                             <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
@@ -871,7 +873,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                                 }}
                                 disabled={linkTagMutation.isPending}
                                 className="h-6 w-6"
-                                title="紐づける"
+                                title={t("tagManage.manage.linkTitle")}
                               >
                                 <Plus className="h-3.5 w-3.5" />
                               </Button>
@@ -884,7 +886,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                                 }}
                                 disabled={deleteTagMutation.isPending}
                                 className="h-6 w-6 text-destructive hover:text-destructive"
-                                title="削除"
+                                title={t("tagManage.common.delete")}
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
@@ -903,7 +905,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
         {/* フッター */}
         <div className="flex justify-end p-4 border-t bg-muted/30">
           <Button variant="outline" onClick={onClose}>
-            閉じる
+            {t("tagManage.common.close")}
           </Button>
         </div>
       </DialogContent>

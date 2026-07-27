@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WishlistUsersModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function WishlistUsersModal({
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const { playWishlistSound } = useSoundEffect();
 
@@ -159,8 +161,10 @@ export function WishlistUsersModal({
       queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] });
       
       toast({
-        title: data.added ? "ウィッシュリストに追加しました" : "ウィッシュリストから削除しました",
-        description: `「${itemTitle}」を${data.added ? "追加" : "削除"}しました`,
+        title: data.added ? t("chrome.wishlistUsers.addedTitle") : t("chrome.wishlistUsers.removedTitle"),
+        description: data.added
+          ? t("chrome.wishlistUsers.addedDesc", { title: itemTitle })
+          : t("chrome.wishlistUsers.removedDesc", { title: itemTitle }),
       });
     },
     onError: (error, _, context) => {
@@ -169,8 +173,8 @@ export function WishlistUsersModal({
         queryClient.setQueryData(["is-in-wishlist", itemId, user?.id], context.previousIsInWishlist);
       }
       toast({
-        title: "エラー",
-        description: "操作に失敗しました",
+        title: t("chrome.common.error"),
+        description: t("chrome.wishlistUsers.actionFailed"),
         variant: "destructive",
       });
       console.error("Error toggling wishlist:", error);
@@ -187,8 +191,8 @@ export function WishlistUsersModal({
   const handleToggleWishlist = () => {
     if (!user) {
       toast({
-        title: "ログインが必要です",
-        description: "ウィッシュリストに追加するにはログインしてください",
+        title: t("chrome.wishlist.loginRequiredTitle"),
+        description: t("chrome.wishlistUsers.loginRequiredDesc"),
         variant: "destructive",
       });
       return;
@@ -201,7 +205,7 @@ export function WishlistUsersModal({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            「{itemTitle}」のウィッシュリスト
+            {t("chrome.wishlistUsers.title", { title: itemTitle })}
           </DialogTitle>
         </DialogHeader>
         
@@ -217,12 +221,12 @@ export function WishlistUsersModal({
                 {isInWishlist ? (
                   <>
                     <HeartOff className="h-4 w-4" />
-                    ウィッシュリストから削除
+                    {t("chrome.wishlistUsers.remove")}
                   </>
                 ) : (
                   <>
                     <Heart className="h-4 w-4" />
-                    ウィッシュリストに追加
+                    {t("chrome.wishlistUsers.add")}
                   </>
                 )}
               </Button>
@@ -230,14 +234,14 @@ export function WishlistUsersModal({
           )}
           
           <div className="border-t pt-4">
-            <h3 className="font-medium text-sm mb-3">このアイテムをほしい物リストに追加している人</h3>
+            <h3 className="font-medium text-sm mb-3">{t("chrome.wishlistUsers.listHeading")}</h3>
           {isLoading ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
             </div>
             ) : wishlistUsers.length === 0 ? (
               <p className="text-center text-gray-500 py-8">
-                まだ誰もこのアイテムをほしい物リストに追加していません
+                {t("chrome.wishlistUsers.empty")}
               </p>
             ) : (
               <div className="space-y-3 max-h-[300px] overflow-y-auto">
@@ -268,7 +272,7 @@ export function WishlistUsersModal({
                     onClick={() => handleUserClick(wishlistItem.user_id)}
                     disabled={!wishlistItem.user_id}
                   >
-                    プロフィール
+                    {t("chrome.nav.profile")}
                   </Button>
                 </div>
               ))}

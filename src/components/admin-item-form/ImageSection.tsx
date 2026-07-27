@@ -199,7 +199,7 @@ export function ImageSection({
     
     toast({
       title: t("addItem.imageSelectedTitle"),
-      description: `${selectedImages.size}${t("addItem.imagesSelectedToast")}`,
+      description: t("misc.itemForm.imagesSelected", { n: selectedImages.size }),
     });
     
     setShowImageSelector(false);
@@ -506,7 +506,7 @@ export function ImageSection({
               onClick={handleConfirmSelection}
               disabled={selectedImages.size === 0}
             >
-              {selectedImages.size}{t("addItem.selectItems")}
+              {t("misc.itemForm.selectCount", { n: selectedImages.size })}
             </Button>
           </div>
         </DialogContent>

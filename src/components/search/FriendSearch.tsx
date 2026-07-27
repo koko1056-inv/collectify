@@ -10,6 +10,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Users, Search, Sparkles, ChevronRight, UserPlus } from "lucide-react";
 import { FollowButton } from "@/components/profile/FollowButton";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Profile {
   id: string;
@@ -29,6 +30,7 @@ interface FriendSearchProps {
 export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedInterest, setSelectedInterest] = useState<string>("all");
 
@@ -196,7 +198,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
         
         <div className="flex flex-col items-end gap-2" onClick={(e) => e.stopPropagation()}>
           <div className="text-xs text-muted-foreground text-right">
-            <span className="font-medium text-foreground">{profile.followers_count || 0}</span> フォロワー
+            <span className="font-medium text-foreground">{profile.followers_count || 0}</span> {t("chrome.friendSearch.followersUnit")}
           </div>
           <FollowButton userId={profile.id} />
         </div>
@@ -212,7 +214,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
         <div className="relative">
           <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
           <Input
-            placeholder="ユーザー名やプロフィールで検索..."
+            placeholder={t("chrome.friendSearch.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-12 h-12 rounded-full bg-muted/50 border-0 focus-visible:ring-2"
@@ -242,7 +244,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
       <div className="relative">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
         <Input
-          placeholder="ユーザー名やプロフィールで検索..."
+          placeholder={t("chrome.friendSearch.searchPlaceholder")}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="pl-12 h-12 rounded-full bg-muted/50 border-0 focus-visible:ring-2 text-base"
@@ -259,7 +261,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
               onClick={() => setSelectedInterest("all")}
               className="shrink-0 rounded-full h-9 px-4"
             >
-              すべて
+              {t("chrome.common.all")}
             </Button>
             {contentNamesData.map((content, index) => {
               const contentName = typeof content === 'string' ? content : 
@@ -291,10 +293,10 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
             <h3 className="font-semibold text-foreground">
-              あなたにおすすめ
+              {t("chrome.friendSearch.recommended")}
             </h3>
             <Badge variant="secondary" className="ml-auto">
-              共通の趣味
+              {t("chrome.friendSearch.commonInterests")}
             </Badge>
           </div>
           
@@ -313,10 +315,10 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
             <Users className="h-4 w-4 text-muted-foreground" />
           </div>
           <h3 className="font-semibold text-foreground">
-            ユーザー一覧
+            {t("chrome.friendSearch.userList")}
           </h3>
           <Badge variant="outline" className="ml-auto">
-            {filteredProfiles.length}人
+            {t("chrome.friendSearch.userCount", { n: filteredProfiles.length })}
           </Badge>
         </div>
         
@@ -325,8 +327,8 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
             <div className="bg-muted/50 rounded-full p-6 w-fit mx-auto mb-4">
               <UserPlus className="h-10 w-10 opacity-50" />
             </div>
-            <p className="font-medium">ユーザーが見つかりません</p>
-            <p className="text-sm mt-1">検索条件を変更してみてください</p>
+            <p className="font-medium">{t("chrome.friendSearch.noUsers")}</p>
+            <p className="text-sm mt-1">{t("chrome.friendSearch.noUsersDesc")}</p>
           </div>
         ) : (
           <div className="space-y-2">

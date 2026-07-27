@@ -37,7 +37,7 @@ export function CardContent({
         {memoriesCount > 0 && (
           <button
             onClick={onMemoriesClick}
-            className="flex items-center gap-1 text-xs text-purple-500 hover:text-purple-600 transition-colors"
+            className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
           >
             <BookMarked className="h-3.5 w-3.5" />
             <span>{memoriesCount}</span>

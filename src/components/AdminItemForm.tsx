@@ -120,7 +120,7 @@ export function AdminItemForm() {
           )}>
             {step1Completed ? <Check className="w-4 h-4" /> : "1"}
           </span>
-          <span className="text-sm font-medium hidden sm:inline">画像を選択</span>
+          <span className="text-sm font-medium hidden sm:inline">{t("chrome.adminForm.step1")}</span>
         </div>
 
         <div className={cn(
@@ -147,7 +147,7 @@ export function AdminItemForm() {
           )}>
             2
           </span>
-          <span className="text-sm font-medium hidden sm:inline">詳細を入力</span>
+          <span className="text-sm font-medium hidden sm:inline">{t("chrome.adminForm.step2")}</span>
         </div>
       </div>
 
@@ -158,9 +158,9 @@ export function AdminItemForm() {
             {currentStep === "step1" && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
-                  <h2 className="text-lg font-semibold mb-1">グッズの画像を追加</h2>
+                  <h2 className="text-lg font-semibold mb-1">{t("chrome.adminForm.addImageTitle")}</h2>
                   <p className="text-sm text-muted-foreground">
-                    画像URL、ファイルアップロード、またはWebサイトから取得できます
+                    {t("chrome.adminForm.addImageDesc")}
                   </p>
                 </div>
 
@@ -178,7 +178,7 @@ export function AdminItemForm() {
                       
                       toast({
                         title: t("addItem.imageSelectedTitle"),
-                        description: `${result.selectedImages.length}${t("addItem.imagesSelected")}`,
+                        description: t("chrome.adminForm.imagesSelectedDesc", { n: result.selectedImages.length }),
                       });
                     } else {
                       const updates: any = {};
@@ -203,7 +203,7 @@ export function AdminItemForm() {
                     size="lg"
                     className="px-8 gap-2"
                   >
-                    次へ進む
+                    {t("chrome.adminForm.next")}
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
@@ -318,7 +318,9 @@ export function AdminItemForm() {
 
                           toast({
                             title: t("addItem.registrationComplete"),
-                            description: `${successCount}${t("addItem.itemsRegistered")}${errorCount > 0 ? `（${errorCount}${t("addItem.itemsFailed")}）` : ''}`,
+                            description: errorCount > 0
+                              ? t("chrome.adminForm.registeredWithFailuresDesc", { n: successCount, failed: errorCount })
+                              : t("chrome.adminForm.registeredDesc", { n: successCount }),
                           });
                           resetForm();
                         } else {
@@ -341,9 +343,9 @@ export function AdminItemForm() {
                 ) : (
                   <>
                     <div className="text-center mb-6">
-                      <h2 className="text-lg font-semibold mb-1">グッズ情報を入力</h2>
+                      <h2 className="text-lg font-semibold mb-1">{t("chrome.adminForm.detailsTitle")}</h2>
                       <p className="text-sm text-muted-foreground">
-                        タイトルやコンテンツ名を入力してください
+                        {t("chrome.adminForm.detailsDesc")}
                       </p>
                     </div>
 
@@ -353,7 +355,7 @@ export function AdminItemForm() {
                         <div className="relative w-32 h-32 rounded-xl overflow-hidden border-2 border-primary/20 shadow-lg">
                           <img 
                             src={previewUrl} 
-                            alt="プレビュー" 
+                            alt={t("chrome.adminForm.previewAlt")} 
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -375,7 +377,7 @@ export function AdminItemForm() {
                         className="gap-2"
                       >
                         <ChevronRight className="w-4 h-4 rotate-180" />
-                        戻る
+                        {t("chrome.common.back")}
                       </Button>
                       <Button 
                         type="submit" 
@@ -386,12 +388,12 @@ export function AdminItemForm() {
                         {loading ? (
                           <>
                             <span className="animate-spin">⏳</span>
-                            追加中...
+                            {t("chrome.interests.adding")}
                           </>
                         ) : (
                           <>
                             <Check className="w-4 h-4" />
-                            グッズを追加
+                            {t("chrome.collection.addGoods")}
                           </>
                         )}
                       </Button>

@@ -5,6 +5,7 @@ import { TradeRequest } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { X, ArrowLeftRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface MyOpenTradeCardProps {
   trade: TradeRequest;
@@ -13,6 +14,7 @@ interface MyOpenTradeCardProps {
 
 export function MyOpenTradeCard({ trade, onCancelSuccess }: MyOpenTradeCardProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleCancelTrade = async () => {
     try {
@@ -27,14 +29,14 @@ export function MyOpenTradeCard({ trade, onCancelSuccess }: MyOpenTradeCardProps
       onCancelSuccess(trade.id);
       
       toast({
-        title: "トレードをキャンセルしました",
-        description: "オープントレードが削除されました",
+        title: t("trade.myOpen.cancelledTitle"),
+        description: t("trade.myOpen.cancelledDesc"),
       });
     } catch (error) {
       console.error("Error cancelling trade:", error);
       toast({
-        title: "エラー",
-        description: "トレードのキャンセルに失敗しました",
+        title: t("common.error"),
+        description: t("trade.myOpen.cancelErrorDesc"),
         variant: "destructive",
       });
     }
@@ -45,13 +47,13 @@ export function MyOpenTradeCard({ trade, onCancelSuccess }: MyOpenTradeCardProps
       <CardHeader className="p-4 pb-0 bg-gray-50">
         <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
           <ArrowLeftRight className="h-5 w-5 text-gray-500" />
-          オープントレードリクエスト
+          {t("trade.myOpen.cardTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 pt-2">
         <div className="space-y-4 mt-2">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-700">提供アイテム</p>
+            <p className="text-sm font-medium text-gray-700">{t("trade.myOpen.offeredItem")}</p>
             <div className="border rounded-lg p-2 flex items-center space-x-2 hover:bg-gray-50 transition-colors group border-gray-200">
               <div className="relative w-12 h-12 overflow-hidden rounded-lg">
                 <img 
@@ -64,7 +66,7 @@ export function MyOpenTradeCard({ trade, onCancelSuccess }: MyOpenTradeCardProps
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-700">希望アイテム</p>
+            <p className="text-sm font-medium text-gray-700">{t("trade.myOpen.desiredItem")}</p>
             <div className="border rounded-lg p-2 flex items-center space-x-2 hover:bg-gray-50 transition-colors group border-gray-200">
               <div className="relative w-12 h-12 overflow-hidden rounded-lg">
                 <img 
@@ -92,7 +94,7 @@ export function MyOpenTradeCard({ trade, onCancelSuccess }: MyOpenTradeCardProps
           className="rounded-full border-gray-200 text-gray-600 hover:bg-gray-100"
         >
           <X className="mr-1 h-4 w-4" />
-          キャンセル
+          {t("common.cancel")}
         </Button>
       </CardFooter>
     </Card>

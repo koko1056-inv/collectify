@@ -44,7 +44,12 @@ const Search = () => {
   const { user } = useAuth();
   const { profile } = useProfile(user?.id);
   const queryClient = useQueryClient();
-  const { data: items = [] } = useOfficialItems();
+  const {
+    data: items = [],
+    isLoading: itemsLoading,
+    isError: itemsError,
+    refetch: refetchItems,
+  } = useOfficialItems();
   const { data: allTags = [] } = useTags(selectedContent);
 
   // コンテンツ名を早期に取得
@@ -143,11 +148,11 @@ const Search = () => {
               </TabsTrigger>
               <TabsTrigger value="collections" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
                 <Heart className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">コレクション</span>
+                <span className="hidden sm:inline">{t("screens.search.collectionsTab")}</span>
               </TabsTrigger>
               <TabsTrigger value="trade" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
                 <ArrowLeftRight className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">交換</span>
+                <span className="hidden sm:inline">{t("screens.search.tradeTab")}</span>
               </TabsTrigger>
               <TabsTrigger value="friends" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
                 <Users className="h-5 w-5 sm:h-4 sm:w-4" />
@@ -204,7 +209,7 @@ const Search = () => {
                     </Badge>
                   ))}
                   <button onClick={clearAllFilters} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    すべてクリア
+                    {t("screens.search.clearAll")}
                   </button>
                 </div>
               )}
@@ -218,15 +223,18 @@ const Search = () => {
                 selectedContent={selectedContent}
                 onContentChange={setSelectedContent}
                 tags={allTags}
+                isInitialLoading={itemsLoading}
+                isError={itemsError}
+                onRetry={() => refetchItems()}
               />
 
               {/* フィルターDrawer */}
               <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
                 <DrawerContent className="max-h-[85vh] px-4 pt-4 pb-8">
                   <div className="mx-auto w-full max-w-sm">
-                    <DrawerTitle className="text-center font-medium mb-4">フィルター</DrawerTitle>
+                    <DrawerTitle className="text-center font-medium mb-4">{t("screens.search.filterTitle")}</DrawerTitle>
                     <DrawerClose className="absolute right-4 top-4">
-                      <button className="text-sm text-primary font-medium">完了</button>
+                      <button className="text-sm text-primary font-medium">{t("screens.search.done")}</button>
                     </DrawerClose>
                     <ScrollArea className="h-[65vh] pr-4">
                       <FilterBar
@@ -273,7 +281,7 @@ const Search = () => {
       {currentTab === "goods" && (
         <Button
           onClick={() => navigate("/add-item")}
-          className="fixed bottom-20 right-4 sm:bottom-8 sm:right-8 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
+          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
           size="icon"
         >
           <Plus className="h-6 w-6" />

@@ -63,6 +63,7 @@ export function SwipeableCard({
         className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
         style={{ opacity: leftIndicatorOpacity }}
       >
+        {/* 左スワイプ=ウィッシュ。右スワイプの緑(=追加)と対比させるため固定色のまま */}
         <div className="bg-pink-500 text-white p-3 rounded-full shadow-lg">
           <Heart className="w-6 h-6" />
         </div>

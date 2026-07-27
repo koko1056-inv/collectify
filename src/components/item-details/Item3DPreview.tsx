@@ -3,6 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, useGLTF, Environment, Center } from "@react-three/drei";
 import { Button } from "@/components/ui/button";
 import { Box, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Item3DPreviewProps {
   modelUrl: string;
@@ -21,6 +22,7 @@ function Model({ url }: { url: string }) {
 
 export function Item3DPreview({ modelUrl, title }: Item3DPreviewProps) {
   const [show3D, setShow3D] = useState(false);
+  const { t } = useLanguage();
 
   if (!show3D) {
     return (
@@ -31,7 +33,7 @@ export function Item3DPreview({ modelUrl, title }: Item3DPreviewProps) {
         className="w-full"
       >
         <Box className="w-4 h-4 mr-2" />
-        3Dプレビューを見る
+        {t("itemDetails.preview3d.open")}
       </Button>
     );
   }
@@ -63,7 +65,7 @@ export function Item3DPreview({ modelUrl, title }: Item3DPreviewProps) {
       </Suspense>
       <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
         <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
-          ドラッグで回転
+          {t("itemDetails.preview3d.dragHint")}
         </span>
         <Button
           variant="secondary"
@@ -71,7 +73,7 @@ export function Item3DPreview({ modelUrl, title }: Item3DPreviewProps) {
           onClick={() => setShow3D(false)}
           className="text-xs h-7"
         >
-          閉じる
+          {t("itemDetails.common.close")}
         </Button>
       </div>
     </div>

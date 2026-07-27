@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagFilterProps {
   selectedTags: string[];
@@ -19,6 +20,7 @@ interface TagFilterProps {
 }
 
 export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }: TagFilterProps) {
+  const { t } = useLanguage();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<string>("all");
@@ -139,9 +141,9 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
   });
 
   const getDisplayText = () => {
-    if (selectedTags.length === 0) return "タグから選択";
+    if (selectedTags.length === 0) return t("chrome.tagFilter.selectFromTags");
     if (selectedTags.length === 1) return selectedTags[0];
-    return `${selectedTags.length}個のタグを選択中`;
+    return t("chrome.tagFilter.selectedCount", { n: selectedTags.length });
   };
 
   const popularTags = tagsWithCount.slice(0, 5);
@@ -212,12 +214,12 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
         <DialogContent className="max-w-lg max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
-              タグを選択
+              {t("chrome.tagFilter.dialogTitle")}
             </DialogTitle>
           </DialogHeader>
           <div className="p-4 pb-0">
             <Input
-              placeholder="タグを検索..."
+              placeholder={t("chrome.tagFilter.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="mb-4"
@@ -226,10 +228,10 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="all">すべて</TabsTrigger>
-              <TabsTrigger value="character">キャラ・人物</TabsTrigger>
-              <TabsTrigger value="series">シリーズ</TabsTrigger>
-              <TabsTrigger value="type">タイプ</TabsTrigger>
+              <TabsTrigger value="all">{t("chrome.common.all")}</TabsTrigger>
+              <TabsTrigger value="character">{t("chrome.tagFilter.tabCharacter")}</TabsTrigger>
+              <TabsTrigger value="series">{t("chrome.tagFilter.tabSeries")}</TabsTrigger>
+              <TabsTrigger value="type">{t("chrome.tagFilter.tabType")}</TabsTrigger>
             </TabsList>
 
             <ScrollArea className="max-h-[50vh] mt-4">
@@ -238,7 +240,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                   {/* 人気タグ */}
                   {searchQuery === "" && popularTags.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-medium mb-2">人気タグ</h3>
+                      <h3 className="text-sm font-medium mb-2">{t("chrome.tagFilter.popularTags")}</h3>
                       <div className="flex flex-wrap gap-2">
                         {popularTags.map((tag) => (
                           <Button
@@ -259,7 +261,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                   {/* 全タグリスト */}
                   <div>
                     <h3 className="text-sm font-medium mb-2">
-                      {searchQuery ? `"${searchQuery}"の検索結果` : "すべてのタグ"}
+                      {searchQuery ? t("chrome.tagFilter.searchResultsFor", { query: searchQuery }) : t("chrome.tagFilter.allTags")}
                     </h3>
                     <div className="grid grid-cols-1 gap-1">
                       {filterTagsBySearch(tagsWithCount).map((tag) => (
@@ -301,7 +303,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                   ))}
                   {filterTagsBySearch(characterTags).length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-8">
-                      {searchQuery ? "該当するタグがありません" : "タグがありません"}
+                      {searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
                     </p>
                   )}
                 </div>
@@ -326,7 +328,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                   ))}
                   {filterTagsBySearch(seriesTags).length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-8">
-                      {searchQuery ? "該当するタグがありません" : "タグがありません"}
+                      {searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
                     </p>
                   )}
                 </div>
@@ -351,7 +353,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                   ))}
                   {filterTagsBySearch(typeTags).length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-8">
-                      {searchQuery ? "該当するタグがありません" : "タグがありません"}
+                      {searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
                     </p>
                   )}
                 </div>

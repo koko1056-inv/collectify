@@ -28,6 +28,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import onboardingRoom from "@/assets/onboarding-room.png";
 import onboardingCommunity from "@/assets/onboarding-community.png";
@@ -42,6 +43,7 @@ import guideSearch from "@/assets/guide-search.png";
  * ────────────────────────────────────────────────────────────────── */
 
 export default function Landing() {
+  const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
@@ -53,9 +55,8 @@ export default function Landing() {
 
   // Page-specific SEO meta tags + JSON-LD structured data
   useEffect(() => {
-    const TITLE = "Collectify｜推しグッズコレクション × AI 3D推し部屋 × 推し友マッチング";
-    const DESC =
-      "推しグッズを記録して、AIが3D推し部屋に。推し友も見つかる、まったく新しい推し活アプリ。アニメ・ゲーム・アイドル・Vtuber・K-POP対応。基本無料、クレカ登録不要で30秒登録。";
+    const TITLE = t("screens.landing.seoTitle");
+    const DESC = t("screens.landing.seoDescription");
     const URL =
       typeof window !== "undefined" ? window.location.origin + "/lp" : "https://collectify.app/lp";
     const OG_IMAGE =
@@ -164,13 +165,13 @@ export default function Landing() {
 
           <nav className="hidden md:flex items-center gap-8 text-sm">
             <a href="#features" className="text-muted-foreground hover:text-foreground transition">
-              機能
+              {t("screens.landing.navFeatures")}
             </a>
             <a href="#showcase" className="text-muted-foreground hover:text-foreground transition">
-              使い方
+              {t("screens.landing.navHowTo")}
             </a>
             <a href="#pricing" className="text-muted-foreground hover:text-foreground transition">
-              料金
+              {t("screens.landing.navPricing")}
             </a>
             <a href="#faq" className="text-muted-foreground hover:text-foreground transition">
               FAQ
@@ -180,7 +181,7 @@ export default function Landing() {
           <div className="hidden md:flex items-center gap-2">
             <Link to="/login">
               <Button variant="ghost" size="sm" className="rounded-full">
-                ログイン
+                {t("screens.landing.navLogin")}
               </Button>
             </Link>
             <Link to="/login">
@@ -188,7 +189,7 @@ export default function Landing() {
                 size="sm"
                 className="rounded-full bg-gradient-to-r from-primary to-pink-400 hover:opacity-90 text-white shadow-lg shadow-primary/25"
               >
-                はじめる
+                {t("screens.landing.navStart")}
               </Button>
             </Link>
           </div>
@@ -196,7 +197,7 @@ export default function Landing() {
           <button
             className="md:hidden p-2"
             onClick={() => setMobileNavOpen((v) => !v)}
-            aria-label="メニュー"
+            aria-label={t("screens.landing.navMenu")}
           >
             {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -205,13 +206,13 @@ export default function Landing() {
         {mobileNavOpen && (
           <div className="md:hidden border-t border-border/60 bg-background/95 backdrop-blur-xl">
             <div className="container mx-auto px-4 py-4 flex flex-col gap-3">
-              <a href="#features" onClick={() => setMobileNavOpen(false)} className="py-2">機能</a>
-              <a href="#showcase" onClick={() => setMobileNavOpen(false)} className="py-2">使い方</a>
-              <a href="#pricing" onClick={() => setMobileNavOpen(false)} className="py-2">料金</a>
+              <a href="#features" onClick={() => setMobileNavOpen(false)} className="py-2">{t("screens.landing.navFeatures")}</a>
+              <a href="#showcase" onClick={() => setMobileNavOpen(false)} className="py-2">{t("screens.landing.navHowTo")}</a>
+              <a href="#pricing" onClick={() => setMobileNavOpen(false)} className="py-2">{t("screens.landing.navPricing")}</a>
               <a href="#faq" onClick={() => setMobileNavOpen(false)} className="py-2">FAQ</a>
               <Link to="/login" className="pt-2">
                 <Button className="w-full rounded-full bg-gradient-to-r from-primary to-pink-400 text-white">
-                  はじめる
+                  {t("screens.landing.navStart")}
                 </Button>
               </Link>
             </div>
@@ -241,22 +242,22 @@ export default function Landing() {
                 className="mb-6 border-primary/30 bg-primary/5 text-primary px-3 py-1 rounded-full"
               >
                 <Sparkles className="h-3 w-3 mr-1.5" />
-                推し活、新時代へ
+                {t("screens.landing.heroBadge")}
               </Badge>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.1]">
-                推しのすべてを、
+                {t("screens.landing.heroTitle1")}
                 <br />
                 <span className="bg-gradient-to-r from-primary via-pink-500 to-rose-400 bg-clip-text text-transparent">
-                  ひとつのルーム
+                  {t("screens.landing.heroTitleAccent")}
                 </span>
-                へ。
+                {t("screens.landing.heroTitleTail")}
               </h1>
 
               <p className="mt-6 text-lg sm:text-xl text-muted-foreground leading-relaxed">
-                推しグッズを記録して、AIが3D推し部屋に。
+                {t("screens.landing.heroLead1")}
                 <br className="hidden sm:block" />
-                推し友も見つかる、まったく新しい推し活アプリ。
+                {t("screens.landing.heroLead2")}
               </p>
 
               <div className="mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4">
@@ -265,7 +266,7 @@ export default function Landing() {
                     size="lg"
                     className="w-full sm:w-auto h-14 px-8 rounded-full text-base bg-gradient-to-r from-primary to-pink-400 hover:opacity-90 text-white shadow-xl shadow-primary/30 hover:shadow-2xl hover:shadow-primary/40 transition-all"
                   >
-                    無料ではじめる
+                    {t("screens.landing.heroCtaFree")}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
@@ -275,7 +276,7 @@ export default function Landing() {
                     variant="outline"
                     className="w-full sm:w-auto h-14 px-8 rounded-full text-base border-2"
                   >
-                    機能を見る
+                    {t("screens.landing.heroCtaFeatures")}
                   </Button>
                 </a>
               </div>
@@ -283,11 +284,11 @@ export default function Landing() {
               <div className="mt-8 flex items-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
-                  クレカ登録不要
+                  {t("screens.landing.noCreditCard")}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-4 w-4 text-primary" />
-                  完全無料で開始
+                  {t("screens.landing.freeToStart")}
                 </div>
               </div>
 
@@ -315,7 +316,7 @@ export default function Landing() {
                     ))}
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5">
-                    推し活女子に愛されるアプリ
+                    {t("screens.landing.socialProof")}
                   </div>
                 </div>
               </div>
@@ -332,7 +333,7 @@ export default function Landing() {
                   <div className="h-full w-full rounded-[2.5rem] overflow-hidden bg-background relative">
                     <img
                       src={onboardingRoom}
-                      alt="Collectify アプリ画面"
+                      alt={t("screens.landing.appScreenshotAlt")}
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                   </div>
@@ -343,8 +344,8 @@ export default function Landing() {
                     <Heart className="h-5 w-5 text-primary fill-primary" />
                   </div>
                   <div>
-                    <div className="text-xs text-muted-foreground">登録グッズ</div>
-                    <div className="font-bold text-sm">128 個</div>
+                    <div className="text-xs text-muted-foreground">{t("screens.landing.statGoodsLabel")}</div>
+                    <div className="font-bold text-sm">{t("screens.landing.statGoodsValue")}</div>
                   </div>
                 </div>
 
@@ -353,8 +354,8 @@ export default function Landing() {
                     <Trophy className="h-5 w-5 text-amber-600" />
                   </div>
                   <div>
-                    <div className="text-xs text-muted-foreground">ランク</div>
-                    <div className="font-bold text-sm">推しマスター</div>
+                    <div className="text-xs text-muted-foreground">{t("screens.landing.statRankLabel")}</div>
+                    <div className="font-bold text-sm">{t("screens.landing.statRankValue")}</div>
                   </div>
                 </div>
               </div>
@@ -368,12 +369,12 @@ export default function Landing() {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-2xl mx-auto text-center mb-14">
             <Badge variant="outline" className="mb-4 rounded-full">
-              こんなお悩み、ありませんか？
+              {t("screens.landing.painBadge")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-              推し活、楽しいけど
+              {t("screens.landing.painTitle1")}
               <br />
-              <span className="text-muted-foreground">困りごとも、いっぱい。</span>
+              <span className="text-muted-foreground">{t("screens.landing.painTitle2")}</span>
             </h2>
           </div>
 
@@ -381,18 +382,18 @@ export default function Landing() {
             {[
               {
                 emoji: "😱",
-                title: "あ、これ持ってた…",
-                desc: "イベントで同じグッズをまた買ってしまった。家に帰って気づくあの絶望感、もう味わいたくない。",
+                title: t("screens.landing.pain1Title"),
+                desc: t("screens.landing.pain1Desc"),
               },
               {
                 emoji: "📦",
-                title: "どこに何があるか分からない",
-                desc: "コレクションが増えすぎて、お気に入りのアクスタが行方不明。整理したいけど時間がない。",
+                title: t("screens.landing.pain2Title"),
+                desc: t("screens.landing.pain2Desc"),
               },
               {
                 emoji: "💔",
-                title: "推し友がいない…",
-                desc: "同じ推しを語り合える人と出会いたい。グッズ交換もしたいけど、SNSは敷居が高い。",
+                title: t("screens.landing.pain3Title"),
+                desc: t("screens.landing.pain3Desc"),
               },
             ].map((item) => (
               <div
@@ -417,16 +418,16 @@ export default function Landing() {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-2xl mx-auto text-center mb-16">
             <Badge className="mb-4 rounded-full bg-primary/10 text-primary border-0 hover:bg-primary/15">
-              Collectify が解決します
+              {t("screens.landing.solutionBadge")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-              推し活の、
+              {t("screens.landing.solutionTitle1")}
               <span className="bg-gradient-to-r from-primary to-pink-400 bg-clip-text text-transparent">
-                ぜんぶをひとつに。
+                {t("screens.landing.solutionTitle2")}
               </span>
             </h2>
             <p className="mt-5 text-lg text-muted-foreground">
-              管理も、共有も、出会いも。あなたの推し活がもっと楽しくなる3つの軸。
+              {t("screens.landing.solutionLead")}
             </p>
           </div>
 
@@ -438,15 +439,15 @@ export default function Landing() {
                   <Layers className="h-7 w-7 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3">
-                  グッズを、
+                  {t("screens.landing.feat1Title1")}
                   <br />
-                  ぜんぶ記録。
+                  {t("screens.landing.feat1Title2")}
                 </h3>
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  写真を撮って、タグをつけるだけ。あなたの推しグッズを丸ごとデジタル化。ダブり買いとはこれでお別れ。
+                  {t("screens.landing.feat1Desc")}
                 </p>
                 <ul className="space-y-2 text-sm">
-                  {["AI画像認識で自動タグ付け", "瞬時に重複チェック", "推し別・カテゴリ別に整理"].map((t) => (
+                  {[t("screens.landing.feat1Item1"), t("screens.landing.feat1Item2"), t("screens.landing.feat1Item3")].map((t) => (
                     <li key={t} className="flex items-center gap-2 text-foreground/80">
                       <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
                       {t}
@@ -460,22 +461,22 @@ export default function Landing() {
               <div className="absolute -top-12 -right-12 h-40 w-40 bg-white/10 rounded-full blur-2xl" />
               <div className="absolute -bottom-8 -left-8 h-32 w-32 bg-white/10 rounded-full blur-2xl" />
               <Badge className="bg-white/20 text-white border-0 mb-4 backdrop-blur-sm">
-                ✨ いちばん人気
+                {t("screens.landing.feat2Badge")}
               </Badge>
               <div className="relative">
                 <div className="h-14 w-14 rounded-2xl bg-white/20 backdrop-blur-sm grid place-items-center mb-6 shadow-xl">
                   <Wand2 className="h-7 w-7 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3">
-                  AIが、推し部屋を
+                  {t("screens.landing.feat2Title1")}
                   <br />
-                  3Dで魔法のように。
+                  {t("screens.landing.feat2Title2")}
                 </h3>
                 <p className="text-white/90 leading-relaxed mb-6">
-                  あなたのコレクションから、AIがあなただけの3D推し部屋を生成。飾って、眺めて、シェアして。理想の推し空間を手のひらに。
+                  {t("screens.landing.feat2Desc")}
                 </p>
                 <ul className="space-y-2 text-sm">
-                  {["コレクションから自動レイアウト", "テーマ・色・小物を自由カスタム", "URLでお部屋をシェア"].map((t) => (
+                  {[t("screens.landing.feat2Item1"), t("screens.landing.feat2Item2"), t("screens.landing.feat2Item3")].map((t) => (
                     <li key={t} className="flex items-center gap-2 text-white/95">
                       <CheckCircle2 className="h-4 w-4 text-white flex-shrink-0" />
                       {t}
@@ -492,15 +493,15 @@ export default function Landing() {
                   <Users className="h-7 w-7 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3">
-                  推し友が、
+                  {t("screens.landing.feat3Title1")}
                   <br />
-                  きっと見つかる。
+                  {t("screens.landing.feat3Title2")}
                 </h3>
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  あなたと同じ推しを愛する人と出会える。グッズ交換、語り合い、イベント参加。推し活仲間と新しい体験を。
+                  {t("screens.landing.feat3Desc")}
                 </p>
                 <ul className="space-y-2 text-sm">
-                  {["コレクションでマッチング", "安全なトレード機能", "メッセージで交流"].map((t) => (
+                  {[t("screens.landing.feat3Item1"), t("screens.landing.feat3Item2"), t("screens.landing.feat3Item3")].map((t) => (
                     <li key={t} className="flex items-center gap-2 text-foreground/80">
                       <CheckCircle2 className="h-4 w-4 text-amber-500 flex-shrink-0" />
                       {t}
@@ -521,41 +522,41 @@ export default function Landing() {
               FEATURES
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-              できること、まだまだ。
+              {t("screens.landing.showcaseTitle")}
             </h2>
           </div>
 
           <div className="space-y-20 sm:space-y-28">
             {[
               {
-                badge: "コレクション管理",
-                title: "撮るだけで、瞬間整理。",
-                desc: "推しグッズの写真を撮るだけで、AIが自動でタグ付け。タイトルや作品名も自動入力。あなたは、推しを愛でることに専念できます。",
-                features: ["AI画像認識", "自動タグ付け", "メモ・購入日も記録"],
+                badge: t("screens.landing.show1Badge"),
+                title: t("screens.landing.show1Title"),
+                desc: t("screens.landing.show1Desc"),
+                features: [t("screens.landing.show1Item1"), t("screens.landing.show1Item2"), t("screens.landing.show1Item3")],
                 img: guideCollection,
                 reverse: false,
               },
               {
-                badge: "推し友マッチング",
-                title: "同じ推しの、ベストフレンドへ。",
-                desc: "あなたのコレクションが、推し友との出会いの鍵。共通の推しを持つ人を発見し、コミュニティでつながり、トレードも安心。",
-                features: ["コレクション・マッチング", "ウィッシュリスト共有", "安全なトレード機能"],
+                badge: t("screens.landing.show2Badge"),
+                title: t("screens.landing.show2Title"),
+                desc: t("screens.landing.show2Desc"),
+                features: [t("screens.landing.show2Item1"), t("screens.landing.show2Item2"), t("screens.landing.show2Item3")],
                 img: onboardingCommunity,
                 reverse: true,
               },
               {
-                badge: "イベント・チャレンジ",
-                title: "みんなで楽しむ、推し活イベント。",
-                desc: "「今月のお気に入り」「コレクションの数選手権」など、推し活がもっと盛り上がるチャレンジ機能。仲間と楽しむ毎日を。",
-                features: ["週・月チャレンジ", "ランキング機能", "獲得バッジで実績可視化"],
+                badge: t("screens.landing.show3Badge"),
+                title: t("screens.landing.show3Title"),
+                desc: t("screens.landing.show3Desc"),
+                features: [t("screens.landing.show3Item1"), t("screens.landing.show3Item2"), t("screens.landing.show3Item3")],
                 img: guidePosts,
                 reverse: false,
               },
               {
-                badge: "画像検索",
-                title: "気になるグッズ、写真ひとつで。",
-                desc: "イベントやお店で見かけたグッズを、写真を撮るだけで検索。あなたのコレクションに既にあるか瞬時にチェック。",
-                features: ["画像で重複チェック", "グッズ情報を自動表示", "ウィッシュリストへ追加"],
+                badge: t("screens.landing.show4Badge"),
+                title: t("screens.landing.show4Title"),
+                desc: t("screens.landing.show4Desc"),
+                features: [t("screens.landing.show4Item1"), t("screens.landing.show4Item2"), t("screens.landing.show4Item3")],
                 img: guideSearch,
                 reverse: true,
               },
@@ -604,19 +605,19 @@ export default function Landing() {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-2xl mx-auto text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-              他にも、推しを彩る機能たち。
+              {t("screens.landing.miniTitle")}
             </h2>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {[
-              { icon: Camera, title: "投稿フィード", desc: "推しグッズをシェア" },
-              { icon: Repeat, title: "トレード", desc: "安心のグッズ交換" },
-              { icon: MessageCircle, title: "メッセージ", desc: "推し友と直接交流" },
-              { icon: Search, title: "コンテンツ探索", desc: "新しい推しを発見" },
-              { icon: Gift, title: "ウィッシュリスト", desc: "欲しいグッズを記録" },
-              { icon: Trophy, title: "実績バッジ", desc: "コレクションを証明" },
-              { icon: Star, title: "ポイントシステム", desc: "貯めて使える特典" },
-              { icon: Heart, title: "お気に入り", desc: "とっておきを保存" },
+              { icon: Camera, title: t("screens.landing.mini1Title"), desc: t("screens.landing.mini1Desc") },
+              { icon: Repeat, title: t("screens.landing.mini2Title"), desc: t("screens.landing.mini2Desc") },
+              { icon: MessageCircle, title: t("screens.landing.mini3Title"), desc: t("screens.landing.mini3Desc") },
+              { icon: Search, title: t("screens.landing.mini4Title"), desc: t("screens.landing.mini4Desc") },
+              { icon: Gift, title: t("screens.landing.mini5Title"), desc: t("screens.landing.mini5Desc") },
+              { icon: Trophy, title: t("screens.landing.mini6Title"), desc: t("screens.landing.mini6Desc") },
+              { icon: Star, title: t("screens.landing.mini7Title"), desc: t("screens.landing.mini7Desc") },
+              { icon: Heart, title: t("screens.landing.mini8Title"), desc: t("screens.landing.mini8Desc") },
             ].map((f) => (
               <div
                 key={f.title}
@@ -638,20 +639,20 @@ export default function Landing() {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-              すべての"推し"に、対応。
+              {t("screens.landing.genresTitle")}
             </h2>
             <p className="text-lg text-muted-foreground">
-              アニメ、ゲーム、アイドル、声優、Vtuber、K-POP、スポーツ、漫画家。
+              {t("screens.landing.genresLead1")}
               <br className="hidden sm:block" />
-              あなたの推しがどんなジャンルでも、Collectifyはひと括り。
+              {t("screens.landing.genresLead2")}
             </p>
           </div>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-4xl mx-auto">
             {[
-              "アニメ", "ゲーム", "アイドル", "声優", "Vtuber", "K-POP", "JPop",
-              "漫画", "映画", "ドラマ", "舞台", "声優ライブ", "コミック",
-              "アクスタ", "缶バッジ", "ぬいぐるみ", "フィギュア", "ポスター",
-              "ラバスト", "クリアファイル", "限定グッズ", "ライブグッズ",
+              t("screens.landing.genreAnime"), t("screens.landing.genreGame"), t("screens.landing.genreIdol"), t("screens.landing.genreVoiceActor"), "Vtuber", "K-POP", "JPop",
+              t("screens.landing.genreManga"), t("screens.landing.genreMovie"), t("screens.landing.genreDrama"), t("screens.landing.genreStage"), t("screens.landing.genreVoiceLive"), t("screens.landing.genreComic"),
+              t("screens.landing.genreAcrylicStand"), t("screens.landing.genreCanBadge"), t("screens.landing.genrePlush"), t("screens.landing.genreFigure"), t("screens.landing.genrePoster"),
+              t("screens.landing.genreRubberStrap"), t("screens.landing.genreClearFile"), t("screens.landing.genreLimited"), t("screens.landing.genreLiveGoods"),
             ].map((tag, i) => (
               <span
                 key={tag}
@@ -679,13 +680,13 @@ export default function Landing() {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-2xl mx-auto text-center mb-14">
             <Badge variant="outline" className="mb-4 rounded-full">
-              料金プラン
+              {t("screens.landing.pricingBadge")}
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-              基本は、ぜんぶ無料。
+              {t("screens.landing.pricingTitle")}
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              もっと拡張したくなったら、ポイントでアンロック。
+              {t("screens.landing.pricingLead")}
             </p>
           </div>
 
@@ -694,22 +695,22 @@ export default function Landing() {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground mb-1">FREE</div>
-                  <div className="text-3xl font-bold">無料プラン</div>
+                  <div className="text-3xl font-bold">{t("screens.landing.planFreeName")}</div>
                 </div>
                 <div className="h-12 w-12 rounded-2xl bg-secondary grid place-items-center">
                   <Heart className="h-6 w-6 text-primary" />
                 </div>
               </div>
               <div className="text-4xl font-bold mb-1">¥0</div>
-              <div className="text-sm text-muted-foreground mb-8">永年無料</div>
+              <div className="text-sm text-muted-foreground mb-8">{t("screens.landing.planFreeNote")}</div>
               <ul className="space-y-3 mb-8">
                 {[
-                  "コレクション登録 100枠",
-                  "マイルーム 1部屋",
-                  "カスタムタグ 10個",
-                  "推し友マッチング無制限",
-                  "トレード機能",
-                  "投稿・メッセージ",
+                  t("screens.landing.planFree1"),
+                  t("screens.landing.planFree2"),
+                  t("screens.landing.planFree3"),
+                  t("screens.landing.planFree4"),
+                  t("screens.landing.planFree5"),
+                  t("screens.landing.planFree6"),
                 ].map((t) => (
                   <li key={t} className="flex items-start gap-2.5">
                     <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
@@ -719,7 +720,7 @@ export default function Landing() {
               </ul>
               <Link to="/login">
                 <Button variant="outline" className="w-full h-12 rounded-full">
-                  無料ではじめる
+                  {t("screens.landing.heroCtaFree")}
                 </Button>
               </Link>
             </div>
@@ -731,22 +732,22 @@ export default function Landing() {
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <div className="text-sm font-medium text-white/70 mb-1">POINTS</div>
-                    <div className="text-3xl font-bold">ポイント拡張</div>
+                    <div className="text-3xl font-bold">{t("screens.landing.planPointsName")}</div>
                   </div>
                   <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur-sm grid place-items-center">
                     <Sparkles className="h-6 w-6" />
                   </div>
                 </div>
                 <div className="text-4xl font-bold mb-1">¥120 〜</div>
-                <div className="text-sm text-white/80 mb-8">必要な分だけ</div>
+                <div className="text-sm text-white/80 mb-8">{t("screens.landing.planPointsNote")}</div>
                 <ul className="space-y-3 mb-8">
                   {[
-                    "コレクション枠 +50/+100",
-                    "マイルーム 追加",
-                    "カスタムタグ 拡張",
-                    "AI画像生成",
-                    "限定アバター・テーマ",
-                    "プレミアム機能アンロック",
+                    t("screens.landing.planPoints1"),
+                    t("screens.landing.planPoints2"),
+                    t("screens.landing.planPoints3"),
+                    t("screens.landing.planPoints4"),
+                    t("screens.landing.planPoints5"),
+                    t("screens.landing.planPoints6"),
                   ].map((t) => (
                     <li key={t} className="flex items-start gap-2.5">
                       <CheckCircle2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
@@ -756,7 +757,7 @@ export default function Landing() {
                 </ul>
                 <Link to="/login">
                   <Button className="w-full h-12 rounded-full bg-white text-primary hover:bg-white/90">
-                    アプリで購入
+                    {t("screens.landing.planPointsCta")}
                   </Button>
                 </Link>
               </div>
@@ -764,7 +765,7 @@ export default function Landing() {
           </div>
 
           <p className="mt-8 text-center text-sm text-muted-foreground max-w-md mx-auto">
-            ポイントは消費型（Consumable）のApple In-App Purchaseです。サブスクではないので、必要な時だけ購入できます。
+            {t("screens.landing.pricingFootnote")}
           </p>
         </div>
       </section>
@@ -778,39 +779,39 @@ export default function Landing() {
                 FAQ
               </Badge>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-                よくあるご質問
+                {t("screens.landing.faqTitle")}
               </h2>
             </div>
 
             <Accordion type="single" collapsible className="space-y-3">
               {[
                 {
-                  q: "完全に無料で使えますか？",
-                  a: "はい、基本機能はすべて無料でお使いいただけます。コレクション登録、マイルーム作成、推し友マッチング、トレード、メッセージ機能などすべて無料です。コレクション枠の追加や限定機能のみ、ポイント購入で利用できます。",
+                  q: t("screens.landing.faq1q"),
+                  a: t("screens.landing.faq1a"),
                 },
                 {
-                  q: "iOSとAndroidの両方で使えますか？",
-                  a: "現在iOS版を準備中です。Webアプリ版は既に利用可能で、ブラウザからすぐにご利用いただけます。Android版も今後リリース予定です。",
+                  q: t("screens.landing.faq2q"),
+                  a: t("screens.landing.faq2a"),
                 },
                 {
-                  q: "コレクション写真は安全に保管されますか？",
-                  a: "はい、すべてのデータはエンタープライズグレードのSupabaseクラウドストレージに暗号化して保管されます。アカウントを削除すれば、データもすべて削除されます。",
+                  q: t("screens.landing.faq3q"),
+                  a: t("screens.landing.faq3a"),
                 },
                 {
-                  q: "推し友とのトレードは安全ですか？",
-                  a: "Collectifyのトレード機能には、相互評価システムと運営によるサポート体制があります。初回トレード時は実績のあるユーザーから始めることをおすすめしています。",
+                  q: t("screens.landing.faq4q"),
+                  a: t("screens.landing.faq4a"),
                 },
                 {
-                  q: "AIで作る3D推し部屋ってどんな感じ？",
-                  a: "あなたが登録したコレクションを元に、AIが自動でレイアウトを提案します。部屋のスタイル（モダン・ガーリー・カフェ風など）も自由に選べます。完成したお部屋はURLで友だちにシェアできます。",
+                  q: t("screens.landing.faq5q"),
+                  a: t("screens.landing.faq5a"),
                 },
                 {
-                  q: "ポイントは何に使えますか？",
-                  a: "コレクション登録枠の追加、マイルーム部屋数の追加、カスタムタグ枠拡張、AI画像生成、限定アバター・テーマなどに使用できます。サブスクではないので、必要な時だけ購入できます。",
+                  q: t("screens.landing.faq6q"),
+                  a: t("screens.landing.faq6a"),
                 },
                 {
-                  q: "退会・データ削除はできますか？",
-                  a: "はい、設定画面からいつでも退会いただけます。退会時にはすべての個人データが30日以内に完全削除されます。",
+                  q: t("screens.landing.faq7q"),
+                  a: t("screens.landing.faq7a"),
                 },
               ].map((item, i) => (
                 <AccordionItem
@@ -842,14 +843,14 @@ export default function Landing() {
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center text-white">
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
-              さあ、あなたの推しを、
+              {t("screens.landing.ctaTitle1")}
               <br />
-              もっと愛そう。
+              {t("screens.landing.ctaTitle2")}
             </h2>
             <p className="text-lg sm:text-xl text-white/90 mb-10 leading-relaxed">
-              登録は30秒。今すぐCollectifyを始めて、
+              {t("screens.landing.ctaLead1")}
               <br className="hidden sm:block" />
-              あなただけの推し活体験をはじめましょう。
+              {t("screens.landing.ctaLead2")}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Link to="/login">
@@ -857,7 +858,7 @@ export default function Landing() {
                   size="lg"
                   className="w-full sm:w-auto h-14 px-10 rounded-full text-base bg-white text-primary hover:bg-white/95 shadow-2xl"
                 >
-                  無料ではじめる
+                  {t("screens.landing.heroCtaFree")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
@@ -865,14 +866,14 @@ export default function Landing() {
                 <button className="h-14 px-5 rounded-full border-2 border-white/30 backdrop-blur-sm bg-white/10 hover:bg-white/20 text-white flex items-center gap-2.5 transition-all">
                   <Apple className="h-5 w-5" />
                   <div className="text-left">
-                    <div className="text-[10px] leading-tight">準備中</div>
+                    <div className="text-[10px] leading-tight">{t("screens.landing.comingSoon")}</div>
                     <div className="text-sm font-semibold leading-tight">App Store</div>
                   </div>
                 </button>
                 <button className="h-14 px-5 rounded-full border-2 border-white/30 backdrop-blur-sm bg-white/10 hover:bg-white/20 text-white flex items-center gap-2.5 transition-all">
                   <Play className="h-5 w-5" />
                   <div className="text-left">
-                    <div className="text-[10px] leading-tight">準備中</div>
+                    <div className="text-[10px] leading-tight">{t("screens.landing.comingSoon")}</div>
                     <div className="text-sm font-semibold leading-tight">Google Play</div>
                   </div>
                 </button>
@@ -882,15 +883,15 @@ export default function Landing() {
             <div className="mt-10 flex flex-wrap justify-center items-center gap-x-8 gap-y-3 text-sm text-white/80">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4" />
-                クレカ登録不要
+                {t("screens.landing.noCreditCard")}
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4" />
-                30秒で登録完了
+                {t("screens.landing.signup30s")}
               </div>
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-4 w-4" />
-                データ暗号化保管
+                {t("screens.landing.encrypted")}
               </div>
             </div>
           </div>
@@ -909,27 +910,27 @@ export default function Landing() {
                 <span className="font-bold text-lg">Collectify</span>
               </Link>
               <p className="text-sm text-muted-foreground max-w-md leading-relaxed">
-                推し活、もっと自由に、もっと楽しく。
+                {t("screens.landing.footerTagline1")}
                 <br />
-                あなたの推しを、ひとつのルームに。
+                {t("screens.landing.footerTagline2")}
               </p>
             </div>
             <div>
-              <div className="font-semibold mb-3 text-sm">プロダクト</div>
+              <div className="font-semibold mb-3 text-sm">{t("screens.landing.footerProduct")}</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#features" className="hover:text-foreground transition">機能</a></li>
-                <li><a href="#showcase" className="hover:text-foreground transition">使い方</a></li>
-                <li><a href="#pricing" className="hover:text-foreground transition">料金</a></li>
+                <li><a href="#features" className="hover:text-foreground transition">{t("screens.landing.navFeatures")}</a></li>
+                <li><a href="#showcase" className="hover:text-foreground transition">{t("screens.landing.navHowTo")}</a></li>
+                <li><a href="#pricing" className="hover:text-foreground transition">{t("screens.landing.navPricing")}</a></li>
                 <li><a href="#faq" className="hover:text-foreground transition">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <div className="font-semibold mb-3 text-sm">会社情報</div>
+              <div className="font-semibold mb-3 text-sm">{t("screens.landing.footerCompany")}</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link to="/login" className="hover:text-foreground transition">ログイン</Link></li>
-                <li><a href="https://mgc-global.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition">運営：MGC inc.</a></li>
-                <li><Link to="/privacy" className="hover:text-foreground transition">プライバシーポリシー</Link></li>
-                <li><Link to="/terms" className="hover:text-foreground transition">利用規約</Link></li>
+                <li><Link to="/login" className="hover:text-foreground transition">{t("screens.landing.navLogin")}</Link></li>
+                <li><a href="https://mgc-global.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition">{t("screens.landing.footerOperator")}</a></li>
+                <li><Link to="/privacy" className="hover:text-foreground transition">{t("screens.landing.footerPrivacy")}</Link></li>
+                <li><Link to="/terms" className="hover:text-foreground transition">{t("screens.landing.footerTerms")}</Link></li>
               </ul>
             </div>
           </div>
