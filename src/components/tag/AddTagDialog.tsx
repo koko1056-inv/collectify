@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Star } from "lucide-react";
 import { useUserPoints } from "@/hooks/usePoints";
-import { useSpendPoints } from "@/hooks/useSpendPoints";
+import { useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface AddTagDialogProps {
@@ -25,7 +25,7 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
   const [submitting, setSubmitting] = useState(false);
   const { t } = useLanguage();
   const { data: userPoints } = useUserPoints();
-  const spendPoints = useSpendPoints();
+  const qc = useQueryClient();
   const balance = userPoints?.total_points ?? 0;
 
   const handleAddNewTag = async () => {
@@ -75,35 +75,33 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
         return;
       }
 
-      // ポイント消費
-      await spendPoints.mutateAsync({
-        cost: TAG_CREATE_COST,
-        transactionType: "custom_tag_create",
-        description: `カスタムタグ発行: ${trimmedName}`,
+      // ポイント消費とタグ作成をサーバー側で原子的に実行する。
+      // 以前は「消費 → INSERT」の2段で、INSERT が失敗するとポイントだけ失われていた。
+      const { data: result, error } = await supabase.rpc("create_custom_tag", {
+        _name: trimmedName,
+        _category: category,
+        _content_id:
+          category === "character" || category === "series" ? contentId ?? null : null,
       });
 
-      const tagData: any = {
-        name: trimmedName,
-        category: category,
-      };
-      if ((category === "character" || category === "series") && contentId) {
-        tagData.content_id = contentId;
+      if (error) {
+        if (error.message?.includes("Insufficient points")) {
+          throw new Error(t("tagManage.addDialog.insufficientPoints"));
+        }
+        throw error;
       }
 
-      const { data: newTag, error } = await supabase
-        .from("tags")
-        .insert([tagData])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      if (newTag) {
-        onTagAdded(newTag.name);
+      const created = result as { name?: string } | null;
+      if (created?.name) {
+        onTagAdded(created.name);
         toast.success(t("tagManage.addDialog.tagAdded"), {
           description: `${trimmedName}${t("tagManage.addDialog.addedDescMid")}${TAG_CREATE_COST}${t("tagManage.addDialog.addedDescSuffix")}`,
         });
       }
+
+      qc.invalidateQueries({ queryKey: ["userPoints"] });
+      qc.invalidateQueries({ queryKey: ["pointTransactions"] });
+      qc.invalidateQueries({ queryKey: ["tags"] });
 
       setNewTagName("");
       onClose();

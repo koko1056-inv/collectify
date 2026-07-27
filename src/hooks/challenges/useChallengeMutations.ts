@@ -29,47 +29,28 @@ export function useCreateChallenge() {
       const thirdPoints = data.third_place_points || 30;
       const totalPrizePoints = firstPoints + secondPoints + thirdPoints;
 
-      // ポイント減算 + 履歴記録（サーバー側で残高検証）
-      const { error: deductErr } = await supabase.rpc("deduct_points_for_challenge", {
-        _total_prize: totalPrizePoints,
-        _description: `チャレンジ「${data.title}」作成（賞金プール）`,
+      // 残高検証・減算・チャレンジ作成・履歴記録を1トランザクションで実行する。
+      // 以前は「減算 → INSERT」の2段だったため、間で離脱するとポイントだけ失われ、
+      // 保存される賞金額が減算額と一致する保証も無かった。
+      const { data: challengeId, error } = await supabase.rpc("create_challenge", {
+        _title: data.title,
+        _ends_at: data.ends_at,
+        _description: data.description ?? null,
+        _image_url: data.image_url ?? null,
+        _official_item_id: data.official_item_id ?? null,
+        _first: firstPoints,
+        _second: secondPoints,
+        _third: thirdPoints,
       });
-      if (deductErr) {
-        if (deductErr.message?.includes("Insufficient points")) {
-          throw new Error(t("notices.points.insufficientRequired", { required: totalPrizePoints }));
-        }
-        throw deductErr;
-      }
-
-      // チャレンジを作成
-      const { data: challenge, error } = await supabase
-        .from("challenges")
-        .insert({
-          user_id: user.id,
-          title: data.title,
-          description: data.description,
-          image_url: data.image_url,
-          official_item_id: data.official_item_id,
-          ends_at: data.ends_at,
-          first_place_points: firstPoints,
-          second_place_points: secondPoints,
-          third_place_points: thirdPoints,
-        })
-        .select()
-        .single();
 
       if (error) {
-        // チャレンジ作成失敗時はポイントを戻す
-        await supabase.rpc("add_user_points", {
-          _user_id: user.id,
-          _points: totalPrizePoints,
-          _transaction_type: "challenge_refund",
-          _description: `チャレンジ作成失敗のため返金: ${data.title}`,
-        });
+        if (error.message?.includes("Insufficient points")) {
+          throw new Error(t("notices.points.insufficientRequired", { required: totalPrizePoints }));
+        }
         throw error;
       }
 
-      return challenge;
+      return { id: challengeId as string };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
@@ -188,64 +169,20 @@ export function useEndChallenge() {
 
   return useMutation({
     mutationFn: async (challengeId: string) => {
-      // Get entries sorted by votes
-      const { data: entries, error: entriesError } = await supabase
-        .from("challenge_entries")
-        .select(`
-          *,
-          challenge_votes (id)
-        `)
-        .eq("challenge_id", challengeId);
+      // 順位算定・賞金付与・締めをサーバー側で1回だけ実行する。
+      // 以前はクライアントが順位を計算して付与RPCを回しており、
+      // 上限も冪等性も無かったため、賞金を何度でも配ることができた。
+      const { data, error } = await supabase.rpc("settle_challenge", {
+        _challenge_id: challengeId,
+      });
+      if (error) throw error;
 
-      if (entriesError) throw entriesError;
-
-      // Get challenge info
-      const { data: challenge, error: challengeError } = await supabase
-        .from("challenges")
-        .select("*")
-        .eq("id", challengeId)
-        .single();
-
-      if (challengeError) throw challengeError;
-
-      // Sort by vote count
-      const sortedEntries = (entries || [])
-        .map(e => ({ ...e, voteCount: e.challenge_votes?.length || 0 }))
-        .sort((a, b) => b.voteCount - a.voteCount);
-
-      // Award points to top 3
-      const pointsAwards = [
-        { place: 1, points: challenge.first_place_points },
-        { place: 2, points: challenge.second_place_points },
-        { place: 3, points: challenge.third_place_points },
-      ];
-
-      for (let i = 0; i < Math.min(3, sortedEntries.length); i++) {
-        const entry = sortedEntries[i];
-        if (entry.voteCount > 0) {
-          // サーバー側でオーナー検証 + ポイント付与 + 履歴記録
-          const { error: awardErr } = await supabase.rpc("award_challenge_prize", {
-            _challenge_id: challengeId,
-            _winner_user_id: entry.user_id,
-            _points: pointsAwards[i].points,
-            _description: `チャレンジ「${challenge.title}」${pointsAwards[i].place}位入賞`,
-          });
-          if (awardErr) throw awardErr;
-        }
-      }
-
-      // Update challenge status
-      const { error: updateError } = await supabase
-        .from("challenges")
-        .update({ status: "ended" })
-        .eq("id", challengeId);
-
-      if (updateError) throw updateError;
-
-      return sortedEntries.slice(0, 3);
+      return (data as { winners?: unknown[] })?.winners ?? [];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["challenges"] });
+      queryClient.invalidateQueries({ queryKey: ["userPoints"] });
+      queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
       toast.success(t("notices.challenges.endedWithPoints"));
     },
     onError: (error) => {

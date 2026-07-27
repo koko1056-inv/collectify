@@ -1,8 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface UserPoints {
   id: string;
@@ -59,14 +57,9 @@ export function useUserPoints() {
         
         
       if (error) {
-        // ユーザーポイントレコードが存在しない場合は作成
+        // ユーザーポイントレコードが存在しない場合はサーバー側で作成
         if (error.code === 'PGRST116') {
-          await supabase.rpc('add_user_points', {
-            _user_id: user.id,
-            _points: 0,
-            _transaction_type: 'init',
-            _description: '初期化'
-          });
+          await supabase.rpc('ensure_user_points_row');
           // Re-fetch after init
           const { data: newData, error: refetchError } = await supabase
             .from("user_points")
@@ -147,191 +140,14 @@ export function useUserAchievements() {
   });
 }
 
-export function useAwardPoints() {
-  const { user } = useAuth();
-  const { t } = useLanguage();
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({
-      points,
-      transactionType,
-      description,
-      referenceId
-    }: {
-      points: number;
-      transactionType: string;
-      description?: string;
-      referenceId?: string;
-    }) => {
-      if (!user?.id) throw new Error("User not authenticated");
-      
-      // ログインボーナスの場合はclaim_login_bonusを使用
-      if (transactionType === 'login_bonus') {
-        const { data: claimed, error } = await supabase
-          .rpc('claim_login_bonus', { _user_id: user.id });
-        if (error) throw error;
-        if (!claimed) throw new Error(t("notices.points.loginBonusAlreadyClaimed"));
-        return { points, newTotal: 0 }; // newTotal will be refreshed by invalidation
-      }
-      
-      // Use server-side RPC for point changes
-      const { error } = await supabase.rpc('add_user_points', {
-        _user_id: user.id,
-        _points: points,
-        _transaction_type: transactionType,
-        _description: description || null,
-        _reference_id: referenceId || null
-      });
-      
-      if (error) throw error;
-      
-      // 称号チェック
-      const { data: updatedPoints } = await supabase
-        .from("user_points")
-        .select("total_points")
-        .eq("user_id", user.id)
-        .single();
-      
-      const newTotal = updatedPoints?.total_points || 0;
-      await checkAndAwardAchievements(user.id, newTotal, transactionType);
-      
-      return { points, newTotal };
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["userPoints"] });
-      queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
-      queryClient.invalidateQueries({ queryKey: ["userAchievements"] });
-      
-      toast.success(t("notices.points.earnedTitle"), {
-        description: t("notices.points.earnedDesc", { points: data.points }),
-      });
-    },
-    onError: (error) => {
-      toast.error(t("notices.common.errorTitle"), {
-        description: error.message,
-      });
-    },
-  });
-}
-
-export function useDeductPoints() {
-  const { user } = useAuth();
-  const { t } = useLanguage();
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({
-      points,
-      transactionType,
-      description,
-      referenceId
-    }: {
-      points: number;
-      transactionType: string;
-      description?: string;
-      referenceId?: string;
-    }) => {
-      if (!user?.id) throw new Error("User not authenticated");
-      
-      // Check current balance first
-      const { data: currentPoints, error: fetchError } = await supabase
-        .from("user_points")
-        .select("total_points")
-        .eq("user_id", user.id)
-        .single();
-        
-      if (fetchError) {
-        if (fetchError.code === 'PGRST116') {
-          throw new Error(t("notices.points.insufficient"));
-        }
-        throw fetchError;
-      }
-      
-      const currentTotal = currentPoints?.total_points || 0;
-      if (currentTotal < points) {
-        throw new Error(t("notices.points.insufficientDetail", { current: currentTotal, required: points }));
-      }
-      
-      // Use server-side RPC for deduction (negative points)
-      const { error } = await supabase.rpc('add_user_points', {
-        _user_id: user.id,
-        _points: -points,
-        _transaction_type: transactionType,
-        _description: description || null,
-        _reference_id: referenceId || null
-      });
-      
-      if (error) throw error;
-      
-      const newTotal = currentTotal - points;
-      return { points, newTotal };
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["userPoints"] });
-      queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
-    },
-    onError: (error) => {
-      toast.error(t("notices.common.errorTitle"), {
-        description: error.message,
-      });
-    },
-  });
-}
-
-async function checkAndAwardAchievements(userId: string, totalPoints: number, actionType: string) {
-  // ポイント数による称号チェック
-  const { data: pointAchievements } = await supabase
-    .from("achievements")
-    .select("*")
-    .not("required_points", "is", null)
-    .lte("required_points", totalPoints);
-    
-  // アクション回数による称号チェック
-  let actionCount = 0;
-  if (actionType === 'item_add') {
-    const { count } = await supabase
-      .from("point_transactions")
-      .select("*", { count: "exact" })
-      .eq("user_id", userId)
-      .eq("transaction_type", "item_add");
-    actionCount = count || 0;
-  } else if (actionType === 'content_add') {
-    const { count } = await supabase
-      .from("point_transactions")
-      .select("*", { count: "exact" })
-      .eq("user_id", userId)
-      .eq("transaction_type", "content_add");
-    actionCount = count || 0;
-  }
-  
-  const { data: actionAchievements } = await supabase
-    .from("achievements")
-    .select("*")
-    .eq("action_type", actionType)
-    .not("required_action_count", "is", null)
-    .lte("required_action_count", actionCount);
-    
-  const allEligibleAchievements = [
-    ...(pointAchievements || []),
-    ...(actionAchievements || [])
-  ];
-  
-  // 既に獲得済みの称号を除外
-  const { data: existingAchievements } = await supabase
-    .from("user_achievements")
-    .select("achievement_id")
-    .eq("user_id", userId);
-    
-  const existingIds = existingAchievements?.map(a => a.achievement_id) || [];
-  const newAchievements = allEligibleAchievements.filter(
-    a => !existingIds.includes(a.id)
-  );
-  
-  // 新しい称号を付与（サーバー側で資格を再検証）
-  for (const achievement of newAchievements) {
-    await supabase.rpc("grant_achievement_if_eligible", {
-      _achievement_id: achievement.id,
-    });
-  }
-}
+/**
+ * 未使用だった useAwardPoints / useDeductPoints と、そこからのみ呼ばれていた
+ * checkAndAwardAchievements は削除した。
+ *
+ * - 付与は claim_reward（額はサーバー側の point_rewards が持つ）に一本化。
+ *   → src/hooks/useClaimReward.ts
+ * - 消費は用途ごとの専用RPC（create_custom_tag / purchase_shop_item /
+ *   expand_collection_slots / create_challenge）に一本化。
+ * - 称号は grant_eligible_achievements で一括評価する。
+ *   従来のクライアント側判定は呼び出し元が無く、称号は付与されていなかった。
+ */

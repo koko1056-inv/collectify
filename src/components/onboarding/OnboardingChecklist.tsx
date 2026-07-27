@@ -277,9 +277,10 @@ export function OnboardingChecklist() {
       for (const item of toClaim) {
         claimingRef.current.add(item.id);
         try {
+          // 付与額はサーバー側の onboarding_reward_steps が持つ。
+          // 以前は _points をクライアントから渡していたため、任意額を請求できた。
           const { data, error } = await supabase.rpc('claim_onboarding_reward', {
             _step_id: item.id,
-            _points: item.points,
           });
           if (error) {
             console.error('[OnboardingChecklist] claim error:', error);

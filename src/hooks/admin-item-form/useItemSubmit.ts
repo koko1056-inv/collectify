@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { addTagToItem } from "@/utils/tag/tag-mutations";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { claimReward } from "@/hooks/useClaimReward";
 
 interface FormDataType {
   title: string;
@@ -197,20 +198,10 @@ export function useItemSubmit({
         }
       }
 
-      // グッズ追加ポイントを付与（サーバーサイド関数使用）
-      try {
-        await supabase.rpc('add_user_points', {
-          _user_id: user?.id,
-          _points: 5,
-          _transaction_type: 'item_add',
-          _description: 'グッズ追加',
-          _reference_id: itemData.id
-          });
-          
+      // グッズ登録ポイント。付与額と二重付与の判定はサーバー側（claim_reward）が持つ。
+      if (await claimReward("official_item_add", itemData.id)) {
         await queryClient.invalidateQueries({ queryKey: ["userPoints"] });
         await queryClient.invalidateQueries({ queryKey: ["pointTransactions"] });
-      } catch (pointError) {
-        console.error("ポイント付与エラー:", pointError);
       }
 
       toast.success(t("notices.adminItem.addedTitle"), {

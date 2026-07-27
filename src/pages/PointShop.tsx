@@ -27,7 +27,15 @@ import {
   Home,
   ImageIcon,
 } from "lucide-react";
-import { usePointPackages, PointPackage } from "@/hooks/usePointShop";
+import {
+  usePointPackages,
+  usePointShopItems,
+  usePurchaseShopItem,
+  type PointPackage,
+  type PointShopItem,
+} from "@/hooks/usePointShop";
+import { EmptyState } from "@/components/ui/empty-state";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 import { useUserPoints } from "@/hooks/usePoints";
 import {
   AlertDialog,
@@ -56,12 +64,20 @@ export default function PointShop() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [confirmPack, setConfirmPack] = useState<PointPackage | null>(null);
+  const [confirmItem, setConfirmItem] = useState<PointShopItem | null>(null);
   const [purchasing, setPurchasing] = useState(false);
   const [rcPackages, setRcPackages] = useState<PointPackageEntry[]>([]);
   const nativeAvailable = isNativeIAPAvailable();
 
   const { data: packages, isLoading: packagesLoading } = usePointPackages();
   const { data: userPoints, isLoading: pointsLoading } = useUserPoints();
+  const {
+    data: shopItems,
+    isLoading: shopItemsLoading,
+    isError: shopItemsError,
+    refetch: refetchShopItems,
+  } = usePointShopItems();
+  const purchaseShopItem = usePurchaseShopItem();
 
   // Load RevenueCat offerings once on native platforms.
   useEffect(() => {
@@ -94,6 +110,17 @@ export default function PointShop() {
   }
 
   const currentPoints = userPoints?.total_points ?? 0;
+
+  const handleConfirmExchange = async () => {
+    const item = confirmItem;
+    if (!item) return;
+    try {
+      // 残高検証・減算・上限反映・履歴記録はすべて purchase_shop_item が原子的に行う
+      await purchaseShopItem.mutateAsync(item);
+    } finally {
+      setConfirmItem(null);
+    }
+  };
 
   const handleConfirmPurchase = async () => {
     const pack = confirmPack;
@@ -254,6 +281,62 @@ export default function PointShop() {
           )}
         </section>
 
+        {/* ポイントで交換できるアイテム。
+            以前は point_shop_items を読むフックと購入フックが実装済みなのに
+            どの画面からも呼ばれておらず、ポイントの使い道が画面上に存在しなかった。 */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
+            <Coins className="w-5 h-5 text-primary" />
+            {t("screens.pointShop.exchangeHeading")}
+          </h2>
+
+          {shopItemsLoading ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-32 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : shopItemsError ? (
+            <QueryErrorState
+              title={t("screens.pointShop.exchangeLoadFailed")}
+              onRetry={() => refetchShopItems()}
+            />
+          ) : (shopItems?.length ?? 0) === 0 ? (
+            <EmptyState icon={Coins} title={t("screens.pointShop.exchangeEmpty")} />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {shopItems!.map((item) => {
+                const affordable = currentPoints >= item.points_cost;
+                return (
+                  <Card key={item.id}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">{item.name}</CardTitle>
+                      {item.description && (
+                        <CardDescription>{item.description}</CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardFooter className="flex items-center justify-between pt-0">
+                      <Badge variant="secondary" className="gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        {item.points_cost}pt
+                      </Badge>
+                      <Button
+                        size="sm"
+                        disabled={!affordable || purchaseShopItem.isPending}
+                        onClick={() => setConfirmItem(item)}
+                      >
+                        {affordable
+                          ? t("screens.pointShop.exchangeBuy")
+                          : t("screens.pointShop.exchangeInsufficient")}
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
         {/* Spend Guide */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
@@ -327,6 +410,35 @@ export default function PointShop() {
             <AlertDialogCancel disabled={purchasing}>{t("screens.pointShop.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmPurchase} disabled={purchasing}>
               {purchasing ? t("screens.pointShop.processing") : t("screens.pointShop.continue")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ポイント交換の確認 */}
+      <AlertDialog open={!!confirmItem} onOpenChange={(o) => !o && setConfirmItem(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("screens.pointShop.exchangeConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("screens.pointShop.exchangeConfirmDesc", {
+                name: confirmItem?.name ?? "",
+                cost: confirmItem?.points_cost ?? 0,
+                balance: currentPoints,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={purchaseShopItem.isPending}>
+              {t("screens.pointShop.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmExchange}
+              disabled={purchaseShopItem.isPending}
+            >
+              {purchaseShopItem.isPending
+                ? t("screens.pointShop.processing")
+                : t("screens.pointShop.exchangeBuy")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
