@@ -1,7 +1,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { TagInputField } from "./tag/TagInputField";
 import { CurrentTags } from "./tag/CurrentTags";
 import { PreviousTags } from "./tag/PreviousTags";
@@ -23,7 +23,6 @@ export function TagInput({
   onClose = () => {},
   category = "character"
 }: TagInputProps) {
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
@@ -111,8 +110,7 @@ export function TagInput({
           queryClient.invalidateQueries({ queryKey: ["user-previous-tags", category] }),
         ]);
 
-        toast({
-          title: t("chrome.tagInput.removedTitle"),
+        toast.success(t("chrome.tagInput.removedTitle"), {
           description: t("chrome.tagInput.removedDesc", { tag: tagToRemove }),
         });
       }
@@ -124,10 +122,8 @@ export function TagInput({
         queryClient.setQueryData(qk, prevCache);
       }
       onTagsChange(prevSelected);
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.tagInput.removeFailed"),
-        variant: "destructive",
       });
     }
   };

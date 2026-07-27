@@ -4,6 +4,7 @@ import { useItemPosts } from "@/hooks/useItemPosts";
 import { PostDetailModal } from "@/components/posts/PostDetailModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { GoodsPost } from "@/types/posts";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ItemPostsSectionProps {
@@ -20,7 +21,7 @@ export function ItemPostsSection({ userItemId }: ItemPostsSectionProps) {
       <div className="space-y-2">
         <h3 className="text-sm font-medium">{t("itemDetails.posts.title")}</h3>
         <div className="text-center py-4">
-          <div className="text-sm text-gray-500">{t("itemDetails.common.loading")}</div>
+          <div className="text-sm text-muted-foreground">{t("itemDetails.common.loading")}</div>
         </div>
       </div>
     );
@@ -30,9 +31,7 @@ export function ItemPostsSection({ userItemId }: ItemPostsSectionProps) {
     return (
       <div className="space-y-2">
         <h3 className="text-sm font-medium">{t("itemDetails.posts.title")}</h3>
-        <div className="text-center py-4">
-          <p className="text-sm text-gray-500">{t("itemDetails.posts.empty")}</p>
-        </div>
+        <EmptyState title={t("itemDetails.posts.empty")} className="py-4" />
       </div>
     );
   }

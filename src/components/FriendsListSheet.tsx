@@ -7,9 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { FollowList } from "./profile/FollowList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { EmptyState } from "@/components/ui/empty-state";
 import { UserCard } from "./profile/UserCard";
 import { PopularCollectors } from "./profile/PopularCollectors";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,7 +36,6 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
   const [searching, setSearching] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("following");
   const [collectionCounts, setCollectionCounts] = useState<Record<string, number>>({});
-  const { toast } = useToast();
   const { t } = useLanguage();
   const navigate = useNavigate();
 
@@ -45,10 +45,8 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
       if (user) {
         setUserId(user.id);
       } else {
-        toast({
-          title: t("chrome.common.error"),
+        toast.error(t("chrome.common.error"), {
           description: t("chrome.friends.loginRequired"),
-          variant: "destructive",
         });
         navigate("/login");
       }
@@ -57,7 +55,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
     if (isOpen) {
       fetchCurrentUser();
     }
-  }, [isOpen, navigate, toast]);
+  }, [isOpen, navigate]);
 
   useEffect(() => {
     const searchUsers = async () => {
@@ -104,10 +102,8 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
         
       } catch (error) {
         console.error("Error searching users:", error);
-        toast({
-          title: t("chrome.friends.searchErrorTitle"),
+        toast.error(t("chrome.friends.searchErrorTitle"), {
           description: t("chrome.friends.searchErrorDesc"),
-          variant: "destructive",
         });
       } finally {
         setSearching(false);
@@ -116,7 +112,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
 
     const timer = setTimeout(searchUsers, 500); // デバウンス時間を増加
     return () => clearTimeout(timer);
-  }, [searchQuery, toast]);
+  }, [searchQuery]);
 
   const fetchCollectionCounts = async (profileIds: string[]) => {
     try {
@@ -164,8 +160,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
 
         if (unfollowError) throw unfollowError;
 
-        toast({
-          title: t("chrome.common.success"),
+        toast.success(t("chrome.common.success"), {
           description: t("chrome.friends.unfollowed"),
         });
       } else {
@@ -178,8 +173,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
 
         if (followError) throw followError;
 
-        toast({
-          title: t("chrome.common.success"),
+        toast.success(t("chrome.common.success"), {
           description: t("chrome.friends.followed"),
         });
       }
@@ -198,10 +192,8 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
       }
     } catch (error) {
       console.error("Error following user:", error);
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.friends.followFailed"),
-        variant: "destructive",
       });
     }
   };
@@ -214,7 +206,7 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="bottom" className="h-[90%] p-0">
-        <SheetHeader className="border-b p-4 sticky top-0 bg-white z-10">
+        <SheetHeader className="border-b p-4 sticky top-0 bg-background z-10">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={onClose} className="-ml-2">
               <ArrowLeft className="h-6 w-6" />
@@ -265,9 +257,11 @@ export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
                     </div>
                   </ScrollArea>
                 ) : (
-                  <p className="text-center text-gray-500 p-4">
-                    {t("chrome.friends.noUsersFound")}
-                  </p>
+                  <EmptyState
+                    icon={Search}
+                    title={t("chrome.friends.noUsersFound")}
+                    className="py-8"
+                  />
                 )}
               </div>
             ) : (

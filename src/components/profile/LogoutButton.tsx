@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
@@ -19,22 +19,18 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export function LogoutButton() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      toast({
-        variant: "destructive",
-        title: t("profileScreen.common.error"),
+      toast.error(t("profileScreen.common.error"), {
         description: t("profileScreen.logout.failed"),
       });
       return;
     }
 
-    toast({
-      title: t("profileScreen.logout.doneTitle"),
+    toast.success(t("profileScreen.logout.doneTitle"), {
       description: t("profileScreen.logout.doneDesc"),
     });
     navigate("/login");

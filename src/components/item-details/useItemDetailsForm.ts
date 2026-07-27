@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function useItemDetailsForm(itemId: string, isUserItem: boolean, initialData: any, onClose: () => void) {
@@ -10,7 +10,6 @@ export function useItemDetailsForm(itemId: string, isUserItem: boolean, initialD
   const [editedData, setEditedData] = useState(initialData);
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   // 編集データの初期化
@@ -56,8 +55,7 @@ export function useItemDetailsForm(itemId: string, isUserItem: boolean, initialD
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
       await queryClient.invalidateQueries({ queryKey: ["item-memories", [itemId]] });
 
-      toast({
-        title: t("itemDetails.save.success"),
+      toast.success(t("itemDetails.save.success"), {
         description: t("itemDetails.save.successDescription"),
       });
 
@@ -65,10 +63,8 @@ export function useItemDetailsForm(itemId: string, isUserItem: boolean, initialD
       onClose();
     } catch (error) {
       console.error("Error saving user item:", error);
-      toast({
-        title: t("itemDetails.common.error"),
+      toast.error(t("itemDetails.common.error"), {
         description: t("itemDetails.save.failed"),
-        variant: "destructive",
       });
     } finally {
       setIsSaving(false);

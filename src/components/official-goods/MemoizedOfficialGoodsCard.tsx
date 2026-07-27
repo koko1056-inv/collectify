@@ -3,7 +3,7 @@ import { OfficialGoodsCard } from "../OfficialGoodsCard";
 import { SwipeableCard } from "./SwipeableCard";
 import { useOfficialGoodsCard } from "./useOfficialGoodsCard";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -32,15 +32,13 @@ const OfficialGoodsCardWithSwipe = ({
   contentName,
 }: MemoizedOfficialGoodsCardProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isInCollection, handleAddToCollection } = useOfficialGoodsCard({ id, title, image });
   const { t } = useLanguage();
 
   const handleSwipeRight = () => {
     if (isInCollection) {
-      toast({
-        title: t("collectionScreen.official.alreadyAdded"),
+      toast(t("collectionScreen.official.alreadyAdded"), {
         description: t("collectionScreen.official.alreadyAddedDesc"),
       });
       return;
@@ -50,10 +48,8 @@ const OfficialGoodsCardWithSwipe = ({
 
   const handleSwipeLeft = async () => {
     if (!user) {
-      toast({
-        title: t("collectionScreen.official.wishlistLoginRequired"),
+      toast.error(t("collectionScreen.official.wishlistLoginRequired"), {
         description: t("collectionScreen.official.wishlistLoginDesc"),
-        variant: "destructive",
       });
       return;
     }
@@ -68,9 +64,7 @@ const OfficialGoodsCardWithSwipe = ({
         .single();
 
       if (existing) {
-        toast({
-          title: t("collectionScreen.official.alreadyInWishlistOrCollection"),
-        });
+        toast(t("collectionScreen.official.alreadyInWishlistOrCollection"));
         return;
       }
 
@@ -90,16 +84,13 @@ const OfficialGoodsCardWithSwipe = ({
       await queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" });
       await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
 
-      toast({
-        title: t("collectionScreen.official.wishlistAdded"),
+      toast.success(t("collectionScreen.official.wishlistAdded"), {
         description: t("collectionScreen.official.wishlistAddedDesc"),
       });
     } catch (error) {
       console.error("Error adding to wishlist:", error);
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.official.wishlistAddFailed"),
-        variant: "destructive",
       });
     }
   };

@@ -24,7 +24,7 @@ export function RandomItemImage({ image, title, isSpinning, isLoading, onClick }
       className={`w-full max-w-[240px] mx-auto cursor-pointer transition-all duration-500 ${isSpinning ? "animate-spin" : "hover:scale-105"}`}
       onClick={onClick}
     >
-      <AspectRatio ratio={1} className="bg-gray-50 rounded-md overflow-hidden">
+      <AspectRatio ratio={1} className="bg-muted rounded-md overflow-hidden">
         <img 
           src={image} 
           alt={title} 

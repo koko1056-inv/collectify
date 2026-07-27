@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Users, UserPlus, Search } from "lucide-react";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Profile {
@@ -206,28 +207,22 @@ export function FollowList({ userId, type }: FollowListProps) {
           ))}
         </div>
       ) : profiles.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-            {type === "followers" ? (
-              <Users className="w-8 h-8 text-muted-foreground" />
-            ) : (
-              <UserPlus className="w-8 h-8 text-muted-foreground" />
-            )}
-          </div>
-          <p className="text-muted-foreground font-medium">
-            {type === "followers" ? t("profileScreen.follow.noFollowers") : t("profileScreen.follow.noFollowing")}
-          </p>
-          <p className="text-sm text-muted-foreground/70 mt-1">
-            {type === "followers"
+        <EmptyState
+          className="flex-1"
+          icon={type === "followers" ? Users : UserPlus}
+          title={type === "followers" ? t("profileScreen.follow.noFollowers") : t("profileScreen.follow.noFollowing")}
+          description={
+            type === "followers"
               ? t("profileScreen.follow.noFollowersHint")
-              : t("profileScreen.follow.noFollowingHint")}
-          </p>
-        </div>
+              : t("profileScreen.follow.noFollowingHint")
+          }
+        />
       ) : filteredProfiles.length === 0 && searchQuery ? (
-        <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
-          <Search className="w-8 h-8 text-muted-foreground mb-2" />
-          <p className="text-muted-foreground">{t("profileScreen.follow.noSearchResult", { query: searchQuery })}</p>
-        </div>
+        <EmptyState
+          className="flex-1"
+          icon={Search}
+          title={t("profileScreen.follow.noSearchResult", { query: searchQuery })}
+        />
       ) : (
         <ScrollArea className="flex-1 -mx-6 px-6">
           <div className="space-y-2 py-4">

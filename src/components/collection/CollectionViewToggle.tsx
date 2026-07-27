@@ -4,6 +4,8 @@ import { DragEndEvent } from "@dnd-kit/core";
 import { CollectionWishlist } from "./CollectionWishlist";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { Package } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { usePersonalTags } from "@/hooks/usePersonalTags";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -60,6 +62,10 @@ export function CollectionViewToggle({
 
   const showWishlist = activeView === "wishlist";
 
+  const emptyTitle = selectedPersonalTag
+    ? `${t("collectionScreen.viewToggle.taggedEmptyPrefix")}${selectedPersonalTag}${t("collectionScreen.viewToggle.taggedEmptySuffix")}`
+    : t("collectionScreen.viewToggle.empty");
+
   return (
     <div className="w-full">
       {/* タブ列：通常表示 / 欲しい物リスト / マイタグ... */}
@@ -91,17 +97,7 @@ export function CollectionViewToggle({
       {showWishlist ? (
         <CollectionWishlist userId={userId} />
       ) : items.length === 0 ? (
-        <div className="text-center py-12 text-sm text-muted-foreground">
-          {selectedPersonalTag ? (
-            <>
-              {t("collectionScreen.viewToggle.taggedEmptyPrefix")}
-              {selectedPersonalTag}
-              {t("collectionScreen.viewToggle.taggedEmptySuffix")}
-            </>
-          ) : (
-            t("collectionScreen.viewToggle.empty")
-          )}
-        </div>
+        <EmptyState icon={Package} title={emptyTitle} />
       ) : (
         <CollectionGrid
           items={items}

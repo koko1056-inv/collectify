@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -26,16 +26,13 @@ export function QuantityEditModal({
 }: QuantityEditModalProps) {
   const [quantity, setQuantity] = useState(initialQuantity);
   const [isSaving, setIsSaving] = useState(false);
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
   const handleSave = async () => {
     if (quantity < 1) {
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.quantity.minError"),
-        variant: "destructive",
       });
       return;
     }
@@ -49,8 +46,7 @@ export function QuantityEditModal({
 
       if (error) throw error;
 
-      toast({
-        title: t("collectionScreen.common.updated"),
+      toast.success(t("collectionScreen.common.updated"), {
         description: t("collectionScreen.quantity.updated"),
       });
 
@@ -59,10 +55,8 @@ export function QuantityEditModal({
       onClose();
     } catch (error) {
       console.error("Error updating quantity:", error);
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.quantity.updateFailed"),
-        variant: "destructive",
       });
     } finally {
       setIsSaving(false);

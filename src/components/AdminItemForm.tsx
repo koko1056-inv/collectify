@@ -10,7 +10,7 @@ import { useItemDetails } from "@/hooks/admin-item-form/useItemDetails";
 import { useItemSubmit } from "@/hooks/admin-item-form/useItemSubmit";
 import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,7 +21,6 @@ export function AdminItemForm() {
   const [selectedImages, setSelectedImages] = useState<Array<{ url: string; title: string | null }>>([]);
   const [isMultipleMode, setIsMultipleMode] = useState(false);
   const bulkSubmittingRef = useRef(false);
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
 
@@ -176,8 +175,7 @@ export function AdminItemForm() {
                       setStep1Completed(true);
                       setCurrentStep("step2");
                       
-                      toast({
-                        title: t("addItem.imageSelectedTitle"),
+                      toast.success(t("addItem.imageSelectedTitle"), {
                         description: t("chrome.adminForm.imagesSelectedDesc", { n: result.selectedImages.length }),
                       });
                     } else {
@@ -222,10 +220,8 @@ export function AdminItemForm() {
                       const user = (await supabase.auth.getUser()).data.user;
                       try {
                         if (!user) {
-                          toast({
-                            title: t("common.error"),
+                          toast.error(t("common.error"), {
                             description: t("addItem.loginRequired"),
-                            variant: "destructive",
                           });
                           return;
                         }
@@ -316,18 +312,15 @@ export function AdminItemForm() {
                           await queryClient.invalidateQueries({ queryKey: ["official-items"] });
                           await queryClient.refetchQueries({ queryKey: ["official-items"] });
 
-                          toast({
-                            title: t("addItem.registrationComplete"),
+                          toast.success(t("addItem.registrationComplete"), {
                             description: errorCount > 0
                               ? t("chrome.adminForm.registeredWithFailuresDesc", { n: successCount, failed: errorCount })
                               : t("chrome.adminForm.registeredDesc", { n: successCount }),
                           });
                           resetForm();
                         } else {
-                          toast({
-                            title: t("common.error"),
+                          toast.error(t("common.error"), {
                             description: t("addItem.registrationError"),
-                            variant: "destructive",
                           });
                         }
                       } finally {

@@ -11,6 +11,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Home, User, Pencil, Sparkles, Plus, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -432,14 +434,14 @@ function PickerGrid({
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="aspect-square rounded-xl bg-muted animate-pulse" />
+          <Skeleton key={i} className="aspect-square rounded-xl" />
         ))}
       </div>
     );
   }
   if (items.length === 0) {
     return (
-      <div className="text-center py-12 text-sm text-muted-foreground px-4">{emptyMessage}</div>
+      <EmptyState icon={Sparkles} title={emptyMessage} />
     );
   }
   return (

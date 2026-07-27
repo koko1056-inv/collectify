@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,7 +30,6 @@ export function WishlistModal({
   isEditing = false
 }: WishlistModalProps) {
   const [note, setNote] = useState("");
-  const { toast } = useToast();
   const { user } = useAuth();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
@@ -46,8 +45,7 @@ export function WishlistModal({
 
   const handleSave = async () => {
     if (!user) {
-      toast({
-        title: t("chrome.wishlist.loginRequiredTitle"),
+      toast(t("chrome.wishlist.loginRequiredTitle"), {
         description: t("chrome.wishlist.loginRequiredDesc"),
       });
       onClose();
@@ -63,8 +61,7 @@ export function WishlistModal({
 
         if (error) throw error;
 
-        toast({
-          title: t("chrome.wishlist.updatedTitle"),
+        toast.success(t("chrome.wishlist.updatedTitle"), {
           description: t("chrome.wishlist.noteUpdatedDesc", { title: itemTitle }),
         });
       } else {
@@ -87,8 +84,7 @@ export function WishlistModal({
             
           if (updateError) throw updateError;
           
-          toast({
-            title: t("chrome.wishlist.updatedTitle"),
+          toast.success(t("chrome.wishlist.updatedTitle"), {
             description: t("chrome.wishlist.noteUpdatedDesc", { title: itemTitle }),
           });
         } else {
@@ -108,8 +104,7 @@ export function WishlistModal({
           // 効果音を再生
           playWishlistSound();
 
-          toast({
-            title: t("chrome.wishlist.addedTitle"),
+          toast.success(t("chrome.wishlist.addedTitle"), {
             description: t("chrome.wishlist.addedDesc", { title: itemTitle }),
           });
         }
@@ -123,10 +118,8 @@ export function WishlistModal({
       onClose();
     } catch (error) {
       console.error("Error saving to wishlist:", error);
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.wishlist.tryAgain"),
-        variant: "destructive",
       });
     }
   };
@@ -141,7 +134,7 @@ export function WishlistModal({
         </DialogHeader>
         <div className="py-4">
           <h4 className="text-sm font-medium mb-2">{t("chrome.wishlist.item")}</h4>
-          <p className="text-sm text-gray-500 mb-4">{itemTitle}</p>
+          <p className="text-sm text-muted-foreground mb-4">{itemTitle}</p>
           <h4 className="text-sm font-medium mb-2">{t("chrome.wishlist.noteOptional")}</h4>
           <Textarea
             placeholder={t("chrome.wishlist.notePlaceholder")}

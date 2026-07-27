@@ -15,7 +15,7 @@ export function ShippingStep({ onShippingComplete }: ShippingStepProps) {
     <div className="p-4 space-y-4">
       <div className="space-y-4">
         <h3 className="font-medium">{t("social.chat.shippingTitle")}</h3>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           {t("social.chat.shippingIntro")}
         </p>
         <ol className="list-decimal list-inside space-y-2 text-sm">

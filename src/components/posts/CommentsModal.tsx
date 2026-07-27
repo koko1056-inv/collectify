@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePostComments, useAddComment } from "@/hooks/posts";
+import { EmptyState } from "@/components/ui/empty-state";
+import { MessageCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 
@@ -57,24 +59,26 @@ export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <div className="bg-gray-100 rounded-lg p-3">
+                  <div className="bg-muted rounded-lg p-3">
                     <p className="text-sm font-semibold">
                       {comment.profiles?.username || 'Unknown User'}
                     </p>
-                    <p className="text-sm text-gray-800 mt-1">
+                    <p className="text-sm text-foreground mt-1">
                       {comment.comment}
                     </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {formatRelative(comment.created_at)}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-4 text-gray-500">
-              {t("social.posts.noComments")}
-            </div>
+            <EmptyState
+              icon={MessageCircle}
+              title={t("social.posts.noComments")}
+              className="py-4"
+            />
           )}
         </div>
 

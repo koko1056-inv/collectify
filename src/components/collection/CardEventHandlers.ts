@@ -1,12 +1,11 @@
 
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { deleteUserItem } from "@/utils/tag-operations";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export const useCardEventHandlers = (itemId: string) => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -29,16 +28,13 @@ export const useCardEventHandlers = (itemId: string) => {
         });
       }
       
-      toast({
-        title: t("collectionScreen.cardActions.itemDeleted"),
+      toast.success(t("collectionScreen.cardActions.itemDeleted"), {
         description: t("collectionScreen.cardActions.itemDeletedDesc"),
       });
     } catch (error) {
       console.error("Error deleting item:", error);
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.cardActions.itemDeleteFailed"),
-        variant: "destructive",
       });
     }
   };

@@ -7,6 +7,8 @@ import { useState, useMemo } from "react";
 import { Search, PackageOpen } from "lucide-react";
 import { PostTarget } from "@/hooks/item-posts/useItemPosts";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface UserItemRow {
   id: string;
@@ -76,18 +78,18 @@ export function SelectItemForPostModal({
           {isLoading ? (
             <div className="grid grid-cols-3 gap-2">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="aspect-square rounded-lg bg-muted animate-pulse" />
+                <Skeleton key={i} className="aspect-square rounded-lg" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="py-12 flex flex-col items-center text-center text-muted-foreground gap-2">
-              <PackageOpen className="w-8 h-8" />
-              <p className="text-sm">
-                {items.length === 0
+            <EmptyState
+              icon={PackageOpen}
+              title={
+                items.length === 0
                   ? t("social.itemPosts.emptyCollection")
-                  : t("social.itemPosts.noMatch")}
-              </p>
-            </div>
+                  : t("social.itemPosts.noMatch")
+              }
+            />
           ) : (
             <div className="grid grid-cols-3 gap-2 pb-2">
               {filtered.map((item) => (

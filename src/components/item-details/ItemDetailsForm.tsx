@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { addTagToItem, removeTagFromItem } from "@/utils/tag/tag-mutations";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -27,7 +27,6 @@ export function ItemDetailsForm({
   isSaving,
   setIsSaving,
 }: ItemDetailsFormProps) {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
@@ -95,18 +94,15 @@ export function ItemDetailsForm({
       await queryClient.invalidateQueries({ queryKey: ["official-items"] });
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
 
-      toast({
-        title: t("itemDetails.save.updateSuccess"),
+      toast.success(t("itemDetails.save.updateSuccess"), {
         description: t("itemDetails.save.updateSuccessDescription"),
       });
 
       onEditComplete();
     } catch (error) {
       console.error("Error updating item:", error);
-      toast({
-        title: t("itemDetails.common.error"),
+      toast.error(t("itemDetails.common.error"), {
         description: t("itemDetails.save.updateFailed"),
-        variant: "destructive",
       });
     } finally {
       setIsSaving(false);

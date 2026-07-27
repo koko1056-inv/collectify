@@ -77,11 +77,11 @@ export function TagsAndSocialButtons({
               e.stopPropagation();
               setIsOwnersModalOpen(true);
             }}
-            className="border-gray-200 hover:bg-gray-50 h-7 w-7 sm:h-9 sm:w-9"
+            className="border-border hover:bg-muted h-7 w-7 sm:h-9 sm:w-9"
           >
             <Users className="h-3 w-3 sm:h-4 sm:w-4" />
           </Button>
-          <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{ownersCount}</span>
+          <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">{ownersCount}</span>
         </div>
       </div>
 

@@ -8,5 +8,5 @@ export const UserInfo = memo(function UserInfo() {
 
   if (!user || !profile?.username) return null;
 
-  return <div className="text-sm text-gray-600">{profile.username}</div>;
+  return <div className="text-sm text-muted-foreground">{profile.username}</div>;
 });

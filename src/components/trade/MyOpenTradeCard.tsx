@@ -2,7 +2,7 @@
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TradeRequest } from "./types";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { X, ArrowLeftRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -13,7 +13,6 @@ interface MyOpenTradeCardProps {
 }
 
 export function MyOpenTradeCard({ trade, onCancelSuccess }: MyOpenTradeCardProps) {
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const handleCancelTrade = async () => {
@@ -28,33 +27,30 @@ export function MyOpenTradeCard({ trade, onCancelSuccess }: MyOpenTradeCardProps
       
       onCancelSuccess(trade.id);
       
-      toast({
-        title: t("trade.myOpen.cancelledTitle"),
+      toast.success(t("trade.myOpen.cancelledTitle"), {
         description: t("trade.myOpen.cancelledDesc"),
       });
     } catch (error) {
       console.error("Error cancelling trade:", error);
-      toast({
-        title: t("common.error"),
+      toast.error(t("common.error"), {
         description: t("trade.myOpen.cancelErrorDesc"),
-        variant: "destructive",
       });
     }
   };
 
   return (
-    <Card className="overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors rounded-xl shadow-sm hover:shadow-md animate-fade-in">
-      <CardHeader className="p-4 pb-0 bg-gray-50">
-        <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
-          <ArrowLeftRight className="h-5 w-5 text-gray-500" />
+    <Card className="overflow-hidden border border-border hover:border-border transition-colors rounded-xl shadow-sm hover:shadow-md animate-fade-in">
+      <CardHeader className="p-4 pb-0 bg-muted">
+        <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+          <ArrowLeftRight className="h-5 w-5 text-muted-foreground" />
           {t("trade.myOpen.cardTitle")}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 pt-2">
         <div className="space-y-4 mt-2">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-700">{t("trade.myOpen.offeredItem")}</p>
-            <div className="border rounded-lg p-2 flex items-center space-x-2 hover:bg-gray-50 transition-colors group border-gray-200">
+            <p className="text-sm font-medium text-foreground">{t("trade.myOpen.offeredItem")}</p>
+            <div className="border rounded-lg p-2 flex items-center space-x-2 hover:bg-muted transition-colors group border-border">
               <div className="relative w-12 h-12 overflow-hidden rounded-lg">
                 <img 
                   src={trade.offered_item.image} 
@@ -66,8 +62,8 @@ export function MyOpenTradeCard({ trade, onCancelSuccess }: MyOpenTradeCardProps
             </div>
           </div>
           <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-700">{t("trade.myOpen.desiredItem")}</p>
-            <div className="border rounded-lg p-2 flex items-center space-x-2 hover:bg-gray-50 transition-colors group border-gray-200">
+            <p className="text-sm font-medium text-foreground">{t("trade.myOpen.desiredItem")}</p>
+            <div className="border rounded-lg p-2 flex items-center space-x-2 hover:bg-muted transition-colors group border-border">
               <div className="relative w-12 h-12 overflow-hidden rounded-lg">
                 <img 
                   src={trade.requested_item.image} 
@@ -81,17 +77,17 @@ export function MyOpenTradeCard({ trade, onCancelSuccess }: MyOpenTradeCardProps
         </div>
         
         {trade.message && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg border-l-4 border-gray-300">
-            <p className="text-sm text-gray-700 italic">{trade.message}</p>
+          <div className="mt-4 p-3 bg-muted rounded-lg border-l-4 border-border">
+            <p className="text-sm text-foreground italic">{trade.message}</p>
           </div>
         )}
       </CardContent>
-      <CardFooter className="bg-gray-50 p-4 flex justify-end">
+      <CardFooter className="bg-muted p-4 flex justify-end">
         <Button 
           variant="outline" 
           size="sm"
           onClick={handleCancelTrade}
-          className="rounded-full border-gray-200 text-gray-600 hover:bg-gray-100"
+          className="rounded-full border-border text-muted-foreground hover:bg-muted"
         >
           <X className="mr-1 h-4 w-4" />
           {t("common.cancel")}

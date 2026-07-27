@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "@/components/ShareModal";
 import { useNavigate } from "react-router-dom";
 import { ItemMemoriesModal } from "@/components/ItemMemoriesModal";
@@ -55,7 +54,7 @@ export function RandomCollectionItemModal({
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader className="relative z-10 bg-white/80 backdrop-blur-sm py-2 rounded-t-md">
+          <DialogHeader className="relative z-10 bg-background/80 backdrop-blur-sm py-2 rounded-t-md">
             <DialogTitle className="text-center text-primary font-bold">{t("collectionScreen.random.title")}</DialogTitle>
           </DialogHeader>
           

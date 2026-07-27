@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Link } from "react-router-dom";
 import { Users, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -140,12 +141,11 @@ export function ItemOwnersModal({
                 </div>
               ))
           ) : owners?.length === 0 ? (
-            <div className="text-center py-8">
-              <Package className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">
-                {t("chrome.owners.empty")}
-              </p>
-            </div>
+            <EmptyState
+              icon={Package}
+              title={t("chrome.owners.empty")}
+              className="py-8"
+            />
           ) : (
             owners?.map((owner) => {
               const isMe = owner.user_id === user?.id;

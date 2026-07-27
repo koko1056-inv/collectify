@@ -24,7 +24,7 @@ export function ItemDescriptionField({
           className="mt-2"
         />
       ) : (
-        <p className="text-sm text-gray-600 whitespace-pre-wrap mt-2">
+        <p className="text-sm text-muted-foreground whitespace-pre-wrap mt-2">
           {description || t("itemDetails.common.notSet")}
         </p>
       )}

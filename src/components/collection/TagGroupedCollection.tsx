@@ -13,6 +13,7 @@ import { CategoryTagSearch } from "@/components/tag/CategoryTagSearch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagGroupedCollectionProps {
@@ -112,9 +113,10 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
 
   if (Object.keys(currentItems).length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">{t("collectionScreen.tagGroups.empty")}</p>
-      </div>
+      <EmptyState
+        icon={Tag}
+        title={t("collectionScreen.tagGroups.empty")}
+      />
     );
   }
 
@@ -122,12 +124,12 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
     <div className="space-y-4">
       <Tabs value={groupViewMode} onValueChange={(value) => setGroupViewMode(value as "tags" | "groups")}>
         <div className="flex items-center justify-between">
-          <TabsList className="bg-white">
-            <TabsTrigger value="tags" className="data-[state=active]:bg-gray-100">
+          <TabsList className="bg-card">
+            <TabsTrigger value="tags" className="data-[state=active]:bg-muted">
               <Tag className="h-4 w-4 mr-2" />
               {t("collectionScreen.tagGroups.byTag")}
             </TabsTrigger>
-            <TabsTrigger value="groups" className="data-[state=active]:bg-gray-100">
+            <TabsTrigger value="groups" className="data-[state=active]:bg-muted">
               <FolderPlus className="h-4 w-4 mr-2" />
               {t("collectionScreen.tagGroups.byGroup")}
             </TabsTrigger>
@@ -171,7 +173,7 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
           {activeTag && currentItems[activeTag] && (
             <>
               <h3 className="text-lg font-semibold mb-3">
-                {activeTag} <span className="text-sm text-gray-500">({currentItems[activeTag].length}{t("collectionScreen.tagGroups.itemsSuffix")})</span>
+                {activeTag} <span className="text-sm text-muted-foreground">({currentItems[activeTag].length}{t("collectionScreen.tagGroups.itemsSuffix")})</span>
               </h3>
               <CollectionGrid
                 items={currentItems[activeTag]}

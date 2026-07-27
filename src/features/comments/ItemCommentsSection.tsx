@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Loader2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useItemComments, useCreateItemComment } from "./useItemComments";
@@ -71,11 +72,11 @@ export function ItemCommentsSection({ officialItemId }: ItemCommentsSectionProps
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : comments.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          <MessageCircle className="h-10 w-10 mx-auto mb-2 opacity-40" />
-          <p className="text-sm">{t("trade.comments.emptyTitle")}</p>
-          <p className="text-xs mt-1">{t("trade.comments.emptyDesc")}</p>
-        </div>
+        <EmptyState
+          icon={MessageCircle}
+          title={t("trade.comments.emptyTitle")}
+          description={t("trade.comments.emptyDesc")}
+        />
       ) : (
         <div className="space-y-4">
           {comments.map((c) => (

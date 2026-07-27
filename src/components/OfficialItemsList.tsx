@@ -5,7 +5,7 @@ import { OfficialItemsHeader } from "./official-goods/OfficialItemsHeader";
 import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
 import { useItemCounts } from "./official-goods/hooks/useItemCounts";
 import { useSortedItems } from "./official-goods/hooks/useSortedItems";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { Loader2, Upload, CheckSquare, X, Tags, Package } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -96,7 +96,6 @@ export function OfficialItemsList({
   const sortedItems = useSortedItems(filteredByTagsItems, sortBy, ownerCounts);
   const loaderRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   const loadMoreItems = useCallback(() => {
@@ -111,8 +110,7 @@ export function OfficialItemsList({
         
         // 全アイテムを表示した場合は通知を表示
         if (newCount >= sortedItems.length) {
-          toast({
-            title: t("chrome.officialItems.allShownTitle"),
+          toast(t("chrome.officialItems.allShownTitle"), {
             description: t("chrome.officialItems.allShownDesc", { n: sortedItems.length }),
           });
         }
@@ -121,7 +119,7 @@ export function OfficialItemsList({
       });
       setIsLoading(false);
     }, 500);
-  }, [visibleCount, sortedItems.length, isMobile, isLoading, toast, t]);
+  }, [visibleCount, sortedItems.length, isMobile, isLoading, t]);
 
   useEffect(() => {
     // IntersectionObserverを使って無限スクロールを実装

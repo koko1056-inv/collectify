@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -72,7 +72,6 @@ export function InitialInterestSelection({
   const [showNewContentDialog, setShowNewContentDialog] = useState(false);
   const [newContentName, setNewContentName] = useState("");
   const [creatingContent, setCreatingContent] = useState(false);
-  const { toast } = useToast();
   const { t } = useLanguage();
   const { user } = useAuth();
   const { completeWalkthrough } = useOnboarding();
@@ -131,10 +130,10 @@ export function InitialInterestSelection({
       queryClient.invalidateQueries({ queryKey: ['content-names'] });
       setNewContentName("");
       setShowNewContentDialog(false);
-      toast({ title: t("chrome.interests.contentAdded", { name: newContentName.trim() }) });
+      toast.success(t("chrome.interests.contentAdded", { name: newContentName.trim() }));
     } catch (error) {
       console.error('Error creating content:', error);
-      toast({ title: t("chrome.common.error"), variant: "destructive" });
+      toast.error(t("chrome.common.error"));
     } finally {
       setCreatingContent(false);
     }
@@ -158,8 +157,7 @@ export function InitialInterestSelection({
       // オンボーディングを完了としてマーク
       completeWalkthrough();
 
-      toast({
-        title: selectedContents.length > 0 ? t("chrome.interests.savedTitle") : t("chrome.interests.skippedTitle"),
+      toast.success(selectedContents.length > 0 ? t("chrome.interests.savedTitle") : t("chrome.interests.skippedTitle"), {
         description: selectedContents.length > 0 ? t("chrome.interests.savedDesc") : t("chrome.interests.skippedDesc"),
       });
       
@@ -170,10 +168,8 @@ export function InitialInterestSelection({
       }
     } catch (error) {
       console.error('Error saving interests:', error);
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.interests.saveFailed"),
-        variant: "destructive",
       });
     } finally {
       setSaving(false);

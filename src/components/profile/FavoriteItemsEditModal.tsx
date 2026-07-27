@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Search, X, ArrowLeft, ArrowRight, Plus, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -243,11 +244,14 @@ export function FavoriteItemsEditModal({
               ))}
             </div>
           ) : filteredItems.length === 0 ? (
-            <p className="text-center text-sm text-muted-foreground py-12">
-              {search
-                ? t("profileScreen.favorites.noMatch")
-                : t("profileScreen.favorites.emptyCollection")}
-            </p>
+            <EmptyState
+              icon={search ? Search : Star}
+              title={
+                search
+                  ? t("profileScreen.favorites.noMatch")
+                  : t("profileScreen.favorites.emptyCollection")
+              }
+            />
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {filteredItems.map((item) => {

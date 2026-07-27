@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, ArrowLeft, User } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -18,7 +18,6 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [username, setUsername] = useState("");
   const [suggestions, setSuggestions] = useState<Profile[]>([]);
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -55,10 +54,8 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
 
   const handleSearch = async () => {
     if (!username.trim()) {
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.userSearch.enterUsername"),
-        variant: "destructive",
       });
       return;
     }
@@ -70,10 +67,8 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
       .maybeSingle();
 
     if (error || !profile) {
-      toast({
-        title: t("chrome.common.error"),
+      toast.error(t("chrome.common.error"), {
         description: t("chrome.friends.noUsersFound"),
-        variant: "destructive",
       });
       return;
     }
@@ -87,7 +82,7 @@ export function UserSearchSheet({ isOpen, onClose }: { isOpen: boolean; onClose:
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="bottom" className="h-[90%] p-0">
-        <SheetHeader className="border-b p-4 sticky top-0 bg-white">
+        <SheetHeader className="border-b p-4 sticky top-0 bg-background">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={onClose} className="-ml-2">
               <ArrowLeft className="h-6 w-6" />

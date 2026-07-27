@@ -6,6 +6,8 @@ import { ChatModal } from "./ChatModal";
 import { MessageCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Conversation {
   partnerId: string;
@@ -195,11 +197,11 @@ export function ConversationList() {
     return (
       <div className="p-4 space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-3 animate-pulse">
-            <div className="h-14 w-14 rounded-full bg-muted" />
+          <div key={i} className="flex items-center gap-3">
+            <Skeleton className="h-14 w-14 rounded-full" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-24 bg-muted rounded" />
-              <div className="h-3 w-40 bg-muted rounded" />
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-40" />
             </div>
           </div>
         ))}
@@ -209,11 +211,12 @@ export function ConversationList() {
 
   if (conversations.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-        <MessageCircle className="h-16 w-16 mb-4 opacity-50" />
-        <p className="text-lg font-medium">{t("social.chat.listEmptyTitle")}</p>
-        <p className="text-sm">{t("social.chat.listEmptyDesc")}</p>
-      </div>
+      <EmptyState
+        icon={MessageCircle}
+        title={t("social.chat.listEmptyTitle")}
+        description={t("social.chat.listEmptyDesc")}
+        className="py-20"
+      />
     );
   }
 

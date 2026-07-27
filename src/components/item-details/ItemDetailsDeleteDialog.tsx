@@ -1,7 +1,7 @@
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { deleteUserItem } from "@/utils/tag/user-item-operations";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -27,7 +27,6 @@ export function ItemDetailsDeleteDialog({
   userId,
   user,
 }: ItemDetailsDeleteDialogProps) {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
@@ -43,16 +42,13 @@ export function ItemDetailsDeleteDialog({
         queryClient.invalidateQueries({ queryKey: ["user-item-exists", officialItemId, user?.id] });
         queryClient.invalidateQueries({ queryKey: ["item-owners-count", officialItemId] });
       }
-      toast({
-        title: t("itemDetails.remove.success"),
+      toast.success(t("itemDetails.remove.success"), {
         description: t("itemDetails.remove.successDescription"),
       });
       onCloseModal();
     } catch (error) {
-      toast({
-        title: t("itemDetails.common.error"),
+      toast.error(t("itemDetails.common.error"), {
         description: t("itemDetails.remove.failed"),
-        variant: "destructive",
       });
     }
   };

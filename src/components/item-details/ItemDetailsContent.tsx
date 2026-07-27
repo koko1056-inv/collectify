@@ -78,9 +78,9 @@ export function ItemDetailsContent({
   };
 
   return <ScrollArea className="flex-1 h-[calc(100vh-250px)] px-4">
-      <div className="space-y-4 bg-white pb-6 pt-2">
+      <div className="space-y-4 bg-card pb-6 pt-2">
         <div className="space-y-6">
-          <div className="w-full aspect-square relative overflow-hidden rounded-lg bg-white">
+          <div className="w-full aspect-square relative overflow-hidden rounded-lg bg-card">
             <ItemImageEditor
               image={isEditing ? editedData.image : image}
               title={title}
@@ -156,7 +156,7 @@ export function ItemDetailsContent({
                 
                 {releaseDate && <div className="space-y-1">
                     <h3 className="text-sm font-medium">{t("itemDetails.fields.registeredDateLabel")}</h3>
-                    <p className="text-sm text-gray-600">{releaseDate}</p>
+                    <p className="text-sm text-muted-foreground">{releaseDate}</p>
                   </div>}
               </>}
           </div>}

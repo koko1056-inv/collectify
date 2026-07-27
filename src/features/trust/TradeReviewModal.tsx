@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Star } from "lucide-react";
@@ -25,7 +25,6 @@ export function TradeReviewModal({
   revieweeName,
 }: TradeReviewModalProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [rating, setRating] = useState<number>(0);
@@ -46,7 +45,7 @@ export function TradeReviewModal({
       });
       if (error) {
         if (error.code === "23505") {
-          toast({ title: t("trade.trust.alreadyReviewed") });
+          toast(t("trade.trust.alreadyReviewed"));
           onClose();
           return;
         }
@@ -54,11 +53,11 @@ export function TradeReviewModal({
       }
       queryClient.invalidateQueries({ queryKey: ["trust-score", revieweeId] });
       queryClient.invalidateQueries({ queryKey: ["trade-reviews", revieweeId] });
-      toast({ title: t("trade.trust.reviewSentTitle"), description: t("trade.trust.reviewSentDesc") });
+      toast.success(t("trade.trust.reviewSentTitle"), { description: t("trade.trust.reviewSentDesc") });
       onClose();
     } catch (e) {
       console.error(e);
-      toast({ title: t("trade.trust.sendFailed"), variant: "destructive" });
+      toast.error(t("trade.trust.sendFailed"));
     } finally {
       setSubmitting(false);
     }

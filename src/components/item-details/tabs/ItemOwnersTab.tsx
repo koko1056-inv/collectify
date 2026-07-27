@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Link } from "react-router-dom";
 import { Package, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -76,10 +77,11 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
 
   if (owners.length === 0) {
     return (
-      <div className="text-center py-10 text-muted-foreground">
-        <Package className="h-10 w-10 mx-auto mb-2 opacity-40" />
-        <p className="text-sm">{t("itemDetails.owners.empty")}</p>
-      </div>
+      <EmptyState
+        icon={Package}
+        title={t("itemDetails.owners.empty")}
+        className="py-10"
+      />
     );
   }
 

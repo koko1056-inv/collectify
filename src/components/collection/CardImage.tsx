@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { LazyImage } from "../ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -28,9 +28,6 @@ const CardImage = memo(function CardImage({
 }: CardImageProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const {
-    toast
-  } = useToast();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   const handleImageChange = async (file: File | null) => {
@@ -78,17 +75,14 @@ const CardImage = memo(function CardImage({
         ...oldData,
         image: publicUrl
       }));
-      toast({
-        title: t("collectionScreen.cardImage.updated"),
+      toast.success(t("collectionScreen.cardImage.updated"), {
         description: t("collectionScreen.cardImage.updatedDesc")
       });
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating image:', error);
-      toast({
-        title: t("collectionScreen.common.error"),
-        description: t("collectionScreen.cardImage.updateFailed"),
-        variant: "destructive"
+      toast.error(t("collectionScreen.common.error"), {
+        description: t("collectionScreen.cardImage.updateFailed")
       });
     }
   };

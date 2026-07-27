@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TagFilterProps {
@@ -302,9 +303,10 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                     </Button>
                   ))}
                   {filterTagsBySearch(characterTags).length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      {searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
-                    </p>
+                    <EmptyState
+                      title={searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
+                      className="py-8"
+                    />
                   )}
                 </div>
               </TabsContent>
@@ -327,9 +329,10 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                     </Button>
                   ))}
                   {filterTagsBySearch(seriesTags).length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      {searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
-                    </p>
+                    <EmptyState
+                      title={searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
+                      className="py-8"
+                    />
                   )}
                 </div>
               </TabsContent>
@@ -352,9 +355,10 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                     </Button>
                   ))}
                   {filterTagsBySearch(typeTags).length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      {searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
-                    </p>
+                    <EmptyState
+                      title={searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
+                      className="py-8"
+                    />
                   )}
                 </div>
               </TabsContent>

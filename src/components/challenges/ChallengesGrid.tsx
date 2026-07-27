@@ -2,6 +2,7 @@ import { useChallenges } from "@/hooks/challenges";
 import { ChallengeCard } from "./ChallengeCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QueryErrorState } from "@/components/ui/query-error-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,16 +36,16 @@ export function ChallengesGrid({ onCreateChallenge }: ChallengesGridProps) {
 
   if (!challenges?.length) {
     return (
-      <div className="text-center py-12">
-        <Trophy className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-        <h3 className="font-semibold text-lg mb-2">{t("social.challenges.emptyTitle")}</h3>
-        <p className="text-muted-foreground mb-4">
-          {t("social.challenges.emptyDesc")}
-        </p>
-        <Button onClick={onCreateChallenge}>
-          {t("social.challenges.create")}
-        </Button>
-      </div>
+      <EmptyState
+        icon={Trophy}
+        title={t("social.challenges.emptyTitle")}
+        description={t("social.challenges.emptyDesc")}
+        action={
+          <Button onClick={onCreateChallenge}>
+            {t("social.challenges.create")}
+          </Button>
+        }
+      />
     );
   }
 

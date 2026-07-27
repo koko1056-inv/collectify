@@ -31,7 +31,7 @@ export function ItemPriceAndDateForm({
             }
           />
         ) : (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             {editedData.releaseDate || t("itemDetails.common.notSet")}
           </p>
         )}

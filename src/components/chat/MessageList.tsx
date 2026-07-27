@@ -4,6 +4,7 @@ import { MessageItem } from "./MessageItem";
 import type { Message, PartnerProfile } from "./types";
 import { MessageCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface MessageListProps {
   messages: Message[];
@@ -26,13 +27,12 @@ export function MessageList({ messages, partnerProfile }: MessageListProps) {
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">
-        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-          <MessageCircle className="h-8 w-8" />
-        </div>
-        <p className="text-sm font-medium">{t("social.chat.emptyTitle")}</p>
-        <p className="text-xs mt-1">{t("social.chat.emptyDesc")}</p>
-      </div>
+      <EmptyState
+        icon={MessageCircle}
+        title={t("social.chat.emptyTitle")}
+        description={t("social.chat.emptyDesc")}
+        className="flex-1 p-8"
+      />
     );
   }
 

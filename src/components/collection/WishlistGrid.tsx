@@ -3,9 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle, Trash2, Search } from "lucide-react";
+import { CheckCircle, Trash2, Search, ShoppingBasket } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { EmptyState } from "@/components/ui/empty-state";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 import { PriceSearchModal } from "@/components/wishlist/PriceSearchModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -17,7 +19,6 @@ interface WishlistGridProps {
 export function WishlistGrid({ userId, enableActions = false }: WishlistGridProps) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { toast } = useToast();
   const { t } = useLanguage();
 
   // Price search modal state
@@ -26,7 +27,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
     image?: string;
   } | null>(null);
 
-  const { data: wishlistItems = [], isLoading } = useQuery({
+  const { data: wishlistItems = [], isLoading, error, refetch } = useQuery({
     queryKey: ["wishlist", userId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -53,10 +54,8 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
 
   const handleAddToCollection = async (officialItem: any, wishlistId: string) => {
     if (!user) {
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.wishlist.loginRequiredDesc"),
-        variant: "destructive",
       });
       return;
     }
@@ -83,16 +82,13 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
       await queryClient.invalidateQueries({ queryKey: ["user-items"] });
 
-      toast({
-        title: t("collectionScreen.common.success"),
+      toast.success(t("collectionScreen.common.success"), {
         description: t("collectionScreen.wishlist.addedToCollection"),
       });
     } catch (error) {
       console.error("Error adding to collection:", error);
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.wishlist.addFailed"),
-        variant: "destructive",
       });
     }
   };
@@ -102,16 +98,13 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
       const { error } = await supabase.from("wishlists").delete().eq("id", wishlistId);
       if (error) throw error;
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
-      toast({
-        title: t("collectionScreen.common.success"),
+      toast.success(t("collectionScreen.common.success"), {
         description: t("collectionScreen.wishlist.removed"),
       });
     } catch (error) {
       console.error("Error removing from wishlist:", error);
-      toast({
-        title: t("collectionScreen.common.error"),
+      toast.error(t("collectionScreen.common.error"), {
         description: t("collectionScreen.wishlist.removeFailed"),
-        variant: "destructive",
       });
     }
   };
@@ -136,8 +129,22 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
     );
   }
 
+  if (error) {
+    return (
+      <QueryErrorState
+        title={t("collectionScreen.common.error")}
+        onRetry={() => refetch()}
+      />
+    );
+  }
+
   if (!wishlistItems || wishlistItems.length === 0) {
-    return <p className="text-center text-muted-foreground py-4">{t("collectionScreen.wishlist.empty")}</p>;
+    return (
+      <EmptyState
+        icon={ShoppingBasket}
+        title={t("collectionScreen.wishlist.empty")}
+      />
+    );
   }
 
   return (

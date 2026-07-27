@@ -9,6 +9,7 @@ import { useChallenge, useChallengeEntries, useVoteForEntry, useEndChallenge } f
 import { useAuth } from "@/contexts/AuthContext";
 import { isPast, parseISO } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ChallengeEntryModal } from "./ChallengeEntryModal";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -180,11 +181,11 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
                 ))}
               </div>
             ) : sortedEntries.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <ImagePlus className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>{t("social.challenges.noEntries")}</p>
-                <p className="text-sm">{t("social.challenges.beFirstEntry")}</p>
-              </div>
+              <EmptyState
+                icon={ImagePlus}
+                title={t("social.challenges.noEntries")}
+                description={t("social.challenges.beFirstEntry")}
+              />
             ) : (
               <div className="space-y-3">
                 <AnimatePresence mode="popLayout">

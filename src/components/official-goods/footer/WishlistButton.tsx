@@ -126,11 +126,11 @@ export function WishlistButton({
         variant={isInWishlist ? "secondary" : "outline"}
         size="icon"
         onClick={onWishlistClick}
-        className={`border-gray-200 hover:bg-gray-50 h-7 w-7 sm:h-9 sm:w-9 ${isInWishlist ? 'bg-gray-100' : ''}`}
+        className={`border-border hover:bg-muted h-7 w-7 sm:h-9 sm:w-9 ${isInWishlist ? 'bg-muted' : ''}`}
       >
         <ShoppingBasket className="h-3 w-3 sm:h-4 sm:w-4 text-foreground" />
       </Button>
-      <span className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1">{wishlistCount}</span>
+      <span className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1">{wishlistCount}</span>
     </div>
   );
 }
