@@ -16,7 +16,12 @@ export function useMyAiRoomLikes() {
         .from("ai_room_likes")
         .select("room_id")
         .eq("user_id", user!.id);
-      if (error) throw error;
+      // いいね状態は補助情報。取得できなくても一覧の表示は止めない
+      // （マイグレーション適用前はテーブルが存在しない）。
+      if (error) {
+        console.error("[useMyAiRoomLikes] failed:", error);
+        return new Set();
+      }
       return new Set((data || []).map((l) => l.room_id));
     },
   });
