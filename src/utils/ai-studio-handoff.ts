@@ -132,3 +132,59 @@ export function hasPendingAvatarPrompt(): boolean {
     return false;
   }
 }
+
+// ============= 画像検索 → グッズ登録 =============
+
+const ITEM_PHOTO_KEY = "add-item:pending-photo";
+
+export interface PendingItemPhoto {
+  /** 画像の data URL。sessionStorage に載せるため、大きすぎる場合は保存できない。 */
+  dataUrl: string;
+  /** 画像検索で得られた推定名（あれば初期値に使う） */
+  guessedTitle?: string | null;
+}
+
+/**
+ * 撮った写真をグッズ登録フローへ引き継ぐ。
+ *
+ * @returns 保存できたら true。sessionStorage の容量を超えた場合は false を返すので、
+ *          呼び出し側は「引き継ぎなしで遷移する」にフォールバックできる。
+ */
+export function setPendingItemPhoto(payload: PendingItemPhoto): boolean {
+  try {
+    sessionStorage.setItem(ITEM_PHOTO_KEY, JSON.stringify({ ...payload, ts: Date.now() }));
+    return true;
+  } catch {
+    // 画像が大きすぎて入らないことがある。その場合は引き継がない。
+    return false;
+  }
+}
+
+/** 取り出して即削除（再利用させない）。15分以上前のデータは無効。 */
+export function consumePendingItemPhoto(): PendingItemPhoto | null {
+  try {
+    const raw = sessionStorage.getItem(ITEM_PHOTO_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(ITEM_PHOTO_KEY);
+    const parsed = JSON.parse(raw) as PendingItemPhoto & { ts: number };
+    if (!parsed?.dataUrl) return null;
+    if (Date.now() - parsed.ts > 15 * 60 * 1000) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+/** data URL を File に戻す（アップロードに使う） */
+export function dataUrlToFile(dataUrl: string, filename = "photo.jpg"): File | null {
+  try {
+    const [head, body] = dataUrl.split(",");
+    const mime = /:(.*?);/.exec(head)?.[1] || "image/jpeg";
+    const bin = atob(body);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new File([bytes], filename, { type: mime });
+  } catch {
+    return null;
+  }
+}
