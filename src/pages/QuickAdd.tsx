@@ -15,14 +15,14 @@ export default function QuickAdd() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto w-full max-w-2xl px-4 pt-2 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-8">
         {/* 直リンクで開かれた場合は戻る履歴が無いのでコレクションへ逃がす */}
-        <BackButton className="-ml-2" fallbackTo="/my-room" />
+        <BackButton className="-ml-2" fallbackTo="/collection" />
 
         {/* 撮る前に上限が近いことが分かるように枠の使用状況を出す */}
         <SlotUsageMeter type="collection" compact className="mt-1 mb-2" />
 
         {/* onCancel は渡さない。ヘッダの「戻る」と同じ動作のボタンが
             撮影ステップに二重に並ぶため（実画面で確認）。 */}
-        <QuickAddFlow onComplete={() => navigate("/my-room")} />
+        <QuickAddFlow onComplete={() => navigate("/collection")} />
 
         {/* AI が読み取れなかったときの逃げ道 */}
         <div className="mt-6 text-center">

@@ -23,7 +23,7 @@ function liffStateDest(): string | null {
  * ルート ("/") のリダイレクト振り分け。
  * - liff.state があれば最優先でその画面へ
  * - 認証チェック中は何も表示しない（ちらつき防止）
- * - ログイン済み → /my-room（既存のホーム導線を維持）
+ * - ログイン済み → /collection（アプリの起点はコレクション）
  * - 未ログイン → LINEアプリ内ならログイン導線、それ以外はマーケLP(/lp)
  */
 export function RootRedirect() {
@@ -41,8 +41,8 @@ export function RootRedirect() {
   if (!user) {
     // LINEアプリ内では /lp（マーケLP）に落とさず、ログイン→アプリへ繋ぐ。
     const inLine = /Line\//i.test(navigator.userAgent || "");
-    return <Navigate to={inLine ? "/login?redirect=%2Fmy-room" : "/lp"} replace />;
+    return <Navigate to={inLine ? "/login?redirect=%2Fcollection" : "/lp"} replace />;
   }
 
-  return <Navigate to="/my-room" replace />;
+  return <Navigate to="/collection" replace />;
 }

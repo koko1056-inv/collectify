@@ -191,7 +191,7 @@ const App: React.FC = () => {
                       <Route path="/matches" element={<Navigate to="/explore?tab=users" replace />} />
                       <Route path="/point-shop" element={<ProtectedRoute><PointShop /></ProtectedRoute>} />
                       <Route path="/points" element={<Navigate to="/point-shop" replace />} />
-                      <Route path="*" element={<Navigate to="/my-room" replace />} />
+                      <Route path="*" element={<Navigate to="/collection" replace />} />
                     </Routes>
                   </Suspense>
                   </AppErrorBoundary>

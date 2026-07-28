@@ -37,7 +37,7 @@ export class AppErrorBoundary extends React.Component<Props, State> {
 
   handleGoHome = () => {
     this.setState({ hasError: false });
-    window.location.href = "/my-room";
+    window.location.href = "/collection";
   };
 
   render() {

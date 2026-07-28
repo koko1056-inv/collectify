@@ -15,7 +15,7 @@ export default function Login() {
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/my-room";
+  const redirectTo = searchParams.get("redirect") || "/collection";
   const { user, loading: authLoading } = useAuth();
   const {
     isLogin,

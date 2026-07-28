@@ -36,7 +36,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   if (!user) {
     // ログイン後に元の画面へ戻す。/login や / を redirect にすると循環するためガード。
     const raw = location.pathname + location.search;
-    const safe = raw.startsWith("/login") || raw === "/" ? "/my-room" : raw;
+    const safe = raw.startsWith("/login") || raw === "/" ? "/collection" : raw;
     const redirect = encodeURIComponent(safe);
     return <Navigate to={`/login?redirect=${redirect}`} replace />;
   }
@@ -49,7 +49,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     if (!hasRole) {
       // 「/」経由にすると RootRedirect でもう一度遷移して履歴が二重になるため、
       // 遷移先を直接指定する。
-      return <Navigate to="/my-room" replace />;
+      return <Navigate to="/collection" replace />;
     }
   }
 

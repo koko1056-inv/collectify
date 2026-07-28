@@ -28,7 +28,7 @@ export default function InviteRedirect() {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
         // すでに登録済み — ホームへ
-        navigate("/my-room", { replace: true });
+        navigate("/collection", { replace: true });
       } else {
         navigate(`/login?invite=${upper}`, { replace: true });
       }

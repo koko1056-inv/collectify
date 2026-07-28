@@ -15,7 +15,6 @@ import { ProfileCollection } from "@/components/profile/ProfileCollection";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import { AvatarCenterHome } from "./AvatarCenterHome";
-import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -211,7 +210,6 @@ export function MyRoomHome({
       {/* オンボーディングチェックリスト */}
       <div className="px-4 sm:px-6 lg:px-8 mb-4">
         <div className="max-w-4xl mx-auto">
-          <OnboardingChecklist />
         </div>
       </div>
 
