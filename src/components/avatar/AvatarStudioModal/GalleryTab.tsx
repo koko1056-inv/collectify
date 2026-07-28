@@ -102,7 +102,9 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
                   <Check className="w-4 h-4 mr-1" />
                   {t("misc.avatar.select")}
                 </Button>
-                {/* 探索タブへの公開切り替え。既存アバターは既定で非公開。 */}
+                {/* 探索タブへの公開切り替え。既存アバターは既定で非公開。
+                    is_public が無い＝マイグレーション未適用なので操作を出さない。 */}
+                {a.is_public !== undefined && (
                 <Button
                   size="sm"
                   variant="secondary"
@@ -114,6 +116,7 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
                 >
                   {a.is_public ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
                 </Button>
+                )}
                 <Button size="sm" variant="destructive" onClick={() => setDeleteId(a.id)}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
