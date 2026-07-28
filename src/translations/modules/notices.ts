@@ -40,6 +40,8 @@ export const notices = {
       ownCode: "自分の招待コードは使えません",
       expired: "招待コードの有効期限が切れています",
       redeemed: "招待コードを適用しました！50ポイント獲得！",
+      alreadyUsed: "その招待コードは既に使われています",
+      alreadyRedeemed: "招待コードはすでに適用済みです",
     },
     share: {
       itemText: "{title}をコレクションに追加したよ！ #Collectify",
@@ -219,6 +221,8 @@ export const notices = {
       ownCode: "You can't use your own invite code",
       expired: "That invite code has expired",
       redeemed: "Invite code applied! You earned 50 points!",
+      alreadyUsed: "That invite code has already been used",
+      alreadyRedeemed: "You have already redeemed an invite code",
     },
     share: {
       itemText: "Just added {title} to my collection! #Collectify",

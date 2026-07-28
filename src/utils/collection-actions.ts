@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { claimReward } from "@/hooks/useClaimReward";
 
 interface AddToCollectionParams {
   userId: string;
@@ -86,35 +87,13 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
     
     if (insertError) throw insertError;
     
-    // 5. ポイント付与（1pt） - 同じofficial_itemに対しては初回のみ付与
-    let pointsAwarded = 0;
-    let alreadyAwarded = false;
+    // 5. ポイント付与。付与額と二重付与の判定はサーバー側（claim_reward）が持つ。
+    //    同じ official_item に対しては初回のみ付与されるよう、
+    //    reference_id を official_item_id 基準にする（カスタム品は user_item.id）。
+    const awarded = await claimReward("item_add", officialItemId || userItem.id);
+    const pointsAwarded = awarded ? 1 : 0;
 
-    if (officialItemId) {
-      // 過去にこのofficial_itemでポイント付与済みかチェック（reference_id = official_item_id）
-      const { data: existingTx } = await supabase
-        .from("point_transactions")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("transaction_type", "item_add")
-        .eq("reference_id", officialItemId)
-        .limit(1)
-        .maybeSingle();
-      alreadyAwarded = !!existingTx;
-    }
 
-    if (!alreadyAwarded) {
-      await supabase.rpc('add_user_points', {
-        _user_id: userId,
-        _points: 1,
-        _transaction_type: 'item_add',
-        _description: `グッズ追加: ${title}`,
-        // 重複付与防止のため official_item_id を基準にする（カスタム品はuser_item.id）
-        _reference_id: officialItemId || userItem.id,
-      });
-      pointsAwarded = 1;
-    }
-    
     return {
       success: true,
       userItemId: userItem.id,
@@ -129,20 +108,8 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
   }
 }
 
-// コンテンツ追加時のポイント付与（10pt）
-export async function awardContentAddPoints(userId: string, contentId: string, contentName: string) {
-  try {
-    await supabase.rpc('add_user_points', {
-      _user_id: userId,
-      _points: 10,
-      _transaction_type: 'content_add',
-      _description: `コンテンツ追加: ${contentName}`,
-      _reference_id: contentId
-    });
-    
-    return { success: true, pointsAwarded: 10 };
-  } catch (error) {
-    console.error("Error awarding content add points:", error);
-    return { success: false, pointsAwarded: 0 };
-  }
+// コンテンツ追加時のポイント付与。額と冪等性はサーバー側（claim_reward）が決める。
+export async function awardContentAddPoints(_userId: string, contentId: string, _contentName: string) {
+  const awarded = await claimReward("content_add", contentId);
+  return { success: awarded, pointsAwarded: awarded ? 10 : 0 };
 }

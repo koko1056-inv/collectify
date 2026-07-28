@@ -3343,15 +3343,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      award_challenge_prize: {
-        Args: {
-          _challenge_id: string
-          _description: string
-          _points: number
-          _winner_user_id: string
-        }
-        Returns: undefined
-      }
       can_access_item_room: {
         Args: { _official_item_id: string; _user: string }
         Returns: boolean
@@ -3365,14 +3356,32 @@ export type Database = {
         Returns: boolean
       }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
-      claim_onboarding_reward: {
-        Args: { _points: number; _step_id: string }
+      claim_onboarding_reward: { Args: { _step_id: string }; Returns: boolean }
+      claim_reward: {
+        Args: { _reason: string; _reference_id?: string | null }
         Returns: boolean
       }
-      deduct_points_for_challenge: {
-        Args: { _description: string; _total_prize: number }
-        Returns: undefined
+      create_challenge: {
+        Args: {
+          _description?: string | null
+          _ends_at: string
+          _first?: number
+          _image_url?: string | null
+          _official_item_id?: string | null
+          _second?: number
+          _third?: number
+          _title: string
+        }
+        Returns: string
       }
+      create_custom_tag: {
+        Args: { _category: string; _content_id?: string | null; _name: string }
+        Returns: Json
+      }
+      ensure_user_points_row: { Args: never; Returns: undefined }
+      grant_eligible_achievements: { Args: never; Returns: number }
+      redeem_invite_code: { Args: { _code: string }; Returns: Json }
+      settle_challenge: { Args: { _challenge_id: string }; Returns: Json }
       ensure_user_limits_row: { Args: never; Returns: undefined }
       expand_collection_slots: {
         Args: { _cost?: number; _slots_added?: number }
@@ -3398,10 +3407,6 @@ export type Database = {
       get_or_create_item_room: {
         Args: { _official_item_id: string }
         Returns: string
-      }
-      grant_achievement_if_eligible: {
-        Args: { _achievement_id: string }
-        Returns: boolean
       }
       grant_points_from_iap: {
         Args: {

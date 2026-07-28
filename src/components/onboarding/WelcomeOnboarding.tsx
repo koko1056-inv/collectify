@@ -24,6 +24,7 @@ import { InitialInterestSelection } from "@/components/InitialInterestSelection"
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { claimReward } from "@/hooks/useClaimReward";
 
 interface WelcomeOnboardingProps {
   onComplete: () => void;
@@ -114,18 +115,9 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   }, [user?.id, displayName, goNext]);
 
   const handleFinish = useCallback(async () => {
-    // ようこそボーナス 50pt
+    // ようこそボーナス。付与額と「生涯1回」の判定はサーバー側が持つ。
     if (user?.id) {
-      try {
-        await supabase.rpc("add_user_points", {
-          _user_id: user.id,
-          _points: 50,
-          _transaction_type: "welcome_bonus",
-          _description: "ようこそボーナス",
-        });
-      } catch (e) {
-        console.error("Failed to grant welcome bonus:", e);
-      }
+      await claimReward("welcome_bonus");
     }
     completeWalkthrough();
     await completeWelcome();

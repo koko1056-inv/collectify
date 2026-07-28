@@ -112,40 +112,12 @@ export const handleUserSignup = async (formData: LoginFormData) => {
     const pendingInvite = sessionStorage.getItem("pending_invite_code");
     if (pendingInvite) {
       try {
-        const { data: invite } = await supabase
-          .from("invite_codes")
-          .select("*")
-          .eq("code", pendingInvite)
-          .is("used_by", null)
-          .maybeSingle();
-
-        if (invite && invite.creator_id !== data.user.id) {
-          await supabase
-            .from("invite_codes")
-            .update({ used_by: data.user.id, used_at: new Date().toISOString() })
-            .eq("id", invite.id);
-
-          await supabase
-            .from("profiles")
-            .update({ referred_by: invite.creator_id })
-            .eq("id", data.user.id);
-
-          // 双方に50ポイント (RPC経由でuser_pointsと原子的に同期)
-          await supabase.rpc("add_user_points", {
-            _user_id: invite.creator_id,
-            _points: 50,
-            _transaction_type: "referral_bonus",
-            _description: "招待ボーナス",
-            _reference_id: invite.id,
-          });
-          await supabase.rpc("add_user_points", {
-            _user_id: data.user.id,
-            _points: 50,
-            _transaction_type: "referral_bonus",
-            _description: "招待コード使用ボーナス",
-            _reference_id: invite.id,
-          });
-        }
+        // 検証・使用済みマーク・双方への付与をサーバー側で原子的に実行する。
+        // 招待者は別ユーザーなので、クライアントから直接付与することはできない。
+        const { error } = await supabase.rpc("redeem_invite_code", {
+          _code: pendingInvite.toUpperCase(),
+        });
+        if (error) console.error("Invite redemption failed:", error.message);
       } catch (err) {
         console.error("Invite redemption failed:", err);
       } finally {

@@ -4,6 +4,22 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+/**
+ * redeem_invite_code が返すエラー識別子を、表示用の文言に変換する。
+ * 未知のエラーはそのまま返す（サーバー側の想定外を隠さない）。
+ */
+function inviteErrorMessage(raw: string | undefined, t: (k: string) => string): string {
+  const codes: Record<string, string> = {
+    invite_not_found: "notices.invite.invalid",
+    invite_own_code: "notices.invite.ownCode",
+    invite_expired: "notices.invite.expired",
+    invite_already_used: "notices.invite.alreadyUsed",
+    invite_already_redeemed: "notices.invite.alreadyRedeemed",
+  };
+  const key = Object.keys(codes).find((c) => raw?.includes(c));
+  return key ? t(codes[key]) : raw || t("notices.invite.invalid");
+}
+
 function generateCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
@@ -82,58 +98,22 @@ export function useInviteCode() {
     mutationFn: async (code: string) => {
       if (!user?.id) throw new Error("Not logged in");
 
-      // Find the code
-      const { data: invite, error: findError } = await supabase
-        .from("invite_codes")
-        .select("*")
-        .eq("code", code.toUpperCase())
-        .is("used_by", null)
-        .single();
-
-      if (findError || !invite) throw new Error(t("notices.invite.invalid"));
-      if (invite.creator_id === user.id)
-        throw new Error(t("notices.invite.ownCode"));
-      if (invite.expires_at && new Date(invite.expires_at) < new Date())
-        throw new Error(t("notices.invite.expired"));
-
-      // Mark as used
-      const { error: updateError } = await supabase
-        .from("invite_codes")
-        .update({ used_by: user.id, used_at: new Date().toISOString() })
-        .eq("id", invite.id);
-
-      if (updateError) throw updateError;
-
-      // Set referred_by on profile
-      await supabase
-        .from("profiles")
-        .update({ referred_by: invite.creator_id })
-        .eq("id", user.id);
-
-      // Award bonus points to both users (50 points each)
-      // point_transactions へ直接INSERTすると user_points と整合しないので
-      // 専用RPC add_user_points を使う（原子的に両方更新）
-      const bonusPoints = 50;
-      await supabase.rpc("add_user_points", {
-        _user_id: invite.creator_id,
-        _points: bonusPoints,
-        _transaction_type: "referral_bonus",
-        _description: "招待ボーナス",
-        _reference_id: invite.id,
-      });
-      await supabase.rpc("add_user_points", {
-        _user_id: user.id,
-        _points: bonusPoints,
-        _transaction_type: "referral_bonus",
-        _description: "招待コード使用ボーナス",
-        _reference_id: invite.id,
+      // 検証・使用済みマーク・双方への付与をサーバー側で原子的に実行する。
+      // 招待者は別ユーザーなので、クライアントからは付与できない
+      // （以前は add_user_points を直接呼んでいたため、招待者側のボーナスが
+      //  「他人のポイントは変更できない」エラーで常に失敗していた）。
+      const { error } = await supabase.rpc("redeem_invite_code", {
+        _code: code.toUpperCase(),
       });
 
-      return invite;
+      if (error) throw new Error(inviteErrorMessage(error.message, t));
     },
     onSuccess: () => {
       toast.success(t("notices.invite.redeemed"));
       qc.invalidateQueries({ queryKey: ["user-points"] });
+      qc.invalidateQueries({ queryKey: ["userPoints"] });
+      qc.invalidateQueries({ queryKey: ["pointTransactions"] });
+      qc.invalidateQueries({ queryKey: key });
     },
     onError: (error: Error) => toast.error(error.message),
   });
