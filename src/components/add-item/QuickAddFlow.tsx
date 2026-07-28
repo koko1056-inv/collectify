@@ -1,19 +1,24 @@
-import { useState, useRef, useCallback } from "react";
-import { Camera, Upload, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag, ScanBarcode } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Camera, Upload, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag, ScanBarcode, AlertTriangle, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { CategoryTagSelect } from "@/components/tag/CategoryTagSelect";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BarcodeScanner } from "./BarcodeScanner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSimilarItemsCheck } from "@/hooks/admin-item-form/useSimilarItemsCheck";
+import { addToCollection, incrementItemQuantity } from "@/utils/collection-actions";
+import { copyTagsFromOfficialItem } from "@/utils/tag/tag-copy";
+import { consumePendingItemPhoto, dataUrlToFile } from "@/utils/ai-studio-handoff";
 
 interface AnalysisResult {
   title: string;
@@ -32,6 +37,41 @@ interface SelectedTags {
 
 type Step = "capture" | "barcode" | "analyzing" | "confirm" | "complete";
 
+interface SimilarItem {
+  id: string;
+  title: string;
+  image: string;
+}
+
+/**
+ * user_items の追加に失敗したときに、直前に作った official_item を取り消す（補償処理）。
+ *
+ * 本来は1つの RPC でトランザクションにすべきだが、そこまでやらずに整合を保つための後始末。
+ * 「カタログにだけ存在して誰のコレクションにも無いゴミ」を残さないのが目的。
+ * item_tags の ON DELETE 挙動に依存しないよう、タグ紐付けを先に消す。
+ */
+/** コレクション追加の失敗。専用トーストを出し終えている印として使う。 */
+class CollectionAddFailed extends Error {
+  constructor() {
+    super("collection-add-failed");
+    this.name = "CollectionAddFailed";
+  }
+}
+
+async function rollbackOfficialItem(officialItemId: string, uploadedPath?: string | null) {
+  try {
+    await supabase.from("item_tags").delete().eq("official_item_id", officialItemId);
+    await supabase.from("official_items").delete().eq("id", officialItemId);
+    // 画像を残すとストレージに孤児ファイルが溜まるので一緒に消す
+    if (uploadedPath) {
+      await supabase.storage.from("kuji_images").remove([uploadedPath]);
+    }
+  } catch (error) {
+    // 補償に失敗しても、利用者に伝えるべきは元のエラーなのでログだけ残す
+    console.error("Failed to roll back official_item:", officialItemId, error);
+  }
+}
+
 interface QuickAddFlowProps {
   onComplete?: () => void;
   onCancel?: () => void;
@@ -39,6 +79,7 @@ interface QuickAddFlowProps {
 
 export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>("capture");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -51,10 +92,15 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     series: null,
   });
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
-  
+  /** 「これと同じ」で既存カタログに紐付けて完了したときのアイテム名（完了画面の文言を変える） */
+  const [linkedExistingTitle, setLinkedExistingTitle] = useState<string | null>(null);
+  /** 「これと同じ」を処理中の候補 id（その行だけスピナーにする） */
+  const [linkingItemId, setLinkingItemId] = useState<string | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const submitLockRef = useRef(false);
+  const handoffHandledRef = useRef(false);
   const { user } = useAuth();
 
   // コンテンツ名からcontent_idを取得
@@ -72,7 +118,12 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     enabled: !!editedData?.contentName,
   });
 
-  const handleFileSelect = useCallback(async (file: File) => {
+  /**
+   * 撮影・選択された写真をAI解析して確認ステップへ進む。
+   *
+   * @param fallbackTitle 画像検索から引き継いだ推定名。AI がタイトルを取れなかったときの初期値に使う。
+   */
+  const handleFileSelect = useCallback(async (file: File, fallbackTitle?: string | null) => {
     setImageFile(file);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
@@ -95,7 +146,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
       if (error) throw error;
 
       const result: AnalysisResult = {
-        title: data.title || "",
+        title: data.title || fallbackTitle || "",
         description: data.description || "",
         price: data.price || "",
         category: data.category || "",
@@ -111,9 +162,9 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
       toast.error(t("misc.addItem.analyzeErrorTitle"), {
         description: t("misc.addItem.analyzeErrorDesc"),
       });
-      // エラー時も確認画面へ（空のデータで）
+      // エラー時も確認画面へ（引き継いだ推定名だけは初期値に使う）
       const emptyResult: AnalysisResult = {
-        title: "",
+        title: fallbackTitle || "",
         description: "",
         price: "",
         category: "",
@@ -124,10 +175,143 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
       setEditedData(emptyResult);
       setStep("confirm");
     }
-  }, []);
+  }, [t]);
+
+  // 画像検索（/image-search）でヒットしなかった写真を引き継いで、そのまま登録フローに流す。
+  // consumePendingItemPhoto は取り出した時点で削除するため、二重に走らせないよう ref で1回に絞る。
+  useEffect(() => {
+    if (handoffHandledRef.current) return;
+    handoffHandledRef.current = true;
+
+    const pending = consumePendingItemPhoto();
+    if (!pending) return;
+
+    const file = dataUrlToFile(pending.dataUrl, `handoff-${Date.now()}.jpg`);
+    if (!file) {
+      toast.error(t("screens.quickAdd.handoffFailedTitle"), {
+        description: t("screens.quickAdd.handoffFailedDesc"),
+      });
+      return;
+    }
+
+    // 通常の撮影と同じ経路（AI解析 → 確認ステップ）に流す
+    void handleFileSelect(file, pending.guessedTitle ?? null);
+  }, [handleFileSelect, t]);
+
+  // 写真からの登録は同じグッズを二重に作りやすいので、確認ステップでタイトルから既存カタログを照合する。
+  // 確認ステップ以外では空文字を渡して問い合わせを止める。
+  const { similarItems, isChecking: isCheckingSimilar } = useSimilarItemsCheck(
+    step === "confirm" ? editedData?.title ?? "" : ""
+  );
+
+  // 空白だけのタイトルで登録させない（「無題のグッズ」がカタログに入るのを防ぐ）
+  const trimmedTitle = editedData?.title.trim() ?? "";
+  const isLinking = linkingItemId !== null;
+
+  // 追加直後にコレクション件数・残り枠・ポイント表示を更新する
+  const invalidateCollectionQueries = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" }),
+      queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" }),
+      queryClient.invalidateQueries({ queryKey: ["userPoints"], refetchType: "all" }),
+    ]);
+  }, [queryClient]);
+
+  /**
+   * 「これと同じ」: 新しい official_item を作らず、既存カタログのアイテムを自分のコレクションに追加する。
+   * 同じグッズでカタログが重複して汚れるのを防ぐのが目的。
+   */
+  const handleUseExisting = async (item: SimilarItem) => {
+    if (!user) return;
+    if (submitLockRef.current) return;
+    submitLockRef.current = true;
+    setLinkingItemId(item.id);
+
+    try {
+      // すでに持っているものを二重に増やさない。
+      // ここで error を捨てると判定をすり抜けて二重登録になるので必ず見る。
+      const { count, error: existingError } = await supabase
+        .from("user_items")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("official_item_id", item.id);
+
+      if (existingError) throw existingError;
+
+      if (count && count > 0) {
+        // 何も追加していないので完了画面には進めない（「追加しました」は嘘になる）。
+        // 代わりに所持数 +1 を提案する。
+        toast(t("screens.quickAdd.alreadyOwnedTitle"), {
+          description: t("screens.quickAdd.alreadyOwnedDesc"),
+          action: {
+            label: t("screens.quickAdd.incrementAction"),
+            onClick: async () => {
+              const inc = await incrementItemQuantity(user.id, item.id);
+              if (inc.success) {
+                toast.success(t("screens.quickAdd.incrementedTitle", { n: inc.quantity ?? 0 }));
+                await invalidateCollectionQueries();
+              } else {
+                toast.error(t("screens.quickAdd.incrementFailed"));
+              }
+            },
+          },
+        });
+        return;
+      }
+
+      // 枠チェックとポイント付与は addToCollection 側が持っている
+      const result = await addToCollection({
+        userId: user.id,
+        title: item.title,
+        image: item.image,
+        officialItemId: item.id,
+        contentName: editedData?.contentName || undefined,
+        prize: editedData?.price || "0",
+      });
+
+      if (!result.success) {
+        if (result.isAtLimit) {
+          toast.error(t("screens.quickAdd.limitTitle"), {
+            description: t("screens.quickAdd.limitDesc"),
+          });
+        } else {
+          toast.error(t("misc.addItem.saveErrorTitle"), {
+            description: result.error || t("misc.addItem.saveErrorDesc"),
+          });
+        }
+        return;
+      }
+
+      // 既存カタログのタグをそのまま引き継ぐ
+      if (result.userItemId) {
+        await copyTagsFromOfficialItem(item.id, result.userItemId);
+      }
+
+      await invalidateCollectionQueries();
+      setLinkedExistingTitle(item.title);
+      setStep("complete");
+    } catch (error) {
+      console.error("Error linking existing item:", error);
+      toast.error(t("misc.addItem.saveErrorTitle"), {
+        description: t("misc.addItem.saveErrorDesc"),
+      });
+    } finally {
+      setLinkingItemId(null);
+      submitLockRef.current = false;
+    }
+  };
 
   const handleSubmit = async () => {
     if (!user || !imageFile || !editedData) return;
+
+    // タイトル無しでの登録は許さない（以前は「無題のグッズ」でカタログに入っていた）
+    const title = editedData.title.trim();
+    if (!title) {
+      toast.error(t("screens.quickAdd.titleRequiredTitle"), {
+        description: t("screens.quickAdd.titleRequiredDesc"),
+      });
+      return;
+    }
 
     if (submitLockRef.current) return;
     submitLockRef.current = true;
@@ -152,7 +336,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
       const { data: officialItem, error: officialInsertError } = await supabase
         .from('official_items')
         .insert({
-          title: editedData.title || "無題のグッズ",
+          title,
           image: publicUrl,
           price: editedData.price || "0",
           release_date: new Date().toISOString().split('T')[0],
@@ -166,66 +350,16 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
 
       if (officialInsertError) throw officialInsertError;
 
-      // 2. タグを保存（item_tagsの重複を除外）
-      const tagIds: string[] = [];
-      for (const [category, tagName] of Object.entries(selectedTags)) {
-        if (!tagName) continue;
+      // 2〜3 のどこかで失敗したら、作った official_item を取り消してから例外を投げ直す。
+      // 完全な原子性には RPC が必要だが、少なくとも
+      // 「カタログにだけ存在して誰のコレクションにも無い」中途半端な状態は残さない。
+      let userItemId: string | null = null;
+      try {
+        // 2. タグを保存（item_tagsの重複を除外）
+        const tagIds: string[] = [];
+        for (const [category, tagName] of Object.entries(selectedTags)) {
+          if (!tagName) continue;
 
-        const { data: tagData } = await supabase
-          .from('tags')
-          .select('id')
-          .eq('name', tagName)
-          .eq('category', category)
-          .single();
-
-        if (tagData?.id) tagIds.push(tagData.id);
-      }
-
-      const uniqueTagIds = Array.from(new Set(tagIds));
-      if (uniqueTagIds.length > 0) {
-        const { data: existingTagRows, error: existingTagsError } = await supabase
-          .from('item_tags')
-          .select('tag_id')
-          .eq('official_item_id', officialItem.id)
-          .in('tag_id', uniqueTagIds);
-
-        if (existingTagsError) throw existingTagsError;
-
-        const existingSet = new Set((existingTagRows || []).map(r => r.tag_id));
-        const missingTagIds = uniqueTagIds.filter(id => !existingSet.has(id));
-
-        if (missingTagIds.length > 0) {
-          const { error: insertTagsError } = await supabase
-            .from('item_tags')
-            .insert(missingTagIds.map(tagId => ({
-              official_item_id: officialItem.id,
-              tag_id: tagId,
-            })));
-          if (insertTagsError) throw insertTagsError;
-        }
-      }
-
-      // 3. user_itemsに追加（自分のコレクションへ）
-      const { data: userItem, error: userInsertError } = await supabase
-        .from('user_items')
-        .insert({
-          user_id: user.id,
-          title: editedData.title || "無題のグッズ",
-          image: publicUrl,
-          prize: editedData.price || "0",
-          release_date: new Date().toISOString(),
-          content_name: editedData.contentName || null,
-          note: editedData.description || null,
-          official_item_id: officialItem.id,
-        })
-        .select()
-        .single();
-
-      if (userInsertError) throw userInsertError;
-
-      // 4. user_item_tagsにもタグを保存
-      for (const [category, tagName] of Object.entries(selectedTags)) {
-        if (tagName) {
           const { data: tagData } = await supabase
             .from('tags')
             .select('id')
@@ -233,27 +367,101 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
             .eq('category', category)
             .single();
 
-          if (tagData) {
-            await supabase.from('user_item_tags').insert({
-              user_item_id: userItem.id,
-              tag_id: tagData.id,
+          if (tagData?.id) tagIds.push(tagData.id);
+        }
+
+        const uniqueTagIds = Array.from(new Set(tagIds));
+        if (uniqueTagIds.length > 0) {
+          const { data: existingTagRows, error: existingTagsError } = await supabase
+            .from('item_tags')
+            .select('tag_id')
+            .eq('official_item_id', officialItem.id)
+            .in('tag_id', uniqueTagIds);
+
+          if (existingTagsError) throw existingTagsError;
+
+          const existingSet = new Set((existingTagRows || []).map(r => r.tag_id));
+          const missingTagIds = uniqueTagIds.filter(id => !existingSet.has(id));
+
+          if (missingTagIds.length > 0) {
+            const { error: insertTagsError } = await supabase
+              .from('item_tags')
+              .insert(missingTagIds.map(tagId => ({
+                official_item_id: officialItem.id,
+                tag_id: tagId,
+              })));
+            if (insertTagsError) throw insertTagsError;
+          }
+        }
+
+        // 3. 自分のコレクションへ追加。
+        //    直接 insert すると枠上限チェックとポイント付与が抜けるため、
+        //    「これと同じ」経路と同じく共通の addToCollection を通す。
+        const collectionResult = await addToCollection({
+          userId: user.id,
+          title,
+          image: publicUrl,
+          officialItemId: officialItem.id,
+          contentName: editedData.contentName || undefined,
+          prize: editedData.price || "0",
+          note: editedData.description || undefined,
+        });
+
+        if (!collectionResult.success) {
+          // 枠上限で入らないなら、作ったカタログ行を残さず巻き戻す
+          if (collectionResult.isAtLimit) {
+            toast.error(t("screens.quickAdd.limitTitle"), {
+              description: t("screens.quickAdd.limitDesc"),
             });
+          } else {
+            console.error("addToCollection failed:", collectionResult.error);
+          }
+          // 専用トーストは上で出しているので、外側の汎用トーストは抑制する
+          throw new CollectionAddFailed();
+        }
+
+        userItemId = collectionResult.userItemId ?? null;
+      } catch (stepError) {
+        await rollbackOfficialItem(officialItem.id, filePath);
+        throw stepError;
+      }
+
+      // 4. user_item_tagsにもタグを保存。
+      //    ここは失敗しても本体（コレクション追加）は成立しているので巻き戻さない。
+      if (userItemId) {
+        for (const [category, tagName] of Object.entries(selectedTags)) {
+          if (tagName) {
+            const { data: tagData } = await supabase
+              .from('tags')
+              .select('id')
+              .eq('name', tagName)
+              .eq('category', category)
+              .single();
+
+            if (tagData) {
+              await supabase.from('user_item_tags').insert({
+                user_item_id: userItemId,
+                tag_id: tagData.id,
+              });
+            }
           }
         }
       }
 
+      await invalidateCollectionQueries();
+
+      // 自動では閉じない。完了画面のボタンで次の行き先を選ばせる。
+      setLinkedExistingTitle(null);
       setStep("complete");
-      
-      // 2秒後に自動で閉じる
-      setTimeout(() => {
-        onComplete?.();
-      }, 2000);
 
     } catch (error) {
       console.error("Error saving item:", error);
-      toast.error(t("misc.addItem.saveErrorTitle"), {
-        description: t("misc.addItem.saveErrorDesc"),
-      });
+      // 原因を特定して専用の文言を出している場合は、汎用の失敗トーストを重ねない
+      if (!(error instanceof CollectionAddFailed)) {
+        toast.error(t("misc.addItem.saveErrorTitle"), {
+          description: t("misc.addItem.saveErrorDesc"),
+        });
+      }
     } finally {
       setIsSubmitting(false);
       submitLockRef.current = false;
@@ -268,6 +476,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     setEditedData(null);
     setSelectedTags({ character: null, type: null, series: null });
     setScannedBarcode(null);
+    setLinkedExistingTitle(null);
   };
 
   // バーコードスキャン結果の処理
@@ -464,7 +673,13 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                     value={editedData.title}
                     onChange={(e) => setEditedData({ ...editedData, title: e.target.value })}
                     placeholder={t("misc.addItem.itemNamePlaceholder")}
+                    aria-invalid={!trimmedTitle}
                   />
+                  {!trimmedTitle && (
+                    <p className="text-xs text-muted-foreground">
+                      {t("screens.quickAdd.titleRequiredDesc")}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -500,6 +715,56 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 </div>
               </CardContent>
             </Card>
+
+            {/* 重複候補。写真からの登録は同じグッズを二重にカタログへ入れやすいので警告する。 */}
+            {isCheckingSimilar && similarItems.length === 0 && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>{t("screens.quickAdd.similarChecking")}</span>
+              </div>
+            )}
+
+            {similarItems.length > 0 && (
+              <Alert className="border-amber-500/40 bg-amber-500/10">
+                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <AlertDescription className="text-foreground">
+                  <div className="font-semibold">{t("screens.quickAdd.similarHeading")}</div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t("screens.quickAdd.similarNote")}
+                  </p>
+                  <div className="mt-2 space-y-2 max-h-60 overflow-y-auto">
+                    {similarItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-3 rounded-lg border border-border bg-card p-2"
+                      >
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-12 h-12 shrink-0 rounded object-cover"
+                        />
+                        <span className="min-w-0 flex-1 break-words text-sm">{item.title}</span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          className="shrink-0 gap-1.5"
+                          disabled={isSubmitting || isLinking}
+                          onClick={() => handleUseExisting(item)}
+                        >
+                          {linkingItemId === item.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Link2 className="w-3.5 h-3.5" />
+                          )}
+                          {t("screens.quickAdd.useThisOne")}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* タグ選択 */}
             <Card>
@@ -550,31 +815,40 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
             </Card>
 
             {/* アクションボタン */}
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={handleReset}
-              >
-                {t("misc.addItem.startOver")}
-              </Button>
-              <Button
-                className="flex-1 gap-2"
-                onClick={handleSubmit}
-                disabled={isSubmitting || !editedData.title}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    {t("misc.common.saving")}
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4" />
-                    {t("misc.addItem.addToCollection")}
-                  </>
-                )}
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={handleReset}
+                  disabled={isSubmitting || isLinking}
+                >
+                  {t("misc.addItem.startOver")}
+                </Button>
+                <Button
+                  className="flex-1 gap-2"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || isLinking || !trimmedTitle}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {t("misc.common.saving")}
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      {t("misc.addItem.addToCollection")}
+                    </>
+                  )}
+                </Button>
+              </div>
+              {/* なぜ押せないのかを明示する（以前は無効なだけで理由が分からなかった） */}
+              {!trimmedTitle && (
+                <p className="text-center text-xs text-muted-foreground">
+                  {t("screens.quickAdd.submitDisabledReason")}
+                </p>
+              )}
             </div>
           </motion.div>
         )}
@@ -612,7 +886,9 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 transition={{ delay: 0.4 }}
                 className="text-muted-foreground"
               >
-                {t("misc.addItem.addedDesc")}
+                {linkedExistingTitle
+                  ? t("screens.quickAdd.linkedExistingDesc", { title: linkedExistingTitle })
+                  : t("misc.addItem.addedDesc")}
               </motion.p>
             </div>
 
@@ -636,12 +912,13 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               ))}
             </motion.div>
 
-            <div className="flex gap-3 mt-4">
-              <Button variant="outline" onClick={handleReset}>
-                {t("misc.addItem.addAnother")}
+            {/* 自動では閉じないので、次にどうするかはここで選んでもらう */}
+            <div className="flex flex-col-reverse sm:flex-row gap-3 mt-4 w-full max-w-xs">
+              <Button variant="outline" className="flex-1" onClick={handleReset}>
+                {t("screens.quickAdd.continueAdding")}
               </Button>
-              <Button onClick={onComplete}>
-                {t("misc.common.done")}
+              <Button className="flex-1" onClick={() => onComplete?.()}>
+                {t("screens.quickAdd.viewCollection")}
               </Button>
             </div>
           </motion.div>

@@ -209,8 +209,10 @@ export const chrome = {
       emptyDescLine2: "記録してみましょう",
       emptyHint: "💡 ヒント: 写真を撮るだけで自動登録できます",
       addGoods: "グッズを追加",
-      browseDiscover: "発見から探す",
       addByPhoto: "写真で追加",
+      addByPhotoHint: "撮るだけでAIが名前や価格を読み取ります",
+      addBySearch: "探して追加",
+      addManually: "手入力で追加",
       sortNewest: "新しい順",
       sortOldest: "古い順",
       sortTitle: "タイトル順",
@@ -227,6 +229,11 @@ export const chrome = {
       aiMaxThree: "AI生成では最大3点まで使えます。先頭3点を引き継ぎます。",
       noMatchTitle: "該当するグッズがありません",
       noMatchDesc: "検索条件やフィルターを変えてみてください",
+    },
+
+    quickAdd: {
+      manualHint: "うまく認識できないときは",
+      manualCta: "手入力で追加",
     },
 
     goodsCard: {
@@ -364,6 +371,9 @@ export const chrome = {
       detailsDesc: "タイトルやコンテンツ名を入力してください",
       previewAlt: "プレビュー",
       imagesSelectedDesc: "{n}件の画像が選択されました。各グッズの詳細を入力してください。",
+      bulkAlsoToCollection: "自分のコレクションにも追加する",
+      bulkAlsoToCollectionHint: "{n}件分のコレクション枠を使います。カタログへの登録だけなら外してください。",
+      registeredCollectionSkippedDesc: "{n}件を登録しました（うち{skipped}件はコレクション枠が上限で追加できませんでした）",
       registeredDesc: "{n}件のグッズを登録しました",
       registeredWithFailuresDesc: "{n}件のグッズを登録しました（{failed}件失敗）",
     },
@@ -597,8 +607,10 @@ export const chrome = {
       emptyDescLine2: "of the collection you treasure",
       emptyHint: "💡 Tip: just take a photo and it registers automatically",
       addGoods: "Add goods",
-      browseDiscover: "Browse discover",
       addByPhoto: "Add by photo",
+      addByPhotoHint: "Just take a photo and AI reads the name and price",
+      addBySearch: "Search and add",
+      addManually: "Add manually",
       sortNewest: "Newest first",
       sortOldest: "Oldest first",
       sortTitle: "By title",
@@ -615,6 +627,11 @@ export const chrome = {
       aiMaxThree: "AI generation supports up to 3 items. The first 3 will be used.",
       noMatchTitle: "No matching goods",
       noMatchDesc: "Try changing your search or filters",
+    },
+
+    quickAdd: {
+      manualHint: "Not recognized correctly?",
+      manualCta: "Add manually",
     },
 
     goodsCard: {
@@ -752,6 +769,9 @@ export const chrome = {
       detailsDesc: "Enter a title and content name",
       previewAlt: "Preview",
       imagesSelectedDesc: "{n} images selected. Enter the details for each item.",
+      bulkAlsoToCollection: "Also add to my collection",
+      bulkAlsoToCollectionHint: "This uses {n} collection slots. Leave it off to only register to the catalog.",
+      registeredCollectionSkippedDesc: "Registered {n} items ({skipped} couldn't be added to your collection because it's full)",
       registeredDesc: "Registered {n} goods",
       registeredWithFailuresDesc: "Registered {n} goods ({failed} failed)",
     },

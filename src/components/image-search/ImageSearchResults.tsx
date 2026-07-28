@@ -1,8 +1,9 @@
 import { OfficialItem } from "@/types/index";
 import { OfficialGoodsCard } from "../OfficialGoodsCard";
 import { WebSearchResult } from "@/utils/image-search";
-import { ExternalLink, Globe, Image as ImageIcon } from "lucide-react";
+import { ExternalLink, Globe, Image as ImageIcon, PackagePlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -14,15 +15,21 @@ interface ImageSearchResultsProps {
   items?: OfficialItem[];
   webResults?: WebSearchResult;
   isLoading?: boolean;
+  /** 解析が一度完了しているか。true なら 0件でも「見つからなかった」ことを表示する */
+  hasSearched?: boolean;
+  /** 見つからなかったときに、この写真から登録フローへ進む */
+  onRegisterWithPhoto?: () => void;
 }
 
-export function ImageSearchResults({ 
-  detectedObjects = [], 
+export function ImageSearchResults({
+  detectedObjects = [],
   labels = [],
-  caption = "", 
+  caption = "",
   items = [],
   webResults,
-  isLoading = false
+  isLoading = false,
+  hasSearched = false,
+  onRegisterWithPhoto,
 }: ImageSearchResultsProps) {
   const { t } = useLanguage();
   if (isLoading) {
@@ -31,13 +38,32 @@ export function ImageSearchResults({
 
   const hasAppResults = items.length > 0;
   const hasWebResults = webResults && (
-    webResults.visuallySimilarImages.length > 0 || 
+    webResults.visuallySimilarImages.length > 0 ||
     webResults.pagesWithMatchingImages.length > 0
   );
+  const hasDetection = labels.length > 0 || !!caption;
 
-  if (!hasAppResults && !hasWebResults && detectedObjects.length === 0) {
+  if (!hasSearched && !hasAppResults && !hasWebResults && !hasDetection && detectedObjects.length === 0) {
     return null;
   }
+
+  // 「同じグッズが無い」ときの主導線: この写真でそのまま登録する
+  const registerButton = onRegisterWithPhoto ? (
+    <Button onClick={onRegisterWithPhoto} className="gap-2">
+      <PackagePlus className="h-4 w-4" />
+      {t("misc.imageSearch.registerWithPhoto")}
+    </Button>
+  ) : undefined;
+
+  // 結果があるときの控えめな導線（完全一致が無いことは普通にあるため）
+  const registerHint = onRegisterWithPhoto ? (
+    <div className="flex justify-center pt-1">
+      <Button variant="ghost" size="sm" onClick={onRegisterWithPhoto} className="gap-2 text-muted-foreground">
+        <PackagePlus className="h-4 w-4" />
+        {t("misc.imageSearch.registerAnyway")}
+      </Button>
+    </div>
+  ) : null;
 
   return (
     <div className="space-y-4">
@@ -96,23 +122,31 @@ export function ImageSearchResults({
           {/* アプリ内結果 */}
           <TabsContent value="app">
             {hasAppResults ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {items.map((item) => (
-                  <OfficialGoodsCard 
-                    key={item.id}
-                    id={item.id}
-                    title={item.title}
-                    image={item.image}
-                    price={item.price}
-                    releaseDate={item.release_date}
-                    artist={item.artist}
-                    anime={item.anime}
-                    description={item.description}
-                  />
-                ))}
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {items.map((item) => (
+                    <OfficialGoodsCard
+                      key={item.id}
+                      id={item.id}
+                      title={item.title}
+                      image={item.image}
+                      price={item.price}
+                      releaseDate={item.release_date}
+                      artist={item.artist}
+                      anime={item.anime}
+                      description={item.description}
+                    />
+                  ))}
+                </div>
+                {registerHint}
               </div>
             ) : (
-              <EmptyState icon={ImageIcon} title={t("misc.imageSearch.noAppResults")} />
+              <EmptyState
+                icon={PackagePlus}
+                title={t("misc.imageSearch.noAppResults")}
+                description={t("misc.imageSearch.noAppResultsDesc")}
+                action={registerButton}
+              />
             )}
           </TabsContent>
 
@@ -183,6 +217,16 @@ export function ImageSearchResults({
             </div>
           </TabsContent>
         </Tabs>
+      )}
+
+      {/* アプリ内もWebも0件。ここで行き止まりにせず、写真から登録できるようにする */}
+      {!hasAppResults && !hasWebResults && (
+        <EmptyState
+          icon={PackagePlus}
+          title={t("misc.imageSearch.noAppResults")}
+          description={t("misc.imageSearch.noAppResultsDesc")}
+          action={registerButton}
+        />
       )}
     </div>
   );
