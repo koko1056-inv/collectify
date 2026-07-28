@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { User, Compass, Package, Search, Palette, House } from "lucide-react";
+import { User, Compass, Package, Search, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -19,14 +19,10 @@ export function Footer() {
   const isActive = (path: string) => {
     if (path === "/explore") return isExploreActive;
     if (path === "/ai-rooms") return isStudioActive;
-    if (path === "/my-room") return location.pathname === "/my-room" && !isStudioActive;
     return location.pathname === path;
   };
 
-  // ホーム(/my-room)は「推し活はじめてガイド」がある唯一の画面なので、
-  // 必ずタブから戻れるようにする（以前はヘッダーのロゴだけが導線だった）。
   const leftTabs = [
-    { to: "/my-room", icon: House, label: t("chrome.nav.home") },
     { to: "/ai-rooms", icon: Palette, label: t("chrome.nav.aiStudio") },
     { to: "/explore", icon: Compass, label: t("chrome.nav.explore") },
   ];
@@ -43,23 +39,20 @@ export function Footer() {
         to={to}
         aria-current={active ? "page" : undefined}
         className={cn(
-          // ホームを足して6枠になったので、375px幅では1枠あたり約62px。
-          // 「コレクション」「プロフィール」の6文字が入る限界なので文字を9pxに落とし、
-          // 万一入りきらない言語でも高さが変わらないよう truncate で1行に固定する。
-          // （枠を増やさず文字を大きく保ちたい場合は、どれか1つをヘッダーのメニューへ移す）
-          "flex flex-col items-center justify-center flex-1 min-w-0 px-0 py-2 transition-colors",
+          // ラベルが折り返して高さが変わらないよう truncate で1行に固定する
+          "flex flex-col items-center justify-center flex-1 min-w-0 px-0.5 py-2 transition-colors",
           active ? "text-primary" : "text-muted-foreground"
         )}
       >
         <Icon
           className={cn(
-            "h-5 w-5 mb-0.5 transition-transform",
+            "h-6 w-6 mb-0.5 transition-transform",
             active && "scale-110"
           )}
         />
         <span
           className={cn(
-            "text-[9px] leading-tight w-full text-center truncate",
+            "text-[11px] leading-tight w-full text-center truncate",
             active ? "font-semibold" : "font-medium"
           )}
         >

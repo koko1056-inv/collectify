@@ -96,7 +96,7 @@ export function Navbar() {
       {/* モバイル版のロゴ (sm未満でのみ表示) */}
       <div className="flex sm:hidden items-center h-12 bg-background px-4 pt-[env(safe-area-inset-top)]">
         <div className="w-20 flex-shrink-0" /> {/* Left spacer for balance */}
-        <Link to="/my-room" className="logo-text text-xl font-bold flex-1 text-center">
+        <Link to="/collection" className="logo-text text-xl font-bold flex-1 text-center">
           Collectify
         </Link>
         <div className="w-24 flex-shrink-0 flex justify-end">

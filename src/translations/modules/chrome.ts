@@ -21,7 +21,6 @@ export const chrome = {
     },
 
     nav: {
-      home: "ホーム",
       pointsUnit: "ポイント",
       aiStudio: "AIスタジオ",
       explore: "探索",
@@ -424,7 +423,6 @@ export const chrome = {
     },
 
     nav: {
-      home: "Home",
       pointsUnit: "points",
       aiStudio: "AI Studio",
       explore: "Explore",

@@ -50,6 +50,12 @@ interface UserCollectionProps {
   onPersonalTagChange?: (tag: string) => void;
   onOpenFilter?: () => void;
   activeFilterCount?: number;
+  /**
+   * 「探して追加」を押したときの動作。
+   * 渡されればカタログ検索シートを開き、無ければ検索画面へ遷移する。
+   * FAB側と同じ体験にするための差し込み口。
+   */
+  onPickFromCatalog?: () => void;
 }
 
 export function UserCollection({
@@ -61,6 +67,7 @@ export function UserCollection({
   onPersonalTagChange: onPersonalTagChangeProp,
   onOpenFilter,
   activeFilterCount: activeFilterCountProp,
+  onPickFromCatalog,
 }: UserCollectionProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -266,7 +273,7 @@ export function UserCollection({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => navigate("/search")}
+                  onClick={() => (onPickFromCatalog ? onPickFromCatalog() : navigate("/search"))}
                   className="flex-1 gap-1.5"
                 >
                   <Search className="w-4 h-4" />

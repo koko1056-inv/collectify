@@ -7,6 +7,17 @@
  */
 export const collectionScreen = {
   ja: {
+    addSheet: {
+      title: "グッズを追加",
+      description: "追加のしかたを選んでください",
+      pickTitle: "一覧から選ぶ",
+      pickDesc: "みんなのカタログにあるグッズを検索して追加",
+      manualDesc: "カタログに無いグッズを自分で登録",
+      searchPlaceholder: "グッズ名・作品名で検索",
+      owned: "追加済み",
+      noHitTitle: "見つかりませんでした",
+      noHitDesc: "カタログに無いグッズは「写真で追加」か「手入力で追加」で登録できます。",
+    },
     common: {
       cancel: "キャンセル",
       delete: "削除",
@@ -191,6 +202,17 @@ export const collectionScreen = {
     },
   },
   en: {
+    addSheet: {
+      title: "Add goods",
+      description: "Choose how you'd like to add it",
+      pickTitle: "Pick from the list",
+      pickDesc: "Search the shared catalog and add it",
+      manualDesc: "Register something the catalog doesn't have",
+      searchPlaceholder: "Search by goods or series name",
+      owned: "Added",
+      noHitTitle: "Nothing found",
+      noHitDesc: "If it isn't in the catalog, add it with a photo or by hand.",
+    },
     common: {
       cancel: "Cancel",
       delete: "Delete",
