@@ -7,6 +7,7 @@ export interface UserPoints {
   user_id: string;
   total_points: number;
   last_login_bonus_date: string | null;
+  login_streak: number | null;
   created_at: string;
   updated_at: string;
 }

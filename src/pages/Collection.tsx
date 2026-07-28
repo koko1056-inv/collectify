@@ -9,7 +9,7 @@ import { FilterSheet } from "@/components/FilterSheet";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { CollectionLimitBanner } from "@/components/shop/CollectionLimitBanner";
+import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
 
 
 export default function Collection() {
@@ -43,7 +43,8 @@ export default function Collection() {
       <Navbar />
       <main className={`container mx-auto transition-all duration-300 ${isMobile ? 'px-3 py-4' : 'px-4 py-4'}`}>
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
-          <CollectionLimitBanner type="collection" />
+          {/* 枠の使用状況は常に表示する（以前は95%を超えるまで何も出なかった） */}
+          {user && <SlotUsageMeter type="collection" />}
 
           <FilterSheet
             searchQuery={searchQuery}

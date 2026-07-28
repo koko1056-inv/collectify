@@ -1101,6 +1101,21 @@ export type Database = {
         }
         Relationships: []
       }
+      login_bonus_tiers: {
+        Row: {
+          min_streak: number
+          points: number
+        }
+        Insert: {
+          min_streak: number
+          points: number
+        }
+        Update: {
+          min_streak?: number
+          points?: number
+        }
+        Relationships: []
+      }
       invite_codes: {
         Row: {
           code: string

@@ -148,6 +148,7 @@ export const itemDetails = {
     owners: {
       empty: "まだ誰も登録していません",
       collectorsCount: "{count}人のコレクター",
+      loadFailed: "持っている人の読み込みに失敗しました",
       quantity: "{count}個",
     },
     wishers: {
@@ -155,6 +156,7 @@ export const itemDetails = {
       addButton: "ウィッシュリストに追加",
       wantCount: "{count}人がほしいリストに追加",
       empty: "まだ誰もほしいリストに追加していません",
+      loadFailed: "ほしい人の読み込みに失敗しました",
       addedToast: "ウィッシュリストに追加",
       removedToast: "ウィッシュリストから削除",
       loginRequired: "ログインが必要です",
@@ -346,6 +348,7 @@ export const itemDetails = {
     owners: {
       empty: "No one has added this yet",
       collectorsCount: "{count} collectors",
+      loadFailed: "Couldn't load the owners",
       quantity: "{count} pcs",
     },
     wishers: {
@@ -353,6 +356,7 @@ export const itemDetails = {
       addButton: "Add to wishlist",
       wantCount: "{count} people want this",
       empty: "No one wants this yet",
+      loadFailed: "Couldn't load who wants this",
       addedToast: "Added to wishlist",
       removedToast: "Removed from wishlist",
       loginRequired: "Sign in required",

@@ -5,9 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tag } from "@/types";
 import { UserCollection } from "../UserCollection";
-import { useCollectionLimitStatus } from "@/hooks/useCollectionLimit";
-import { Progress } from "@/components/ui/progress";
-import { Package, X } from "lucide-react";
+import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
+import { X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { SearchBar } from "../SearchBar";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,6 @@ export function ProfileCollection({ userId }: { userId: string }) {
   const [selectedContent, setSelectedContent] = useState("");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const { user } = useAuth();
-  const limitStatus = useCollectionLimitStatus();
 
   const { data: allTags = [] } = useQuery<Tag[]>({
     queryKey: ["tags"],
@@ -58,29 +56,8 @@ export function ProfileCollection({ userId }: { userId: string }) {
       {/* お気に入り TOP5 */}
       <FavoriteItemsTop5 userId={userId} isOwnProfile={isOwnProfile} />
 
-      {/* 95%未満は非表示、以上のみ薄いpillで警告 */}
-      {isOwnProfile && limitStatus && limitStatus.usagePercent >= 95 && (
-        <div className="mx-4 p-3 bg-card rounded-lg border border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <Package className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">
-              {t("profileScreen.collection.slots")}
-            </span>
-            <span className="ml-auto text-sm text-muted-foreground">
-              {limitStatus.currentCount} / {limitStatus.maxSlots}
-            </span>
-          </div>
-          <Progress
-            value={limitStatus.usagePercent}
-            className="h-2"
-          />
-          {limitStatus.isAtLimit && (
-            <p className="text-xs text-destructive mt-1">
-              {t("profileScreen.collection.atLimit")}
-            </p>
-          )}
-        </div>
-      )}
+      {/* 自分のプロフィールでは枠の使用状況を常に表示する */}
+      {isOwnProfile && <SlotUsageMeter type="collection" className="mx-4" />}
 
       {/* 検索バー */}
       <div>
