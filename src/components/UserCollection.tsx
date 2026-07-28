@@ -245,35 +245,41 @@ export function UserCollection({
               </p>
             </div>
 
-            {/* CTAボタン */}
+            {/* CTAボタン。撮影フロー(/quick-add)が主導線で、探す/手入力はその補助。
+                画像検索(/image-search)は類似検索専用なのでここには置かない。 */}
             <div className="space-y-3">
-              <Button
-                size="lg"
-                onClick={() => navigate("/add-item")}
-                className="gap-2 w-full h-12 hover-scale shadow-lg"
-              >
-                <Plus className="w-5 h-5" />
-                {t("chrome.collection.addGoods")}
-              </Button>
-              
+              <div className="space-y-1.5">
+                <Button
+                  size="lg"
+                  onClick={() => navigate("/quick-add")}
+                  className="gap-2 w-full h-12 hover-scale shadow-lg"
+                >
+                  <Camera className="w-5 h-5" />
+                  {t("chrome.collection.addByPhoto")}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  {t("chrome.collection.addByPhotoHint")}
+                </p>
+              </div>
+
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate("/search")} 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/search")}
                   className="flex-1 gap-1.5"
                 >
                   <Search className="w-4 h-4" />
-                  {t("chrome.collection.browseDiscover")}
+                  {t("chrome.collection.addBySearch")}
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate("/image-search")} 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/add-item")}
                   className="flex-1 gap-1.5"
                 >
-                  <Camera className="w-4 h-4" />
-                  {t("chrome.collection.addByPhoto")}
+                  <Plus className="w-4 h-4" />
+                  {t("chrome.collection.addManually")}
                 </Button>
               </div>
             </div>

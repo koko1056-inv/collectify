@@ -15,7 +15,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { Package, Users, Plus, ArrowLeftRight, Heart, SlidersHorizontal, X } from "lucide-react";
+import { Package, Users, Camera, ArrowLeftRight, Heart, SlidersHorizontal, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,6 +174,18 @@ const Search = () => {
                     selectedContent={selectedContent}
                   />
                 </div>
+                {/* 写真で似ているグッズを探す。/image-search への唯一の導線なので消さないこと
+                    （ここが無いと画像検索とその先の「この写真で登録する」に到達できなくなる）。 */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => navigate("/image-search")}
+                  className="shrink-0 h-9 w-9"
+                  title={t("screens.search.searchByPhoto")}
+                  aria-label={t("screens.search.searchByPhoto")}
+                >
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
                 <Button
                   variant="outline"
                   size="icon"
@@ -279,12 +291,16 @@ const Search = () => {
       </main>
       
       {currentTab === "goods" && (
+        // 撮影→AI解析フロー(/quick-add)を既定の追加導線にする。
+        // 手入力(/add-item)へは /quick-add 内のリンクから辿れる。
         <Button
-          onClick={() => navigate("/add-item")}
+          onClick={() => navigate("/quick-add")}
           className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
           size="icon"
+          title={t("chrome.collection.addByPhoto")}
+          aria-label={t("chrome.collection.addByPhoto")}
         >
-          <Plus className="h-6 w-6" />
+          <Camera className="h-6 w-6" />
         </Button>
       )}
       

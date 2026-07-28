@@ -60,6 +60,18 @@ export const collectionScreen = {
       editForSuffix: " の所持数を編集",
       label: "所持数",
     },
+    // グッズ追加導線の共通文言（official-goods / item-details の追加ボタンで共用）
+    addFlow: {
+      limitTitle: "コレクション枠が上限です",
+      limitDescWithMax: "コレクション枠が上限（{max}個）に達しています。ポイントショップで枠を追加購入してください。",
+      limitDesc: "ポイントショップで枠を追加購入してください。",
+      alreadyAddedTitle: "既に追加済み",
+      alreadyAddedDesc: "このグッズは既にコレクションにあります。",
+      incrementAction: "+1個にする",
+      incrementedTo: "所持数を{count}個にしました",
+      incrementFailed: "所持数の更新に失敗しました。",
+      incrementNotFound: "このグッズはコレクションに見つかりませんでした",
+    },
     bulkTag: {
       title: "マイタグを一括追加",
       descPrefix: "選択中の ",
@@ -231,6 +243,17 @@ export const collectionScreen = {
       title: "Edit quantity",
       editForSuffix: " — edit quantity",
       label: "Quantity",
+    },
+    addFlow: {
+      limitTitle: "Your collection is full",
+      limitDescWithMax: "You've reached your collection limit ({max} items). Buy more slots in the Points shop.",
+      limitDesc: "Buy more slots in the Points shop.",
+      alreadyAddedTitle: "Already added",
+      alreadyAddedDesc: "This item is already in your collection.",
+      incrementAction: "Add one more",
+      incrementedTo: "Quantity is now {count}",
+      incrementFailed: "Couldn't update the quantity.",
+      incrementNotFound: "We couldn't find this item in your collection",
     },
     bulkTag: {
       title: "Add a tag in bulk",

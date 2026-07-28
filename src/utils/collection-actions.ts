@@ -11,19 +11,37 @@ interface AddToCollectionParams {
   prize?: string;
   theme?: string;
   quantity?: number;
+  /** 自分のコレクション側のメモ。カタログに登録しない場合の説明文の保存先。 */
+  note?: string;
 }
 
 interface AddToCollectionResult {
   success: boolean;
   userItemId?: string;
+  /**
+   * 想定外の失敗のときだけ入る技術的なメッセージ（Supabase のエラーなど）。
+   * **表示用の文言は入れない**。util からは t() が呼べないため、
+   * ユーザーに見せる文言は呼び出し側が isAtLimit / maxSlots を見て t() で組み立てる。
+   */
   error?: string;
   isAtLimit?: boolean;
+  /** isAtLimit のときの枠上限数。呼び出し側が t() に渡して文言を組み立てる。 */
+  maxSlots?: number;
   pointsAwarded?: number;
+}
+
+export interface IncrementItemQuantityResult {
+  success: boolean;
+  /** 更新後の所持数 */
+  quantity?: number;
+  /** 対象の user_item が見つからなかった（= まだコレクションに無い） */
+  notFound?: boolean;
+  error?: string;
 }
 
 // コレクションに追加（上限チェック＆ポイント付与付き）
 export async function addToCollection(params: AddToCollectionParams): Promise<AddToCollectionResult> {
-  const { userId, title, image, officialItemId, contentName, releaseDate, prize, theme, quantity = 1 } = params;
+  const { userId, title, image, officialItemId, contentName, releaseDate, prize, theme, quantity = 1, note } = params;
   
   try {
     // 1. ユーザーの上限を確認
@@ -61,10 +79,11 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
     
     // 3. 上限チェック
     if (currentCount >= maxSlots) {
+      // 文言はここで作らない。呼び出し側が maxSlots を t() に渡して組み立てる。
       return {
         success: false,
         isAtLimit: true,
-        error: `コレクション枠が上限（${maxSlots}個）に達しています。ポイントショップで枠を追加購入してください。`
+        maxSlots
       };
     }
     
@@ -80,7 +99,8 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
         release_date: releaseDate || new Date().toISOString().split('T')[0],
         prize: prize || "0",
         theme: theme || null,
-        quantity
+        quantity,
+        note: note || null
       })
       .select("id")
       .single();
@@ -101,10 +121,44 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
     };
   } catch (error: any) {
     console.error("Error adding to collection:", error);
+    // 表示用のフォールバック文言は呼び出し側が t() で用意する。
     return {
       success: false,
-      error: error.message || "コレクションへの追加に失敗しました"
+      error: error?.message
     };
+  }
+}
+
+/**
+ * 既にコレクションにある同じ公式グッズの所持数を +1 する。
+ * 「もう1個持っている」を記録するための導線（重複追加の代わり）。
+ *
+ * ポイントは付与しない。同じ official_item への2回目の付与はサーバー側（claim_reward）が
+ * 弾くため、呼ぶだけ無駄になる。
+ */
+export async function incrementItemQuantity(
+  _userId: string,
+  officialItemId: string,
+  by: number = 1
+): Promise<IncrementItemQuantityResult> {
+  try {
+    // read-modify-write だと連続タップや数量編集との同時更新で
+    // 1回分が失われるため、行ロック付きの RPC でサーバー側に任せる。
+    const { data, error } = await supabase.rpc("increment_item_quantity", {
+      _official_item_id: officialItemId,
+      _by: by,
+    });
+
+    if (error) throw error;
+
+    const result = (data ?? {}) as { success?: boolean; not_found?: boolean; quantity?: number };
+    if (!result.success) {
+      return { success: false, notFound: result.not_found === true };
+    }
+    return { success: true, quantity: result.quantity };
+  } catch (error) {
+    console.error("Error incrementing item quantity:", error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 

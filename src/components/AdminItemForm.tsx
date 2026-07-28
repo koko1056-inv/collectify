@@ -2,6 +2,9 @@
 import { useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
 import { ImageSection, type AnalysisResult } from "./admin-item-form/ImageSection";
 import { ItemDetailsSection } from "./admin-item-form/ItemDetailsSection";
 import { MultipleItemsForm } from "./admin-item-form/MultipleItemsForm";
@@ -12,6 +15,7 @@ import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { addToCollection } from "@/utils/collection-actions";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -20,6 +24,12 @@ export function AdminItemForm() {
   const [step1Completed, setStep1Completed] = useState(false);
   const [selectedImages, setSelectedImages] = useState<Array<{ url: string; title: string | null }>>([]);
   const [isMultipleMode, setIsMultipleMode] = useState(false);
+  // 一括登録で自分のコレクションにも入れるか。件数分の枠を使うので既定OFF。
+  const [bulkAddToCollection, setBulkAddToCollection] = useState(false);
+  // 自分のコレクションに入れるか。カタログ整備だけしたい場合に外せる。
+  const [addToOwnCollection, setAddToOwnCollection] = useState(true);
+  // 既定ON: カタログにも登録して他の人が同じグッズを見つけられるようにする
+  const [shareToCatalog, setShareToCatalog] = useState(true);
   const bulkSubmittingRef = useRef(false);
   const { t } = useLanguage();
   const queryClient = useQueryClient();
@@ -63,6 +73,7 @@ export function AdminItemForm() {
     setStep1Completed(false);
     setSelectedImages([]);
     setIsMultipleMode(false);
+    setShareToCatalog(true);
     setFormKey(prev => prev + 1);
   };
 
@@ -71,6 +82,10 @@ export function AdminItemForm() {
     uploadImage,
     selectedTags,
     resetForm,
+    shareToCatalog,
+    addToOwnCollection,
+    // ファイル選択ではなくURLの画像を選んだ場合はそのURLをそのまま使う
+    fallbackImageUrl: previewUrl && !previewUrl.startsWith("blob:") ? previewUrl : null,
   });
 
   const handleFormUpdate = (updates: Partial<typeof formData>) => {
@@ -153,6 +168,17 @@ export function AdminItemForm() {
       {/* メインコンテンツ */}
       <Card className="border-0 shadow-lg">
         <CardContent className="p-4 sm:p-6">
+          {/* 送信前に枠の残りが分かるようにする。
+              枠拡張ボタンが form の submit として発火しないよう form の外に置く */}
+          <div className="mb-6">
+            {currentStep === "step1" ? (
+              <SlotUsageMeter type="collection" />
+            ) : (
+              // 実際に枠を消費する送信ボタンは step2 にあるので、ここでも残りを見せる
+              <SlotUsageMeter type="collection" compact />
+            )}
+          </div>
+
           <form key={formKey} onSubmit={handleSubmit}>
             {currentStep === "step1" && (
               <div className="space-y-6">
@@ -211,6 +237,26 @@ export function AdminItemForm() {
             {currentStep === "step2" && (
               <div className="space-y-6">
                 {isMultipleMode ? (
+                  <>
+                    {/* 一括登録は件数分の枠を一気に使うので、
+                        単数登録と違って既定OFF。黙って挙動を変えず明示的に選ばせる。 */}
+                    <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-3 cursor-pointer">
+                      <Checkbox
+                        checked={bulkAddToCollection}
+                        onCheckedChange={(v) => setBulkAddToCollection(v === true)}
+                        className="mt-0.5"
+                      />
+                      <span className="text-sm">
+                        <span className="font-medium">
+                          {t("chrome.adminForm.bulkAlsoToCollection")}
+                        </span>
+                        <span className="block text-xs text-muted-foreground mt-0.5">
+                          {t("chrome.adminForm.bulkAlsoToCollectionHint", {
+                            n: selectedImages.length,
+                          })}
+                        </span>
+                      </span>
+                    </label>
                   <MultipleItemsForm
                     images={selectedImages}
                     onSubmit={async (items) => {
@@ -297,15 +343,38 @@ export function AdminItemForm() {
                               }
                             }
 
-                            return { ok: true };
+                            // 選択されていれば自分のコレクションにも入れる。
+                            // 枠上限チェックとポイント付与は addToCollection が持っている。
+                            if (bulkAddToCollection && newItem) {
+                              const collectionResult = await addToCollection({
+                                userId: user.id,
+                                title: item.title,
+                                image: publicUrl,
+                                officialItemId: newItem.id,
+                                contentName: item.content_name || undefined,
+                                prize: item.price,
+                              });
+                              if (!collectionResult.success) {
+                                // カタログ登録自体は成功しているので ok は保ちつつ、
+                                // 枠に入らなかったことは呼び出し側で数える
+                                console.error(
+                                  "bulk addToCollection failed:",
+                                  collectionResult.isAtLimit ? "at-limit" : collectionResult.error
+                                );
+                                return { ok: true, collectionSkipped: true };
+                              }
+                            }
+
+                            return { ok: true, collectionSkipped: false };
                           } catch (error) {
                             console.error('Error creating item:', error);
-                            return { ok: false };
+                            return { ok: false, collectionSkipped: false };
                           }
                         }));
 
                         successCount = results.filter(r => r.ok).length;
                         errorCount = results.filter(r => !r.ok).length;
+                        const collectionSkipped = results.filter(r => r.collectionSkipped).length;
 
                         if (successCount > 0) {
                           // 探すページ等のキャッシュを即時無効化＋再取得
@@ -315,7 +384,10 @@ export function AdminItemForm() {
                           toast.success(t("addItem.registrationComplete"), {
                             description: errorCount > 0
                               ? t("chrome.adminForm.registeredWithFailuresDesc", { n: successCount, failed: errorCount })
-                              : t("chrome.adminForm.registeredDesc", { n: successCount }),
+                              : collectionSkipped > 0
+                                // カタログには入ったがコレクション枠に入らなかった分を隠さない
+                                ? t("chrome.adminForm.registeredCollectionSkippedDesc", { n: successCount, skipped: collectionSkipped })
+                                : t("chrome.adminForm.registeredDesc", { n: successCount }),
                           });
                           resetForm();
                         } else {
@@ -333,6 +405,7 @@ export function AdminItemForm() {
                       setSelectedImages([]);
                     }}
                   />
+                  </>
                 ) : (
                   <>
                     <div className="text-center mb-6">
@@ -362,8 +435,50 @@ export function AdminItemForm() {
                       onTagsChange={setSelectedTags}
                     />
 
+                    {/* 登録先の選択。どちらも外すと保存先が無くなるので送信を止める。
+                        カタログ整備目的（/admin など）ではコレクション側を外せる必要がある。 */}
+                    <div className="space-y-2 rounded-xl border border-border bg-muted/40 p-3.5">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="add-to-collection"
+                          checked={addToOwnCollection}
+                          onCheckedChange={(checked) => setAddToOwnCollection(checked === true)}
+                          className="mt-0.5"
+                        />
+                        <div className="space-y-0.5">
+                          <Label htmlFor="add-to-collection" className="text-sm font-medium cursor-pointer">
+                            {t("notices.adminItem.addToOwnCollectionLabel")}
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            {t("notices.adminItem.addToOwnCollectionHint")}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 pt-2 border-t border-border/60">
+                        <Checkbox
+                          id="share-to-catalog"
+                          checked={shareToCatalog}
+                          onCheckedChange={(checked) => setShareToCatalog(checked === true)}
+                          className="mt-0.5"
+                        />
+                        <div className="space-y-0.5">
+                          <Label htmlFor="share-to-catalog" className="text-sm font-medium cursor-pointer">
+                            {t("notices.adminItem.shareToCatalogLabel")}
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            {t("notices.adminItem.shareToCatalogHint")}
+                          </p>
+                        </div>
+                      </div>
+                      {!addToOwnCollection && !shareToCatalog && (
+                        <p className="text-xs text-destructive pt-1">
+                          {t("notices.adminItem.noDestinationWarning")}
+                        </p>
+                      )}
+                    </div>
+
                     <div className="flex justify-between pt-4 border-t">
-                      <Button 
+                      <Button
                         type="button"
                         variant="outline"
                         onClick={() => setCurrentStep("step1")}
@@ -374,7 +489,7 @@ export function AdminItemForm() {
                       </Button>
                       <Button 
                         type="submit" 
-                        disabled={loading} 
+                        disabled={loading || (!addToOwnCollection && !shareToCatalog)} 
                         size="lg"
                         className="px-8 gap-2"
                       >

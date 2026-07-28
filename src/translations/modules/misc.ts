@@ -164,26 +164,6 @@ export const misc = {
       addAnother: "もう1つ追加",
     },
 
-    chatAdd: {
-      sendFailed: "メッセージの送信に失敗しました",
-      uploadFailed: "画像のアップロードに失敗しました",
-      uploadFailedRetry: "画像のアップロードに失敗しました。再度お試しください。",
-      loginRequired: "ログインが必要です",
-      registeredTitle: "登録完了！",
-      registeredDesc: "グッズが正常に登録されました",
-      registerFailed: "登録に失敗しました",
-      greeting:
-        "こんにちは！グッズの登録をお手伝いします✨\n\nまずは登録したいグッズの画像を送ってください。画像URLを貼り付けるか、ファイルをアップロードしてくださいね！",
-      proxyFailed:
-        "⚠️ 外部画像の取得に失敗しました。\n\n画像を直接アップロードしてください。左下の画像ボタン📷をタップして、スマホやPCから画像を選んでください。",
-      imageDataFailed:
-        "⚠️ 画像データの取得に失敗しました。\n\n画像を直接アップロードしてください。",
-      registeredChat:
-        "グッズの登録が完了しました！🎉\n\n続けて別のグッズを登録しますか？画像を送ってください！",
-      collectedInfo: "収集済みの情報:",
-      inputPlaceholder: "メッセージまたは画像URLを入力...",
-    },
-
     admin: {
       tagCandidates: "タグ候補管理",
       search: "検索",
@@ -378,12 +358,13 @@ export const misc = {
     },
 
     imageSearch: {
-      title: "画像でグッズ検索",
-      subtitle: "カメラで撮影するか画像をアップロードして、類似したグッズを探しましょう",
+      title: "写真から似ているグッズを探す",
+      subtitle:
+        "カメラで撮影するか画像をアップロードすると、似ているグッズを探します。見つからなければ、その写真からそのまま登録できます。",
       searchImageAlt: "検索画像",
       analyzing: "画像を解析中...",
       resultTitle: "検索結果",
-      noSimilar: "類似アイテムが見つかりませんでした",
+      noSimilar: "似ているグッズは見つかりませんでした。この写真からそのまま登録できます",
       searchDone: "検索完了",
       foundCount: "{n}件の関連結果が見つかりました",
       analyzeError: "画像の解析中にエラーが発生しました。しばらくしてから再度お試しください。",
@@ -392,13 +373,18 @@ export const misc = {
       dropToUpload: "ドロップしてアップロード",
       dragOrClick: "画像をドラッグするか、クリックして選択",
       formats: "JPG, PNG, GIF, WebP (最大10MB)",
-      cameraSearch: "カメラで撮影して検索",
+      cameraSearch: "カメラで撮影して探す",
       searching: "検索中...",
       captionHeading: "画像の説明",
       labelsHeading: "検出されたラベル",
       keywordsHeading: "関連キーワード",
       tabApp: "アプリ内 ({n})",
-      noAppResults: "アプリ内で類似アイテムは見つかりませんでした",
+      noAppResults: "同じグッズは見つかりませんでした",
+      noAppResultsDesc: "この写真から新しいグッズとして登録できます",
+      registerWithPhoto: "この写真で登録する",
+      registerAnyway: "探しているものが無い場合はこの写真で登録する",
+      handoffFailedTitle: "写真を引き継げませんでした",
+      handoffFailedDesc: "登録画面でもう一度写真を選んでください",
       webSimilarHeading: "Web上の類似画像",
       similarImageAlt: "類似画像 {n}",
       webPagesHeading: "関連するWebページ",
@@ -618,26 +604,6 @@ export const misc = {
       addAnother: "Add another",
     },
 
-    chatAdd: {
-      sendFailed: "Couldn't send your message",
-      uploadFailed: "Couldn't upload the image",
-      uploadFailedRetry: "Couldn't upload the image. Please try again.",
-      loginRequired: "Please sign in first",
-      registeredTitle: "All done!",
-      registeredDesc: "Your goods were added successfully",
-      registerFailed: "Couldn't add these goods",
-      greeting:
-        "Hi! I'll help you add your goods ✨\n\nStart by sending a photo of the item you want to add. Paste an image URL or upload a file!",
-      proxyFailed:
-        "⚠️ Couldn't fetch that external image.\n\nPlease upload the image directly. Tap the image button 📷 at the bottom left and pick a photo from your phone or computer.",
-      imageDataFailed:
-        "⚠️ Couldn't fetch the image data.\n\nPlease upload the image directly.",
-      registeredChat:
-        "Your goods have been added! 🎉\n\nWant to add another one? Send me a photo!",
-      collectedInfo: "Collected so far:",
-      inputPlaceholder: "Type a message or paste an image URL...",
-    },
-
     admin: {
       tagCandidates: "Tag candidates",
       search: "Search",
@@ -832,12 +798,13 @@ export const misc = {
     },
 
     imageSearch: {
-      title: "Search goods by image",
-      subtitle: "Take a photo or upload an image to find similar goods",
+      title: "Find similar goods from a photo",
+      subtitle:
+        "Take a photo or upload an image to find similar goods. If there's no match, you can add it straight from that photo.",
       searchImageAlt: "Search image",
       analyzing: "Analyzing the image...",
       resultTitle: "Search results",
-      noSimilar: "No similar items found",
+      noSimilar: "No similar goods found. You can add it straight from this photo.",
       searchDone: "Search complete",
       foundCount: "Found {n} related results",
       analyzeError: "Something went wrong while analyzing the image. Please try again in a moment.",
@@ -852,7 +819,12 @@ export const misc = {
       labelsHeading: "Detected labels",
       keywordsHeading: "Related keywords",
       tabApp: "In app ({n})",
-      noAppResults: "No similar items found in the app",
+      noAppResults: "We couldn't find the same goods",
+      noAppResultsDesc: "You can add it as new goods using this photo",
+      registerWithPhoto: "Add with this photo",
+      registerAnyway: "Not what you're looking for? Add with this photo",
+      handoffFailedTitle: "Couldn't carry the photo over",
+      handoffFailedDesc: "Please pick the photo again on the next screen",
       webSimilarHeading: "Similar images on the web",
       similarImageAlt: "Similar image {n}",
       webPagesHeading: "Related web pages",

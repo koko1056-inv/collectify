@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Camera, ImageIcon, Upload } from 'lucide-react';
 import { toast } from 'sonner';
@@ -13,7 +13,8 @@ export function ImageSearchUpload({ onImageSelect }: ImageSearchUploadProps) {
   const { t } = useLanguage();
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  // t は毎レンダーで新しい関数になるため memo 化しない（言語切替で文言が古くなるのを防ぐ）
+  const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
@@ -24,7 +25,7 @@ export function ImageSearchUpload({ onImageSelect }: ImageSearchUploadProps) {
       }
       onImageSelect(file);
     }
-  }, [onImageSelect]);
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,

@@ -3422,6 +3422,10 @@ export type Database = {
         Args: { _avatar_id: string; _is_public: boolean }
         Returns: boolean
       }
+      increment_item_quantity: {
+        Args: { _by?: number; _official_item_id: string }
+        Returns: Json
+      }
       toggle_ai_room_like: { Args: { _room_id: string }; Returns: Json }
       toggle_avatar_like: { Args: { _avatar_id: string }; Returns: Json }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }

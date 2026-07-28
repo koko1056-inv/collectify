@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { trackAddToCollection } from "@/utils/analytics";
 import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
-import { addToCollection } from "@/utils/collection-actions";
+import { addToCollection, incrementItemQuantity } from "@/utils/collection-actions";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -88,6 +88,29 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
     };
   }, [id, user?.id, queryClient, refetchIsInCollection]);
 
+  // 既に持っているグッズの所持数を +1 する（2個目以降を記録する導線）。
+  // ポイントは付与しない（同じ official_item への2回目はサーバー側が弾くため呼ばない）。
+  const handleIncrementQuantity = async () => {
+    if (!user) return;
+
+    const result = await incrementItemQuantity(user.id, id);
+
+    if (!result.success) {
+      toast.error(t("collectionScreen.common.error"), {
+        description: t("collectionScreen.addFlow.incrementFailed"),
+      });
+      return;
+    }
+
+    await queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" });
+    await queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" });
+
+    playSuccessSound();
+    toast.success(
+      t("collectionScreen.addFlow.incrementedTo", { count: result.quantity ?? 0 })
+    );
+  };
+
   const handleAddToCollection = async () => {
     if (!user) {
       toast.error(t("collectionScreen.common.error"), {
@@ -105,8 +128,15 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
         .eq("official_item_id", id);
 
       if (count && count > 0) {
+        // 重複追加はせず、「もう1個持っている」を記録できる導線を出す
         toast(t("collectionScreen.official.alreadyAdded"), {
           description: t("collectionScreen.official.alreadyAddedDesc"),
+          action: {
+            label: t("collectionScreen.addFlow.incrementAction"),
+            onClick: () => {
+              void handleIncrementQuantity();
+            },
+          },
         });
         await refetchIsInCollection();
         return;
@@ -124,12 +154,16 @@ export function useOfficialGoodsCard({ id, title, image }: UseOfficialGoodsCardP
 
       if (!result.success) {
         if (result.isAtLimit) {
-          toast.error(t("collectionScreen.official.limitTitle"), {
-            description: t("collectionScreen.official.limitDesc"),
+          toast.error(t("collectionScreen.addFlow.limitTitle"), {
+            description: result.maxSlots
+              ? t("collectionScreen.addFlow.limitDescWithMax", { max: result.maxSlots })
+              : t("collectionScreen.addFlow.limitDesc"),
           });
         } else {
+          // result.error は Supabase の技術的なメッセージなので画面には出さない（ログのみ）
+          if (result.error) console.error("addToCollection failed:", result.error);
           toast.error(t("collectionScreen.common.error"), {
-            description: result.error || t("collectionScreen.official.addFailed"),
+            description: t("collectionScreen.official.addFailed"),
           });
         }
         return;
