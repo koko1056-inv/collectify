@@ -27,6 +27,8 @@ interface UseItemSubmitProps {
   resetForm: () => void;
   /** 「みんなのカタログにも登録する」。false のとき official_items には入れず、自分のコレクションにだけ追加する */
   shareToCatalog?: boolean;
+  /** 「自分のコレクションに追加する」。false ならカタログ登録のみ（枠を消費しない） */
+  addToOwnCollection?: boolean;
   /** アップロード対象のファイルが無い（既にURLの画像を選んだ）ときの画像URL */
   fallbackImageUrl?: string | null;
 }
@@ -37,6 +39,7 @@ export function useItemSubmit({
   selectedTags,
   resetForm,
   shareToCatalog = true,
+  addToOwnCollection = true,
   fallbackImageUrl = null,
 }: UseItemSubmitProps) {
   const [loading, setLoading] = useState(false);
@@ -234,21 +237,24 @@ export function useItemSubmit({
 
       // 自分のコレクション（user_items）にも追加する。
       // 枠上限チェック・ポイント付与は addToCollection が持っている。
-      const collectionResult = await addToCollection({
-        userId: user.id,
-        title: formData.title,
-        image: imageUrl,
-        officialItemId: officialItemId ?? undefined,
-        contentName: formData.content_name || undefined,
-        // カタログに登録しない場合、説明の保存先が official_items に無いので
-        // 自分のコレクション側のメモに残す（黙って失わないため）
-        note: !shareToCatalog ? formData.description || undefined : undefined,
-        releaseDate: new Date().toISOString().split('T')[0],
-        prize: "0",
-      });
+      // カタログ整備だけしたい場合（/admin など）は addToOwnCollection を外せる。
+      const collectionResult = !addToOwnCollection
+        ? null
+        : await addToCollection({
+            userId: user.id,
+            title: formData.title,
+            image: imageUrl,
+            officialItemId: officialItemId ?? undefined,
+            contentName: formData.content_name || undefined,
+            // カタログに登録しない場合、説明の保存先が official_items に無いので
+            // 自分のコレクション側のメモに残す（黙って失わないため）
+            note: !shareToCatalog ? formData.description || undefined : undefined,
+            releaseDate: new Date().toISOString().split('T')[0],
+            prize: "0",
+          });
 
       // タグを user_item 側にもコピーする
-      if (collectionResult.success && collectionResult.userItemId) {
+      if (collectionResult?.success && collectionResult.userItemId) {
         try {
           if (officialItemId) {
             await copyTagsFromOfficialItem(officialItemId, collectionResult.userItemId);
@@ -281,7 +287,15 @@ export function useItemSubmit({
       await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
 
       // 実際に起きたことに合わせて伝える。コレクションに入っていないなら成功扱いにしない。
-      if (collectionResult.success) {
+      if (!collectionResult) {
+        // コレクションには入れない選択（カタログ整備のみ）
+        toast.success(t("notices.adminItem.catalogOnlyTitle"), {
+          description: totalPointsAwarded
+            ? t("notices.adminItem.pointsEarnedDesc", { n: totalPointsAwarded })
+            : t("notices.adminItem.catalogOnlyDesc"),
+        });
+        resetForm();
+      } else if (collectionResult.success) {
         toast.success(t("notices.adminItem.addedToCollectionTitle"), {
           description: totalPointsAwarded
             ? t("notices.adminItem.pointsEarnedDesc", { n: totalPointsAwarded })

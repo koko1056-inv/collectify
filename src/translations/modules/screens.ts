@@ -14,8 +14,8 @@ export const screens = {
     },
     addItem: {
       title: "グッズを追加",
-      descLine1: "あなたが追加したグッズは、他のコレクターも登録できるようになります。",
-      descLine2: "コミュニティを盛り上げましょう！",
+      descLine1: "自分のコレクションに追加します。",
+      descLine2: "みんなのカタログにも登録すると、他のコレクターも見つけられるようになります。",
       tipsTitle: "便利なヒント",
       tip1: "商品ページのURLから画像を自動取得できます",
       tip2: "複数の画像を選んで一括登録も可能です",
@@ -557,8 +557,8 @@ export const screens = {
     },
     addItem: {
       title: "Add Goods",
-      descLine1: "Goods you add become available for other collectors to register too.",
-      descLine2: "Help the community grow!",
+      descLine1: "This adds the item to your own collection.",
+      descLine2: "Share it to the catalog too and other collectors can find it.",
       tipsTitle: "Handy tips",
       tip1: "Paste a product page URL to pull in images automatically",
       tip2: "Pick several images to register them all at once",

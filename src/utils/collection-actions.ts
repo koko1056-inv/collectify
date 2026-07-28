@@ -137,33 +137,25 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
  * 弾くため、呼ぶだけ無駄になる。
  */
 export async function incrementItemQuantity(
-  userId: string,
+  _userId: string,
   officialItemId: string,
   by: number = 1
 ): Promise<IncrementItemQuantityResult> {
   try {
-    const { data: existing, error: selectError } = await supabase
-      .from("user_items")
-      .select("id, quantity")
-      .eq("user_id", userId)
-      .eq("official_item_id", officialItemId)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+    // read-modify-write だと連続タップや数量編集との同時更新で
+    // 1回分が失われるため、行ロック付きの RPC でサーバー側に任せる。
+    const { data, error } = await supabase.rpc("increment_item_quantity", {
+      _official_item_id: officialItemId,
+      _by: by,
+    });
 
-    if (selectError) throw selectError;
-    if (!existing) return { success: false, notFound: true };
+    if (error) throw error;
 
-    const nextQuantity = (existing.quantity ?? 1) + by;
-
-    const { error: updateError } = await supabase
-      .from("user_items")
-      .update({ quantity: nextQuantity })
-      .eq("id", existing.id);
-
-    if (updateError) throw updateError;
-
-    return { success: true, quantity: nextQuantity };
+    const result = (data ?? {}) as { success?: boolean; not_found?: boolean; quantity?: number };
+    if (!result.success) {
+      return { success: false, notFound: result.not_found === true };
+    }
+    return { success: true, quantity: result.quantity };
   } catch (error) {
     console.error("Error incrementing item quantity:", error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };

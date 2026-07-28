@@ -26,6 +26,8 @@ export function AdminItemForm() {
   const [isMultipleMode, setIsMultipleMode] = useState(false);
   // 一括登録で自分のコレクションにも入れるか。件数分の枠を使うので既定OFF。
   const [bulkAddToCollection, setBulkAddToCollection] = useState(false);
+  // 自分のコレクションに入れるか。カタログ整備だけしたい場合に外せる。
+  const [addToOwnCollection, setAddToOwnCollection] = useState(true);
   // 既定ON: カタログにも登録して他の人が同じグッズを見つけられるようにする
   const [shareToCatalog, setShareToCatalog] = useState(true);
   const bulkSubmittingRef = useRef(false);
@@ -81,6 +83,7 @@ export function AdminItemForm() {
     selectedTags,
     resetForm,
     shareToCatalog,
+    addToOwnCollection,
     // ファイル選択ではなくURLの画像を選んだ場合はそのURLをそのまま使う
     fallbackImageUrl: previewUrl && !previewUrl.startsWith("blob:") ? previewUrl : null,
   });
@@ -432,22 +435,46 @@ export function AdminItemForm() {
                       onTagsChange={setSelectedTags}
                     />
 
-                    {/* カタログにも登録するか。OFFなら自分のコレクションにだけ入る */}
-                    <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-3.5">
-                      <Checkbox
-                        id="share-to-catalog"
-                        checked={shareToCatalog}
-                        onCheckedChange={(checked) => setShareToCatalog(checked === true)}
-                        className="mt-0.5"
-                      />
-                      <div className="space-y-0.5">
-                        <Label htmlFor="share-to-catalog" className="text-sm font-medium cursor-pointer">
-                          {t("notices.adminItem.shareToCatalogLabel")}
-                        </Label>
-                        <p className="text-xs text-muted-foreground">
-                          {t("notices.adminItem.shareToCatalogHint")}
-                        </p>
+                    {/* 登録先の選択。どちらも外すと保存先が無くなるので送信を止める。
+                        カタログ整備目的（/admin など）ではコレクション側を外せる必要がある。 */}
+                    <div className="space-y-2 rounded-xl border border-border bg-muted/40 p-3.5">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          id="add-to-collection"
+                          checked={addToOwnCollection}
+                          onCheckedChange={(checked) => setAddToOwnCollection(checked === true)}
+                          className="mt-0.5"
+                        />
+                        <div className="space-y-0.5">
+                          <Label htmlFor="add-to-collection" className="text-sm font-medium cursor-pointer">
+                            {t("notices.adminItem.addToOwnCollectionLabel")}
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            {t("notices.adminItem.addToOwnCollectionHint")}
+                          </p>
+                        </div>
                       </div>
+                      <div className="flex items-start gap-3 pt-2 border-t border-border/60">
+                        <Checkbox
+                          id="share-to-catalog"
+                          checked={shareToCatalog}
+                          onCheckedChange={(checked) => setShareToCatalog(checked === true)}
+                          className="mt-0.5"
+                        />
+                        <div className="space-y-0.5">
+                          <Label htmlFor="share-to-catalog" className="text-sm font-medium cursor-pointer">
+                            {t("notices.adminItem.shareToCatalogLabel")}
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            {t("notices.adminItem.shareToCatalogHint")}
+                          </p>
+                        </div>
+                      </div>
+                      {!addToOwnCollection && !shareToCatalog && (
+                        <p className="text-xs text-destructive pt-1">
+                          {t("notices.adminItem.noDestinationWarning")}
+                        </p>
+                      )}
                     </div>
 
                     <div className="flex justify-between pt-4 border-t">
@@ -462,7 +489,7 @@ export function AdminItemForm() {
                       </Button>
                       <Button 
                         type="submit" 
-                        disabled={loading} 
+                        disabled={loading || (!addToOwnCollection && !shareToCatalog)} 
                         size="lg"
                         className="px-8 gap-2"
                       >

@@ -1,5 +1,4 @@
-import { useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { PenLine } from "lucide-react";
 import { QuickAddFlow } from "@/components/add-item/QuickAddFlow";
 import { BackButton } from "@/components/navigation/BackButton";
@@ -8,23 +7,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function QuickAdd() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { t } = useLanguage();
 
   // 認証チェックは App.tsx の ProtectedRoute が担当するのでここでは行わない。
-
-  // QuickAddFlow の onCancel は「撮影」ステップでのみ表示されるため、
-  // どのステップからでも抜けられるようヘッダ側にも戻る手段を用意する。
-  // 直リンクで来た場合は履歴が無いので navigate(-1) がアプリ外へ出てしまう。
-  // location.key が "default" のときはこのルーターでの最初のエントリなので
-  // コレクション（/my-room）へ逃がす。
-  const handleBack = useCallback(() => {
-    if (location.key === "default") {
-      navigate("/my-room");
-    } else {
-      navigate(-1);
-    }
-  }, [location.key, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -35,7 +20,9 @@ export default function QuickAdd() {
         {/* 撮る前に上限が近いことが分かるように枠の使用状況を出す */}
         <SlotUsageMeter type="collection" compact className="mt-1 mb-2" />
 
-        <QuickAddFlow onComplete={() => navigate("/my-room")} onCancel={handleBack} />
+        {/* onCancel は渡さない。ヘッダの「戻る」と同じ動作のボタンが
+            撮影ステップに二重に並ぶため（実画面で確認）。 */}
+        <QuickAddFlow onComplete={() => navigate("/my-room")} />
 
         {/* AI が読み取れなかったときの逃げ道 */}
         <div className="mt-6 text-center">
