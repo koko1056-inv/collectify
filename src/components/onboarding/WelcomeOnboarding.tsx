@@ -37,7 +37,7 @@ interface WelcomeOnboardingProps {
 //   3. AIスタジオ紹介
 //   4. 探索 紹介
 //   5. コレクション 紹介
-//   6. 完了セレブレーション → /search へ
+//   6. 完了セレブレーション → /quick-add へ（手持ちゼロなので、まず1個登録してもらう）
 // ──────────────────────────────────────────────
 
 type Step = "welcome" | "interests" | "feature-ai" | "feature-explore" | "feature-collection" | "celebrate";
@@ -69,8 +69,13 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
       });
   }, [user?.id]);
 
+  // 敬称は名前側に付ける。文言テンプレートに「さん」を書いてしまうと、
+  // 名前未入力のときに「あなたさん」という不自然な呼び方になってしまう。
   const friendlyName = useMemo(
-    () => (displayName.trim() ? displayName.trim() : t("misc.onboarding.you")),
+    () =>
+      displayName.trim()
+        ? t("misc.onboarding.nameWithHonorific", { name: displayName.trim() })
+        : t("misc.onboarding.you"),
     [displayName, t]
   );
 
@@ -122,7 +127,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     completeWalkthrough();
     await completeWelcome();
     onComplete();
-    navigate("/search");
+    navigate("/quick-add");
   }, [user?.id, completeWalkthrough, completeWelcome, onComplete, navigate]);
 
   // タッチスワイプ（機能紹介ステップで有効）

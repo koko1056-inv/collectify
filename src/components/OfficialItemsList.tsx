@@ -6,7 +6,7 @@ import { OfficialItemsGrid } from "./official-goods/OfficialItemsGrid";
 import { useItemCounts } from "./official-goods/hooks/useItemCounts";
 import { useSortedItems } from "./official-goods/hooks/useSortedItems";
 import { toast } from "sonner";
-import { Loader2, Upload, CheckSquare, X, Tags, Package } from "lucide-react";
+import { Loader2, Upload, CheckSquare, X, Tags, Package, Camera } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QueryErrorState } from "@/components/ui/query-error-state";
@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { BulkImportModal } from "./admin/BulkImportModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
 
 interface OfficialItemsListProps {
   items: OfficialItem[];
@@ -61,7 +62,7 @@ export function OfficialItemsList({
   const { user } = useAuth();
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [visibleCount, setVisibleCount] = useState(isMobile ? 21 : 24);
-  const { wishlistCounts, ownerCounts } = useItemCounts();
+  const { wishlistCounts, ownerCounts, distinctOwnerCounts } = useItemCounts();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -97,6 +98,14 @@ export function OfficialItemsList({
   const loaderRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  // 何かで絞り込んでいるか。空状態の文言を「条件を変えて」と「まだ登録が無い」で
+  // 出し分けるために使う（未検索なのに「条件を変えて」と言われても直しようがない）。
+  const hasActiveQuery =
+    searchQuery.trim().length > 0 ||
+    selectedTags.length > 0 ||
+    (!!selectedContent && selectedContent !== "all");
 
   const loadMoreItems = useCallback(() => {
     if (visibleCount >= sortedItems.length || isLoading) return;
@@ -244,10 +253,35 @@ export function OfficialItemsList({
           onRetry={onRetry}
         />
       ) : sortedItems.length === 0 ? (
+        // 「絞り込んだ結果ゼロ」と「そもそもカタログが空」を混同しない。
+        // 前者は条件を緩める案内、後者は条件の話をしても意味がない。
+        // どちらの場合も、見つからなかった今が登録の一番の動機なので追加導線を出す。
         <EmptyState
           icon={Package}
-          title={t("chrome.officialItems.emptyTitle")}
-          description={t("chrome.collection.noMatchDesc")}
+          title={
+            hasActiveQuery
+              ? t("chrome.officialItems.noMatchTitle")
+              : t("chrome.officialItems.emptyTitle")
+          }
+          description={
+            hasActiveQuery
+              ? t("chrome.collection.noMatchDesc")
+              : t("chrome.officialItems.emptyDesc")
+          }
+          action={
+            <div className="flex flex-col items-center gap-2">
+              <Button onClick={() => navigate("/quick-add")} className="gap-2">
+                <Camera className="h-4 w-4" />
+                {t("chrome.collection.addByPhoto")}
+              </Button>
+              <button
+                onClick={() => navigate("/add-item")}
+                className="text-xs text-muted-foreground underline underline-offset-2"
+              >
+                {t("chrome.collection.addManually")}
+              </button>
+            </div>
+          }
         />
       ) : (
         <OfficialItemsGrid
@@ -255,6 +289,7 @@ export function OfficialItemsList({
           selectionMode={selectionMode}
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
+          ownerCounts={distinctOwnerCounts}
         />
       )}
 

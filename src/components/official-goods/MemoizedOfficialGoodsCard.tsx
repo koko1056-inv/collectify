@@ -18,6 +18,8 @@ interface MemoizedOfficialGoodsCardProps {
   releaseDate?: string;
   createdBy?: string | null;
   contentName?: string | null;
+  /** 一覧側でまとめて数えた所有者数。渡すとカード自身の問い合わせを省ける。 */
+  ownersCount?: number;
 }
 
 const OfficialGoodsCardWithSwipe = ({
@@ -30,6 +32,7 @@ const OfficialGoodsCardWithSwipe = ({
   releaseDate,
   createdBy,
   contentName,
+  ownersCount,
 }: MemoizedOfficialGoodsCardProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -111,6 +114,7 @@ const OfficialGoodsCardWithSwipe = ({
         releaseDate={releaseDate}
         createdBy={createdBy}
         contentName={contentName}
+        ownersCount={ownersCount}
       />
     </SwipeableCard>
   );
