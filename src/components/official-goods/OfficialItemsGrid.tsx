@@ -9,6 +9,8 @@ interface OfficialItemsGridProps {
   selectionMode?: boolean;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
+  /** グッズID→所有者の人数。まとめて取得した結果を各カードへ配る（カードごとの問い合わせを避けるため）。 */
+  ownerCounts?: Record<string, number>;
 }
 
 export function OfficialItemsGrid({
@@ -16,6 +18,7 @@ export function OfficialItemsGrid({
   selectionMode = false,
   selectedIds,
   onToggleSelect,
+  ownerCounts,
 }: OfficialItemsGridProps) {
   const { t } = useLanguage();
   return (
@@ -60,6 +63,7 @@ export function OfficialItemsGrid({
               releaseDate={item.release_date}
               createdBy={item.created_by}
               contentName={item.content_name}
+              ownersCount={ownerCounts?.[item.id] ?? 0}
             />
           </div>
         );

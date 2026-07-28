@@ -21,6 +21,8 @@ export const chrome = {
     },
 
     nav: {
+      home: "ホーム",
+      pointsUnit: "ポイント",
       aiStudio: "AIスタジオ",
       explore: "探索",
       find: "みつける",
@@ -45,6 +47,7 @@ export const chrome = {
 
     fab: {
       addGoods: "グッズを追加",
+      addShort: "追加",
       moreActions: "その他のアクション",
       addByPhoto: "写真でグッズ追加",
       addByPhotoDesc: "撮るだけで自動登録",
@@ -247,7 +250,9 @@ export const chrome = {
       bulkTagEdit: "タグ一括編集",
       done: "完了",
       loadFailed: "グッズの読み込みに失敗しました",
-      emptyTitle: "公式グッズがまだありません",
+      emptyTitle: "まだ登録されたグッズがありません",
+      emptyDesc: "最初の登録者になりませんか？追加したグッズはみんなのカタログにも並びます。",
+      noMatchTitle: "条件に合うグッズが見つかりません",
     },
 
     itemDetails: {
@@ -419,6 +424,8 @@ export const chrome = {
     },
 
     nav: {
+      home: "Home",
+      pointsUnit: "points",
       aiStudio: "AI Studio",
       explore: "Explore",
       find: "Find",
@@ -443,6 +450,7 @@ export const chrome = {
 
     fab: {
       addGoods: "Add goods",
+      addShort: "Add",
       moreActions: "More actions",
       addByPhoto: "Add goods from a photo",
       addByPhotoDesc: "Just snap it and it's registered",
@@ -645,7 +653,9 @@ export const chrome = {
       bulkTagEdit: "Edit tags in bulk",
       done: "Done",
       loadFailed: "Failed to load goods",
-      emptyTitle: "No official goods yet",
+      emptyTitle: "No goods registered yet",
+      emptyDesc: "Be the first to add one — it shows up in the shared catalog too.",
+      noMatchTitle: "No goods match your filters",
     },
 
     itemDetails: {

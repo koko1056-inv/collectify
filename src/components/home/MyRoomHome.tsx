@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,38 @@ export function MyRoomHome({
     if (t === "avatar") setStudioView("avatar");
     else if (t === "room" || t === "studio") setStudioView("room");
   }, [searchParams]);
+
+  // グッズが1つも無いうちは AI Studio を既定にしない。
+  // AI推しルームは「コレクションからグッズを選ぶ」機能なので、
+  // 0個の人に最初に見せてもまだ使えず、やることが分からない画面になる。
+  const { data: itemCount } = useQuery({
+    queryKey: ["collectionCount", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      const { count } = await supabase
+        .from("user_items")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      return count ?? 0;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // 既定タブの自動切り替えは最初の1回だけ。
+  // 以降は利用者が自分で選んだタブを尊重する。
+  const autoTabApplied = useRef(false);
+  useEffect(() => {
+    if (autoTabApplied.current) return;
+    // URLで明示指定されているなら、そちらが優先
+    if (rawTab) {
+      autoTabApplied.current = true;
+      return;
+    }
+    if (itemCount === undefined) return;
+    autoTabApplied.current = true;
+    if (itemCount === 0) setActiveTab("collection");
+  }, [rawTab, itemCount]);
   
   const {
     mainRoom,

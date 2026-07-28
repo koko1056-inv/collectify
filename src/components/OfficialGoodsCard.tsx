@@ -27,6 +27,11 @@ interface OfficialGoodsCardProps {
   quantity?: number;
   createdBy?: string | null;
   contentName?: string | null;
+  /**
+   * 所有者の人数。一覧から渡される場合はそれを使う。
+   * 未指定のとき（単体で使う画面）だけ、このカード自身が数えに行く。
+   */
+  ownersCount?: number;
 }
 
 export function OfficialGoodsCard({ 
@@ -41,6 +46,7 @@ export function OfficialGoodsCard({
   quantity = 1,
   createdBy,
   contentName,
+  ownersCount: ownersCountProp,
 }: OfficialGoodsCardProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -57,8 +63,12 @@ export function OfficialGoodsCard({
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isWishlistUsersModalOpen, setIsWishlistUsersModalOpen] = useState(false);
 
-  const { data: ownersCount = 0 } = useQuery({
+  // 一覧からまとめて渡されたときは問い合わせない。
+  // 以前はカード1枚ごとに user_items を引いていたため、
+  // グリッド表示のたびに表示枚数ぶんのクエリが飛んでいた。
+  const { data: fetchedOwnersCount = 0 } = useQuery({
     queryKey: ["item-owners-count", id],
+    enabled: ownersCountProp === undefined,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
@@ -68,6 +78,7 @@ export function OfficialGoodsCard({
       return new Set(data.map(item => item.user_id)).size;
     },
   });
+  const ownersCount = ownersCountProp ?? fetchedOwnersCount;
 
   return (
     <>

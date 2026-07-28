@@ -141,22 +141,23 @@ const Search = () => {
       <main className="container mx-auto px-2 pt-4 pb-24 sm:px-4 sm:pt-6 sm:pb-8">
         <div className="space-y-3 sm:space-y-6">
           <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 max-w-lg mx-auto">
-              <TabsTrigger value="goods" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
+            {/* モバイルはアイコンの下にラベルを置くので、既定の h-10 だと収まらない */}
+            <TabsList className="grid w-full grid-cols-4 max-w-lg mx-auto h-auto py-1 sm:h-10 sm:py-1">
+              <TabsTrigger value="goods" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-0.5 sm:px-3 min-w-0">
                 <Package className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">{t("tabs.goods")}</span>
+                <span className="w-full text-center truncate">{t("tabs.goods")}</span>
               </TabsTrigger>
-              <TabsTrigger value="collections" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
+              <TabsTrigger value="collections" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-0.5 sm:px-3 min-w-0">
                 <Heart className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">{t("screens.search.collectionsTab")}</span>
+                <span className="w-full text-center truncate">{t("screens.search.collectionsTab")}</span>
               </TabsTrigger>
-              <TabsTrigger value="trade" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
+              <TabsTrigger value="trade" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-0.5 sm:px-3 min-w-0">
                 <ArrowLeftRight className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">{t("screens.search.tradeTab")}</span>
+                <span className="w-full text-center truncate">{t("screens.search.tradeTab")}</span>
               </TabsTrigger>
-              <TabsTrigger value="friends" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-1 sm:px-3">
+              <TabsTrigger value="friends" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-0.5 sm:px-3 min-w-0">
                 <Users className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">{t("tabs.friends")}</span>
+                <span className="w-full text-center truncate">{t("tabs.friends")}</span>
               </TabsTrigger>
             </TabsList>
 
@@ -293,14 +294,16 @@ const Search = () => {
       {currentTab === "goods" && (
         // 撮影→AI解析フロー(/quick-add)を既定の追加導線にする。
         // 手入力(/add-item)へは /quick-add 内のリンクから辿れる。
+        // 下タブ中央の丸い「みつける」ボタンと同じ形・同じ色だと見分けがつかないため、
+        // こちらは文字付きの横長ボタンにして「探す」と「登録する」を区別する。
         <Button
           onClick={() => navigate("/quick-add")}
-          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg"
-          size="icon"
+          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-50 h-12 pl-4 pr-5 gap-2 rounded-full shadow-lg"
           title={t("chrome.collection.addByPhoto")}
           aria-label={t("chrome.collection.addByPhoto")}
         >
-          <Camera className="h-6 w-6" />
+          <Camera className="h-5 w-5" />
+          <span className="text-sm font-semibold">{t("chrome.fab.addShort")}</span>
         </Button>
       )}
       
