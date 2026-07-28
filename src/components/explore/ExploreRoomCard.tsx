@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useToggleAiBookmark } from "@/hooks/ai-room/useAiBookmarks";
+import { useToggleAiRoomLike } from "@/hooks/ai-room/useAiRoomLikes";
 import { setPendingRemix } from "@/utils/ai-studio-handoff";
 import { getOptimizedImageUrl } from "@/utils/optimized-image";
 import { toast } from "sonner";
@@ -49,11 +50,13 @@ export interface ExploreRoom {
 interface Props {
   room: ExploreRoom;
   isBookmarked: boolean;
+  isLiked: boolean;
 }
 
-export function ExploreRoomCard({ room, isBookmarked }: Props) {
+export function ExploreRoomCard({ room, isBookmarked, isLiked }: Props) {
   const navigate = useNavigate();
   const toggleBookmark = useToggleAiBookmark();
+  const toggleLike = useToggleAiRoomLike();
   const { t } = useLanguage();
   const [imgLoaded, setImgLoaded] = useState(false);
   // フィードではオリジナル(1.5MB超)ではなくリサイズ版(約50KB)を配信。
@@ -216,10 +219,22 @@ export function ExploreRoomCard({ room, isBookmarked }: Props) {
             </span>
           </button>
           <div className="flex items-center gap-2 text-[10px] text-muted-foreground shrink-0">
-            <span className="flex items-center gap-0.5">
-              <Heart className="w-3 h-3" />
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleLike.mutate(room.id);
+              }}
+              disabled={toggleLike.isPending}
+              className={cn(
+                "flex items-center gap-0.5 transition-colors",
+                isLiked ? "text-rose-500" : "hover:text-foreground"
+              )}
+              aria-pressed={isLiked}
+              aria-label={t("chrome.exploreCard.like")}
+            >
+              <Heart className={cn("w-3 h-3", isLiked && "fill-current")} />
               {room.like_count}
-            </span>
+            </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="hover:text-foreground p-0.5">

@@ -26,6 +26,7 @@ import {
   type ExploreAvatar,
 } from "@/hooks/ai-avatar/usePublicAvatars";
 import { QueryErrorState } from "@/components/ui/query-error-state";
+import { useMyAiRoomLikes } from "@/hooks/ai-room/useAiRoomLikes";
 import { ExploreRoomCard, type ExploreRoom } from "./ExploreRoomCard";
 import { useMyAiBookmarks } from "@/hooks/ai-room/useAiBookmarks";
 import { useAuth } from "@/contexts/AuthContext";
@@ -136,6 +137,7 @@ const PAGE_SIZE = 24;
 
 function RoomsTab({ searchQuery }: { searchQuery: string }) {
   const { data: bookmarks } = useMyAiBookmarks();
+  const { data: roomLikes } = useMyAiRoomLikes();
   const { t } = useLanguage();
 
   const {
@@ -213,6 +215,7 @@ function RoomsTab({ searchQuery }: { searchQuery: string }) {
             key={room.id}
             room={room}
             isBookmarked={bookmarks?.has(`room:${room.id}`) || false}
+            isLiked={roomLikes?.has(room.id) || false}
           />
         ))}
       </div>

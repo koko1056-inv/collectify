@@ -113,6 +113,27 @@ export type Database = {
           },
         ]
       }
+      ai_room_likes: {
+        Row: {
+          created_at: string
+          id: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_work_bookmarks: {
         Row: {
           created_at: string
@@ -3401,6 +3422,7 @@ export type Database = {
         Args: { _avatar_id: string; _is_public: boolean }
         Returns: boolean
       }
+      toggle_ai_room_like: { Args: { _room_id: string }; Returns: Json }
       toggle_avatar_like: { Args: { _avatar_id: string }; Returns: Json }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
       claim_onboarding_reward: { Args: { _step_id: string }; Returns: boolean }
