@@ -13,6 +13,8 @@ export interface AvatarRow {
   prompt: string | null;
   item_ids: string[] | null;
   is_current: boolean | null;
+  is_public: boolean;
+  like_count: number;
   created_at: string;
 }
 
@@ -37,7 +39,7 @@ export function useAvatars(userId: string | undefined) {
     queryFn: async (): Promise<AvatarRow[]> => {
       const { data, error } = await supabase
         .from("avatar_gallery")
-        .select("id, user_id, image_url, name, prompt, item_ids, is_current, created_at")
+        .select("id, user_id, image_url, name, prompt, item_ids, is_current, is_public, like_count, created_at")
         .eq("user_id", userId!)
         .order("created_at", { ascending: false });
       if (error) throw error;

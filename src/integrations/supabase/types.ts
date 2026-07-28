@@ -137,12 +137,35 @@ export type Database = {
         }
         Relationships: []
       }
+      avatar_likes: {
+        Row: {
+          avatar_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          avatar_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          avatar_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       avatar_gallery: {
         Row: {
           created_at: string
           id: string
           image_url: string
           is_current: boolean | null
+          is_public: boolean
+          like_count: number
           item_ids: string[] | null
           name: string | null
           prompt: string | null
@@ -153,6 +176,8 @@ export type Database = {
           id?: string
           image_url: string
           is_current?: boolean | null
+          is_public?: boolean
+          like_count?: number
           item_ids?: string[] | null
           name?: string | null
           prompt?: string | null
@@ -163,6 +188,8 @@ export type Database = {
           id?: string
           image_url?: string
           is_current?: boolean | null
+          is_public?: boolean
+          like_count?: number
           item_ids?: string[] | null
           name?: string | null
           prompt?: string | null
@@ -3370,6 +3397,11 @@ export type Database = {
         Args: { _receiver: string; _sender: string }
         Returns: boolean
       }
+      set_avatar_visibility: {
+        Args: { _avatar_id: string; _is_public: boolean }
+        Returns: boolean
+      }
+      toggle_avatar_like: { Args: { _avatar_id: string }; Returns: Json }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
       claim_onboarding_reward: { Args: { _step_id: string }; Returns: boolean }
       claim_reward: {

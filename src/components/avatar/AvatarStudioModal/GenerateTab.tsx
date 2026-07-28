@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import type { useAvatars } from "@/hooks/useAvatars";
 import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
 import { useFirstTimeFree } from "@/hooks/useFirstTimeFree";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { consumePendingAvatarPrompt } from "@/utils/ai-studio-handoff";
 
 const AVATAR_COST = 30;
 
@@ -25,6 +26,12 @@ const EXAMPLE_KEYS = [
 export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars> }) {
   const { t } = useLanguage();
   const [prompt, setPrompt] = useState("");
+
+  // 探索から「このスタイルを使う」で来た場合はプロンプトを引き継ぐ
+  useEffect(() => {
+    const pending = consumePendingAvatarPrompt();
+    if (pending?.prompt) setPrompt(pending.prompt);
+  }, []);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);

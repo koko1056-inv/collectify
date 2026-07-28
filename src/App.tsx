@@ -92,6 +92,7 @@ const AiRooms = lazy(() => import("./pages/AiRooms").catch(() => ({ default: () 
 const InviteRedirect = lazy(() => import("./pages/InviteRedirect").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 const AiWorkDetail = lazy(() => import("./pages/AiWorkDetail").catch(() => ({ default: () => <div>Error loading page</div> })));
+const AiAvatarDetail = lazy(() => import("./pages/AiAvatarDetail").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Landing = lazy(() => import("./pages/Landing").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Privacy = lazy(() => import("./pages/Privacy").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Terms = lazy(() => import("./pages/Terms").catch(() => ({ default: () => <div>Error loading page</div> })));
@@ -170,6 +171,7 @@ const App: React.FC = () => {
                       <Route path="/rooms/explore" element={<Navigate to="/explore?tab=rooms" replace />} />
                       <Route path="/room/:roomId" element={<RoomView />} />
                       <Route path="/ai-work/:id" element={<AiWorkDetail />} />
+                      <Route path="/ai-avatar/:id" element={<AiAvatarDetail />} />
                       <Route path="/how-to-use" element={<HowToUse />} />
                       <Route path="/invite/:code" element={<InviteRedirect />} />
                       {/* Protected routes — require authentication */}
