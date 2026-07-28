@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -43,13 +44,6 @@ interface SimilarItem {
   image: string;
 }
 
-/**
- * user_items の追加に失敗したときに、直前に作った official_item を取り消す（補償処理）。
- *
- * 本来は1つの RPC でトランザクションにすべきだが、そこまでやらずに整合を保つための後始末。
- * 「カタログにだけ存在して誰のコレクションにも無いゴミ」を残さないのが目的。
- * item_tags の ON DELETE 挙動に依存しないよう、タグ紐付けを先に消す。
- */
 /** コレクション追加の失敗。専用トーストを出し終えている印として使う。 */
 class CollectionAddFailed extends Error {
   constructor() {
@@ -58,17 +52,29 @@ class CollectionAddFailed extends Error {
   }
 }
 
-async function rollbackOfficialItem(officialItemId: string, uploadedPath?: string | null) {
+/**
+ * 登録の途中で失敗したときに、作りかけの物を片付ける（補償処理）。
+ *
+ * 本来は1つの RPC でトランザクションにすべきだが、そこまでやらずに整合を保つための後始末。
+ * 「カタログにだけ存在して誰のコレクションにも無いゴミ」と、
+ * どこからも参照されないアップロード済み画像を残さないのが目的。
+ * item_tags の ON DELETE 挙動に依存しないよう、タグ紐付けを先に消す。
+ *
+ * カタログに登録しない選択のときは officialItemId が null になるので、画像だけ消す。
+ */
+async function rollbackCreatedItem(officialItemId: string | null, uploadedPath?: string | null) {
   try {
-    await supabase.from("item_tags").delete().eq("official_item_id", officialItemId);
-    await supabase.from("official_items").delete().eq("id", officialItemId);
+    if (officialItemId) {
+      await supabase.from("item_tags").delete().eq("official_item_id", officialItemId);
+      await supabase.from("official_items").delete().eq("id", officialItemId);
+    }
     // 画像を残すとストレージに孤児ファイルが溜まるので一緒に消す
     if (uploadedPath) {
       await supabase.storage.from("kuji_images").remove([uploadedPath]);
     }
   } catch (error) {
     // 補償に失敗しても、利用者に伝えるべきは元のエラーなのでログだけ残す
-    console.error("Failed to roll back official_item:", officialItemId, error);
+    console.error("Failed to roll back created item:", officialItemId, error);
   }
 }
 
@@ -92,6 +98,12 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     series: null,
   });
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
+  /**
+   * 「みんなのカタログにも登録する」。既定は ON（写真からの登録でカタログを充実させたいため）。
+   * OFF のときは official_items を作らず、自分のコレクションにだけ入れる。
+   * 手入力（/add-item）と同じ選択肢を用意して、経路によって公開の扱いが変わらないようにする。
+   */
+  const [shareToCatalog, setShareToCatalog] = useState(true);
   /** 「これと同じ」で既存カタログに紐付けて完了したときのアイテム名（完了画面の文言を変える） */
   const [linkedExistingTitle, setLinkedExistingTitle] = useState<string | null>(null);
   /** 「これと同じ」を処理中の候補 id（その行だけスピナーにする） */
@@ -332,65 +344,75 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
         .from('kuji_images')
         .getPublicUrl(filePath);
 
-      // 1. official_itemsに追加（探索に表示されるように）
-      const { data: officialItem, error: officialInsertError } = await supabase
-        .from('official_items')
-        .insert({
-          title,
-          image: publicUrl,
-          price: editedData.price || "0",
-          release_date: new Date().toISOString().split('T')[0],
-          content_name: editedData.contentName || null,
-          description: editedData.description || null,
-          item_type: editedData.category || "goods",
-          created_by: user.id,
-        })
-        .select()
-        .single();
+      // 1. official_itemsに追加（探索に表示されるように）。
+      //    「みんなのカタログにも登録する」を外した場合はここを丸ごと飛ばし、
+      //    自分のコレクションにだけ入れる（説明文は user_items.note に残る）。
+      let officialItemId: string | null = null;
 
-      if (officialInsertError) throw officialInsertError;
+      if (shareToCatalog) {
+        const { data: officialItem, error: officialInsertError } = await supabase
+          .from('official_items')
+          .insert({
+            title,
+            image: publicUrl,
+            price: editedData.price || "0",
+            release_date: new Date().toISOString().split('T')[0],
+            content_name: editedData.contentName || null,
+            description: editedData.description || null,
+            item_type: editedData.category || "goods",
+            created_by: user.id,
+          })
+          .select()
+          .single();
 
-      // 2〜3 のどこかで失敗したら、作った official_item を取り消してから例外を投げ直す。
+        if (officialInsertError) throw officialInsertError;
+        officialItemId = officialItem.id;
+      }
+
+      // 2〜3 のどこかで失敗したら、作った official_item と画像を取り消してから例外を投げ直す。
       // 完全な原子性には RPC が必要だが、少なくとも
       // 「カタログにだけ存在して誰のコレクションにも無い」中途半端な状態は残さない。
       let userItemId: string | null = null;
       try {
-        // 2. タグを保存（item_tagsの重複を除外）
-        const tagIds: string[] = [];
-        for (const [category, tagName] of Object.entries(selectedTags)) {
-          if (!tagName) continue;
+        // 2. タグを保存（item_tagsの重複を除外）。カタログに登録しない場合は
+        //    紐付け先の official_item が無いので、user_item 側（手順4）だけに付ける。
+        if (officialItemId) {
+          const tagIds: string[] = [];
+          for (const [category, tagName] of Object.entries(selectedTags)) {
+            if (!tagName) continue;
 
-          const { data: tagData } = await supabase
-            .from('tags')
-            .select('id')
-            .eq('name', tagName)
-            .eq('category', category)
-            .single();
+            const { data: tagData } = await supabase
+              .from('tags')
+              .select('id')
+              .eq('name', tagName)
+              .eq('category', category)
+              .single();
 
-          if (tagData?.id) tagIds.push(tagData.id);
-        }
+            if (tagData?.id) tagIds.push(tagData.id);
+          }
 
-        const uniqueTagIds = Array.from(new Set(tagIds));
-        if (uniqueTagIds.length > 0) {
-          const { data: existingTagRows, error: existingTagsError } = await supabase
-            .from('item_tags')
-            .select('tag_id')
-            .eq('official_item_id', officialItem.id)
-            .in('tag_id', uniqueTagIds);
-
-          if (existingTagsError) throw existingTagsError;
-
-          const existingSet = new Set((existingTagRows || []).map(r => r.tag_id));
-          const missingTagIds = uniqueTagIds.filter(id => !existingSet.has(id));
-
-          if (missingTagIds.length > 0) {
-            const { error: insertTagsError } = await supabase
+          const uniqueTagIds = Array.from(new Set(tagIds));
+          if (uniqueTagIds.length > 0) {
+            const { data: existingTagRows, error: existingTagsError } = await supabase
               .from('item_tags')
-              .insert(missingTagIds.map(tagId => ({
-                official_item_id: officialItem.id,
-                tag_id: tagId,
-              })));
-            if (insertTagsError) throw insertTagsError;
+              .select('tag_id')
+              .eq('official_item_id', officialItemId)
+              .in('tag_id', uniqueTagIds);
+
+            if (existingTagsError) throw existingTagsError;
+
+            const existingSet = new Set((existingTagRows || []).map(r => r.tag_id));
+            const missingTagIds = uniqueTagIds.filter(id => !existingSet.has(id));
+
+            if (missingTagIds.length > 0) {
+              const { error: insertTagsError } = await supabase
+                .from('item_tags')
+                .insert(missingTagIds.map(tagId => ({
+                  official_item_id: officialItemId,
+                  tag_id: tagId,
+                })));
+              if (insertTagsError) throw insertTagsError;
+            }
           }
         }
 
@@ -401,7 +423,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
           userId: user.id,
           title,
           image: publicUrl,
-          officialItemId: officialItem.id,
+          officialItemId: officialItemId ?? undefined,
           contentName: editedData.contentName || undefined,
           prize: editedData.price || "0",
           note: editedData.description || undefined,
@@ -422,7 +444,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
 
         userItemId = collectionResult.userItemId ?? null;
       } catch (stepError) {
-        await rollbackOfficialItem(officialItem.id, filePath);
+        await rollbackCreatedItem(officialItemId, filePath);
         throw stepError;
       }
 
@@ -477,6 +499,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     setSelectedTags({ character: null, type: null, series: null });
     setScannedBarcode(null);
     setLinkedExistingTitle(null);
+    setShareToCatalog(true);
   };
 
   // バーコードスキャン結果の処理
@@ -729,8 +752,12 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 <AlertDescription className="text-foreground">
                   <div className="font-semibold">{t("screens.quickAdd.similarHeading")}</div>
+                  {/* カタログに登録しない選択のときは「重複を防げる」という理由が当てはまらないので、
+                      既存情報を引き継げるという別の理由を出す */}
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {t("screens.quickAdd.similarNote")}
+                    {shareToCatalog
+                      ? t("screens.quickAdd.similarNote")
+                      : t("screens.quickAdd.similarNoteCollectionOnly")}
                   </p>
                   <div className="mt-2 space-y-2 max-h-60 overflow-y-auto">
                     {similarItems.map((item) => (
@@ -814,6 +841,35 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               </CardContent>
             </Card>
 
+            {/* 登録先の選択。手入力（/add-item）と同じ選択肢・同じ文言を出して、
+                「写真から登録すると必ず全体公開される」という経路差を無くす。
+                コレクション側は常に ON（この画面はコレクションに追加するための導線なので、
+                外せるようにすると「追加」ボタンの意味が消える）。 */}
+            <div className="rounded-xl border border-border bg-muted/40 p-3.5">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="quick-add-share-to-catalog"
+                  checked={shareToCatalog}
+                  onCheckedChange={(checked) => setShareToCatalog(checked === true)}
+                  disabled={isSubmitting || isLinking}
+                  className="mt-0.5"
+                />
+                <div className="space-y-0.5">
+                  <Label
+                    htmlFor="quick-add-share-to-catalog"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    {t("notices.adminItem.shareToCatalogLabel")}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    {shareToCatalog
+                      ? t("notices.adminItem.shareToCatalogHint")
+                      : t("screens.quickAdd.catalogOffHint")}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* アクションボタン */}
             <div className="space-y-2">
               <div className="flex gap-3">
@@ -888,7 +944,9 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               >
                 {linkedExistingTitle
                   ? t("screens.quickAdd.linkedExistingDesc", { title: linkedExistingTitle })
-                  : t("misc.addItem.addedDesc")}
+                  : shareToCatalog
+                    ? t("misc.addItem.addedDesc")
+                    : t("screens.quickAdd.collectionOnlyDesc")}
               </motion.p>
             </div>
 
