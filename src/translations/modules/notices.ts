@@ -28,6 +28,9 @@ export const notices = {
       renameFailed: "名前の更新に失敗しました",
       uploaded: "アバターをアップロードしました",
       uploadFailed: "アップロードに失敗しました",
+      published: "アバターを公開しました",
+      unpublished: "アバターを非公開にしました",
+      visibilityFailed: "公開設定の変更に失敗しました",
     },
     favorites: {
       updated: "お気に入りを更新しました",
@@ -209,6 +212,9 @@ export const notices = {
       renameFailed: "Couldn't update the name",
       uploaded: "Avatar uploaded",
       uploadFailed: "Upload failed",
+      published: "Avatar published",
+      unpublished: "Avatar set to private",
+      visibilityFailed: "Couldn't change the visibility",
     },
     favorites: {
       updated: "Favorites updated",

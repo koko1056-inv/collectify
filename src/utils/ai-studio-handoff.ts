@@ -85,3 +85,50 @@ export function clearPendingRemix() {
     sessionStorage.removeItem(REMIX_KEY);
   } catch {}
 }
+
+// ============= 探索 → アバタースタジオ =============
+
+const AVATAR_PROMPT_KEY = "ai-studio:pending-avatar-prompt";
+
+export interface PendingAvatarPrompt {
+  prompt: string;
+  parentAvatarId: string;
+  parentImageUrl?: string;
+  parentName?: string | null;
+}
+
+/** 探索で見つけたアバターのプロンプトを、アバタースタジオに引き継ぐ */
+export function setPendingAvatarPrompt(payload: PendingAvatarPrompt) {
+  try {
+    sessionStorage.setItem(
+      AVATAR_PROMPT_KEY,
+      JSON.stringify({ ...payload, ts: Date.now() })
+    );
+  } catch {
+    // sessionStorage が使えない環境では引き継ぎを諦める（本流は止めない）
+  }
+}
+
+/** 取り出して即削除（再利用させない）。15分以上前のデータは無効。 */
+export function consumePendingAvatarPrompt(): PendingAvatarPrompt | null {
+  try {
+    const raw = sessionStorage.getItem(AVATAR_PROMPT_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(AVATAR_PROMPT_KEY);
+    const parsed = JSON.parse(raw) as PendingAvatarPrompt & { ts: number };
+    if (!parsed?.prompt) return null;
+    if (Date.now() - parsed.ts > 15 * 60 * 1000) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+/** 消費せずに存在だけ確認する（スタジオを自動で開くかの判定用） */
+export function hasPendingAvatarPrompt(): boolean {
+  try {
+    return !!sessionStorage.getItem(AVATAR_PROMPT_KEY);
+  } catch {
+    return false;
+  }
+}

@@ -19,6 +19,14 @@ import {
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ExploreAvatarCard } from "./ExploreAvatarCard";
+import {
+  usePublicAvatars,
+  useMyAvatarLikes,
+  type ExploreAvatar,
+} from "@/hooks/ai-avatar/usePublicAvatars";
+import { QueryErrorState } from "@/components/ui/query-error-state";
+import { useMyAiRoomLikes } from "@/hooks/ai-room/useAiRoomLikes";
 import { ExploreRoomCard, type ExploreRoom } from "./ExploreRoomCard";
 import { useMyAiBookmarks } from "@/hooks/ai-room/useAiBookmarks";
 import { useAuth } from "@/contexts/AuthContext";
@@ -129,6 +137,7 @@ const PAGE_SIZE = 24;
 
 function RoomsTab({ searchQuery }: { searchQuery: string }) {
   const { data: bookmarks } = useMyAiBookmarks();
+  const { data: roomLikes } = useMyAiRoomLikes();
   const { t } = useLanguage();
 
   const {
@@ -206,6 +215,7 @@ function RoomsTab({ searchQuery }: { searchQuery: string }) {
             key={room.id}
             room={room}
             isBookmarked={bookmarks?.has(`room:${room.id}`) || false}
+            isLiked={roomLikes?.has(room.id) || false}
           />
         ))}
       </div>
@@ -225,16 +235,93 @@ function RoomsTab({ searchQuery }: { searchQuery: string }) {
 }
 
 
-// ============= AIアバタータブ（プレースホルダー） =============
+// ============= AIアバタータブ =============
 function AvatarsTab({ searchQuery }: { searchQuery: string }) {
-  // 公開アバターテーブルの整備が必要。Phase 3でフル実装予定。
+  const { data: bookmarks } = useMyAiBookmarks();
+  const { data: likes } = useMyAvatarLikes();
   const { t } = useLanguage();
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    refetch,
+  } = usePublicAvatars();
+
+  const allAvatars: ExploreAvatar[] = data?.pages.flat() ?? [];
+  const q = searchQuery.toLowerCase();
+  const filtered = q
+    ? allAvatars.filter(
+        (a) =>
+          a.name?.toLowerCase().includes(q) ||
+          a.prompt?.toLowerCase().includes(q) ||
+          a.profile?.username?.toLowerCase().includes(q)
+      )
+    : allAvatars;
+
+  if (isLoading) {
+    return (
+      <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
+        {[...Array(8)].map((_, i) => (
+          <Skeleton
+            key={i}
+            className="break-inside-avoid mb-3 rounded-2xl"
+            style={{ height: 160 + ((i * 37) % 120) }}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // 通信失敗を「公開アバターが無い」と見せてしまわないよう区別する
+  if (isError) {
+    return (
+      <QueryErrorState
+        title={t("chrome.explore.avatarsLoadFailed")}
+        onRetry={() => refetch()}
+      />
+    );
+  }
+
+  if (filtered.length === 0) {
+    // 公開はオプトインなので、最初は誰も公開していない状態がありうる。
+    // 「準備中」ではなく「まだ無い」と伝え、公開の導線を出す。
+    return (
+      <EmptyState
+        icon={Wand2}
+        message={t("chrome.explore.emptyAvatars")}
+        description={t("chrome.explore.emptyAvatarsDesc")}
+      />
+    );
+  }
+
   return (
-    <EmptyState
-      icon={Wand2}
-      message={t("chrome.explore.avatarsComingSoon")}
-      description={t("chrome.explore.avatarsComingSoonDesc")}
-    />
+    <div className="space-y-4">
+      <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
+        {filtered.map((avatar) => (
+          <ExploreAvatarCard
+            key={avatar.id}
+            avatar={avatar}
+            isBookmarked={bookmarks?.has(`avatar:${avatar.id}`) || false}
+            isLiked={likes?.has(avatar.id) || false}
+          />
+        ))}
+      </div>
+      {hasNextPage && (
+        <div className="flex justify-center pt-4">
+          <Button
+            variant="outline"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? t("chrome.common.loading") : t("chrome.common.loadMore")}
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
 

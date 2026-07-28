@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Check, ChevronRight, Image as ImageIcon, Loader2, Shirt, Trash2 } from "lucide-react";
+import { Check, ChevronRight, Globe, Image as ImageIcon, Loader2, Lock, Shirt, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +16,7 @@ import {
 import type { useAvatars } from "@/hooks/useAvatars";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { useSetAvatarVisibility } from "@/hooks/ai-avatar/usePublicAvatars";
 
 interface Props {
   avatars: ReturnType<typeof useAvatars>;
@@ -26,6 +27,7 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
   const { t } = useLanguage();
   const { formatNumericDate } = useDateFormat();
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const setVisibility = useSetAvatarVisibility();
 
   if (avatars.isLoading) {
     return (
@@ -84,6 +86,12 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
                     {a.item_ids.length}
                   </Badge>
                 )}
+                {a.is_public && (
+                  <Badge variant="secondary" className="text-xs">
+                    <Globe className="w-3 h-3 mr-1" />
+                    {t("misc.avatar.public")}
+                  </Badge>
+                )}
               </div>
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <Button
@@ -93,6 +101,18 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
                 >
                   <Check className="w-4 h-4 mr-1" />
                   {t("misc.avatar.select")}
+                </Button>
+                {/* 探索タブへの公開切り替え。既存アバターは既定で非公開。 */}
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    setVisibility.mutate({ avatarId: a.id, isPublic: !a.is_public })
+                  }
+                  disabled={setVisibility.isPending}
+                  title={a.is_public ? t("misc.avatar.unpublish") : t("misc.avatar.publish")}
+                >
+                  {a.is_public ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => setDeleteId(a.id)}>
                   <Trash2 className="w-4 h-4" />

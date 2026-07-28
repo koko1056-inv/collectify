@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -46,6 +46,7 @@ import { getStylePresetById } from "@/components/ai-room/roomStylePresets";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { hasPendingAvatarPrompt } from "@/utils/ai-studio-handoff";
 
 type ActiveTab = "rooms" | "avatar";
 
@@ -56,6 +57,7 @@ export default function AiRoomsPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("rooms");
   const [wizardOpen, setWizardOpen] = useState(false);
   const [avatarStudioTab, setAvatarStudioTab] = useState<StudioTab | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [viewing, setViewing] = useState<AiGeneratedRoom | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingAvatarId, setDeletingAvatarId] = useState<string | null>(null);
@@ -96,6 +98,18 @@ export default function AiRoomsPage() {
     a.click();
     document.body.removeChild(a);
   };
+
+  // 探索から「このスタイルを使う」で来たときは、アバタースタジオを自動で開く。
+  // ここで開かないと、引き継いだプロンプトを入力する画面に辿り着けない。
+  useEffect(() => {
+    if (searchParams.get("studio") === "generate" && hasPendingAvatarPrompt()) {
+      setAvatarStudioTab("generate");
+      const next = new URLSearchParams(searchParams);
+      next.delete("studio");
+      next.delete("from");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleNewClick = () => {
     if (activeTab === "rooms") setWizardOpen(true);

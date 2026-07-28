@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { ShareModal } from "@/components/ShareModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useMyAiRoomLikes, useToggleAiRoomLike } from "@/hooks/ai-room/useAiRoomLikes";
 
 export default function AiWorkDetail() {
   const { t } = useLanguage();
@@ -38,6 +39,9 @@ export default function AiWorkDetail() {
   const room = data?.room;
   const profile = data?.profile;
   const { data: lineage } = useRemixLineage(room);
+  const { data: roomLikes } = useMyAiRoomLikes();
+  const toggleLike = useToggleAiRoomLike();
+  const isLiked = !!(room && roomLikes?.has(room.id));
   const [shareOpen, setShareOpen] = useState(false);
 
   const isBookmarked = !!bookmarks?.has(`room:${room?.id}`);
@@ -168,9 +172,19 @@ export default function AiWorkDetail() {
                     )}
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
-                    <span className="flex items-center gap-1">
-                      <Heart className="w-3.5 h-3.5" /> {room.like_count}
-                    </span>
+                    <button
+                      onClick={() => toggleLike.mutate(room.id)}
+                      disabled={toggleLike.isPending}
+                      className={cn(
+                        "flex items-center gap-1 transition-colors",
+                        isLiked ? "text-rose-500" : "hover:text-foreground"
+                      )}
+                      aria-pressed={isLiked}
+                      aria-label={t("chrome.exploreCard.like")}
+                    >
+                      <Heart className={cn("w-3.5 h-3.5", isLiked && "fill-current")} />
+                      {room.like_count}
+                    </button>
                   </div>
                 </div>
 

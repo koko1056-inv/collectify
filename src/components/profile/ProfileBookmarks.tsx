@@ -54,7 +54,8 @@ export function ProfileBookmarks() {
             <button
               key={`${entry.type}:${w.id}`}
               onClick={() =>
-                isRoom ? navigate(`/ai-work/${w.id}`) : navigate(`/user/${w.user_id}`)
+                // 以前はアバターの詳細ページが無く、オーナーのプロフィールへ逃していた
+                isRoom ? navigate(`/ai-work/${w.id}`) : navigate(`/ai-avatar/${w.id}`)
               }
               className="group relative aspect-square rounded-2xl overflow-hidden bg-muted border border-border/40 hover:border-primary/40 hover:shadow-lg transition-all"
             >
