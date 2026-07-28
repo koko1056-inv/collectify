@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 import { Link } from "react-router-dom";
 import { Package, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +25,7 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
   const { user } = useAuth();
   const { t } = useLanguage();
 
-  const { data: owners = [], isLoading } = useQuery({
+  const { data: owners = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["item-owners-tab", officialItemId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -72,6 +73,17 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
           </div>
         ))}
       </div>
+    );
+  }
+
+  // 通信失敗を「持っている人がいない」と見せてしまわないよう区別する
+  if (isError) {
+    return (
+      <QueryErrorState
+        title={t("itemDetails.owners.loadFailed")}
+        onRetry={() => refetch()}
+        className="py-10"
+      />
     );
   }
 

@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 import { Heart, HeartOff, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,7 +35,7 @@ export function ItemWishersTab({
   const { playWishlistSound } = useSoundEffect();
   const { t } = useLanguage();
 
-  const { data: wishers = [], isLoading } = useQuery({
+  const { data: wishers = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["item-wishers-tab", officialItemId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -131,9 +132,12 @@ export function ItemWishersTab({
         </Button>
       )}
 
-      <p className="text-xs text-muted-foreground px-1">
-        {t("itemDetails.wishers.wantCount", { count: wishers.length })}
-      </p>
+      {/* 取得前・取得失敗時に「0人」と出さない */}
+      {!isLoading && !isError && (
+        <p className="text-xs text-muted-foreground px-1">
+          {t("itemDetails.wishers.wantCount", { count: wishers.length })}
+        </p>
+      )}
 
       {isLoading ? (
         <div className="space-y-2">
@@ -144,6 +148,13 @@ export function ItemWishersTab({
             </div>
           ))}
         </div>
+      ) : isError ? (
+        // 通信失敗を「欲しい人がいない」と見せてしまわないよう区別する
+        <QueryErrorState
+          title={t("itemDetails.wishers.loadFailed")}
+          onRetry={() => refetch()}
+          className="py-8"
+        />
       ) : wishers.length === 0 ? (
         <EmptyState
           icon={Heart}

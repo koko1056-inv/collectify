@@ -21,6 +21,7 @@ import {
   Gift,
   Sparkles,
   Coins,
+  Flame,
   Info,
   Tag as TagIcon,
   Package,
@@ -35,8 +36,10 @@ import {
   type PointShopItem,
 } from "@/hooks/usePointShop";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { useUserPoints } from "@/hooks/usePoints";
+import { useLoginBonusTiers } from "@/hooks/useLoginBonusTiers";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -78,6 +81,7 @@ export default function PointShop() {
     refetch: refetchShopItems,
   } = usePointShopItems();
   const purchaseShopItem = usePurchaseShopItem();
+  const { data: loginTiers, isLoading: tiersLoading } = useLoginBonusTiers();
 
   // Load RevenueCat offerings once on native platforms.
   useEffect(() => {
@@ -110,6 +114,7 @@ export default function PointShop() {
   }
 
   const currentPoints = userPoints?.total_points ?? 0;
+  const currentStreak = userPoints?.login_streak ?? 0;
 
   const handleConfirmExchange = async () => {
     const item = confirmItem;
@@ -215,6 +220,12 @@ export default function PointShop() {
                   </p>
                 )}
               </div>
+            </div>
+
+            {/* 枠の使用状況。枠を買うかどうかの判断材料になるのでここに出す。 */}
+            <div className="mt-4 pt-4 border-t border-primary/20 grid gap-3 sm:grid-cols-2">
+              <SlotUsageMeter type="collection" compact />
+              <SlotUsageMeter type="room" compact />
             </div>
           </CardContent>
         </Card>
@@ -379,7 +390,46 @@ export default function PointShop() {
             <Row label={t("screens.pointShop.freeLoginBonus")} value={t("screens.pointShop.freeLoginBonusValue")} />
             <Row label={t("screens.pointShop.freeAddGoods")} value="+1pt" />
             <Row label={t("screens.pointShop.freeAddContent")} value="+10pt" />
-            <Row label={t("screens.pointShop.freeStreak")} value={t("screens.pointShop.freeStreakValue")} />
+
+            {/* 連続ログインの段階と、いま自分が何日目かを示す */}
+            <div className="pt-2 border-t border-border/60 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                  <Flame className="w-4 h-4 text-orange-500" />
+                  {t("screens.pointShop.freeStreak")}
+                </span>
+                {currentStreak > 0 && (
+                  <Badge variant="secondary" className="gap-1">
+                    <Flame className="w-3 h-3 text-orange-500" />
+                    {t("screens.pointShop.streakDays", { n: currentStreak })}
+                  </Badge>
+                )}
+              </div>
+              {tiersLoading ? (
+                <Skeleton className="h-4 w-full" />
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {(loginTiers ?? []).map((tier) => {
+                    const active = currentStreak >= tier.min_streak;
+                    return (
+                      <span
+                        key={tier.min_streak}
+                        className={
+                          active
+                            ? "text-[11px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium"
+                            : "text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+                        }
+                      >
+                        {t("screens.pointShop.streakTier", {
+                          days: tier.min_streak,
+                          points: tier.points,
+                        })}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
