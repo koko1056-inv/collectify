@@ -93,7 +93,6 @@ const InviteRedirect = lazy(() => import("./pages/InviteRedirect").catch(() => (
 
 const AiWorkDetail = lazy(() => import("./pages/AiWorkDetail").catch(() => ({ default: () => <div>Error loading page</div> })));
 const AiAvatarDetail = lazy(() => import("./pages/AiAvatarDetail").catch(() => ({ default: () => <div>Error loading page</div> })));
-const Landing = lazy(() => import("./pages/Landing").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Privacy = lazy(() => import("./pages/Privacy").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Terms = lazy(() => import("./pages/Terms").catch(() => ({ default: () => <div>Error loading page</div> })));
 
@@ -161,7 +160,6 @@ const App: React.FC = () => {
                   <Suspense fallback={<LoadingScreen />}>
                     <Routes>
                       <Route path="/" element={<RootRedirect />} />
-                      <Route path="/lp" element={<Landing />} />
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/terms" element={<Terms />} />
                       <Route path="/login" element={<Login />} />

@@ -29,6 +29,11 @@ export const aiRoom = {
     },
     share: {
       prefix: "AIで作った推し部屋 🏠✨",
+      hashtags: "#Collectify #推し活 #推し部屋",
+      madePublic: "みんなに見えるように公開しました",
+      publishFailed: "公開できなかったため、共有を中止しました",
+      linkCopied: "リンクをコピーしました",
+      failed: "共有できませんでした",
     },
     list: {
       heading: "AI推しルーム",
@@ -166,6 +171,11 @@ export const aiRoom = {
     },
     share: {
       prefix: "My AI Favorite Room 🏠✨",
+      hashtags: "#Collectify",
+      madePublic: "Published so others can see it",
+      publishFailed: "Couldn't publish it, so sharing was cancelled",
+      linkCopied: "Link copied",
+      failed: "Couldn't share",
     },
     list: {
       heading: "AI Favorite Room",

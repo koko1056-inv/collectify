@@ -13,7 +13,7 @@ export default function Terms() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto max-w-3xl px-4 sm:px-6 py-16 sm:py-24">
         <Link
-          to="/lp"
+          to="/"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition mb-8"
         >
           <ArrowLeft className="h-4 w-4" /> {t("screens.terms.back")}

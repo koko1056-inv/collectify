@@ -7,7 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getStylePresetById } from "./roomStylePresets";
 import { getVisualStyleById, DEFAULT_VISUAL_STYLE_ID } from "./roomVisualStyles";
-import { useGenerateAiRoom, AiGeneratedRoom } from "@/hooks/ai-room/useAiRooms";
+import { useGenerateAiRoom, useToggleAiRoomPublic, AiGeneratedRoom } from "@/hooks/ai-room/useAiRooms";
+import { buildWorkUrl, shareContent } from "@/utils/share";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
@@ -46,6 +47,8 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
   const [remix, setRemix] = useState<PendingRemix | null>(null);
 
   const generateMutation = useGenerateAiRoom();
+  const togglePublic = useToggleAiRoomPublic();
+  const [isSharing, setIsSharing] = useState(false);
   const { data: isFirstTime = false } = useFirstTimeFree({
     transactionTypes: ["ai_room_generation", "ai_room_generation_free"],
     extraTable: "ai_generated_rooms",
@@ -172,25 +175,38 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
   };
 
   const handleShare = async () => {
-    if (!resultRoom) return;
-    const text = `${t("aiRoom.share.prefix")}\n#Collectify`;
+    if (!resultRoom || isSharing) return;
+    setIsSharing(true);
     try {
-      if (navigator.share) {
+      // 共有するのはアプリ内の作品ページ。
+      // ただし非公開のままだと、リンクを開いた人には見られないので先に公開する。
+      // 「共有する＝見せる」なので黙って公開せず、公開したことを伝える。
+      if (!resultRoom.is_public) {
         try {
-          const res = await fetch(resultRoom.image_url);
-          const blob = await res.blob();
-          const file = new File([blob], "ai-room.png", { type: blob.type });
-          if ((navigator as any).canShare?.({ files: [file] })) {
-            await navigator.share({ text, files: [file] });
-            return;
-          }
-        } catch {}
-        await navigator.share({ text, url: resultRoom.image_url });
-      } else {
-        await navigator.clipboard.writeText(resultRoom.image_url);
-        toast.success(t("aiRoom.toast.imageUrlCopied"));
+          await togglePublic.mutateAsync({ roomId: resultRoom.id, isPublic: true });
+          setResultRoom({ ...resultRoom, is_public: true });
+          toast.success(t("aiRoom.share.madePublic"));
+        } catch (e) {
+          console.error("failed to publish room before sharing:", e);
+          toast.error(t("aiRoom.share.publishFailed"));
+          return;
+        }
       }
-    } catch {}
+
+      const result = await shareContent({
+        title: t("aiRoom.share.prefix"),
+        text: `${t("aiRoom.share.prefix")}\n${t("aiRoom.share.hashtags")}`,
+        url: buildWorkUrl("ai-work", resultRoom.id),
+        imageUrl: resultRoom.image_url,
+        fileName: "collectify-ai-room.png",
+      });
+
+      // 利用者が共有シートを閉じただけのときは何も出さない
+      if (result === "copied") toast.success(t("aiRoom.share.linkCopied"));
+      else if (result === "failed") toast.error(t("aiRoom.share.failed"));
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   const handleDownload = () => {

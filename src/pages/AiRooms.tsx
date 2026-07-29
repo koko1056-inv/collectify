@@ -44,6 +44,7 @@ import {
 import { AiRoomCreateWizard } from "@/components/ai-room/AiRoomCreateWizard";
 import { getStylePresetById } from "@/components/ai-room/roomStylePresets";
 import { cn } from "@/lib/utils";
+import { buildWorkUrl, shareContent } from "@/utils/share";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { hasPendingAvatarPrompt } from "@/utils/ai-studio-handoff";
@@ -76,24 +77,29 @@ export default function AiRoomsPage() {
   const toggleMutation = useToggleAiRoomPublic();
 
   const handleShare = async (room: AiGeneratedRoom) => {
-    const text = `${t("screens.aiRooms.shareText")}\n#Collectify`;
-    try {
-      if (navigator.share) {
-        try {
-          const res = await fetch(room.image_url);
-          const blob = await res.blob();
-          const file = new File([blob], "ai-room.png", { type: blob.type });
-          if ((navigator as any).canShare?.({ files: [file] })) {
-            await navigator.share({ text, files: [file] });
-            return;
-          }
-        } catch {}
-        await navigator.share({ text, url: room.image_url });
-      } else {
-        await navigator.clipboard.writeText(room.image_url);
-        toast.success(t("screens.aiRooms.imageUrlCopied"));
+    // 画像の直リンクではなく、アプリ内の作品ページを共有する。
+    // 非公開のままだとリンク先が見られないので、先に公開してから共有する。
+    if (!room.is_public) {
+      try {
+        await toggleMutation.mutateAsync({ roomId: room.id, isPublic: true });
+        toast.success(t("aiRoom.share.madePublic"));
+      } catch (e) {
+        console.error("failed to publish room before sharing:", e);
+        toast.error(t("aiRoom.share.publishFailed"));
+        return;
       }
-    } catch {}
+    }
+
+    const result = await shareContent({
+      title: t("screens.aiRooms.shareText"),
+      text: `${t("screens.aiRooms.shareText")}\n${t("aiRoom.share.hashtags")}`,
+      url: buildWorkUrl("ai-work", room.id),
+      imageUrl: room.image_url,
+      fileName: "collectify-ai-room.png",
+    });
+
+    if (result === "copied") toast.success(t("aiRoom.share.linkCopied"));
+    else if (result === "failed") toast.error(t("aiRoom.share.failed"));
   };
 
   const handleDownload = (room: AiGeneratedRoom) => {
