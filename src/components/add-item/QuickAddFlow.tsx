@@ -19,6 +19,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useSimilarItemsCheck } from "@/hooks/admin-item-form/useSimilarItemsCheck";
 import { addToCollection, incrementItemQuantity } from "@/utils/collection-actions";
 import { copyTagsFromOfficialItem } from "@/utils/tag/tag-copy";
+import { useTags } from "@/hooks/useTags";
+import { suggestTags, fillEmptyTags } from "@/utils/tag-suggest";
 import { consumePendingItemPhoto, dataUrlToFile } from "@/utils/ai-studio-handoff";
 
 interface AnalysisResult {
@@ -108,6 +110,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
   const [linkedExistingTitle, setLinkedExistingTitle] = useState<string | null>(null);
   /** 「これと同じ」を処理中の候補 id（その行だけスピナーにする） */
   const [linkingItemId, setLinkingItemId] = useState<string | null>(null);
+  /** タグを自動で埋めた数。0より大きいときだけ「確認してください」と出す。 */
+  const [autoFilledTagCount, setAutoFilledTagCount] = useState(0);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -129,6 +133,29 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     },
     enabled: !!editedData?.contentName,
   });
+
+  // タグの候補（作品が決まっていればその作品のものに絞られる）
+  const { data: allTags = [] } = useTags(editedData?.contentName || undefined);
+
+  // AIの解析結果と商品名から、キャラクター・グッズタイプ・シリーズを埋める。
+  // AI は characterName と category を返しているのに、これまで捨てていた。
+  // 利用者が自分で選んだ項目は上書きしない。
+  useEffect(() => {
+    if (step !== "confirm" || !editedData || allTags.length === 0) return;
+    const suggestion = suggestTags({
+      title: editedData.title,
+      description: editedData.description,
+      characterName: editedData.characterName,
+      category: editedData.category,
+      tags: allTags,
+    });
+    // setState の更新関数の中で別の setState を呼ぶと二重実行で数が狂うので、
+    // 比較はここで済ませてから、それぞれを一度ずつ更新する。
+    const { next, filledCount } = fillEmptyTags(selectedTags, suggestion);
+    if (filledCount === 0) return;
+    setSelectedTags(next);
+    setAutoFilledTagCount((c) => c + filledCount);
+  }, [step, editedData, allTags, selectedTags]);
 
   /**
    * 撮影・選択された写真をAI解析して確認ステップへ進む。
@@ -497,6 +524,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     setAnalysisResult(null);
     setEditedData(null);
     setSelectedTags({ character: null, type: null, series: null });
+    setAutoFilledTagCount(0);
     setScannedBarcode(null);
     setLinkedExistingTitle(null);
     setShareToCatalog(true);
@@ -800,6 +828,15 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                   <Tag className="w-4 h-4" />
                   {t("misc.addItem.setTags")}
                 </div>
+
+                {/* 自動で入れた項目があることを伝える。黙って入れると、
+                    間違った値のまま登録されてしまう */}
+                {autoFilledTagCount > 0 && (
+                  <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                    <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                    {t("misc.addItem.tagsAutoFilled")}
+                  </p>
+                )}
                 
                 <CategoryTagSelect
                   category="character"
