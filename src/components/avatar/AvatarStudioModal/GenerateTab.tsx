@@ -3,9 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Upload, X } from "lucide-react";
+import { Check, Loader2, RefreshCw, Sparkles, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { useAvatars } from "@/hooks/useAvatars";
@@ -13,8 +12,12 @@ import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
 import { useFirstTimeFree } from "@/hooks/useFirstTimeFree";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { consumePendingAvatarPrompt } from "@/utils/ai-studio-handoff";
+import { downscaleToDataUrl } from "@/utils/downscale-image";
 
 const AVATAR_COST = 30;
+
+/** 目安の所要時間（秒）。これを超えたら文言を変えて「止まっていない」ことを伝える。 */
+const EXPECTED_SECONDS = 45;
 
 const EXAMPLE_KEYS = [
   "misc.avatar.example1",
@@ -23,7 +26,14 @@ const EXAMPLE_KEYS = [
   "misc.avatar.example4",
 ];
 
-export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars> }) {
+export function GenerateTab({
+  avatars,
+  onGoToGallery,
+}: {
+  avatars: ReturnType<typeof useAvatars>;
+  /** 作ったアバターの一覧（ギャラリー）へ切り替える */
+  onGoToGallery: () => void;
+}) {
   const { t } = useLanguage();
   const [prompt, setPrompt] = useState("");
 
@@ -35,9 +45,20 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [step, setStep] = useState("");
+  const [elapsed, setElapsed] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  /** 直前に生成できたアバター。作った物をその場で見せるために保持する。 */
+  const [lastResultUrl, setLastResultUrl] = useState<string | null>(null);
+
+  // 経過秒数。以前は 20→40→70→100 の固定値を進捗バーに出していたが、
+  // 実際の生成中はずっと40%のまま止まるため「壊れた」ように見えていた。
+  useEffect(() => {
+    if (!isGenerating) return;
+    setElapsed(0);
+    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [isGenerating]);
   const { data: isFirstTime = false } = useFirstTimeFree({
     transactionTypes: ["avatar_generation", "avatar_generation_free"],
     extraTable: "avatar_gallery",
@@ -68,26 +89,27 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
   const handleGenerate = async () => {
     setConfirmOpen(false);
     setIsGenerating(true);
-    setProgress(20);
+    setLastResultUrl(null);
     setStep(t("misc.avatar.stepProcessing"));
     try {
       let imageBase64: string | undefined;
       if (uploadedImage) {
-        imageBase64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(uploadedImage);
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-        });
+        // スマホの写真をそのまま base64 にすると数MBの本文になり、
+        // 送信に失敗したり極端に遅くなる。長辺1600pxまで縮めてから送る。
+        imageBase64 =
+          (await downscaleToDataUrl(uploadedImage)) ??
+          (await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(uploadedImage);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+          }));
       }
-      setProgress(40);
       setStep(t("misc.avatar.stepGenerating"));
 
       const { data, error } = await supabase.functions.invoke("generate-avatar", {
         body: {
-          prompt:
-            prompt.trim() ||
-            "この写真を3Dアニメーションスタイルのキャラクターに変換してください",
+          prompt: prompt.trim() || t("misc.avatar.photoOnlyPrompt"),
           imageUrl: imageBase64,
         },
       });
@@ -95,23 +117,25 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
       if (data?.error) throw new Error(data.error);
       if (!data?.imageUrl) throw new Error(t("misc.avatar.noImageUrl"));
 
-      setProgress(70);
       setStep(t("misc.avatar.stepSaving"));
       await avatars.saveGenerated.mutateAsync({
         imageUrl: data.imageUrl,
-        prompt: prompt.trim() || (uploadedImage ? "写真から生成" : "AIアバター"),
+        prompt: prompt.trim() || (uploadedImage ? t("misc.avatar.fromPhotoTitle") : t("misc.avatar.defaultTitle")),
       });
 
-      setProgress(100);
       setStep(t("misc.avatar.stepDone"));
+      // できあがったものをその場で見せる。
+      // 以前は通知を出すだけで、ギャラリータブに切り替えないと確認できなかった。
+      setLastResultUrl(data.imageUrl);
       toast.success(t("misc.avatar.generateSuccess"));
-      setPrompt("");
+      // 説明文は消さない。気に入らなかったときに書き直して作り直せるようにする。
       handleRemove();
-    } catch (e: any) {
-      toast.error(e?.message ?? t("misc.avatar.generateFailed"));
+    } catch (e) {
+      // 生のエラー文（Edge Function のメッセージ）は利用者には意味がないので出さない
+      console.error("avatar generation failed:", e);
+      toast.error(t("misc.avatar.generateFailed"));
     } finally {
       setIsGenerating(false);
-      setProgress(0);
       setStep("");
     }
   };
@@ -119,12 +143,43 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
   return (
     <div className="space-y-4">
       {isGenerating && (
-        <div className="p-4 rounded-xl bg-muted/40 border space-y-2">
+        <div className="p-4 rounded-xl bg-muted/40 border space-y-1.5">
           <div className="flex items-center gap-2 text-sm">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>{step}</span>
           </div>
-          <Progress value={progress} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            {elapsed > EXPECTED_SECONDS
+              ? t("misc.avatar.stillWorking")
+              : t("misc.avatar.takesAWhile")}
+            {" "}
+            {t("misc.avatar.elapsed", { s: elapsed })}
+          </p>
+          <p className="text-xs text-muted-foreground/80">{t("misc.avatar.keepOpen")}</p>
+        </div>
+      )}
+
+      {/* 直前に作れたアバター。作った物が見えないと「できたのか分からない」ため。 */}
+      {!isGenerating && lastResultUrl && (
+        <div className="space-y-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
+          <p className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+            <Check className="h-4 w-4" />
+            {t("misc.avatar.resultTitle")}
+          </p>
+          <img
+            src={lastResultUrl}
+            alt=""
+            className="mx-auto max-h-56 w-auto rounded-lg border border-border object-contain"
+          />
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={handleGenerateClick}>
+              <RefreshCw className="h-3.5 w-3.5" />
+              {t("misc.avatar.regenerate")}
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1" onClick={onGoToGallery}>
+              {t("misc.avatar.seeInGallery")}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -192,17 +247,25 @@ export function GenerateTab({ avatars }: { avatars: ReturnType<typeof useAvatars
         </div>
       </div>
 
-      <Button
-        onClick={handleGenerateClick}
-        disabled={isGenerating || (!prompt.trim() && !uploadedImage)}
-        className="w-full h-12 text-base gap-2"
-      >
-        <Sparkles className="w-5 h-5" />
-        {t("misc.avatar.generateBtn")}{" "}
-        {isFirstTime
-          ? t("misc.avatar.freeFirstBadge")
-          : t("misc.avatar.costBadge", { cost: AVATAR_COST })}
-      </Button>
+      {/* 写真エリアと例文チップで縦に長くなり、生成ボタンが画面外に押し出されていた。
+          主要な操作なので、スクロールしても常に手が届くようにする。 */}
+      <div className="sticky bottom-0 -mx-1 bg-background/95 px-1 pb-1 pt-2 backdrop-blur">
+        <Button
+          onClick={handleGenerateClick}
+          disabled={isGenerating || (!prompt.trim() && !uploadedImage)}
+          className="w-full h-12 text-base gap-2"
+        >
+          {isGenerating ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <Sparkles className="w-5 h-5" />
+          )}
+          {t("misc.avatar.generateBtn")}{" "}
+          {isFirstTime
+            ? t("misc.avatar.freeFirstBadge")
+            : t("misc.avatar.costBadge", { cost: AVATAR_COST })}
+        </Button>
+      </div>
 
       <SpendPointsDialog
         open={confirmOpen}

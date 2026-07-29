@@ -54,7 +54,14 @@ export default function AiRoomsPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<ActiveTab>("rooms");
+  // タブをURLに持たせる。以前はローカル状態だけだったので、
+  // アバター側に直接リンクできず、戻ってくると必ずルームに戻っていた。
+  const [activeTab, setActiveTab] = useState<ActiveTab>(
+    () =>
+      (new URLSearchParams(window.location.search).get("tab") === "avatar"
+        ? "avatar"
+        : "rooms")
+  );
   const [wizardOpen, setWizardOpen] = useState(false);
   const [avatarStudioTab, setAvatarStudioTab] = useState<StudioTab | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -110,6 +117,20 @@ export default function AiRoomsPage() {
       setSearchParams(next, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  // URLの tab パラメータに追従する（ホームなど他画面からの遷移も拾う）
+  useEffect(() => {
+    const next = searchParams.get("tab") === "avatar" ? "avatar" : "rooms";
+    setActiveTab((prev) => (prev === next ? prev : next));
+  }, [searchParams]);
+
+  const handleTabChange = (v: ActiveTab) => {
+    setActiveTab(v);
+    const next = new URLSearchParams(searchParams);
+    if (v === "avatar") next.set("tab", "avatar");
+    else next.delete("tab");
+    setSearchParams(next, { replace: true });
+  };
 
   const handleNewClick = () => {
     if (activeTab === "rooms") setWizardOpen(true);
@@ -232,7 +253,7 @@ export default function AiRoomsPage() {
           <div className="flex items-center gap-2">
             <Tabs
               value={activeTab}
-              onValueChange={(v) => setActiveTab(v as ActiveTab)}
+              onValueChange={(v) => handleTabChange(v as ActiveTab)}
               className="flex-1"
             >
               <TabsList className="grid grid-cols-2 w-full h-10 bg-background/60 backdrop-blur">

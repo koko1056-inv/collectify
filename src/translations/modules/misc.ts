@@ -393,6 +393,16 @@ export const misc = {
     },
 
     avatar: {
+      photoOnlyPrompt: "この写真をアニメ調のキャラクターに変換してください",
+      fromPhotoTitle: "写真から生成",
+      defaultTitle: "AIアバター",
+      takesAWhile: "30〜60秒ほどかかります。",
+      stillWorking: "もう少しかかっています。まだ作業中です。",
+      elapsed: "（{s}秒経過）",
+      keepOpen: "この画面を閉じると結果を受け取れません",
+      resultTitle: "アバターができました！",
+      regenerate: "もう一度作る",
+      seeInGallery: "一覧で見る",
       studioTitle: "アバタースタジオ",
       studioDesc: "AIでアバターを生成・着せ替え・管理",
       tabGenerate: "生成",
@@ -834,6 +844,16 @@ export const misc = {
     },
 
     avatar: {
+      photoOnlyPrompt: "Turn this photo into an anime-style character",
+      fromPhotoTitle: "From a photo",
+      defaultTitle: "AI Avatar",
+      takesAWhile: "This takes about 30-60 seconds.",
+      stillWorking: "Taking a little longer — still working on it.",
+      elapsed: "({s}s elapsed)",
+      keepOpen: "Closing this will lose the result",
+      resultTitle: "Your Avatar is ready!",
+      regenerate: "Generate again",
+      seeInGallery: "See in gallery",
       studioTitle: "Avatar Studio",
       studioDesc: "Generate, dress up, and manage Avatars with AI",
       tabGenerate: "Generate",

@@ -58,18 +58,19 @@ export function AvatarStudioModal({
           onValueChange={(v) => setActiveTab(v as StudioTab)}
           className="flex-1 flex flex-col overflow-hidden"
         >
-          <TabsList className="mx-6 grid grid-cols-3 h-12">
-            <TabsTrigger value="generate" className="gap-2">
+          {/* モバイルでもラベルを出す。アイコンだけでは「👕＝着せ替え」が伝わらない */}
+          <TabsList className="mx-6 grid grid-cols-3 h-auto py-1 sm:h-12">
+            <TabsTrigger value="generate" className="flex-col gap-0.5 text-[10px] sm:flex-row sm:gap-2 sm:text-sm">
               <Wand2 className="w-4 h-4" />
-              <span className="hidden sm:inline">{t("misc.avatar.tabGenerate")}</span>
+              <span>{t("misc.avatar.tabGenerate")}</span>
             </TabsTrigger>
-            <TabsTrigger value="dressup" className="gap-2">
+            <TabsTrigger value="dressup" className="flex-col gap-0.5 text-[10px] sm:flex-row sm:gap-2 sm:text-sm">
               <Shirt className="w-4 h-4" />
-              <span className="hidden sm:inline">{t("misc.avatar.tabDressUp")}</span>
+              <span>{t("misc.avatar.tabDressUp")}</span>
             </TabsTrigger>
-            <TabsTrigger value="gallery" className="gap-2 relative">
+            <TabsTrigger value="gallery" className="relative flex-col gap-0.5 text-[10px] sm:flex-row sm:gap-2 sm:text-sm">
               <ImageIcon className="w-4 h-4" />
-              <span className="hidden sm:inline">{t("misc.avatar.tabGallery")}</span>
+              <span>{t("misc.avatar.tabGallery")}</span>
               {avatars.avatars.length > 0 && (
                 <Badge variant="secondary" className="ml-1 h-5 min-w-5 text-xs">
                   {avatars.avatars.length}
@@ -80,7 +81,7 @@ export function AvatarStudioModal({
 
           <div className="flex-1 overflow-y-auto px-6 py-4">
             <TabsContent value="generate" className="mt-0">
-              <GenerateTab avatars={avatars} />
+              <GenerateTab avatars={avatars} onGoToGallery={() => setActiveTab("gallery")} />
             </TabsContent>
             <TabsContent value="dressup" className="mt-0">
               <DressUpTab

@@ -1,4 +1,4 @@
-import { Sparkles, Share2, Download } from "lucide-react";
+import { Sparkles, Share2, Download, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { AiGeneratedRoom } from "@/hooks/ai-room/useAiRooms";
@@ -8,9 +8,11 @@ interface Props {
   room: AiGeneratedRoom;
   onShare: () => void;
   onDownload: () => void;
+  /** 同じ素材・同じスタイルのまま、もう一度生成し直す */
+  onRegenerate: () => void;
 }
 
-export function ResultStep({ room, onShare, onDownload }: Props) {
+export function ResultStep({ room, onShare, onDownload, onRegenerate }: Props) {
   const { t } = useLanguage();
   return (
     <motion.div
@@ -39,6 +41,12 @@ export function ResultStep({ room, onShare, onDownload }: Props) {
           {t("aiRoom.common.share")}
         </Button>
       </div>
+      {/* 生成物は毎回変わるので「今のは違ったからもう一度」が一番欲しくなる。
+          設定を選び直させずに、同じ条件でやり直せるようにする。 */}
+      <Button onClick={onRegenerate} variant="ghost" className="w-full gap-2 text-muted-foreground">
+        <RefreshCw className="w-4 h-4" />
+        {t("aiRoom.result.regenerate")}
+      </Button>
     </motion.div>
   );
 }
