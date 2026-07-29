@@ -204,11 +204,31 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
     document.body.removeChild(a);
   };
 
+  const isBusy = step === "generating";
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden p-0 flex flex-col">
+    <Dialog
+      open={open}
+      // 生成中に閉じると、処理は走り続けるのに結果を受け取れなくなる。
+      // 誤タップで閉じないよう、この間だけ外側クリック・ESC・×を無効にする。
+      onOpenChange={(next) => {
+        if (isBusy && !next) return;
+        onOpenChange(next);
+      }}
+    >
+      <DialogContent
+        className="max-w-lg max-h-[90vh] overflow-hidden p-0 flex flex-col data-[busy=true]:[&>button]:hidden"
+        data-busy={isBusy}
+        onInteractOutside={(e) => {
+          if (isBusy) e.preventDefault();
+        }}
+        onEscapeKeyDown={(e) => {
+          if (isBusy) e.preventDefault();
+        }}
+      >
         <DialogHeader className="px-5 pt-5 pb-3 border-b shrink-0">
-          <DialogTitle className="flex items-center gap-2">
+          {/* 右上の×は絶対配置なので、余白を空けないと Step 表示と重なる */}
+          <DialogTitle className="flex items-center gap-2 pr-8">
             <Wand2 className="w-5 h-5 text-primary" />
             {t("aiRoom.wizard.title")}
             {stepIndex > 0 && (
@@ -227,6 +247,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                 selectedItems={selectedItems}
                 onToggle={toggleItem}
                 maxItems={MAX_ITEMS}
+                onClose={() => onOpenChange(false)}
               />
             )}
             {step === "style" && (
@@ -253,6 +274,7 @@ export function AiRoomCreateWizard({ open, onOpenChange, onCreated }: AiRoomCrea
                 room={resultRoom}
                 onShare={handleShare}
                 onDownload={handleDownload}
+                onRegenerate={() => setConfirmOpen(true)}
               />
             )}
           </AnimatePresence>

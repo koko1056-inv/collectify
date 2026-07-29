@@ -75,6 +75,11 @@ export const aiRoom = {
       descSuffix: "個のグッズを選ぶと、AIがあなたの部屋に配置します",
       empty1: "コレクションにアイテムがありません。",
       empty2: "まずはグッズを追加してください。",
+      goAddGoods: "グッズを追加しに行く",
+      searchPlaceholder: "グッズ名で絞り込む",
+      clearSearch: "絞り込みを消す",
+      noHitTitle: "見つかりませんでした",
+      noHitDesc: "別のことばで探してみてください。",
     },
     style: {
       title: "部屋のスタイル",
@@ -95,9 +100,13 @@ export const aiRoom = {
     generating: {
       title: "AIが部屋を描いています...",
       subtitle: "30〜60秒ほどかかります。お楽しみに！",
+      stillWorking: "もう少しかかっています。まだ作業中です。",
+      elapsed: "{s}秒経過",
+      keepOpen: "この画面を閉じると結果を受け取れません",
     },
     result: {
       done: "完成！",
+      regenerate: "同じ設定でもう一度作る",
     },
     stylePresets: {
       pastel_kawaii: { name: "パステル夢かわ", tagline: "ふわふわピンク、夢空間" },
@@ -203,6 +212,11 @@ export const aiRoom = {
       descSuffix: " Goods and AI will arrange them in your room",
       empty1: "There's nothing in your Collection yet.",
       empty2: "Add some Goods first.",
+      goAddGoods: "Go add some Goods",
+      searchPlaceholder: "Filter by goods name",
+      clearSearch: "Clear filter",
+      noHitTitle: "Nothing found",
+      noHitDesc: "Try a different word.",
     },
     style: {
       title: "Room style",
@@ -223,9 +237,13 @@ export const aiRoom = {
     generating: {
       title: "AI is painting your room...",
       subtitle: "This takes about 30-60 seconds. Hang tight!",
+      stillWorking: "Taking a little longer — still working on it.",
+      elapsed: "{s}s elapsed",
+      keepOpen: "Closing this will lose the result",
     },
     result: {
       done: "All done!",
+      regenerate: "Generate again with the same settings",
     },
     stylePresets: {
       pastel_kawaii: { name: "Pastel Dreams", tagline: "Fluffy pink dreamscape" },
