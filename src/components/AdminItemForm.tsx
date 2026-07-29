@@ -1,5 +1,5 @@
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,7 +11,9 @@ import { MultipleItemsForm } from "./admin-item-form/MultipleItemsForm";
 import { useImageUpload } from "@/hooks/admin-item-form/useImageUpload";
 import { useItemDetails } from "@/hooks/admin-item-form/useItemDetails";
 import { useItemSubmit } from "@/hooks/admin-item-form/useItemSubmit";
-import { Check, ChevronRight } from "lucide-react";
+import { useTags } from "@/hooks/useTags";
+import { suggestTags, fillEmptyTags } from "@/utils/tag-suggest";
+import { Check, ChevronRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +52,11 @@ export function AdminItemForm() {
   } = useItemDetails();
 
   const [formKey, setFormKey] = useState(0);
+  /** 商品名から自動で埋めたタグの数。0より大きいときだけ確認を促す。 */
+  const [autoFilledTagCount, setAutoFilledTagCount] = useState(0);
+
+  // 作品が選ばれていればその作品のタグに絞る（別作品の同名キャラを拾わないように）
+  const { data: suggestTagPool = [] } = useTags(formData.content_name || undefined);
 
   const resetForm = () => {
     setFormData({
@@ -69,6 +76,7 @@ export function AdminItemForm() {
       setPreviewUrl(null);
     }
     setSelectedTags([]);
+    setAutoFilledTagCount(0);
     setCurrentStep("step1");
     setStep1Completed(false);
     setSelectedImages([]);
@@ -91,6 +99,45 @@ export function AdminItemForm() {
   const handleFormUpdate = (updates: Partial<typeof formData>) => {
     setFormData(prevData => ({ ...prevData, ...updates }));
   };
+
+  // 商品名からタグを推測して、まだ空の項目にだけ入れる。
+  // 「アクリルスタンド」と書いてあるのにグッズタイプを毎回選び直すのは無駄なので。
+  // 自分で選んだ項目は上書きしない。
+  useEffect(() => {
+    if (!formData.title?.trim() || suggestTagPool.length === 0) return;
+    const suggestion = suggestTags({
+      title: formData.title,
+      description: formData.description,
+      tags: suggestTagPool,
+    });
+    // setState の更新関数の中で別の setState を呼ぶと二重実行で数が狂うので、
+    // 現在値との比較はここで済ませてから、それぞれを一度ずつ更新する。
+    const { next, filledCount } = fillEmptyTags(
+      {
+        character: formData.characterTag ?? null,
+        type: formData.typeTag ?? null,
+        series: formData.seriesTag ?? null,
+      },
+      suggestion
+    );
+    if (filledCount === 0) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      characterTag: prev.characterTag ?? next.character,
+      typeTag: prev.typeTag ?? next.type,
+      seriesTag: prev.seriesTag ?? next.series,
+    }));
+    setAutoFilledTagCount((c) => c + filledCount);
+  }, [
+    formData.title,
+    formData.description,
+    formData.characterTag,
+    formData.typeTag,
+    formData.seriesTag,
+    suggestTagPool,
+    setFormData,
+  ]);
 
   const handleNextStep = () => {
     if (currentStep === "step1" && (imageFile || previewUrl)) {
@@ -434,6 +481,15 @@ export function AdminItemForm() {
                       selectedTags={selectedTags}
                       onTagsChange={setSelectedTags}
                     />
+
+                    {/* 自動で入れた項目があることを伝える。黙って入れると、
+                        間違った値のまま登録されてしまう */}
+                    {autoFilledTagCount > 0 && (
+                      <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                        <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                        {t("misc.addItem.tagsAutoFilled")}
+                      </p>
+                    )}
 
                     {/* 登録先の選択。どちらも外すと保存先が無くなるので送信を止める。
                         カタログ整備目的（/admin など）ではコレクション側を外せる必要がある。 */}
