@@ -28,11 +28,13 @@ import { useState } from "react";
 import { ShareModal } from "@/components/ShareModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useMyAiRoomLikes, useToggleAiRoomLike } from "@/hooks/ai-room/useAiRoomLikes";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function AiWorkDetail() {
   const { t } = useLanguage();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { data, isLoading } = useAiRoomDetail(id);
   const { data: bookmarks } = useMyAiBookmarks();
   const toggleBookmark = useToggleAiBookmark();
@@ -316,6 +318,28 @@ export default function AiWorkDetail() {
           )}
         </div>
       </main>
+      {/* SNSから流れてきた未ログインの人が最初に着く画面なので、
+          作品を見て終わりにせず、自分でも作れることを伝える。
+          これが無いと、共有が新しい利用者に繋がらない。 */}
+      {!user && room && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+          <div className="mx-auto flex max-w-md items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">
+                {t("screens.aiWorkDetail.joinTitle")}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {t("screens.aiWorkDetail.joinDesc")}
+              </p>
+            </div>
+            <Button onClick={() => navigate("/login")} className="shrink-0 gap-1.5">
+              <Sparkles className="h-4 w-4" />
+              {t("screens.aiWorkDetail.joinCta")}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <Footer />
       {room && (
         <ShareModal

@@ -24,7 +24,7 @@ function liffStateDest(): string | null {
  * - liff.state があれば最優先でその画面へ
  * - 認証チェック中は何も表示しない（ちらつき防止）
  * - ログイン済み → /collection（アプリの起点はコレクション）
- * - 未ログイン → LINEアプリ内ならログイン導線、それ以外はマーケLP(/lp)
+ * - 未ログイン → ログイン画面（マーケLPは廃止した）
  */
 export function RootRedirect() {
   const { user, loading } = useAuth();
@@ -39,9 +39,7 @@ export function RootRedirect() {
   }
 
   if (!user) {
-    // LINEアプリ内では /lp（マーケLP）に落とさず、ログイン→アプリへ繋ぐ。
-    const inLine = /Line\//i.test(navigator.userAgent || "");
-    return <Navigate to={inLine ? "/login?redirect=%2Fcollection" : "/lp"} replace />;
+    return <Navigate to="/login?redirect=%2Fcollection" replace />;
   }
 
   return <Navigate to="/collection" replace />;
