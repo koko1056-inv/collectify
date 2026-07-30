@@ -38,6 +38,9 @@ export const tagManage = {
     },
     select: {
       notFound: "タグが見つかりません",
+      addSuggested: "「{name}」を追加する",
+      tagCreated: "「{name}」を追加しました",
+      tagCreateFailed: "タグを追加できませんでした",
     },
     empty: {
       noMatchingTags: "該当するタグはありません",
@@ -197,6 +200,9 @@ export const tagManage = {
     },
     select: {
       notFound: "Tag not found",
+      addSuggested: "Add \"{name}\"",
+      tagCreated: "Added \"{name}\"",
+      tagCreateFailed: "Couldn't add the tag",
     },
     empty: {
       noMatchingTags: "No matching tags",
