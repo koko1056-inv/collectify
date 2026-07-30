@@ -9,6 +9,7 @@ import { copyTagsFromOfficialItem } from "@/utils/tag/tag-copy";
 import { addToCollection } from "@/utils/collection-actions";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { claimReward } from "@/hooks/useClaimReward";
+import { notifyNewTag } from "@/utils/notify-new-tag";
 
 interface FormDataType {
   title: string;
@@ -120,6 +121,13 @@ export function useItemSubmit({
     }
     
     console.log(`Created new tag: ${JSON.stringify(newTag)}`);
+    // 自由入力のタグはここで初めて作られるので、ここでも通知する
+    notifyNewTag({
+      name,
+      category,
+      contentName: formData.content_name ?? null,
+      source: "useItemSubmit",
+    });
     return newTag.id;
   };
 

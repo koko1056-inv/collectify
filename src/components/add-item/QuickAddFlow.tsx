@@ -849,6 +849,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                   onChange={(value) => setSelectedTags(prev => ({ ...prev, character: value }))}
                   contentId={contentId}
                   suggestedName={editedData?.characterName}
+                  contentName={editedData?.contentName}
                   resolveContentId={async () => {
                     const id = await ensureContentByName(editedData?.contentName);
                     // 作品を作った直後は contentId のクエリが古いままなので取り直す
@@ -874,6 +875,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                   value={selectedTags.series}
                   onChange={(value) => setSelectedTags(prev => ({ ...prev, series: value }))}
                   contentId={contentId}
+                  contentName={editedData?.contentName}
                 />
 
                 {/* 選択中のタグ表示 */}

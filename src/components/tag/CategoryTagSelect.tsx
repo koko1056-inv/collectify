@@ -5,11 +5,22 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { AddTagDialog } from "./AddTagDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { TagSelectContent } from "./TagSelectContent";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
+import { notifyNewTag } from "@/utils/notify-new-tag";
 import { Sparkles } from "lucide-react";
 
 interface CategoryTagSelectProps {
@@ -30,6 +41,8 @@ interface CategoryTagSelectProps {
    * 返り値が null なら作品に紐づかないタグになる。
    */
   resolveContentId?: () => Promise<string | null>;
+  /** 通知メールに「どの作品のタグか」を載せるための作品名 */
+  contentName?: string | null;
 }
 
 export function CategoryTagSelect({
@@ -41,10 +54,13 @@ export function CategoryTagSelect({
   disabled = false,
   suggestedName,
   resolveContentId,
+  contentName,
 }: CategoryTagSelectProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  /** 「この名前で追加する」を押したときの確認ダイアログ */
+  const [confirmName, setConfirmName] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
@@ -207,6 +223,12 @@ export function CategoryTagSelect({
       // 入力した名前は分かっているのでそちらを使う（「undefined」と出さない）。
       onChange(newTag?.name ?? trimmedName, newTag?.id ?? null);
       toast.success(t("tagManage.select.tagCreated", { name: newTag?.name ?? trimmedName }));
+      notifyNewTag({
+        name: newTag?.name ?? trimmedName,
+        category,
+        contentName,
+        source: "CategoryTagSelect",
+      });
     } catch (error) {
       // 失敗を黙って飲み込むと、押したのに何も起きないように見える
       console.error("Error adding new tag:", error);
@@ -293,19 +315,52 @@ export function CategoryTagSelect({
           size="sm"
           className="h-8 w-full justify-start gap-1.5 border-dashed text-xs"
           disabled={disabled || isCreating}
-          onClick={async () => {
-            setIsCreating(true);
-            try {
-              await handleAddNewTag(suggestedName!);
-            } finally {
-              setIsCreating(false);
-            }
-          }}
+          onClick={() => setConfirmName(suggestedName!.trim())}
         >
           <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
           {t("tagManage.select.addSuggested", { name: suggestedName as string })}
         </Button>
       )}
+
+      {/* タグはみんなが使う共有のものなので、作る前に必ず確認する。
+          押しただけで増えていくと、誤った名前や表記揺れが溜まってしまう。 */}
+      <AlertDialog open={!!confirmName} onOpenChange={(open) => !open && setConfirmName(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("tagManage.select.confirmCreateTitle", { name: confirmName ?? "" })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("tagManage.select.confirmCreateDesc", { label })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCreating}>
+              {t("tagManage.common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isCreating}
+              onClick={async (e) => {
+                // 作成を待ってから閉じたいので、既定の閉じる動作を止める
+                e.preventDefault();
+                const name = confirmName;
+                if (!name) return;
+                setIsCreating(true);
+                try {
+                  await handleAddNewTag(name);
+                  setConfirmName(null);
+                } finally {
+                  setIsCreating(false);
+                }
+              }}
+            >
+              {isCreating
+                ? t("tagManage.select.creating")
+                : t("tagManage.select.confirmCreateAction")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AddTagDialog 
         isOpen={isDialogOpen}
