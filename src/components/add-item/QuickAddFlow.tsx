@@ -22,6 +22,7 @@ import { copyTagsFromOfficialItem } from "@/utils/tag/tag-copy";
 import { useTags } from "@/hooks/useTags";
 import { suggestTags, fillEmptyTags } from "@/utils/tag-suggest";
 import { consumePendingItemPhoto, dataUrlToFile } from "@/utils/ai-studio-handoff";
+import { ensureContentByName } from "@/utils/content-names";
 
 interface AnalysisResult {
   title: string;
@@ -838,19 +839,33 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                   </p>
                 )}
                 
+                {/* AIが返したキャラクター名がまだ未登録なら、
+                    ここから作品に紐づけて登録できる（押したときだけ作る）。
+                    これでタグが少ないうちも自分たちで育てていける。 */}
                 <CategoryTagSelect
                   category="character"
                   label={t("misc.addItem.tagCharacter")}
                   value={selectedTags.character}
                   onChange={(value) => setSelectedTags(prev => ({ ...prev, character: value }))}
                   contentId={contentId}
+                  suggestedName={editedData?.characterName}
+                  resolveContentId={async () => {
+                    const id = await ensureContentByName(editedData?.contentName);
+                    // 作品を作った直後は contentId のクエリが古いままなので取り直す
+                    if (id) {
+                      await queryClient.invalidateQueries({ queryKey: ["content-id", editedData?.contentName] });
+                    }
+                    return id;
+                  }}
                 />
                 
+                {/* グッズタイプは作品に紐づかないので、そのまま追加できる */}
                 <CategoryTagSelect
                   category="type"
                   label={t("misc.addItem.tagType")}
                   value={selectedTags.type}
                   onChange={(value) => setSelectedTags(prev => ({ ...prev, type: value }))}
+                  suggestedName={editedData?.category}
                 />
                 
                 <CategoryTagSelect
