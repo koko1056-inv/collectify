@@ -39,6 +39,10 @@ export const tagManage = {
     select: {
       notFound: "タグが見つかりません",
       addSuggested: "「{name}」を追加する",
+      confirmCreateTitle: "「{name}」を新しいタグとして追加しますか？",
+      confirmCreateDesc: "{label}のタグとして登録します。タグは他の利用者にも共有されるので、名前が正しいか確認してください。",
+      confirmCreateAction: "追加する",
+      creating: "追加中...",
       tagCreated: "「{name}」を追加しました",
       tagCreateFailed: "タグを追加できませんでした",
     },
@@ -201,6 +205,10 @@ export const tagManage = {
     select: {
       notFound: "Tag not found",
       addSuggested: "Add \"{name}\"",
+      confirmCreateTitle: "Add \"{name}\" as a new tag?",
+      confirmCreateDesc: "It will be registered under {label}. Tags are shared with everyone, so please check the spelling.",
+      confirmCreateAction: "Add",
+      creating: "Adding...",
       tagCreated: "Added \"{name}\"",
       tagCreateFailed: "Couldn't add the tag",
     },

@@ -18,3 +18,9 @@ verify_jwt = true
 [[functions]]
 name = "generate-avatar"
 verify_jwt = true
+
+# 新しいタグができたことを運営にメールで知らせる。
+# ログイン済みの利用者からしか呼ばれないので JWT を検証する。
+[[functions]]
+name = "notify-new-tag"
+verify_jwt = true
