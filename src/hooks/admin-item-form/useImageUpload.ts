@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 export function useImageUpload() {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -13,12 +14,14 @@ export function useImageUpload() {
     if (!imageFile) return "";
     
     try {
-      const fileExt = imageFile.name.split('.').pop();
+      // 端末の写真は数MBあるので、保存前に縮める
+      const compressed = await compressImageFile(imageFile, ITEM_IMAGE_OPTIONS);
+      const fileExt = compressed.name.split('.').pop();
       const filePath = `${crypto.randomUUID()}.${fileExt}`;
-      
+
       const { error: uploadError, data } = await supabase.storage
         .from('kuji_images')
-        .upload(filePath, imageFile);
+        .upload(filePath, compressed, { cacheControl: UPLOAD_CACHE_CONTROL });
 
       if (uploadError) throw uploadError;
 

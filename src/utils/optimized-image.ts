@@ -19,3 +19,34 @@ export function getOptimizedImageUrl(
   const sep = path.includes("?") ? "&" : "?";
   return `${RENDER_PUBLIC_PREFIX}${path}${sep}width=${opts.width}&quality=${opts.quality ?? 75}`;
 }
+
+/**
+ * 署名付きURLなど public 以外の Storage URL も含めて変換する版。
+ * LazyImage の srcset 生成で使う。変換できない相手には null を返す。
+ */
+export function toRenderUrl(src: string, width: number, quality: number): string | null {
+  if (!src.includes("/storage/v1/object/")) return null;
+  const rendered = src.replace("/storage/v1/object/", "/storage/v1/render/image/");
+  const sep = rendered.includes("?") ? "&" : "?";
+  return `${rendered}${sep}width=${width}&quality=${quality}&resize=contain`;
+}
+
+/** 外部URL → Supabase の Edge プロキシ経由に変換 */
+export function toProxyUrl(src: string): string {
+  return `${SUPABASE_URL}/functions/v1/proxy-image?url=${encodeURIComponent(src)}`;
+}
+
+/**
+ * 画像変換URLの読み込みに失敗したとき、一度だけ元のURLに切り替える onError ハンドラ。
+ *
+ * 画像変換は Supabase のプラン依存の機能なので、使えない環境では
+ * 変換URLが失敗する。そのまま何も出ないより、重くても元画像を出すほうがよい。
+ */
+export function fallbackToOriginal(originalUrl: string) {
+  return (e: { currentTarget: HTMLImageElement }) => {
+    const img = e.currentTarget;
+    if (img.dataset.originalFallback === "1") return; // 無限ループ防止
+    img.dataset.originalFallback = "1";
+    img.src = originalUrl;
+  };
+}

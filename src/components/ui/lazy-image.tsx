@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Skeleton } from "./skeleton";
 import { cn } from "@/lib/utils";
-import { SUPABASE_URL } from "@/integrations/supabase/client";
+import { toRenderUrl, toProxyUrl } from "@/utils/optimized-image";
 
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -21,19 +21,6 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 
 const DEFAULT_WIDTHS = [200, 400, 800];
 
-/** Supabase Storage の public/sign URL を画像変換エンドポイントに書き換える */
-function toRenderUrl(src: string, width: number, quality: number): string | null {
-  if (!src.includes("/storage/v1/object/")) return null;
-  // /storage/v1/object/(public|sign)/... → /storage/v1/render/image/(public|sign)/...
-  const rendered = src.replace("/storage/v1/object/", "/storage/v1/render/image/");
-  const sep = rendered.includes("?") ? "&" : "?";
-  return `${rendered}${sep}width=${width}&quality=${quality}&resize=contain`;
-}
-
-/** 外部URL → SupabaseのEdgeプロキシ経由に変換 */
-function toProxyUrl(src: string): string {
-  return `${SUPABASE_URL}/functions/v1/proxy-image?url=${encodeURIComponent(src)}`;
-}
 
 export function LazyImage({
   src,

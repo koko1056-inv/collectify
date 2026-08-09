@@ -7,6 +7,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { SUPABASE_URL, supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 interface ItemImageEditorProps {
   image: string;
@@ -24,12 +25,13 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
     if (!file) return;
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const compressed = await compressImageFile(file, ITEM_IMAGE_OPTIONS);
+      const fileExt = compressed.name.split('.').pop();
       const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('kuji_images')
-        .upload(filePath, file);
+        .upload(filePath, compressed, { cacheControl: UPLOAD_CACHE_CONTROL });
 
       if (uploadError) throw uploadError;
 

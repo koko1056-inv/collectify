@@ -23,6 +23,7 @@ import { useTags } from "@/hooks/useTags";
 import { suggestTags, fillEmptyTags } from "@/utils/tag-suggest";
 import { consumePendingItemPhoto, dataUrlToFile } from "@/utils/ai-studio-handoff";
 import { ensureContentByName } from "@/utils/content-names";
+import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 interface AnalysisResult {
   title: string;
@@ -172,11 +173,14 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     setStep("analyzing");
     
     try {
-      // Base64に変換
+      // Base64に変換。
+      // 元の写真のまま base64 にすると数MBの本文を送ることになり、
+      // 解析が始まるまでの待ち時間がそのぶん伸びる。先に縮めてから送る。
+      const forAnalysis = await compressImageFile(file, ITEM_IMAGE_OPTIONS);
       const reader = new FileReader();
       const base64Url = await new Promise<string>((resolve) => {
         reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(forAnalysis);
       });
 
       const { data, error } = await supabase.functions.invoke('analyze-item-image', {
@@ -358,13 +362,16 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
 
     setIsSubmitting(true);
     try {
-      // 画像をアップロード
-      const fileExt = imageFile.name.split('.').pop();
+      // 画像をアップロード。
+      // 端末で撮った写真は数MBあり、一覧では小さくしか表示しないので、
+      // 保存前に縮めておく（以後その画像を見る全画面が軽くなる）。
+      const compressed = await compressImageFile(imageFile, ITEM_IMAGE_OPTIONS);
+      const fileExt = compressed.name.split('.').pop();
       const filePath = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('kuji_images')
-        .upload(filePath, imageFile);
+        .upload(filePath, compressed, { cacheControl: UPLOAD_CACHE_CONTROL });
 
       if (uploadError) throw uploadError;
 
