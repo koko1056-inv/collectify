@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureProfileImagesPublicUrl } from "@/utils/avatar-storage";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { compressImageFile, AVATAR_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 export interface AvatarRow {
   id: string;
@@ -123,7 +124,10 @@ export function useAvatars(userId: string | undefined) {
       if (!userId) throw new Error("Not authenticated");
       const ext = file.name.split(".").pop() || "png";
       const path = `${userId}/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("profile_images").upload(path, file);
+      const compressed = await compressImageFile(file, AVATAR_IMAGE_OPTIONS);
+      const { error: upErr } = await supabase.storage
+        .from("profile_images")
+        .upload(path, compressed, { cacheControl: UPLOAD_CACHE_CONTROL });
       if (upErr) throw upErr;
       const { data } = supabase.storage.from("profile_images").getPublicUrl(path);
       const publicUrl = data.publicUrl;

@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface CollectionOwner {
   id: string;
@@ -317,8 +318,9 @@ export function PublicCollectionView() {
                     key={item.id} 
                     className="aspect-square relative overflow-hidden rounded-lg"
                   >
-                    <img
-                      src={item.image}
+                    <img loading="lazy" decoding="async"
+                      src={getOptimizedImageUrl(item.image, { width: 300 })}
+                      onError={fallbackToOriginal(item.image)}
                       alt={item.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />

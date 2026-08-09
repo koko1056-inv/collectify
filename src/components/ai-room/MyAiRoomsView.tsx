@@ -225,7 +225,7 @@ export function MyAiRoomsView() {
               >
                 <X className="w-5 h-5" />
               </button>
-              <img
+              <img loading="lazy" decoding="async"
                 src={getOptimizedImageUrl(viewing.image_url, { width: 1200, quality: 80 })}
                 alt=""
                 className="w-full h-auto max-h-[80vh] object-contain"

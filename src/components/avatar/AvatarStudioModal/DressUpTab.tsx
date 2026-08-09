@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { useAvatars } from "@/hooks/useAvatars";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface UserItem {
   id: string;
@@ -128,7 +129,8 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
                   }`}
                 >
                   <Avatar className="w-16 h-16">
-                    <AvatarImage src={a.image_url} className="object-cover" />
+                    <AvatarImage src={getOptimizedImageUrl(a.image_url, { width: 200 })}
+                      onError={fallbackToOriginal(a.image_url)} className="object-cover" />
                     <AvatarFallback>
                       <User className="w-6 h-6" />
                     </AvatarFallback>
@@ -177,8 +179,9 @@ export function DressUpTab({ avatars, userId, initialBaseAvatarUrl, onDone }: Pr
                 onClick={() => toggleItem(item.id)}
               >
                 <div className="aspect-square bg-muted">
-                  <img
-                    src={item.image}
+                  <img loading="lazy" decoding="async"
+                    src={getOptimizedImageUrl(item.image, { width: 200 })}
+                      onError={fallbackToOriginal(item.image)}
                     alt={item.title}
                     className="w-full h-full object-cover"
                   />

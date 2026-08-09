@@ -40,6 +40,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AvatarStudioModal, type StudioTab } from "@/components/avatar";
 import { useAvatars, type AvatarRow } from "@/hooks/useAvatars";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface AvatarCenterHomeProps {
   profile: Profile | undefined;
@@ -512,7 +513,8 @@ function AvatarThumbCard({
         className="relative w-full aspect-square overflow-hidden bg-muted block"
       >
         <img
-          src={avatar.image_url}
+          src={getOptimizedImageUrl(avatar.image_url, { width: 300 })}
+                      onError={fallbackToOriginal(avatar.image_url)}
           alt={avatar.name || ""}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"

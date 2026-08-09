@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { compressImageFile, AVATAR_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 const PROFILE_IMAGES_BUCKET = "profile_images";
 
@@ -47,14 +48,16 @@ export function useProfileImageUpload({ userId, onSuccess }: UseProfileImageUplo
 
     try {
       // 1. ファイルをストレージにアップロード
-      const fileExt = file.name.split(".").pop()?.toLowerCase() || "png";
+      const compressed = await compressImageFile(file, AVATAR_IMAGE_OPTIONS);
+      const fileExt = compressed.name.split(".").pop()?.toLowerCase() || "png";
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
       const filePath = `${userId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from(PROFILE_IMAGES_BUCKET)
-        .upload(filePath, file, {
-          contentType: file.type,
+        .upload(filePath, compressed, {
+          contentType: compressed.type,
+          cacheControl: UPLOAD_CACHE_CONTROL,
           upsert: false,
         });
 

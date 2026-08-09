@@ -48,6 +48,7 @@ import { buildWorkUrl, shareContent } from "@/utils/share";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { hasPendingAvatarPrompt } from "@/utils/ai-studio-handoff";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 type ActiveTab = "rooms" | "avatar";
 
@@ -205,7 +206,11 @@ export default function AiRoomsPage() {
                 {latestRoom ? (
                   <>
                     <img
-                      src={latestRoom.image_url}
+                      // 画面を開いた瞬間に見える位置なので、遅延させず先に読む
+                      fetchPriority="high"
+                      decoding="async"
+                      src={getOptimizedImageUrl(latestRoom.image_url, { width: 400 })}
+                      onError={fallbackToOriginal(latestRoom.image_url)}
                       alt=""
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
@@ -233,7 +238,10 @@ export default function AiRoomsPage() {
                 {currentAvatar ? (
                   <>
                     <img
-                      src={currentAvatar.image_url}
+                      fetchPriority="high"
+                      decoding="async"
+                      src={getOptimizedImageUrl(currentAvatar.image_url, { width: 400 })}
+                      onError={fallbackToOriginal(currentAvatar.image_url)}
                       alt=""
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
@@ -416,7 +424,7 @@ export default function AiRoomsPage() {
               >
                 <X className="w-5 h-5" />
               </button>
-              <img
+              <img loading="lazy" decoding="async"
                 src={viewing.image_url}
                 alt=""
                 className="w-full h-auto max-h-[80vh] object-contain"
@@ -597,7 +605,7 @@ function AvatarPanel({
                     className="block w-full aspect-[3/4] bg-muted"
                   >
                     <img
-                      src={a.image_url}
+                      src={getOptimizedImageUrl(a.image_url, { width: 200 })}
                       alt={a.name || "avatar"}
                       className="w-full h-full object-cover"
                       loading="lazy"
@@ -716,7 +724,7 @@ function RoomCard({
         className="relative w-full aspect-video overflow-hidden bg-muted block"
       >
         <img
-          src={room.image_url}
+          src={getOptimizedImageUrl(room.image_url, { width: 400 })}
           alt=""
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"

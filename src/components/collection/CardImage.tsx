@@ -10,6 +10,7 @@ import { LazyImage } from "../ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 import { Badge } from "../ui/badge";
+import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 interface CardImageProps {
   image: string;
@@ -33,11 +34,14 @@ const CardImage = memo(function CardImage({
   const handleImageChange = async (file: File | null) => {
     if (!file || !itemId) return;
     try {
-      const fileExt = file.name.split('.').pop();
+      const compressed = await compressImageFile(file, ITEM_IMAGE_OPTIONS);
+      const fileExt = compressed.name.split('.').pop();
       const filePath = `${itemId}-${Date.now()}.${fileExt}`;
       const {
         error: uploadError
-      } = await supabase.storage.from('kuji_images').upload(filePath, file);
+      } = await supabase.storage
+        .from('kuji_images')
+        .upload(filePath, compressed, { cacheControl: UPLOAD_CACHE_CONTROL });
       if (uploadError) throw uploadError;
       const {
         data: {

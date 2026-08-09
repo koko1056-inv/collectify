@@ -17,6 +17,7 @@ import type { useAvatars } from "@/hooks/useAvatars";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { useSetAvatarVisibility } from "@/hooks/ai-avatar/usePublicAvatars";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface Props {
   avatars: ReturnType<typeof useAvatars>;
@@ -67,8 +68,9 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
               }`}
             >
               <div className="aspect-square bg-muted">
-                <img
-                  src={a.image_url}
+                <img loading="lazy" decoding="async"
+                  src={getOptimizedImageUrl(a.image_url, { width: 300 })}
+                      onError={fallbackToOriginal(a.image_url)}
                   alt={a.name || "Avatar"}
                   className="w-full h-full object-cover"
                 />
