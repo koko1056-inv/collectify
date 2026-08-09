@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface ProfileImageUploadProps {
   onImageChange: (file: File | null) => Promise<void>;
@@ -179,11 +180,10 @@ export function ProfileImageUpload({
                   }`}
                 >
                   <img
-                    src={avatar.image_url}
+                    src={getOptimizedImageUrl(avatar.image_url, { width: 150 })} onError={fallbackToOriginal(avatar.image_url)} loading="lazy" decoding="async"
                     alt={avatar.name || t("profileScreen.imageUpload.avatarAlt")}
                     className="w-full h-full object-cover"
-                    onError={handleImageError}
-                  />
+                    />
                   {avatar.is_current && (
                     <div className="absolute bottom-1 right-1 bg-primary text-primary-foreground text-xs px-1 rounded">
                       {t("profileScreen.imageUpload.current")}

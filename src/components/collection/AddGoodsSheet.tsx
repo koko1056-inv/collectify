@@ -21,6 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 type View = "menu" | "pick";
 
@@ -285,9 +286,8 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                     className="flex items-center gap-3 rounded-xl border border-border bg-card p-2"
                   >
                     <img
-                      src={item.image}
+                      src={getOptimizedImageUrl(item.image, { width: 120 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async"
                       alt=""
-                      loading="lazy"
                       className="h-12 w-12 shrink-0 rounded-lg object-cover bg-muted"
                     />
                     <div className="min-w-0 flex-1">

@@ -15,6 +15,7 @@ import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
 import { useItemShare } from "@/hooks/useItemShare";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface UserItemDetailsModalProps {
   isOpen: boolean;
@@ -477,7 +478,7 @@ export function UserItemDetailsModal({
                     <div key={memory.id} className="bg-muted/50 rounded-lg p-2 space-y-1">
                       {memory.image_url && (
                         <img
-                          src={memory.image_url}
+                          src={getOptimizedImageUrl(memory.image_url, { width: 300 })} onError={fallbackToOriginal(memory.image_url)} loading="lazy" decoding="async"
                           alt={t("itemDetails.memories.imageAlt")}
                           className="w-full rounded aspect-video object-cover"
                         />

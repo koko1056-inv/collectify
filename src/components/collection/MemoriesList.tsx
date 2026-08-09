@@ -2,6 +2,7 @@ import { ImageOff } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface Memory {
   id: string;
@@ -38,7 +39,7 @@ export function MemoriesList({ memories }: MemoriesListProps) {
           {memory.image_url && (
             <div className="mb-3">
               <img
-                src={memory.image_url}
+                src={getOptimizedImageUrl(memory.image_url, { width: 300 })} onError={fallbackToOriginal(memory.image_url)} loading="lazy" decoding="async"
                 alt={t("collectionScreen.memories.imageAlt")}
                 className="w-full rounded-md"
               />

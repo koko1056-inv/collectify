@@ -24,3 +24,8 @@ verify_jwt = true
 [[functions]]
 name = "notify-new-tag"
 verify_jwt = true
+
+# 既存画像の一括縮小。管理者のみ実行できる（関数内で has_role を検証）。
+[[functions]]
+name = "backfill-image-sizes"
+verify_jwt = true

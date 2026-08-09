@@ -7,6 +7,7 @@ import { ItemDetailsModal } from "@/components/ItemDetailsModal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface FavoriteItemsTop5Props {
   userId: string;
@@ -172,11 +173,10 @@ function FavoriteSlot({
     >
       <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted border border-border">
         <img
-          src={item.image}
+          src={getOptimizedImageUrl(item.image, { width: 200 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async"
           alt={item.title}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
+          />
         {/* 順位バッジ */}
         <div
           className={cn(

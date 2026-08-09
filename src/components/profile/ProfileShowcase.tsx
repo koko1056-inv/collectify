@@ -17,6 +17,7 @@ import { Home, User, Pencil, Sparkles, Plus, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface Props {
   profileId: string;
@@ -113,7 +114,7 @@ export function ProfileShowcase({
             aria-label={t("profileScreen.showcase.openRoom")}
           >
             <img
-              src={featuredRoom.image_url}
+              src={getOptimizedImageUrl(featuredRoom.image_url, { width: 600 })} onError={fallbackToOriginal(featuredRoom.image_url)}
               alt={featuredRoom.title || t("profileScreen.showcase.myRoom")}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
@@ -166,7 +167,7 @@ export function ProfileShowcase({
               <div className="relative">
                 <div className="absolute inset-0 rounded-2xl bg-primary/40 blur-lg" />
                 <img
-                  src={featuredAvatar.image_url}
+                  src={getOptimizedImageUrl(featuredAvatar.image_url, { width: 300 })} onError={fallbackToOriginal(featuredAvatar.image_url)}
                   alt={featuredAvatar.name || t("profileScreen.showcase.myAvatar")}
                   className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover border-2 border-white shadow-xl"
                 />
@@ -466,7 +467,7 @@ function PickerGrid({
                   : "border-border hover:border-primary/50"
               )}
             >
-              <img src={it.image_url} alt={it.title || it.name || ""} className="w-full h-full object-cover" />
+              <img src={getOptimizedImageUrl(it.image_url, { width: 200 })} onError={fallbackToOriginal(it.image_url)} loading="lazy" decoding="async" alt={it.title || it.name || ""} className="w-full h-full object-cover" />
               {(it.title || it.name) && (
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1.5">
                   <p className="text-white text-[10px] font-medium truncate">{it.title || it.name}</p>

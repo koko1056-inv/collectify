@@ -23,6 +23,7 @@ import {
   FAVORITE_ITEMS_LIMIT,
 } from "@/hooks/useFavoriteItems";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface FavoriteItemsEditModalProps {
   open: boolean;
@@ -176,7 +177,7 @@ export function FavoriteItemsEditModal({
                     {item ? (
                       <>
                         <img
-                          src={item.image}
+                          src={getOptimizedImageUrl(item.image, { width: 200 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async"
                           alt={item.title}
                           className="w-full h-full object-cover"
                         />
@@ -271,11 +272,10 @@ export function FavoriteItemsEditModal({
                     )}
                   >
                     <img
-                      src={item.image}
+                      src={getOptimizedImageUrl(item.image, { width: 200 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async"
                       alt={item.title}
                       className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                      />
                     {selected && (
                       <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                         <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shadow-lg">

@@ -2,6 +2,7 @@
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface ItemNoteFieldProps {
   isEditing: boolean;
@@ -42,7 +43,7 @@ export function ItemNoteField({
             <div key={memory.id} className="border rounded-lg p-2 bg-muted">
               {memory.image_url && (
                 <img
-                  src={memory.image_url}
+                  src={getOptimizedImageUrl(memory.image_url, { width: 300 })} onError={fallbackToOriginal(memory.image_url)} loading="lazy" decoding="async"
                   alt={t("itemDetails.memories.imageAlt")}
                   className="w-full rounded mb-2"
                 />
