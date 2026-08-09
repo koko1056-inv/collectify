@@ -4,6 +4,7 @@ import { useBookmarkedAiWorks } from "@/hooks/ai-room/useAiBookmarks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 /**
  * マイページの「保存」タブ
@@ -60,9 +61,8 @@ export function ProfileBookmarks() {
               className="group relative aspect-square rounded-2xl overflow-hidden bg-muted border border-border/40 hover:border-primary/40 hover:shadow-lg transition-all"
             >
               <img
-                src={w.image_url}
+                src={getOptimizedImageUrl(w.image_url, { width: 300 })} onError={fallbackToOriginal(w.image_url)} loading="lazy" decoding="async"
                 alt={w.title || w.name || t("profileScreen.bookmarks.aiWorkAlt")}
-                loading="lazy"
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
               <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 to-transparent">

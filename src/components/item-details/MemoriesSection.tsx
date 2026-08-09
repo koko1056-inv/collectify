@@ -2,6 +2,7 @@ import { Heart, Calendar, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface Memory {
   id: string;
@@ -61,7 +62,7 @@ export function MemoriesSection({ memories }: MemoriesSectionProps) {
                 {memory.image_url && (
                   <div className="relative mb-3 overflow-hidden rounded-lg">
                     <img
-                      src={memory.image_url}
+                      src={getOptimizedImageUrl(memory.image_url, { width: 300 })} onError={fallbackToOriginal(memory.image_url)} loading="lazy" decoding="async"
                       alt={t("itemDetails.memories.photoAlt")}
                       className="w-full rounded-lg object-cover max-h-64 hover:scale-105 transition-transform duration-300"
                     />

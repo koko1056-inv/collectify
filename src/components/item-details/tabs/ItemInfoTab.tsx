@@ -7,6 +7,7 @@ import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
 import { Item3DPreview } from "../Item3DPreview";
 import type { SimpleItemTag } from "@/utils/tag/types";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface ItemInfoTabProps {
   itemDetails: any;
@@ -42,7 +43,7 @@ export function ItemInfoTab({
 
       <div className="space-y-3">
         <img
-          src={itemDetails.image}
+          src={getOptimizedImageUrl(itemDetails.image, { width: 800 })} onError={fallbackToOriginal(itemDetails.image)}
           alt={itemDetails.title}
           className="w-full rounded-md aspect-square object-cover"
         />

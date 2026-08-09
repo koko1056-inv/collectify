@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 export interface UserItemLite {
   id: string;
@@ -103,7 +104,7 @@ export function SelectItemsStep({ items, selectedItems, onToggle, maxItems, onCl
                   onClick={() => onToggle(item)}
                   className="flex max-w-full items-center gap-1 rounded-full border border-primary/40 bg-primary/10 py-1 pl-1 pr-2 text-xs"
                 >
-                  <img src={item.image} alt="" className="h-5 w-5 shrink-0 rounded-full object-cover" />
+                  <img src={getOptimizedImageUrl(item.image, { width: 150 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async" alt="" className="h-5 w-5 shrink-0 rounded-full object-cover" />
                   <span className="truncate">{item.title}</span>
                   <X className="h-3 w-3 shrink-0 text-muted-foreground" />
                 </button>
@@ -134,7 +135,7 @@ export function SelectItemsStep({ items, selectedItems, onToggle, maxItems, onCl
                         : "border-border hover:border-primary/40"
                     )}
                   >
-                    <img src={item.image} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    <img src={getOptimizedImageUrl(item.image, { width: 150 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async" alt="" className="w-full h-full object-cover" />
                     {isSelected && (
                       <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                         <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">

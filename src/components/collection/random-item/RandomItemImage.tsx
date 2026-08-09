@@ -1,6 +1,7 @@
 
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface RandomItemImageProps {
   image: string;
@@ -26,7 +27,7 @@ export function RandomItemImage({ image, title, isSpinning, isLoading, onClick }
     >
       <AspectRatio ratio={1} className="bg-muted rounded-md overflow-hidden">
         <img 
-          src={image} 
+          src={getOptimizedImageUrl(image, { width: 600 })} onError={fallbackToOriginal(image)} 
           alt={title} 
           className="w-full h-full object-contain rounded-md animate-scale-in"
         />

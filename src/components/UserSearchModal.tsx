@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface Profile {
   id: string;
@@ -104,7 +105,7 @@ export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                   <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
                     {profile.avatar_url ? (
                       <img
-                        src={profile.avatar_url}
+                        src={getOptimizedImageUrl(profile.avatar_url, { width: 100 })} onError={fallbackToOriginal(profile.avatar_url)} loading="lazy" decoding="async"
                         alt={profile.username}
                         className="w-full h-full rounded-full object-cover"
                       />

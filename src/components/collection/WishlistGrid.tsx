@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { PriceSearchModal } from "@/components/wishlist/PriceSearchModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface WishlistGridProps {
   userId: string;
@@ -156,7 +157,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
             className="bg-card border rounded-lg p-3 flex flex-col items-center shadow-sm relative group"
           >
             <img
-              src={item.official_items?.image}
+              src={getOptimizedImageUrl(item.official_items?.image, { width: 300 })} onError={fallbackToOriginal(item.official_items?.image)} loading="lazy" decoding="async"
               alt={item.official_items?.title}
               className="h-24 w-24 object-cover rounded mb-2"
             />

@@ -13,6 +13,7 @@ import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface ItemOwnersModalProps {
   isOpen: boolean;
@@ -110,7 +111,7 @@ export function ItemOwnersModal({
         {/* アイテム情報 */}
         <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
           <img 
-            src={itemImage} 
+            src={getOptimizedImageUrl(itemImage, { width: 200 })} onError={fallbackToOriginal(itemImage)} loading="lazy" decoding="async" 
             alt={itemTitle} 
             className="w-12 h-12 rounded object-cover"
           />

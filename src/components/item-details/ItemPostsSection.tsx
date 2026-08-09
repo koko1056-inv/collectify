@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { GoodsPost } from "@/types/posts";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface ItemPostsSectionProps {
   userItemId: string;
@@ -49,7 +50,7 @@ export function ItemPostsSection({ userItemId }: ItemPostsSectionProps) {
                 onClick={() => setSelectedPost(post)}
               >
                 <img
-                  src={post.image_url}
+                  src={getOptimizedImageUrl(post.image_url, { width: 300 })} onError={fallbackToOriginal(post.image_url)} loading="lazy" decoding="async"
                   alt={post.caption || t("itemDetails.posts.imageAlt")}
                   className="w-full h-32 object-cover"
                 />

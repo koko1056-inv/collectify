@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { Tag } from "@/types";
 import { SearchBar } from "./SearchBar";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface FilterSheetProps {
   searchQuery: string;
@@ -335,11 +336,10 @@ function PillOption({
     >
       {image && (
         <img
-          src={image}
+          src={getOptimizedImageUrl(image, { width: 200 })} onError={fallbackToOriginal(image)} loading="lazy" decoding="async"
           alt=""
           className="w-5 h-5 rounded-full object-cover"
-          loading="lazy"
-        />
+          />
       )}
       <span className="max-w-[180px] truncate">{label}</span>
       {active && <Check className="w-3.5 h-3.5 ml-0.5" />}

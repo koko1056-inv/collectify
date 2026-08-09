@@ -3,6 +3,7 @@ import { Star } from "lucide-react";
 import { useFavoriteItems } from "@/hooks/useFavoriteItems";
 import { ItemDetailsModal } from "@/components/ItemDetailsModal";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface Props {
   userId: string;
@@ -38,11 +39,10 @@ export function FavoriteItemsCircleStrip({ userId }: Props) {
               <div className="absolute -inset-0.5 rounded-full bg-gradient-to-br from-primary/50 to-primary/40 opacity-70" />
               <div className="relative w-14 h-14 rounded-full overflow-hidden bg-muted border-2 border-background">
                 <img
-                  src={item.image}
+                  src={getOptimizedImageUrl(item.image, { width: 150 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async"
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  loading="lazy"
-                />
+                  />
               </div>
             </div>
             <span className="text-[10px] text-muted-foreground leading-tight line-clamp-1 w-full text-center">
