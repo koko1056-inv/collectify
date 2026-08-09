@@ -119,6 +119,7 @@ export const collectionScreen = {
       updatedDesc: "コレクションの画像が正常に更新されました。",
       updateFailed: "画像の更新中にエラーが発生しました。もう一度お試しください。",
       editTitle: "画像を編集",
+      forTrade: "交換",
     },
     cardActions: {
       memories: "思い出",
@@ -313,6 +314,7 @@ export const collectionScreen = {
       updatedDesc: "Your collection image was updated.",
       updateFailed: "Something went wrong while updating the image. Please try again.",
       editTitle: "Edit image",
+      forTrade: "Trade",
     },
     cardActions: {
       memories: "Memories",

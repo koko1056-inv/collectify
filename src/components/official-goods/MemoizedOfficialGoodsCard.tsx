@@ -58,34 +58,50 @@ const OfficialGoodsCardWithSwipe = ({
     }
 
     try {
-      // 既にウィッシュリストに存在するか確認
-      const { data: existing } = await supabase
+      // 既に持っているものは「欲しい」に入れる意味がない
+      const { data: owned } = await supabase
         .from("user_items")
         .select("id")
         .eq("user_id", user.id)
         .eq("official_item_id", id)
-        .single();
+        .maybeSingle();
 
-      if (existing) {
+      if (owned) {
         toast(t("collectionScreen.official.alreadyInWishlistOrCollection"));
         return;
       }
 
-      // ウィッシュリストに追加（quantity: 0 でウィッシュリストを表現）
-      const { error } = await supabase.from("user_items").insert({
+      const { data: alreadyWished } = await supabase
+        .from("wishlists")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("official_item_id", id)
+        .maybeSingle();
+
+      if (alreadyWished) {
+        toast(t("collectionScreen.official.alreadyInWishlistOrCollection"));
+        return;
+      }
+
+      // 「欲しい」は wishlists だけに書く。
+      // 以前は user_items に quantity: 0 で入れていたが、コレクション一覧が
+      // それを持ち物として並べてしまううえ、交換のマッチングは wishlists しか
+      // 見ないので、欲しいと言った事実がマッチングに届いていなかった。
+      const { error } = await supabase.from("wishlists").insert({
         user_id: user.id,
         official_item_id: id,
-        title,
-        image,
-        release_date: new Date().toISOString().split("T")[0],
-        prize: "0",
-        quantity: 0, // ウィッシュリスト = quantity 0
       });
 
       if (error) throw error;
 
-      await queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" });
-      await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["wishlist"], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] }),
+        queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", id, user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["trade-matches", user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["trade-readiness", user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" }),
+      ]);
 
       toast.success(t("collectionScreen.official.wishlistAdded"), {
         description: t("collectionScreen.official.wishlistAddedDesc"),

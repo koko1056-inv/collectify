@@ -12,6 +12,7 @@ interface MyCollectionGoodsCardProps {
   title: string;
   image: string;
   quantity?: number;
+  forTrade?: boolean;
   isCompact?: boolean;
   memories?: any[];
   /** このアイテムの所有者ID(他人のコレクションを表示している場合に使う) */
@@ -23,6 +24,7 @@ function MyCollectionGoodsCardComponent({
   title, 
   image,
   quantity,
+  forTrade,
   isCompact,
   memories = [],
   ownerId,
@@ -50,7 +52,7 @@ function MyCollectionGoodsCardComponent({
         {...listeners}
         className="hover-scale card-shadow bg-card border border-border relative"
       >
-        <CardImage image={image} title={title} />
+        <CardImage image={image} title={title} forTrade={forTrade} />
         <div className="p-2 relative">
           <h3 className="text-xs font-medium text-foreground truncate">{title}</h3>
           {quantity && quantity > 1 && (
@@ -79,6 +81,7 @@ function MyCollectionGoodsCardComponent({
           title={title}
           image={image}
           quantity={quantity}
+          forTrade={forTrade}
           memories={memories}
           userId={ownerId}
         />

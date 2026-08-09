@@ -2995,6 +2995,7 @@ export type Database = {
           official_item_id: string | null
           official_link: string | null
           original_item_id: string | null
+          for_trade: boolean
           prize: string
           purchase_date: string | null
           purchase_price: string | null
@@ -3016,6 +3017,7 @@ export type Database = {
           official_item_id?: string | null
           official_link?: string | null
           original_item_id?: string | null
+          for_trade?: boolean
           prize: string
           purchase_date?: string | null
           purchase_price?: string | null
@@ -3037,6 +3039,7 @@ export type Database = {
           official_item_id?: string | null
           official_link?: string | null
           original_item_id?: string | null
+          for_trade?: boolean
           prize?: string
           purchase_date?: string | null
           purchase_price?: string | null
@@ -3421,6 +3424,17 @@ export type Database = {
       set_avatar_visibility: {
         Args: { _avatar_id: string; _is_public: boolean }
         Returns: boolean
+      }
+      find_trade_matches: {
+        Args: { _limit?: number }
+        Returns: {
+          partner_id: string
+          partner_username: string | null
+          partner_avatar_url: string | null
+          is_mutual: boolean
+          their_items: Json
+          my_items: Json
+        }[]
       }
       increment_item_quantity: {
         Args: { _by?: number; _official_item_id: string }

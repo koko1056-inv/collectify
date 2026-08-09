@@ -94,6 +94,7 @@ const CollectionGrid = memo(function CollectionGrid({
               title={item.title}
               image={item.image}
               quantity={item.quantity}
+              forTrade={item.for_trade}
               isCompact={isCompact}
               memories={batchMemories[item.id] || []}
               ownerId={item.user_id}
