@@ -29,6 +29,7 @@ export function AdminItemList() {
       const { data, error } = await supabase
         .from("official_items")
         .select("*")
+        .is("merged_into", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

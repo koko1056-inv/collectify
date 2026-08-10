@@ -16,6 +16,7 @@ import { useTradeMatches, useTradeReadiness, type TradeMatch } from "@/hooks/use
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 import { TradeRequestModal } from "./TradeRequestModal";
+import { TradeInboxButton } from "./TradeInboxButton";
 import { InlineFollowButton } from "./InlineFollowButton";
 
 /**
@@ -80,6 +81,9 @@ export function TradeMatchingSection() {
 
   return (
     <div className="space-y-4">
+      {/* 進行中の交換への入口。申し込んだあと戻ってくる場所がここになる */}
+      <TradeInboxButton variant="full" />
+
       <ReadinessBanner
         wishCount={readiness?.wishCount ?? 0}
         offerCount={readiness?.offerCount ?? 0}

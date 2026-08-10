@@ -71,6 +71,7 @@ export function FeaturedCollections() {
             )
           )
         `)
+        .is("merged_into", null)
         .order("created_at", { ascending: false })
         .limit(12);
 
@@ -111,6 +112,7 @@ export function FeaturedCollections() {
             )
           )
         `)
+        .is("merged_into", null)
         .order("created_at", { ascending: false })
         .limit(12);
 

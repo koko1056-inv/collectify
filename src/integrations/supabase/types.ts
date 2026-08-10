@@ -1779,6 +1779,7 @@ export type Database = {
           description: string | null
           id: string
           image: string
+          merged_into: string | null
           item_type: string
           price: string
           quantity: number
@@ -1805,6 +1806,7 @@ export type Database = {
           description?: string | null
           id?: string
           image?: string
+          merged_into?: string | null
           item_type?: string
           price?: string
           quantity?: number
@@ -2777,9 +2779,17 @@ export type Database = {
       }
       trade_requests: {
         Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          completed_at: string | null
           created_at: string
           id: string
           is_open: boolean | null
+          receiver_received_at: string | null
+          receiver_shipped_at: string | null
+          responded_at: string | null
+          sender_received_at: string | null
+          sender_shipped_at: string | null
           message: string | null
           offered_item_id: string
           receiver_id: string
@@ -2789,9 +2799,17 @@ export type Database = {
           status: string
         }
         Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
           created_at?: string
           id?: string
           is_open?: boolean | null
+          receiver_received_at?: string | null
+          receiver_shipped_at?: string | null
+          responded_at?: string | null
+          sender_received_at?: string | null
+          sender_shipped_at?: string | null
           message?: string | null
           offered_item_id: string
           receiver_id: string
@@ -2801,9 +2819,17 @@ export type Database = {
           status?: string
         }
         Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
           created_at?: string
           id?: string
           is_open?: boolean | null
+          receiver_received_at?: string | null
+          receiver_shipped_at?: string | null
+          responded_at?: string | null
+          sender_received_at?: string | null
+          sender_shipped_at?: string | null
           message?: string | null
           offered_item_id?: string
           receiver_id?: string
@@ -2880,6 +2906,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      user_reports: {
+        Row: {
+          created_at: string
+          detail: string | null
+          id: string
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          status: string
+          trade_request_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          status?: string
+          trade_request_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          id?: string
+          reason?: string
+          reported_user_id?: string
+          reporter_id?: string
+          status?: string
+          trade_request_id?: string | null
+        }
+        Relationships: []
       }
       user_achievements: {
         Row: {
@@ -3424,6 +3501,34 @@ export type Database = {
       set_avatar_visibility: {
         Args: { _avatar_id: string; _is_public: boolean }
         Returns: boolean
+      }
+      cancel_trade_request: {
+        Args: { _trade_id: string }
+        Returns: Json
+      }
+      find_duplicate_official_items: {
+        Args: { _limit?: number }
+        Returns: {
+          normalized: string
+          item_count: number
+          items: Json
+        }[]
+      }
+      merge_official_items: {
+        Args: { _keep_id: string; _merge_id: string }
+        Returns: Json
+      }
+      report_trade_receipt: {
+        Args: { _trade_id: string }
+        Returns: Json
+      }
+      report_trade_shipment: {
+        Args: { _trade_id: string }
+        Returns: Json
+      }
+      respond_to_trade_request: {
+        Args: { _accept: boolean; _trade_id: string }
+        Returns: Json
       }
       find_trade_matches: {
         Args: { _limit?: number }

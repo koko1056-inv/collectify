@@ -8,7 +8,7 @@ import { ShoppingBasket, User, Search, Globe, Palette, HelpCircle, Compass, Pack
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { UserSearchModal } from "./UserSearchModal";
-import { TradeRequestsModal } from "./trade/TradeRequestsModal";
+import { TradeInboxButton } from "./trade/TradeInboxButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useThemeColor, themeColors } from "@/contexts/ThemeColorContext";
 import { ChatButton } from "./ChatButton";
@@ -43,41 +43,6 @@ export function Navbar() {
   } = useProfile(user?.id);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
-  const [pendingTradeRequests, setPendingTradeRequests] = useState(0);
-  useEffect(() => {
-    if (user) {
-      fetchPendingTradeRequests();
-      const cleanup = subscribeToTradeRequests();
-      return cleanup;
-    }
-  }, [user]);
-  const fetchPendingTradeRequests = async () => {
-    if (!user) return;
-    const {
-      count,
-      error
-    } = await supabase.from("trade_requests").select("*", {
-      count: "exact",
-      head: true
-    }).eq("receiver_id", user.id).eq("status", "pending");
-    if (!error && count !== null) {
-      setPendingTradeRequests(count);
-    }
-  };
-  const subscribeToTradeRequests = () => {
-    const channel = supabase.channel("trade-requests").on("postgres_changes", {
-      event: "*",
-      schema: "public",
-      table: "trade_requests",
-      filter: `receiver_id=eq.${user?.id}`
-    }, () => {
-      fetchPendingTradeRequests();
-    }).subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
   const handleLogout = async () => {
     const {
       error
@@ -205,6 +170,7 @@ export function Navbar() {
                 <ShoppingBasket className="h-4 w-4 text-foreground" />
               </Button>
               
+              <TradeInboxButton />
               <ChatButton />
               <NotificationBell className="hidden sm:block" />
               
@@ -262,6 +228,5 @@ export function Navbar() {
       
       <WishlistViewModal isOpen={isWishlistModalOpen} onClose={() => setIsWishlistModalOpen(false)} />
       <UserSearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
-      <TradeRequestsModal isOpen={isTradeModalOpen} onClose={() => setIsTradeModalOpen(false)} />
     </nav>;
 }

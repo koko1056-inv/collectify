@@ -2,9 +2,6 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { useChat } from "./useChat";
 import { ChatStep } from "./ChatStep";
-import { ShippingStep } from "./ShippingStep";
-import { CompleteStep } from "./CompleteStep";
-import { ShippingConfirmDialog } from "./ShippingConfirmDialog";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,18 +21,11 @@ interface ChatModalProps {
 export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatModalProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const {
-    messages,
-    partnerProfile,
-    step,
-    isCompleting,
-    isShippingConfirmOpen,
-    setIsShippingConfirmOpen,
-    sendMessage,
-    proceedToShipping,
-    completeShipping,
-    completeTrade
-  } = useChat({ partnerId, tradeRequestId, isOpen });
+  const { messages, partnerProfile, sendMessage } = useChat({
+    partnerId,
+    tradeRequestId,
+    isOpen,
+  });
 
   // モーダルが開いたときに既読にする
   useEffect(() => {
@@ -61,11 +51,6 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
     }
 
     await query;
-  };
-
-  const handleComplete = async () => {
-    await completeTrade();
-    onClose();
   };
 
   const handleClose = () => {
@@ -109,37 +94,14 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
           
           {/* チャットコンテンツ */}
           <div className="flex-1 flex flex-col min-h-0 bg-muted/30">
-            {step === 'chat' && (
-              <ChatStep 
-                messages={messages}
-                onSendMessage={sendMessage}
-                onProceedToShipping={proceedToShipping}
-                showShippingButton={!!tradeRequestId}
-                partnerProfile={partnerProfile}
-              />
-            )}
-
-            {step === 'shipping' && (
-              <ShippingStep 
-                onShippingComplete={() => setIsShippingConfirmOpen(true)} 
-              />
-            )}
-
-            {step === 'complete' && (
-              <CompleteStep 
-                onComplete={handleComplete}
-                isCompleting={isCompleting}
-              />
-            )}
+            <ChatStep
+              messages={messages}
+              onSendMessage={sendMessage}
+              partnerProfile={partnerProfile}
+            />
           </div>
         </DialogContent>
       </Dialog>
-
-      <ShippingConfirmDialog 
-        isOpen={isShippingConfirmOpen}
-        onOpenChange={setIsShippingConfirmOpen}
-        onConfirm={completeShipping}
-      />
     </>
   );
 }

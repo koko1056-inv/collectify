@@ -1,5 +1,6 @@
 // エリア別の翻訳モジュールをまとめる。
 // 各モジュールは1ファイル=1担当にしてあるため、並列で編集しても衝突しない。
+import { admin } from './admin';
 import { chrome } from './chrome';
 import { itemDetails } from './itemDetails';
 import { profileScreen } from './profileScreen';
@@ -16,6 +17,7 @@ import { misc } from './misc';
 
 export const moduleTranslations = {
   ja: {
+    admin: admin.ja,
     chrome: chrome.ja,
     itemDetails: itemDetails.ja,
     profileScreen: profileScreen.ja,
@@ -31,6 +33,7 @@ export const moduleTranslations = {
     misc: misc.ja,
   },
   en: {
+    admin: admin.en,
     chrome: chrome.en,
     itemDetails: itemDetails.en,
     profileScreen: profileScreen.en,

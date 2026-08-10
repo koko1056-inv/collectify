@@ -1,19 +1,29 @@
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeftRight, Loader2, Send } from "lucide-react";
+import { toast } from "sonner";
 
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2, Send, Globe, ArrowRight } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { EmptyState } from "@/components/ui/empty-state";
+import { invalidateTrades } from "@/hooks/trade/useMyTrades";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { cn } from "@/lib/utils";
 
 interface TradeRequestModalProps {
   isOpen: boolean;
@@ -21,446 +31,218 @@ interface TradeRequestModalProps {
   requestedItemId: string;
   requestedItemTitle: string;
   receiverId: string;
-  initialTab?: "directTrade" | "openTrade";
 }
 
+/**
+ * 交換の申し込み。
+ *
+ * 差し出せるのは「交換に出す」を有効にしたグッズだけ。
+ * 以前は持ち物を全部並べていたので、1つしかない大事なグッズを
+ * うっかり差し出してしまえた。手放していいと決めたものだけを見せる。
+ */
 export function TradeRequestModal({
   isOpen,
   onClose,
   requestedItemId,
   requestedItemTitle,
   receiverId,
-  initialTab = "directTrade"
 }: TradeRequestModalProps) {
-  const [message, setMessage] = useState("");
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isOpenTrade, setIsOpenTrade] = useState(false);
-  const [activeTab, setActiveTab] = useState<"directTrade" | "openTrade">(initialTab);
-  const [desiredItemId, setDesiredItemId] = useState<string | null>(null);
-  const [step, setStep] = useState<"selectOffer" | "selectDesired" | "addMessage">("selectOffer");
   const { user } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  // Reset state when modal opens/closes or tab changes
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
-      if (activeTab === "directTrade" && requestedItemId) {
-        setDesiredItemId(requestedItemId);
-      }
-      
-      // Reset step to first step when modal opens
-      setStep("selectOffer");
-      setSelectedItem(null);
-      setDesiredItemId(null);
+      setSelectedItemId(null);
       setMessage("");
     }
-  }, [isOpen, activeTab, requestedItemId]);
+  }, [isOpen]);
 
-  // When tab changes, reset the step
-  useEffect(() => {
-    setStep("selectOffer");
-    setSelectedItem(null);
-    setDesiredItemId(null);
-  }, [activeTab]);
-
-  const { data: userItems, isLoading: itemsLoading } = useQuery({
-    queryKey: ["user-items", user?.id],
+  const { data: offerable = [], isLoading } = useQuery({
+    queryKey: ["tradable-items", user?.id],
+    enabled: isOpen && !!user?.id,
     queryFn: async () => {
-      if (!user) return [];
       const { data, error } = await supabase
         .from("user_items")
-        .select("*")
-        .eq("user_id", user.id);
+        .select("id, title, image")
+        .eq("user_id", user!.id)
+        .eq("for_trade", true)
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
-    enabled: !!user,
   });
 
-  // Query for all available items for the desired item selection in open trade tab
-  const { data: allItems, isLoading: allItemsLoading } = useQuery({
-    queryKey: ["all-items"],
+  // 同じ相手の同じグッズに二重で申し込まないようにする
+  const { data: alreadyRequested } = useQuery({
+    queryKey: ["trade-exists", user?.id, requestedItemId],
+    enabled: isOpen && !!user?.id,
     queryFn: async () => {
-      if (!user) return [];
       const { data, error } = await supabase
-        .from("user_items")
-        .select("*");
+        .from("trade_requests")
+        .select("id")
+        .eq("sender_id", user!.id)
+        .eq("requested_item_id", requestedItemId)
+        .in("status", ["pending", "accepted"])
+        .maybeSingle();
       if (error) throw error;
-      return data;
+      return !!data;
     },
-    enabled: !!user && (activeTab === "openTrade" && step === "selectDesired"),
   });
 
-  const handleNextStep = () => {
-    if (step === "selectOffer") {
-      setStep("selectDesired");
-    } else if (step === "selectDesired") {
-      setStep("addMessage");
-    }
-  };
+  const canSend = useMemo(
+    () => !!selectedItemId && !isSending && !alreadyRequested,
+    [selectedItemId, isSending, alreadyRequested]
+  );
 
-  const handlePreviousStep = () => {
-    if (step === "selectDesired") {
-      setStep("selectOffer");
-    } else if (step === "addMessage") {
-      setStep("selectDesired");
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedItem) {
-      toast.error(t("common.error"), {
-        description: t("trade.request.errSelectOffer"),
-      });
-      return;
-    }
-
-    if (activeTab === "openTrade" && !desiredItemId) {
-      toast.error(t("common.error"), {
-        description: t("trade.request.errSelectDesired"),
-      });
-      return;
-    }
-
-    setIsLoading(true);
+  const send = async () => {
+    if (!user || !selectedItemId) return;
+    setIsSending(true);
     try {
-      // For direct trade with specific receiver
-      if (activeTab === "directTrade") {
-        const { error } = await supabase.from("trade_requests").insert({
-          sender_id: user?.id,
-          receiver_id: receiverId,
-          offered_item_id: selectedItem,
-          requested_item_id: requestedItemId,
-          message,
-          is_open: isOpenTrade
-        });
-
-        if (error) throw error;
-
-        toast.success(t("trade.request.sentTitle"), {
-          description: t("trade.request.sentDesc"),
-        });
-      } 
-      // For open trade where anyone can accept
-      else if (activeTab === "openTrade") {
-        // 重要な変更: オープントレードの場合もreceiver_idを設定します (仮のIDまたはユーザー自身のID)
-        // データベース制約に対応するために、自分自身のIDを設定
-        const { error } = await supabase.from("trade_requests").insert({
-          sender_id: user?.id,
-          receiver_id: user?.id, // 自分自身をreceiverとして設定
-          offered_item_id: selectedItem,
-          requested_item_id: desiredItemId,
-          message,
-          is_open: true // Always open for these trades
-        });
-
-        if (error) throw error;
-
-        toast.success(t("trade.request.openCreatedTitle"), {
-          description: t("trade.request.openCreatedDesc"),
-        });
-      }
-      
-      onClose();
-      setSelectedItem(null);
-      setDesiredItemId(null);
-      setMessage("");
-      setStep("selectOffer");
-    } catch (error) {
-      console.error("Error sending trade request:", error);
-      toast.error(t("common.error"), {
-        description: t("trade.request.sendErrorDesc"),
+      const { error } = await supabase.from("trade_requests").insert({
+        sender_id: user.id,
+        receiver_id: receiverId,
+        offered_item_id: selectedItemId,
+        requested_item_id: requestedItemId,
+        message: message.trim() || null,
       });
+      if (error) throw error;
+
+      toast.success(t("trade.request.sentTitle"), {
+        description: t("trade.request.sentDesc"),
+      });
+      await invalidateTrades(queryClient, user.id);
+      onClose();
+    } catch (e) {
+      console.error("Error sending trade request:", e);
+      toast.error(t("common.error"), { description: t("trade.request.sendErrorDesc") });
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Get the current step title
-  const getStepTitle = () => {
-    if (activeTab === "directTrade") {
-      return t("trade.request.stepTitleDirect", { title: requestedItemTitle });
-    }
-
-    if (step === "selectOffer") {
-      return t("trade.request.stepSelectOffer");
-    } else if (step === "selectDesired") {
-      return t("trade.request.stepSelectDesired");
-    } else {
-      return t("trade.request.stepAddMessage");
+      setIsSending(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] flex flex-col overflow-hidden">
+    <Dialog open={isOpen} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t("trade.request.title")}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <ArrowLeftRight className="h-4 w-4 text-primary" />
+            {t("trade.request.title")}
+          </DialogTitle>
           <DialogDescription>
-            {getStepTitle()}
+            {t("trade.request.stepTitleDirect", { title: requestedItemTitle })}
           </DialogDescription>
         </DialogHeader>
-        
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "directTrade" | "openTrade")} className="w-full flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="directTrade">{t("trade.request.tabDirect")}</TabsTrigger>
-            <TabsTrigger value="openTrade">{t("trade.request.tabOpen")}</TabsTrigger>
-          </TabsList>
-          
-          <ScrollArea className="flex-1 pr-2 overflow-y-auto">
-            <div className="space-y-4 pb-4">
-              {/* Direct Trade Tab Content */}
-              {activeTab === "directTrade" && (
-                <>
-                  {/* Offered item selection */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t("trade.request.selectOfferLabel")}</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {itemsLoading ? (
-                        <div className="col-span-2 py-4 text-center text-muted-foreground">{t("common.loading")}</div>
-                      ) : userItems?.length === 0 ? (
-                        <EmptyState className="col-span-2 py-6" title={t("trade.request.noItems")} />
-                      ) : (
-                        userItems?.map((item) => (
-                          <button
-                            key={item.id}
-                            onClick={() => setSelectedItem(item.id)}
-                            className={`p-2 rounded-lg border transition-colors ${
-                              selectedItem === item.id
-                                ? "border-primary bg-primary/5"
-                                : "border-border hover:border-border"
-                            }`}
-                          >
-                            <img
-                              src={item.image}
-                              alt={item.title}
-                              className="w-full aspect-square object-cover rounded-md"
-                            />
-                            <p className="mt-1 text-xs line-clamp-2 min-h-[2rem]">{item.title}</p>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t("trade.request.messageLabel")}</label>
-                    <Textarea
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder={t("trade.request.messagePlaceholder")}
-                      className="resize-none"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="open-trade"
-                      checked={isOpenTrade}
-                      onCheckedChange={setIsOpenTrade}
-                    />
-                    <Label htmlFor="open-trade" className="flex items-center gap-1">
-                      <Globe className="h-4 w-4 text-green-600" />
-                      {t("trade.request.publishAsOpen")}
-                    </Label>
-                  </div>
-                  
-                  {isOpenTrade && (
-                    <div className="text-sm text-muted-foreground bg-muted p-2 rounded">
-                      {t("trade.request.openTradeNote")}
-                    </div>
-                  )}
-                </>
-              )}
 
-              {/* Open Trade Tab Content - Step 1: Select Offer Item */}
-              {activeTab === "openTrade" && step === "selectOffer" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t("trade.request.selectOfferLabel")}</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {itemsLoading ? (
-                      <div className="col-span-2 py-4 text-center text-muted-foreground">{t("common.loading")}</div>
-                    ) : userItems?.length === 0 ? (
-                      <EmptyState className="col-span-2 py-6" title={t("trade.request.noItems")} />
-                    ) : (
-                      userItems?.map((item) => (
-                        <button
-                          key={item.id}
-                          onClick={() => setSelectedItem(item.id)}
-                          className={`p-2 rounded-lg border transition-colors ${
-                            selectedItem === item.id
-                              ? "border-primary bg-primary/5"
-                              : "border-border hover:border-border"
-                          }`}
-                        >
+        {alreadyRequested ? (
+          <EmptyState
+            className="py-8"
+            icon={ArrowLeftRight}
+            title={t("trade.request.alreadySentTitle")}
+            description={t("trade.request.alreadySentDesc")}
+          />
+        ) : (
+          <ScrollArea className="min-h-0 flex-1 pr-3">
+            <div className="space-y-4 pb-2">
+              <div className="space-y-2">
+                <Label className="text-sm">{t("trade.request.selectOfferLabel")}</Label>
+
+                {isLoading ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <Skeleton key={i} className="aspect-square rounded-lg" />
+                    ))}
+                  </div>
+                ) : offerable.length === 0 ? (
+                  // 交換に出しているものが無いと申し込めない。
+                  // 「グッズがありません」で終わらせず、印の付け方まで案内する。
+                  <EmptyState
+                    className="py-6"
+                    title={t("trade.request.noTradableTitle")}
+                    description={t("trade.request.noTradableDesc")}
+                    action={
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          onClose();
+                          navigate("/collection");
+                        }}
+                      >
+                        {t("trade.request.noTradableCta")}
+                      </Button>
+                    }
+                  />
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {offerable.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setSelectedItemId(item.id)}
+                        aria-pressed={selectedItemId === item.id}
+                        className={cn(
+                          "rounded-lg border p-1.5 text-left transition-colors",
+                          selectedItemId === item.id
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        )}
+                      >
+                        <div className="aspect-square overflow-hidden rounded-md bg-muted">
                           <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-full aspect-square object-cover rounded-md"
+                            src={getOptimizedImageUrl(item.image, { width: 200 })}
+                            onError={fallbackToOriginal(item.image)}
+                            loading="lazy"
+                            decoding="async"
+                            alt=""
+                            className="h-full w-full object-cover"
                           />
-                          <p className="mt-1 text-xs line-clamp-2 min-h-[2rem]">{item.title}</p>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Open Trade Tab Content - Step 2: Select Desired Item */}
-              {activeTab === "openTrade" && step === "selectDesired" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t("trade.request.selectDesiredLabel")}</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {allItemsLoading ? (
-                      <div className="col-span-2 py-4 text-center text-muted-foreground">{t("common.loading")}</div>
-                    ) : allItems?.length === 0 ? (
-                      <EmptyState className="col-span-2 py-6" title={t("trade.request.noItems")} />
-                    ) : (
-                      allItems?.map((item) => (
-                        <button
-                          key={item.id}
-                          onClick={() => setDesiredItemId(item.id)}
-                          className={`p-2 rounded-lg border transition-colors ${
-                            desiredItemId === item.id
-                              ? "border-primary bg-primary/5"
-                              : "border-border hover:border-border"
-                          }`}
-                          disabled={selectedItem === item.id} // Can't select same item for both
-                        >
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-full aspect-square object-cover rounded-md"
-                          />
-                          <p className="mt-1 text-xs line-clamp-2 min-h-[2rem]">{item.title}</p>
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Open Trade Tab Content - Step 3: Add Message */}
-              {activeTab === "openTrade" && step === "addMessage" && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium mb-2">{t("trade.request.offerItemHeading")}</p>
-                      {selectedItem && userItems && (
-                        <div className="border rounded p-2">
-                          {userItems.filter(item => item.id === selectedItem).map(item => (
-                            <div key={item.id} className="flex flex-col items-center">
-                              <img 
-                                src={item.image} 
-                                alt={item.title} 
-                                className="w-full aspect-square object-cover rounded-md"
-                              />
-                              <p className="mt-1 text-xs line-clamp-2 min-h-[2rem]">{item.title}</p>
-                            </div>
-                          ))}
                         </div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium mb-2">{t("trade.request.desiredItemHeading")}</p>
-                      {desiredItemId && allItems && (
-                        <div className="border rounded p-2">
-                          {allItems.filter(item => item.id === desiredItemId).map(item => (
-                            <div key={item.id} className="flex flex-col items-center">
-                              <img 
-                                src={item.image} 
-                                alt={item.title} 
-                                className="w-full aspect-square object-cover rounded-md"
-                              />
-                              <p className="mt-1 text-xs line-clamp-2 min-h-[2rem]">{item.title}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                        <p className="mt-1 line-clamp-2 min-h-[2rem] text-[11px]">{item.title}</p>
+                      </button>
+                    ))}
                   </div>
+                )}
+              </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t("trade.request.messageLabel")}</label>
-                    <Textarea
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      placeholder={t("trade.request.messagePlaceholder")}
-                      className="resize-none"
-                    />
-                  </div>
+              {offerable.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="trade-message" className="text-sm">
+                    {t("trade.request.messageLabel")}
+                  </Label>
+                  <Textarea
+                    id="trade-message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder={t("trade.request.messagePlaceholder")}
+                    className="resize-none"
+                    maxLength={500}
+                  />
                 </div>
               )}
             </div>
           </ScrollArea>
-          
-          <DialogFooter className="mt-4 pt-2 border-t">
-            {activeTab === "directTrade" && (
-              <>
-                <Button variant="outline" onClick={onClose}>
-                  {t("common.cancel")}
-                </Button>
-                <Button onClick={handleSubmit} disabled={isLoading}>
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4 mr-2" />
-                  )}
-                  {t("trade.request.send")}
-                </Button>
-              </>
-            )}
-            
-            {activeTab === "openTrade" && step === "selectOffer" && (
-              <>
-                <Button variant="outline" onClick={onClose}>
-                  {t("common.cancel")}
-                </Button>
-                <Button 
-                  onClick={handleNextStep} 
-                  disabled={!selectedItem}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  {t("trade.request.selectDesiredCta")}
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </>
-            )}
-            
-            {activeTab === "openTrade" && step === "selectDesired" && (
-              <>
-                <Button variant="outline" onClick={handlePreviousStep}>
-                  {t("trade.request.back")}
-                </Button>
-                <Button 
-                  onClick={handleNextStep} 
-                  disabled={!desiredItemId}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                >
-                  {t("trade.request.next")}
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </>
-            )}
-            
-            {activeTab === "openTrade" && step === "addMessage" && (
-              <>
-                <Button variant="outline" onClick={handlePreviousStep}>
-                  {t("trade.request.back")}
-                </Button>
-                <Button onClick={handleSubmit} disabled={isLoading}>
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4 mr-2" />
-                  )}
-                  {t("trade.request.send")}
-                </Button>
-              </>
-            )}
-          </DialogFooter>
-        </Tabs>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isSending}>
+            {t("trade.request.cancel")}
+          </Button>
+          {!alreadyRequested && offerable.length > 0 && (
+            <Button onClick={send} disabled={!canSend}>
+              {isSending ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Send className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              {t("trade.request.send")}
+            </Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

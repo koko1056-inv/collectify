@@ -29,6 +29,7 @@ export function useSearchSuggestions(searchQuery: string) {
           .from("official_items")
           .select("id, title, image, price, description, release_date, content_name")
           .or(`title.ilike.%${searchQuery}%,content_name.ilike.%${searchQuery}%`)
+          .is("merged_into", null)
           .order("title")
           .limit(8);
 
