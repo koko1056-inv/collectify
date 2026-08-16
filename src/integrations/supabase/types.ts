@@ -2795,38 +2795,62 @@ export type Database = {
       }
       trade_requests: {
         Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          completed_at: string | null
           created_at: string
           id: string
           is_open: boolean | null
           message: string | null
           offered_item_id: string
           receiver_id: string
+          receiver_received_at: string | null
+          receiver_shipped_at: string | null
           requested_item_id: string
+          responded_at: string | null
           sender_id: string
+          sender_received_at: string | null
+          sender_shipped_at: string | null
           shipping_status: string | null
           status: string
         }
         Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
           created_at?: string
           id?: string
           is_open?: boolean | null
           message?: string | null
           offered_item_id: string
           receiver_id: string
+          receiver_received_at?: string | null
+          receiver_shipped_at?: string | null
           requested_item_id: string
+          responded_at?: string | null
           sender_id: string
+          sender_received_at?: string | null
+          sender_shipped_at?: string | null
           shipping_status?: string | null
           status?: string
         }
         Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          completed_at?: string | null
           created_at?: string
           id?: string
           is_open?: boolean | null
           message?: string | null
           offered_item_id?: string
           receiver_id?: string
+          receiver_received_at?: string | null
+          receiver_shipped_at?: string | null
           requested_item_id?: string
+          responded_at?: string | null
           sender_id?: string
+          sender_received_at?: string | null
+          sender_shipped_at?: string | null
           shipping_status?: string | null
           status?: string
         }
@@ -3448,6 +3472,7 @@ export type Database = {
         Args: { _receiver: string; _sender: string }
         Returns: boolean
       }
+      cancel_trade_request: { Args: { _trade_id: string }; Returns: Json }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
       claim_onboarding_reward: {
         Args: { _points: number; _step_id: string }
@@ -3522,6 +3547,12 @@ export type Database = {
       increment_visit_count: { Args: { page_id: string }; Returns: number }
       is_follower: { Args: { target_user_id: string }; Returns: boolean }
       purchase_shop_item: { Args: { _shop_item_id: string }; Returns: Json }
+      report_trade_receipt: { Args: { _trade_id: string }; Returns: Json }
+      report_trade_shipment: { Args: { _trade_id: string }; Returns: Json }
+      respond_to_trade_request: {
+        Args: { _accept: boolean; _trade_id: string }
+        Returns: Json
+      }
       retroactive_content_points: { Args: never; Returns: Json }
       set_current_avatar: {
         Args: { _avatar_id: string }
@@ -3529,6 +3560,11 @@ export type Database = {
           id: string
           image_url: string
         }[]
+      }
+      trade_error: { Args: { _reason: string }; Returns: Json }
+      trade_state_json: {
+        Args: { _row: Database["public"]["Tables"]["trade_requests"]["Row"] }
+        Returns: Json
       }
       update_trust_score: {
         Args: { _category: string; _delta: number; _user_id: string }
