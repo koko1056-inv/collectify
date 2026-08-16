@@ -1849,6 +1849,21 @@ export type Database = {
           },
         ]
       }
+      onboarding_reward_steps: {
+        Row: {
+          points: number
+          step_id: string
+        }
+        Insert: {
+          points: number
+          step_id: string
+        }
+        Update: {
+          points?: number
+          step_id?: string
+        }
+        Relationships: []
+      }
       onboarding_rewards: {
         Row: {
           created_at: string
@@ -2005,6 +2020,68 @@ export type Database = {
           price?: number
           revenuecat_package_id?: string | null
           sort_order?: number
+        }
+        Relationships: []
+      }
+      point_reward_claims: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string
+          reference_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason: string
+          reference_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string
+          reference_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "point_reward_claims_reason_fkey"
+            columns: ["reason"]
+            isOneToOne: false
+            referencedRelation: "point_rewards"
+            referencedColumns: ["reason"]
+          },
+        ]
+      }
+      point_rewards: {
+        Row: {
+          description: string
+          is_active: boolean
+          once_per_reference: boolean
+          once_per_user: boolean
+          points: number
+          reason: string
+          transaction_type: string
+        }
+        Insert: {
+          description: string
+          is_active?: boolean
+          once_per_reference?: boolean
+          once_per_user?: boolean
+          points: number
+          reason: string
+          transaction_type: string
+        }
+        Update: {
+          description?: string
+          is_active?: boolean
+          once_per_reference?: boolean
+          once_per_user?: boolean
+          points?: number
+          reason?: string
+          transaction_type?: string
         }
         Relationships: []
       }
@@ -3549,15 +3626,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      award_challenge_prize: {
-        Args: {
-          _challenge_id: string
-          _description: string
-          _points: number
-          _winner_user_id: string
-        }
-        Returns: undefined
-      }
       can_access_item_room: {
         Args: { _official_item_id: string; _user: string }
         Returns: boolean
@@ -3572,15 +3640,30 @@ export type Database = {
       }
       cancel_trade_request: { Args: { _trade_id: string }; Returns: Json }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
-      claim_onboarding_reward: {
-        Args: { _points: number; _step_id: string }
+      claim_onboarding_reward: { Args: { _step_id: string }; Returns: boolean }
+      claim_reward: {
+        Args: { _reason: string; _reference_id?: string }
         Returns: boolean
       }
-      deduct_points_for_challenge: {
-        Args: { _description: string; _total_prize: number }
-        Returns: undefined
+      create_challenge: {
+        Args: {
+          _description?: string
+          _ends_at: string
+          _first?: number
+          _image_url?: string
+          _official_item_id?: string
+          _second?: number
+          _third?: number
+          _title: string
+        }
+        Returns: string
+      }
+      create_custom_tag: {
+        Args: { _category: string; _content_id?: string; _name: string }
+        Returns: Json
       }
       ensure_user_limits_row: { Args: never; Returns: undefined }
+      ensure_user_points_row: { Args: never; Returns: undefined }
       expand_collection_slots: {
         Args: { _cost?: number; _slots_added?: number }
         Returns: Json
@@ -3625,10 +3708,7 @@ export type Database = {
         Args: { _official_item_id: string }
         Returns: string
       }
-      grant_achievement_if_eligible: {
-        Args: { _achievement_id: string }
-        Returns: boolean
-      }
+      grant_eligible_achievements: { Args: never; Returns: number }
       grant_points_from_iap: {
         Args: {
           _apple_tx_id: string
@@ -3638,6 +3718,16 @@ export type Database = {
           _user_id: string
         }
         Returns: Json
+      }
+      grant_points_internal: {
+        Args: {
+          _description: string
+          _points: number
+          _reference_id?: string
+          _transaction_type: string
+          _user_id: string
+        }
+        Returns: undefined
       }
       has_role: {
         Args: {
@@ -3658,6 +3748,7 @@ export type Database = {
       }
       normalize_item_title: { Args: { _title: string }; Returns: string }
       purchase_shop_item: { Args: { _shop_item_id: string }; Returns: Json }
+      redeem_invite_code: { Args: { _code: string }; Returns: Json }
       report_trade_receipt: { Args: { _trade_id: string }; Returns: Json }
       report_trade_shipment: { Args: { _trade_id: string }; Returns: Json }
       respond_to_trade_request: {
@@ -3672,6 +3763,7 @@ export type Database = {
           image_url: string
         }[]
       }
+      settle_challenge: { Args: { _challenge_id: string }; Returns: Json }
       trade_error: { Args: { _reason: string }; Returns: Json }
       trade_state_json: {
         Args: { _row: Database["public"]["Tables"]["trade_requests"]["Row"] }
