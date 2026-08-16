@@ -410,6 +410,8 @@ function OneWayCard({
   onOpenChat: () => void;
   onOpenProfile: () => void;
 }) {
+  const { t } = useLanguage();
+
   return (
     <div className="rounded-lg border bg-background p-3">
       <PartnerHeader

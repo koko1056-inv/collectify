@@ -113,6 +113,35 @@ export type Database = {
           },
         ]
       }
+      ai_room_likes: {
+        Row: {
+          created_at: string
+          id: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_room_likes_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "ai_generated_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_work_bookmarks: {
         Row: {
           created_at: string
@@ -1669,6 +1698,21 @@ export type Database = {
           line_user_id?: string
           linked_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      login_bonus_tiers: {
+        Row: {
+          min_streak: number
+          points: number
+        }
+        Insert: {
+          min_streak: number
+          points: number
+        }
+        Update: {
+          min_streak?: number
+          points?: number
         }
         Relationships: []
       }
@@ -3771,6 +3815,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_item_quantity: {
+        Args: { _by?: number; _official_item_id: string }
+        Returns: Json
+      }
       increment_usage: {
         Args: { p_usage_type: string; p_user_id: string }
         Returns: number
@@ -3803,6 +3851,7 @@ export type Database = {
         }[]
       }
       settle_challenge: { Args: { _challenge_id: string }; Returns: Json }
+      toggle_ai_room_like: { Args: { _room_id: string }; Returns: Json }
       toggle_avatar_like: { Args: { _avatar_id: string }; Returns: Json }
       trade_error: { Args: { _reason: string }; Returns: Json }
       trade_state_json: {

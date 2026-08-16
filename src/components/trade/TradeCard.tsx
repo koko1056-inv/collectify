@@ -78,7 +78,8 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
     try {
       const result = await action();
       if (!result.ok) {
-        toast.error(t("trade.errors.title"), { description: t(tradeErrorKey(result.reason)) });
+        const reason = "reason" in result ? result.reason : "unknown";
+        toast.error(t("trade.errors.title"), { description: t(tradeErrorKey(reason)) });
         // 相手が先に動いていた場合は、こちらの表示が古い。取り直す。
         await invalidateTrades(queryClient, user?.id);
         return;
