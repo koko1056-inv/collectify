@@ -1,7 +1,7 @@
 import { useState, memo } from "react";
 import { ItemImageUpload } from "../item/ItemImageUpload";
 import { Button } from "../ui/button";
-import { Pencil } from "lucide-react";
+import { ArrowLeftRight, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "../ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -18,6 +18,8 @@ interface CardImageProps {
   itemId?: string;
   isEditable?: boolean;
   quantity?: number;
+  /** 交換に出しているグッズ。開かなくても分かるように印を出す */
+  forTrade?: boolean;
 }
 
 const CardImage = memo(function CardImage({
@@ -25,7 +27,8 @@ const CardImage = memo(function CardImage({
   title,
   itemId,
   isEditable = false,
-  quantity
+  quantity,
+  forTrade = false
 }: CardImageProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -104,6 +107,16 @@ const CardImage = memo(function CardImage({
           <span className="text-[10px] font-semibold text-background leading-none tabular-nums">×{quantity}</span>
         </div>
       )}
+      {/* 交換に出している印 */}
+      {forTrade && (
+        <div className="absolute top-2 left-2 flex h-6 items-center gap-0.5 rounded-full bg-primary/90 px-1.5 shadow-sm backdrop-blur-sm">
+          <ArrowLeftRight className="h-3 w-3 text-primary-foreground" />
+          <span className="text-[10px] font-semibold leading-none text-primary-foreground">
+            {t("collectionScreen.cardImage.forTrade")}
+          </span>
+        </div>
+      )}
+
       {isEditable}
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>

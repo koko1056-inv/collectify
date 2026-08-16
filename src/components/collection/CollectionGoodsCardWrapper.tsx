@@ -21,6 +21,7 @@ interface CollectionGoodsCardProps {
   releaseDate?: string;
   prize?: string;
   quantity?: number;
+  forTrade?: boolean;
   isCompact?: boolean;
   memories?: any[];
 }
@@ -34,6 +35,7 @@ export function CollectionGoodsCardWrapper({
   releaseDate,
   prize,
   quantity = 1,
+  forTrade = false,
   isCompact = false,
   memories = []
 }: CollectionGoodsCardProps) {
@@ -77,7 +79,7 @@ export function CollectionGoodsCardWrapper({
         onClick={handleCardClick}
       >
         <CardHeader className="p-0">
-          <CollectionGoodsCardHeader title={title} image={image} quantity={quantity} />
+          <CollectionGoodsCardHeader title={title} image={image} quantity={quantity} forTrade={forTrade} />
         </CardHeader>
         <CardContent className="px-2.5 pt-2 pb-1.5 flex-1">
           <h3 className="font-medium text-foreground text-[12px] leading-snug line-clamp-2 min-h-[2.5em] tracking-tight">{title}</h3>

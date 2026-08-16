@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { differenceInCalendarDays } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { PersonalTagsSection } from "@/components/personal-tags/PersonalTagsSection";
+import { TradeAvailabilitySection } from "./TradeAvailabilitySection";
 import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
 import { useItemShare } from "@/hooks/useItemShare";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -328,13 +329,13 @@ export function UserItemDetailsModal({
                 );
               })()}
 
-              {itemDetails?.quantity && itemDetails.quantity > 1 && (
-                <div className="text-sm">
-                  <span className="text-muted-foreground">{t("itemDetails.userItem.quantityLabel")}</span>
-                  <Badge variant="secondary" className="ml-2">
-                    ×{itemDetails.quantity}
-                  </Badge>
-                </div>
+              {/* 所持数と「交換に出す」。自分のグッズを開いたときだけ表示する */}
+              {itemDetails && itemDetails.user_id === user?.id && (
+                <TradeAvailabilitySection
+                  itemId={itemId}
+                  quantity={itemDetails.quantity ?? 1}
+                  forTrade={itemDetails.for_trade ?? false}
+                />
               )}
 
               {/* 一言メモ */}

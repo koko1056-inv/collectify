@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Truck, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import type { Message, PartnerProfile } from "./types";
@@ -8,8 +8,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 interface ChatStepProps {
   messages: Message[];
   onSendMessage: (message: string) => Promise<void>;
-  onProceedToShipping: () => void;
-  showShippingButton: boolean;
   partnerProfile?: PartnerProfile | null;
 }
 
@@ -20,13 +18,7 @@ const MESSAGE_TEMPLATE_KEYS = [
   "social.chat.template4",
 ];
 
-export function ChatStep({ 
-  messages, 
-  onSendMessage, 
-  onProceedToShipping, 
-  showShippingButton,
-  partnerProfile
-}: ChatStepProps) {
+export function ChatStep({ messages, onSendMessage, partnerProfile }: ChatStepProps) {
   const { t } = useLanguage();
   const showTemplates = messages.length === 0;
 
@@ -63,18 +55,6 @@ export function ChatStep({
         )}
         
         <MessageInput onSendMessage={onSendMessage} />
-        
-        {showShippingButton && (
-          <Button 
-            onClick={onProceedToShipping} 
-            className="w-full"
-            variant="secondary"
-            size="sm"
-          >
-            <Truck className="mr-2 h-4 w-4" />
-            {t("social.chat.proceedToShipping")}
-          </Button>
-        )}
       </div>
     </div>
   );

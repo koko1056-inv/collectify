@@ -1,255 +1,348 @@
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  ArrowLeftRight,
+  Check,
+  Clock,
+  Flag,
+  Loader2,
+  MessageCircle,
+  MoreVertical,
+  Package,
+  Truck,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
 
-import React from "react";
 import { Button } from "@/components/ui/button";
-import { TradeRequest } from "./types";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Truck, Clock, CheckCircle, Globe, MessageCircle, X, Check, ArrowLeftRight } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { invalidateTrades } from "@/hooks/trade/useMyTrades";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import {
+  cancelTradeRequest,
+  reportTradeReceipt,
+  reportTradeShipment,
+  respondToTradeRequest,
+  tradeErrorKey,
+  type TradeActionResult,
+} from "@/services/trade/tradeStateMachine";
+
+import { TradeProgress } from "./TradeProgress";
+import { ReportUserDialog } from "./ReportUserDialog";
+import { isStalled, viewpointOf, type TradeRequest } from "./types";
 
 interface TradeCardProps {
   trade: TradeRequest;
-  isPending?: boolean;
-  isCompleted?: boolean;
-  isOpenTrade?: boolean;
-  showShippingStatus?: boolean;
-  onAccept?: (tradeId: string) => void;
-  onReject?: (tradeId: string) => void;
   onOpenChat?: (trade: TradeRequest) => void;
-  onComplete?: (trade: TradeRequest) => void;
+  /** 完了した取引で、相手を評価する導線 */
+  onReview?: (trade: TradeRequest) => void;
 }
 
-export function TradeCard({ 
-  trade, 
-  isPending, 
-  isCompleted,
-  isOpenTrade,
-  showShippingStatus,
-  onAccept, 
-  onReject, 
-  onOpenChat,
-  onComplete 
-}: TradeCardProps) {
+/**
+ * 取引1件のカード。
+ *
+ * ボタンは「いま自分が押せるもの」だけを出す。
+ * 相手の発送を自分が代わりに報告することはできないし、
+ * 相手が送ってくれるまで「受け取った」は押せない。
+ * 押せない操作をグレーで並べるより、出さないほうが迷わない。
+ */
+export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [unreadCount, setUnreadCount] = useState(0);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!isPending && !isCompleted && user) {
-      fetchUnreadMessages();
-      subscribeToMessages();
-    }
-  }, [trade.id, user, isPending, isCompleted]);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [isReportOpen, setIsReportOpen] = useState(false);
 
-  const fetchUnreadMessages = async () => {
-    if (!user) return;
+  const view = viewpointOf(trade, user?.id);
+  const partnerName =
+    view.partner?.display_name || view.partner?.username || t("trade.match.userFallback");
 
-    const { count, error } = await supabase
-      .from("messages")
-      .select("*", { count: "exact", head: true })
-      .eq("trade_request_id", trade.id)
-      .eq("receiver_id", user.id)
-      .eq("is_read", false);
+  // 自分が差し出すもの / 受け取るもの。
+  // offered_item は申し込んだ側の持ち物なので、立場で入れ替わる。
+  const myItem = view.isSender ? trade.offered_item : trade.requested_item;
+  const theirItem = view.isSender ? trade.requested_item : trade.offered_item;
 
-    if (!error && count !== null) {
-      setUnreadCount(count);
-    }
-  };
-
-  const subscribeToMessages = () => {
-    const channel = supabase
-      .channel("messages")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "messages",
-          filter: `trade_request_id=eq.${trade.id}`,
-        },
-        () => {
-          fetchUnreadMessages();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  };
-
-  const tradePartner = user?.id === trade.sender.id ? trade.receiver : trade.sender;
-  const tradePartnerName = tradePartner?.display_name || tradePartner?.username || "";
-
-  const renderShippingStatus = () => {
-    if (!showShippingStatus) return null;
-
-    switch (trade.shipping_status) {
-      case 'not_shipped':
-        return (
-          <div className="flex items-center gap-1 text-muted-foreground bg-muted px-2 py-1 rounded-full text-xs">
-            <Clock className="h-3 w-3" />
-            <span>{t("trade.card.shippingNotShipped")}</span>
-          </div>
-        );
-      case 'shipped':
-        return (
-          <div className="flex items-center gap-1 text-muted-foreground bg-muted px-2 py-1 rounded-full text-xs">
-            <Truck className="h-3 w-3" />
-            <span>{t("trade.card.shippingShipped")}</span>
-          </div>
-        );
-      default:
-        return null;
+  const run = async (key: string, action: () => Promise<TradeActionResult>, successKey?: string) => {
+    setBusy(key);
+    try {
+      const result = await action();
+      if (!result.ok) {
+        toast.error(t("trade.errors.title"), { description: t(tradeErrorKey(result.reason)) });
+        // 相手が先に動いていた場合は、こちらの表示が古い。取り直す。
+        await invalidateTrades(queryClient, user?.id);
+        return;
+      }
+      if (successKey) toast.success(t(successKey));
+      await invalidateTrades(queryClient, user?.id);
+    } finally {
+      setBusy(null);
     }
   };
+
+  const stalled = isStalled(trade) && !view.iShipped && !view.partnerShipped;
 
   return (
-    <div className="border border-border rounded-xl p-4 space-y-4 bg-card shadow-sm hover:shadow-md transition-shadow duration-300 animate-fade-in">
-      {/* ヘッダー部分 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-md font-medium text-foreground">{tradePartnerName}</span>
-          {isOpenTrade && (
-            <div className="flex items-center gap-1 text-muted-foreground bg-muted px-2 py-1 rounded-full text-xs">
-              <Globe className="h-3 w-3" />
-              <span>{t("trade.card.openTradeBadge")}</span>
-            </div>
-          )}
+    <div className="space-y-3 rounded-xl border border-border bg-card p-3 shadow-sm">
+      {/* 相手と状態 */}
+      <div className="flex items-center gap-2">
+        <Avatar className="h-9 w-9">
+          <AvatarImage src={view.partner?.avatar_url || undefined} />
+          <AvatarFallback className="bg-primary/10 text-primary">
+            {partnerName.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">{partnerName}</p>
+          <StatusBadge trade={trade} />
         </div>
-        {isPending && (
-          <div className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs flex items-center">
-            <Clock className="h-3 w-3 mr-1" />
-            <span>{t("trade.card.pending")}</span>
-          </div>
+
+        {trade.status === "accepted" && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={() => onOpenChat?.(trade)}
+            aria-label={t("trade.card.openChat")}
+          >
+            <MessageCircle className="h-4 w-4" />
+          </Button>
         )}
-        {renderShippingStatus()}
+
+        {view.partner && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                aria-label={t("trade.card.moreActions")}
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsReportOpen(true)}>
+                <Flag className="mr-2 h-3.5 w-3.5" />
+                {t("trade.card.report")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
-      {/* トレードユーザー表示 */}
-      <div className="flex items-center justify-center gap-3 py-2">
-        <div className="flex flex-col items-center">
-          <Avatar className="h-12 w-12">
-            {trade.sender.id === user?.id ? (
-              <AvatarImage 
-                src={user.user_metadata?.avatar_url || '/placeholder.svg'} 
-                alt="Your avatar" 
-              />
-            ) : (
-              <AvatarImage 
-                src={trade.sender.avatar_url || '/placeholder.svg'} 
-                alt={trade.sender.username} 
-              />
-            )}
-            <AvatarFallback>{trade.sender.username?.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <span className="text-xs mt-1">{trade.sender.id === user?.id ? t("trade.card.you") : trade.sender.username}</span>
-        </div>
-        
-        <ArrowLeftRight className="text-blue-500" size={20} />
-        
-        <div className="flex flex-col items-center">
-          <Avatar className="h-12 w-12">
-            {trade.receiver?.id === user?.id ? (
-              <AvatarImage 
-                src={user.user_metadata?.avatar_url || '/placeholder.svg'}
-                alt="Your avatar" 
-              />
-            ) : (
-              <AvatarImage 
-                src={trade.receiver?.avatar_url || '/placeholder.svg'} 
-                alt={trade.receiver?.username || 'Receiver'} 
-              />
-            )}
-            <AvatarFallback>{trade.receiver?.username?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
-          </Avatar>
-          <span className="text-xs mt-1">{trade.receiver?.id === user?.id ? t("trade.card.you") : trade.receiver?.username || t("trade.card.undecided")}</span>
-        </div>
-      </div>
-
-      {/* 相手の提供アイテム */}
-      <div className="space-y-1">
-        <p className="text-sm text-foreground font-medium">{t("trade.card.partnerOfferedItem")}</p>
-        <div className="relative">
-          <img
-            src={trade.offered_item.image}
-            alt={trade.offered_item.title}
-            className="w-full aspect-square object-cover rounded-lg shadow-sm"
-          />
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 rounded-b-lg">
-            <p className="text-sm text-white">{trade.offered_item.title}</p>
-          </div>
-        </div>
-      </div>
-      
-      {/* あなたの提供アイテム */}
-      <div className="space-y-1">
-        <p className="text-sm text-foreground font-medium">{t("trade.card.yourOfferedItem")}</p>
-        <div className="relative">
-          <img
-            src={trade.requested_item.image}
-            alt={trade.requested_item.title}
-            className="w-full aspect-square object-cover rounded-lg shadow-sm"
-          />
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 rounded-b-lg">
-            <p className="text-sm text-white">{trade.requested_item.title}</p>
-          </div>
-        </div>
+      {/* 何と何を交換するのか */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <ItemSide label={t("trade.card.youGive")} item={myItem} />
+        <ArrowLeftRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <ItemSide label={t("trade.card.youGet")} item={theirItem} />
       </div>
 
       {trade.message && (
-        <div className="text-sm bg-muted rounded-lg p-3 border-l-4 border-border italic">
+        <p className="rounded-lg border-l-2 border-primary/40 bg-muted/50 p-2 text-xs">
           {trade.message}
+        </p>
+      )}
+
+      {trade.status === "accepted" && <TradeProgress view={view} />}
+
+      {stalled && (
+        <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 p-2.5">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <p className="text-xs">{t("trade.card.stalled")}</p>
         </div>
       )}
-      
-      {/* アクションボタン */}
-      {isPending ? (
-        <div className="flex gap-2 justify-between">
-          <Button
-            variant="outline"
-            onClick={() => onReject?.(trade.id)}
-            className="flex-1 rounded-lg border-red-300 hover:bg-red-50 hover:text-red-600 text-red-500"
-          >
-            <X className="mr-1 h-4 w-4" />
-            {t("trade.card.reject")}
-          </Button>
-          <Button
-            onClick={() => onAccept?.(trade.id)}
-            className="flex-1 rounded-lg bg-blue-500 hover:bg-blue-600"
-          >
-            <Check className="mr-1 h-4 w-4" />
-            {t("trade.card.accept")}
-          </Button>
-        </div>
-      ) : !isCompleted && (
-        <div className="flex flex-col gap-2">
-          <Button
-            className="w-full relative rounded-lg bg-foreground hover:bg-foreground/90 transition-shadow"
-            onClick={() => onOpenChat?.(trade)}
-          >
-            <MessageCircle className="mr-1 h-4 w-4" />
-            {t("trade.card.openChat")}
-            {unreadCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-                {unreadCount}
-              </span>
-            )}
-          </Button>
-          {trade.shipping_status === 'shipped' && (
+
+      {/* いま押せる操作 */}
+      <div className="flex flex-wrap gap-2">
+        {trade.status === "pending" && !view.isSender && (
+          <>
             <Button
               variant="outline"
-              className="w-full rounded-lg border-border text-foreground hover:bg-muted"
-              onClick={() => onComplete?.(trade)}
+              size="sm"
+              className="flex-1"
+              disabled={!!busy}
+              onClick={() =>
+                run("reject", () => respondToTradeRequest(trade.id, false), "trade.card.rejected")
+              }
             >
-              <CheckCircle className="mr-2 h-4 w-4" />
-              {t("trade.card.complete")}
+              {busy === "reject" ? <Spinner /> : <X className="mr-1 h-3.5 w-3.5" />}
+              {t("trade.card.reject")}
+            </Button>
+            <Button
+              size="sm"
+              className="flex-1"
+              disabled={!!busy}
+              onClick={() =>
+                run("accept", () => respondToTradeRequest(trade.id, true), "trade.card.accepted")
+              }
+            >
+              {busy === "accept" ? <Spinner /> : <Check className="mr-1 h-3.5 w-3.5" />}
+              {t("trade.card.accept")}
+            </Button>
+          </>
+        )}
+
+        {trade.status === "pending" && view.isSender && (
+          <>
+            <p className="flex-1 self-center text-xs text-muted-foreground">
+              {t("trade.card.waitingReply")}
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={!!busy}
+              onClick={() =>
+                run("cancel", () => cancelTradeRequest(trade.id), "trade.card.cancelled")
+              }
+            >
+              {busy === "cancel" ? <Spinner /> : null}
+              {t("trade.card.cancel")}
+            </Button>
+          </>
+        )}
+
+        {trade.status === "accepted" && !view.iShipped && (
+          <Button
+            size="sm"
+            className="flex-1"
+            disabled={!!busy}
+            onClick={() =>
+              run("ship", () => reportTradeShipment(trade.id), "trade.card.shipReported")
+            }
+          >
+            {busy === "ship" ? <Spinner /> : <Package className="mr-1 h-3.5 w-3.5" />}
+            {t("trade.card.reportShipped")}
+          </Button>
+        )}
+
+        {trade.status === "accepted" && view.partnerShipped && !view.iReceived && (
+          <Button
+            size="sm"
+            variant={view.iShipped ? "default" : "outline"}
+            className="flex-1"
+            disabled={!!busy}
+            onClick={() =>
+              run("receive", () => reportTradeReceipt(trade.id), "trade.card.receiveReported")
+            }
+          >
+            {busy === "receive" ? <Spinner /> : <Truck className="mr-1 h-3.5 w-3.5" />}
+            {t("trade.card.reportReceived")}
+          </Button>
+        )}
+
+        {trade.status === "accepted" &&
+          !view.iShipped &&
+          !view.partnerShipped && (
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={!!busy}
+              onClick={() =>
+                run("cancel", () => cancelTradeRequest(trade.id), "trade.card.cancelled")
+              }
+            >
+              {t("trade.card.cancel")}
             </Button>
           )}
-        </div>
+
+        {trade.status === "completed" && onReview && view.partner && (
+          <Button variant="outline" size="sm" className="flex-1" onClick={() => onReview(trade)}>
+            {t("trade.card.review")}
+          </Button>
+        )}
+      </div>
+
+      {view.partner && (
+        <ReportUserDialog
+          isOpen={isReportOpen}
+          onClose={() => setIsReportOpen(false)}
+          reportedUserId={view.partner.id}
+          reportedUserName={partnerName}
+          tradeRequestId={trade.id}
+        />
       )}
     </div>
   );
+}
+
+function Spinner() {
+  return <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />;
+}
+
+function ItemSide({
+  label,
+  item,
+}: {
+  label: string;
+  item: { id: string; title: string; image: string };
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="mb-1 text-[11px] text-muted-foreground">{label}</p>
+      <div className="aspect-square overflow-hidden rounded-lg border bg-muted">
+        <img
+          src={getOptimizedImageUrl(item.image, { width: 200 })}
+          onError={fallbackToOriginal(item.image)}
+          loading="lazy"
+          decoding="async"
+          alt=""
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <p className="mt-1 truncate text-xs">{item.title}</p>
+    </div>
+  );
+}
+
+function StatusBadge({ trade }: { trade: TradeRequest }) {
+  const { t } = useLanguage();
+
+  switch (trade.status) {
+    case "pending":
+      return (
+        <Badge variant="secondary" className="text-xs">
+          <Clock className="mr-1 h-3 w-3" />
+          {t("trade.card.pending")}
+        </Badge>
+      );
+    case "accepted":
+      return (
+        <Badge variant="secondary" className="text-xs">
+          <ArrowLeftRight className="mr-1 h-3 w-3" />
+          {t("trade.card.inProgress")}
+        </Badge>
+      );
+    case "completed":
+      return (
+        <Badge className="text-xs">
+          <Check className="mr-1 h-3 w-3" />
+          {t("trade.card.completed")}
+        </Badge>
+      );
+    case "rejected":
+      return (
+        <Badge variant="outline" className="text-xs">
+          {t("trade.card.rejectedBadge")}
+        </Badge>
+      );
+    case "cancelled":
+      return (
+        <Badge variant="outline" className="text-xs">
+          {t("trade.card.cancelledBadge")}
+        </Badge>
+      );
+    default:
+      return null;
+  }
 }

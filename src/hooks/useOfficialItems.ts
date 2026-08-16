@@ -31,6 +31,8 @@ export function useOfficialItems() {
             )
           )
         `)
+        // 重複として統合されたグッズは一覧に出さない
+        .is("merged_into", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

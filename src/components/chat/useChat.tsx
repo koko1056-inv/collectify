@@ -17,9 +17,6 @@ export function useChat({ partnerId, tradeRequestId, isOpen }: UseChatProps) {
   const { t } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([]);
   const [partnerProfile, setPartnerProfile] = useState<PartnerProfile | null>(null);
-  const [isCompleting, setIsCompleting] = useState(false);
-  const [step, setStep] = useState<'chat' | 'shipping' | 'complete'>('chat');
-  const [isShippingConfirmOpen, setIsShippingConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen && user) {
@@ -123,73 +120,12 @@ export function useChat({ partnerId, tradeRequestId, isOpen }: UseChatProps) {
     }
   };
 
-  const proceedToShipping = () => {
-    setStep('shipping');
-  };
-
-  const completeShipping = async () => {
-    if (!tradeRequestId) return;
-
-    const { error } = await supabase
-      .from("trade_requests")
-      .update({ 
-        shipping_status: 'shipped',
-        status: 'accepted'
-      })
-      .eq("id", tradeRequestId);
-
-    if (error) {
-      toast.error(t("social.chat.toastError"), {
-        description: t("social.chat.toastShippingUpdateFailed"),
-      });
-      return;
-    }
-
-    toast.success(t("social.chat.toastShippingDone"), {
-      description: t("social.chat.toastShippingUpdated"),
-    });
-
-    setIsShippingConfirmOpen(false);
-    setStep('complete');
-  };
-
-  const completeTrade = async () => {
-    if (!tradeRequestId) return;
-    
-    setIsCompleting(true);
-    try {
-      const { error } = await supabase
-        .from("trade_requests")
-        .update({ status: "completed" })
-        .eq("id", tradeRequestId);
-
-      if (error) {
-        throw error;
-      }
-
-      toast.success(t("social.chat.toastTradeComplete"), {
-        description: t("social.chat.toastTradeCompleteDesc"),
-      });
-    } catch (error) {
-      console.error("Error completing trade:", error);
-      toast.error(t("social.chat.toastError"), {
-        description: t("social.chat.toastTradeCompleteFailed"),
-      });
-    } finally {
-      setIsCompleting(false);
-    }
-  };
-
+  // 発送や受取の報告は取引カード側に移した。
+  // ここから status を書き換えていたころは、チャットからでも一覧からでも
+  // 片方の操作だけで「完了」にできてしまっていた。
   return {
     messages,
     partnerProfile,
-    step,
-    isCompleting,
-    isShippingConfirmOpen,
-    setIsShippingConfirmOpen,
     sendMessage,
-    proceedToShipping,
-    completeShipping,
-    completeTrade
   };
 }

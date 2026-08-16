@@ -11,6 +11,8 @@ export const screens = {
       title: "管理者ページ",
       itemsTab: "アイテム管理",
       tagsTab: "タグ候補管理",
+      duplicatesTab: "重複統合",
+      reportsTab: "通報",
     },
     addItem: {
       title: "グッズを追加",
@@ -388,6 +390,8 @@ export const screens = {
       title: "Admin",
       itemsTab: "Items",
       tagsTab: "Tag suggestions",
+      duplicatesTab: "Duplicates",
+      reportsTab: "Reports",
     },
     addItem: {
       title: "Add Goods",
