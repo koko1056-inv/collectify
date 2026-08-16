@@ -189,7 +189,7 @@ export function CategoryTagSelect({
       }
 
       // タグデータを準備（status='approved'で作成）
-      const tagData: Record<string, unknown> = {
+      const tagData: { name: string; category: string; status: string; content_id?: string } = {
         name: trimmedName,
         category,
         status: 'approved'
