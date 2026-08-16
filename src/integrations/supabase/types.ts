@@ -3004,6 +3004,7 @@ export type Database = {
         Row: {
           content_name: string | null
           created_at: string
+          for_trade: boolean
           id: string
           image: string
           images: string[] | null
@@ -3025,6 +3026,7 @@ export type Database = {
         Insert: {
           content_name?: string | null
           created_at?: string
+          for_trade?: boolean
           id?: string
           image: string
           images?: string[] | null
@@ -3046,6 +3048,7 @@ export type Database = {
         Update: {
           content_name?: string | null
           created_at?: string
+          for_trade?: boolean
           id?: string
           image?: string
           images?: string[] | null
@@ -3458,6 +3461,17 @@ export type Database = {
       expand_collection_slots: {
         Args: { _cost?: number; _slots_added?: number }
         Returns: Json
+      }
+      find_trade_matches: {
+        Args: { _limit?: number }
+        Returns: {
+          is_mutual: boolean
+          my_items: Json
+          partner_avatar_url: string
+          partner_id: string
+          partner_username: string
+          their_items: Json
+        }[]
       }
       find_user_matches: {
         Args: { _limit?: number; _user_id: string }
