@@ -1,6 +1,6 @@
 // Collectify freemium plan limits
 // Free: basic experience
-// Premium: unlimited collection, all themes, unlimited furniture, 10 3D generations/month
+// Premium: unlimited collection, all themes, unlimited furniture
 // Premium+: everything + priority AI, early access
 
 export type PlanTier = "free" | "premium" | "premium_plus";
@@ -11,7 +11,6 @@ export interface PlanLimits {
   themes: string[] | "all";          // テーマID配列または "all"
   furnitureSlots: number;            // 同時に部屋に置ける家具数
   displayConversions: number;        // 月あたりのグッズ→ディスプレイ変換回数
-  threeDGenerations: number;         // 月あたりの3Dモデル生成回数
   roomReactionsPerDay: number;       // 1日にルームに送れるリアクション数
   customBgm: boolean;                // カスタムBGM設定
   removeWatermark: boolean;          // シェア画像の透かし削除
@@ -26,7 +25,6 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     themes: ["cyber_neon", "sunny_room", "mint_cafe", "midnight_lounge"], // 4つだけ
     furnitureSlots: 10,
     displayConversions: 3,
-    threeDGenerations: 1,
     roomReactionsPerDay: 10,
     customBgm: false,
     removeWatermark: false,
@@ -39,7 +37,6 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     themes: "all",
     furnitureSlots: 50,
     displayConversions: 30,
-    threeDGenerations: 10,
     roomReactionsPerDay: 100,
     customBgm: true,
     removeWatermark: true,
@@ -52,7 +49,6 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     themes: "all",
     furnitureSlots: Infinity as unknown as number,
     displayConversions: 100,
-    threeDGenerations: 50,
     roomReactionsPerDay: Infinity as unknown as number,
     customBgm: true,
     removeWatermark: true,

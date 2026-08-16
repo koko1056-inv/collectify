@@ -27,6 +27,10 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
   const price = PLAN_PRICES_JPY[selectedPlan][period];
   const monthlyEquiv = period === "yearly" ? Math.floor(price / 12) : price;
 
+  // 「3Dモデル生成」の行はここにあったが外した。
+  // generate-3d-model 関数はサーバー側に置かれているものの、アプリから呼ぶ
+  // 経路が一度も作られておらず、誰も生成できない。使えないものを有料の
+  // 特典として並べることはできない。呼べるようにしてから戻すこと。
   const features = [
     {
       key: "collection",
@@ -45,12 +49,6 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
       label: t("misc.premium.featureFurniture"),
       free: t("misc.premium.valueFurnitureFree"),
       premium: t("misc.premium.valueFurniturePremium"),
-    },
-    {
-      key: "3d",
-      label: t("misc.premium.feature3d"),
-      free: t("misc.premium.value3dFree"),
-      premium: t("misc.premium.value3dPremium"),
     },
     {
       key: "conversion",
