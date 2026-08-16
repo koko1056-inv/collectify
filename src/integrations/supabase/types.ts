@@ -143,7 +143,9 @@ export type Database = {
           id: string
           image_url: string
           is_current: boolean | null
+          is_public: boolean
           item_ids: string[] | null
+          like_count: number
           name: string | null
           prompt: string | null
           user_id: string
@@ -153,7 +155,9 @@ export type Database = {
           id?: string
           image_url: string
           is_current?: boolean | null
+          is_public?: boolean
           item_ids?: string[] | null
+          like_count?: number
           name?: string | null
           prompt?: string | null
           user_id: string
@@ -163,7 +167,9 @@ export type Database = {
           id?: string
           image_url?: string
           is_current?: boolean | null
+          is_public?: boolean
           item_ids?: string[] | null
+          like_count?: number
           name?: string | null
           prompt?: string | null
           user_id?: string
@@ -174,6 +180,35 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avatar_likes: {
+        Row: {
+          avatar_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          avatar_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          avatar_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avatar_likes_avatar_id_fkey"
+            columns: ["avatar_id"]
+            isOneToOne: false
+            referencedRelation: "avatar_gallery"
             referencedColumns: ["id"]
           },
         ]
@@ -3756,6 +3791,10 @@ export type Database = {
         Returns: Json
       }
       retroactive_content_points: { Args: never; Returns: Json }
+      set_avatar_visibility: {
+        Args: { _avatar_id: string; _is_public: boolean }
+        Returns: boolean
+      }
       set_current_avatar: {
         Args: { _avatar_id: string }
         Returns: {
@@ -3764,6 +3803,7 @@ export type Database = {
         }[]
       }
       settle_challenge: { Args: { _challenge_id: string }; Returns: Json }
+      toggle_avatar_like: { Args: { _avatar_id: string }; Returns: Json }
       trade_error: { Args: { _reason: string }; Returns: Json }
       trade_state_json: {
         Args: { _row: Database["public"]["Tables"]["trade_requests"]["Row"] }
