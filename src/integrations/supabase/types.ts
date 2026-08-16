@@ -113,27 +113,6 @@ export type Database = {
           },
         ]
       }
-      ai_room_likes: {
-        Row: {
-          created_at: string
-          id: string
-          room_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          room_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          room_id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       ai_work_bookmarks: {
         Row: {
           created_at: string
@@ -158,35 +137,12 @@ export type Database = {
         }
         Relationships: []
       }
-      avatar_likes: {
-        Row: {
-          avatar_id: string
-          created_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          avatar_id: string
-          created_at?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          avatar_id?: string
-          created_at?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       avatar_gallery: {
         Row: {
           created_at: string
           id: string
           image_url: string
           is_current: boolean | null
-          is_public: boolean
-          like_count: number
           item_ids: string[] | null
           name: string | null
           prompt: string | null
@@ -197,8 +153,6 @@ export type Database = {
           id?: string
           image_url: string
           is_current?: boolean | null
-          is_public?: boolean
-          like_count?: number
           item_ids?: string[] | null
           name?: string | null
           prompt?: string | null
@@ -209,8 +163,6 @@ export type Database = {
           id?: string
           image_url?: string
           is_current?: boolean | null
-          is_public?: boolean
-          like_count?: number
           item_ids?: string[] | null
           name?: string | null
           prompt?: string | null
@@ -1149,21 +1101,6 @@ export type Database = {
         }
         Relationships: []
       }
-      login_bonus_tiers: {
-        Row: {
-          min_streak: number
-          points: number
-        }
-        Insert: {
-          min_streak: number
-          points: number
-        }
-        Update: {
-          min_streak?: number
-          points?: number
-        }
-        Relationships: []
-      }
       invite_codes: {
         Row: {
           code: string
@@ -1619,6 +1556,87 @@ export type Database = {
           },
         ]
       }
+      line_notification_log: {
+        Row: {
+          dedupe_key: string | null
+          id: number
+          kind: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          dedupe_key?: string | null
+          id?: never
+          kind: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          dedupe_key?: string | null
+          id?: never
+          kind?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      line_notification_prefs: {
+        Row: {
+          ai_rooms: boolean
+          memories: boolean
+          new_goods: boolean
+          quiet_end: number
+          quiet_start: number
+          reactions: boolean
+          trade: boolean
+          updated_at: string
+          user_id: string
+          weekly_digest: boolean
+        }
+        Insert: {
+          ai_rooms?: boolean
+          memories?: boolean
+          new_goods?: boolean
+          quiet_end?: number
+          quiet_start?: number
+          reactions?: boolean
+          trade?: boolean
+          updated_at?: string
+          user_id: string
+          weekly_digest?: boolean
+        }
+        Update: {
+          ai_rooms?: boolean
+          memories?: boolean
+          new_goods?: boolean
+          quiet_end?: number
+          quiet_start?: number
+          reactions?: boolean
+          trade?: boolean
+          updated_at?: string
+          user_id?: string
+          weekly_digest?: boolean
+        }
+        Relationships: []
+      }
+      line_user_links: {
+        Row: {
+          line_user_id: string
+          linked_at: string
+          user_id: string
+        }
+        Insert: {
+          line_user_id: string
+          linked_at?: string
+          user_id: string
+        }
+        Update: {
+          line_user_id?: string
+          linked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       match_actions: {
         Row: {
           action: string
@@ -1779,7 +1797,6 @@ export type Database = {
           description: string | null
           id: string
           image: string
-          merged_into: string | null
           item_type: string
           price: string
           quantity: number
@@ -1806,7 +1823,6 @@ export type Database = {
           description?: string | null
           id?: string
           image?: string
-          merged_into?: string | null
           item_type?: string
           price?: string
           quantity?: number
@@ -2779,17 +2795,9 @@ export type Database = {
       }
       trade_requests: {
         Row: {
-          cancelled_at: string | null
-          cancelled_by: string | null
-          completed_at: string | null
           created_at: string
           id: string
           is_open: boolean | null
-          receiver_received_at: string | null
-          receiver_shipped_at: string | null
-          responded_at: string | null
-          sender_received_at: string | null
-          sender_shipped_at: string | null
           message: string | null
           offered_item_id: string
           receiver_id: string
@@ -2799,17 +2807,9 @@ export type Database = {
           status: string
         }
         Insert: {
-          cancelled_at?: string | null
-          cancelled_by?: string | null
-          completed_at?: string | null
           created_at?: string
           id?: string
           is_open?: boolean | null
-          receiver_received_at?: string | null
-          receiver_shipped_at?: string | null
-          responded_at?: string | null
-          sender_received_at?: string | null
-          sender_shipped_at?: string | null
           message?: string | null
           offered_item_id: string
           receiver_id: string
@@ -2819,17 +2819,9 @@ export type Database = {
           status?: string
         }
         Update: {
-          cancelled_at?: string | null
-          cancelled_by?: string | null
-          completed_at?: string | null
           created_at?: string
           id?: string
           is_open?: boolean | null
-          receiver_received_at?: string | null
-          receiver_shipped_at?: string | null
-          responded_at?: string | null
-          sender_received_at?: string | null
-          sender_shipped_at?: string | null
           message?: string | null
           offered_item_id?: string
           receiver_id?: string
@@ -2906,57 +2898,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      user_blocks: {
-        Row: {
-          blocked_id: string
-          blocker_id: string
-          created_at: string
-        }
-        Insert: {
-          blocked_id: string
-          blocker_id: string
-          created_at?: string
-        }
-        Update: {
-          blocked_id?: string
-          blocker_id?: string
-          created_at?: string
-        }
-        Relationships: []
-      }
-      user_reports: {
-        Row: {
-          created_at: string
-          detail: string | null
-          id: string
-          reason: string
-          reported_user_id: string
-          reporter_id: string
-          status: string
-          trade_request_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          detail?: string | null
-          id?: string
-          reason: string
-          reported_user_id: string
-          reporter_id: string
-          status?: string
-          trade_request_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          detail?: string | null
-          id?: string
-          reason?: string
-          reported_user_id?: string
-          reporter_id?: string
-          status?: string
-          trade_request_id?: string | null
-        }
-        Relationships: []
       }
       user_achievements: {
         Row: {
@@ -3072,7 +3013,6 @@ export type Database = {
           official_item_id: string | null
           official_link: string | null
           original_item_id: string | null
-          for_trade: boolean
           prize: string
           purchase_date: string | null
           purchase_price: string | null
@@ -3094,7 +3034,6 @@ export type Database = {
           official_item_id?: string | null
           official_link?: string | null
           original_item_id?: string | null
-          for_trade?: boolean
           prize: string
           purchase_date?: string | null
           purchase_price?: string | null
@@ -3116,7 +3055,6 @@ export type Database = {
           official_item_id?: string | null
           official_link?: string | null
           original_item_id?: string | null
-          for_trade?: boolean
           prize?: string
           purchase_date?: string | null
           purchase_price?: string | null
@@ -3486,6 +3424,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      award_challenge_prize: {
+        Args: {
+          _challenge_id: string
+          _description: string
+          _points: number
+          _winner_user_id: string
+        }
+        Returns: undefined
+      }
       can_access_item_room: {
         Args: { _official_item_id: string; _user: string }
         Returns: boolean
@@ -3498,82 +3445,15 @@ export type Database = {
         Args: { _receiver: string; _sender: string }
         Returns: boolean
       }
-      set_avatar_visibility: {
-        Args: { _avatar_id: string; _is_public: boolean }
-        Returns: boolean
-      }
-      cancel_trade_request: {
-        Args: { _trade_id: string }
-        Returns: Json
-      }
-      find_duplicate_official_items: {
-        Args: { _limit?: number }
-        Returns: {
-          normalized: string
-          item_count: number
-          items: Json
-        }[]
-      }
-      merge_official_items: {
-        Args: { _keep_id: string; _merge_id: string }
-        Returns: Json
-      }
-      report_trade_receipt: {
-        Args: { _trade_id: string }
-        Returns: Json
-      }
-      report_trade_shipment: {
-        Args: { _trade_id: string }
-        Returns: Json
-      }
-      respond_to_trade_request: {
-        Args: { _accept: boolean; _trade_id: string }
-        Returns: Json
-      }
-      find_trade_matches: {
-        Args: { _limit?: number }
-        Returns: {
-          partner_id: string
-          partner_username: string | null
-          partner_avatar_url: string | null
-          is_mutual: boolean
-          their_items: Json
-          my_items: Json
-        }[]
-      }
-      increment_item_quantity: {
-        Args: { _by?: number; _official_item_id: string }
-        Returns: Json
-      }
-      toggle_ai_room_like: { Args: { _room_id: string }; Returns: Json }
-      toggle_avatar_like: { Args: { _avatar_id: string }; Returns: Json }
       claim_login_bonus: { Args: { _user_id: string }; Returns: boolean }
-      claim_onboarding_reward: { Args: { _step_id: string }; Returns: boolean }
-      claim_reward: {
-        Args: { _reason: string; _reference_id?: string | null }
+      claim_onboarding_reward: {
+        Args: { _points: number; _step_id: string }
         Returns: boolean
       }
-      create_challenge: {
-        Args: {
-          _description?: string | null
-          _ends_at: string
-          _first?: number
-          _image_url?: string | null
-          _official_item_id?: string | null
-          _second?: number
-          _third?: number
-          _title: string
-        }
-        Returns: string
+      deduct_points_for_challenge: {
+        Args: { _description: string; _total_prize: number }
+        Returns: undefined
       }
-      create_custom_tag: {
-        Args: { _category: string; _content_id?: string | null; _name: string }
-        Returns: Json
-      }
-      ensure_user_points_row: { Args: never; Returns: undefined }
-      grant_eligible_achievements: { Args: never; Returns: number }
-      redeem_invite_code: { Args: { _code: string }; Returns: Json }
-      settle_challenge: { Args: { _challenge_id: string }; Returns: Json }
       ensure_user_limits_row: { Args: never; Returns: undefined }
       expand_collection_slots: {
         Args: { _cost?: number; _slots_added?: number }
@@ -3599,6 +3479,10 @@ export type Database = {
       get_or_create_item_room: {
         Args: { _official_item_id: string }
         Returns: string
+      }
+      grant_achievement_if_eligible: {
+        Args: { _achievement_id: string }
+        Returns: boolean
       }
       grant_points_from_iap: {
         Args: {
