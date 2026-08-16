@@ -1798,6 +1798,7 @@ export type Database = {
           id: string
           image: string
           item_type: string
+          merged_into: string | null
           price: string
           quantity: number
           release_date: string
@@ -1811,6 +1812,7 @@ export type Database = {
           id?: string
           image: string
           item_type?: string
+          merged_into?: string | null
           price: string
           quantity?: number
           release_date: string
@@ -1824,6 +1826,7 @@ export type Database = {
           id?: string
           image?: string
           item_type?: string
+          merged_into?: string | null
           price?: string
           quantity?: number
           release_date?: string
@@ -1836,6 +1839,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "content_names"
             referencedColumns: ["name"]
+          },
+          {
+            foreignKeyName: "official_items_merged_into_fkey"
+            columns: ["merged_into"]
+            isOneToOne: false
+            referencedRelation: "official_items"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -3575,6 +3585,14 @@ export type Database = {
         Args: { _cost?: number; _slots_added?: number }
         Returns: Json
       }
+      find_duplicate_official_items: {
+        Args: { _limit?: number }
+        Returns: {
+          item_count: number
+          items: Json
+          normalized: string
+        }[]
+      }
       find_trade_matches: {
         Args: { _limit?: number }
         Returns: {
@@ -3634,6 +3652,11 @@ export type Database = {
       }
       increment_visit_count: { Args: { page_id: string }; Returns: number }
       is_follower: { Args: { target_user_id: string }; Returns: boolean }
+      merge_official_items: {
+        Args: { _keep_id: string; _merge_id: string }
+        Returns: Json
+      }
+      normalize_item_title: { Args: { _title: string }; Returns: string }
       purchase_shop_item: { Args: { _shop_item_id: string }; Returns: Json }
       report_trade_receipt: { Args: { _trade_id: string }; Returns: Json }
       report_trade_shipment: { Args: { _trade_id: string }; Returns: Json }
