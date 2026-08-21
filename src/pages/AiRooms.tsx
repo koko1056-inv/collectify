@@ -602,15 +602,16 @@ function AvatarPanel({
                 >
                   <button
                     onClick={() => avatars.setCurrent.mutate(a.id)}
-                    className="block w-full aspect-[3/4] bg-muted"
+                    className="block w-full aspect-square bg-muted"
                   >
                     <img
-                      src={getOptimizedImageUrl(a.image_url, { width: 200 })}
+                      src={getOptimizedImageUrl(a.image_url, { width: 400 })}
                       alt={a.name || "avatar"}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       loading="lazy"
                     />
                   </button>
+
                   {isCurrent && (
                     <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
                       {t("screens.aiRooms.inUse")}
