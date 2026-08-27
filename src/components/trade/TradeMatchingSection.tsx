@@ -357,16 +357,18 @@ function MutualMatchCard({
         onOpenProfile={onOpenProfile}
       />
 
+      {/* min-w-0 が無いと 1fr の列が min-content 未満に縮まず、
+          グッズ名が長いときに画面の外まで伸びてしまう */}
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-        <div>
-          <p className="mb-1 text-[11px] text-muted-foreground">
+        <div className="min-w-0">
+          <p className="mb-1 truncate text-[11px] text-muted-foreground">
             {t("trade.matching.youGet")}
           </p>
           {theirTop && <ItemThumb item={theirTop} />}
         </div>
         <ArrowLeftRight className="h-4 w-4 shrink-0 text-primary" />
-        <div>
-          <p className="mb-1 text-[11px] text-muted-foreground">
+        <div className="min-w-0">
+          <p className="mb-1 truncate text-[11px] text-muted-foreground">
             {t("trade.matching.youGive")}
           </p>
           {myTop && <ItemThumb item={myTop} />}
