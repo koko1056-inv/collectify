@@ -112,7 +112,7 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 shrink-0"
+            className="tap-safe-y h-8 w-8 shrink-0"
             onClick={() => onOpenChat?.(trade)}
             aria-label={t("trade.card.openChat")}
           >
@@ -126,7 +126,7 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 shrink-0"
+                className="tap-safe-y h-8 w-8 shrink-0"
                 aria-label={t("trade.card.moreActions")}
               >
                 <MoreVertical className="h-4 w-4" />

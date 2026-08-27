@@ -68,7 +68,7 @@ export const OfficialItemsHeader = memo(function OfficialItemsHeader({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 shrink-0">
+            <Button variant="outline" size="icon" className="tap-safe-y h-8 w-8 sm:h-9 sm:w-9 shrink-0">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

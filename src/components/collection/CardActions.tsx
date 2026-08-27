@@ -27,6 +27,8 @@ export function CardActions({
       fn();
     };
 
+  // 削除が隣にあるので、当たり判定は高さだけ広げる。
+  // 横に広げると、追加のつもりで削除に当たる事故が起きる。
   return (
     <div className="flex items-center justify-center gap-2 w-full">
       <Button
@@ -34,7 +36,7 @@ export function CardActions({
         size="sm"
         onClick={stop(onMemoriesClick)}
         className={cn(
-          "h-7 w-7 p-0 rounded-full transition-colors",
+          "tap-safe-y h-7 w-7 p-0 rounded-full transition-colors",
           hasMemories
             ? "text-primary hover:bg-primary/10"
             : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
@@ -48,7 +50,7 @@ export function CardActions({
         variant="ghost"
         size="sm"
         onClick={stop(onCreatePostClick)}
-        className="h-7 w-7 p-0 rounded-full text-muted-foreground/60 hover:text-foreground hover:bg-muted"
+        className="tap-safe-y h-7 w-7 p-0 rounded-full text-muted-foreground/60 hover:text-foreground hover:bg-muted"
         title={t("collectionScreen.cardActions.createPost")}
       >
         <Plus className="h-3.5 w-3.5" />
@@ -58,7 +60,7 @@ export function CardActions({
         variant="ghost"
         size="sm"
         onClick={stop(onDeleteClick)}
-        className="h-7 w-7 p-0 rounded-full text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10"
+        className="tap-safe-y h-7 w-7 p-0 rounded-full text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10"
         title={t("collectionScreen.cardActions.delete")}
       >
         <Trash2 className="h-3.5 w-3.5" />

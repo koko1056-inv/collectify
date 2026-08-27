@@ -301,7 +301,7 @@ export function PublicCollectionView() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full h-9 w-9 hover:bg-muted"
+                    className="tap-safe rounded-full h-9 w-9 hover:bg-muted"
                     onClick={(e) => handleShare(collection, e)}
                   >
                     <Share2 className="w-4 h-4" />

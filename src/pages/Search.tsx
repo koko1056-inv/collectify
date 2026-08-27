@@ -181,7 +181,7 @@ const Search = () => {
                   variant="outline"
                   size="icon"
                   onClick={() => navigate("/image-search")}
-                  className="shrink-0 h-9 w-9"
+                  className="tap-safe-y shrink-0 h-9 w-9"
                   title={t("screens.search.searchByPhoto")}
                   aria-label={t("screens.search.searchByPhoto")}
                 >
@@ -191,7 +191,7 @@ const Search = () => {
                   variant="outline"
                   size="icon"
                   onClick={() => setIsFilterDrawerOpen(true)}
-                  className="shrink-0 h-9 w-9 relative"
+                  className="tap-safe-y shrink-0 h-9 w-9 relative"
                 >
                   <SlidersHorizontal className="h-4 w-4" />
                   {activeFilterCount > 0 && (

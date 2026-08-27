@@ -234,3 +234,46 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* タップ領域を最低44pxにする。
+ *
+ * 指で押す的の大きさは、Apple の指針で 44pt が下限とされている。
+ * アイコンボタンは見た目を小さく保ちたい場所が多いので、
+ * 表示サイズはそのままに、透明な当たり判定だけを広げる。
+ *
+ * 使うときは、隣り合うボタン同士で当たり判定が重ならないか確かめること。
+ * 重なると、狙っていないほうが反応してしまう。
+ * 特にログアウトのような取り返しのつかない操作の隣では使わない。
+ */
+.tap-safe {
+  position: relative;
+}
+
+.tap-safe::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+}
+
+/* 横並びのアイコンボタン用。
+ * 横に広げると隣のボタンと当たり判定が重なってしまうので、
+ * 高さだけを44pxに広げる。指の当たりは縦方向のほうが外れやすいので、
+ * これだけでもかなり押しやすくなる。
+ */
+.tap-safe-y {
+  position: relative;
+}
+
+.tap-safe-y::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: max(100%, 44px);
+}

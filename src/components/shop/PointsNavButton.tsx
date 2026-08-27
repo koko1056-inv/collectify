@@ -32,7 +32,7 @@ export function PointsNavButton({ variant = "full" }: PointsNavButtonProps) {
         size="sm"
         onClick={() => navigate("/point-shop")}
         aria-label={`${points} ${t("chrome.nav.pointsUnit")}`}
-        className="relative h-8 gap-1 px-1.5"
+        className="tap-safe-y relative h-8 gap-1 px-1.5"
       >
         <Star className="w-4 h-4 shrink-0 fill-yellow-400 text-yellow-400" />
         {isLoading ? (

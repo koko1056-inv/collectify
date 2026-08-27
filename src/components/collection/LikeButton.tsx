@@ -92,7 +92,7 @@ export function LikeButton({ itemId }: LikeButtonProps) {
         variant="ghost"
         size="icon"
         onClick={handleLikeToggle}
-        className={`h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${
+        className={`tap-safe-y h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${
           isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-foreground"
         }`}
       >

@@ -275,7 +275,7 @@ function PartnerHeader({
         <button
           type="button"
           onClick={onOpenProfile}
-          className="block max-w-full truncate text-left font-medium transition-colors hover:text-primary"
+          className="tap-safe-y block max-w-full truncate text-left font-medium transition-colors hover:text-primary"
         >
           {name}
         </button>
@@ -287,7 +287,7 @@ function PartnerHeader({
         size="icon"
         onClick={onOpenChat}
         aria-label={t("trade.matching.chatAria")}
-        className="h-8 w-8 shrink-0"
+        className="tap-safe-y h-8 w-8 shrink-0"
       >
         <MessageCircle className="h-4 w-4" />
       </Button>

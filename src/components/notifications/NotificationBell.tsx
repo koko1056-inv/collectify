@@ -25,7 +25,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
         <Button
           variant="ghost"
           size="sm"
-          className={cn("relative p-2", className)}
+          className={cn("tap-safe-y relative p-2", className)}
         >
           <Bell className={cn("h-5 w-5", unreadCount > 0 && "animate-wiggle")} />
           {unreadCount > 0 && (
