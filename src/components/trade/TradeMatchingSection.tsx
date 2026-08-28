@@ -87,6 +87,7 @@ export function TradeMatchingSection() {
       <ReadinessBanner
         wishCount={readiness?.wishCount ?? 0}
         offerCount={readiness?.offerCount ?? 0}
+        surplusCount={readiness?.surplusCount ?? 0}
       />
 
       {/* 両想い */}
@@ -214,21 +215,27 @@ export function TradeMatchingSection() {
 function ReadinessBanner({
   wishCount,
   offerCount,
+  surplusCount,
 }: {
   wishCount: number;
   offerCount: number;
+  surplusCount: number;
 }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
 
   if (wishCount > 0 && offerCount > 0) return null;
 
-  const missingBoth = wishCount === 0 && offerCount === 0;
-  const message = missingBoth
-    ? t("trade.matching.setupBoth")
-    : wishCount === 0
-      ? t("trade.matching.setupWish")
-      : t("trade.matching.setupOffer");
+  // 交換に出しているものが無い人には、まずダブりを見せる。
+  // 「何か出してください」より「その2個目、出しませんか」のほうが動ける。
+  const message =
+    offerCount === 0 && surplusCount > 0
+      ? t("trade.matching.setupSurplus", { count: surplusCount })
+      : wishCount === 0 && offerCount === 0
+        ? t("trade.matching.setupBoth")
+        : wishCount === 0
+          ? t("trade.matching.setupWish")
+          : t("trade.matching.setupOffer");
 
   return (
     <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3">

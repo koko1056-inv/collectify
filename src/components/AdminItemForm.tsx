@@ -12,6 +12,11 @@ import { useImageUpload } from "@/hooks/admin-item-form/useImageUpload";
 import { useItemDetails } from "@/hooks/admin-item-form/useItemDetails";
 import { useItemSubmit } from "@/hooks/admin-item-form/useItemSubmit";
 import { useTags } from "@/hooks/useTags";
+import { SimilarItemsDialog } from "@/components/admin/SimilarItemsDialog";
+import {
+  fetchSimilarOfficialItems,
+  type SimilarOfficialItem,
+} from "@/hooks/useSimilarOfficialItems";
 import { suggestTags, fillEmptyTags } from "@/utils/tag-suggest";
 import { Check, ChevronRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -95,6 +100,29 @@ export function AdminItemForm() {
     // ファイル選択ではなくURLの画像を選んだ場合はそのURLをそのまま使う
     fallbackImageUrl: previewUrl && !previewUrl.startsWith("blob:") ? previewUrl : null,
   });
+
+  // 登録前の確認。同じ名前のものが既にあれば、写真を並べて見せてから決めてもらう。
+  // 見つかっても登録は止めない（同名の別商品は普通にある）ので、状態は候補の入れ物だけ。
+  const [similarItems, setSimilarItems] = useState<SimilarOfficialItem[]>([]);
+
+  const submitForm = (e: React.FormEvent) => handleSubmit(e);
+
+  const handleGuardedSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // カタログに載せないなら、カタログの重複は起きない
+    if (!shareToCatalog || !formData.title?.trim()) {
+      submitForm(e);
+      return;
+    }
+
+    const found = await fetchSimilarOfficialItems(formData.title, formData.content_name);
+    if (found.length === 0) {
+      submitForm(e);
+      return;
+    }
+    setSimilarItems(found);
+  };
 
   const handleFormUpdate = (updates: Partial<typeof formData>) => {
     setFormData(prevData => ({ ...prevData, ...updates }));
@@ -226,7 +254,7 @@ export function AdminItemForm() {
             )}
           </div>
 
-          <form key={formKey} onSubmit={handleSubmit}>
+          <form key={formKey} onSubmit={handleGuardedSubmit}>
             {currentStep === "step1" && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
@@ -569,6 +597,17 @@ export function AdminItemForm() {
           </form>
         </CardContent>
       </Card>
+
+      <SimilarItemsDialog
+        items={similarItems}
+        onCancel={() => setSimilarItems([])}
+        onProceed={() => {
+          setSimilarItems([]);
+          // 確認を通ったので、そのまま本来の登録へ。
+          // handleSubmit は preventDefault しか使わないので、形だけ渡す。
+          submitForm({ preventDefault: () => {} } as unknown as React.FormEvent);
+        }}
+      />
     </div>
   );
 }
