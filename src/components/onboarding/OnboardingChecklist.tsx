@@ -343,7 +343,7 @@ export function OnboardingChecklist() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="tap-safe-y h-7 w-7"
                 aria-label={isExpanded ? t('misc.checklist.close') : t('misc.checklist.open')}
                 onClick={handleToggleExpand}
               >
@@ -356,7 +356,7 @@ export function OnboardingChecklist() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground"
+                className="tap-safe-y h-7 w-7 text-muted-foreground"
                 aria-label={t('misc.checklist.close')}
                 onClick={handleDismiss}
               >

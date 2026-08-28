@@ -193,11 +193,13 @@ export function ProfileHero({
             </div>
           )}
 
-          <div className="absolute top-3 right-3 flex gap-1 z-10">
+          {/* 44px は Apple の指針の下限。ログアウトが隣にあるので、
+                当たり判定を広げるのではなく実サイズを上げ、隙間も確保する */}
+          <div className="absolute top-3 right-3 flex gap-2 z-10">
             {isOwnProfile && (
               <label
                 className={cn(
-                  "w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center cursor-pointer transition-colors",
+                  "w-11 h-11 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center cursor-pointer transition-colors",
                   coverUploading && "pointer-events-none opacity-70"
                 )}
                 aria-label={t("profileScreen.hero.changeCover")}
@@ -225,23 +227,23 @@ export function ProfileHero({
               <>
                 <button
                   onClick={onOpenSettings}
-                  className="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
+                  className="w-11 h-11 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
                   aria-label={t("profileScreen.hero.settings")}
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="w-5 h-5" />
                 </button>
                 <button
                   onClick={onLogout}
-                  className="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
+                  className="w-11 h-11 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
                   aria-label={t("profileScreen.logout.title")}
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-5 h-5" />
                 </button>
               </>
             ) : (
               <button
                 onClick={onShare}
-                className="w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
+                className="w-11 h-11 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
                 aria-label={t("profileScreen.hero.share")}
               >
                 <Share2 className="w-4 h-4" />

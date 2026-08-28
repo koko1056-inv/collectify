@@ -123,7 +123,7 @@ export function OfficialGoodsCard({
               <Button
                 size="icon"
                 variant="secondary"
-                className="h-8 w-8 shadow-md"
+                className="tap-safe-y h-8 w-8 shadow-md"
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsWishlistUsersModalOpen(true);
@@ -148,7 +148,8 @@ export function OfficialGoodsCard({
                 e.stopPropagation();
                 setIsWishlistUsersModalOpen(true);
               }}
-              className="flex items-center gap-0.5 text-muted-foreground hover:text-primary transition-colors"
+              className="tap-safe-y -mx-1 flex items-center gap-0.5 px-1 text-muted-foreground hover:text-primary transition-colors"
+              aria-label={t("chrome.officialCard.wishersAria")}
             >
               <Heart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               <span className="text-[10px] sm:text-xs">{wishlistCount}</span>
@@ -162,7 +163,8 @@ export function OfficialGoodsCard({
                 e.stopPropagation();
                 setIsTagModalOpen(true);
               }}
-              className="flex items-center text-muted-foreground hover:text-primary transition-colors ml-auto"
+              className="tap-safe-y -mr-1 ml-auto flex items-center px-1 text-muted-foreground hover:text-primary transition-colors"
+              aria-label={t("chrome.officialCard.tagsAria")}
             >
               <Tags className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>

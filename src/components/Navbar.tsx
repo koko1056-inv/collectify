@@ -70,7 +70,7 @@ export function Navbar() {
               <NotificationBell className="sm:hidden" />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-center">
+                  <button className="tap-safe-y flex items-center justify-center" aria-label={t("chrome.nav.profile")}>
                     <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
                       <AvatarImage src={profile?.avatar_url || undefined} />
                       <AvatarFallback className="bg-muted">
@@ -176,7 +176,7 @@ export function Navbar() {
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center justify-center rounded-full hover:opacity-80 transition-opacity">
+                  <button className="tap-safe-y flex items-center justify-center rounded-full hover:opacity-80 transition-opacity" aria-label={t("chrome.nav.profile")}>
                     <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
                       <AvatarImage src={profile?.avatar_url || undefined} />
                       <AvatarFallback className="bg-muted">

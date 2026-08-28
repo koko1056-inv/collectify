@@ -166,7 +166,7 @@ export default function AiRoomsPage() {
               variant="ghost"
               size="icon"
               onClick={() => navigate(-1)}
-              className="shrink-0 h-9 w-9"
+              className="tap-safe-y shrink-0 h-9 w-9"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>

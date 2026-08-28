@@ -374,7 +374,7 @@ export function UserCollection({
                     size="icon"
                     onClick={onOpenFilter}
                     disabled={!onOpenFilter}
-                    className="relative h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
+                    className="tap-safe-y relative h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
                     title={t("chrome.collection.filter")}
                     aria-label={t("chrome.collection.filter")}
                   >
@@ -398,7 +398,7 @@ export function UserCollection({
                   onClick={handleToggleSelectionMode}
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
+                  className="tap-safe-y h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
                   title={t("chrome.collection.multiSelect")}
                   aria-label={t("chrome.collection.multiSelect")}
                 >

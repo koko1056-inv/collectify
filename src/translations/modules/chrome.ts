@@ -243,6 +243,10 @@ export const chrome = {
       added: "追加済み",
     },
 
+    officialCard: {
+      wishersAria: "このグッズを欲しい人を見る",
+      tagsAria: "タグを編集する",
+    },
     officialItems: {
       allShownTitle: "全てのアイテムを表示しました",
       allShownDesc: "{n}件のアイテムを表示しています。",
@@ -645,6 +649,10 @@ export const chrome = {
       added: "Added",
     },
 
+    officialCard: {
+      wishersAria: "See who wants this",
+      tagsAria: "Edit tags",
+    },
     officialItems: {
       allShownTitle: "All items are now shown",
       allShownDesc: "Showing {n} items.",
