@@ -4,15 +4,10 @@ import * as THREE from "three";
 import { FurniturePreset } from "./furniturePresets";
 import { PlacementType } from "@/hooks/useMyRoom";
 
-export interface RoomFurniture {
-  id: string;
-  furniture_id: string;
-  position_x: number;
-  position_y: number;
-  placement: PlacementType;
-  scale: number;
-  rotation_y: number;
-}
+// 型は three を読み込まない furnitureTypes.ts に移した。
+// ここから re-export して、既存の import 経路は壊さない。
+export type { RoomFurniture } from "./furnitureTypes";
+import type { RoomFurniture } from "./furnitureTypes";
 
 interface FurnitureItem3DProps {
   furniture: RoomFurniture;

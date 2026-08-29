@@ -95,38 +95,57 @@ export function GalleryTab({ avatars, onSwitchToGenerate }: Props) {
                   </Badge>
                 )}
               </div>
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => avatars.setCurrent.mutate(a.id)}
-                  disabled={!!isCurrent || avatars.setCurrent.isPending}
-                >
-                  <Check className="w-4 h-4 mr-1" />
-                  {t("misc.avatar.select")}
-                </Button>
+              {/* 操作は画像の下に常に出す。
+                  以前は画像に重ねた group-hover のパネルに入れていたが、
+                  スマホにホバーは無い。実際このアプリは 390px 幅で使われていて、
+                  作られたアバター7件は1件も公開されていなかった。
+                  「公開する」を押せる場所が無かったのが理由だと考えている。 */}
+              <div className="flex items-center gap-1 border-t bg-card p-1.5">
+                <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+                  {a.name || formatNumericDate(a.created_at)}
+                </p>
+
+                {!isCurrent && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="tap-safe-y h-7 shrink-0 px-2 text-xs"
+                    onClick={() => avatars.setCurrent.mutate(a.id)}
+                    disabled={avatars.setCurrent.isPending}
+                  >
+                    <Check className="mr-1 h-3.5 w-3.5" />
+                    {t("misc.avatar.select")}
+                  </Button>
+                )}
+
                 {/* 探索タブへの公開切り替え。既存アバターは既定で非公開。
                     is_public が無い＝マイグレーション未適用なので操作を出さない。 */}
                 {a.is_public !== undefined && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() =>
-                    setVisibility.mutate({ avatarId: a.id, isPublic: !a.is_public })
-                  }
-                  disabled={setVisibility.isPending}
-                  title={a.is_public ? t("misc.avatar.unpublish") : t("misc.avatar.publish")}
-                >
-                  {a.is_public ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
-                </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="tap-safe-y h-7 w-7 shrink-0"
+                    onClick={() =>
+                      setVisibility.mutate({ avatarId: a.id, isPublic: !a.is_public })
+                    }
+                    disabled={setVisibility.isPending}
+                    aria-label={a.is_public ? t("misc.avatar.unpublish") : t("misc.avatar.publish")}
+                    title={a.is_public ? t("misc.avatar.unpublish") : t("misc.avatar.publish")}
+                  >
+                    {a.is_public ? <Lock className="h-3.5 w-3.5" /> : <Globe className="h-3.5 w-3.5" />}
+                  </Button>
                 )}
-                <Button size="sm" variant="destructive" onClick={() => setDeleteId(a.id)}>
-                  <Trash2 className="w-4 h-4" />
+
+                {/* 削除だけは当たり判定を横に広げない。隣の公開ボタンと重なると誤爆する。 */}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="tap-safe-y h-7 w-7 shrink-0 text-destructive"
+                  onClick={() => setDeleteId(a.id)}
+                  aria-label={t("misc.avatar.deleteTitle")}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
                 </Button>
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                <p className="text-xs text-white truncate">
-                  {a.name || formatNumericDate(a.created_at)}
-                </p>
               </div>
             </div>
           );

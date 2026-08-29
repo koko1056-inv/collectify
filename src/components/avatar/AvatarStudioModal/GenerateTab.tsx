@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Check, Loader2, RefreshCw, Sparkles, Upload, X } from "lucide-react";
+import { Check, Globe, Loader2, RefreshCw, Sparkles, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { useAvatars } from "@/hooks/useAvatars";
@@ -13,6 +13,7 @@ import { useFirstTimeFree } from "@/hooks/useFirstTimeFree";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { consumePendingAvatarPrompt } from "@/utils/ai-studio-handoff";
 import { downscaleToDataUrl } from "@/utils/downscale-image";
+import { useSetAvatarVisibility } from "@/hooks/ai-avatar/usePublicAvatars";
 
 const AVATAR_COST = 30;
 
@@ -50,6 +51,11 @@ export function GenerateTab({
   const [confirmOpen, setConfirmOpen] = useState(false);
   /** 直前に生成できたアバター。作った物をその場で見せるために保持する。 */
   const [lastResultUrl, setLastResultUrl] = useState<string | null>(null);
+  // 作ったアバターは既定で非公開。公開したいかどうかは本人にしか決められないので、
+  // 黙って公開せず、その場で選べるようにする。
+  const [lastResultId, setLastResultId] = useState<string | null>(null);
+  const [lastResultPublic, setLastResultPublic] = useState(false);
+  const setVisibility = useSetAvatarVisibility();
 
   // 経過秒数。以前は 20→40→70→100 の固定値を進捗バーに出していたが、
   // 実際の生成中はずっと40%のまま止まるため「壊れた」ように見えていた。
@@ -90,6 +96,8 @@ export function GenerateTab({
     setConfirmOpen(false);
     setIsGenerating(true);
     setLastResultUrl(null);
+    setLastResultId(null);
+    setLastResultPublic(false);
     setStep(t("misc.avatar.stepProcessing"));
     try {
       let imageBase64: string | undefined;
@@ -118,7 +126,7 @@ export function GenerateTab({
       if (!data?.imageUrl) throw new Error(t("misc.avatar.noImageUrl"));
 
       setStep(t("misc.avatar.stepSaving"));
-      await avatars.saveGenerated.mutateAsync({
+      const saved = await avatars.saveGenerated.mutateAsync({
         imageUrl: data.imageUrl,
         prompt: prompt.trim() || (uploadedImage ? t("misc.avatar.fromPhotoTitle") : t("misc.avatar.defaultTitle")),
       });
@@ -127,6 +135,8 @@ export function GenerateTab({
       // できあがったものをその場で見せる。
       // 以前は通知を出すだけで、ギャラリータブに切り替えないと確認できなかった。
       setLastResultUrl(data.imageUrl);
+      setLastResultId(saved?.id ?? null);
+      setLastResultPublic(false);
       toast.success(t("misc.avatar.generateSuccess"));
       // 説明文は消さない。気に入らなかったときに書き直して作り直せるようにする。
       handleRemove();
@@ -171,6 +181,37 @@ export function GenerateTab({
             alt=""
             className="mx-auto max-h-56 w-auto rounded-lg border border-border object-contain"
           />
+          {/* 作っただけでは誰にも見えない。実際、公開されたアバターは1件も無かった。
+              ここで一度だけ聞く。断ってもギャラリーからいつでも公開できる。 */}
+          {lastResultId && (
+            lastResultPublic ? (
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Globe className="h-3.5 w-3.5" />
+                {t("misc.avatar.nowPublic")}
+              </p>
+            ) : (
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground">{t("misc.avatar.privateNote")}</p>
+                <Button
+                  size="sm"
+                  className="w-full gap-1.5"
+                  disabled={setVisibility.isPending}
+                  onClick={async () => {
+                    try {
+                      await setVisibility.mutateAsync({ avatarId: lastResultId, isPublic: true });
+                      setLastResultPublic(true);
+                    } catch (e) {
+                      // 成否の通知は useSetAvatarVisibility が出す。ここで足すと二重になる。
+                      console.error("failed to publish avatar:", e);
+                    }
+                  }}
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                  {t("misc.avatar.publish")}
+                </Button>
+              </div>
+            )
+          )}
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={handleGenerateClick}>
               <RefreshCw className="h-3.5 w-3.5" />

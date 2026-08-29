@@ -1,10 +1,16 @@
+import { Suspense, lazy } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { BookMarked, Link2, Share } from "lucide-react";
 import { TagList } from "@/components/collection/TagList";
 import { ItemPostsSection } from "@/components/item-posts/ItemPostsSection";
-import { Item3DPreview } from "../Item3DPreview";
+// 3Dプレビューは three.js（918KB）を連れてくる。
+// 静的に読むと、グッズ詳細を開くすべての画面がその重さを背負う。
+// 3Dモデルを持つグッズが現れたときにだけ読み込む。
+const Item3DPreview = lazy(() =>
+  import("../Item3DPreview").then((m) => ({ default: m.Item3DPreview }))
+);
 import type { SimpleItemTag } from "@/utils/tag/types";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
@@ -47,7 +53,15 @@ export function ItemInfoTab({
           alt={itemDetails.title}
           className="w-full rounded-md aspect-square object-cover"
         />
-        {model3dUrl && <Item3DPreview modelUrl={model3dUrl} title={itemDetails.title} />}
+        {model3dUrl && (
+          <Suspense
+            fallback={
+              <div className="w-full aspect-square rounded-md bg-muted animate-pulse" />
+            }
+          >
+            <Item3DPreview modelUrl={model3dUrl} title={itemDetails.title} />
+          </Suspense>
+        )}
       </div>
 
       {itemDetails.description && (
