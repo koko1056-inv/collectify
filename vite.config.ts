@@ -23,6 +23,12 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: (id) => {
           if (!id.includes("node_modules")) return;
+          // 小さくて多くのパッケージから使われるものは、先に共通チャンクへ逃がす。
+          // 行き先を決めずにおくと Rollup が大きな手動チャンク（three-vendor）へ
+          // 吸い込み、prop-types を1つ借りたいだけのページが three.js 918KB を
+          // まるごと読み込むことになる。実際 72チャンク中21がそうなっていた。
+          if (id.includes("/prop-types/") || id.includes("/@babel/runtime/"))
+            return "common-vendor";
           if (id.includes("react-router")) return "react-vendor";
           if (
             id.includes("/react/") ||

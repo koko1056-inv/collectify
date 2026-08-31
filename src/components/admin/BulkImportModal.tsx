@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { fetchSimilarOfficialItems } from "@/hooks/useSimilarOfficialItems";
 
 interface ScrapedImage {
   url: string;
@@ -57,6 +58,10 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
   const queryClient = useQueryClient();
 
   const [step, setStep] = useState<"url" | "select" | "analyze" | "import">("url");
+  // 取り込む直前に「同じ名前のものが既にある」ものへ印を付ける。
+  // 一括なので止めはしない。取り込む前に気づけるようにするだけ。
+  const [existingTitles, setExistingTitles] = useState<Record<string, number>>({});
+
   const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [scrapedImages, setScrapedImages] = useState<ScrapedImage[]>([]);
@@ -66,6 +71,32 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
   const [importProgress, setImportProgress] = useState(0);
   const [bulkContentName, setBulkContentName] = useState("");
   const [contentSuggestions, setContentSuggestions] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (step !== "import") return;
+    let cancelled = false;
+
+    const titles = Array.from(
+      new Set(
+        analyzedItems
+          .filter((i) => i.status === "done" && i.title?.trim())
+          .map((i) => i.title.trim())
+      )
+    );
+    if (titles.length === 0) return;
+
+    (async () => {
+      const found = await Promise.all(
+        titles.map(async (title) => [title, (await fetchSimilarOfficialItems(title)).length] as const)
+      );
+      if (cancelled) return;
+      setExistingTitles(Object.fromEntries(found.filter(([, n]) => n > 0)));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [step, analyzedItems]);
 
   const handleScrape = async () => {
     if (!url.trim()) {
@@ -477,6 +508,9 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
           )}
 
           {/* Step 4: インポート確認 */}
+          {/* 確認画面に入った時点で、既存カタログとの名前の衝突を調べる。
+              判定は SQL 側の normalize_item_title に任せる（同じ規則を JS 側で
+              書き直すと、いずれ食い違って嘘の警告を出すようになる）。 */}
           {step === "import" && (
             <div className="space-y-4">
               <div className="text-sm text-muted-foreground">
@@ -567,6 +601,13 @@ export function BulkImportModal({ isOpen, onClose }: BulkImportModalProps) {
                           {item.price && item.price !== "0" && (
                             <span className="text-xs text-muted-foreground">
                               ¥{parseInt(item.price).toLocaleString()}
+                            </span>
+                          )}
+                          {existingTitles[item.title?.trim()] > 0 && (
+                            <span className="text-xs rounded bg-amber-500/15 px-2 py-0.5 text-amber-700 dark:text-amber-400">
+                              {t("misc.bulkImport.alreadyExists", {
+                                count: existingTitles[item.title.trim()],
+                              })}
                             </span>
                           )}
                         </div>

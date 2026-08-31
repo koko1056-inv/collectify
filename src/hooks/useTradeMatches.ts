@@ -72,7 +72,7 @@ export function useTradeReadiness() {
     enabled: !!user?.id,
     staleTime: 60 * 1000,
     queryFn: async () => {
-      const [wish, offers] = await Promise.all([
+      const [wish, offers, surplus] = await Promise.all([
         supabase
           .from("wishlists")
           .select("id", { count: "exact", head: true })
@@ -82,12 +82,25 @@ export function useTradeReadiness() {
           .select("id", { count: "exact", head: true })
           .eq("user_id", user!.id)
           .eq("for_trade", true),
+        // 2つ以上持っているグッズ。「交換に出すものが無い」と言われても、
+        // 実際にはダブっているものがあることが多い。それを名指しできるようにする。
+        supabase
+          .from("user_items")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user!.id)
+          .eq("for_trade", false)
+          .gte("quantity", 2),
       ]);
 
       if (wish.error) throw wish.error;
       if (offers.error) throw offers.error;
+      if (surplus.error) throw surplus.error;
 
-      return { wishCount: wish.count ?? 0, offerCount: offers.count ?? 0 };
+      return {
+        wishCount: wish.count ?? 0,
+        offerCount: offers.count ?? 0,
+        surplusCount: surplus.count ?? 0,
+      };
     },
   });
 }

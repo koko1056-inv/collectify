@@ -3750,9 +3750,21 @@ export type Database = {
       find_duplicate_official_items: {
         Args: { _limit?: number }
         Returns: {
+          exact_duplicates: number
           item_count: number
           items: Json
           normalized: string
+        }[]
+      }
+      find_similar_official_items: {
+        Args: { _content_name?: string; _limit?: number; _title: string }
+        Returns: {
+          content_name: string
+          id: string
+          image: string
+          owner_count: number
+          title: string
+          wish_count: number
         }[]
       }
       find_trade_matches: {

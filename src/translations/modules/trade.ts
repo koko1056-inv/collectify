@@ -189,6 +189,8 @@ export const trade = {
       setupBoth: "欲しいグッズと、交換に出せるグッズの両方を登録すると相手が見つかります。",
       setupWish: "欲しいグッズを登録すると、それを持っている人が見つかります。",
       setupOffer: "同じものが2つ以上あるグッズを交換に出すと、両想いの相手が見つかります。",
+      setupSurplus:
+        "2つ以上持っているグッズが{count}件あります。ダブっている分を交換に出すと、欲しい人と両想いになれます。",
       setupWishCta: "欲しいグッズを探す",
       setupOfferCta: "コレクションを開く",
       haveYourWishlist: "あなたの欲しいものを持っている人",
@@ -509,6 +511,8 @@ export const trade = {
       setupBoth: "Add Goods you want and offer some for trade, and we'll find people for you.",
       setupWish: "Add Goods you want, and we'll find people who have them.",
       setupOffer: "Offer a duplicate for trade to find mutual matches.",
+      setupSurplus:
+        "You have {count} item(s) you own more than one of. Offer the spares and you can match with someone who wants them.",
       setupWishCta: "Find Goods you want",
       setupOfferCta: "Open my Collection",
       haveYourWishlist: "People who have what you want",
