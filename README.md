@@ -1,69 +1,67 @@
-# Welcome to your Lovable project
+# Collectify
 
-## Project info
+推し活グッズのコレクション管理アプリ。持っているグッズを登録し、欲しいものを登録すると、
+交換相手が見つかる。選んだグッズから AI が部屋やアバターを描く。
 
-**URL**: https://lovable.dev/projects/98e2f873-782e-493c-ba8d-f72956b0a467
+## 構成
 
-## How can I edit this code?
+| | |
+| --- | --- |
+| フロント | React 18 + Vite 5 + TypeScript / Tailwind + shadcn-ui |
+| データ | Supabase（Postgres + RLS + Storage + Edge Functions） |
+| ホスティング | Vercel（`main` への push で自動デプロイ） |
+| AI | Vercel AI Gateway（OpenAI 互換） |
 
-There are several ways of editing your application.
+## 開発
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/98e2f873-782e-493c-ba8d-f72956b0a467) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Node.js と npm が必要（[nvm で入れる](https://github.com/nvm-sh/nvm#installing-and-updating)）。
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+npm install
+npm run dev        # http://localhost:8080
 ```
 
-**Edit a file directly in GitHub**
+変更を出す前に通すもの:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+npm run typecheck          # tsc（-p tsconfig.app.json。ルートの tsconfig では src を見ないので注意）
+npm run lint
+npm run build
+node scripts/check-i18n.mjs   # 日本語・英語のキーが揃っているか
+```
 
-**Use GitHub Codespaces**
+### 環境変数
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+`.env.example` を `.env` にコピーして埋める。フロントで使うものは `VITE_` 接頭辞が必要。
 
-## What technologies are used for this project?
+| 変数 | 用途 |
+| --- | --- |
+| `VITE_APP_URL` | 「URLをコピー」で配る正規URL。未設定なら開いているドメインを使う |
+| `VITE_REVENUECAT_IOS_KEY` | iOS の課金 |
 
-This project is built with .
+## Edge Functions
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+`supabase/functions/` 以下。AI を呼ぶ7本は接続先を `_shared/ai.ts` に集約してあるので、
+プロバイダを変えるときはそのファイルだけを触る。
 
-## How can I deploy this project?
+サーバー側で必要な秘密情報（Supabase のダッシュボードで設定）:
 
-Simply open [Lovable](https://lovable.dev/projects/98e2f873-782e-493c-ba8d-f72956b0a467) and click on Share -> Publish.
+| 変数 | 用途 |
+| --- | --- |
+| `AI_GATEWAY_API_KEY` | Vercel AI Gateway の鍵。**これが無いと AI 機能が動かない** |
+| `AI_GATEWAY_URL` | 接続先の上書き。既定は Vercel AI Gateway |
+| `AI_TEXT_MODEL` / `AI_IMAGE_MODEL` | モデルの上書き。既定は `_shared/ai.ts` を参照 |
+| `APP_URL` | OGP から本体へ飛ばすときの正規URL |
+| `MESHY_API_KEY` | 3Dモデル生成 |
+| `RESEND_API_KEY` / `TAG_NOTIFY_TO` / `TAG_NOTIFY_FROM` | 新しいタグができたときの通知メール |
 
-## I want to use a custom domain - is that possible?
+## i18n
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+翻訳は `src/translations/modules/` に領域ごとに置く。`ja` と `en` でキー構造を揃える
+（`en` が欠けたキーは日本語にフォールバックする）。`scripts/check-i18n.mjs` が
+使われているのに定義が無いキーを検出する。
+
+## データベース
+
+スキーマ変更は `supabase/migrations/` にファイルを足して適用する。
+関数は行を消さない方針（統合は `merged_into` で隠す、など）で、取り消せる形にしてある。

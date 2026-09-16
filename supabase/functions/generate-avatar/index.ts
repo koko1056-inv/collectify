@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resolveAiGateway, AI_IMAGE_MODEL } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,10 +56,7 @@ serve(async (req) => {
       return jsonResp({ error: "プロンプトまたは画像が必要です" }, 400);
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    const { url: aiUrl, apiKey: aiKey } = resolveAiGateway();
 
     // 初回判定: 過去のアバター生成履歴 もしくは avatar_gallery にレコードがあるか
     const { count: pastTxCount } = await adminClient
@@ -135,14 +133,14 @@ serve(async (req) => {
       messageContent.push({ type: "image_url", image_url: { url: imageUrl } });
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(aiUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${aiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
+        model: AI_IMAGE_MODEL,
         messages: [{ role: "user", content: messageContent }],
         modalities: ["image", "text"],
       }),
