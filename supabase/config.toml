@@ -1,22 +1,91 @@
 project_id = "dmgrgzysrzzgsajwqyrh"
 
+# ---------------------------------------------------------------------------
+# verify_jwt は全関数を明示する
+# ---------------------------------------------------------------------------
+#
+# ここに書かれていない関数を CLI でデプロイすると verify_jwt が既定の true に
+# なる。JWT を持たない相手（SNSのクローラー、img タグ、外部の Webhook、
+# Postgres のトリガー）から呼ばれる関数はそれで壊れるので、18本すべて書き出す。
+#
+# 値は 2026-09-16 時点の本番の実際の設定に合わせてある。つまりこのファイルを
+# 使って CLI デプロイしても、認証の要否は今と変わらない。
+#
+# 設定はこのファイル（supabase/config.toml）にしか効かない。
+# supabase/functions/ 以下に置いても CLI は読まない。
+
+# --- JWT を要求する（クライアントの invoke から呼ばれるもの）---------------
+#
+# supabase.functions.invoke はログイン中のユーザーの JWT を自動で付ける。
+# 各関数は内部でも auth.getUser() を検証しているので、ここは二重の備え。
+
+[functions.add-item-chat]
+verify_jwt = true
+
 [functions.analyze-item-image]
 verify_jwt = true
 
-[functions.generate-background]
+[functions.delete-official-item]
+verify_jwt = true
+
+[functions.edit-image]
 verify_jwt = true
 
 [functions.generate-3d-model]
 verify_jwt = true
 
+[functions.generate-ai-room]
+verify_jwt = true
+
+[functions.generate-avatar]
+verify_jwt = true
+
+[functions.generate-background]
+verify_jwt = true
+
+[functions.generate-post-image]
+verify_jwt = true
+
 [functions.search-item-prices]
 verify_jwt = true
 
+# --- JWT を要求しない（要求すると壊れるもの）-------------------------------
+
+# SNS のクローラーに OGP を返し、人間は本体へ送り返す。
+# クローラーはログインしていないので JWT を持たない。
+[functions.og-image]
+verify_jwt = false
+
+# 外部画像を中継する。<img src> から直接叩かれるため JWT は付かない。
 [functions.proxy-image]
 verify_jwt = false
 
-[functions.add-item-chat]
-verify_jwt = true
+# RevenueCat が Supabase の JWT なしで叩く。
+# 認証は RC_WEBHOOK_SECRET の Bearer トークンで行う。
+[functions.revenuecat-webhook]
+verify_jwt = false
 
-[functions.delete-official-item]
-verify_jwt = true
+# --- JWT を要求しない（本番が false なので合わせてある）-------------------
+#
+# 以下の5本は本番で verify_jwt = false になっている。Lovable 経由で
+# そう作られたもので、意図的かどうかは確認できていない。
+#
+# ここで true に変えると CLI デプロイの瞬間に挙動が変わるため、
+# 現状に合わせてある。締めるかどうかは別途判断すること。
+# notify-new-tag は DB トリガーから呼ばれるので false が正しいが、
+# 残りの4本は invoke 経由なので true でも動く可能性がある（未検証）。
+
+[functions.analyze-image]
+verify_jwt = false
+
+[functions.backfill-image-sizes]
+verify_jwt = false
+
+[functions.notify-new-tag]
+verify_jwt = false
+
+[functions.post-to-twitter]
+verify_jwt = false
+
+[functions.scrape-images]
+verify_jwt = false

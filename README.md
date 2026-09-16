@@ -60,6 +60,31 @@ inline base64 が必要、`contents`/`systemInstruction` という別の構造�
 npm run test:ai
 ```
 
+### デプロイ
+
+`main` への push で `.github/workflows/deploy-edge-functions.yml` が配置する。
+リポジトリの Secrets に `SUPABASE_ACCESS_TOKEN`（[ここで発行](https://supabase.com/dashboard/account/tokens)）
+が必要。手動実行もできる。
+
+手で配置すると関数のコードを書き写すことになり、日本語の転記ミスが混ざる。
+構文は壊れないのでデプロイは通り、AIに渡すプロンプトだけが静かに劣化する。
+CLI はファイルをそのまま送るのでこれが起きない。
+
+### verify_jwt
+
+`supabase/config.toml` に**全18本を明示**してある。ここに無い関数は CLI
+デプロイで既定の `true` になり、JWT を持たない相手から呼ばれる関数
+（`og-image` はSNSのクローラー、`proxy-image` は `<img src>`、
+`revenuecat-webhook` は外部、`notify-new-tag` は DB トリガー）が壊れる。
+
+関数を足したら config.toml にも書くこと。書き忘れはワークフローが
+デプロイ前に検出して止める。
+
+値は本番の実際の設定に合わせてあるので、CLI デプロイで認証の要否は変わらない。
+`analyze-image` / `backfill-image-sizes` / `post-to-twitter` / `scrape-images`
+が `false` なのは Lovable 経由でそう作られたためで、意図的かは未確認。
+締めるかは別途判断すること。
+
 サーバー側で必要な秘密情報（Supabase のダッシュボードで設定）:
 
 | 変数 | 用途 |
