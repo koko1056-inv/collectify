@@ -1,11 +1,39 @@
-
 project_id = "dmgrgzysrzzgsajwqyrh"
 
-# RevenueCat calls this endpoint without a Supabase JWT — it uses
-# the RC_WEBHOOK_SECRET Bearer token for auth instead.
+# ---------------------------------------------------------------------------
+# verify_jwt は全関数を明示する
+# ---------------------------------------------------------------------------
+#
+# ここに書かれていない関数は、CLI でデプロイすると verify_jwt が既定の true に
+# なる。JWT を持たない相手（SNSのクローラー、img タグ、外部のWebhook）から
+# 呼ばれる関数がそれで壊れるので、意図を全部書き出しておく。
+#
+# 実際、og-image と proxy-image は記載が無いまま false で動いていた。
+# 記載を足さずに CLI デプロイすると OGP と画像プロキシが落ちる。
+
+# --- JWT を要求しない（要求すると壊れるもの）-------------------------------
+
+# SNS のクローラーに OGP を返し、人間は本体へ送り返す。
+# クローラーはログインしていないので JWT を持たない。
+[[functions]]
+name = "og-image"
+verify_jwt = false
+
+# 外部画像を中継する。<img src> から直接叩かれるため JWT は付かない。
+[[functions]]
+name = "proxy-image"
+verify_jwt = false
+
+# RevenueCat がこのエンドポイントを Supabase の JWT なしで叩く。
+# 認証は RC_WEBHOOK_SECRET の Bearer トークンで行う。
 [[functions]]
 name = "revenuecat-webhook"
 verify_jwt = false
+
+# --- JWT を要求する（クライアントから invoke で呼ばれるもの）---------------
+#
+# supabase.functions.invoke はログイン中のユーザーの JWT を自動で付ける。
+# 各関数は内部でも auth.getUser() を検証しているので、ここでの検証は二重の備え。
 
 [[functions]]
 name = "scrape-images"
@@ -16,11 +44,53 @@ name = "analyze-image"
 verify_jwt = true
 
 [[functions]]
+name = "analyze-item-image"
+verify_jwt = true
+
+[[functions]]
 name = "generate-avatar"
 verify_jwt = true
 
+[[functions]]
+name = "generate-ai-room"
+verify_jwt = true
+
+[[functions]]
+name = "generate-background"
+verify_jwt = true
+
+[[functions]]
+name = "generate-post-image"
+verify_jwt = true
+
+[[functions]]
+name = "edit-image"
+verify_jwt = true
+
+[[functions]]
+name = "generate-3d-model"
+verify_jwt = true
+
+[[functions]]
+name = "search-item-prices"
+verify_jwt = true
+
+[[functions]]
+name = "delete-official-item"
+verify_jwt = true
+
+[[functions]]
+name = "post-to-twitter"
+verify_jwt = true
+
+# src から参照されていない（呼び出し側が無い）。
+# 消す判断はしていないので、他と同じ扱いにしておく。
+[[functions]]
+name = "add-item-chat"
+verify_jwt = true
+
 # 新しいタグができたことを運営にメールで知らせる。
-# ログイン済みの利用者からしか呼ばれないので JWT を検証する。
+# ログイン済みの利用者からしか呼ばれない。
 [[functions]]
 name = "notify-new-tag"
 verify_jwt = true

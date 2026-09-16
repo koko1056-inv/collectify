@@ -8,7 +8,16 @@ const corsHeaders = {
 };
 
 // Production URL for the actual app (where humans land after preview).
-const APP_URL = "https://collectify.lovable.app";
+/**
+ * アプリの正規ドメイン。
+ *
+ * ここは Deno 上で動き、SNSのクローラーにOGPを返して人間は本体へ送り返す。
+ * 「いま開いているドメイン」が使えないので、正規のURLを外から渡す必要がある。
+ *
+ * 独自ドメインにしたら APP_URL を設定し直すこと。
+ * 既定は Vercel の本番ドメイン（Lovable のドメインから移行済み）。
+ */
+const APP_URL = Deno.env.get("APP_URL") ?? "https://collectify-main.vercel.app";
 
 // Generate an HTML page with OG meta tags for social link previews.
 // Usage:

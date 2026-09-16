@@ -8,7 +8,20 @@
  */
 import { SUPABASE_URL } from "@/integrations/supabase/client";
 
-const APP_URL = "https://collectify.lovable.app";
+/**
+ * 「URLをコピー」で配るときの土台。
+ *
+ * 既定では、いま開いているドメインをそのまま使う。
+ * 以前は Lovable のドメインを直書きしていたので、Vercel で開いていても
+ * コピーしたURLは Lovable を指していた。見ている場所と配る場所が違うのは事故の元。
+ *
+ * 独自ドメインを正規のURLにしたい場合は VITE_APP_URL を設定する。
+ * プレビュー環境から本番のURLを配りたいときはこれが要る。
+ */
+const APP_URL =
+  import.meta.env.VITE_APP_URL ||
+  (typeof window !== "undefined" ? window.location.origin : "https://collectify-main.vercel.app");
+
 const OG_ENDPOINT = `${SUPABASE_URL}/functions/v1/og-image`;
 
 export type ShareTarget =

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { resolveAiGateway, AI_TEXT_MODEL } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,11 +51,7 @@ serve(async (req) => {
 
   try {
     const { messages, imageUrl } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    const { url: aiUrl, apiKey: aiKey } = resolveAiGateway();
 
     // Build messages array with image if provided
     const apiMessages = [
@@ -73,14 +70,14 @@ serve(async (req) => {
       })
     ];
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(aiUrl, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${aiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: AI_TEXT_MODEL,
         messages: apiMessages,
         temperature: 0.7,
       }),
