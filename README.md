@@ -10,7 +10,7 @@
 | フロント | React 18 + Vite 5 + TypeScript / Tailwind + shadcn-ui |
 | データ | Supabase（Postgres + RLS + Storage + Edge Functions） |
 | ホスティング | Vercel（`main` への push で自動デプロイ） |
-| AI | Vercel AI Gateway（OpenAI 互換） |
+| AI | Google Gemini API（直結）。ゲートウェイ経由にも切り替えられる |
 
 ## 開発
 
@@ -44,12 +44,54 @@ node scripts/check-i18n.mjs   # 日本語・英語のキーが揃っているか
 `supabase/functions/` 以下。AI を呼ぶ7本は接続先を `_shared/ai.ts` に集約してあるので、
 プロバイダを変えるときはそのファイルだけを触る。
 
+接続先は鍵の有無で決まる。上の3つのうち、`GEMINI_API_KEY` → `AI_GATEWAY_API_KEY` →
+`LOVABLE_API_KEY` の順に見て最初に見つかったものを使う。切り替えも切り戻しも
+環境変数だけで済み、再デプロイは要らない。
+
+Gemini 直結とゲートウェイ経由では通信の形が違う（Gemini は参照画像を URL で受け取らず
+inline base64 が必要、`contents`/`systemInstruction` という別の構造、画像は
+`responseModalities` で要求する）。その差は `_shared/ai.ts` が吸収していて、
+各関数は OpenAI 形式のまま `callAi()` を呼ぶ。
+
+この層は Deno が無いと実行できないが、`fetch` と `Deno.env` を差し替えた
+振る舞いテストがある。接続先ごとに何を送り何を読み取るかを検証する:
+
+```sh
+npm run test:ai
+```
+
+### デプロイ
+
+`main` への push で `.github/workflows/deploy-edge-functions.yml` が配置する。
+リポジトリの Secrets に `SUPABASE_ACCESS_TOKEN`（[ここで発行](https://supabase.com/dashboard/account/tokens)）
+が必要。手動実行もできる。
+
+手で配置すると関数のコードを書き写すことになり、日本語の転記ミスが混ざる。
+構文は壊れないのでデプロイは通り、AIに渡すプロンプトだけが静かに劣化する。
+CLI はファイルをそのまま送るのでこれが起きない。
+
+### verify_jwt
+
+`supabase/config.toml` に**全18本を明示**してある。ここに無い関数は CLI
+デプロイで既定の `true` になり、JWT を持たない相手から呼ばれる関数
+（`og-image` はSNSのクローラー、`proxy-image` は `<img src>`、
+`revenuecat-webhook` は外部、`notify-new-tag` は DB トリガー）が壊れる。
+
+関数を足したら config.toml にも書くこと。書き忘れはワークフローが
+デプロイ前に検出して止める。
+
+値は本番の実際の設定に合わせてあるので、CLI デプロイで認証の要否は変わらない。
+`analyze-image` / `backfill-image-sizes` / `post-to-twitter` / `scrape-images`
+が `false` なのは Lovable 経由でそう作られたためで、意図的かは未確認。
+締めるかは別途判断すること。
+
 サーバー側で必要な秘密情報（Supabase のダッシュボードで設定）:
 
 | 変数 | 用途 |
 | --- | --- |
-| `AI_GATEWAY_API_KEY` | Vercel AI Gateway の鍵。**これが無いと AI 機能が動かない** |
-| `AI_GATEWAY_URL` | 接続先の上書き。既定は Vercel AI Gateway |
+| `GEMINI_API_KEY` | Google Gemini API の鍵。**通常はこれだけ設定する** |
+| `AI_GATEWAY_API_KEY` | Vercel AI Gateway に切り替えるときの鍵（任意） |
+| `LOVABLE_API_KEY` | Lovable のゲートウェイに戻すときの鍵（任意・移行前の退避先） |
 | `AI_TEXT_MODEL` / `AI_IMAGE_MODEL` | モデルの上書き。既定は `_shared/ai.ts` を参照 |
 | `APP_URL` | OGP から本体へ飛ばすときの正規URL |
 | `MESHY_API_KEY` | 3Dモデル生成 |

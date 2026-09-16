@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { resolveAiGateway, AI_IMAGE_MODEL } from "../_shared/ai.ts";
+import { callAi, currentAiProvider } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,7 +35,6 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const { url: aiUrl, apiKey: aiKey } = resolveAiGateway();
 
     const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
@@ -185,27 +184,12 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
       },
     ];
 
-    console.log("Generating AI room with", itemCount, "items. Style:", stylePreset, "Visual:", visualStyle);
+    console.log("Generating AI room with", itemCount, "items. Style:", stylePreset, "Visual:", visualStyle, "provider:", currentAiProvider());
 
-    const aiRes = await fetch(
-      aiUrl,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${aiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: AI_IMAGE_MODEL,
-          messages,
-          modalities: ["image", "text"],
-        }),
-      }
-    );
+    const aiRes = await callAi({ messages, wantImage: true });
 
     if (!aiRes.ok) {
-      const errorText = await aiRes.text();
-      console.error("AI Gateway error:", aiRes.status, errorText);
+      console.error("AI Gateway error:", aiRes.status, aiRes.errorText);
       await refundPoints(`AI Gateway ${aiRes.status}`);
       if (aiRes.status === 429) {
         return json({ error: "レート制限に達しました。しばらく待って再試行してください" }, 429);
@@ -216,12 +200,10 @@ ${customPrompt ? `\n【追加の要望】\n${customPrompt}` : ""}`;
       return json({ error: "画像生成に失敗しました" }, 500);
     }
 
-    const aiData = await aiRes.json();
-    const imageDataUrl =
-      aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const imageDataUrl = aiRes.imageUrl;
 
     if (!imageDataUrl) {
-      console.error("No image in response:", JSON.stringify(aiData).slice(0, 500));
+      console.error("No image in response");
       await refundPoints("画像なし");
       return json({ error: "画像が生成できませんでした" }, 500);
     }

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { resolveAiGateway, AI_IMAGE_MODEL } from "../_shared/ai.ts";
+import { callAi, currentAiProvider } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,8 +55,6 @@ serve(async (req) => {
     if (!prompt && !imageUrl) {
       return jsonResp({ error: "プロンプトまたは画像が必要です" }, 400);
     }
-
-    const { url: aiUrl, apiKey: aiKey } = resolveAiGateway();
 
     // 初回判定: 過去のアバター生成履歴 もしくは avatar_gallery にレコードがあるか
     const { count: pastTxCount } = await adminClient
@@ -124,7 +122,7 @@ serve(async (req) => {
       Style: Modern 3D character design, Pixar/Disney quality rendering.`;
     }
 
-    console.log("Generating avatar. firstTime:", isFirstTime);
+    console.log("Generating avatar. firstTime:", isFirstTime, "provider:", currentAiProvider());
 
     const messageContent: any[] = [
       { type: "text", text: enhancedPrompt },
@@ -133,17 +131,9 @@ serve(async (req) => {
       messageContent.push({ type: "image_url", image_url: { url: imageUrl } });
     }
 
-    const response = await fetch(aiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${aiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: AI_IMAGE_MODEL,
-        messages: [{ role: "user", content: messageContent }],
-        modalities: ["image", "text"],
-      }),
+    const response = await callAi({
+      messages: [{ role: "user", content: messageContent }],
+      wantImage: true,
     });
 
     if (!response.ok) {
@@ -154,13 +144,11 @@ serve(async (req) => {
       if (response.status === 402) {
         return jsonResp({ error: "クレジットが不足しています。ワークスペースに資金を追加してください。" }, 402);
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error("AI gateway error:", response.status, response.errorText);
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const generatedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const generatedImageUrl = response.imageUrl;
 
     if (!generatedImageUrl) {
       await refund("画像生成失敗");
