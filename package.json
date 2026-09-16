@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "test:ai": "node scripts/test-ai-adapter.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",

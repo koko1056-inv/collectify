@@ -10,7 +10,7 @@
 | フロント | React 18 + Vite 5 + TypeScript / Tailwind + shadcn-ui |
 | データ | Supabase（Postgres + RLS + Storage + Edge Functions） |
 | ホスティング | Vercel（`main` への push で自動デプロイ） |
-| AI | Vercel AI Gateway（OpenAI 互換） |
+| AI | Google Gemini API（直結）。ゲートウェイ経由にも切り替えられる |
 
 ## 開発
 
@@ -44,12 +44,29 @@ node scripts/check-i18n.mjs   # 日本語・英語のキーが揃っているか
 `supabase/functions/` 以下。AI を呼ぶ7本は接続先を `_shared/ai.ts` に集約してあるので、
 プロバイダを変えるときはそのファイルだけを触る。
 
+接続先は鍵の有無で決まる。上の3つのうち、`GEMINI_API_KEY` → `AI_GATEWAY_API_KEY` →
+`LOVABLE_API_KEY` の順に見て最初に見つかったものを使う。切り替えも切り戻しも
+環境変数だけで済み、再デプロイは要らない。
+
+Gemini 直結とゲートウェイ経由では通信の形が違う（Gemini は参照画像を URL で受け取らず
+inline base64 が必要、`contents`/`systemInstruction` という別の構造、画像は
+`responseModalities` で要求する）。その差は `_shared/ai.ts` が吸収していて、
+各関数は OpenAI 形式のまま `callAi()` を呼ぶ。
+
+この層は Deno が無いと実行できないが、`fetch` と `Deno.env` を差し替えた
+振る舞いテストがある。接続先ごとに何を送り何を読み取るかを検証する:
+
+```sh
+npm run test:ai
+```
+
 サーバー側で必要な秘密情報（Supabase のダッシュボードで設定）:
 
 | 変数 | 用途 |
 | --- | --- |
-| `AI_GATEWAY_API_KEY` | Vercel AI Gateway の鍵。**これが無いと AI 機能が動かない** |
-| `AI_GATEWAY_URL` | 接続先の上書き。既定は Vercel AI Gateway |
+| `GEMINI_API_KEY` | Google Gemini API の鍵。**通常はこれだけ設定する** |
+| `AI_GATEWAY_API_KEY` | Vercel AI Gateway に切り替えるときの鍵（任意） |
+| `LOVABLE_API_KEY` | Lovable のゲートウェイに戻すときの鍵（任意・移行前の退避先） |
 | `AI_TEXT_MODEL` / `AI_IMAGE_MODEL` | モデルの上書き。既定は `_shared/ai.ts` を参照 |
 | `APP_URL` | OGP から本体へ飛ばすときの正規URL |
 | `MESHY_API_KEY` | 3Dモデル生成 |

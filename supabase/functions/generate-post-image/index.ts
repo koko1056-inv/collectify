@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { resolveAiGateway, AI_IMAGE_MODEL } from "../_shared/ai.ts";
+import { callAi, currentAiProvider } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -58,8 +58,6 @@ serve(async (req) => {
       );
     }
 
-    const { url: aiUrl, apiKey: aiKey } = resolveAiGateway();
-
     // ポイント残高チェック
     const { data: pointRow } = await admin
       .from('user_points')
@@ -89,6 +87,8 @@ serve(async (req) => {
 
     const fullPrompt = `グッズ「${itemTitle ?? ''}」の魅力的な投稿用画像を生成してください。\n\nユーザーの希望: ${prompt}\n\n【要件】\n- SNS投稿に映える高品質な仕上がり\n- 1:1の正方形アスペクト比\n- グッズが主役になる構図\n- 自然な光と魅力的な配色`;
 
+    console.log('generate-post-image provider:', currentAiProvider());
+
     const messages: any[] = [];
     if (itemImageUrl) {
       messages.push({
@@ -102,22 +102,10 @@ serve(async (req) => {
       messages.push({ role: "user", content: fullPrompt });
     }
 
-    const response = await fetch(aiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${aiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: AI_IMAGE_MODEL,
-        messages,
-        modalities: ["image", "text"],
-      }),
-    });
+    const response = await callAi({ messages, wantImage: true });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('AI Gateway error:', response.status, response.errorText);
       await refund(`AI Gateway ${response.status}`);
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'レート制限に達しました。しばらく待ってから再試行してください。' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -128,8 +116,7 @@ serve(async (req) => {
       throw new Error(`AI Gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const imageUrl = response.imageUrl;
     if (!imageUrl) {
       await refund('画像生成失敗');
       throw new Error('画像が生成されませんでした');
