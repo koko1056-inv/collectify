@@ -23,7 +23,7 @@ export const tour = {
     collection: {
       nav: {
         title: "ここがあなたの棚です",
-        body: "下のタブで5つの場所を行き来します。中央の丸いボタンがグッズ探し、右端があなたのプロフィールです。",
+        body: "下のタブは左から コレクション / 交換 / 追加 / みんな / マイルーム の5つです。中央の丸いボタンから、いつでもグッズを追加できます。",
       },
       checklist: {
         title: "まずはここを埋めていけばOK",
@@ -124,7 +124,7 @@ export const tour = {
     collection: {
       nav: {
         title: "This is your shelf",
-        body: "The bottom tabs move you between five places. The round button in the middle finds goods; the far right is your profile.",
+        body: "Five tabs along the bottom: Collection, Trade, Add, People and My Room. The round button in the middle adds Goods at any time.",
       },
       checklist: {
         title: "Start by working through this",

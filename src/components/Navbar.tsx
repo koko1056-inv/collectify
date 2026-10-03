@@ -4,9 +4,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, User, Search, Globe, Palette, HelpCircle, Compass, Package } from "lucide-react";
+import { ShoppingBasket, User, Globe, Palette, HelpCircle, Compass, Home, Boxes, ArrowLeftRight, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
+import { AddGoodsSheet } from "@/components/collection/AddGoodsSheet";
 import { UserSearchModal } from "./UserSearchModal";
 import { TradeInboxButton } from "./trade/TradeInboxButton";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -43,6 +44,7 @@ export function Navbar() {
   } = useProfile(user?.id);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isAddGoodsOpen, setIsAddGoodsOpen] = useState(false);
   const handleLogout = async () => {
     const {
       error
@@ -125,14 +127,34 @@ export function Navbar() {
           Collectify
         </Link>
         
-        {/* ナビゲーションメニュー（モバイルFooterと統一: AIスタジオ / 探索 / みつける / コレクション / プロフィール） */}
+        {/* ナビゲーションメニュー。モバイルの下タブと同じ並び・同じ行き先にする。
+            コレクション / 交換 / 追加 / みんな / マイルーム */}
         {user && <NavigationMenu data-tour="nav-bar" className="mr-auto">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link to="/ai-rooms" className={cn(navigationMenuTriggerStyle())}>
-                  <Palette className="h-4 w-4 mr-2" />
-                  {t("chrome.nav.aiStudio")}
+                <Link to="/collection" className={cn(navigationMenuTriggerStyle())}>
+                  <Boxes className="h-4 w-4 mr-2" />
+                  {t("chrome.nav.collection")}
                 </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <Link to="/search?tab=trade" className={cn(navigationMenuTriggerStyle())}>
+                  <ArrowLeftRight className="h-4 w-4 mr-2" />
+                  {t("chrome.nav.trade")}
+                </Link>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                {/* 下タブ中央の追加ボタンに相当する入口。デスクトップには
+                    下タブが無いので、ここが無いと常設の追加導線が消える。 */}
+                <button
+                  type="button"
+                  data-tour="collection-add"
+                  onClick={() => setIsAddGoodsOpen(true)}
+                  className={cn(navigationMenuTriggerStyle())}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t("chrome.nav.add")}
+                </button>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <Link to="/explore" className={cn(navigationMenuTriggerStyle())}>
@@ -141,21 +163,9 @@ export function Navbar() {
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/search" className={cn(navigationMenuTriggerStyle())}>
-                  <Search className="h-4 w-4 mr-2" />
-                  {t("chrome.nav.find")}
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/collection" className={cn(navigationMenuTriggerStyle())}>
-                  <Package className="h-4 w-4 mr-2" />
-                  {t("chrome.nav.collection")}
-                </Link>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link to="/edit-profile" className={cn(navigationMenuTriggerStyle())}>
-                  <User className="h-4 w-4 mr-2" />
-                  {t("chrome.nav.profile")}
+                <Link to="/my-room" className={cn(navigationMenuTriggerStyle())}>
+                  <Home className="h-4 w-4 mr-2" />
+                  {t("chrome.nav.myRoom")}
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>
@@ -228,5 +238,6 @@ export function Navbar() {
       
       <WishlistViewModal isOpen={isWishlistModalOpen} onClose={() => setIsWishlistModalOpen(false)} />
       <UserSearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
+      <AddGoodsSheet open={isAddGoodsOpen} onOpenChange={setIsAddGoodsOpen} />
     </nav>;
 }

@@ -257,7 +257,6 @@ export function UserCollection({
             <div className="space-y-3">
               <div className="space-y-1.5">
                 <Button
-                  data-tour="collection-add"
                   size="lg"
                   onClick={() => navigate("/quick-add")}
                   className="gap-2 w-full h-12 hover-scale shadow-lg"

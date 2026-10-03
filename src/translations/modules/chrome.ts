@@ -22,15 +22,15 @@ export const chrome = {
 
     nav: {
       pointsUnit: "ポイント",
-      aiStudio: "AIスタジオ",
-      explore: "探索",
-      find: "みつける",
+      explore: "みんな",
+      add: "追加",
+      trade: "交換",
+      myRoom: "マイルーム",
       collection: "コレクション",
       profile: "プロフィール",
       howToUse: "使い方",
       language: "言語 / Language",
       themeColor: "テーマカラー",
-      searchGoods: "グッズを探す",
       logoutFailed: "ログアウトに失敗しました",
       logoutDoneTitle: "ログアウト完了",
       logoutDoneDesc: "ログアウトしました",
@@ -57,7 +57,7 @@ export const chrome = {
     },
 
     explore: {
-      title: "探索",
+      title: "みんな",
       subtitle: "みんなのAI作品とコレクションを覗いてみよう",
       searchPlaceholder: "作品やユーザーを検索...",
       tabRooms: "AIルーム",
@@ -428,15 +428,15 @@ export const chrome = {
 
     nav: {
       pointsUnit: "points",
-      aiStudio: "AI Studio",
-      explore: "Explore",
-      find: "Find",
+      explore: "People",
+      add: "Add",
+      trade: "Trade",
+      myRoom: "My Room",
       collection: "Collection",
       profile: "Profile",
       howToUse: "How to use",
       language: "Language",
       themeColor: "Theme color",
-      searchGoods: "Search goods",
       logoutFailed: "Failed to log out",
       logoutDoneTitle: "Logged out",
       logoutDoneDesc: "You have been logged out.",
@@ -463,7 +463,7 @@ export const chrome = {
     },
 
     explore: {
-      title: "Explore",
+      title: "People",
       subtitle: "Take a peek at everyone's AI creations and collections",
       searchPlaceholder: "Search creations or users...",
       tabRooms: "AI rooms",
