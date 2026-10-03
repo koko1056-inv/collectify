@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { resolveAiGateway, AI_IMAGE_MODEL } from "../_shared/ai.ts";
+import { callAi, currentAiProvider } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,31 +18,20 @@ Deno.serve(async (req) => {
       throw new Error('prompt is required');
     }
 
-    const { url: aiUrl, apiKey: aiKey } = resolveAiGateway();
+    console.log('Generating background image with prompt:', prompt, 'provider:', currentAiProvider());
 
-    console.log('Generating background image with prompt:', prompt);
-
-    const response = await fetch(aiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${aiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: AI_IMAGE_MODEL,
-        messages: [
-          {
-            role: "user",
-            content: `グッズ展示場の背景画像を生成してください。以下の要件を満たす高品質な画像を作成してください：\n\n${prompt}\n\n【重要な要件】\n- 16:9の横長アスペクト比\n- グッズを配置できる十分なスペースがある\n- 照明が適切で、グッズが映える環境\n- 清潔で整理された印象\n- 実写風の高品質な仕上がり`
-          }
-        ],
-        modalities: ["image", "text"]
-      })
+    const response = await callAi({
+      messages: [
+        {
+          role: "user",
+          content: `グッズ展示場の背景画像を生成してください。以下の要件を満たす高品質な画像を作成してください：\n\n${prompt}\n\n【重要な要件】\n- 16:9の横長アスペクト比\n- グッズを配置できる十分なスペースがある\n- 照明が適切で、グッズが映える環境\n- 清潔で整理された印象\n- 実写風の高品質な仕上がり`
+        }
+      ],
+      wantImage: true,
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('AI error:', response.status, response.errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -67,8 +56,7 @@ Deno.serve(async (req) => {
       throw new Error(`API error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const imageUrl = response.imageUrl;
 
     if (!imageUrl) {
       throw new Error('画像が生成できませんでした');

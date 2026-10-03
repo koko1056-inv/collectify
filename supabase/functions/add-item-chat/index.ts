@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { resolveAiGateway, AI_TEXT_MODEL } from "../_shared/ai.ts";
+import { callAi, currentAiProvider } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,7 +51,6 @@ serve(async (req) => {
 
   try {
     const { messages, imageUrl } = await req.json();
-    const { url: aiUrl, apiKey: aiKey } = resolveAiGateway();
 
     // Build messages array with image if provided
     const apiMessages = [
@@ -70,22 +69,13 @@ serve(async (req) => {
       })
     ];
 
-    const response = await fetch(aiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${aiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: AI_TEXT_MODEL,
-        messages: apiMessages,
-        temperature: 0.7,
-      }),
+    const response = await callAi({
+      messages: apiMessages,
+      temperature: 0.7,
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error("AI error:", currentAiProvider(), response.status, response.errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "レート制限に達しました。少し待ってからお試しください。" }), {
@@ -102,8 +92,7 @@ serve(async (req) => {
       throw new Error("AI gateway error");
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    const content = response.text ?? "";
 
     // Try to parse JSON from the response
     let parsed;

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { resolveAiGateway, AI_TEXT_MODEL } from "../_shared/ai.ts";
+import { callAi, currentAiProvider } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -41,9 +41,7 @@ serve(async (req) => {
       throw new Error('画像URLが必要です');
     }
 
-    const { url: aiUrl, apiKey: aiKey } = resolveAiGateway();
-
-    console.log('Analyzing image:', imageUrl);
+    console.log('Analyzing image:', imageUrl, 'provider:', currentAiProvider());
     console.log('Source URL:', sourceUrl);
 
     // URLからページ情報を取得（ある場合）
@@ -90,15 +88,9 @@ serve(async (req) => {
       }
     }
 
-    const response = await fetch(aiUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${aiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: AI_TEXT_MODEL,
-        messages: [
+    const response = await callAi({
+      jsonOutput: true,
+      messages: [
           {
             role: 'user',
             content: [
@@ -137,14 +129,11 @@ JSON形式で以下のように回答してください：
               }
             ]
           }
-        ],
-        response_format: { type: "json_object" }
-      }),
+      ],
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+      console.error('AI gateway error:', response.status, response.errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -163,10 +152,7 @@ JSON形式で以下のように回答してください：
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('AI response:', JSON.stringify(data));
-
-    const content = data.choices?.[0]?.message?.content;
+    const content = response.text;
     if (!content) {
       throw new Error('AIからの応答が空です');
     }

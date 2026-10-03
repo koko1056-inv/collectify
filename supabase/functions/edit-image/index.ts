@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { resolveAiGateway, AI_IMAGE_MODEL } from "../_shared/ai.ts";
+import { callAi, currentAiProvider } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -63,8 +63,6 @@ serve(async (req) => {
       return jsonResp({ error: 'imageUrl and prompt are required' }, 400);
     }
 
-    const { url: aiUrl, apiKey: aiKey } = resolveAiGateway();
-
     // 残高チェック → 消費
     const { data: pointRow } = await adminClient
       .from("user_points")
@@ -90,7 +88,7 @@ serve(async (req) => {
     });
     pointsDeducted = true;
 
-    console.log('Editing image with prompt:', prompt);
+    console.log('Editing image with prompt:', prompt, 'provider:', currentAiProvider());
 
     // コンテンツ配列を構築
     const content: any[] = [];
@@ -117,22 +115,13 @@ serve(async (req) => {
       }
     }
 
-    const response = await fetch(aiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${aiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: AI_IMAGE_MODEL,
-        messages: [{ role: "user", content }],
-        modalities: ["image", "text"]
-      })
+    const response = await callAi({
+      messages: [{ role: "user", content }],
+      wantImage: true,
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('AI Gateway error:', response.status, response.errorText);
 
       if (response.status === 429) {
         await refund("rate_limited");
@@ -147,8 +136,7 @@ serve(async (req) => {
       throw new Error(`API error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    const editedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const editedImageUrl = response.imageUrl;
 
     if (!editedImageUrl) {
       await refund("no_image_returned");
