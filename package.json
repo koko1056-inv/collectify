@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test:ai": "node scripts/test-ai-adapter.mjs",
-    "test:tours": "node scripts/test-onboarding-tours.mjs"
+    "test:tours": "node scripts/test-onboarding-tours.mjs",
+    "test:backfill": "node scripts/test-series-backfill.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
