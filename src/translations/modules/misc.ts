@@ -289,6 +289,7 @@ export const misc = {
       interestsSubtitle: "好きなコンテンツを選ぶと、ぴったりのグッズをおすすめします",
       readyTitle: "準備完了！",
       readyDesc: "{name}だけの推し活スペースが完成しました ✨",
+      goRegisterFirst: "まず1つ登録してみる",
       welcomeBonus: "ようこそボーナス",
       welcomeBonusDesc: "50ポイント獲得！",
       goExplore: "最初のグッズを登録する",
@@ -350,6 +351,8 @@ export const misc = {
       followDesc: "気になるコレクターを見つけよう",
       bookmarkLabel: "AI作品を保存",
       bookmarkDesc: "お気に入りの推し部屋をブックマーク",
+      tradeOfferLabel: "交換に出すグッズを選ぶ",
+      tradeOfferDesc: "ダブっている分を1つ出すだけで相手が見つかります",
     },
 
     publicCollection: {
@@ -741,6 +744,7 @@ export const misc = {
       interestsSubtitle: "Pick what you love and we'll recommend goods that fit",
       readyTitle: "You're all set!",
       readyDesc: "Your very own space is ready, {name} ✨",
+      goRegisterFirst: "Register your first item",
       welcomeBonus: "Welcome bonus",
       welcomeBonusDesc: "You earned 50 points!",
       goExplore: "Register your first goods",
@@ -802,6 +806,8 @@ export const misc = {
       followDesc: "Find collectors worth watching",
       bookmarkLabel: "Save an AI creation",
       bookmarkDesc: "Bookmark the Rooms you love",
+      tradeOfferLabel: "Pick what you'll trade",
+      tradeOfferDesc: "Offering one spare is enough to start finding partners",
     },
 
     publicCollection: {

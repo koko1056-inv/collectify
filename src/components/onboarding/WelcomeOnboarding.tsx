@@ -122,10 +122,11 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     completeWalkthrough();
     await completeWelcome();
     onComplete();
-    // 以前は /quick-add（撮影画面）へ直接送っていた。何の説明も無いまま
-    // カメラが開くため、ここが最大の離脱点だった。コレクションへ送り、
-    // 実物の「追加」ボタンを光らせるガイドに引き継ぐ。
-    navigate("/collection");
+    // 最初の体験を「1つ登録する」にする。コレクションが空のままだと
+    // 部屋生成も交換も中身が無く、どの機能も意味を持たない。
+    // 以前もここへ送っていたが説明がゼロだったので離脱していた。
+    // いまは /quick-add 側のガイドが撮り方と逃げ道を実物の上で説明する。
+    navigate("/quick-add");
   }, [user?.id, completeWalkthrough, completeWelcome, onComplete, navigate]);
 
 
@@ -425,7 +426,7 @@ function CelebrateStep({
           size="lg"
           className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
         >
-          {t("misc.onboarding.goExplore")}
+          {t("misc.onboarding.goRegisterFirst")}
           <ArrowRight className="w-5 h-5" />
         </Button>
         <p className="text-center text-xs text-muted-foreground mt-3">

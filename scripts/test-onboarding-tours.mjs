@@ -53,7 +53,7 @@ function lookup(dict, key) {
   return typeof node === "string" ? node : undefined;
 }
 
-const { PAGE_TOURS } = await load("src/components/onboarding/tours.ts");
+const { PAGE_TOURS, tourForLocation } = await load("src/components/onboarding/tours.ts");
 const { tour } = await load("src/translations/modules/tour.ts");
 
 console.log(`\nチェック対象: ${PAGE_TOURS.length} ツアー\n`);
@@ -133,6 +133,45 @@ for (const t of PAGE_TOURS) {
     last.advance === "click",
     `last step advance=${last.advance ?? "next"}`
   );
+}
+
+// ── 7. 同じ画面に複数のツアーが居る場合、取り違えないか ──
+// /search はタブで中身が入れ替わる。既定タブのツアーが交換タブで走ると、
+// 指す対象がタブごと未描画で全ステップ飛んで「見た」記録だけが残る。
+const lookupCases = [
+  ["/collection", "", "collection-v1"],
+  ["/quick-add", "", "quick-add-v1"],
+  ["/search", "", "search-v1"],
+  ["/search", "?tab=goods", "search-v1"],
+  ["/search", "?tab=", "search-v1"],
+  ["/search", "?tab=trade", "trade-v1"],
+  ["/search", "?tab=friends", undefined],
+  ["/explore", "?tab=rooms", "explore-v1"],
+  ["/login", "", undefined],
+];
+for (const [path, search, want] of lookupCases) {
+  const got = tourForLocation(path, search)?.id;
+  check(
+    `${path}${search} → ${want ?? "ツアー無し"}`,
+    got === want,
+    `got ${got ?? "undefined"}`
+  );
+}
+
+// ── 8. 同じ (path, query) を2本のツアーが取り合っていないか ──
+const seenKeys = new Map();
+for (const t of PAGE_TOURS) {
+  const key = `${t.path}|${JSON.stringify(t.query ?? null)}`;
+  check(`${t.id}: 発火条件が他と重複しない`, !seenKeys.has(key), `${seenKeys.get(key)} と同条件`);
+  seenKeys.set(key, t.id);
+}
+
+// ── 9. query は URLSearchParams で引けるキーだけか（打ち間違い検出） ──
+const KNOWN_QUERY_KEYS = new Set(["tab"]);
+for (const t of PAGE_TOURS) {
+  for (const key of Object.keys(t.query ?? {})) {
+    check(`${t.id}: query キー "${key}" は既知`, KNOWN_QUERY_KEYS.has(key));
+  }
 }
 
 console.log(`\n${failures === 0 ? "すべて通過" : `${failures} 件失敗`}\n`);

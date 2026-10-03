@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Camera, Upload, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag, ScanBarcode, AlertTriangle, Link2 } from "lucide-react";
+import { Camera, Upload, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag, ScanBarcode, AlertTriangle, Link2, ArrowLeftRight, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -108,6 +109,11 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
    * 手入力（/add-item）と同じ選択肢を用意して、経路によって公開の扱いが変わらないようにする。
    */
   const [shareToCatalog, setShareToCatalog] = useState(true);
+  // 所持数と「交換に出す」。登録のその場で決められるようにする。
+  // あとから設定する経路（グッズ詳細モーダルの奥）しか無かったため、
+  // 実際には誰も交換に出しておらず、マッチングが空のままだった。
+  const [quantity, setQuantity] = useState(1);
+  const [forTrade, setForTrade] = useState(false);
   /** 「これと同じ」で既存カタログに紐付けて完了したときのアイテム名（完了画面の文言を変える） */
   const [linkedExistingTitle, setLinkedExistingTitle] = useState<string | null>(null);
   /** 「これと同じ」を処理中の候補 id（その行だけスピナーにする） */
@@ -311,6 +317,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
         officialItemId: item.id,
         contentName: editedData?.contentName || undefined,
         prize: editedData?.price || "0",
+        quantity,
+        forTrade,
       });
 
       if (!result.success) {
@@ -461,6 +469,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
           officialItemId: officialItemId ?? undefined,
           contentName: editedData.contentName || undefined,
           prize: editedData.price || "0",
+          quantity,
+          forTrade,
           note: editedData.description || undefined,
         });
 
@@ -526,6 +536,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
   };
 
   const handleReset = () => {
+    setQuantity(1);
+    setForTrade(false);
     setStep("capture");
     setImageFile(null);
     setPreviewUrl(null);
@@ -928,6 +940,69 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                       : t("screens.quickAdd.catalogOffHint")}
                   </p>
                 </div>
+              </div>
+            </div>
+
+            {/* 所持数と交換。ダブりはここで交換に出せるようにする。
+                既定はOFF。2個以上持っていても人にあげたいとは限らない。 */}
+            <div className="rounded-xl border border-border bg-muted/40 p-3.5 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <Label className="text-sm font-medium">
+                  {t("itemDetails.trade.quantityLabel")}
+                </Label>
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={isSubmitting || isLinking || quantity <= 1}
+                    onClick={() => setQuantity((n) => Math.max(1, n - 1))}
+                    aria-label={t("itemDetails.trade.decrease")}
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </Button>
+                  <span className="w-9 text-center text-sm font-semibold tabular-nums">
+                    {quantity}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={isSubmitting || isLinking}
+                    onClick={() => setQuantity((n) => n + 1)}
+                    aria-label={t("itemDetails.trade.increase")}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-start justify-between gap-3 border-t border-border/60 pt-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <ArrowLeftRight className="h-3.5 w-3.5 text-primary" />
+                    <Label
+                      htmlFor="quick-add-for-trade"
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      {t("itemDetails.trade.switchLabel")}
+                    </Label>
+                  </div>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {quantity >= 2
+                      ? t("screens.quickAdd.forTradeHintDuplicate")
+                      : t("itemDetails.trade.switchHint")}
+                  </p>
+                </div>
+                <Switch
+                  id="quick-add-for-trade"
+                  checked={forTrade}
+                  disabled={isSubmitting || isLinking}
+                  onCheckedChange={setForTrade}
+                  aria-label={t("itemDetails.trade.switchLabel")}
+                />
               </div>
             </div>
 

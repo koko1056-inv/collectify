@@ -40,6 +40,21 @@ export const tour = {
         title: "きれいに撮らなくて大丈夫です",
         body: "グッズを写すと、AIが名前・作品・値段を読み取って下書きにします。読み取りが外れてもあとから直せるので、まずは1枚撮ってみてください。",
       },
+      escape: {
+        title: "手元に無いときはこちら",
+        body: "いまグッズが手元に無ければ、一覧から選ぶか手入力でも登録できます。1つ入れておくと、部屋づくりや交換がすぐ使えるようになります。",
+      },
+    },
+
+    trade: {
+      how: {
+        title: "交換は2つ揃うと成立します",
+        body: "「欲しいもの」と「交換に出せるもの」の両方があると相手が見つかります。ダブっているグッズを1つ出すだけで十分です。",
+      },
+      offer: {
+        title: "出すものをここで選びます",
+        body: "持っているグッズが一覧で出るので、交換に出すものをスイッチで選べます。押してみてください。",
+      },
     },
 
     search: {
@@ -125,6 +140,21 @@ export const tour = {
       capture: {
         title: "It doesn't need to be a good photo",
         body: "Shoot the item and AI reads its name, series and price into a draft. You can fix anything it gets wrong, so just take one shot.",
+      },
+      escape: {
+        title: "Nothing on hand right now?",
+        body: "You can pick from the catalog or type it in instead. Having one item registered is what makes rooms and trading usable.",
+      },
+    },
+
+    trade: {
+      how: {
+        title: "A trade needs two halves",
+        body: "You'll find partners once you have both something you want and something you can offer. One spare item is enough.",
+      },
+      offer: {
+        title: "Choose what you offer here",
+        body: "Your Goods are listed with a switch each, so you can pick what to put up for trade. Give it a tap.",
       },
     },
 

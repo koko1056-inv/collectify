@@ -14,6 +14,14 @@ export interface PageTour {
   id: string;
   /** 発火する画面。pathname の完全一致で判定する。 */
   path: string;
+  /**
+   * 同じ pathname でタブごとに中身が変わる画面（/search）用。
+   * ここに書いたクエリと一致しないと発火しない。
+   * null は「そのキーが無い」、配列はいずれかに一致で可。
+   * 既定タブは「パラメータ無し」でも「明示指定」でも来るので
+   * [null, "goods"] のように両方を許す必要がある。
+   */
+  query?: Record<string, string | null | (string | null)[]>;
   steps: TourStep[];
 }
 
@@ -57,13 +65,24 @@ export const PAGE_TOURS: PageTour[] = [
         target: "quickadd-capture",
         titleKey: "tour.quickAdd.capture.title",
         bodyKey: "tour.quickAdd.capture.body",
-        waitMs: 1500,
+        waitMs: 2500,
+      },
+      {
+        // 手元にグッズが無い人をここで詰ませない。
+        target: "quickadd-escape",
+        titleKey: "tour.quickAdd.escape.title",
+        bodyKey: "tour.quickAdd.escape.body",
       },
     ],
   },
   {
+    // タブで中身が入れ替わる画面。goods タブ以外で走らせると、指す対象が
+    // そのタブの TabsContent ごと未描画で、全ステップが飛んで終わる。
     id: "search-v1",
     path: "/search",
+    // 既定タブはパラメータ無しでも ?tab=goods でも来る（下タブの丸ボタンは前者、
+    // 画面内のタブ切り替えは後者）。両方を拾わないと片方で案内が出ない。
+    query: { tab: [null, "goods"] },
     steps: [
       {
         target: "search-input",
@@ -74,6 +93,28 @@ export const PAGE_TOURS: PageTour[] = [
         target: "search-results",
         titleKey: "tour.search.results.title",
         bodyKey: "tour.search.results.body",
+      },
+    ],
+  },
+  {
+    // 交換は「出すものを選ぶ」を先にやらないと永遠に空のままなので、
+    // 最後は出品ピッカーを実際に開かせて終える。
+    id: "trade-v1",
+    path: "/search",
+    query: { tab: "trade" },
+    steps: [
+      {
+        target: "trade-readiness",
+        titleKey: "tour.trade.how.title",
+        bodyKey: "tour.trade.how.body",
+        waitMs: 2500,
+      },
+      {
+        target: "trade-offer-cta",
+        titleKey: "tour.trade.offer.title",
+        bodyKey: "tour.trade.offer.body",
+        advance: "click",
+        waitMs: 2500,
       },
     ],
   },
@@ -138,8 +179,19 @@ export const PAGE_TOURS: PageTour[] = [
   },
 ];
 
-export function tourForPath(pathname: string): PageTour | undefined {
-  return PAGE_TOURS.find((tour) => tour.path === pathname);
+export function tourForLocation(pathname: string, search: string): PageTour | undefined {
+  const params = new URLSearchParams(search);
+  return PAGE_TOURS.find((tour) => {
+    if (tour.path !== pathname) return false;
+    if (!tour.query) return true;
+    return Object.entries(tour.query).every(([key, want]) => {
+      const raw = params.get(key);
+      // 未指定と空文字は同じ扱い。?tab= のような形でも既定タブとみなす。
+      const got = raw === "" ? null : raw;
+      const accepted = Array.isArray(want) ? want : [want];
+      return accepted.includes(got);
+    });
+  });
 }
 
 export const ALL_TOUR_IDS = PAGE_TOURS.map((tour) => tour.id);

@@ -25,6 +25,7 @@ import {
   Users,
   Wand2,
   Compass,
+  ArrowLeftRight,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -100,6 +101,7 @@ export function OnboardingChecklist() {
         wishlistRes,
         followsRes,
         bookmarksRes,
+        tradeOfferRes,
         rewardsRes,
       ] = await Promise.all([
         supabase
@@ -113,6 +115,12 @@ export function OnboardingChecklist() {
         supabase.from('wishlists').select('id').eq('user_id', user.id).limit(1),
         supabase.from('follows').select('id').eq('follower_id', user.id).limit(1),
         supabase.from('ai_work_bookmarks').select('id').eq('user_id', user.id).limit(1),
+        supabase
+          .from('user_items')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('for_trade', true)
+          .limit(1),
         supabase.from('onboarding_rewards').select('step_id').eq('user_id', user.id),
       ]);
 
@@ -129,6 +137,7 @@ export function OnboardingChecklist() {
         hasWishlist: (wishlistRes.data?.length ?? 0) > 0,
         hasFollow: (followsRes.data?.length ?? 0) > 0,
         hasBookmark: (bookmarksRes.data?.length ?? 0) > 0,
+        hasTradeOffer: (tradeOfferRes.data?.length ?? 0) > 0,
         claimedSteps,
       };
     },
@@ -222,6 +231,19 @@ export function OnboardingChecklist() {
         completed: checklistData.hasFollow,
         action: () => navigate('/explore'),
         points: 10,
+        group: 'community',
+      },
+      {
+        // 交換は「出すものを選ぶ」をやらないと一生マッチしない。
+        // 本番の user_items 254件が全件 for_trade=false だったので、
+        // ここに置いて最初の1件を出してもらう。
+        id: 'trade-offer',
+        labelKey: 'misc.checklist.tradeOfferLabel',
+        descriptionKey: 'misc.checklist.tradeOfferDesc',
+        icon: ArrowLeftRight,
+        completed: checklistData.hasTradeOffer,
+        action: () => navigate('/search?tab=trade'),
+        points: 20,
         group: 'community',
       },
       {

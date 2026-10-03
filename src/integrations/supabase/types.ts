@@ -3770,6 +3770,16 @@ export type Database = {
           wish_count: number
         }[]
       }
+      find_trade_series_partners: {
+        Args: { _limit?: number }
+        Returns: {
+          partner_avatar_url: string
+          partner_id: string
+          partner_username: string
+          shared_series: string[]
+          their_items: Json
+        }[]
+      }
       find_trade_matches: {
         Args: { _limit?: number }
         Returns: {

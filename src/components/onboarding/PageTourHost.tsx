@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { SpotlightTour } from "./SpotlightTour";
-import { tourForPath } from "./tours";
+import { tourForLocation } from "./tours";
 
 /**
  * 今いる画面に対応する操作ガイドを1本だけ走らせる。
@@ -15,11 +15,11 @@ const SETTLE_MS = 900;
 
 export function PageTourHost() {
   const { user } = useAuth();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const { shouldShowTour, markTourDone, disableAllTours } = useOnboarding();
   const [armedId, setArmedId] = useState<string | null>(null);
 
-  const tour = tourForPath(pathname);
+  const tour = tourForLocation(pathname, search);
   const pending = !!user && !!tour && shouldShowTour(tour.id);
 
   useEffect(() => {
