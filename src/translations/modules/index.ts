@@ -14,6 +14,7 @@ import { trade } from './trade';
 import { screens } from './screens';
 import { notices } from './notices';
 import { misc } from './misc';
+import { tour } from './tour';
 
 export const moduleTranslations = {
   ja: {
@@ -31,6 +32,7 @@ export const moduleTranslations = {
     screens: screens.ja,
     notices: notices.ja,
     misc: misc.ja,
+    tour: tour.ja,
   },
   en: {
     admin: admin.en,
@@ -47,5 +49,6 @@ export const moduleTranslations = {
     screens: screens.en,
     notices: notices.en,
     misc: misc.en,
+    tour: tour.en,
   },
 };

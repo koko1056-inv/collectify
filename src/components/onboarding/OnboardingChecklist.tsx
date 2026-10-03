@@ -314,6 +314,7 @@ export function OnboardingChecklist() {
 
   return (
     <motion.div
+      data-tour="collection-checklist"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}

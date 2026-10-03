@@ -126,7 +126,7 @@ export function Navbar() {
         </Link>
         
         {/* ナビゲーションメニュー（モバイルFooterと統一: AIスタジオ / 探索 / みつける / コレクション / プロフィール） */}
-        {user && <NavigationMenu className="mr-auto">
+        {user && <NavigationMenu data-tour="nav-bar" className="mr-auto">
             <NavigationMenuList>
               <NavigationMenuItem>
                 <Link to="/ai-rooms" className={cn(navigationMenuTriggerStyle())}>

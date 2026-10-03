@@ -591,7 +591,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 w-full max-w-md">
+            <div data-tour="quickadd-capture" className="grid grid-cols-3 gap-3 w-full max-w-md">
               {/* カメラで撮影 */}
               <Button
                 variant="outline"

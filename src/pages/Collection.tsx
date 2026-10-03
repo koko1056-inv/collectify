@@ -92,6 +92,7 @@ export default function Collection() {
           押すと追加方法（撮影／一覧から選ぶ／手入力）を選べる。 */}
       {isMobile && (
         <Button
+          data-tour="collection-add"
           onClick={() => { setAddSheetView("menu"); setIsAddSheetOpen(true); }}
           aria-label={t("chrome.fab.addGoods")}
           className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 shadow-lg rounded-full h-12 pl-4 pr-5 gap-2"

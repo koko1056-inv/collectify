@@ -24,6 +24,9 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOnboarding } from "@/contexts/OnboardingContext";
+import { toast } from "sonner";
 
 // スクリーンショット画像
 import guideSearchImg from "@/assets/guide-search.png";
@@ -158,6 +161,8 @@ export default function HowToUse() {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { resetTours } = useOnboarding();
 
   // ブランド名だけグラデーションを当てたいので、{app} の前後で分割して描画する。
   // 文全体を1キーで持つことで、日英で語順が変わっても崩れない。
@@ -491,6 +496,21 @@ export default function HowToUse() {
                 {t("screens.howToUse.ctaMyRoom")}
               </Button>
             </div>
+
+            {/* 画面ガイドのやり直し。一度スキップすると二度と出せない、という
+                行き止まりを作らないために置いている。 */}
+            {user && (
+              <button
+                type="button"
+                onClick={() => {
+                  resetTours();
+                  toast.success(t("tour.replayDone"));
+                }}
+                className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+              >
+                {t("tour.replayAll")}
+              </button>
+            )}
           </motion.section>
         </div>
       </main>
