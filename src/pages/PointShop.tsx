@@ -203,7 +203,7 @@ export default function PointShop() {
         </div>
 
         {/* Current Balance */}
-        <Card className="mb-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+        <Card data-tour="shop-balance" className="mb-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
@@ -295,7 +295,7 @@ export default function PointShop() {
         {/* ポイントで交換できるアイテム。
             以前は point_shop_items を読むフックと購入フックが実装済みなのに
             どの画面からも呼ばれておらず、ポイントの使い道が画面上に存在しなかった。 */}
-        <section className="mb-8">
+        <section data-tour="shop-items" className="mb-8">
           <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
             <Coins className="w-5 h-5 text-primary" />
             {t("screens.pointShop.exchangeHeading")}

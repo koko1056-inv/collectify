@@ -85,7 +85,7 @@ export function ExploreHub() {
 
           {/* タブ */}
           <Tabs value={activeTab} onValueChange={handleTabChange} className="px-4">
-            <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start gap-1 sm:gap-4 p-0 h-auto overflow-x-auto scrollbar-hide">
+            <TabsList data-tour="explore-tabs" className="bg-transparent border-b border-border rounded-none w-full justify-start gap-1 sm:gap-4 p-0 h-auto overflow-x-auto scrollbar-hide">
               <TabsTrigger
                 value="rooms"
                 className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
@@ -119,7 +119,7 @@ export function ExploreHub() {
         </div>
 
         {/* コンテンツ */}
-        <div className="container mx-auto px-4 py-6">
+        <div data-tour="explore-feed" className="container mx-auto px-4 py-6">
           {activeTab === "rooms" && <RoomsTab searchQuery={searchQuery} />}
           {activeTab === "avatars" && <AvatarsTab searchQuery={searchQuery} />}
           {activeTab === "collections" && <CollectionsTab searchQuery={searchQuery} />}

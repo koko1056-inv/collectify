@@ -2458,6 +2458,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          completed_tours: string[]
           cover_image_url: string | null
           created_at: string
           display_name: string | null
@@ -2481,6 +2482,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          completed_tours?: string[]
           cover_image_url?: string | null
           created_at?: string
           display_name?: string | null
@@ -2504,6 +2506,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          completed_tours?: string[]
           cover_image_url?: string | null
           created_at?: string
           display_name?: string | null
@@ -3765,6 +3768,16 @@ export type Database = {
           owner_count: number
           title: string
           wish_count: number
+        }[]
+      }
+      find_trade_series_partners: {
+        Args: { _limit?: number }
+        Returns: {
+          partner_avatar_url: string
+          partner_id: string
+          partner_username: string
+          shared_series: string[]
+          their_items: Json
         }[]
       }
       find_trade_matches: {

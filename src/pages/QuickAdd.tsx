@@ -24,8 +24,10 @@ export default function QuickAdd() {
             撮影ステップに二重に並ぶため（実画面で確認）。 */}
         <QuickAddFlow onComplete={() => navigate("/collection")} />
 
-        {/* AI が読み取れなかったときの逃げ道 */}
-        <div className="mt-6 text-center">
+        {/* AI が読み取れなかったときの逃げ道。
+            登録が最初の体験になったので、ここは「手元にグッズが無い人」の
+            出口でもある。ガイドからも指すのでアンカーを付けておく。 */}
+        <div data-tour="quickadd-escape" className="mt-6 text-center">
           <p className="text-xs text-muted-foreground">
             {t("chrome.quickAdd.manualHint")}
           </p>

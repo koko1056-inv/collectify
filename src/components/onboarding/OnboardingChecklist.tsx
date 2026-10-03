@@ -18,6 +18,7 @@ import {
   UserCircle2,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
   Gift,
   Sparkles,
   X,
@@ -25,6 +26,7 @@ import {
   Users,
   Wand2,
   Compass,
+  ArrowLeftRight,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -59,8 +61,19 @@ export function OnboardingChecklist() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
-  // Collapsed by default so room/avatar content stays above the fold.
-  const [isExpanded, setIsExpanded] = useState(false);
+  /**
+   * 既定で畳んでいたのは、この一覧が /my-room にあった頃に部屋とアバターを
+   * 画面の上に出しておきたかったため。いまは /collection にあり、守るべき
+   * コンテンツが無い。一方で登録直後のユーザーには1行の進捗バーしか見えず、
+   * 次に何をすればいいのか分からない状態だった。
+   *
+   * - 序盤（EARLY_STEPS 件まで）は開いた状態で出す
+   * - それ以降は畳むが、畳んでいる間も「次にやること」を1件だけ見せる
+   * - ユーザーが自分で開閉したら、その選択を以後優先する
+   *
+   * null = まだ決まっていない（localStorage と進捗を読んでから確定させる）
+   */
+  const [expandPref, setExpandPref] = useState<boolean | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
   const claimingRef = useRef<Set<string>>(new Set());
 
@@ -69,16 +82,17 @@ export function OnboardingChecklist() {
     if (user?.id) {
       const dismissed = localStorage.getItem(`checklist_dismissed_${user.id}`);
       if (dismissed) setIsDismissed(true);
-      // Respect a previously remembered expand preference; default stays collapsed.
       const expanded = localStorage.getItem(`checklist_expanded_${user.id}`);
-      if (expanded === 'true') setIsExpanded(true);
+      if (expanded === 'true') setExpandPref(true);
+      else if (expanded === 'false') setExpandPref(false);
     }
   }, [user?.id]);
 
   // Toggle expand/collapse and persist the user's preference.
   const handleToggleExpand = () => {
-    setIsExpanded((prev) => {
-      const next = !prev;
+    setExpandPref((prev) => {
+      // 初回は「いま見えている状態」の反対に倒す。
+      const next = !(prev ?? isExpanded);
       if (user?.id) {
         localStorage.setItem(`checklist_expanded_${user.id}`, String(next));
       }
@@ -100,6 +114,7 @@ export function OnboardingChecklist() {
         wishlistRes,
         followsRes,
         bookmarksRes,
+        tradeOfferRes,
         rewardsRes,
       ] = await Promise.all([
         supabase
@@ -113,6 +128,12 @@ export function OnboardingChecklist() {
         supabase.from('wishlists').select('id').eq('user_id', user.id).limit(1),
         supabase.from('follows').select('id').eq('follower_id', user.id).limit(1),
         supabase.from('ai_work_bookmarks').select('id').eq('user_id', user.id).limit(1),
+        supabase
+          .from('user_items')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('for_trade', true)
+          .limit(1),
         supabase.from('onboarding_rewards').select('step_id').eq('user_id', user.id),
       ]);
 
@@ -129,6 +150,7 @@ export function OnboardingChecklist() {
         hasWishlist: (wishlistRes.data?.length ?? 0) > 0,
         hasFollow: (followsRes.data?.length ?? 0) > 0,
         hasBookmark: (bookmarksRes.data?.length ?? 0) > 0,
+        hasTradeOffer: (tradeOfferRes.data?.length ?? 0) > 0,
         claimedSteps,
       };
     },
@@ -225,6 +247,19 @@ export function OnboardingChecklist() {
         group: 'community',
       },
       {
+        // 交換は「出すものを選ぶ」をやらないと一生マッチしない。
+        // 本番の user_items 254件が全件 for_trade=false だったので、
+        // ここに置いて最初の1件を出してもらう。
+        id: 'trade-offer',
+        labelKey: 'misc.checklist.tradeOfferLabel',
+        descriptionKey: 'misc.checklist.tradeOfferDesc',
+        icon: ArrowLeftRight,
+        completed: checklistData.hasTradeOffer,
+        action: () => navigate('/search?tab=trade'),
+        points: 20,
+        group: 'community',
+      },
+      {
         id: 'bookmark',
         labelKey: 'misc.checklist.bookmarkLabel',
         descriptionKey: 'misc.checklist.bookmarkDesc',
@@ -241,8 +276,14 @@ export function OnboardingChecklist() {
   const totalCount = items.length;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
   const allCompleted = completedCount === totalCount;
-  // Reward hint for the compact (collapsed) summary: points of the next step.
-  const nextReward = items.find((i) => !i.completed)?.points ?? 0;
+  /** 畳んでいる間に見せる「次にやること」。一覧の並び順がそのまま推奨順。 */
+  const nextItem = items.find((i) => !i.completed);
+  const nextReward = nextItem?.points ?? 0;
+
+  // 序盤は開いて出す。アカウント作成だけ済んだ状態で畳むと、
+  // 進捗バー1行しか見えず次の行動が分からない。
+  const EARLY_STEPS = 3;
+  const isExpanded = expandPref ?? completedCount <= EARLY_STEPS;
 
   // グループ化
   const groupedItems = useMemo(() => {
@@ -314,6 +355,7 @@ export function OnboardingChecklist() {
 
   return (
     <motion.div
+      data-tour="collection-checklist"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
@@ -380,6 +422,37 @@ export function OnboardingChecklist() {
               </span>
             </div>
           </div>
+
+          {/* 畳んでいるときの「次にやること」。
+              以前はここが進捗バーだけで、登録直後のユーザーには
+              何をすればいいのかが一切見えていなかった。 */}
+          {!isExpanded && nextItem && (
+            <button
+              type="button"
+              onClick={nextItem.action}
+              disabled={!nextItem.action}
+              className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors text-left disabled:cursor-default"
+            >
+              <div className="p-1.5 rounded-lg bg-primary/10 shrink-0">
+                <nextItem.icon className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                  {t('misc.checklist.nextUp')}
+                </p>
+                <p className="text-sm font-medium truncate">{t(nextItem.labelKey)}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {t(nextItem.descriptionKey)}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                  +{nextItem.points}pt
+                </span>
+                {nextItem.action && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+              </div>
+            </button>
+          )}
 
           {/* Items grouped */}
           <AnimatePresence>

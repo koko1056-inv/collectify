@@ -159,7 +159,7 @@ export default function AiRoomsPage() {
         <div className="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-primary/20 blur-3xl" />
         <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full bg-primary/20 blur-3xl" />
 
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-3">
+        <div data-tour="airooms-intro" className="relative max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-3">
           {/* タイトル行 */}
           <div className="flex items-center gap-2 mb-3">
             <Button
@@ -292,6 +292,7 @@ export default function AiRoomsPage() {
               </TabsList>
             </Tabs>
             <Button
+              data-tour="airooms-generate"
               onClick={handleNewClick}
               size="sm"
               className="h-10 gap-1 bg-brand-gradient text-white hover:opacity-95 shadow-md shrink-0"

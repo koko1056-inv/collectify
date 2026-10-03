@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftRight, Gift, Heart, MessageCircle, Sparkles } from "lucide-react";
+import { ArrowLeftRight, Gift, Heart, Layers, MessageCircle, Sparkles } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,9 +12,16 @@ import { QueryErrorState } from "@/components/ui/query-error-state";
 import { ChatModal } from "@/components/chat/ChatModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useTradeMatches, useTradeReadiness, type TradeMatch } from "@/hooks/useTradeMatches";
+import {
+  useTradeMatches,
+  useTradeReadiness,
+  useTradeSeriesPartners,
+  type TradeMatch,
+  type TradeSeriesPartner,
+} from "@/hooks/useTradeMatches";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
+import { TradeOfferPicker } from "./TradeOfferPicker";
 import { TradeRequestModal } from "./TradeRequestModal";
 import { TradeInboxButton } from "./TradeInboxButton";
 import { InlineFollowButton } from "./InlineFollowButton";
@@ -38,9 +45,11 @@ export function TradeMatchingSection() {
     itemTitle: string;
   } | null>(null);
   const [chatPartnerId, setChatPartnerId] = useState<string | null>(null);
+  const [isOfferPickerOpen, setIsOfferPickerOpen] = useState(false);
 
   const { data: matches, isLoading, isError, refetch } = useTradeMatches();
   const { data: readiness } = useTradeReadiness();
+  const { data: seriesPartners } = useTradeSeriesPartners();
 
   const { mutual, theyHave, theyWant } = useMemo(() => {
     const all = matches ?? [];
@@ -50,6 +59,11 @@ export function TradeMatchingSection() {
       theyWant: all.filter((m) => !m.is_mutual && m.my_items.length > 0),
     };
   }, [matches]);
+
+  const seriesOnly = useMemo(() => {
+    const already = new Set((matches ?? []).map((m) => m.partner_id));
+    return (seriesPartners ?? []).filter((p) => !already.has(p.partner_id));
+  }, [matches, seriesPartners]);
 
   if (!user) {
     return (
@@ -88,7 +102,27 @@ export function TradeMatchingSection() {
         wishCount={readiness?.wishCount ?? 0}
         offerCount={readiness?.offerCount ?? 0}
         surplusCount={readiness?.surplusCount ?? 0}
+        onPickOffers={() => setIsOfferPickerOpen(true)}
       />
+
+      {/* 出品の常設入口。準備バナーは条件が揃うと消えるので、
+          「交換に出すものを増やす／やめる」入口がそこだけだと無くなる。 */}
+      <button
+        type="button"
+        data-tour="trade-offer-cta"
+        onClick={() => setIsOfferPickerOpen(true)}
+        className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-muted/50"
+      >
+        <div className="rounded-lg bg-primary/10 p-2">
+          <ArrowLeftRight className="h-4 w-4 text-primary" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium">{t("trade.picker.openTitle")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("trade.picker.openDesc", { n: readiness?.offerCount ?? 0 })}
+          </p>
+        </div>
+      </button>
 
       {/* 両想い */}
       <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-background">
@@ -186,6 +220,41 @@ export function TradeMatchingSection() {
         </Card>
       )}
 
+      {/* 同じ作品を集めている人。完全一致が出ないうちは、ここが
+          実際に話しかけられる唯一の相手になる。 */}
+      {seriesOnly.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Layers className="w-4 h-4 text-sky-500" />
+              {t("trade.matching.sameSeriesTitle")}
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              {t("trade.matching.sameSeriesDesc")}
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {seriesOnly.map((partner) => (
+              <SeriesPartnerCard
+                key={partner.partner_id}
+                partner={partner}
+                onItemClick={(item) =>
+                  setSelectedMatch({
+                    userId: partner.partner_id,
+                    itemId: item.id,
+                    itemTitle: item.title,
+                  })
+                }
+                onOpenChat={() => openChat(partner.partner_id)}
+                onOpenProfile={() => navigate(`/user/${partner.partner_id}`)}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <TradeOfferPicker open={isOfferPickerOpen} onOpenChange={setIsOfferPickerOpen} />
+
       {selectedMatch && (
         <TradeRequestModal
           isOpen={!!selectedMatch}
@@ -216,10 +285,12 @@ function ReadinessBanner({
   wishCount,
   offerCount,
   surplusCount,
+  onPickOffers,
 }: {
   wishCount: number;
   offerCount: number;
   surplusCount: number;
+  onPickOffers: () => void;
 }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -238,7 +309,10 @@ function ReadinessBanner({
           : t("trade.matching.setupOffer");
 
   return (
-    <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3">
+    <div
+      data-tour="trade-readiness"
+      className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-3"
+    >
       <p className="text-sm">{message}</p>
       <div className="mt-2 flex flex-wrap gap-2">
         {wishCount === 0 && (
@@ -247,10 +321,93 @@ function ReadinessBanner({
           </Button>
         )}
         {offerCount === 0 && (
-          <Button size="sm" variant="outline" onClick={() => navigate("/collection")}>
+          // 以前は /collection へ飛ばしていた。だがコレクション画面には
+          // 交換に出す操作が無く（グッズ詳細モーダルの奥だけ）、
+          // 言われた通りに押しても何もできない行き止まりだった。
+          <Button size="sm" variant="outline" onClick={onPickOffers}>
             {t("trade.matching.setupOfferCta")}
           </Button>
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 同じ作品を集めている相手のカード。
+ * 完全一致の「両想い／片想い」と見分けがつくよう、重なっている作品名を見せる。
+ */
+function SeriesPartnerCard({
+  partner,
+  onItemClick,
+  onOpenChat,
+  onOpenProfile,
+}: {
+  partner: TradeSeriesPartner;
+  onItemClick: (item: { id: string; title: string }) => void;
+  onOpenChat: () => void;
+  onOpenProfile: () => void;
+}) {
+  const { t } = useLanguage();
+  const name = partner.partner_username || t("trade.match.userFallback");
+
+  return (
+    <div className="space-y-2 rounded-xl border border-border p-3">
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10 cursor-pointer" onClick={onOpenProfile}>
+          <AvatarImage src={partner.partner_avatar_url || undefined} />
+          <AvatarFallback className="bg-sky-500/10 text-sky-600">
+            {name.charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <button
+            type="button"
+            onClick={onOpenProfile}
+            className="tap-safe-y block max-w-full truncate text-left font-medium transition-colors hover:text-primary"
+          >
+            {name}
+          </button>
+          <div className="mt-0.5 flex flex-wrap gap-1">
+            {partner.shared_series.slice(0, 2).map((series) => (
+              <Badge key={series} variant="secondary" className="px-1.5 py-0 text-[10px]">
+                {series}
+              </Badge>
+            ))}
+            {partner.shared_series.length > 2 && (
+              <span className="text-[10px] text-muted-foreground">
+                {t("trade.matching.seriesMore", { n: partner.shared_series.length - 2 })}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <InlineFollowButton userId={partner.partner_id} />
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onOpenChat}>
+            <MessageCircle className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {partner.their_items.slice(0, 8).map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => onItemClick(item)}
+            className="w-20 shrink-0 text-left"
+            title={item.title}
+          >
+            <img
+              src={getOptimizedImageUrl(item.image, { width: 160 })}
+              onError={fallbackToOriginal(item.image)}
+              alt={item.title}
+              loading="lazy"
+              className="h-20 w-20 rounded-lg border border-border object-cover transition-opacity hover:opacity-80"
+            />
+            <p className="mt-1 truncate text-[10px] text-muted-foreground">{item.title}</p>
+          </button>
+        ))}
       </div>
     </div>
   );

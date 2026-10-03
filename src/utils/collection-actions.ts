@@ -11,6 +11,13 @@ interface AddToCollectionParams {
   prize?: string;
   theme?: string;
   quantity?: number;
+  /**
+   * 交換に出すか。登録時にここで受け取れるようにしてある。
+   * 以前は登録後にグッズ詳細モーダルを開いてスイッチを探すしか経路が無く、
+   * 本番の user_items 254件すべてが for_trade=false のままだった
+   * （= 交換マッチングが構造的に1件も出ない状態だった）。
+   */
+  forTrade?: boolean;
   /** 自分のコレクション側のメモ。カタログに登録しない場合の説明文の保存先。 */
   note?: string;
 }
@@ -41,7 +48,7 @@ export interface IncrementItemQuantityResult {
 
 // コレクションに追加（上限チェック＆ポイント付与付き）
 export async function addToCollection(params: AddToCollectionParams): Promise<AddToCollectionResult> {
-  const { userId, title, image, officialItemId, contentName, releaseDate, prize, theme, quantity = 1, note } = params;
+  const { userId, title, image, officialItemId, contentName, releaseDate, prize, theme, quantity = 1, forTrade = false, note } = params;
   
   try {
     // 1. ユーザーの上限を確認
@@ -100,6 +107,7 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
         prize: prize || "0",
         theme: theme || null,
         quantity,
+        for_trade: forTrade,
         note: note || null
       })
       .select("id")

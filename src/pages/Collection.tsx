@@ -6,9 +6,6 @@ import { UserCollection } from "@/components/UserCollection";
 import { useTags } from "@/hooks/useTags";
 import { useAuth } from "@/contexts/AuthContext";
 import { FilterSheet } from "@/components/FilterSheet";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
 import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
@@ -19,7 +16,6 @@ export default function Collection() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedContent, setSelectedContent] = useState("");
@@ -84,23 +80,11 @@ export default function Collection() {
         </div>
       </main>
       
-      {/* グッズ追加の常設導線。
-          コレクションが1件でもあると空状態のCTAが消えてしまい、
-          「2個目を追加する」入口が画面から無くなっていたため常時出す。
-          下タブ中央の丸い「みつける」ボタンと見分けがつくよう、
-          円形アイコンではなく文字付きの横長ボタンにしている。
-          押すと追加方法（撮影／一覧から選ぶ／手入力）を選べる。 */}
-      {isMobile && (
-        <Button
-          onClick={() => { setAddSheetView("menu"); setIsAddSheetOpen(true); }}
-          aria-label={t("chrome.fab.addGoods")}
-          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 shadow-lg rounded-full h-12 pl-4 pr-5 gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="text-sm font-semibold">{t("chrome.fab.addShort")}</span>
-        </Button>
-      )}
-      
+      {/* グッズ追加の常設導線は下タブ中央のボタンに移した。
+          以前はここにも「+追加」の浮きボタンを置いていたが、下タブ中央にも
+          丸いボタンがあり（当時は検索）、丸いボタンが2つ並んで意味が
+          取れなかった。中央ボタンを追加に変えたのでこちらは外す。
+          このシートは空状態の「探して追加」から一覧表示で開くために残す。 */}
       <AddGoodsSheet
         open={isAddSheetOpen}
         onOpenChange={setIsAddSheetOpen}

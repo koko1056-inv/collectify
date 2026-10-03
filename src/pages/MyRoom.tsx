@@ -5,12 +5,11 @@ import { MyRoomHome } from "@/components/home/MyRoomHome";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useOnboarding } from "@/contexts/OnboardingContext";
-import { WelcomeOnboarding } from "@/components/onboarding/WelcomeOnboarding";
 
 export default function MyRoom() {
   const { user } = useAuth();
   const { profile } = useProfile(user?.id);
-  const { onboardingState, isInitialized, completeWelcome } = useOnboarding();
+  const { isInitialized } = useOnboarding();
 
   // DB同期が完了するまで何も表示しない（オンボーディングのちらつき防止）
   if (user && !isInitialized) {
@@ -21,10 +20,9 @@ export default function MyRoom() {
     );
   }
 
-  const showWelcome = !!user && !onboardingState.hasCompletedWelcome;
-  if (showWelcome) {
-    return <WelcomeOnboarding onComplete={() => completeWelcome()} />;
-  }
+  // ウェルカムの表示は App 直下の OnboardingGate が担当する。
+  // ここで出していた頃は、着地点が /collection に移って以降
+  // 新規ユーザーに一度も表示されていなかった。
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,7 +39,10 @@ export default function MyRoom() {
         />
       </div>
       <Navbar />
-      <main className="relative z-10 w-full pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-8">
+      <main
+        data-tour="myroom-main"
+        className="relative z-10 w-full pb-[calc(5rem+env(safe-area-inset-bottom))] sm:pb-8"
+      >
         <MyRoomHome profile={profile} />
       </main>
       <Footer />

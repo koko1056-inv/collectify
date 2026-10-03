@@ -78,6 +78,9 @@ verify_jwt = false
 [functions.analyze-image]
 verify_jwt = false
 
+[functions.backfill-item-series]
+verify_jwt = true
+
 [functions.backfill-image-sizes]
 verify_jwt = false
 

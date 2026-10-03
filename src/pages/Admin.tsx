@@ -5,6 +5,7 @@ import { AdminItemList } from "@/components/AdminItemList";
 import { TagCandidatesManager } from "@/components/admin/TagCandidatesManager";
 import { DuplicateItemsManager } from "@/components/admin/DuplicateItemsManager";
 import { ReportsManager } from "@/components/admin/ReportsManager";
+import { SeriesBackfillManager } from "@/components/admin/SeriesBackfillManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -23,6 +24,7 @@ const Admin = () => {
             <TabsTrigger value="items">{t("screens.admin.itemsTab")}</TabsTrigger>
             <TabsTrigger value="tags">{t("screens.admin.tagsTab")}</TabsTrigger>
             <TabsTrigger value="duplicates">{t("screens.admin.duplicatesTab")}</TabsTrigger>
+            <TabsTrigger value="series">{t("screens.admin.seriesTab")}</TabsTrigger>
             <TabsTrigger value="reports">{t("screens.admin.reportsTab")}</TabsTrigger>
           </TabsList>
 
@@ -37,6 +39,10 @@ const Admin = () => {
 
           <TabsContent value="duplicates">
             <DuplicateItemsManager />
+          </TabsContent>
+
+          <TabsContent value="series">
+            <SeriesBackfillManager />
           </TabsContent>
 
           <TabsContent value="reports">

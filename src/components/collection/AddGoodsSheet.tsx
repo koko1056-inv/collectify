@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Check, ChevronLeft, ListChecks, Loader2, Pencil, Search } from "lucide-react";
+import { Camera, Check, ChevronLeft, Heart, ListChecks, Loader2, Pencil, Search } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { cn } from "@/lib/utils";
 
 type View = "menu" | "pick";
 
@@ -157,6 +158,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [wishingId, setWishingId] = useState<string | null>(null);
 
   const { data: items = [], isLoading, isError, refetch } = useOfficialItems();
 
@@ -175,6 +177,59 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
       return new Set((data ?? []).map((r) => r.official_item_id as string));
     },
   });
+
+  // 「ほしい」に入れてあるものも先に取る。行ごとに聞くとクエリが増える。
+  const { data: wishedIds } = useQuery({
+    queryKey: ["wished-official-item-ids", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wishlists")
+        .select("official_item_id")
+        .eq("user_id", user!.id)
+        .not("official_item_id", "is", null);
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.official_item_id as string));
+    },
+  });
+
+  /**
+   * ほしいものに入れる。
+   *
+   * ここに置いた理由: 下タブから「グッズ検索」を外したので、ウィッシュを
+   * 作れる場所が画面上からほぼ無くなる。交換の成立には「欲しいもの」と
+   * 「出せるもの」の両方が要るため、demand 側の入口が消えると
+   * 交換がまた動かなくなる。カタログを見ている今ここが一番自然な場所。
+   */
+  const handleWish = async (item: (typeof items)[number]) => {
+    if (!user) return;
+    setWishingId(item.id);
+    try {
+      const { error } = await supabase.from("wishlists").insert({
+        user_id: user.id,
+        official_item_id: item.id,
+      });
+      if (error) throw error;
+      toast.success(t("collectionScreen.addSheet.wishedToast", { title: item.title }));
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["wished-official-item-ids", user.id] }),
+        // キーは既存のウィッシュ追加（MemoizedOfficialGoodsCard）と揃える。
+        // 違うキーを投げても何も再取得されず、他画面が古い表示のまま残る。
+        queryClient.invalidateQueries({ queryKey: ["wishlist"], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["wishlist-counts"] }),
+        queryClient.invalidateQueries({ queryKey: ["is-in-wishlist", item.id, user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["trade-matches", user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["trade-series-partners", user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["trade-readiness", user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["onboarding-checklist", user.id] }),
+      ]);
+    } catch (e) {
+      console.error("Failed to add to wishlist:", e);
+      toast.error(t("collectionScreen.addSheet.wishFailed"));
+    } finally {
+      setWishingId(null);
+    }
+  };
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -280,6 +335,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
             <div className="space-y-2">
               {results.map((item) => {
                 const owned = ownedIds?.has(item.id) ?? false;
+                const wished = wishedIds?.has(item.id) ?? false;
                 return (
                   <div
                     key={item.id}
@@ -298,22 +354,49 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                         </p>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      variant={owned ? "outline" : "default"}
-                      disabled={owned || addingId === item.id}
-                      onClick={() => handleAdd(item)}
-                      className="shrink-0 gap-1"
-                    >
-                      {addingId === item.id ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : owned ? (
-                        <Check className="h-3.5 w-3.5" />
-                      ) : null}
-                      {owned
-                        ? t("collectionScreen.addSheet.owned")
-                        : t("chrome.fab.addShort")}
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      {/* 持っていないものは「ほしい」に入れられる。
+                          交換は欲しいもの側が無いと相手が見つからない。 */}
+                      {!owned && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={wished || wishingId === item.id}
+                          onClick={() => handleWish(item)}
+                          className="gap-1"
+                        >
+                          {wishingId === item.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Heart
+                              className={cn(
+                                "h-3.5 w-3.5",
+                                wished && "fill-current text-primary"
+                              )}
+                            />
+                          )}
+                          {wished
+                            ? t("collectionScreen.addSheet.wished")
+                            : t("collectionScreen.addSheet.wantIt")}
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant={owned ? "outline" : "default"}
+                        disabled={owned || addingId === item.id}
+                        onClick={() => handleAdd(item)}
+                        className="gap-1"
+                      >
+                        {addingId === item.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : owned ? (
+                          <Check className="h-3.5 w-3.5" />
+                        ) : null}
+                        {owned
+                          ? t("collectionScreen.addSheet.owned")
+                          : t("chrome.fab.addShort")}
+                      </Button>
+                    </div>
                   </div>
                 );
               })}

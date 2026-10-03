@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
+import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
+import { PageTourHost } from "@/components/onboarding/PageTourHost";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { ColorSchemeProvider } from "@/contexts/ColorSchemeContext";
@@ -192,6 +194,10 @@ const App: React.FC = () => {
                       <Route path="*" element={<Navigate to="/collection" replace />} />
                     </Routes>
                   </Suspense>
+                  {/* 初回ウェルカムと画面ガイドは特定のページに紐づけない。
+                      ページ内に置くとそのページへ行かない人には一度も出ない。 */}
+                  <OnboardingGate />
+                  <PageTourHost />
                   </AppErrorBoundary>
                 </TooltipProvider>
               </OnboardingProvider>

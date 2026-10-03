@@ -4,18 +4,11 @@ import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowRight,
-  ChevronRight,
   ChevronLeft,
   Sparkles,
   Heart,
-  Package,
-  Users,
   Gift,
   Star,
-  Wand2,
-  Search as SearchIcon,
-  Compass,
-  Check,
 } from "lucide-react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,7 +16,6 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { InitialInterestSelection } from "@/components/InitialInterestSelection";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
 import { claimReward } from "@/hooks/useClaimReward";
 
 interface WelcomeOnboardingProps {
@@ -31,18 +23,21 @@ interface WelcomeOnboardingProps {
 }
 
 // ──────────────────────────────────────────────
-// 新オンボーディングフロー（6ステップ）
+// ウェルカムフロー（3ステップ）
 //   1. Welcome / 名前入力
-//   2. 興味選択
-//   3. AIスタジオ紹介
-//   4. 探索 紹介
-//   5. コレクション 紹介
-//   6. 完了セレブレーション → /quick-add へ（手持ちゼロなので、まず1個登録してもらう）
+//   2. 興味選択（おすすめの精度に使う）
+//   3. 完了セレブレーション → /collection へ
+//
+// 以前はここに AIスタジオ / 探索 / コレクション の紹介スライドが3枚あった。
+// 読む時点では指し示す対象が画面に無く、読み終えても何も残らないため外した。
+// 機能の説明は各画面のスポットライトガイド（PageTourHost）が、実物の
+// ボタンを光らせながら行う。ここは名前と興味だけ受け取って手短に終える。
 // ──────────────────────────────────────────────
 
-type Step = "welcome" | "interests" | "feature-ai" | "feature-explore" | "feature-collection" | "celebrate";
+type Step = "welcome" | "interests" | "celebrate";
 
-const FEATURE_STEPS: Step[] = ["feature-ai", "feature-explore", "feature-collection"];
+/** 上部バー（戻る・進捗・スキップ）を出すステップ。 */
+const BAR_STEPS: Step[] = ["interests"];
 
 export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const { user } = useAuth();
@@ -81,7 +76,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
   // 全ステップ順序とindex計算（プログレス表示用）
   const allSteps: Step[] = useMemo(
-    () => ["welcome", "interests", ...FEATURE_STEPS, "celebrate"],
+    () => ["welcome", "interests", "celebrate"],
     []
   );
   const stepIndex = allSteps.indexOf(step);
@@ -127,28 +122,20 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     completeWalkthrough();
     await completeWelcome();
     onComplete();
+    // 最初の体験を「1つ登録する」にする。コレクションが空のままだと
+    // 部屋生成も交換も中身が無く、どの機能も意味を持たない。
+    // 以前もここへ送っていたが説明がゼロだったので離脱していた。
+    // いまは /quick-add 側のガイドが撮り方と逃げ道を実物の上で説明する。
     navigate("/quick-add");
   }, [user?.id, completeWalkthrough, completeWelcome, onComplete, navigate]);
 
-  // タッチスワイプ（機能紹介ステップで有効）
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
-    const diff = touchStart - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) {
-      if (diff > 0) goNext();
-      else if (stepIndex > 0) goPrev();
-    }
-    setTouchStart(null);
-  };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-background overflow-hidden">
       <FloatingEmojis />
 
       {/* 上部プログレスバー（welcome / interests / celebrate以外で表示） */}
-      {FEATURE_STEPS.includes(step) && (
+      {BAR_STEPS.includes(step) && (
         <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-4">
           <div className="max-w-md mx-auto flex items-center gap-3">
             <button
@@ -196,41 +183,8 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
           />
         )}
 
-        {step === "feature-ai" && (
-          <FeatureStep
-            key="feature-ai"
-            featureKey="ai"
-            friendlyName={friendlyName}
-            direction={direction}
-            onNext={goNext}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          />
-        )}
 
-        {step === "feature-explore" && (
-          <FeatureStep
-            key="feature-explore"
-            featureKey="explore"
-            friendlyName={friendlyName}
-            direction={direction}
-            onNext={goNext}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          />
-        )}
 
-        {step === "feature-collection" && (
-          <FeatureStep
-            key="feature-collection"
-            featureKey="collection"
-            friendlyName={friendlyName}
-            direction={direction}
-            onNext={goNext}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          />
-        )}
 
         {step === "celebrate" && (
           <CelebrateStep key="celebrate" friendlyName={friendlyName} onFinish={handleFinish} />
@@ -393,233 +347,6 @@ function InterestsStep({
   );
 }
 
-// ==================== Step 3-5: 機能紹介 ====================
-
-type FeatureKey = "ai" | "explore" | "collection";
-
-interface FeatureContent {
-  badge: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number | string }>;
-  gradient: string;
-  accent: string;
-  bullets: { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; text: string }[];
-  cta: string;
-}
-
-type TFunc = (key: string, vars?: Record<string, string | number>) => string;
-
-function getFeatureContent(key: FeatureKey, friendlyName: string, t: TFunc): FeatureContent {
-  switch (key) {
-    case "ai":
-      return {
-        badge: t("misc.onboarding.aiBadge"),
-        title: t("misc.onboarding.aiTitle"),
-        subtitle: "Powered by AI Studio",
-        description: t("misc.onboarding.aiDesc", { name: friendlyName }),
-        icon: Wand2,
-        gradient: "from-violet-500 via-fuchsia-500 to-pink-500",
-        accent: "#a855f7",
-        bullets: [
-          { icon: Sparkles, text: t("misc.onboarding.aiBullet1") },
-          { icon: Star, text: t("misc.onboarding.aiBullet2") },
-          { icon: Gift, text: t("misc.onboarding.aiBullet3") },
-        ],
-        cta: t("misc.onboarding.next"),
-      };
-    case "explore":
-      return {
-        badge: t("misc.onboarding.exploreBadge"),
-        title: t("misc.onboarding.exploreTitle"),
-        subtitle: "Discover & Connect",
-        description: t("misc.onboarding.exploreDesc"),
-        icon: Compass,
-        gradient: "from-cyan-500 via-blue-500 to-indigo-500",
-        accent: "#3b82f6",
-        bullets: [
-          { icon: Users, text: t("misc.onboarding.exploreBullet1") },
-          { icon: Heart, text: t("misc.onboarding.exploreBullet2") },
-          { icon: SearchIcon, text: t("misc.onboarding.exploreBullet3") },
-        ],
-        cta: t("misc.onboarding.next"),
-      };
-    case "collection":
-      return {
-        badge: t("misc.onboarding.collectionBadge"),
-        title: t("misc.onboarding.collectionTitle"),
-        subtitle: "Your Collection",
-        description: t("misc.onboarding.collectionDesc"),
-        icon: Package,
-        gradient: "from-emerald-500 via-green-500 to-lime-500",
-        accent: "#10b981",
-        bullets: [
-          { icon: Check, text: t("misc.onboarding.collectionBullet1") },
-          { icon: Star, text: t("misc.onboarding.collectionBullet2") },
-          { icon: Heart, text: t("misc.onboarding.collectionBullet3") },
-        ],
-        cta: t("misc.onboarding.finish"),
-      };
-  }
-}
-
-function FeatureStep({
-  featureKey,
-  friendlyName,
-  direction,
-  onNext,
-  onTouchStart,
-  onTouchEnd,
-}: {
-  featureKey: FeatureKey;
-  friendlyName: string;
-  direction: number;
-  onNext: () => void;
-  onTouchStart: (e: React.TouchEvent) => void;
-  onTouchEnd: (e: React.TouchEvent) => void;
-}) {
-  const { t } = useLanguage();
-  const content = getFeatureContent(featureKey, friendlyName, t);
-  const Icon = content.icon;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: direction * 60 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: direction * -60 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="h-full flex flex-col relative z-10 pt-16"
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-    >
-      <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-full max-w-sm flex flex-col items-center text-center">
-          {/* バッジ */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-card/80 backdrop-blur-md border border-border/40 text-[11px] font-semibold text-muted-foreground mb-6"
-          >
-            {content.badge}
-          </motion.div>
-
-          {/* アイコン＋アニメーション */}
-          <div className="relative mb-8">
-            <motion.div
-              animate={{ scale: [1, 1.08, 1], rotate: [0, 6, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className={cn(
-                "absolute inset-0 rounded-full blur-3xl bg-gradient-to-br opacity-60 scale-[1.8]",
-                content.gradient
-              )}
-            />
-            <motion.div
-              animate={{ y: [0, -8, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className={cn(
-                "relative w-32 h-32 rounded-[40%] bg-gradient-to-br flex items-center justify-center shadow-2xl",
-                content.gradient
-              )}
-            >
-              <Icon className="w-16 h-16 text-white" strokeWidth={2.5} />
-            </motion.div>
-
-            {/* キラキラ */}
-            {[0, 1, 2, 3].map((i) => (
-              <motion.div
-                key={i}
-                className="absolute"
-                style={{
-                  left: `${[10, 90, 15, 85][i]}%`,
-                  top: `${[15, 20, 85, 75][i]}%`,
-                }}
-                animate={{
-                  scale: [0, 1, 0],
-                  rotate: [0, 180, 360],
-                  opacity: [0, 1, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: i * 0.5,
-                  ease: "easeOut",
-                }}
-              >
-                <Sparkles className="w-5 h-5" style={{ color: content.accent }} />
-              </motion.div>
-            ))}
-          </div>
-
-          {/* タイトル */}
-          <motion.h1
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="text-3xl sm:text-4xl font-bold text-foreground whitespace-pre-line leading-tight mb-3"
-          >
-            {content.title}
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-muted-foreground text-sm leading-relaxed max-w-xs mb-6"
-          >
-            {content.description}
-          </motion.p>
-
-          {/* 機能ハイライト */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="w-full space-y-2"
-          >
-            {content.bullets.map((b, i) => {
-              const BIcon = b.icon;
-              return (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-card/60 backdrop-blur-sm border border-border/40 text-left"
-                >
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ background: `${content.accent}20` }}
-                  >
-                    <BIcon className="w-4 h-4" style={{ color: content.accent }} />
-                  </div>
-                  <span className="text-sm font-medium text-foreground">{b.text}</span>
-                </div>
-              );
-            })}
-          </motion.div>
-        </div>
-      </div>
-
-      {/* 下部CTA */}
-      <div className="px-6 pb-10 pt-6">
-        <div className="max-w-sm mx-auto">
-          <Button
-            onClick={onNext}
-            size="lg"
-            className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2"
-            style={{
-              background: `linear-gradient(135deg, ${content.accent}, ${content.accent}dd)`,
-              color: "white",
-            }}
-          >
-            {content.cta}
-            <ChevronRight className="w-5 h-5" />
-          </Button>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
 // ==================== Step 6: お祝い画面 ====================
 
 function CelebrateStep({
@@ -699,7 +426,7 @@ function CelebrateStep({
           size="lg"
           className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
         >
-          {t("misc.onboarding.goExplore")}
+          {t("misc.onboarding.goRegisterFirst")}
           <ArrowRight className="w-5 h-5" />
         </Button>
         <p className="text-center text-xs text-muted-foreground mt-3">

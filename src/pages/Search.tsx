@@ -164,7 +164,7 @@ const Search = () => {
             {/* グッズ検索タブ - コンパクトフィルター */}
             <TabsContent value="goods" className="space-y-3">
               {/* 検索バー + フィルターボタン */}
-              <div className="flex items-center gap-2 bg-background py-2">
+              <div data-tour="search-input" className="flex items-center gap-2 bg-background py-2">
                 <div className="flex-1 min-w-0">
                   <SearchBar
                     searchQuery={searchQuery}
@@ -227,6 +227,7 @@ const Search = () => {
                 </div>
               )}
 
+              <div data-tour="search-results">
               <OfficialItemsList
                 items={filteredItems}
                 searchQuery={searchQuery}
@@ -240,6 +241,7 @@ const Search = () => {
                 isError={itemsError}
                 onRetry={() => refetchItems()}
               />
+              </div>
 
               {/* フィルターDrawer */}
               <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>

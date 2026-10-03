@@ -104,3 +104,43 @@ export function useTradeReadiness() {
     },
   });
 }
+
+export interface TradeSeriesPartner {
+  partner_id: string;
+  partner_username: string | null;
+  partner_avatar_url: string | null;
+  /** 自分と重なっている作品名 */
+  shared_series: string[];
+  /** 相手がその作品で交換に出しているもの */
+  their_items: TradeMatchItem[];
+}
+
+/**
+ * 同じ作品を集めている相手。
+ *
+ * find_trade_matches はグッズの完全一致でしか突き合わせないが、推し活の交換は
+ * 「同じ作品の別キャラ」が中心で、その条件では現実のデータでほぼ成立しない
+ * （本番で、仮に全件を交換可にしても片想い3組・両想い0組だった）。
+ * 作品名で緩く寄せた候補を、完全一致マッチの下に別枠で出すための材料。
+ */
+export function useTradeSeriesPartners() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["trade-series-partners", user?.id],
+    enabled: !!user?.id,
+    staleTime: 60 * 1000,
+    queryFn: async (): Promise<TradeSeriesPartner[]> => {
+      const { data, error } = await supabase.rpc("find_trade_series_partners", { _limit: 20 });
+      if (error) throw error;
+
+      return (data ?? []).map((row) => ({
+        partner_id: row.partner_id,
+        partner_username: row.partner_username,
+        partner_avatar_url: row.partner_avatar_url,
+        shared_series: Array.isArray(row.shared_series) ? row.shared_series : [],
+        their_items: toItems(row.their_items),
+      }));
+    },
+  });
+}

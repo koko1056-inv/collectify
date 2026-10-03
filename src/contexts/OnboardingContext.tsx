@@ -1,16 +1,16 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { ALL_TOUR_IDS } from '@/components/onboarding/tours';
 
 interface OnboardingState {
   hasCompletedWalkthrough: boolean;
   hasCompletedWelcome: boolean;
-  shownTooltips: {
-    search: boolean;
-    collection: boolean;
-    wishlist: boolean;
-    post: boolean;
-  };
+  /**
+   * 見終わった画面ガイドのID（src/components/onboarding/tours.ts）。
+   * ツールチップと違い端末間で同期させたいので profiles にも保存する。
+   */
+  completedTours: string[];
 }
 
 interface OnboardingContextType {
@@ -18,8 +18,13 @@ interface OnboardingContextType {
   isInitialized: boolean;
   completeWalkthrough: () => void;
   completeWelcome: () => Promise<void>;
-  markTooltipShown: (tooltipId: keyof OnboardingState['shownTooltips']) => void;
-  shouldShowTooltip: (tooltipId: keyof OnboardingState['shownTooltips']) => boolean;
+  /** その画面ガイドをまだ出していないか。ウェルカム完了後にのみ true。 */
+  shouldShowTour: (tourId: string) => boolean;
+  markTourDone: (tourId: string) => void;
+  /** 「ガイドをすべて表示しない」。全IDを完了扱いにする。 */
+  disableAllTours: () => void;
+  /** ガイドだけをやり直す（ウェルカムは再表示しない）。 */
+  resetTours: () => void;
   resetOnboarding: () => void;
 }
 
@@ -30,12 +35,7 @@ const STORAGE_KEY_PREFIX = 'collectify_onboarding_state';
 const defaultState: OnboardingState = {
   hasCompletedWalkthrough: false,
   hasCompletedWelcome: false,
-  shownTooltips: {
-    search: false,
-    collection: false,
-    wishlist: false,
-    post: false,
-  },
+  completedTours: [],
 };
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
@@ -72,18 +72,22 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('onboarded_at')
+          .select('onboarded_at, completed_tours')
           .eq('id', user.id)
           .maybeSingle();
 
         if (cancelled) return;
 
         const dbCompleted = !error && !!data?.onboarded_at;
+        // ガイドは「どちらかで見た」を見た扱いにする。取りこぼして
+        // 二度出すより、片方で見ていれば出さない方が邪魔にならない。
+        const dbTours = (!error && data?.completed_tours) || [];
         const merged: OnboardingState = {
           ...localState,
           // DBに完了記録があれば確実に完了扱い（ローカル未完了でも上書き）
           hasCompletedWelcome: dbCompleted || localState.hasCompletedWelcome,
           hasCompletedWalkthrough: dbCompleted || localState.hasCompletedWalkthrough,
+          completedTours: Array.from(new Set([...localState.completedTours, ...dbTours])),
         };
         setOnboardingState(merged);
         localStorage.setItem(storageKey, JSON.stringify(merged));
@@ -128,19 +132,58 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   }, [user?.id]);
 
-  const markTooltipShown = useCallback((tooltipId: keyof OnboardingState['shownTooltips']) => {
-    setOnboardingState((prev) => ({
-      ...prev,
-      shownTooltips: { ...prev.shownTooltips, [tooltipId]: true },
-    }));
-  }, []);
-
-  const shouldShowTooltip = useCallback(
-    (tooltipId: keyof OnboardingState['shownTooltips']) => {
-      return onboardingState.hasCompletedWalkthrough && !onboardingState.shownTooltips[tooltipId];
+  /**
+   * 完了済みガイドをDBへ書き戻す。
+   * 配列ごと置き換えるので、呼ぶ側が合算済みの配列を渡すこと。
+   */
+  const persistTours = useCallback(
+    (tours: string[]) => {
+      if (!user?.id) return;
+      supabase
+        .from('profiles')
+        .update({ completed_tours: tours })
+        .eq('id', user.id)
+        .then(
+          () => {},
+          (e) => console.error('Failed to persist completed_tours:', e)
+        );
     },
-    [onboardingState]
+    [user?.id]
   );
+
+  const shouldShowTour = useCallback(
+    (tourId: string) => {
+      // ウェルカムが終わる前に画面ガイドを重ねると二重の案内になる。
+      if (!isInitialized || !onboardingState.hasCompletedWelcome) return false;
+      return !onboardingState.completedTours.includes(tourId);
+    },
+    [isInitialized, onboardingState.hasCompletedWelcome, onboardingState.completedTours]
+  );
+
+  const markTourDone = useCallback(
+    (tourId: string) => {
+      setOnboardingState((prev) => {
+        if (prev.completedTours.includes(tourId)) return prev;
+        const completedTours = [...prev.completedTours, tourId];
+        persistTours(completedTours);
+        return { ...prev, completedTours };
+      });
+    },
+    [persistTours]
+  );
+
+  const disableAllTours = useCallback(() => {
+    setOnboardingState((prev) => {
+      const completedTours = Array.from(new Set([...prev.completedTours, ...ALL_TOUR_IDS]));
+      persistTours(completedTours);
+      return { ...prev, completedTours };
+    });
+  }, [persistTours]);
+
+  const resetTours = useCallback(() => {
+    setOnboardingState((prev) => ({ ...prev, completedTours: [] }));
+    persistTours([]);
+  }, [persistTours]);
 
   const resetOnboarding = useCallback(() => {
     setOnboardingState(defaultState);
@@ -150,7 +193,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       // DBからもクリア（開発用）
       supabase
         .from('profiles')
-        .update({ onboarded_at: null })
+        .update({ onboarded_at: null, completed_tours: [] })
         .eq('id', user.id)
         .then(() => {}, () => {});
     }
@@ -163,8 +206,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         isInitialized,
         completeWalkthrough,
         completeWelcome,
-        markTooltipShown,
-        shouldShowTooltip,
+        shouldShowTour,
+        markTourDone,
+        disableAllTours,
+        resetTours,
         resetOnboarding,
       }}
     >

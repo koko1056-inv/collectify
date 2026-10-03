@@ -6,9 +6,7 @@ import { SearchInput } from "@/components/search/SearchInput";
 import { SearchSuggestions } from "@/components/search/SearchSuggestions";
 import { SearchHistory } from "@/components/search/SearchHistory";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
-import { ProgressiveTooltip } from "@/components/onboarding/ProgressiveTooltip";
 import { Tag } from "@/types";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 interface SearchBarProps {
   searchQuery: string;
@@ -34,7 +32,6 @@ export function SearchBar({
   searchQuery,
   onSearchChange,
 }: SearchBarProps) {
-  const { t } = useLanguage();
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isItemDetailsOpen, setIsItemDetailsOpen] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -102,20 +99,16 @@ export function SearchBar({
   return (
     <>
       <div className="w-full relative">
-        <ProgressiveTooltip
-          id="search"
-          title={t("chrome.searchBar.tipTitle")}
-          description={t("chrome.searchBar.tipDesc")}
-          position="bottom"
-        >
-          <SearchInput
-            searchQuery={searchQuery}
-            onSearchChange={handleSearchChange}
-            onFocus={handleInputFocus}
-            onBlur={handleInputBlur}
-            onKeyDown={handleKeyDown}
-          />
-        </ProgressiveTooltip>
+        {/* 以前はここを ProgressiveTooltip で包んで検索の使い方を出していた。
+            /search のスポットライトガイドが同じ場所を同じ内容で説明するため、
+            同時に2つ出てしまうので外した。説明は tours.ts の search-v1 が持つ。 */}
+        <SearchInput
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          onKeyDown={handleKeyDown}
+        />
 
         {/* 検索履歴 */}
         <SearchHistory
