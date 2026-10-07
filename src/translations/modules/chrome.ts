@@ -58,8 +58,8 @@ export const chrome = {
 
     explore: {
       title: "みんな",
-      subtitle: "みんなのAI作品とコレクションを覗いてみよう",
-      searchPlaceholder: "作品やユーザーを検索...",
+      subtitle: "みんなの投稿・グッズ・AI作品を覗いてみよう",
+      searchPlaceholder: "グッズ・作品・ユーザーを検索",
       tabRooms: "AIルーム",
       tabAvatars: "AIアバター",
       tabCollections: "コレクション",
@@ -189,6 +189,7 @@ export const chrome = {
       tabCharacter: "キャラ・人物",
       tabSeries: "シリーズ",
       tabType: "タイプ",
+      tabSource: "入手方法",
       popularTags: "人気タグ",
       searchResultsFor: '"{query}"の検索結果',
       allTags: "すべてのタグ",
@@ -464,8 +465,8 @@ export const chrome = {
 
     explore: {
       title: "People",
-      subtitle: "Take a peek at everyone's AI creations and collections",
-      searchPlaceholder: "Search creations or users...",
+      subtitle: "Browse everyone's posts, goods and AI creations",
+      searchPlaceholder: "Search goods, series or users",
       tabRooms: "AI rooms",
       tabAvatars: "AI avatars",
       tabCollections: "Collections",
@@ -595,6 +596,7 @@ export const chrome = {
       tabCharacter: "Characters",
       tabSeries: "Series",
       tabType: "Type",
+      tabSource: "Where from",
       popularTags: "Popular tags",
       searchResultsFor: 'Results for "{query}"',
       allTags: "All tags",

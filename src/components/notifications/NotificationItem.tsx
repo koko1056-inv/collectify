@@ -123,7 +123,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               <img
                 src={data.image}
                 alt={data.item_title}
-                className="w-8 h-8 rounded object-cover"
+                className="w-8 h-8 rounded object-contain bg-muted/30"
               />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{data.item_title}</p>
@@ -140,7 +140,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               <img
                 src={data.image}
                 alt={t("misc.notifications.postImageAlt")}
-                className="w-8 h-8 rounded object-cover"
+                className="w-8 h-8 rounded object-contain bg-muted/30"
               />
               {data.comment_text && (
                 <p className="text-xs text-muted-foreground line-clamp-1 flex-1">

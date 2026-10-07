@@ -142,7 +142,18 @@ const Search = () => {
         <div className="space-y-3 sm:space-y-6">
           <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
             {/* モバイルはアイコンの下にラベルを置くので、既定の h-10 だと収まらない */}
-            <TabsList className="grid w-full grid-cols-4 max-w-lg mx-auto h-auto py-1 sm:h-10 sm:py-1">
+            {currentTab === "trade" ? (
+              // 交換は下タブから単独で開く画面。グッズ・コレクション・フレンドの
+              // 切り替えを上に並べると、別の画面の中にいるように見えるので出さない。
+              <header className="mx-auto max-w-lg px-1 pb-1" data-tour="trade-header">
+                <h1 className="flex items-center gap-2 text-xl font-bold">
+                  <ArrowLeftRight className="h-5 w-5 text-primary" />
+                  {t("chrome.nav.trade")}
+                </h1>
+                <p className="mt-0.5 text-xs text-muted-foreground">{t("engage.trade.pageSubtitle")}</p>
+              </header>
+            ) : (
+            <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto h-auto py-1 sm:h-10 sm:py-1">
               <TabsTrigger value="goods" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-0.5 sm:px-3 min-w-0">
                 <Package className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="w-full text-center truncate">{t("tabs.goods")}</span>
@@ -151,15 +162,12 @@ const Search = () => {
                 <Heart className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="w-full text-center truncate">{t("screens.search.collectionsTab")}</span>
               </TabsTrigger>
-              <TabsTrigger value="trade" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-0.5 sm:px-3 min-w-0">
-                <ArrowLeftRight className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="w-full text-center truncate">{t("screens.search.tradeTab")}</span>
-              </TabsTrigger>
               <TabsTrigger value="friends" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm px-0.5 sm:px-3 min-w-0">
                 <Users className="h-5 w-5 sm:h-4 sm:w-4" />
                 <span className="w-full text-center truncate">{t("tabs.friends")}</span>
               </TabsTrigger>
             </TabsList>
+            )}
 
             {/* グッズ検索タブ - コンパクトフィルター */}
             <TabsContent value="goods" className="space-y-3">

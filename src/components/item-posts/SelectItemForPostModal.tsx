@@ -9,6 +9,7 @@ import { PostTarget } from "@/hooks/item-posts/useItemPosts";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { GoodsPickTile } from "@/components/collection/GoodsPickTile";
 
 interface UserItemRow {
   id: string;
@@ -93,33 +94,15 @@ export function SelectItemForPostModal({
           ) : (
             <div className="grid grid-cols-3 gap-2 pb-2">
               {filtered.map((item) => (
-                <button
+                <GoodsPickTile
                   key={item.id}
+                  image={item.image || null}
+                  title={item.title}
                   onClick={() => {
-                    onSelect(
-                      { type: "user_item", id: item.id },
-                      item.title,
-                      item.image || null
-                    );
+                    onSelect({ type: "user_item", id: item.id }, item.title, item.image || null);
                     onOpenChange(false);
                   }}
-                  className="group flex flex-col items-stretch text-left rounded-xl border border-border hover:border-primary/60 transition overflow-hidden bg-card"
-                >
-                  <div className="aspect-square bg-muted overflow-hidden">
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                        <PackageOpen className="w-6 h-6" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[11px] px-1.5 py-1 truncate">{item.title}</p>
-                </button>
+                />
               ))}
             </div>
           )}

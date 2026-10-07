@@ -94,7 +94,7 @@ export function OfficialGoodsCard({
           <LazyImage
             src={image}
             alt={title}
-            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+            className="object-contain w-full h-full transition-transform duration-500 group-hover:scale-105"
             skeletonClassName="aspect-square"
           />
           

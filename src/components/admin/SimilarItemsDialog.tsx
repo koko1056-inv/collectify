@@ -50,7 +50,7 @@ export function SimilarItemsDialog({ items, onCancel, onProceed }: SimilarItemsD
                 loading="lazy"
                 decoding="async"
                 alt=""
-                className="h-14 w-14 shrink-0 rounded object-cover bg-muted"
+                className="h-14 w-14 shrink-0 rounded object-contain bg-muted"
               />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm">{item.title}</p>

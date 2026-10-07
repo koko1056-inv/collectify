@@ -151,7 +151,7 @@ export function WishlistViewModal({
               releaseDate: item.official_items.release_date,
               description: item.official_items.description
             })}>
-                    <img src={item.official_items.image} alt={item.official_items.title} className="h-16 w-16 object-cover rounded-md" />
+                    <img src={item.official_items.image} alt={item.official_items.title} className="h-16 w-16 object-contain rounded-md bg-muted/30" />
                     <div className="flex-1">
                       <div className="flex justify-between items-start">
                         <div>

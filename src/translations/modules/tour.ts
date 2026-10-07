@@ -53,7 +53,7 @@ export const tour = {
       },
       offer: {
         title: "出すものをここで選びます",
-        body: "持っているグッズが一覧で出るので、交換に出すものをスイッチで選べます。押してみてください。",
+        body: "持っているグッズが写真つきで並ぶので、交換に出すものをタップで選べます。押してみてください。",
       },
     },
 
@@ -81,12 +81,12 @@ export const tour = {
 
     explore: {
       tabs: {
-        title: "他の人のコレクションを見られます",
-        body: "作品・部屋・ユーザーで切り替えられます。同じ推しの人を見つけたらフォローしておくと、新しい投稿が届きます。",
+        title: "みんなの投稿と、グッズ探し",
+        body: "「投稿」では今週のお題や新着が見られます。「グッズ」では、そのグッズを誰が持っているか・交換できる人がいるかが分かります。",
       },
       feed: {
-        title: "気になったら保存",
-        body: "部屋やAI作品はブックマークして後から見返せます。自分の部屋づくりの参考にしてください。",
+        title: "気になったらワンタップで反応",
+        body: "「持ってる！」「ほしい」「尊い」は押すだけ。同じグッズを持っている人に届いて、会話のきっかけになります。",
       },
     },
 
@@ -154,7 +154,7 @@ export const tour = {
       },
       offer: {
         title: "Choose what you offer here",
-        body: "Your Goods are listed with a switch each, so you can pick what to put up for trade. Give it a tap.",
+        body: "Your goods are shown with photos, so you can tap the ones you want to put up for trade. Give it a tap.",
       },
     },
 
@@ -182,12 +182,12 @@ export const tour = {
 
     explore: {
       tabs: {
-        title: "See other people's collections",
-        body: "Switch between series, rooms and users. Follow people who like the same things and their new posts will reach you.",
+        title: "Posts from everyone, and goods search",
+        body: "\"Posts\" shows this week's theme and new posts. \"Goods\" shows who owns an item and who is open to trading.",
       },
       feed: {
-        title: "Save what catches your eye",
-        body: "Bookmark rooms and AI works to revisit later, and use them as references for your own room.",
+        title: "React with one tap",
+        body: "\"I have it!\", \"Want\" and \"Precious\" are one tap. People who own the same goods get notified, which starts conversations.",
       },
     },
 

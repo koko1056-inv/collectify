@@ -1,16 +1,19 @@
 import { motion } from "framer-motion";
-import { Heart, MessageCircle, Images } from "lucide-react";
+import { Heart, MessageCircle, Images, PackageCheck } from "lucide-react";
 import { ItemPost } from "@/hooks/item-posts/useItemPosts";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { EmptyState } from "@/components/ui/empty-state";
+import type { PostReactionSummary } from "@/hooks/item-posts/useItemPostReactions";
 
 interface ItemPostGridProps {
   posts: ItemPost[];
   onPostClick: (post: ItemPost) => void;
+  /** 反応（持ってる/ほしい/尊い）の件数を出したいときに渡す */
+  getReactions?: (postId: string) => PostReactionSummary;
 }
 
-export function ItemPostGrid({ posts, onPostClick }: ItemPostGridProps) {
+export function ItemPostGrid({ posts, onPostClick, getReactions }: ItemPostGridProps) {
   const { t } = useLanguage();
 
   if (posts.length === 0) {
@@ -32,6 +35,7 @@ export function ItemPostGrid({ posts, onPostClick }: ItemPostGridProps) {
           post={post}
           onClick={() => onPostClick(post)}
           delayIndex={idx}
+          reactions={getReactions?.(post.id)}
         />
       ))}
     </div>
@@ -42,10 +46,12 @@ function ItemPostTile({
   post,
   onClick,
   delayIndex,
+  reactions,
 }: {
   post: ItemPost;
   onClick: () => void;
   delayIndex: number;
+  reactions?: PostReactionSummary;
 }) {
   const cover = post.images[0]?.image_url;
   const hasMultiple = post.images.length > 1;
@@ -106,6 +112,12 @@ function ItemPostTile({
             <MessageCircle className="w-3.5 h-3.5" />
             {post.comment_count}
           </div>
+          {reactions && reactions.counts.have > 0 && (
+            <div className="flex items-center gap-1">
+              <PackageCheck className="w-3.5 h-3.5" />
+              {reactions.counts.have}
+            </div>
+          )}
         </div>
       </div>
     </motion.button>

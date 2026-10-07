@@ -169,7 +169,7 @@ export function ImageSearchResults({
                         <img
                           src={img.url}
                           alt={t("misc.imageSearch.similarImageAlt", { n: index + 1 })}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                           loading="lazy"
                           onError={(e) => {
                             (e.target as HTMLImageElement).style.display = 'none';

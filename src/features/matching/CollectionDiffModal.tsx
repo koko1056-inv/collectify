@@ -106,7 +106,7 @@ export function CollectionDiffModal({ meId, otherId, open, onOpenChange }: Props
                                 src={item.image}
                                 alt={item.title}
                                 loading="lazy"
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-contain"
                               />
                             )}
                           </div>

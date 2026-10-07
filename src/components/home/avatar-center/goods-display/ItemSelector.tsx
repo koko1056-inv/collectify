@@ -65,7 +65,7 @@ export function ItemSelector({
                   <img
                     src={item.image}
                     alt={item.title}
-                    className="w-full aspect-square object-cover rounded mb-2"
+                    className="w-full aspect-square object-contain rounded mb-2 bg-muted/30"
                   />
                   <p className="text-xs truncate">{item.title}</p>
                   <Checkbox

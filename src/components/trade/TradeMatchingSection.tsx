@@ -16,6 +16,7 @@ import {
   useTradeMatches,
   useTradeReadiness,
   useTradeSeriesPartners,
+  useMyTradeOffers,
   type TradeMatch,
   type TradeSeriesPartner,
 } from "@/hooks/useTradeMatches";
@@ -50,6 +51,7 @@ export function TradeMatchingSection() {
   const { data: matches, isLoading, isError, refetch } = useTradeMatches();
   const { data: readiness } = useTradeReadiness();
   const { data: seriesPartners } = useTradeSeriesPartners();
+  const { data: myOffers = [] } = useMyTradeOffers();
 
   const { mutual, theyHave, theyWant } = useMemo(() => {
     const all = matches ?? [];
@@ -123,6 +125,42 @@ export function TradeMatchingSection() {
           </p>
         </div>
       </button>
+
+      {/* 自分が出しているグッズ。マッチが無いうちも「出せている」ことが見える */}
+      {myOffers.length > 0 && (
+        <section className="space-y-2" aria-label={t("trade.picker.mineTitle", { n: myOffers.length })}>
+          <div className="flex items-baseline justify-between">
+            <h3 className="text-sm font-bold">{t("trade.picker.mineTitle", { n: myOffers.length })}</h3>
+            <button
+              type="button"
+              onClick={() => setIsOfferPickerOpen(true)}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              {t("trade.picker.mineEdit")}
+            </button>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+            {myOffers.map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                onClick={() => setIsOfferPickerOpen(true)}
+                className="relative w-20 shrink-0 text-left"
+                aria-label={o.title}
+              >
+                <div className="aspect-square overflow-hidden rounded-lg border border-border bg-muted/30">
+                  <img src={getOptimizedImageUrl(o.image, { width: 160 })} onError={fallbackToOriginal(o.image)} alt="" loading="lazy" className="h-full w-full object-contain" />
+                </div>
+                {o.quantity >= 2 && (
+                  <span className="absolute right-1 top-1 rounded-full bg-foreground/85 px-1.5 text-[10px] font-semibold text-background">×{o.quantity}</span>
+                )}
+                <p className="mt-1 line-clamp-2 text-[10px] leading-tight">{o.title}</p>
+              </button>
+            ))}
+          </div>
+          <p className="text-[11px] text-muted-foreground">{t("trade.picker.mineHint")}</p>
+        </section>
+      )}
 
       {/* 両想い */}
       <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-background">
@@ -403,7 +441,7 @@ function SeriesPartnerCard({
               onError={fallbackToOriginal(item.image)}
               alt={item.title}
               loading="lazy"
-              className="h-20 w-20 rounded-lg border border-border object-cover transition-opacity hover:opacity-80"
+              className="h-20 w-20 rounded-lg border border-border bg-muted/30 object-contain transition-opacity hover:opacity-80"
             />
             <p className="mt-1 truncate text-[10px] text-muted-foreground">{item.title}</p>
           </button>
@@ -475,7 +513,7 @@ function ItemThumb({
           loading="lazy"
           decoding="async"
           alt=""
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
       </div>
       <p className="mt-1 truncate text-xs">{item.title}</p>

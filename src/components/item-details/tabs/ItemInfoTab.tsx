@@ -51,7 +51,7 @@ export function ItemInfoTab({
         <img
           src={getOptimizedImageUrl(itemDetails.image, { width: 800 })} onError={fallbackToOriginal(itemDetails.image)}
           alt={itemDetails.title}
-          className="w-full rounded-md aspect-square object-cover"
+          className="w-full rounded-md aspect-square object-contain bg-muted/30"
         />
         {model3dUrl && (
           <Suspense

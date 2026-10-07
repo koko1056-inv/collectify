@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { AddedNextSteps, type AddedItem } from "./AddedNextSteps";
 import { Camera, Upload, Loader2, Check, X, Sparkles, ArrowLeft, Package, Tag, ScanBarcode, AlertTriangle, Link2, ArrowLeftRight, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -116,6 +117,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
   const [forTrade, setForTrade] = useState(false);
   /** 「これと同じ」で既存カタログに紐付けて完了したときのアイテム名（完了画面の文言を変える） */
   const [linkedExistingTitle, setLinkedExistingTitle] = useState<string | null>(null);
+  // 完了画面で「次の一手」（作品の進捗・投稿）を出すために、いま登録したグッズを覚えておく
+  const [addedItem, setAddedItem] = useState<AddedItem | null>(null);
   /** 「これと同じ」を処理中の候補 id（その行だけスピナーにする） */
   const [linkingItemId, setLinkingItemId] = useState<string | null>(null);
   /** タグを自動で埋めた数。0より大きいときだけ「確認してください」と出す。 */
@@ -341,6 +344,11 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
 
       await invalidateCollectionQueries();
       setLinkedExistingTitle(item.title);
+      setAddedItem(
+        result.userItemId
+          ? { userItemId: result.userItemId, title: item.title, image: item.image }
+          : null
+      );
       setStep("complete");
     } catch (error) {
       console.error("Error linking existing item:", error);
@@ -519,6 +527,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
 
       // 自動では閉じない。完了画面のボタンで次の行き先を選ばせる。
       setLinkedExistingTitle(null);
+      setAddedItem(userItemId ? { userItemId, title, image: publicUrl } : null);
       setStep("complete");
 
     } catch (error) {
@@ -547,6 +556,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
     setAutoFilledTagCount(0);
     setScannedBarcode(null);
     setLinkedExistingTitle(null);
+    setAddedItem(null);
     setShareToCatalog(true);
   };
 
@@ -686,7 +696,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 <img
                   src={previewUrl}
                   alt="Preview"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                   <div className="text-center space-y-3">
@@ -725,7 +735,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 <img
                   src={previewUrl}
                   alt="Preview"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
                 <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                   <Check className="w-3 h-3" />
@@ -816,7 +826,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                         <img
                           src={item.image}
                           alt={item.title}
-                          className="w-12 h-12 shrink-0 rounded object-cover"
+                          className="w-12 h-12 shrink-0 rounded object-contain bg-muted/30"
                         />
                         <span className="min-w-0 flex-1 break-words text-sm">{item.title}</span>
                         <Button
@@ -1105,6 +1115,8 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                 </motion.div>
               ))}
             </motion.div>
+
+            {addedItem && <AddedNextSteps key={addedItem.userItemId} item={addedItem} />}
 
             {/* 自動では閉じないので、次にどうするかはここで選んでもらう */}
             <div className="flex flex-col-reverse sm:flex-row gap-3 mt-4 w-full max-w-xs">

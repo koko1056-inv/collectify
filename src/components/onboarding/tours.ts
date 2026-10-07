@@ -135,7 +135,7 @@ export const PAGE_TOURS: PageTour[] = [
     ],
   },
   {
-    id: "explore-v1",
+    id: "explore-v2",
     path: "/explore",
     steps: [
       {

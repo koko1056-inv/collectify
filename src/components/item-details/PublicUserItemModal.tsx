@@ -214,7 +214,7 @@ export function PublicUserItemModal({
         ) : (
           <div className="space-y-4">
             <div className="aspect-square rounded-2xl overflow-hidden bg-muted">
-              <img src={image} alt={title} className="w-full h-full object-cover" />
+              <img src={image} alt={title} className="w-full h-full object-contain" />
             </div>
 
             {officialItem?.release_date && (

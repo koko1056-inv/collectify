@@ -146,7 +146,9 @@ const lookupCases = [
   ["/search", "?tab=", "search-v1"],
   ["/search", "?tab=trade", "trade-v1"],
   ["/search", "?tab=friends", undefined],
-  ["/explore", "?tab=rooms", "explore-v1"],
+  ["/explore", "?tab=rooms", "explore-v2"],
+  ["/explore", "?tab=posts", "explore-v2"],
+  ["/explore", "", "explore-v2"],
   ["/login", "", undefined],
 ];
 for (const [path, search, want] of lookupCases) {
