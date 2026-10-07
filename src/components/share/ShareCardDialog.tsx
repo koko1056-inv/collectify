@@ -5,9 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useShareInvite } from "@/hooks/useShareInvite";
-import { renderShareCard, type ShareCardInput } from "@/utils/shareCard";
+import { renderShareCard, SHARE_CARD_FORMATS, type ShareCardFormat, type ShareCardInput } from "@/utils/shareCard";
+import { cn } from "@/lib/utils";
 
-export type ShareCardSpec = Omit<ShareCardInput, "footerUrl" | "tagline"> & {
+export type ShareCardSpec = Omit<ShareCardInput, "footerUrl" | "tagline" | "format"> & {
   /** SNSに添える本文（URLは自動で末尾に付く） */
   shareText: string;
 };
@@ -27,6 +28,8 @@ export function ShareCardDialog({ open, onOpenChange, spec, fileName = "collecti
   const [shareUrl, setShareUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
+  // 共有先に合わせて比率を選べる。初期は投稿に一番使われる 4:5
+  const [format, setFormat] = useState<ShareCardFormat>("portrait");
   // 開き直しや spec の更新で古い描画結果が上書きされないよう、世代で管理する
   const generation = useRef(0);
 
@@ -41,6 +44,7 @@ export function ShareCardDialog({ open, onOpenChange, spec, fileName = "collecti
         const url = await getInviteUrl();
         const card = await renderShareCard({
           ...spec,
+          format,
           tagline: t("engage.share.tagline"),
           footerUrl: url,
         });
@@ -57,9 +61,9 @@ export function ShareCardDialog({ open, onOpenChange, spec, fileName = "collecti
         if (generation.current === mine) setLoading(false);
       }
     })();
-    // spec はオブジェクトなので、開いた時点の内容だけで描く
+    // spec はオブジェクトなので、開いた時点の内容と比率だけで描く
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, spec]);
+  }, [open, spec, format]);
 
   useEffect(
     () => () => {
@@ -72,10 +76,12 @@ export function ShareCardDialog({ open, onOpenChange, spec, fileName = "collecti
   );
 
   const text = spec ? `${spec.shareText}\n${shareUrl}` : "";
+  const dims = SHARE_CARD_FORMATS[format];
+  const outName = fileName.replace(/\.png$/, `-${format}.png`);
 
   const handleShare = async () => {
     if (!blob || !spec) return;
-    const file = new File([blob], fileName, { type: "image/png" });
+    const file = new File([blob], outName, { type: "image/png" });
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({ files: [file], text });
@@ -101,7 +107,7 @@ export function ShareCardDialog({ open, onOpenChange, spec, fileName = "collecti
     if (!blob) return;
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = fileName;
+    a.download = outName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -126,7 +132,31 @@ export function ShareCardDialog({ open, onOpenChange, spec, fileName = "collecti
           <DialogDescription>{t("engage.share.desc")}</DialogDescription>
         </DialogHeader>
 
-        <div className="relative aspect-[1080/1350] w-full overflow-hidden rounded-xl border border-border bg-muted">
+        <div role="tablist" aria-label={t("engage.share.formatLabel")} className="grid grid-cols-4 gap-1 rounded-lg bg-muted p-1">
+          {(Object.keys(SHARE_CARD_FORMATS) as ShareCardFormat[]).map((f) => (
+            <button
+              key={f}
+              type="button"
+              role="tab"
+              aria-selected={format === f}
+              onClick={() => setFormat(f)}
+              className={cn(
+                "rounded-md px-1 py-1.5 text-[11px] font-medium leading-tight transition-colors",
+                format === f ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t(`engage.share.format.${f}`)}
+            </button>
+          ))}
+        </div>
+
+        <div
+          style={{ aspectRatio: `${dims.width} / ${dims.height}` }}
+          className={cn(
+            "relative mx-auto w-full overflow-hidden rounded-xl border border-border bg-muted",
+            format === "story" && "max-w-[62%]"
+          )}
+        >
           {previewUrl && !loading && (
             <img src={previewUrl} alt={t("engage.share.previewAlt")} className="h-full w-full object-contain" />
           )}
