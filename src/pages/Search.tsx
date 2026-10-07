@@ -67,13 +67,19 @@ const Search = () => {
 
   // Supabase Realtimeでofficial_itemsの変更を監視
   useEffect(() => {
+    let refetchTimer: ReturnType<typeof setTimeout> | undefined;
     const channel = supabase
       .channel('official-items-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'official_items' }, () => {
-        queryClient.invalidateQueries({ queryKey: ['official-items'] });
+        // まとめて登録されると変更通知が大量に届く。全件を取り直すので、静まってから1回だけ再取得する
+        if (refetchTimer) clearTimeout(refetchTimer);
+        refetchTimer = setTimeout(() => queryClient.invalidateQueries({ queryKey: ['official-items'] }), 3000);
       })
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      if (refetchTimer) clearTimeout(refetchTimer);
+      supabase.removeChannel(channel);
+    };
   }, [queryClient]);
 
   const currentTab = searchParams.get("tab") || "goods";

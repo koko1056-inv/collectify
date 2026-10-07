@@ -23,9 +23,31 @@ export interface CatalogFilterState {
 
 export const EMPTY_FILTER: CatalogFilterState = { query: "", content: null, selection: {}, hideOwned: false };
 
+// グッズが1万件を超えても、入力のたびに全件のタグを組み直さないよう、グッズごとの計算結果を覚えておく。
+// キーはグッズのオブジェクトそのもの（取得し直せば別のオブジェクトになるので、古い結果が残ることはない）。
+const facetCache = new WeakMap<object, ReturnType<typeof getItemFacets>>();
+const haystackCache = new WeakMap<object, string>();
+
 /** 作品名は別枠で扱うので、ここではタグだけから作る（作品名をシリーズに混ぜない）。 */
 export function catalogFacets(item: CatalogItemLike) {
-  return getItemFacets({ official_items: { content_name: null, item_tags: item.item_tags ?? [] } });
+  const hit = facetCache.get(item);
+  if (hit) return hit;
+  const facets = getItemFacets({ official_items: { content_name: null, item_tags: item.item_tags ?? [] } });
+  facetCache.set(item, facets);
+  return facets;
+}
+
+/** キーワード検索の対象になる文字列（小文字）。 */
+function haystack(item: CatalogItemLike): string {
+  const hit = haystackCache.get(item);
+  if (hit !== undefined) return hit;
+  const facets = catalogFacets(item);
+  const hay = [item.title, item.content_name, ...facets.series, ...facets.character, ...facets.type, ...facets.source]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  haystackCache.set(item, hay);
+  return hay;
 }
 
 const lower = (v: string) => v.toLowerCase();
@@ -47,11 +69,7 @@ export function matchesBasics(item: CatalogItemLike, f: CatalogFilterState, owne
   if (f.content && (item.content_name ?? "") !== f.content) return false;
   const q = f.query.trim().toLowerCase();
   if (q) {
-    const facets = catalogFacets(item);
-    const hay = [item.title, item.content_name, ...facets.series, ...facets.character, ...facets.type, ...facets.source]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
+    const hay = haystack(item);
     if (!q.split(/\s+/).every((term) => hay.includes(term))) return false;
   }
   return true;

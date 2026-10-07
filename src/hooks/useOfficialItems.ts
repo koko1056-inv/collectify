@@ -34,7 +34,10 @@ async function fetchPage(page: number) {
     .select(SELECT)
     // 重複として統合されたグッズは一覧に出さない
     .is("merged_into", null)
-    // 同じ created_at のグッズが大量にあるので、id でも並べてページ境界で重複・欠落しないようにする
+    // 新しいグッズが先頭に来るよう、発売日の新しい順。
+    // まとめて登録したグッズは created_at が同じになるので、発売日を先に見る。
+    .order("release_date", { ascending: false })
+    // 発売日・登録日が同じグッズも多いので、id でも並べてページ境界で重複・欠落しないようにする
     .order("created_at", { ascending: false })
     .order("id", { ascending: true })
     .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
