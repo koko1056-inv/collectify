@@ -12,8 +12,8 @@
 --                              （いずれも SECURITY DEFINER のトリガー関数）だけ。クライアントからは呼んでいない。
 --   * increment_usage        → src/hooks/useSubscription.ts（ログイン中のユーザー）。
 --
--- 注意: この権限の変更は、本番にはまだ適用していない（自動承認で拒否されたため、判断待ち）。
---       increment_usage の本文の変更（他人の使用量を増やせない）だけは適用済み。
+-- 適用済み（2026-10-07 本番で実行し、has_function_privilege で結果を確認した）:
+--   grant_points_from_iap / update_trust_score は service_role のみ、increment_usage は anon から外した。
 
 revoke all on function public.grant_points_from_iap(uuid, text, text, text, jsonb) from public, anon, authenticated;
 revoke all on function public.update_trust_score(uuid, text, numeric) from public, anon, authenticated;
