@@ -195,6 +195,8 @@ export function useCreateItemPost() {
     },
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ["item-posts", variables.target.type, variables.target.id] });
+      // 探索/フィードの一覧は別キー。ここを更新しないと、投稿してもフィードに出てこない。
+      qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
       toast.success(t("notices.itemPosts.created"));
     },
@@ -215,6 +217,7 @@ export function useDeleteItemPost() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["item-posts"] });
+      qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
       qc.invalidateQueries({ queryKey: ["user-item-posts"] });
       toast.success(t("notices.itemPosts.deleted"));
     },

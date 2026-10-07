@@ -47,6 +47,7 @@ export function useToggleItemPostLike() {
     onMutate: async ({ postId, currentlyLiked }) => {
       // 楽観的: キャッシュ上の like_count と is_liked_by_me を即更新
       await qc.cancelQueries({ queryKey: ["item-posts"] });
+      await qc.cancelQueries({ queryKey: ["item-posts-feed"] });
       const updateFn = (old: any) => {
         if (!old) return old;
         if (Array.isArray(old)) {
@@ -72,6 +73,9 @@ export function useToggleItemPostLike() {
       qc.getQueriesData({ queryKey: ["item-posts"] }).forEach(([key, data]) => {
         qc.setQueryData(key, updateFn(data));
       });
+      qc.getQueriesData({ queryKey: ["item-posts-feed"] }).forEach(([key, data]) => {
+        qc.setQueryData(key, updateFn(data));
+      });
       qc.getQueriesData({ queryKey: ["item-post"] }).forEach(([key, data]) => {
         qc.setQueryData(key, updateFn(data));
       });
@@ -79,10 +83,12 @@ export function useToggleItemPostLike() {
     onError: (err) => {
       toast.error((err as Error).message || t("notices.itemPosts.likeFailed"));
       qc.invalidateQueries({ queryKey: ["item-posts"] });
+      qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
       qc.invalidateQueries({ queryKey: ["item-post"] });
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["item-posts"] });
+      qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
       qc.invalidateQueries({ queryKey: ["item-post"] });
     },
   });
@@ -137,6 +143,7 @@ export function useCreateItemPostComment() {
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ["item-post-comments", variables.postId] });
       qc.invalidateQueries({ queryKey: ["item-posts"] });
+      qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
       qc.invalidateQueries({ queryKey: ["item-post"] });
     },
     onError: (e) => toast.error((e as Error).message || t("notices.itemPosts.commentFailed")),
@@ -159,6 +166,7 @@ export function useDeleteItemPostComment() {
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ["item-post-comments", variables.postId] });
       qc.invalidateQueries({ queryKey: ["item-posts"] });
+      qc.invalidateQueries({ queryKey: ["item-posts-feed"] });
     },
   });
 }

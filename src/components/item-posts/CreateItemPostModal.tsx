@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { ImagePlus, X, Loader2, Wand2, Sparkles } from "lucide-react";
+import { ImagePlus, X, Loader2, Wand2, Sparkles, Hash, Images } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PostTarget, useCreateItemPost } from "@/hooks/item-posts/useItemPosts";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { SpendPointsDialog } from "@/components/shop/SpendPointsDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AiCreationPicker } from "./AiCreationPicker";
+import { getWeeklyPrompt } from "@/utils/weeklyPrompt";
 
 const POST_IMAGE_COST = 50;
 
@@ -20,8 +22,17 @@ interface CreateItemPostModalProps {
   target: PostTarget;
   itemTitle: string;
   itemImage?: string | null;
-  onCreated?: () => void;
+  /** 作成できた投稿のID。シェアの導線などに使う */
+  onCreated?: (postId: string) => void;
+  /** お題などから開いたときの先頭ハッシュタグ（#は含まない） */
+  initialTag?: string | null;
 }
+
+/** AI画像のプロンプトの出発点。ゼロから文章を考えなくてよいようにする */
+const AI_PROMPT_PRESETS = ["altar", "scrapbook", "plush", "room"] as const;
+
+/** コレクションアプリで実際によくある投稿の種類。選ぶとハッシュタグとして本文に入る */
+const QUICK_TAGS = ["arrival", "complete", "trade", "seeking", "display"] as const;
 
 const MAX_IMAGES = 4;
 
@@ -32,9 +43,12 @@ export function CreateItemPostModal({
   itemTitle,
   itemImage,
   onCreated,
+  initialTag,
 }: CreateItemPostModalProps) {
   const { t } = useLanguage();
-  const [caption, setCaption] = useState("");
+  const [caption, setCaption] = useState(initialTag ? `#${initialTag} ` : "");
+  const [aiPickerOpen, setAiPickerOpen] = useState(false);
+  const weeklyTag = getWeeklyPrompt().tag;
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [aiPrompt, setAiPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -86,6 +100,34 @@ export function CreateItemPostModal({
     }
   };
 
+  /** AIで作った画像（URL）を投稿画像に加える */
+  const attachFromUrl = async (url: string) => {
+    if (images.length >= MAX_IMAGES) {
+      toast.error(t("social.itemPosts.maxImages", { max: MAX_IMAGES }));
+      return;
+    }
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("fetch failed");
+      const blob = await res.blob();
+      // "svg+xml" のような値がそのままファイル名に入らないよう、英数字だけにする
+      const subtype = (blob.type.split("/")[1] || "png").split("+")[0];
+      const ext = subtype === "jpeg" ? "jpg" : subtype.replace(/[^a-z0-9]/gi, "") || "png";
+      const file = new File([blob], `ai-${Date.now()}.${ext}`, { type: blob.type || "image/png" });
+      setImages((prev) => [...prev, { file, preview: URL.createObjectURL(file) }]);
+    } catch {
+      toast.error(t("engage.posts.aiAttachFailed"));
+    }
+  };
+
+  const toggleTag = (tag: string) => {
+    setCaption((prev) => {
+      const token = `#${tag}`;
+      if (prev.includes(token)) return prev.replace(token, "").replace(/\s{2,}/g, " ").trimStart();
+      return prev.trim() ? `${prev.trimEnd()} ${token}` : `${token} `;
+    });
+  };
+
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
     const remaining = MAX_IMAGES - images.length;
@@ -107,7 +149,7 @@ export function CreateItemPostModal({
   const reset = () => {
     images.forEach((img) => URL.revokeObjectURL(img.preview));
     setImages([]);
-    setCaption("");
+    setCaption(initialTag ? `#${initialTag} ` : "");
     setAiPrompt("");
   };
 
@@ -119,14 +161,14 @@ export function CreateItemPostModal({
 
   const handleSubmit = async () => {
     try {
-      await createMutation.mutateAsync({
+      const post = await createMutation.mutateAsync({
         target,
         caption,
         images: images.map((i) => i.file),
       });
       reset();
       onOpenChange(false);
-      onCreated?.();
+      onCreated?.(post.id);
     } catch {
       // Error toasted inside hook
     }
@@ -215,6 +257,19 @@ export function CreateItemPostModal({
           <p className="text-[11px] text-muted-foreground">
             {t("social.itemPosts.aiDesc")}
           </p>
+          <div className="flex flex-wrap gap-1.5">
+            {AI_PROMPT_PRESETS.map((id) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setAiPrompt(t(`engage.posts.aiPreset.${id}`))}
+                disabled={isGenerating || createMutation.isPending}
+                className="rounded-full border border-primary/30 bg-background px-2.5 py-1 text-[11px] text-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                {t(`engage.posts.aiPresetLabel.${id}`)}
+              </button>
+            ))}
+          </div>
           <div className="flex gap-2">
             <Input
               value={aiPrompt}
@@ -244,6 +299,17 @@ export function CreateItemPostModal({
               {t("social.itemPosts.generate")}
             </Button>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setAiPickerOpen(true)}
+            disabled={createMutation.isPending || images.length >= MAX_IMAGES}
+            className="h-8 w-full gap-1.5 text-xs text-primary hover:bg-primary/10"
+          >
+            <Images className="h-3.5 w-3.5" />
+            {t("engage.posts.aiUseMine")}
+          </Button>
         </div>
 
         <div>
@@ -257,9 +323,30 @@ export function CreateItemPostModal({
             maxLength={500}
             disabled={createMutation.isPending}
           />
-          <p className="text-[10px] text-muted-foreground text-right mt-1">
-            {caption.length}/500
-          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {[...QUICK_TAGS.map((id) => t(`engage.posts.quickTag.${id}`)), weeklyTag].map((tag, i, all) => {
+              const active = caption.includes(`#${tag}`);
+              const isWeekly = i === all.length - 1;
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  className={cn(
+                    "inline-flex items-center gap-0.5 rounded-full border px-2.5 py-1 text-[11px]",
+                    active
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/40"
+                  )}
+                >
+                  <Hash className="h-3 w-3" />
+                  {tag}
+                  {isWeekly && <span className="ml-1 opacity-70">{t("engage.posts.thisWeek")}</span>}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-1 text-right text-[10px] text-muted-foreground">{caption.length}/500</p>
         </div>
 
         {/* アクション */}
@@ -287,6 +374,8 @@ export function CreateItemPostModal({
             )}
           </Button>
         </div>
+
+        <AiCreationPicker open={aiPickerOpen} onOpenChange={setAiPickerOpen} onPick={attachFromUrl} />
 
         <SpendPointsDialog
           open={confirmOpen}

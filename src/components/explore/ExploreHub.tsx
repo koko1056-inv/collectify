@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,13 @@ import {
   User,
   Package,
   Wand2,
+  Images,
+  PackageSearch,
+  X,
 } from "lucide-react";
+import { useDebounce } from "@/hooks/useDebounce";
+import { ItemPostsFeedPanel } from "@/components/item-posts/ItemPostsFeedPanel";
+import { ItemSearchTab } from "./ItemSearchTab";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ExploreAvatarCard } from "./ExploreAvatarCard";
@@ -35,20 +41,37 @@ import { MatchCard } from "@/features/matching/MatchCard";
 import { CollectionDiffModal } from "@/features/matching/CollectionDiffModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-type ExploreTab = "rooms" | "avatars" | "collections" | "users";
+type ExploreTab = "posts" | "items" | "rooms" | "avatars" | "collections" | "users";
+const EXPLORE_TABS: ExploreTab[] = ["posts", "items", "rooms", "avatars", "collections", "users"];
 
 export function ExploreHub() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = (searchParams.get("tab") as ExploreTab) || "rooms";
+  const initialTab = searchParams.get("tab") as ExploreTab | null;
+  // 既定は「投稿」。ここが交流の入口で、他のタブは見つけたいものが決まっているときに使う。
   const [activeTab, setActiveTab] = useState<ExploreTab>(
-    ["rooms", "avatars", "collections", "users"].includes(initialTab) ? initialTab : "rooms"
+    initialTab && EXPLORE_TABS.includes(initialTab) ? initialTab : "posts"
   );
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
+  // 打つたびにDBへ問い合わせない。URLにも反映して、検索結果を共有・戻る操作で復元できるようにする。
+  const searchQuery = useDebounce(searchInput, 300);
   const { t } = useLanguage();
+
+  useEffect(() => {
+    const current = searchParams.get("q") ?? "";
+    if (current === searchQuery.trim()) return;
+    const next = new URLSearchParams(searchParams);
+    if (searchQuery.trim()) next.set("q", searchQuery.trim());
+    else next.delete("q");
+    setSearchParams(next, { replace: true });
+    // searchParams は自分で書き換えるので依存に入れない（無限ループ防止）
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   const handleTabChange = (v: string) => {
     setActiveTab(v as ExploreTab);
-    setSearchParams({ tab: v });
+    const next = new URLSearchParams({ tab: v });
+    if (searchQuery.trim()) next.set("q", searchQuery.trim());
+    setSearchParams(next);
   };
 
   return (
@@ -75,17 +98,42 @@ export function ExploreHub() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder={t("chrome.explore.searchPlaceholder")}
-                className="pl-10"
+                className="pl-10 pr-9"
+                enterKeyHint="search"
               />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => setSearchInput("")}
+                  className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted"
+                  aria-label={t("engage.collection.clearSearch")}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
           </div>
 
           {/* タブ */}
           <Tabs value={activeTab} onValueChange={handleTabChange} className="px-4">
             <TabsList data-tour="explore-tabs" className="bg-transparent border-b border-border rounded-none w-full justify-start gap-1 sm:gap-4 p-0 h-auto overflow-x-auto scrollbar-hide">
+              <TabsTrigger
+                value="posts"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
+              >
+                <Images className="w-4 h-4" />
+                {t("engage.explore.tabPosts")}
+              </TabsTrigger>
+              <TabsTrigger
+                value="items"
+                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
+              >
+                <PackageSearch className="w-4 h-4" />
+                {t("engage.explore.tabItems")}
+              </TabsTrigger>
               <TabsTrigger
                 value="rooms"
                 className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
@@ -120,6 +168,23 @@ export function ExploreHub() {
 
         {/* コンテンツ */}
         <div data-tour="explore-feed" className="container mx-auto px-4 py-6">
+          {searchQuery.trim() && activeTab !== "items" && (
+            <button
+              type="button"
+              onClick={() => handleTabChange("items")}
+              className="mb-4 flex w-full items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-left text-sm hover:bg-primary/10"
+            >
+              <PackageSearch className="h-4 w-4 shrink-0 text-primary" />
+              <span className="min-w-0 flex-1 truncate">
+                {t("engage.explore.searchGoods", { q: searchQuery.trim() })}
+              </span>
+              <span className="shrink-0 text-xs text-primary">{t("engage.explore.searchGoodsHint")}</span>
+            </button>
+          )}
+          {activeTab === "posts" && <div className="mx-auto max-w-4xl"><ItemPostsFeedPanel /></div>}
+          {activeTab === "items" && (
+            <ItemSearchTab query={searchQuery} onPickSuggestion={(text) => setSearchInput(text)} />
+          )}
           {activeTab === "rooms" && <RoomsTab searchQuery={searchQuery} />}
           {activeTab === "avatars" && <AvatarsTab searchQuery={searchQuery} />}
           {activeTab === "collections" && <CollectionsTab searchQuery={searchQuery} />}

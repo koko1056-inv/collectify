@@ -58,8 +58,8 @@ export const chrome = {
 
     explore: {
       title: "みんな",
-      subtitle: "みんなのAI作品とコレクションを覗いてみよう",
-      searchPlaceholder: "作品やユーザーを検索...",
+      subtitle: "みんなの投稿・グッズ・AI作品を覗いてみよう",
+      searchPlaceholder: "グッズ・作品・ユーザーを検索",
       tabRooms: "AIルーム",
       tabAvatars: "AIアバター",
       tabCollections: "コレクション",
@@ -464,8 +464,8 @@ export const chrome = {
 
     explore: {
       title: "People",
-      subtitle: "Take a peek at everyone's AI creations and collections",
-      searchPlaceholder: "Search creations or users...",
+      subtitle: "Browse everyone's posts, goods and AI creations",
+      searchPlaceholder: "Search goods, series or users",
       tabRooms: "AI rooms",
       tabAvatars: "AI avatars",
       tabCollections: "Collections",

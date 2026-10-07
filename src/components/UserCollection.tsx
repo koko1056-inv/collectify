@@ -50,6 +50,8 @@ interface UserCollectionProps {
   selectedTags: string[];
   userId?: string | null;
   selectedContent?: string;
+  /** 画面上部の検索欄の入力。棚の中身をタイトル・作品・キャラ・マイタグで絞り込む */
+  searchQuery?: string;
   onContentChange?: (content: string) => void;
   selectedPersonalTag?: string;
   onPersonalTagChange?: (tag: string) => void;
@@ -67,6 +69,7 @@ export function UserCollection({
   selectedTags,
   userId,
   selectedContent,
+  searchQuery = "",
   onContentChange,
   selectedPersonalTag: selectedPersonalTagProp,
   onPersonalTagChange: onPersonalTagChangeProp,
@@ -85,7 +88,6 @@ export function UserCollection({
   const [isBulkTagDialogOpen, setIsBulkTagDialogOpen] = useState(false);
   // 親から渡されない場合は内部 state でマイタグ選択を管理（MyRoom 経由など）
   const [internalPersonalTag, setInternalPersonalTag] = useState("");
-  const [searchText, setSearchText] = useState("");
   const [facet, setFacet] = useState<CollectionFacet | null>(null);
   const [shareSpec, setShareSpec] = useState<ShareCardSpec | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -181,8 +183,8 @@ export function UserCollection({
     if (facet) {
       filtered = filtered.filter(item => itemHasFacet(item, facet.kind, facet.value));
     }
-    if (searchText.trim()) {
-      filtered = filtered.filter(item => matchesQuery(item, searchText));
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(item => matchesQuery(item, searchQuery));
     }
     // マイタグでフィルタ
     if (selectedPersonalTag) {
@@ -214,7 +216,7 @@ export function UserCollection({
     });
     
     return sorted;
-  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, isPersonalTagLoading, sortOption, facet, searchText]);
+  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, isPersonalTagLoading, sortOption, facet, searchQuery]);
 
   const { data: progress = [] } = useCollectionProgress(effectiveUserId);
 
@@ -412,8 +414,6 @@ export function UserCollection({
       <CollectionExplorer
         items={items}
         progress={progress}
-        query={searchText}
-        onQueryChange={setSearchText}
         facet={facet}
         onFacetChange={setFacet}
         onShareSeries={isOwnCollection ? openSeriesShare : undefined}

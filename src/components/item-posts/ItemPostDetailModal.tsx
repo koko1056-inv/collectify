@@ -35,6 +35,9 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { ReactionBar } from "./ReactionBar";
+import { shareContent } from "@/utils/share";
+import { buildShareText } from "@/utils/shareLinks";
 
 interface ItemPostDetailModalProps {
   open: boolean;
@@ -94,16 +97,18 @@ export function ItemPostDetailModal({
 
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/post/${post.id}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ url: shareUrl, title: t("social.itemPosts.shareTitle") });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success(t("social.itemPosts.urlCopied"));
-      }
-    } catch {
-      /* cancelled */
-    }
+    const owner = post.profile?.display_name || post.profile?.username || t("social.itemPosts.collector");
+    // 本文の1行目は buildShareText と同じ文言にそろえる（URLは shareContent が末尾に付ける）
+    const text = buildShareText({ type: "post", id: post.id, ownerName: owner }).split("\n").slice(0, 2).join("\n");
+    const result = await shareContent({
+      title: t("social.itemPosts.shareTitle"),
+      text,
+      url: shareUrl,
+      imageUrl: post.images[0]?.image_url ?? null,
+      fileName: "collectify-post.png",
+    });
+    if (result === "copied") toast.success(t("social.itemPosts.urlCopied"));
+    else if (result === "failed") toast.error(t("engage.share.copyFailed"));
   };
 
   const handleDelete = async () => {
@@ -210,6 +215,9 @@ export function ItemPostDetailModal({
               {renderCaption(post.caption)}
             </p>
           )}
+
+          {/* 1タップの反応（持ってる / ほしい / 尊い） */}
+          <ReactionBar postId={post.id} />
 
           {/* アクション */}
           <div className="flex items-center gap-3 pt-1 border-t border-border">
@@ -356,7 +364,7 @@ function renderCaption(caption: string) {
       return (
         <a
           key={i}
-          href={`/posts?tag=${encodeURIComponent(part.slice(1))}`}
+          href={`/item-posts?tag=${encodeURIComponent(part.slice(1))}`}
           className="text-primary hover:underline"
         >
           {part}

@@ -111,7 +111,10 @@ function drawCover(
   ctx.save();
   roundRect(ctx, x, y, size, size, radius);
   ctx.clip();
-  const scale = Math.max(size / img.width, size / img.height);
+  // グッズは縦長・横長が混ざる。切り取らず全体が見えるよう、枠に収めて余白は白で埋める
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(x, y, size, size);
+  const scale = Math.min(size / img.width, size / img.height);
   const w = img.width * scale;
   const h = img.height * scale;
   ctx.drawImage(img, x + (size - w) / 2, y + (size - h) / 2, w, h);
@@ -144,6 +147,14 @@ function drawEmptyTile(
     ctx.font = `600 26px ${FONT}`;
     ctx.fillText(label, x + size / 2, y + size / 2 + size * 0.24);
   }
+  ctx.restore();
+}
+
+function drawPlainTile(ctx: CanvasRenderingContext2D, x: number, y: number, size: number, radius: number) {
+  ctx.save();
+  roundRect(ctx, x, y, size, size, radius);
+  ctx.fillStyle = ROSE_SOFT;
+  ctx.fill();
   ctx.restore();
 }
 
@@ -277,18 +288,25 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   const size = Math.min(tile, rowH);
   const gridW = size * cols + gap * (cols - 1);
   const gridLeft = margin + (SHARE_CARD_WIDTH - margin * 2 - gridW) / 2;
-  const ownedCount = isSeries ? input.owned ?? 0 : slots;
+  const owned = isSeries ? input.owned ?? 0 : slots;
+  const total = isSeries ? Math.max(input.total ?? 0, owned) : slots;
+  // 「まだ未所持」の最初の1枠にだけ文言を出す
+  const firstMissing = Math.max(owned, 0);
   for (let i = 0; i < slots; i++) {
     const x = gridLeft + (i % cols) * (size + gap);
     const ty = gridTop + Math.floor(i / cols) * (size + gap);
     const bmp = bitmaps[i];
     if (bmp) {
       drawCover(ctx, bmp, x, ty, size, 28);
-    } else if (isSeries && i >= Math.min(ownedCount, input.images.length)) {
-      drawEmptyTile(ctx, x, ty, size, 28, i === Math.min(ownedCount, input.images.length) ? input.missingLabel : undefined);
-    } else {
+    } else if (!isSeries) {
       drawEmptyTile(ctx, x, ty, size, 28);
+    } else if (i < owned) {
+      // 持っているが画像が取れなかった枠。「未所持」に見せないよう、無地で置く
+      drawPlainTile(ctx, x, ty, size, 28);
+    } else if (i < total) {
+      drawEmptyTile(ctx, x, ty, size, 28, i === firstMissing ? input.missingLabel : undefined);
     }
+    // 総数を超える枠は描かない（コンプ済みで枠が余っても「?」を出さない）
   }
 
   // フッター

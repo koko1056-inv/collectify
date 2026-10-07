@@ -174,11 +174,11 @@ export function TradeOfferPicker({ open, onOpenChange }: TradeOfferPickerProps) 
                     className="flex items-center gap-3 rounded-xl border border-border bg-card p-2.5"
                   >
                     <img
-                      src={getOptimizedImageUrl(row.image, { width: 96 })}
+                      src={getOptimizedImageUrl(row.image, { width: 160 })}
                       onError={fallbackToOriginal(row.image)}
                       alt={row.title}
                       loading="lazy"
-                      className="h-12 w-12 shrink-0 rounded-lg object-cover"
+                      className="h-14 w-14 shrink-0 rounded-lg bg-muted object-contain"
                     />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{row.title}</p>

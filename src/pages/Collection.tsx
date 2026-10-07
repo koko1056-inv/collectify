@@ -71,6 +71,7 @@ export default function Collection() {
               selectedTags={selectedTags} 
               userId={user?.id || null} 
               selectedContent={selectedContent} 
+              searchQuery={searchQuery}
               onContentChange={handleContentChange}
               selectedPersonalTag={selectedPersonalTag}
               onPersonalTagChange={handlePersonalTagChange}

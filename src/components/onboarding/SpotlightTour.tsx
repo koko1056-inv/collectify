@@ -62,6 +62,8 @@ interface Rect {
 // 代わりに穴と説明カードをスクロールに追従させてある。
 const CARD_WIDTH = 320;
 const GUTTER = 16;
+/** 下タブ（中央ボタンが張り出す）に隠れない余白。説明カードを画面下に固定するとき使う */
+const BOTTOM_NAV_CLEARANCE = 104;
 
 /**
  * data-tour は同じ名前がレスポンシブで2箇所に付くことがある
@@ -241,17 +243,22 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const width = Math.min(CARD_WIDTH, vw - GUTTER * 2);
-    const spaceBelow = vh - (rect.top + rect.height + padding);
-    const below = spaceBelow > 220;
-
+    // 対象が画面より縦に長い（ページ全体を指すなど）と、上端が画面外にあって
+    // 「対象の上」に置いた説明カードごと画面外へ出てしまう。
+    // 画面内に見えている範囲だけを基準にして、置き場所を決める。
+    const visibleTop = Math.max(rect.top - padding, 0);
+    const visibleBottom = Math.min(rect.top + rect.height + padding, vh);
+    const spaceBelow = vh - visibleBottom;
+    const spaceAbove = visibleTop;
     const left = Math.min(
       Math.max(rect.left + rect.width / 2 - width / 2, GUTTER),
       vw - width - GUTTER
     );
 
-    return below
-      ? { top: rect.top + rect.height + padding + 12, left, width }
-      : { bottom: vh - rect.top + padding + 12, left, width };
+    if (spaceBelow > 220) return { top: visibleBottom + 12, left, width };
+    if (spaceAbove > 220) return { bottom: vh - visibleTop + 12, left, width };
+    // どちらにも収まらない: 画面下に固定する（下タブに隠れない高さ）。
+    return { bottom: BOTTOM_NAV_CLEARANCE, left, width };
   }, [rect, padding]);
 
   if (!step || !resolved) return null;

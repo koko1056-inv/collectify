@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { Search, X, Trophy, Share2, ChevronDown } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Trophy, Share2, ChevronDown } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -23,8 +22,6 @@ export interface CollectionFacet {
 interface CollectionExplorerProps {
   items: Parameters<typeof countFacets>[0];
   progress: SeriesProgress[];
-  query: string;
-  onQueryChange: (q: string) => void;
   facet: CollectionFacet | null;
   onFacetChange: (f: CollectionFacet | null) => void;
   /** 作品カードのシェアボタン。渡されなければ非表示（他人のコレクションなど） */
@@ -37,8 +34,6 @@ const COLLAPSED_COUNT = 10;
 export function CollectionExplorer({
   items,
   progress,
-  query,
-  onQueryChange,
   facet,
   onFacetChange,
   onShareSeries,
@@ -69,28 +64,6 @@ export function CollectionExplorer({
 
   return (
     <div className="space-y-3" data-tour="collection-explorer">
-      {/* 検索 */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
-          placeholder={t("engage.collection.searchPlaceholder")}
-          className="pl-9 pr-9 h-10 rounded-xl"
-          aria-label={t("engage.collection.searchPlaceholder")}
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => onQueryChange("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted"
-            aria-label={t("engage.collection.clearSearch")}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-      </div>
-
       {/* 作品ごとのコンプ進捗 */}
       {progressCards.length > 0 && (
         <section aria-label={t("engage.collection.progressTitle")} className="space-y-1.5">
