@@ -17,8 +17,15 @@ interface GoodsPickTileProps {
   corner?: ReactNode;
   /** タイトルの下に置く1行のボタン風ラベル */
   footer?: ReactNode;
+  /** タイル下部（名前・ボタン）を押したときの動作。追加・選択など */
   onClick?: () => void;
+  /**
+   * 写真を押したときの動作（詳細を開くなど）。
+   * 渡さない場合は写真も onClick と同じ動きになる。
+   */
+  onImageClick?: () => void;
   ariaLabel?: string;
+  imageAriaLabel?: string;
 }
 
 /**
@@ -26,6 +33,9 @@ interface GoodsPickTileProps {
  * 一覧（1行ずつ小さなサムネ）だと写真が小さく、何のグッズか見分けにくいので、
  * 持っているものを見るときと同じ、正方形の写真つきカードに揃える。
  * 写真は切り取らず全体を見せる（縦長・横長のグッズが混ざるため）。
+ *
+ * onImageClick を渡すと、写真は「詳細を見る」、下部は「追加・選択」と押す場所で動作を分けられる。
+ * ボタンの中にボタンは置けないので、外側は div にして2つのボタンを並べている。
  */
 export const GoodsPickTile = memo(function GoodsPickTile({
   image,
@@ -38,23 +48,29 @@ export const GoodsPickTile = memo(function GoodsPickTile({
   corner,
   footer,
   onClick,
+  onImageClick,
   ariaLabel,
+  imageAriaLabel,
 }: GoodsPickTileProps) {
+  const actionDisabled = disabled || busy;
+  // 写真に専用の動作がある場合、追加済みでも詳細は開けるようにする
+  const imageDisabled = onImageClick ? false : actionDisabled;
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || busy}
-      aria-pressed={selected}
-      aria-label={ariaLabel ?? title}
+    <div
       className={cn(
         "group relative flex w-full min-w-0 flex-col overflow-hidden rounded-xl border bg-card text-left transition-all",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         selected ? "border-primary ring-2 ring-primary/60" : "border-border hover:border-primary/40",
-        (disabled || busy) && "opacity-70"
+        actionDisabled && !onImageClick && "opacity-70"
       )}
     >
-      <div className="relative aspect-square overflow-hidden bg-muted/30">
+      <button
+        type="button"
+        onClick={onImageClick ?? onClick}
+        disabled={imageDisabled}
+        aria-label={onImageClick ? imageAriaLabel ?? title : ariaLabel ?? title}
+        aria-pressed={onImageClick ? undefined : selected}
+        className="relative block aspect-square w-full overflow-hidden bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+      >
         {image && (
           <img
             src={getOptimizedImageUrl(image, { width: 320 })}
@@ -73,12 +89,22 @@ export const GoodsPickTile = memo(function GoodsPickTile({
             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-4 w-4" />}
           </span>
         )}
-      </div>
-      <div className="flex flex-1 flex-col gap-1 p-2">
-        <p className="line-clamp-2 min-h-[2rem] text-xs font-medium leading-tight text-foreground">{title}</p>
-        {subtitle && <p className="truncate text-[10px] text-muted-foreground">{subtitle}</p>}
+      </button>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={actionDisabled}
+        aria-pressed={selected}
+        aria-label={ariaLabel ?? title}
+        className={cn(
+          "flex flex-1 flex-col gap-1 p-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
+          actionDisabled && "opacity-70"
+        )}
+      >
+        <span className="line-clamp-2 min-h-[2rem] text-xs font-medium leading-tight text-foreground">{title}</span>
+        {subtitle && <span className="truncate text-[10px] text-muted-foreground">{subtitle}</span>}
         {footer}
-      </div>
-    </button>
+      </button>
+    </div>
   );
 });

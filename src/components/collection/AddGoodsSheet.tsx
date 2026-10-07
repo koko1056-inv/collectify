@@ -19,8 +19,10 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import type { OfficialItem } from "@/types";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
+import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { GoodsPickTile } from "./GoodsPickTile";
 import { CatalogFilterPanel } from "./CatalogFilterPanel";
 import { applyFilter, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
@@ -165,6 +167,8 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   const [visible, setVisible] = useState(PAGE);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [wishingId, setWishingId] = useState<string | null>(null);
+  // 写真をタップしたグッズの詳細
+  const [detailItem, setDetailItem] = useState<OfficialItem | null>(null);
 
   const { data: items = [], isLoading, isError, refetch } = useOfficialItems();
 
@@ -358,6 +362,8 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                       busy={addingId === item.id}
                       disabled={owned}
                       onClick={() => handleAdd(item)}
+                      onImageClick={() => setDetailItem(item)}
+                      imageAriaLabel={t("engage.catalog.detail", { title: item.title })}
                       ariaLabel={
                         owned
                           ? `${item.title} ${t("collectionScreen.addSheet.owned")}`
@@ -407,6 +413,21 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           )}
         </ScrollArea>
       </div>
+
+      {detailItem && (
+        <ItemDetailsModal
+          isOpen
+          onClose={() => setDetailItem(null)}
+          itemId={detailItem.id}
+          title={detailItem.title}
+          image={detailItem.image || ""}
+          price={detailItem.price ?? undefined}
+          description={detailItem.description ?? undefined}
+          releaseDate={detailItem.release_date ?? undefined}
+          contentName={detailItem.content_name}
+          isUserItem={false}
+        />
+      )}
     </div>
   );
 }
