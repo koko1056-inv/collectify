@@ -25,7 +25,7 @@ import { addToCollection } from "@/utils/collection-actions";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { GoodsPickTile } from "./GoodsPickTile";
 import { CatalogFilterPanel } from "./CatalogFilterPanel";
-import { applyFilter, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
+import { applyFilter, contentOptions, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
 import { cn } from "@/lib/utils";
 
 type View = "menu" | "pick";
@@ -203,6 +203,24 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
     },
   });
 
+  // 推しの作品を先に出す。カタログが大きいと、新しい順だけでは特定の作品が何百件も先に埋もれてしまう。
+  const { data: favoriteContents } = useQuery({
+    queryKey: ["favorite-contents", user?.id],
+    enabled: !!user?.id,
+    staleTime: 1000 * 60 * 10,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("favorite_contents").eq("id", user!.id).maybeSingle();
+      if (error) throw error;
+      return (data?.favorite_contents ?? []) as string[];
+    },
+  });
+  const orderedItems = useMemo(() => {
+    const fav = new Set(favoriteContents ?? []);
+    if (fav.size === 0) return items;
+    // 並び順は保ったまま、推しの作品だけ先頭へ（安定ソート）
+    return [...items.filter((i) => fav.has(i.content_name ?? "")), ...items.filter((i) => !fav.has(i.content_name ?? ""))];
+  }, [items, favoriteContents]);
+
   /**
    * ほしいものに入れる。
    *
@@ -246,7 +264,15 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
     setVisible(PAGE);
   }, [filter]);
 
-  const filtered = useMemo(() => applyFilter(items, filter, ownedIds), [items, filter, ownedIds]);
+  const filtered = useMemo(() => applyFilter(orderedItems, filter, ownedIds), [orderedItems, filter, ownedIds]);
+
+  // 作品をワンタップで切り替えられるチップ（推しの作品を先頭、あとは件数の多い順）
+  const contentChips = useMemo(() => {
+    const fav = new Set(favoriteContents ?? []);
+    return contentOptions(items, filter, ownedIds)
+      .sort((a, b) => Number(fav.has(b.value)) - Number(fav.has(a.value)) || b.count - a.count)
+      .slice(0, 14);
+  }, [items, filter, ownedIds, favoriteContents]);
   const results = filtered.slice(0, visible);
 
   const handleAdd = async (item: (typeof items)[number]) => {
@@ -321,6 +347,44 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
         <div className="mt-2">
           <CatalogFilterPanel items={items} owned={ownedIds} value={filter} onChange={setFilter} />
         </div>
+
+        {!isLoading && !isError && contentChips.length > 1 && (
+          <div
+            role="group"
+            aria-label={t("engage.catalog.content")}
+            className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none]"
+          >
+            <button
+              type="button"
+              aria-pressed={!filter.content}
+              onClick={() => setFilter((f) => ({ ...f, content: null }))}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1 text-xs font-medium",
+                !filter.content ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"
+              )}
+            >
+              {t("engage.catalog.all")}
+            </button>
+            {contentChips.map((c) => {
+              const on = filter.content === c.value;
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setFilter((f) => ({ ...f, content: on ? null : c.value }))}
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1 text-xs",
+                    on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"
+                  )}
+                >
+                  <span className="max-w-[9rem] truncate">{c.value}</span>
+                  <span className="tabular-nums text-[10px] opacity-70">{c.count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {!isLoading && !isError && (
           <p className="mt-2 text-[11px] text-muted-foreground tabular-nums">

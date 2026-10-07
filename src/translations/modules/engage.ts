@@ -48,6 +48,7 @@ export const engage = {
       count: "{shown}/{total}件",
       loadMore: "もっと見る（あと{n}件ずつ）",
       detail: "{title}の詳細を見る",
+      all: "すべて",
     },
     sourceTags: {
       title: "入手方法",
@@ -223,6 +224,7 @@ export const engage = {
       count: "{shown}/{total}",
       loadMore: "Show more ({n} more)",
       detail: "View details of {title}",
+      all: "All",
     },
     sourceTags: {
       title: "Where from",
