@@ -22,6 +22,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
 import { GoodsPickTile } from "./GoodsPickTile";
+import { CatalogFilterPanel } from "./CatalogFilterPanel";
+import { applyFilter, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
 import { cn } from "@/lib/utils";
 
 type View = "menu" | "pick";
@@ -152,11 +154,15 @@ function AddOption({
   );
 }
 
+/** 一度に並べる件数。全件を一度に描くと重いので、「もっと見る」で足す */
+const PAGE = 60;
+
 function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   const { t } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<CatalogFilterState>(EMPTY_FILTER);
+  const [visible, setVisible] = useState(PAGE);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [wishingId, setWishingId] = useState<string | null>(null);
 
@@ -231,18 +237,13 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
     }
   };
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const matched = q
-      ? items.filter(
-          (i) =>
-            i.title.toLowerCase().includes(q) ||
-            (i.content_name?.toLowerCase() ?? "").includes(q)
-        )
-      : items;
-    // 未検索で全件流すと重いので、先頭だけ出して「検索してください」に誘導する
-    return matched.slice(0, 50);
-  }, [items, query]);
+  // 絞り込みが変わったら、先頭から見直す
+  useEffect(() => {
+    setVisible(PAGE);
+  }, [filter]);
+
+  const filtered = useMemo(() => applyFilter(items, filter, ownedIds), [items, filter, ownedIds]);
+  const results = filtered.slice(0, visible);
 
   const handleAdd = async (item: (typeof items)[number]) => {
     if (!user) return;
@@ -306,14 +307,24 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             autoFocus
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={filter.query}
+            onChange={(e) => setFilter((f) => ({ ...f, query: e.target.value }))}
             placeholder={t("collectionScreen.addSheet.searchPlaceholder")}
             className="pl-9"
           />
         </div>
 
-        <ScrollArea className="mt-3 h-[56vh] pr-2 [&>[data-radix-scroll-area-viewport]>div]:!block">
+        <div className="mt-2">
+          <CatalogFilterPanel items={items} owned={ownedIds} value={filter} onChange={setFilter} />
+        </div>
+
+        {!isLoading && !isError && (
+          <p className="mt-2 text-[11px] text-muted-foreground tabular-nums">
+            {t("engage.catalog.count", { shown: Math.min(visible, filtered.length), total: filtered.length })}
+          </p>
+        )}
+
+        <ScrollArea className="mt-2 h-[48vh] pr-2 [&>[data-radix-scroll-area-viewport]>div]:!block">
           {isLoading ? (
             <div className="grid grid-cols-3 gap-2.5">
               {Array.from({ length: 9 }).map((_, i) => (
@@ -385,6 +396,13 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                   </div>
                 );
               })}
+              {filtered.length > visible && (
+                <div className="col-span-3 flex justify-center pt-1">
+                  <Button variant="outline" size="sm" onClick={() => setVisible((v) => v + PAGE)}>
+                    {t("engage.catalog.loadMore", { n: Math.min(PAGE, filtered.length - visible) })}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </ScrollArea>
