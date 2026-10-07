@@ -96,7 +96,7 @@ export function PriceSearchModal({
             <img
               src={itemImage}
               alt={itemTitle}
-              className="w-16 h-16 object-cover rounded-md"
+              className="w-16 h-16 object-contain rounded-md bg-muted/30"
             />
           )}
           <div className="flex-1 min-w-0">
@@ -169,7 +169,7 @@ export function PriceSearchModal({
                         <img
                           src={result.image}
                           alt=""
-                          className="w-12 h-12 object-cover rounded"
+                          className="w-12 h-12 object-contain rounded bg-muted/30"
                         />
                       ) : (
                         <div className="w-12 h-12 bg-muted rounded flex items-center justify-center text-2xl">

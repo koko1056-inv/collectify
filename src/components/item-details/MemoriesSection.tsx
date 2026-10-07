@@ -64,7 +64,7 @@ export function MemoriesSection({ memories }: MemoriesSectionProps) {
                     <img
                       src={getOptimizedImageUrl(memory.image_url, { width: 300 })} onError={fallbackToOriginal(memory.image_url)} loading="lazy" decoding="async"
                       alt={t("itemDetails.memories.photoAlt")}
-                      className="w-full rounded-lg object-cover max-h-64 hover:scale-105 transition-transform duration-300"
+                      className="w-full rounded-lg object-contain max-h-64 hover:scale-105 transition-transform duration-300 bg-muted/30"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
                   </div>

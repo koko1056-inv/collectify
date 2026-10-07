@@ -199,7 +199,7 @@ export function TradeRequestModal({
                             loading="lazy"
                             decoding="async"
                             alt=""
-                            className="h-full w-full object-cover"
+                            className="h-full w-full object-contain"
                           />
                         </div>
                         <p className="mt-1 line-clamp-2 min-h-[2rem] text-[11px]">{item.title}</p>

@@ -98,7 +98,7 @@ const CardImage = memo(function CardImage({
         key={`${image}-${Date.now()}`} 
         src={image} 
         alt={title} 
-        className="w-full h-full transition-transform duration-500 group-hover:scale-105 object-cover"
+        className="w-full h-full transition-transform duration-500 group-hover:scale-105 object-contain"
         skeletonClassName="aspect-square"
       />
       {/* 数量バッジ（2個以上の時のみ表示） */}

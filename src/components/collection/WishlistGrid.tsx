@@ -159,7 +159,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
             <img
               src={getOptimizedImageUrl(item.official_items?.image, { width: 300 })} onError={fallbackToOriginal(item.official_items?.image)} loading="lazy" decoding="async"
               alt={item.official_items?.title}
-              className="h-24 w-24 object-cover rounded mb-2"
+              className="h-24 w-24 object-contain rounded mb-2 bg-muted/30"
             />
             <div className="text-center w-full">
               <h3 className="font-medium text-sm line-clamp-2">{item.official_items?.title}</h3>

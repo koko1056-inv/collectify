@@ -154,7 +154,7 @@ export function PublicItemDetailsModal({
                           <img
                             src={m.image_url}
                             alt=""
-                            className="w-full max-h-64 object-cover"
+                            className="w-full max-h-64 object-contain bg-muted/30"
                             loading="lazy"
                           />
                         )}

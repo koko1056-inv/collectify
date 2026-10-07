@@ -144,3 +144,36 @@ export function useTradeSeriesPartners() {
     },
   });
 }
+
+export interface MyTradeOffer {
+  id: string;
+  title: string;
+  image: string;
+  quantity: number;
+}
+
+/**
+ * 自分が交換に出しているグッズ。
+ * 交換タブに「出したものが見える場所」が無いと、選んだ直後に何も変わらず、
+ * 保存されたのか分からない。マッチが無いうちも、出しているものはここで見せる。
+ */
+export function useMyTradeOffers() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["my-trade-offers", user?.id],
+    enabled: !!user?.id,
+    staleTime: 30 * 1000,
+    queryFn: async (): Promise<MyTradeOffer[]> => {
+      const { data, error } = await supabase
+        .from("user_items")
+        .select("id, title, image, quantity")
+        .eq("user_id", user!.id)
+        .eq("for_trade", true)
+        .order("created_at", { ascending: false })
+        .limit(60);
+      if (error) throw error;
+      return (data ?? []) as MyTradeOffer[];
+    },
+  });
+}

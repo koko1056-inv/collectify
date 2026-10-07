@@ -51,6 +51,10 @@ export function TradeAvailabilitySection({
       queryClient.invalidateQueries({ queryKey: ["user-items"] }),
       queryClient.invalidateQueries({ queryKey: ["trade-matches", user?.id] }),
       queryClient.invalidateQueries({ queryKey: ["trade-readiness", user?.id] }),
+      queryClient.invalidateQueries({ queryKey: ["trade-series-partners", user?.id] }),
+      queryClient.invalidateQueries({ queryKey: ["my-trade-offers", user?.id] }),
+      // 「はじめてガイド」の交換ステップは、出しているグッズの有無で完了になる
+      queryClient.invalidateQueries({ queryKey: ["onboarding-checklist", user?.id] }),
     ]);
 
   const save = async (patch: { quantity?: number; for_trade?: boolean }) => {

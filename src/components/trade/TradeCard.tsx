@@ -298,7 +298,7 @@ function ItemSide({
           loading="lazy"
           decoding="async"
           alt=""
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
       </div>
       <p className="mt-1 truncate text-xs">{item.title}</p>

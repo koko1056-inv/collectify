@@ -21,7 +21,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOfficialItems } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
-import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { GoodsPickTile } from "./GoodsPickTile";
 import { cn } from "@/lib/utils";
 
 type View = "menu" | "pick";
@@ -289,7 +289,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex max-h-[88vh] flex-col px-4 pt-4 pb-6">
-      <div className="mx-auto flex w-full max-w-sm flex-col overflow-hidden">
+      <div className="mx-auto flex w-full max-w-md flex-col overflow-hidden">
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={onBack} aria-label={t("chrome.common.back")}>
             <ChevronLeft className="h-5 w-5" />
@@ -313,11 +313,11 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           />
         </div>
 
-        <ScrollArea className="mt-3 h-[52vh] pr-2">
+        <ScrollArea className="mt-3 h-[56vh] pr-2 [&>[data-radix-scroll-area-viewport]>div]:!block">
           {isLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full rounded-xl" />
+            <div className="grid grid-cols-3 gap-2.5">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[3/4] w-full rounded-xl" />
               ))}
             </div>
           ) : isError ? (
@@ -332,71 +332,56 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
               description={t("collectionScreen.addSheet.noHitDesc")}
             />
           ) : (
-            <div className="space-y-2">
+            // マイコレクションと同じ、写真つきのカードを並べて選ぶ
+            <div className="grid grid-cols-3 gap-2.5 pb-2">
               {results.map((item) => {
                 const owned = ownedIds?.has(item.id) ?? false;
                 const wished = wishedIds?.has(item.id) ?? false;
                 return (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-card p-2"
-                  >
-                    <img
-                      src={getOptimizedImageUrl(item.image, { width: 120 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async"
-                      alt=""
-                      className="h-12 w-12 shrink-0 rounded-lg object-cover bg-muted"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{item.title}</p>
-                      {item.content_name && (
-                        <p className="truncate text-xs text-muted-foreground">
-                          {item.content_name}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      {/* 持っていないものは「ほしい」に入れられる。
-                          交換は欲しいもの側が無いと相手が見つからない。 */}
-                      {!owned && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={wished || wishingId === item.id}
-                          onClick={() => handleWish(item)}
-                          className="gap-1"
-                        >
-                          {wishingId === item.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <Heart
-                              className={cn(
-                                "h-3.5 w-3.5",
-                                wished && "fill-current text-primary"
-                              )}
-                            />
+                  <div key={item.id} className="relative min-w-0">
+                    <GoodsPickTile
+                      image={item.image}
+                      title={item.title}
+                      subtitle={item.content_name}
+                      selected={owned}
+                      busy={addingId === item.id}
+                      disabled={owned}
+                      onClick={() => handleAdd(item)}
+                      ariaLabel={
+                        owned
+                          ? `${item.title} ${t("collectionScreen.addSheet.owned")}`
+                          : `${item.title} ${t("chrome.fab.addShort")}`
+                      }
+                      footer={
+                        <span
+                          className={cn(
+                            "mt-auto rounded-md py-1 text-center text-[10px] font-semibold",
+                            owned ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
                           )}
-                          {wished
-                            ? t("collectionScreen.addSheet.wished")
-                            : t("collectionScreen.addSheet.wantIt")}
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant={owned ? "outline" : "default"}
-                        disabled={owned || addingId === item.id}
-                        onClick={() => handleAdd(item)}
-                        className="gap-1"
+                        >
+                          {owned ? t("collectionScreen.addSheet.owned") : `+ ${t("chrome.fab.addShort")}`}
+                        </span>
+                      }
+                    />
+                    {/* 持っていないものは「ほしい」に入れられる。
+                        交換は欲しいもの側が無いと相手が見つからない。
+                        タイルの外に置く（ボタンの中にボタンは置けない）。 */}
+                    {!owned && (
+                      <button
+                        type="button"
+                        disabled={wished || wishingId === item.id}
+                        onClick={() => handleWish(item)}
+                        aria-label={`${item.title} ${wished ? t("collectionScreen.addSheet.wished") : t("collectionScreen.addSheet.wantIt")}`}
+                        aria-pressed={wished}
+                        className="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-background/90 shadow backdrop-blur disabled:opacity-100"
                       >
-                        {addingId === item.id ? (
+                        {wishingId === item.id ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : owned ? (
-                          <Check className="h-3.5 w-3.5" />
-                        ) : null}
-                        {owned
-                          ? t("collectionScreen.addSheet.owned")
-                          : t("chrome.fab.addShort")}
-                      </Button>
-                    </div>
+                        ) : (
+                          <Heart className={cn("h-4 w-4", wished ? "fill-primary text-primary" : "text-muted-foreground")} />
+                        )}
+                      </button>
+                    )}
                   </div>
                 );
               })}

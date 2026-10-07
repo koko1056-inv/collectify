@@ -481,7 +481,7 @@ export function UserItemDetailsModal({
                         <img
                           src={getOptimizedImageUrl(memory.image_url, { width: 300 })} onError={fallbackToOriginal(memory.image_url)} loading="lazy" decoding="async"
                           alt={t("itemDetails.memories.imageAlt")}
-                          className="w-full rounded aspect-video object-cover"
+                          className="w-full rounded aspect-video object-contain bg-muted/30"
                         />
                       )}
                       {memory.comment && (

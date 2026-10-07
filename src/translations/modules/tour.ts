@@ -53,7 +53,7 @@ export const tour = {
       },
       offer: {
         title: "出すものをここで選びます",
-        body: "持っているグッズが一覧で出るので、交換に出すものをスイッチで選べます。押してみてください。",
+        body: "持っているグッズが写真つきで並ぶので、交換に出すものをタップで選べます。押してみてください。",
       },
     },
 
@@ -154,7 +154,7 @@ export const tour = {
       },
       offer: {
         title: "Choose what you offer here",
-        body: "Your Goods are listed with a switch each, so you can pick what to put up for trade. Give it a tap.",
+        body: "Your goods are shown with photos, so you can tap the ones you want to put up for trade. Give it a tap.",
       },
     },
 

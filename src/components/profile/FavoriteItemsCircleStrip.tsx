@@ -41,7 +41,7 @@ export function FavoriteItemsCircleStrip({ userId }: Props) {
                 <img
                   src={getOptimizedImageUrl(item.image, { width: 150 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async"
                   alt={item.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                   />
               </div>
             </div>

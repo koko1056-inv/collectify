@@ -113,7 +113,7 @@ export function ItemOwnersModal({
           <img 
             src={getOptimizedImageUrl(itemImage, { width: 200 })} onError={fallbackToOriginal(itemImage)} loading="lazy" decoding="async" 
             alt={itemTitle} 
-            className="w-12 h-12 rounded object-cover"
+            className="w-12 h-12 rounded object-contain bg-muted/30"
           />
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm truncate">{itemTitle}</p>

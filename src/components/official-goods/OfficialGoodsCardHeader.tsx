@@ -13,7 +13,7 @@ export function OfficialGoodsCardHeader({ image, title }: OfficialGoodsCardHeade
         <LazyImage
           src={image}
           alt={title}
-          className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+          className="object-contain w-full h-full hover:scale-105 transition-transform duration-300"
           skeletonClassName="aspect-square"
         />
       </div>

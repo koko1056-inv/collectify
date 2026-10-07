@@ -179,7 +179,7 @@ export function FavoriteItemsEditModal({
                         <img
                           src={getOptimizedImageUrl(item.image, { width: 200 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async"
                           alt={item.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-contain"
                         />
                         <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-yellow-400 text-yellow-950 text-[10px] font-bold flex items-center justify-center shadow">
                           {idx + 1}
@@ -274,7 +274,7 @@ export function FavoriteItemsEditModal({
                     <img
                       src={getOptimizedImageUrl(item.image, { width: 200 })} onError={fallbackToOriginal(item.image)} loading="lazy" decoding="async"
                       alt={item.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       />
                     {selected && (
                       <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
