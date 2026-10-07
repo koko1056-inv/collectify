@@ -128,7 +128,7 @@ export function ItemPostDetailModal({
 
         {/* 画像カルーセル */}
         <div className="relative bg-black">
-          <div className="relative aspect-square">
+          <div className="relative aspect-square overflow-hidden">
             {currentImage && (
               <img
                 src={currentImage.image_url}
