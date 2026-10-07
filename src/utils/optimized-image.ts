@@ -17,7 +17,9 @@ export function getOptimizedImageUrl(
   if (!url || !url.startsWith(STORAGE_PUBLIC_PREFIX)) return url;
   const path = url.slice(STORAGE_PUBLIC_PREFIX.length);
   const sep = path.includes("?") ? "&" : "?";
-  return `${RENDER_PUBLIC_PREFIX}${path}${sep}width=${opts.width}&quality=${opts.quality ?? 75}`;
+  // resize を省くと既定の cover になり、幅だけ指定した場合に正方形の写真が
+  // 320x2000 のような細長い切り抜きで返ってくる。常に全体が入る contain にする。
+  return `${RENDER_PUBLIC_PREFIX}${path}${sep}width=${opts.width}&quality=${opts.quality ?? 75}&resize=contain`;
 }
 
 /**
