@@ -6,6 +6,18 @@
  */
 export const engage = {
   ja: {
+    memory: {
+      today: "{n}年前の今日",
+      around: "{n}年前の今ごろ",
+      one: "「{title}」をお迎えしました",
+      many: "「{title}」ほか{n}点をお迎えしました",
+      dismiss: "今日は閉じる",
+    },
+    timeline: {
+      sortLabel: "お迎えの記録（月ごと）",
+      month: "{y}年{m}月",
+      count: "{n}点",
+    },
     itemPage: {
       notFoundTitle: "このグッズは見つかりませんでした",
       notFoundBody: "削除されたか、URLが変わった可能性があります。",
@@ -169,6 +181,18 @@ export const engage = {
     },
   },
   en: {
+    memory: {
+      today: "{n} year(s) ago today",
+      around: "Around this time {n} year(s) ago",
+      one: "You brought home \"{title}\"",
+      many: "You brought home \"{title}\" and {n} more",
+      dismiss: "Hide for today",
+    },
+    timeline: {
+      sortLabel: "Timeline (by month)",
+      month: "{m}/{y}",
+      count: "{n}",
+    },
     itemPage: {
       notFoundTitle: "We couldn't find this item",
       notFoundBody: "It may have been removed, or the link may have changed.",

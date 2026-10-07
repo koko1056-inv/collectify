@@ -21,6 +21,8 @@ interface CollectionViewToggleProps {
   isSelectionMode?: boolean;
   selectedItems?: string[];
   onSelectItem?: (itemId: string) => void;
+  /** 渡すと、通常表示のグリッドを見出しつきの区切りに分けて並べる（お迎えの月ごとなど） */
+  groups?: { key: string; label: string; count: string; items: unknown[] }[];
 }
 
 export function CollectionViewToggle({
@@ -34,6 +36,7 @@ export function CollectionViewToggle({
   isSelectionMode = false,
   selectedItems = [],
   onSelectItem,
+  groups,
 }: CollectionViewToggleProps) {
   const { allUserTags } = usePersonalTags();
   const { t } = useLanguage();
@@ -98,6 +101,27 @@ export function CollectionViewToggle({
         <CollectionWishlist userId={userId} />
       ) : items.length === 0 ? (
         <EmptyState icon={Package} title={emptyTitle} />
+      ) : groups ? (
+        <div className="space-y-6">
+          {groups.map((group) => (
+            <section key={group.key} aria-label={group.label}>
+              <h3 className="mb-2 flex items-baseline gap-2 px-1 text-sm font-semibold text-foreground">
+                {group.label}
+                <span className="text-xs font-normal text-muted-foreground tabular-nums">{group.count}</span>
+              </h3>
+              <CollectionGrid
+                items={group.items}
+                isCompact={isCompact}
+                isSelectionMode={isSelectionMode}
+                selectedItems={selectedItems}
+                onSelectItem={onSelectItem ?? (() => {})}
+                // 月ごとの並びは日付で決まるので、ドラッグでの入れ替えはしない
+                onDragEnd={() => {}}
+                batchMemories={batchMemories}
+              />
+            </section>
+          ))}
+        </div>
       ) : (
         <CollectionGrid
           items={items}

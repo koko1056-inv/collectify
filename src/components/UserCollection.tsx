@@ -22,6 +22,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Share2,
+  CalendarDays,
 } from "lucide-react";
 import { setPendingAiItems } from "@/utils/ai-studio-handoff";
 import { toast } from "sonner";
@@ -33,6 +34,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { CollectionExplorer, type CollectionFacet } from "./collection/CollectionExplorer";
 import { ShareCardDialog, type ShareCardSpec } from "./share/ShareCardDialog";
 import { useCollectionProgress, isComplete, type SeriesProgress } from "@/hooks/useCollectionProgress";
+import { OnThisDayCard } from "./collection/OnThisDayCard";
+import { acquiredTime, findOnThisDay, groupByMonth } from "@/utils/memories";
 import { countFacets, itemHasFacet, matchesQuery } from "@/utils/itemFacets";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
@@ -44,7 +47,13 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
-type SortOption = "newest" | "oldest" | "title" | "content";
+type SortOption = "newest" | "oldest" | "title" | "content" | "timeline";
+
+const ON_THIS_DAY_KEY = "collectify.onThisDay.dismissedOn";
+const todayKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+};
 
 interface UserCollectionProps {
   selectedTags: string[];
@@ -90,6 +99,14 @@ export function UserCollection({
   const [internalPersonalTag, setInternalPersonalTag] = useState("");
   const [facet, setFacet] = useState<CollectionFacet | null>(null);
   const [shareSpec, setShareSpec] = useState<ShareCardSpec | null>(null);
+  // 「N年前の今日」を今日はもう閉じたか。保存できない環境では毎回出してよい
+  const [onThisDayDismissed, setOnThisDayDismissed] = useState(() => {
+    try {
+      return localStorage.getItem(ON_THIS_DAY_KEY) === todayKey();
+    } catch {
+      return false;
+    }
+  });
   const [isShareOpen, setIsShareOpen] = useState(false);
   const selectedPersonalTag = selectedPersonalTagProp ?? internalPersonalTag;
   const onPersonalTagChange = onPersonalTagChangeProp ?? setInternalPersonalTag;
@@ -204,6 +221,9 @@ export function UserCollection({
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         case "oldest":
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "timeline":
+          // お迎え日（購入日があればそれ、無ければ登録日）の新しい順
+          return acquiredTime(b) - acquiredTime(a);
         case "title":
           return (a.title || "").localeCompare(b.title || "", "ja");
         case "content":
@@ -219,6 +239,13 @@ export function UserCollection({
   }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, isPersonalTagLoading, sortOption, facet, searchQuery]);
 
   const { data: progress = [] } = useCollectionProgress(effectiveUserId);
+
+  // 自分の棚だけ。お迎え日から自動で出す思い出（入力は不要）
+  const onThisDay = useMemo(() => (isOwnCollection ? findOnThisDay(items) : null), [isOwnCollection, items]);
+  const monthGroups = useMemo(
+    () => (sortOption === "timeline" ? groupByMonth(filteredItems) : []),
+    [sortOption, filteredItems]
+  );
 
   const { data: ownerProfile } = useQuery({
     queryKey: ["share-owner-profile", effectiveUserId],
@@ -280,6 +307,7 @@ export function UserCollection({
     oldest: t("chrome.collection.sortOldest"),
     title: t("chrome.collection.sortTitle"),
     content: t("chrome.collection.sortContent"),
+    timeline: t("engage.timeline.sortLabel"),
   };
 
   const sortIcons: Record<SortOption, React.ReactNode> = {
@@ -287,6 +315,7 @@ export function UserCollection({
     oldest: <Clock className="w-4 h-4" />,
     title: <SortAsc className="w-4 h-4" />,
     content: <Heart className="w-4 h-4" />,
+    timeline: <CalendarDays className="w-4 h-4" />,
   };
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
@@ -411,6 +440,20 @@ export function UserCollection({
 
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
+      {onThisDay && !onThisDayDismissed && (
+        <OnThisDayCard
+          memory={onThisDay}
+          onDismiss={() => {
+            setOnThisDayDismissed(true);
+            try {
+              localStorage.setItem(ON_THIS_DAY_KEY, todayKey());
+            } catch {
+              /* 保存できなくても、この画面では閉じたままにする */
+            }
+          }}
+        />
+      )}
+
       <CollectionExplorer
         items={items}
         progress={progress}
@@ -561,6 +604,16 @@ export function UserCollection({
         <CollectionViewToggle
           userId={effectiveUserId}
           items={filteredItems}
+          groups={
+            sortOption === "timeline"
+              ? monthGroups.map((g) => ({
+                  key: g.key,
+                  label: t("engage.timeline.month", { y: g.year, m: g.month }),
+                  count: t("engage.timeline.count", { n: g.items.length }),
+                  items: g.items,
+                }))
+              : undefined
+          }
           isCompact={isCompact}
           handleDragEnd={handleDragEnd}
           batchMemories={batchMemories}
