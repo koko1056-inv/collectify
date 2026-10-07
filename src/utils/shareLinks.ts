@@ -1,13 +1,13 @@
 /**
  * シェア用URLとテキストの統一ヘルパー。
  *
- * - SNSに貼るURLは Edge Function 経由 (`/functions/v1/og-image?...`) にする
+ * - SNSに貼るURLは自アプリの `/api/og?...`（Vercel Function）経由にする
  *   → SNSクローラーには動的OGP（タイトル・画像・説明）を返す
  *   → 人間アクセスは即座に本来のページへリダイレクト
+ *   Supabase の Edge Function を直接貼ると、既定ドメインでは HTML が text/plain で返り、
+ *   OGPが読まれず、人が開いてもソースが表示されてしまう。
  * - シェアテキストは煽り＋数字＋ハッシュタグ入りで拡散しやすく
  */
-import { SUPABASE_URL } from "@/integrations/supabase/client";
-
 /**
  * 「URLをコピー」で配るときの土台。
  *
@@ -22,9 +22,8 @@ const APP_URL =
   import.meta.env.VITE_APP_URL ||
   (typeof window !== "undefined" ? window.location.origin : "https://collectify-main.vercel.app");
 
-const OG_ENDPOINT = `${SUPABASE_URL}/functions/v1/og-image`;
-
 export type ShareTarget =
+  | { type: "item"; id: string; title?: string; contentName?: string | null }
   | { type: "room"; id: string; ownerName?: string; itemCount?: number }
   | { type: "user"; id: string; name?: string; itemCount?: number }
   | { type: "post"; id: string; ownerName?: string }
@@ -32,12 +31,16 @@ export type ShareTarget =
 
 /** SNS シェア用のURL（OGP動的生成エンドポイント経由） */
 export function buildShareUrl(target: ShareTarget): string {
-  return `${OG_ENDPOINT}?type=${target.type}&id=${encodeURIComponent(target.id)}`;
+  // グッズは公開ページ自体がクローラーにOGPを返す（vercel.json の書き換え）ので、そのURLを配る
+  if (target.type === "item") return `${APP_URL}/item/${target.id}`;
+  return `${APP_URL}/api/og?type=${target.type}&id=${encodeURIComponent(target.id)}`;
 }
 
 /** 直接アクセス用のURL（アプリ内リンクや「URLをコピー」用） */
 export function buildAppUrl(target: ShareTarget): string {
   switch (target.type) {
+    case "item":
+      return `${APP_URL}/item/${target.id}`;
     case "room":
       return `${APP_URL}/room/${target.id}`;
     case "user":
@@ -53,6 +56,10 @@ export function buildAppUrl(target: ShareTarget): string {
 export function buildShareText(target: ShareTarget): string {
   const url = buildShareUrl(target);
   switch (target.type) {
+    case "item": {
+      const series = target.contentName ? `${target.contentName}の` : "";
+      return `${series}「${target.title ?? "グッズ"}」\n持ってる人・交換できる人がわかる #Collectify #推し活\n${url}`;
+    }
     case "room": {
       const owner = target.ownerName || "コレクター";
       const count = target.itemCount;

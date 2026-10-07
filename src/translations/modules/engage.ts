@@ -6,6 +6,25 @@
  */
 export const engage = {
   ja: {
+    itemPage: {
+      notFoundTitle: "このグッズは見つかりませんでした",
+      notFoundBody: "削除されたか、URLが変わった可能性があります。",
+      backHome: "トップへ",
+      releaseDate: "発売日",
+      price: "価格",
+      signupCta: "無料で登録して集める",
+      signupHint: "持っているグッズの管理・コンプ率・交換相手探しまで、すべて無料で始められます。",
+      login: "ログイン",
+      addToCollection: "コレクションに追加",
+      added: "追加済み",
+      wish: "ほしいに入れる",
+      wished: "ほしいに入れました",
+      share: "このグッズを共有",
+      sameSeries: "{series}の他のグッズ",
+      linkCopied: "リンクをコピーしました",
+      addedToast: "コレクションに追加しました",
+      addFailed: "追加できませんでした",
+    },
     catalog: {
       filter: "絞り込み",
       clear: "すべて解除",
@@ -148,6 +167,25 @@ export const engage = {
     },
   },
   en: {
+    itemPage: {
+      notFoundTitle: "We couldn't find this item",
+      notFoundBody: "It may have been removed, or the link may have changed.",
+      backHome: "Home",
+      releaseDate: "Release date",
+      price: "Price",
+      signupCta: "Sign up free and start collecting",
+      signupHint: "Manage what you own, track completion and find trade partners — all free to start.",
+      login: "Log in",
+      addToCollection: "Add to collection",
+      added: "In your collection",
+      wish: "Add to wishlist",
+      wished: "On your wishlist",
+      share: "Share this item",
+      sameSeries: "More from {series}",
+      linkCopied: "Link copied",
+      addedToast: "Added to your collection",
+      addFailed: "Couldn't add it",
+    },
     catalog: {
       filter: "Filter",
       clear: "Clear all",

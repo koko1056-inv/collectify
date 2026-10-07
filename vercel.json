@@ -1,0 +1,56 @@
+{
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/item/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Bb]ot|[Cc]rawler|[Ss]pider|facebookexternalhit|line-poker|WhatsApp).*"
+        }
+      ],
+      "destination": "/api/og?type=item&id=:id"
+    },
+    {
+      "source": "/user/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Bb]ot|[Cc]rawler|[Ss]pider|facebookexternalhit|line-poker|WhatsApp).*"
+        }
+      ],
+      "destination": "/api/og?type=user&id=:id"
+    },
+    {
+      "source": "/room/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Bb]ot|[Cc]rawler|[Ss]pider|facebookexternalhit|line-poker|WhatsApp).*"
+        }
+      ],
+      "destination": "/api/og?type=room&id=:id"
+    },
+    {
+      "source": "/post/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([Bb]ot|[Cc]rawler|[Ss]pider|facebookexternalhit|line-poker|WhatsApp).*"
+        }
+      ],
+      "destination": "/api/og?type=post&id=:id"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
