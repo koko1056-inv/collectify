@@ -1,5 +1,5 @@
 /**
- * 「思わず見せたくなる」共有カード（1080×1350 のPNG）を Canvas で描く。
+ * 「思わず見せたくなる」共有カードを Canvas で描く（投稿 4:5 / 正方形 / ストーリーズ 9:16 / X 16:9）。
  *
  * DOM を撮影する方式（html2canvas）にしない理由:
  *  - 外部ホストのグッズ画像は CORS が無いことが多く、DOM撮影だとキャンバスが汚染されて書き出せない。
@@ -10,6 +10,16 @@
 
 export type ShareCardVariant = "series" | "status";
 
+/** 共有先ごとの比率。投稿(4:5)・正方形(1:1)・ストーリーズ(9:16)・X/横長(16:9) */
+export type ShareCardFormat = "portrait" | "square" | "story" | "wide";
+
+export const SHARE_CARD_FORMATS: Record<ShareCardFormat, { width: number; height: number }> = {
+  portrait: { width: 1080, height: 1350 },
+  square: { width: 1080, height: 1080 },
+  story: { width: 1080, height: 1920 },
+  wide: { width: 1200, height: 675 },
+};
+
 export interface ShareCardStat {
   label: string;
   value: string;
@@ -17,6 +27,8 @@ export interface ShareCardStat {
 
 export interface ShareCardInput {
   variant: ShareCardVariant;
+  /** 省略時は portrait */
+  format?: ShareCardFormat;
   /** 作品名 / カードの見出し */
   headline: string;
   ownerName: string;
@@ -39,6 +51,7 @@ export interface ShareCardInput {
 
 export const SHARE_CARD_WIDTH = 1080;
 export const SHARE_CARD_HEIGHT = 1350;
+// ストーリーズは上下をアプリのUIが覆うので、中身は縦長キャンバスの中央に 4:5 の領域として置く
 
 const INK = "#2A1F24";
 const MUTED = "#8A7B80";
@@ -158,15 +171,69 @@ function drawPlainTile(ctx: CanvasRenderingContext2D, x: number, y: number, size
   ctx.restore();
 }
 
+/** 招待リンクのQR。読み取れれば十分なので、白地・濃色の単色で素直に描く */
+async function drawQr(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, size: number) {
+  try {
+    const QRCode = (await import("qrcode")).default;
+    const qr = QRCode.create(text, { errorCorrectionLevel: "M" });
+    const n = qr.modules.size;
+    const pad = 12;
+    // モジュールを整数ピクセルにそろえる。端数があるとにじんで、小さいQRほど読み取れなくなる
+    const cell = Math.max(2, Math.floor((size - pad * 2) / n));
+    const qrPx = cell * n;
+    const plate = qrPx + pad * 2;
+    const px = x + (size - plate) / 2;
+    const py = y + (size - plate) / 2;
+    roundRect(ctx, px, py, plate, plate, 18);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fill();
+    ctx.fillStyle = INK;
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (qr.modules.get(r, c)) ctx.fillRect(px + pad + c * cell, py + pad + r * cell, cell, cell);
+      }
+    }
+    return true;
+  } catch {
+    // QRが作れなくてもカード自体は出す
+    return false;
+  }
+}
+
+/** ロゴ: 角丸のバッジ + ワードマーク */
+function drawLogo(ctx: CanvasRenderingContext2D, x: number, baseline: number, scale = 1) {
+  const s = 56 * scale;
+  roundRect(ctx, x, baseline - s + 8 * scale, s, s, 16 * scale);
+  ctx.fillStyle = ROSE;
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `900 ${Math.round(38 * scale)}px ${FONT}`;
+  ctx.fillText("C", x + s / 2, baseline - s / 2 + 8 * scale + 2);
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = ROSE;
+  ctx.font = `800 ${Math.round(40 * scale)}px ${FONT}`;
+  ctx.fillText("Collectify", x + s + 16 * scale, baseline);
+}
+
 export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
+  const format = input.format ?? "portrait";
+  const dims = SHARE_CARD_FORMATS[format];
   const canvas = document.createElement("canvas");
-  canvas.width = SHARE_CARD_WIDTH;
-  canvas.height = SHARE_CARD_HEIGHT;
+  canvas.width = dims.width;
+  canvas.height = dims.height;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("canvas unsupported");
 
+  if (format === "wide") return renderWide(ctx, canvas, input);
+
   const isSeries = input.variant === "series";
-  const slots = isSeries ? 6 : 9;
+  // 正方形は縦が足りないので1行だけ。ほかは従来どおり
+  const slots = format === "square" ? 3 : isSeries ? 6 : 9;
+  // ストーリーズは 4:5 の領域を縦中央に置く（上下はアプリのUIで隠れるため）
+  const SHARE_CARD_HEIGHT_LOCAL = format === "story" ? SHARE_CARD_HEIGHT : dims.height;
   const cols = 3;
   const margin = 72;
   const gap = 24;
@@ -177,7 +244,8 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 
   // 背景
   ctx.fillStyle = PAPER;
-  ctx.fillRect(0, 0, SHARE_CARD_WIDTH, SHARE_CARD_HEIGHT);
+  ctx.fillRect(0, 0, dims.width, dims.height);
+  if (format === "story") ctx.translate(0, (dims.height - SHARE_CARD_HEIGHT_LOCAL) / 2);
   ctx.fillStyle = ROSE_SOFT;
   ctx.beginPath();
   ctx.arc(SHARE_CARD_WIDTH - 40, -20, 330, 0, Math.PI * 2);
@@ -186,9 +254,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   // ヘッダー
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";
-  ctx.fillStyle = ROSE;
-  ctx.font = `800 40px ${FONT}`;
-  ctx.fillText("Collectify", margin, 108);
+  drawLogo(ctx, margin, 108);
 
   ctx.textAlign = "right";
   ctx.fillStyle = MUTED;
@@ -283,7 +349,8 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 
   // 画像グリッド
   const rows = Math.ceil(slots / cols);
-  const availH = SHARE_CARD_HEIGHT - 150 - gridTop;
+  // 下にはフッター(文言・URL・QR)の分を空ける
+  const availH = SHARE_CARD_HEIGHT_LOCAL - 190 - gridTop;
   const rowH = Math.min(tile, (availH - gap * (rows - 1)) / rows);
   const size = Math.min(tile, rowH);
   const gridW = size * cols + gap * (cols - 1);
@@ -309,17 +376,158 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
     // 総数を超える枠は描かない（コンプ済みで枠が余っても「?」を出さない）
   }
 
-  // フッター
+  // フッター: 文言とURLは左、QRは右
+  const qrSize = 150;
+  const footerBottom = SHARE_CARD_HEIGHT_LOCAL - 44;
   ctx.textAlign = "left";
   ctx.fillStyle = INK;
   ctx.font = `700 34px ${FONT}`;
-  ctx.fillText(input.tagline, margin, SHARE_CARD_HEIGHT - 88);
+  ctx.fillText(input.tagline, margin, footerBottom - 44);
   ctx.fillStyle = ROSE;
-  ctx.font = `600 28px ${FONT}`;
-  ctx.fillText(input.footerUrl.replace(/^https?:\/\//, ""), margin, SHARE_CARD_HEIGHT - 44);
+  ctx.font = `600 26px ${FONT}`;
+  const shortUrl = input.footerUrl.replace(/^https?:\/\//, "");
+  ctx.fillText(wrapText(ctx, shortUrl, SHARE_CARD_WIDTH - margin * 2 - qrSize - 24, 1)[0] ?? shortUrl, margin, footerBottom);
+  await drawQr(ctx, input.footerUrl, SHARE_CARD_WIDTH - margin - qrSize, footerBottom - qrSize + 4, qrSize);
 
   bitmaps.forEach((b) => b?.close());
 
+  return await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png")
+  );
+}
+
+/**
+ * 横長(16:9)。X のタイムラインなど、横長で表示される場所向け。
+ * 左に見出しと数字、右に写真を 3×2 で並べる。
+ */
+async function renderWide(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  input: ShareCardInput
+): Promise<Blob> {
+  const W = canvas.width;
+  const H = canvas.height;
+  const isSeries = input.variant === "series";
+  const margin = 56;
+  const leftW = 540;
+  const bitmaps = await Promise.all(input.images.slice(0, 6).map(loadBitmap));
+
+  ctx.fillStyle = PAPER;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = ROSE_SOFT;
+  ctx.beginPath();
+  ctx.arc(W - 20, -30, 260, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.textBaseline = "alphabetic";
+  ctx.textAlign = "left";
+  drawLogo(ctx, margin, 96, 0.8);
+
+  ctx.fillStyle = MUTED;
+  ctx.font = `600 24px ${FONT}`;
+  const owner = ctx.measureText(input.ownerName).width > 300 ? input.ownerName.slice(0, 10) + "…" : input.ownerName;
+  ctx.fillText(owner, margin + 2, 140);
+
+  ctx.fillStyle = INK;
+  ctx.font = `800 42px ${FONT}`;
+  const headLines = wrapText(ctx, input.headline, leftW, 2);
+  let y = 204;
+  for (const l of headLines) {
+    ctx.fillText(l, margin, y);
+    y += 54;
+  }
+
+  if (isSeries) {
+    const owned = input.owned ?? 0;
+    const total = Math.max(input.total ?? 0, owned, 1);
+    const pct = Math.min(100, Math.round((owned / total) * 100));
+    const color = input.complete ? GOLD : ROSE;
+    ctx.fillStyle = color;
+    ctx.font = `900 130px ${FONT}`;
+    ctx.fillText(`${pct}`, margin, y + 96);
+    const numW = ctx.measureText(`${pct}`).width;
+    ctx.font = `800 52px ${FONT}`;
+    ctx.fillText("%", margin + numW + 6, y + 96);
+    ctx.fillStyle = INK;
+    ctx.font = `700 34px ${FONT}`;
+    ctx.textAlign = "right";
+    ctx.fillText(`${owned} / ${total}`, margin + leftW, y + 52);
+    ctx.fillStyle = MUTED;
+    ctx.font = `600 22px ${FONT}`;
+    ctx.fillText(input.collectedLabel ?? "collected", margin + leftW, y + 86);
+    ctx.textAlign = "left";
+    const barY = y + 118;
+    roundRect(ctx, margin, barY, leftW, 20, 10);
+    ctx.fillStyle = "#EADCD6";
+    ctx.fill();
+    if (pct > 0) {
+      roundRect(ctx, margin, barY, Math.max(20, (leftW * pct) / 100), 20, 10);
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+    if (input.complete) {
+      const label = input.completeLabel ?? "COMPLETE";
+      ctx.font = `800 24px ${FONT}`;
+      const w = ctx.measureText(label).width + 40;
+      roundRect(ctx, margin + leftW - w, 72, w, 44, 22);
+      ctx.fillStyle = GOLD;
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(label, margin + leftW - w / 2, 95);
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+    }
+  } else {
+    const stats = (input.stats ?? []).slice(0, 4);
+    const gap = 16;
+    const cellW = (leftW - gap) / 2;
+    stats.forEach((s, i) => {
+      const cx = margin + (i % 2) * (cellW + gap);
+      const cy = y - 6 + Math.floor(i / 2) * 118;
+      roundRect(ctx, cx, cy, cellW, 100, 22);
+      ctx.fillStyle = "#fff";
+      ctx.fill();
+      ctx.fillStyle = ROSE;
+      ctx.font = `900 46px ${FONT}`;
+      ctx.fillText(s.value, cx + 24, cy + 54);
+      ctx.fillStyle = MUTED;
+      ctx.font = `600 22px ${FONT}`;
+      ctx.fillText(s.label, cx + 24, cy + 86);
+    });
+  }
+
+  // 右: 写真 3×2
+  const gap = 16;
+  const gridLeft = margin + leftW + 48;
+  const gridW = W - margin - gridLeft;
+  const size = (gridW - gap * 2) / 3;
+  const gridTop = (H - (size * 2 + gap)) / 2 - 14;
+  const owned = isSeries ? input.owned ?? 0 : 6;
+  const total = isSeries ? Math.max(input.total ?? 0, owned) : 6;
+  for (let i = 0; i < 6; i++) {
+    const x = gridLeft + (i % 3) * (size + gap);
+    const ty = gridTop + Math.floor(i / 3) * (size + gap);
+    const bmp = bitmaps[i];
+    if (bmp) drawCover(ctx, bmp, x, ty, size, 22);
+    else if (!isSeries) drawEmptyTile(ctx, x, ty, size, 22);
+    else if (i < owned) drawPlainTile(ctx, x, ty, size, 22);
+    else if (i < total) drawEmptyTile(ctx, x, ty, size, 22);
+  }
+
+  // フッター
+  const qrSize = 150;
+  ctx.fillStyle = INK;
+  ctx.font = `700 26px ${FONT}`;
+  ctx.fillText(input.tagline, margin, H - 66);
+  ctx.fillStyle = ROSE;
+  ctx.font = `600 22px ${FONT}`;
+  const shortUrl = input.footerUrl.replace(/^https?:\/\//, "");
+  ctx.fillText(wrapText(ctx, shortUrl, W - margin * 2 - qrSize - 24, 1)[0] ?? shortUrl, margin, H - 30);
+  await drawQr(ctx, input.footerUrl, W - margin - qrSize, H - qrSize - 22, qrSize);
+
+  bitmaps.forEach((b) => b?.close());
   return await new Promise<Blob>((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob failed"))), "image/png")
   );

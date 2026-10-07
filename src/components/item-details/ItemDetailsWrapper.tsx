@@ -17,6 +17,7 @@ import { ItemWishersTab } from "./tabs/ItemWishersTab";
 import { ItemCommentsSection } from "@/features/comments/ItemCommentsSection";
 import { ItemRoomPanel } from "@/features/item-room/ItemRoomPanel";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { buildShareUrl } from "@/utils/shareLinks";
 
 interface ItemDetailsWrapperProps {
   itemId: string;
@@ -292,7 +293,7 @@ export function ItemDetailsWrapper({
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         title={itemDetails?.title || itemTitle || t("itemDetails.wrapper.fallbackTitle")}
-        url={window.location.href}
+        url={buildShareUrl({ type: "item", id: itemId })}
         image={itemDetails?.image || itemImage || ""}
       />
     </>
