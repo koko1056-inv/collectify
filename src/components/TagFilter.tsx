@@ -81,11 +81,11 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
           }
         }
 
-        // グッズタイプはコンテンツに関係なく表示
+        // グッズタイプと入手方法は、作品に関係なく表示する
         const { data: typeTags, error: typeTagsError } = await supabase
           .from('tags')
           .select('*')
-          .eq('category', 'type');
+          .in('category', ['type', 'source']);
 
         if (!typeTagsError && typeTags) {
           for (const tag of typeTags) {
@@ -153,6 +153,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
   const characterTags = tagsWithCount.filter(tag => tag.category === 'character');
   const seriesTags = tagsWithCount.filter(tag => tag.category === 'series');
   const typeTags = tagsWithCount.filter(tag => tag.category === 'type');
+  const sourceTags = tagsWithCount.filter(tag => tag.category === 'source');
 
   // 検索フィルタリング
   const filterTagsBySearch = (tagsList: typeof tagsWithCount) => {
@@ -228,11 +229,12 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="all">{t("chrome.common.all")}</TabsTrigger>
               <TabsTrigger value="character">{t("chrome.tagFilter.tabCharacter")}</TabsTrigger>
               <TabsTrigger value="series">{t("chrome.tagFilter.tabSeries")}</TabsTrigger>
               <TabsTrigger value="type">{t("chrome.tagFilter.tabType")}</TabsTrigger>
+              <TabsTrigger value="source">{t("chrome.tagFilter.tabSource")}</TabsTrigger>
             </TabsList>
 
             <ScrollArea className="max-h-[50vh] mt-4">
@@ -355,6 +357,32 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                     </Button>
                   ))}
                   {filterTagsBySearch(typeTags).length === 0 && (
+                    <EmptyState
+                      title={searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
+                      className="py-8"
+                    />
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="source" className="mt-0 px-4">
+                <div className="grid grid-cols-1 gap-1">
+                  {filterTagsBySearch(sourceTags).map((tag) => (
+                    <Button
+                      key={tag.id}
+                      variant={selectedTags.includes(tag.name) ? "default" : "ghost"}
+                      size="sm"
+                      className="justify-between text-left h-auto py-2 px-3"
+                      onClick={() => handleTagToggle(tag.name)}
+                    >
+                      <span className="truncate">{tag.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">({tag.count})</span>
+                        {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                      </div>
+                    </Button>
+                  ))}
+                  {filterTagsBySearch(sourceTags).length === 0 && (
                     <EmptyState
                       title={searchQuery ? t("chrome.tagFilter.noMatchingTags") : t("chrome.tagFilter.noTags")}
                       className="py-8"

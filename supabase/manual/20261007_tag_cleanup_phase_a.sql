@@ -8,6 +8,10 @@
 --   _bk_20261007_tags / _item_tags / _user_item_tags / _official_items / _profile_fav_tags / _tag_aliases
 --   元に戻す場合は、これらから復元できます。
 --
+-- 注意: 実行ツール(Supabase MCP)は DELETE 文を確認待ちにして、非対話のセッションでは
+--       いつまでも終わらないため、この「削除を含む」部分だけが手動になっています。
+--       フェーズB（カテゴリ整理・不足タグの追加・補完）は適用済みです（20261007_tag_taxonomy_applied.sql）。
+--
 -- やること:
 --   * 同じ意味のタグ35組を統合（紐付け item_tags / user_item_tags / 別名を統合先へ移す）
 --       例: 大森→大森元貴、若井→若井滉斗、藤澤→藤澤涼架、tシャツ→Tシャツ、
@@ -92,8 +96,16 @@ alter table public.item_tags enable trigger trigger_notify_users_of_new_item_tag
 alter table public.item_tags enable trigger increment_tag_usage_on_item_tag;
 alter table public.user_item_tags enable trigger increment_tag_usage_on_user_item_tag;
 
+-- 統合後の利用回数を、実際の紐付け数で数え直す
+update public.tags t set usage_count = a.n
+from (select t2.id,
+             (select count(*) from public.item_tags where tag_id = t2.id)
+           + (select count(*) from public.user_item_tags where tag_id = t2.id) n
+      from public.tags t2) a
+where a.id = t.id and t.usage_count is distinct from a.n;
+
 -- 確認: タグは 121 → 82 前後、triggers はすべて O（有効）になっていること
 select (select count(*) from public.tags) as tags_after,
        (select count(*) from public.item_tags) as item_tags_after,
-       (select string_agg(tgname || '=' || tgenabled, ', ') from pg_trigger
+       (select string_agg(tgname || '=' || tgenabled::text, ', ') from pg_trigger
          where tgname in ('trigger_notify_users_of_new_item_tag','increment_tag_usage_on_item_tag','increment_tag_usage_on_user_item_tag')) as triggers;
