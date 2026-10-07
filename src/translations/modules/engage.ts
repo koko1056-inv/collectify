@@ -6,6 +6,9 @@
  */
 export const engage = {
   ja: {
+    trade: {
+      pageSubtitle: "ほしいグッズと、出せるグッズで交換相手を探します",
+    },
     next: {
       postThis: "このグッズを投稿する",
       remaining: "コンプまであと{n}個",
@@ -125,6 +128,9 @@ export const engage = {
     },
   },
   en: {
+    trade: {
+      pageSubtitle: "Find trade partners with what you want and what you can offer",
+    },
     next: {
       postThis: "Post this item",
       remaining: "{n} more to complete",
