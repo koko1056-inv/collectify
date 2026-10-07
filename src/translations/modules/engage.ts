@@ -16,6 +16,7 @@ export const engage = {
       kind: { series: "シリーズ", character: "キャラ", type: "種類", source: "入手方法" },
       count: "{shown}/{total}件",
       loadMore: "もっと見る（あと{n}件ずつ）",
+      detail: "{title}の詳細を見る",
     },
     sourceTags: {
       title: "入手方法",
@@ -157,6 +158,7 @@ export const engage = {
       kind: { series: "Line", character: "Character", type: "Type", source: "Where from" },
       count: "{shown}/{total}",
       loadMore: "Show more ({n} more)",
+      detail: "View details of {title}",
     },
     sourceTags: {
       title: "Where from",
