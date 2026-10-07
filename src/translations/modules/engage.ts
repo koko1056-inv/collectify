@@ -6,6 +6,17 @@
  */
 export const engage = {
   ja: {
+    catalog: {
+      filter: "絞り込み",
+      clear: "すべて解除",
+      remove: "を外す",
+      onlyNotOwned: "持っていないものだけ",
+      content: "作品",
+      noOptions: "この条件に合う候補はありません",
+      kind: { series: "シリーズ", character: "キャラ", type: "種類", source: "入手方法" },
+      count: "{shown}/{total}件",
+      loadMore: "もっと見る（あと{n}件ずつ）",
+    },
     sourceTags: {
       title: "入手方法",
       hint: "当てはまるものをタップ（複数OK）。押した時点で反映されます。",
@@ -136,6 +147,17 @@ export const engage = {
     },
   },
   en: {
+    catalog: {
+      filter: "Filter",
+      clear: "Clear all",
+      remove: "remove",
+      onlyNotOwned: "Only goods I don't own",
+      content: "Series",
+      noOptions: "No options match these filters",
+      kind: { series: "Line", character: "Character", type: "Type", source: "Where from" },
+      count: "{shown}/{total}",
+      loadMore: "Show more ({n} more)",
+    },
     sourceTags: {
       title: "Where from",
       hint: "Tap everything that applies. Changes apply right away.",

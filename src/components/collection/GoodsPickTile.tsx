@@ -54,7 +54,7 @@ export const GoodsPickTile = memo(function GoodsPickTile({
         (disabled || busy) && "opacity-70"
       )}
     >
-      <div className="relative aspect-square bg-muted/30">
+      <div className="relative aspect-square overflow-hidden bg-muted/30">
         {image && (
           <img
             src={getOptimizedImageUrl(image, { width: 320 })}
@@ -62,7 +62,7 @@ export const GoodsPickTile = memo(function GoodsPickTile({
             alt=""
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-contain"
+            className="absolute inset-0 h-full w-full object-contain"
           />
         )}
         {selected && <div className="absolute inset-0 bg-primary/10" />}

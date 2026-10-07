@@ -27,7 +27,8 @@ export function useOfficialItems() {
           item_tags (
             tags (
               id,
-              name
+              name,
+              category
             )
           )
         `)

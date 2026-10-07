@@ -259,8 +259,8 @@ export function ItemSearchTab({ query, onPickSuggestion }: ItemSearchTabProps) {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {shown.map((r) => (
             <div key={r.id} className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card">
-              <div className="relative aspect-square bg-muted">
-                {r.image && <img src={r.image} alt="" loading="lazy" className="h-full w-full object-contain" />}
+              <div className="relative aspect-square overflow-hidden bg-muted">
+                {r.image && <img src={r.image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-contain" />}
                 {r.trade_count > 0 && (
                   <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground shadow">
                     <Repeat className="h-3 w-3" />
