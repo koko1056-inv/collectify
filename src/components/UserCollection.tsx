@@ -21,6 +21,7 @@ import {
   X,
   SlidersHorizontal,
   Sparkles,
+  Share2,
 } from "lucide-react";
 import { setPendingAiItems } from "@/utils/ai-studio-handoff";
 import { toast } from "sonner";
@@ -29,6 +30,10 @@ import { CollectionViewToggle } from "./collection/CollectionViewToggle";
 import { BulkPersonalTagDialog } from "./collection/BulkPersonalTagDialog";
 import { useBatchItemMemories } from "@/hooks/useBatchItemMemories";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { CollectionExplorer, type CollectionFacet } from "./collection/CollectionExplorer";
+import { ShareCardDialog, type ShareCardSpec } from "./share/ShareCardDialog";
+import { useCollectionProgress, isComplete, type SeriesProgress } from "@/hooks/useCollectionProgress";
+import { countFacets, itemHasFacet, matchesQuery } from "@/utils/itemFacets";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
 import { EmptyState } from "./ui/empty-state";
@@ -80,6 +85,10 @@ export function UserCollection({
   const [isBulkTagDialogOpen, setIsBulkTagDialogOpen] = useState(false);
   // 親から渡されない場合は内部 state でマイタグ選択を管理（MyRoom 経由など）
   const [internalPersonalTag, setInternalPersonalTag] = useState("");
+  const [searchText, setSearchText] = useState("");
+  const [facet, setFacet] = useState<CollectionFacet | null>(null);
+  const [shareSpec, setShareSpec] = useState<ShareCardSpec | null>(null);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const selectedPersonalTag = selectedPersonalTagProp ?? internalPersonalTag;
   const onPersonalTagChange = onPersonalTagChangeProp ?? setInternalPersonalTag;
   const effectiveUserId = userId || user?.id;
@@ -105,6 +114,15 @@ export function UserCollection({
             tags (
               id,
               name
+            )
+          ),
+          official_items!user_items_official_item_id_fkey (
+            content_name,
+            item_tags (
+              tags (
+                name,
+                category
+              )
             )
           )
         `).eq("user_id", effectiveUserId).order("created_at", {
@@ -160,6 +178,12 @@ export function UserCollection({
         return 'content_name' in item && item.content_name === selectedContent;
       });
     }
+    if (facet) {
+      filtered = filtered.filter(item => itemHasFacet(item, facet.kind, facet.value));
+    }
+    if (searchText.trim()) {
+      filtered = filtered.filter(item => matchesQuery(item, searchText));
+    }
     // マイタグでフィルタ
     if (selectedPersonalTag) {
       if (isPersonalTagLoading) {
@@ -190,7 +214,64 @@ export function UserCollection({
     });
     
     return sorted;
-  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, isPersonalTagLoading, sortOption]);
+  }, [items, selectedTags, selectedContent, selectedPersonalTag, personalTagItemIds, isPersonalTagLoading, sortOption, facet, searchText]);
+
+  const { data: progress = [] } = useCollectionProgress(effectiveUserId);
+
+  const { data: ownerProfile } = useQuery({
+    queryKey: ["share-owner-profile", effectiveUserId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("username, display_name")
+        .eq("id", effectiveUserId as string)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!effectiveUserId && items.length > 0,
+    staleTime: 1000 * 60 * 30,
+  });
+  const ownerName = ownerProfile?.display_name || ownerProfile?.username || "Collector";
+
+  const openSeriesShare = (p: SeriesProgress) => {
+    const mine = items.filter(i => itemHasFacet(i, "series", p.series_label) && i.image);
+    const pct = p.total > 0 ? Math.min(100, Math.round((p.owned / p.total) * 100)) : 0;
+    setShareSpec({
+      variant: "series",
+      headline: p.series_label,
+      ownerName,
+      owned: p.owned,
+      total: p.total,
+      complete: isComplete(p),
+      images: mine.slice(0, 6).map(i => i.image as string),
+      missingLabel: t("engage.share.missing"),
+      completeLabel: t("engage.collection.complete"),
+      collectedLabel: t("engage.share.collected"),
+      shareText: isComplete(p)
+        ? t("engage.share.textComplete", { series: p.series_label })
+        : t("engage.share.textProgress", { series: p.series_label, owned: p.owned, total: p.total, pct }),
+    });
+    setIsShareOpen(true);
+  };
+
+  const openStatusShare = () => {
+    const seriesCount = countFacets(items, "series").length;
+    const completed = progress.filter(isComplete).length;
+    setShareSpec({
+      variant: "status",
+      headline: t("engage.share.statusHeadline"),
+      ownerName,
+      stats: [
+        { label: t("engage.share.statGoods"), value: String(items.length) },
+        { label: t("engage.share.statSeries"), value: String(seriesCount) },
+        { label: t("engage.share.statComplete"), value: String(completed) },
+        { label: t("engage.share.statTrade"), value: String(items.filter(i => i.for_trade).length) },
+      ],
+      images: items.filter(i => i.image).slice(0, 9).map(i => i.image as string),
+      shareText: t("engage.share.textStatus", { n: items.length }),
+    });
+    setIsShareOpen(true);
+  };
 
   const sortLabels: Record<SortOption, string> = {
     newest: t("chrome.collection.sortNewest"),
@@ -328,6 +409,16 @@ export function UserCollection({
 
   return (
     <div className="space-y-4 my-0 mx-0 px-0 py-px">
+      <CollectionExplorer
+        items={items}
+        progress={progress}
+        query={searchText}
+        onQueryChange={setSearchText}
+        facet={facet}
+        onFacetChange={setFacet}
+        onShareSeries={isOwnCollection ? openSeriesShare : undefined}
+      />
+
       {/* ツールバー */}
       <div className="flex items-center gap-2 mb-4">
         {!isSelectionMode ? (
@@ -403,6 +494,19 @@ export function UserCollection({
                   aria-label={t("chrome.collection.multiSelect")}
                 >
                   <CheckSquare className="h-4 w-4" />
+                </Button>
+              )}
+
+              {isOwnCollection && (
+                <Button
+                  onClick={openStatusShare}
+                  variant="ghost"
+                  size="icon"
+                  className="tap-safe-y h-9 w-9 rounded-lg text-foreground hover:bg-muted/60"
+                  title={t("engage.share.statusButton")}
+                  aria-label={t("engage.share.statusButton")}
+                >
+                  <Share2 className="h-4 w-4" />
                 </Button>
               )}
 
@@ -521,6 +625,8 @@ export function UserCollection({
         selectedItemIds={selectedItemIds}
         onComplete={handleBulkComplete}
       />
+
+      <ShareCardDialog open={isShareOpen} onOpenChange={setIsShareOpen} spec={shareSpec} />
 
       <RandomCollectionItemModal
         isOpen={isRandomModalOpen}

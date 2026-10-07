@@ -1383,6 +1383,35 @@ export type Database = {
           },
         ]
       }
+      item_post_reactions: {
+        Row: {
+          created_at: string
+          kind: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          kind: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          kind?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "item_post_reactions_post_fk"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "item_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       item_post_likes: {
         Row: {
           created_at: string
@@ -3768,6 +3797,47 @@ export type Database = {
           owner_count: number
           title: string
           wish_count: number
+        }[]
+      }
+      can_view_collection: {
+        Args: { _owner: string }
+        Returns: boolean
+      }
+      get_collection_progress: {
+        Args: { _user_id?: string }
+        Returns: {
+          cover_image: string | null
+          last_added_at: string | null
+          owned: number
+          series_label: string
+          total: number
+        }[]
+      }
+      get_recent_registrations: {
+        Args: { _limit?: number }
+        Returns: {
+          avatar_url: string | null
+          content_name: string | null
+          created_at: string
+          display_name: string | null
+          image: string | null
+          official_item_id: string | null
+          title: string | null
+          user_id: string
+          user_item_id: string
+          username: string | null
+        }[]
+      }
+      search_official_items_with_owners: {
+        Args: { _limit?: number; _q: string }
+        Returns: {
+          content_name: string | null
+          i_own: boolean
+          id: string
+          image: string | null
+          owner_count: number
+          title: string
+          trade_count: number
         }[]
       }
       find_trade_series_partners: {
