@@ -6,6 +6,14 @@
  */
 export const engage = {
   ja: {
+    sourceTags: {
+      title: "入手方法",
+      hint: "当てはまるものをタップ（複数OK）。押した時点で反映されます。",
+      addPlaceholder: "ない場合は新しく追加（例: 福袋）",
+      add: "追加",
+      failed: "入手方法を更新できませんでした",
+      created: "「{name}」を追加しました",
+    },
     trade: {
       pageSubtitle: "ほしいグッズと、出せるグッズで交換相手を探します",
     },
@@ -128,6 +136,14 @@ export const engage = {
     },
   },
   en: {
+    sourceTags: {
+      title: "Where from",
+      hint: "Tap everything that applies. Changes apply right away.",
+      addPlaceholder: "Not listed? Add one (e.g. Lucky bag)",
+      add: "Add",
+      failed: "Couldn't update where it's from",
+      created: "Added \"{name}\"",
+    },
     trade: {
       pageSubtitle: "Find trade partners with what you want and what you can offer",
     },

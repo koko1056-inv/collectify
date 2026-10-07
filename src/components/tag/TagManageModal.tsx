@@ -2,6 +2,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TagManageDialogHeader } from "./TagManageDialogHeader";
 import { TagManageDialogFooter } from "./TagManageDialogFooter";
 import { ContentNameSection } from "./ContentNameSection";
+import { SourceTagSection } from "./SourceTagSection";
 import { TagSuggestSelect } from "./TagSuggestSelect";
 import { useSimpleTagManage } from "@/hooks/useSimpleTagManage";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -95,6 +96,11 @@ export function TagManageModal({
                   contentId={contentId}
                 />
               </div>
+
+              <Separator />
+
+              {/* 入手方法は複数付くので、1つ選ぶ他のタグとは別に、タップで即反映する */}
+              <SourceTagSection itemIds={itemIds} isUserItem={isUserItem} />
             </div>
           </ScrollArea>
         )}
