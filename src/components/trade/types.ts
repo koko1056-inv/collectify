@@ -23,8 +23,14 @@ export interface TradeRequest {
   completed_at?: string | null;
   cancelled_at?: string | null;
   cancelled_by?: string | null;
+  /** 取り消された理由。expired=期限切れ / superseded=別の申請が成立 / item_removed=品が消えた */
+  cancel_reason?: string | null;
+  /** 完了後に、自分のコレクションへ反映した時刻（まだなら null） */
+  sender_applied_at?: string | null;
+  receiver_applied_at?: string | null;
   sender: TradeParty;
   receiver: TradeParty | null;
+  /** 品が消えていても、申請時に控えた題名・写真で表示する（id は消えていれば空） */
   offered_item: {
     id: string;
     title: string;
@@ -35,6 +41,23 @@ export interface TradeRequest {
     title: string;
     image: string;
   };
+}
+
+/**
+ * いま自分が動く番かどうか。
+ *  - 自分あての返事待ち
+ *  - 承認済みで、自分がまだ発送していない／相手が発送したのに自分は受け取り報告をしていない
+ *  - 完了したが、まだコレクションに反映していない
+ */
+export function isMyTurn(trade: TradeRequest, userId: string | undefined): boolean {
+  if (!userId) return false;
+  const v = viewpointOf(trade, userId);
+  if (trade.status === 'pending') return !v.isSender;
+  if (trade.status === 'accepted') return !v.iShipped || (v.partnerShipped && !v.iReceived);
+  if (trade.status === 'completed') {
+    return !(v.isSender ? trade.sender_applied_at : trade.receiver_applied_at);
+  }
+  return false;
 }
 
 /** 自分から見た、この取引での立場と進み具合 */

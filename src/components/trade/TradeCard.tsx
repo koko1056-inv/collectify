@@ -10,6 +10,7 @@ import {
   MessageCircle,
   MoreVertical,
   Package,
+  Library,
   Truck,
   X,
 } from "lucide-react";
@@ -29,6 +30,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { invalidateTrades } from "@/hooks/trade/useMyTrades";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 import {
+  applyTradeToCollection,
   cancelTradeRequest,
   reportTradeReceipt,
   reportTradeShipment,
@@ -91,7 +93,38 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
     }
   };
 
-  const stalled = isStalled(trade) && !view.iShipped && !view.partnerShipped;
+  // 片方が発送したのにもう片方が動かない、のも「止まっている」。以前は誰も発送していないときしか出ていなかった。
+  const stalled = isStalled(trade) && !(view.iShipped && view.partnerShipped && view.iReceived);
+  const applied = !!(view.isSender ? trade.sender_applied_at : trade.receiver_applied_at);
+  const cancelledReasonKey =
+    trade.status === "cancelled" && !trade.cancelled_by && trade.cancel_reason
+      ? `trade.card.cancelReason.${trade.cancel_reason}`
+      : null;
+
+  const applyToCollection = async () => {
+    setBusy("apply");
+    try {
+      const result = await applyTradeToCollection(trade.id);
+      if (!result.ok) {
+        toast.error(t("trade.errors.title"), {
+          description: t(tradeErrorKey(result.reason ?? "unknown")),
+        });
+      } else {
+        toast.success(t(result.kept ? "trade.card.appliedKept" : "trade.card.applied"));
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["user-items"] }),
+          queryClient.invalidateQueries({ queryKey: ["collection"] }),
+          queryClient.invalidateQueries({ queryKey: ["wishlist"] }),
+          queryClient.invalidateQueries({ queryKey: ["my-trade-offers"] }),
+          queryClient.invalidateQueries({ queryKey: ["owned-official-item-ids"] }),
+          queryClient.invalidateQueries({ queryKey: ["wished-official-item-ids"] }),
+        ]);
+      }
+      await invalidateTrades(queryClient, user?.id);
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
     <div className="space-y-3 rounded-xl border border-border bg-card p-3 shadow-sm">
@@ -108,7 +141,7 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
           <StatusBadge trade={trade} />
         </div>
 
-        {trade.status === "accepted" && (
+        {(trade.status === "accepted" || trade.status === "pending") && (
           <Button
             variant="outline"
             size="icon"
@@ -153,6 +186,10 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
         <p className="rounded-lg border-l-2 border-primary/40 bg-muted/50 p-2 text-xs">
           {trade.message}
         </p>
+      )}
+
+      {cancelledReasonKey && (
+        <p className="rounded-lg bg-muted/60 p-2 text-xs text-muted-foreground">{t(cancelledReasonKey)}</p>
       )}
 
       {trade.status === "accepted" && <TradeProgress view={view} />}
@@ -256,6 +293,17 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
               {t("trade.card.cancel")}
             </Button>
           )}
+
+        {trade.status === "completed" && !applied && (
+          <Button size="sm" className="flex-1" disabled={!!busy} onClick={applyToCollection}>
+            {busy === "apply" ? <Spinner /> : <Library className="mr-1 h-3.5 w-3.5" />}
+            {t("trade.card.applyToCollection")}
+          </Button>
+        )}
+
+        {trade.status === "completed" && applied && (
+          <p className="flex-1 self-center text-xs text-muted-foreground">{t("trade.card.appliedDone")}</p>
+        )}
 
         {trade.status === "completed" && onReview && view.partner && (
           <Button variant="outline" size="sm" className="flex-1" onClick={() => onReview(trade)}>

@@ -488,6 +488,7 @@ DECLARE
   oi public.official_items;
   added boolean := false;
   removed boolean := false;
+  kept boolean := false;
 BEGIN
   SELECT * INTO t FROM public.trade_requests WHERE id = _trade_id FOR UPDATE;
   IF NOT FOUND THEN
@@ -522,9 +523,9 @@ BEGIN
   IF got_src.id IS NOT NULL THEN
     UPDATE public.user_items SET quantity = COALESCE(quantity, 1) + 1 WHERE id = got_src.id;
   ELSE
-    INSERT INTO public.user_items (user_id, title, image, quantity, official_item_id, content_name, release_date, for_trade)
+    INSERT INTO public.user_items (user_id, title, image, prize, quantity, official_item_id, content_name, release_date, for_trade)
     VALUES (me, COALESCE(got_title, oi.title, '交換で受け取ったグッズ'), COALESCE(got_image, oi.image),
-            1, got_official, oi.content_name, oi.release_date, false);
+            COALESCE(oi.price, ''), 1, got_official, oi.content_name, oi.release_date, false);
   END IF;
   added := true;
 
@@ -539,10 +540,21 @@ BEGIN
     IF FOUND THEN
       IF COALESCE(gave.quantity, 1) > 1 THEN
         UPDATE public.user_items SET quantity = quantity - 1 WHERE id = gave.id;
+        removed := true;
       ELSE
-        DELETE FROM public.user_items WHERE id = gave.id;
+        -- 1つだけなら外す。いいね・メッセージの紐付け・グッズ投稿が残っていると外せないので、先に片付ける。
+        -- それでも外せなければ、品は残して「交換に出す」だけ解除する（kept として返す）。
+        BEGIN
+          DELETE FROM public.user_item_likes WHERE user_item_id = gave.id;
+          UPDATE public.messages SET related_item_id = NULL WHERE related_item_id = gave.id;
+          DELETE FROM public.goods_posts WHERE user_item_id = gave.id;
+          DELETE FROM public.user_items WHERE id = gave.id;
+          removed := true;
+        EXCEPTION WHEN foreign_key_violation OR not_null_violation THEN
+          UPDATE public.user_items SET for_trade = false WHERE id = gave.id;
+          kept := true;
+        END;
       END IF;
-      removed := true;
     END IF;
   END IF;
 
@@ -552,7 +564,7 @@ BEGIN
     UPDATE public.trade_requests SET receiver_applied_at = now() WHERE id = t.id;
   END IF;
 
-  RETURN jsonb_build_object('ok', true, 'already', false, 'added', added, 'removed', removed);
+  RETURN jsonb_build_object('ok', true, 'already', false, 'added', added, 'removed', removed, 'kept', kept);
 END;
 $$;
 

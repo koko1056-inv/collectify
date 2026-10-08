@@ -25,6 +25,8 @@ import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-imag
 import { TradeOfferPicker } from "./TradeOfferPicker";
 import { TradeRequestModal } from "./TradeRequestModal";
 import { TradeInboxButton } from "./TradeInboxButton";
+import { MyTurnSection } from "./MyTurnSection";
+import { WishHoldersSection, type HolderRequestTarget } from "./WishHoldersSection";
 import { InlineFollowButton } from "./InlineFollowButton";
 
 /**
@@ -44,6 +46,9 @@ export function TradeMatchingSection() {
     userId: string;
     itemId: string;
     itemTitle: string;
+    itemImage?: string | null;
+    partnerName?: string | null;
+    partnerOffers?: boolean;
   } | null>(null);
   const [chatPartnerId, setChatPartnerId] = useState<string | null>(null);
   const [isOfferPickerOpen, setIsOfferPickerOpen] = useState(false);
@@ -97,8 +102,25 @@ export function TradeMatchingSection() {
 
   return (
     <div className="space-y-4">
+      {/* いま自分が動く番の取引（返事・発送・受け取り・完了後の反映）。受信箱を開かずにその場で進められる */}
+      <MyTurnSection />
+
       {/* 進行中の交換への入口。申し込んだあと戻ってくる場所がここになる */}
       <TradeInboxButton variant="full" />
+
+      {/* 欲しいものを持っている人。そこから申請（相談）できる */}
+      <WishHoldersSection
+        onRequest={(target: HolderRequestTarget) =>
+          setSelectedMatch({
+            userId: target.userId,
+            itemId: target.itemId,
+            itemTitle: target.itemTitle,
+            itemImage: target.itemImage,
+            partnerName: target.partnerName,
+            partnerOffers: target.partnerOffers,
+          })
+        }
+      />
 
       <ReadinessBanner
         wishCount={readiness?.wishCount ?? 0}
@@ -190,6 +212,8 @@ export function TradeMatchingSection() {
                       userId: match.partner_id,
                       itemId: item.id,
                       itemTitle: item.title,
+                      itemImage: item.image,
+                      partnerName: match.partner_username,
                     })
                   }
                   onOpenChat={() => openChat(match.partner_id)}
@@ -224,6 +248,8 @@ export function TradeMatchingSection() {
                     userId: match.partner_id,
                     itemId: item.id,
                     itemTitle: item.title,
+                    itemImage: item.image,
+                    partnerName: match.partner_username,
                   })
                 }
                 onOpenChat={() => openChat(match.partner_id)}
@@ -281,6 +307,7 @@ export function TradeMatchingSection() {
                     userId: partner.partner_id,
                     itemId: item.id,
                     itemTitle: item.title,
+                    partnerName: partner.partner_username,
                   })
                 }
                 onOpenChat={() => openChat(partner.partner_id)}
@@ -299,6 +326,9 @@ export function TradeMatchingSection() {
           onClose={() => setSelectedMatch(null)}
           requestedItemId={selectedMatch.itemId}
           requestedItemTitle={selectedMatch.itemTitle}
+          requestedItemImage={selectedMatch.itemImage}
+          partnerName={selectedMatch.partnerName}
+          partnerOffers={selectedMatch.partnerOffers ?? true}
           receiverId={selectedMatch.userId}
         />
       )}
@@ -542,7 +572,9 @@ function MutualMatchCard({
   onOpenProfile: () => void;
 }) {
   const { t } = useLanguage();
-  const theirTop = match.their_items[0];
+  // 相手が出している品が複数あるときは、どれを申し込むか選べる（以前は先頭の1つに固定だった）
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const theirTop = match.their_items.find((i) => i.id === pickedId) ?? match.their_items[0];
   const myTop = match.my_items[0];
 
   return (
@@ -577,12 +609,33 @@ function MutualMatchCard({
         </div>
       </div>
 
-      {(match.their_items.length > 1 || match.my_items.length > 1) && (
-        <p className="mt-2 text-[11px] text-muted-foreground">
-          {t("trade.matching.moreCombos", {
-            count: match.their_items.length * match.my_items.length - 1,
-          })}
-        </p>
+      {match.their_items.length > 1 && (
+        <div className="mt-3">
+          <p className="mb-1 text-[11px] text-muted-foreground">{t("trade.matching.pickTheirs")}</p>
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
+            {match.their_items.slice(0, 8).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setPickedId(item.id)}
+                aria-pressed={theirTop?.id === item.id}
+                aria-label={item.title}
+                className={
+                  "h-12 w-12 shrink-0 overflow-hidden rounded-md border bg-muted " +
+                  (theirTop?.id === item.id ? "border-primary ring-2 ring-primary/40" : "border-border")
+                }
+              >
+                <img
+                  src={getOptimizedImageUrl(item.image, { width: 96 })}
+                  onError={fallbackToOriginal(item.image)}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-contain"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       <Button

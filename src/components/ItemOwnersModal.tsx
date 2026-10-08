@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Link } from "react-router-dom";
-import { Users, Package } from "lucide-react";
+import { ArrowLeftRight, Users, Package } from "lucide-react";
+import { TradeRequestModal } from "@/components/trade/TradeRequestModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +34,13 @@ export function ItemOwnersModal({
 }: ItemOwnersModalProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  // 交換を申請する相手
+  const [tradeTarget, setTradeTarget] = useState<{
+    userId: string;
+    itemId: string;
+    name: string | null;
+    offers: boolean;
+  } | null>(null);
 
   const { data: owners, isLoading } = useQuery({
     queryKey: ["item-owners", officialItemId || itemTitle, itemImage],
@@ -42,6 +51,7 @@ export function ItemOwnersModal({
           id,
           user_id,
           quantity,
+          for_trade,
           profiles (
             id,
             username,
@@ -72,10 +82,15 @@ export function ItemOwnersModal({
         const currentQuantity = userOwnership.get(userId)?.quantity || 0;
         const newQuantity = (item.quantity || 1) + currentQuantity;
         
+        // 同じ人が複数持っているときは、交換に出している1点を申請の宛先にする
+        const cur = userOwnership.get(userId);
+        const pickThis = !cur || (item.for_trade && !cur.for_trade);
         userOwnership.set(userId, {
           quantity: newQuantity,
           profile: item.profiles,
-          user_id: userId
+          user_id: userId,
+          item_id: pickThis ? item.id : cur.item_id,
+          for_trade: !!(item.for_trade || cur?.for_trade),
         });
       });
 
@@ -190,7 +205,25 @@ export function ItemOwnersModal({
                     </Badge>
                   </div>
                   {!isMe && user && (
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-2">
+                      {officialItemId && (
+                        <Button
+                          size="sm"
+                          variant={owner.for_trade ? "default" : "outline"}
+                          className="gap-1"
+                          onClick={() =>
+                            setTradeTarget({
+                              userId: owner.user_id,
+                              itemId: owner.item_id,
+                              name: owner.profile?.display_name || owner.profile?.username || null,
+                              offers: !!owner.for_trade,
+                            })
+                          }
+                        >
+                          <ArrowLeftRight className="h-3.5 w-3.5" />
+                          {owner.for_trade ? t("trade.holders.request") : t("trade.holders.consult")}
+                        </Button>
+                      )}
                       <StampSendButton
                         receiverId={owner.user_id}
                         contextType="item"
@@ -205,6 +238,19 @@ export function ItemOwnersModal({
           )}
         </div>
       </DialogContent>
+
+      {tradeTarget && (
+        <TradeRequestModal
+          isOpen
+          onClose={() => setTradeTarget(null)}
+          requestedItemId={tradeTarget.itemId}
+          requestedItemTitle={itemTitle}
+          requestedItemImage={itemImage}
+          partnerName={tradeTarget.name}
+          partnerOffers={tradeTarget.offers}
+          receiverId={tradeTarget.userId}
+        />
+      )}
     </Dialog>
   );
 }

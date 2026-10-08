@@ -3,7 +3,7 @@ export interface Notification {
   user_id: string;
   title: string;
   message?: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'new_item' | 'comment' | 'reply' | 'like' | 'new_item_tag' | 'greeting_stamp' | 'match_success' | 'item_post_comment' | 'item_post_like';
+  type: 'info' | 'success' | 'warning' | 'error' | 'new_item' | 'comment' | 'reply' | 'like' | 'new_item_tag' | 'greeting_stamp' | 'match_success' | 'item_post_comment' | 'item_post_like' | 'trade_request' | 'trade_accepted' | 'trade_rejected' | 'trade_cancelled' | 'trade_unavailable' | 'trade_shipped' | 'trade_received' | 'trade_completed' | 'trade_nudge';
   data: Record<string, any>;
   is_read: boolean;
   created_at: string;
@@ -11,6 +11,10 @@ export interface Notification {
 }
 
 export interface NotificationData {
+  // Trade notifications
+  trade_id?: string;
+  partner_id?: string;
+  url?: string;
   item_id?: string;
   item_title?: string;
   content_name?: string;

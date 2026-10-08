@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,7 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { Link } from "react-router-dom";
-import { Package, UserRound } from "lucide-react";
+import { ArrowLeftRight, Package, UserRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { TradeRequestModal } from "@/components/trade/TradeRequestModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
@@ -24,6 +27,29 @@ interface ItemOwnersTabProps {
 export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
+  // 交換を申請する相手
+  const [tradeTarget, setTradeTarget] = useState<{
+    userId: string;
+    itemId: string;
+    name: string | null;
+    offers: boolean;
+  } | null>(null);
+
+  // 申請画面に出す、欲しい品の題名と写真
+  const { data: officialItem } = useQuery({
+    queryKey: ["official-item-brief", officialItemId],
+    enabled: !!officialItemId && !!user,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("official_items")
+        .select("title, image")
+        .eq("id", officialItemId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: owners = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["item-owners-tab", officialItemId],
@@ -31,7 +57,7 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
       const { data, error } = await supabase
         .from("user_items")
         .select(
-          `id, user_id, quantity,
+          `id, user_id, quantity, for_trade,
            profiles ( id, username, avatar_url, display_name, bio )`
         )
         .eq("official_item_id", officialItemId);
@@ -42,10 +68,14 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
       (data ?? []).forEach((item: any) => {
         const cur = map.get(item.user_id);
         const qty = (item.quantity || 1) + (cur?.quantity || 0);
+        // 同じ人が複数持っているときは、交換に出している1点を申請の宛先にする
+        const pickThis = !cur || (item.for_trade && !cur.for_trade);
         map.set(item.user_id, {
           user_id: item.user_id,
           quantity: qty,
           profile: item.profiles,
+          item_id: pickThis ? item.id : cur.item_id,
+          for_trade: !!(item.for_trade || cur?.for_trade),
         });
       });
       return Array.from(map.values()).sort((a, b) => {
@@ -146,7 +176,23 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
               </Badge>
             </div>
             {!isMe && user && (
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <Button
+                  size="sm"
+                  variant={owner.for_trade ? "default" : "outline"}
+                  className="gap-1"
+                  onClick={() =>
+                    setTradeTarget({
+                      userId: owner.user_id,
+                      itemId: owner.item_id,
+                      name: owner.profile?.display_name || owner.profile?.username || null,
+                      offers: !!owner.for_trade,
+                    })
+                  }
+                >
+                  <ArrowLeftRight className="h-3.5 w-3.5" />
+                  {owner.for_trade ? t("trade.holders.request") : t("trade.holders.consult")}
+                </Button>
                 <StampSendButton
                   receiverId={owner.user_id}
                   contextType="item"
@@ -159,6 +205,19 @@ export function ItemOwnersTab({ officialItemId, onCloseModal }: ItemOwnersTabPro
           </div>
         );
       })}
+
+      {tradeTarget && (
+        <TradeRequestModal
+          isOpen
+          onClose={() => setTradeTarget(null)}
+          requestedItemId={tradeTarget.itemId}
+          requestedItemTitle={officialItem?.title ?? ""}
+          requestedItemImage={officialItem?.image ?? null}
+          partnerName={tradeTarget.name}
+          partnerOffers={tradeTarget.offers}
+          receiverId={tradeTarget.userId}
+        />
+      )}
     </div>
   );
 }

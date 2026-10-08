@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddGoodsSheet } from "@/components/collection/AddGoodsSheet";
+import { useMyTrades } from "@/hooks/trade/useMyTrades";
 
 /**
  * モバイルの下タブ。
@@ -33,6 +34,9 @@ export function Footer() {
   const location = useLocation();
   const { t } = useLanguage();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  // 「交換」タブのバッジ: いま自分が動く番の取引の数（返事・発送・受け取り報告・完了後の反映）
+  const { myTurn } = useMyTrades();
+  const tradeBadge = myTurn.length;
 
   const params = new URLSearchParams(location.search);
 
@@ -74,12 +78,22 @@ export function Footer() {
           active ? "text-primary" : "text-muted-foreground"
         )}
       >
-        <Icon
-          className={cn(
-            "h-6 w-6 mb-0.5 transition-transform",
-            active && "scale-110"
+        <span className="relative">
+          <Icon
+            className={cn(
+              "h-6 w-6 mb-0.5 transition-transform",
+              active && "scale-110"
+            )}
+          />
+          {to === "/search?tab=trade" && tradeBadge > 0 && (
+            <span
+              aria-label={t("trade.inbox.badgeLabel", { n: tradeBadge })}
+              className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground tabular-nums"
+            >
+              {tradeBadge > 9 ? "9+" : tradeBadge}
+            </span>
           )}
-        />
+        </span>
         <span
           className={cn(
             "text-[11px] leading-tight w-full text-center truncate",

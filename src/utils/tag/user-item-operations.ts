@@ -6,6 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export const deleteUserItem = async (itemId: string) => {
   try {
+    // 交換が成立して進行中の品は消せない。先に確かめておかないと、いいね等だけ消えて途中で止まる
+    const { data: inTrade } = await supabase.rpc("trade_item_in_progress", { _item: itemId });
+    if (inTrade) {
+      return { error: { message: "trade_in_progress" }, officialItemId: null };
+    }
+
     // Get the official_item_id before deleting
     const { data: userItem, error: fetchError } = await supabase
       .from("user_items")
