@@ -119,7 +119,7 @@ export function OnboardingChecklist() {
       ] = await Promise.all([
         supabase
           .from('profiles')
-          .select('avatar_url, bio, display_name, favorite_item_ids')
+          .select('avatar_url, bio, display_name, username, favorite_item_ids')
           .eq('id', user.id)
           .single(),
         supabase.from('user_items').select('id').eq('user_id', user.id).limit(1),
@@ -142,7 +142,12 @@ export function OnboardingChecklist() {
       const favCount = (profile?.favorite_item_ids as string[] | null)?.length ?? 0;
 
       return {
-        hasProfile: !!(profile?.avatar_url || profile?.bio || profile?.display_name),
+        // 登録時に display_name へユーザー名が入るので、それだけでは達成にしない（サーバーの判定と同じ）
+        hasProfile: !!(
+          profile?.avatar_url ||
+          profile?.bio ||
+          (profile?.display_name && profile.display_name !== profile.username)
+        ),
         hasItem: (itemsRes.data?.length ?? 0) > 0,
         hasFavorites5: favCount >= 5,
         hasAvatar: (avatarRes.data?.length ?? 0) > 0,

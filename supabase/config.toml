@@ -65,6 +65,17 @@ verify_jwt = false
 [functions.revenuecat-webhook]
 verify_jwt = false
 
+# Web 決済（Stripe）。Checkout とカスタマーポータルはログイン中のユーザーが呼ぶ。
+[functions.stripe-checkout]
+verify_jwt = true
+
+[functions.stripe-portal]
+verify_jwt = true
+
+# Stripe が JWT なしで叩く。認証は Stripe-Signature（STRIPE_WEBHOOK_SECRET）の検証で行う。
+[functions.stripe-webhook]
+verify_jwt = false
+
 # --- JWT を要求しない（本番が false なので合わせてある）-------------------
 #
 # 以下の5本は本番で verify_jwt = false になっている。Lovable 経由で

@@ -1,6 +1,6 @@
 // IAP handling via Capacitor + RevenueCat.
 // - Consumable point packs: purchasePointPackage / getPointPackages (server-side grant via webhook)
-// - Subscription flow: legacy stub kept for backward compatibility with PaywallModal
+// - Subscriptions: Web is handled by Stripe Checkout (see stripeCheckout.ts); native subscriptions are not wired yet
 
 import { Capacitor } from "@capacitor/core";
 import {
@@ -9,6 +9,7 @@ import {
 } from "@revenuecat/purchases-capacitor";
 import { supabase } from "@/integrations/supabase/client";
 import { IAP_PRODUCT_IDS, PlanTier } from "@/lib/planLimits";
+import { startSubscriptionCheckout } from "@/utils/stripeCheckout";
 
 // Order in which point packs should appear in UI.
 const POINT_PACKAGE_ORDER = ["starter", "standard", "value", "premium"] as const;
@@ -142,62 +143,7 @@ export async function startPurchase(
     );
   }
 
-  console.warn("[IAP] Web fallback: creating mock subscription");
-  await recordSubscription({
-    plan,
-    period,
-    platform: "web",
-    transactionId: `dev_${Date.now()}`,
-  });
-}
-
-export interface SubscriptionRecord {
-  plan: PlanTier;
-  period: "monthly" | "yearly";
-  platform: "ios" | "android" | "web";
-  transactionId: string;
-}
-
-export async function recordSubscription(rec: SubscriptionRecord): Promise<void> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not logged in");
-
-  const now = new Date();
-  const expires = new Date(now);
-  if (rec.period === "monthly") expires.setMonth(expires.getMonth() + 1);
-  else expires.setFullYear(expires.getFullYear() + 1);
-
-  const { error } = await supabase
-    .from("user_subscriptions")
-    .upsert(
-      {
-        user_id: user.id,
-        plan: rec.plan,
-        status: "active",
-        started_at: now.toISOString(),
-        expires_at: expires.toISOString(),
-        platform: rec.platform,
-        transaction_id: rec.transactionId,
-        updated_at: now.toISOString(),
-      },
-      { onConflict: "user_id" }
-    );
-
-  if (error) throw error;
-}
-
-export async function cancelSubscription(): Promise<void> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not logged in");
-
-  const { error } = await supabase
-    .from("user_subscriptions")
-    .update({ status: "canceled", updated_at: new Date().toISOString() })
-    .eq("user_id", user.id);
-
-  if (error) throw error;
+  // Web: Stripe の決済ページへ移動する。プランの反映は支払い後に Stripe の通知（Webhook）が行う。
+  // 以前はここで「モック購読」をブラウザから直接書き込んでいて、誰でも無料で有料プランになれた。
+  await startSubscriptionCheckout(plan, period);
 }

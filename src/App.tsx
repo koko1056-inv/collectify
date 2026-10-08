@@ -21,6 +21,7 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { LiffAutoLink } from "@/components/LiffAutoLink";
+import { CheckoutReturnHandler } from "@/components/CheckoutReturnHandler";
 import { getTranslation, Language } from "@/translations";
 
 // ルート切り替えごとに、描画完了タイミング（2フレーム後）を「初回表示時間」として記録
@@ -159,6 +160,7 @@ const App: React.FC = () => {
                   <ScrollToTop />
                   <OfflineBanner />
                   <LiffAutoLink />
+                  <CheckoutReturnHandler />
                   <AppErrorBoundary>
                   <Suspense fallback={<LoadingScreen />}>
                     <Routes>

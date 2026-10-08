@@ -9,6 +9,8 @@ import {
   PlanTier,
 } from "@/lib/planLimits";
 import { startPurchase } from "@/utils/iap";
+import { CheckoutError, openBillingPortal } from "@/utils/stripeCheckout";
+import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -23,6 +25,8 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
   const [selectedPlan, setSelectedPlan] = useState<PlanTier>("premium");
   const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
   const [loading, setLoading] = useState(false);
+  const { isPremium, subscription } = useSubscription();
+  const isWebSubscriber = isPremium && subscription?.platform === "web";
 
   const price = PLAN_PRICES_JPY[selectedPlan][period];
   const monthlyEquiv = period === "yearly" ? Math.floor(price / 12) : price;
@@ -61,15 +65,41 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
     { key: "badge", label: t("misc.premium.featureBadge"), free: "×", premium: "✓" },
   ];
 
+  const checkoutMessage = (e: unknown): string => {
+    if (e instanceof CheckoutError) {
+      switch (e.code) {
+        case "already_subscribed": return t("misc.checkout.alreadySubscribed");
+        case "subscribed_on_other_platform": return t("misc.checkout.otherPlatform");
+        case "stripe_not_configured": return t("misc.checkout.notConfigured");
+        case "login_required": return t("misc.checkout.loginRequired");
+        default: return t("misc.checkout.failed");
+      }
+    }
+    // アプリ内（ネイティブ）では、まだアプリ内課金の購読を用意していない
+    return t("misc.checkout.appOnly");
+  };
+
   const handlePurchase = async () => {
     setLoading(true);
     try {
+      // Web は Stripe の決済ページへ移動する（戻ってこないので、成功の表示はしない）
       await startPurchase(selectedPlan, period);
-      toast.success(t("misc.premium.purchaseSuccess"));
-      onOpenChange(false);
+      toast(t("misc.checkout.redirecting"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("misc.premium.purchaseFailed"));
-    } finally {
+      console.error("[Paywall] purchase failed", e);
+      toast.error(checkoutMessage(e));
+      setLoading(false);
+    }
+  };
+
+  const handleManage = async () => {
+    setLoading(true);
+    try {
+      toast(t("misc.checkout.managing"));
+      await openBillingPortal();
+    } catch (e) {
+      console.error("[Paywall] portal failed", e);
+      toast.error(checkoutMessage(e));
       setLoading(false);
     }
   };
@@ -177,9 +207,25 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
           ))}
         </div>
 
+        {isWebSubscriber && (
+          <div className="rounded-xl border border-border bg-muted/40 p-3 text-sm space-y-2">
+            <p className="font-medium">{t("misc.checkout.currentPlan")}: {subscription?.plan === "premium_plus" ? "Premium+" : "Premium"}</p>
+            {subscription?.expires_at && (
+              <p className="text-xs text-muted-foreground">
+                {t(subscription.cancel_at_period_end ? "misc.checkout.endsOn" : "misc.checkout.renewsOn", {
+                  date: new Date(subscription.expires_at).toLocaleDateString(),
+                })}
+              </p>
+            )}
+            <Button variant="outline" size="sm" onClick={handleManage} disabled={loading} className="w-full">
+              {t("misc.checkout.manage")}
+            </Button>
+          </div>
+        )}
+
         <Button
           onClick={handlePurchase}
-          disabled={loading}
+          disabled={loading || isWebSubscriber}
           className="w-full bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60 text-primary-foreground font-semibold"
           size="lg"
         >
