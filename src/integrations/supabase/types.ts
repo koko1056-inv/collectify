@@ -3765,6 +3765,22 @@ export type Database = {
         Args: { _message?: string; _offered_item_id: string; _requested_item_id: string }
         Returns: Json
       }
+      find_duplicate_user_items: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          group_key: string
+          keeper_id: string
+          title: string
+          image: string
+          card_count: number
+          total_quantity: number
+          member_ids: string[]
+        }[]
+      }
+      merge_duplicate_user_items: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       find_holders_for_my_wishes: {
         Args: { _limit?: number }
         Returns: {

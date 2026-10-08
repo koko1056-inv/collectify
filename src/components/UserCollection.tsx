@@ -35,6 +35,7 @@ import { CollectionExplorer, type CollectionFacet } from "./collection/Collectio
 import { ShareCardDialog, type ShareCardSpec } from "./share/ShareCardDialog";
 import { useCollectionProgress, isComplete, type SeriesProgress } from "@/hooks/useCollectionProgress";
 import { OnThisDayCard } from "./collection/OnThisDayCard";
+import { DuplicateCleanupBanner } from "./collection/DuplicateCleanupBanner";
 import { acquiredTime, findOnThisDay, groupByMonth } from "@/utils/memories";
 import { countFacets, itemHasFacet, matchesQuery } from "@/utils/itemFacets";
 import { useNavigate } from "react-router-dom";
@@ -453,6 +454,8 @@ export function UserCollection({
           }}
         />
       )}
+
+      {isOwnCollection && <DuplicateCleanupBanner />}
 
       <CollectionExplorer
         items={items}
