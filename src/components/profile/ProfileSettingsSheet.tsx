@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useColorScheme, type ColorScheme } from "@/contexts/ColorSchemeContext";
 import { cn } from "@/lib/utils";
+import { InstallAppCard } from "@/components/pwa/InstallAppCard";
 
 interface ProfileSettingsSheetProps {
   open: boolean;
@@ -41,6 +42,9 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
           <section className="bg-card rounded-2xl border border-border p-5">
             <InviteCodeSection />
           </section>
+
+          {/* ホーム画面に追加（PWA） */}
+          <InstallAppCard variant="section" />
 
           {/* 一般 */}
           <section className="bg-card rounded-2xl border border-border divide-y divide-border">

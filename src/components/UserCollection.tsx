@@ -38,6 +38,7 @@ import { OnThisDayCard } from "./collection/OnThisDayCard";
 import { DuplicateCleanupBanner } from "./collection/DuplicateCleanupBanner";
 import { UniverseEntryCard } from "./universe/UniverseEntryCard";
 import { UniverseView } from "./universe/UniverseView";
+import { InstallAppCard } from "./pwa/InstallAppCard";
 import { acquiredTime, findOnThisDay, groupByMonth } from "@/utils/memories";
 import { countFacets, itemHasFacet, matchesQuery } from "@/utils/itemFacets";
 import { useNavigate } from "react-router-dom";
@@ -461,6 +462,9 @@ export function UserCollection({
       {isOwnCollection && items.length > 0 && <UniverseEntryCard onOpen={() => setIsUniverseOpen(true)} />}
 
       {isOwnCollection && <DuplicateCleanupBanner />}
+
+      {/* ある程度使い始めた人にだけ、ホーム画面への追加を案内する（入れられる環境のときだけ出る） */}
+      {isOwnCollection && items.length >= 3 && <InstallAppCard variant="banner" />}
 
       <CollectionExplorer
         items={items}

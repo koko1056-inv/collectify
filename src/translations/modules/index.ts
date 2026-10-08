@@ -17,6 +17,7 @@ import { misc } from './misc';
 import { tour } from './tour';
 import { engage } from './engage';
 import { universe } from './universe';
+import { pwa } from './pwa';
 
 export const moduleTranslations = {
   ja: {
@@ -37,6 +38,7 @@ export const moduleTranslations = {
     tour: tour.ja,
     engage: engage.ja,
     universe: universe.ja,
+    pwa: pwa.ja,
   },
   en: {
     admin: admin.en,
@@ -56,5 +58,6 @@ export const moduleTranslations = {
     tour: tour.en,
     engage: engage.en,
     universe: universe.en,
+    pwa: pwa.en,
   },
 };
