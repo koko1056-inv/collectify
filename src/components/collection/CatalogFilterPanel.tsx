@@ -20,13 +20,15 @@ interface CatalogFilterPanelProps {
   owned?: Set<string>;
   value: CatalogFilterState;
   onChange: (next: CatalogFilterState) => void;
+  /** 作品の選択を画面の外側で行っているとき（読み込んでいる分だけの作品チップは紛らわしいので出さない） */
+  hideContent?: boolean;
 }
 
 /**
  * カタログの一覧を絞り込む。作品 → シリーズ・キャラ・種類・入手方法 の順に狭められる。
  * チップの数字は「他の条件で絞った結果で、押すと何件になるか」。
  */
-export function CatalogFilterPanel({ items, owned, value, onChange }: CatalogFilterPanelProps) {
+export function CatalogFilterPanel({ items, owned, value, onChange, hideContent = false }: CatalogFilterPanelProps) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<FacetKind>("series");
@@ -109,7 +111,7 @@ export function CatalogFilterPanel({ items, owned, value, onChange }: CatalogFil
             {t("engage.catalog.onlyNotOwned")}
           </label>
 
-          {contents.length > 0 && (
+          {!hideContent && contents.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-[11px] font-semibold text-muted-foreground">{t("engage.catalog.content")}</p>
               <div className="flex flex-wrap gap-1.5">

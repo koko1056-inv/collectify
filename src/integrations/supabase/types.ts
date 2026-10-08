@@ -3727,6 +3727,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      catalog_content_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: { content_name: string; item_count: number }[]
+      }
       add_user_points: {
         Args: {
           _description?: string

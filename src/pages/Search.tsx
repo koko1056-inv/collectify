@@ -9,7 +9,7 @@ import { TradeMatchingSection } from "@/components/trade/TradeMatchingSection";
 import { PublicCollectionView } from "@/components/collection/PublicCollectionView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useOfficialItems } from "@/hooks/useOfficialItems";
+import { useCatalogSearch, useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
@@ -44,12 +44,18 @@ const Search = () => {
   const { user } = useAuth();
   const { profile } = useProfile(user?.id);
   const queryClient = useQueryClient();
+  // 数万件を毎回読み込まない: 作品を選んでいればその作品だけ、選んでいなければ新しい順。
+  // 作品を選ばずにキーワードを入力したときは、サーバー側で全作品を横断検索する。
+  const activeContent = selectedContent && selectedContent !== "all" ? selectedContent : null;
+  const searching = !activeContent && searchQuery.trim().length >= 1;
+  const baseResult = useOfficialItems({ content: activeContent });
+  const searchResult = useCatalogSearch(searching ? searchQuery : "");
   const {
     data: items = [],
     isLoading: itemsLoading,
     isError: itemsError,
     refetch: refetchItems,
-  } = useOfficialItems();
+  } = searching ? searchResult : baseResult;
   const { data: allTags = [] } = useTags(selectedContent);
 
   // コンテンツ名を早期に取得
@@ -73,7 +79,7 @@ const Search = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'official_items' }, () => {
         // まとめて登録されると変更通知が大量に届く。全件を取り直すので、静まってから1回だけ再取得する
         if (refetchTimer) clearTimeout(refetchTimer);
-        refetchTimer = setTimeout(() => queryClient.invalidateQueries({ queryKey: ['official-items'] }), 3000);
+        refetchTimer = setTimeout(() => { queryClient.invalidateQueries({ queryKey: ['official-items'] }); queryClient.invalidateQueries({ queryKey: ['catalog-content-counts'] }); }, 3000);
       })
       .subscribe();
     return () => {
