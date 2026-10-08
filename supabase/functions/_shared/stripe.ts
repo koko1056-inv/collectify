@@ -33,13 +33,16 @@ export class StripeNotConfigured extends Error {
 export async function stripeRequest<T = any>(
   method: "GET" | "POST",
   path: string,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  opts?: { idempotencyKey?: string }
 ): Promise<T> {
   const key = Deno.env.get("STRIPE_SECRET_KEY");
   if (!key) throw new StripeNotConfigured();
 
   let url = `${STRIPE_API}${path}`;
   const init: RequestInit = { method, headers: { Authorization: `Bearer ${key}` } };
+  // 二重クリック・再送で同じものを2つ作らないための鍵（Stripe は同じ鍵なら同じ結果を返す）
+  if (opts?.idempotencyKey) (init.headers as Record<string, string>)["Idempotency-Key"] = opts.idempotencyKey;
   if (params && method === "GET") {
     const q = encodeForm(params);
     if (q) url += `?${q}`;
@@ -119,4 +122,42 @@ export function planFromLookupKey(key: string | null | undefined): "premium" | "
   if (key.startsWith("premium_plus_")) return "premium_plus";
   if (key.startsWith("premium_")) return "premium";
   return null;
+}
+
+/**
+ * Managed Payments（Stripe が販売者として税・不正対策・コンプライアンスを引き受ける仕組み）。
+ * 口座の既定が有効だと、商品に税コード（tax_code）が無い価格では Checkout を作れない。
+ * 使わない運用にしたい場合は、Edge Function の環境変数 STRIPE_MANAGED_PAYMENTS=false にする。
+ */
+export function managedPaymentsOverride(): Record<string, unknown> {
+  return Deno.env.get("STRIPE_MANAGED_PAYMENTS") === "false" ? { managed_payments: { enabled: false } } : {};
+}
+
+/** ユーザーごとに Stripe の顧客を1つだけ持つ（購入のたびに顧客が増えないように） */
+export async function ensureStripeCustomer(
+  admin: any,
+  user: { id: string; email?: string | null }
+): Promise<string> {
+  const { data: row } = await admin.from("stripe_customers").select("stripe_customer_id").eq("user_id", user.id).maybeSingle();
+  if (row?.stripe_customer_id) return row.stripe_customer_id;
+
+  // 購読の記録に顧客IDが残っていれば、それを引き継ぐ
+  const { data: sub } = await admin.from("user_subscriptions").select("stripe_customer_id").eq("user_id", user.id).maybeSingle();
+  let customerId: string | null = sub?.stripe_customer_id ?? null;
+
+  if (!customerId) {
+    const created = await stripeRequest(
+      "POST",
+      "/customers",
+      { email: user.email ?? undefined, metadata: { user_id: user.id } },
+      { idempotencyKey: `customer:${user.id}` }
+    );
+    customerId = created.id as string;
+  }
+  await admin
+    .from("stripe_customers")
+    .upsert({ user_id: user.id, stripe_customer_id: customerId }, { onConflict: "user_id", ignoreDuplicates: true });
+  // 同時に作られた場合は、先に保存された方が正
+  const { data: winner } = await admin.from("stripe_customers").select("stripe_customer_id").eq("user_id", user.id).maybeSingle();
+  return winner?.stripe_customer_id ?? customerId;
 }

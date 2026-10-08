@@ -9,7 +9,13 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { siteOrigin, stripeRequest, StripeNotConfigured } from "../_shared/stripe.ts";
+import {
+  ensureStripeCustomer,
+  managedPaymentsOverride,
+  siteOrigin,
+  stripeRequest,
+  StripeNotConfigured,
+} from "../_shared/stripe.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,7 +58,6 @@ serve(async (req) => {
       .select("plan, status, platform, expires_at, stripe_customer_id, stripe_subscription_id")
       .eq("user_id", user.id)
       .maybeSingle();
-    const customer = sub?.stripe_customer_id ?? undefined;
 
     if (body.kind === "subscription") {
       if (!body.plan || !PLANS.has(body.plan) || !body.period || !PERIODS.has(body.period)) {
@@ -68,18 +73,29 @@ serve(async (req) => {
       const price = prices.data?.[0];
       if (!price) return json({ error: "price_not_found", lookup_key: lookupKey }, 500);
 
-      const session = await stripeRequest("POST", "/checkout/sessions", {
-        mode: "subscription",
-        line_items: [{ price: price.id, quantity: 1 }],
-        client_reference_id: user.id,
-        customer,
-        customer_email: customer ? undefined : user.email,
-        locale: "ja",
-        success_url: `${origin}/?checkout=success&kind=subscription`,
-        cancel_url: `${origin}/?checkout=cancel&kind=subscription`,
-        metadata: { user_id: user.id, kind: "subscription", plan: body.plan, period: body.period },
-        subscription_data: { metadata: { user_id: user.id, plan: body.plan, period: body.period } },
-      });
+      const customer = await ensureStripeCustomer(admin, user);
+      const session = await stripeRequest(
+        "POST",
+        "/checkout/sessions",
+        {
+          mode: "subscription",
+          line_items: [{ price: price.id, quantity: 1 }],
+          client_reference_id: user.id,
+          customer,
+          locale: "ja",
+          success_url: `${origin}/?checkout=success&kind=subscription`,
+          cancel_url: `${origin}/?checkout=cancel&kind=subscription`,
+          metadata: { user_id: user.id, kind: "subscription", plan: body.plan, period: body.period },
+          // 柔軟な請求モード（Stripe が新規の購読に勧める既定）
+          subscription_data: {
+            metadata: { user_id: user.id, plan: body.plan, period: body.period },
+            billing_mode: { type: "flexible" },
+          },
+          ...managedPaymentsOverride(),
+        },
+        // 連打しても同じ決済ページを返す（1分の間、同じ条件なら同じセッション）
+        { idempotencyKey: `checkout:${user.id}:${lookupKey}:${origin}:${Math.floor(Date.now() / 60000)}` }
+      );
       return json({ url: session.url });
     }
 
@@ -100,17 +116,23 @@ serve(async (req) => {
       // アプリ側の定価と Stripe の価格がずれていたら売らない（付与側も定価未満は付与しない）
       if (price.unit_amount !== pkg.price) return json({ error: "price_mismatch" }, 500);
 
-      const session = await stripeRequest("POST", "/checkout/sessions", {
-        mode: "payment",
-        line_items: [{ price: price.id, quantity: 1 }],
-        client_reference_id: user.id,
-        customer,
-        customer_email: customer ? undefined : user.email,
-        locale: "ja",
-        success_url: `${origin}/point-shop?checkout=success&kind=points`,
-        cancel_url: `${origin}/point-shop?checkout=cancel&kind=points`,
-        metadata: { user_id: user.id, kind: "points", package: key },
-      });
+      const customer = await ensureStripeCustomer(admin, user);
+      const session = await stripeRequest(
+        "POST",
+        "/checkout/sessions",
+        {
+          mode: "payment",
+          line_items: [{ price: price.id, quantity: 1 }],
+          client_reference_id: user.id,
+          customer,
+          locale: "ja",
+          success_url: `${origin}/point-shop?checkout=success&kind=points`,
+          cancel_url: `${origin}/point-shop?checkout=cancel&kind=points`,
+          metadata: { user_id: user.id, kind: "points", package: key },
+          ...managedPaymentsOverride(),
+        },
+        { idempotencyKey: `checkout:${user.id}:${lookupKey}:${origin}:${Math.floor(Date.now() / 60000)}` }
+      );
       return json({ url: session.url });
     }
 

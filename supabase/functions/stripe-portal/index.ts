@@ -27,16 +27,21 @@ serve(async (req) => {
   if (userErr || !userRes.user) return json({ error: "login_required" }, 401);
 
   const admin = createClient(url, service);
-  const { data: sub } = await admin
-    .from("user_subscriptions")
+  // 購読していなくても、ポイントを買った人は領収書の確認ができる
+  const { data: row } = await admin
+    .from("stripe_customers")
     .select("stripe_customer_id")
     .eq("user_id", userRes.user.id)
     .maybeSingle();
-  if (!sub?.stripe_customer_id) return json({ error: "no_stripe_customer" }, 404);
+  const { data: sub } = row?.stripe_customer_id
+    ? { data: null }
+    : await admin.from("user_subscriptions").select("stripe_customer_id").eq("user_id", userRes.user.id).maybeSingle();
+  const customerId: string | undefined = row?.stripe_customer_id ?? sub?.stripe_customer_id ?? undefined;
+  if (!customerId) return json({ error: "no_stripe_customer" }, 404);
 
   try {
     const session = await stripeRequest("POST", "/billing_portal/sessions", {
-      customer: sub.stripe_customer_id,
+      customer: customerId,
       return_url: `${siteOrigin(req)}/?checkout=portal`,
     });
     return json({ url: session.url });
