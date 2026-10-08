@@ -4,7 +4,7 @@
   "description": "推しグッズコレクション管理",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "background_color": "#0a0a2e",
   "theme_color": "#E8556F",
   "lang": "ja",
   "icons": [
