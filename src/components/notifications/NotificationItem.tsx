@@ -1,4 +1,4 @@
-import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles } from 'lucide-react';
+import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles, ArrowLeftRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Notification, NotificationData } from '@/types/notification';
@@ -35,6 +35,17 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         return <Sticker className="h-4 w-4 text-primary" />;
       case 'match_success':
         return <Sparkles className="h-4 w-4 text-violet-500" />;
+      case 'trade_request':
+      case 'trade_accepted':
+      case 'trade_shipped':
+      case 'trade_received':
+      case 'trade_completed':
+      case 'trade_nudge':
+        return <ArrowLeftRight className="h-4 w-4 text-primary" />;
+      case 'trade_rejected':
+      case 'trade_cancelled':
+      case 'trade_unavailable':
+        return <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />;
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'warning':
@@ -71,6 +82,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       navigate(`/search?item=${notification.data.item_id}`);
     } else if ((notification.type === 'comment' || notification.type === 'reply' || notification.type === 'like') && notification.data.post_id) {
       navigate(`/posts?post=${notification.data.post_id}`);
+    } else if (notification.type.startsWith('trade_')) {
+      // 交換の通知は、交換タブ（自分の番の取引が先頭に出る）へ
+      navigate(notification.data.url || '/search?tab=trade');
     }
   };
 

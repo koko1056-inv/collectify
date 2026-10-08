@@ -2993,6 +2993,16 @@ export type Database = {
       }
       trade_requests: {
         Row: {
+          cancel_reason: string | null
+          nudged_at: string | null
+          offered_image: string | null
+          offered_official_item_id: string | null
+          offered_title: string | null
+          receiver_applied_at: string | null
+          requested_image: string | null
+          requested_official_item_id: string | null
+          requested_title: string | null
+          sender_applied_at: string | null
           cancelled_at: string | null
           cancelled_by: string | null
           completed_at: string | null
@@ -3000,11 +3010,11 @@ export type Database = {
           id: string
           is_open: boolean | null
           message: string | null
-          offered_item_id: string
+          offered_item_id: string | null
           receiver_id: string
           receiver_received_at: string | null
           receiver_shipped_at: string | null
-          requested_item_id: string
+          requested_item_id: string | null
           responded_at: string | null
           sender_id: string
           sender_received_at: string | null
@@ -3013,6 +3023,16 @@ export type Database = {
           status: string
         }
         Insert: {
+          cancel_reason?: string | null
+          nudged_at?: string | null
+          offered_image?: string | null
+          offered_official_item_id?: string | null
+          offered_title?: string | null
+          receiver_applied_at?: string | null
+          requested_image?: string | null
+          requested_official_item_id?: string | null
+          requested_title?: string | null
+          sender_applied_at?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
           completed_at?: string | null
@@ -3020,11 +3040,11 @@ export type Database = {
           id?: string
           is_open?: boolean | null
           message?: string | null
-          offered_item_id: string
+          offered_item_id?: string | null
           receiver_id: string
           receiver_received_at?: string | null
           receiver_shipped_at?: string | null
-          requested_item_id: string
+          requested_item_id?: string | null
           responded_at?: string | null
           sender_id: string
           sender_received_at?: string | null
@@ -3033,6 +3053,16 @@ export type Database = {
           status?: string
         }
         Update: {
+          cancel_reason?: string | null
+          nudged_at?: string | null
+          offered_image?: string | null
+          offered_official_item_id?: string | null
+          offered_title?: string | null
+          receiver_applied_at?: string | null
+          requested_image?: string | null
+          requested_official_item_id?: string | null
+          requested_title?: string | null
+          sender_applied_at?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
           completed_at?: string | null
@@ -3727,6 +3757,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_trade_to_collection: {
+        Args: { _trade_id: string }
+        Returns: Json
+      }
+      create_trade_request: {
+        Args: { _message?: string; _offered_item_id: string; _requested_item_id: string }
+        Returns: Json
+      }
+      find_holders_for_my_wishes: {
+        Args: { _limit?: number }
+        Returns: {
+          holder_count: number
+          holders: Json
+          image: string
+          content_name: string
+          official_item_id: string
+          title: string
+          trade_ok_count: number
+          wish_id: string
+        }[]
+      }
+      trade_item_in_progress: {
+        Args: { _item: string }
+        Returns: boolean
+      }
       catalog_content_counts: {
         Args: Record<PropertyKey, never>
         Returns: { content_name: string; item_count: number }[]

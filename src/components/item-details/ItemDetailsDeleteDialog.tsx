@@ -47,8 +47,10 @@ export function ItemDetailsDeleteDialog({
       });
       onCloseModal();
     } catch (error) {
+      // 交換が成立して進行中の品は、サーバーが削除を止める
+      const inTrade = JSON.stringify(error ?? "").includes("trade_in_progress");
       toast.error(t("itemDetails.common.error"), {
-        description: t("itemDetails.remove.failed"),
+        description: inTrade ? t("trade.errors.itemInTrade") : t("itemDetails.remove.failed"),
       });
     }
   };

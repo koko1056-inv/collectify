@@ -33,8 +33,10 @@ export const useCardEventHandlers = (itemId: string) => {
       });
     } catch (error) {
       console.error("Error deleting item:", error);
+      // 交換が成立して進行中の品は、サーバーが削除を止める
+      const inTrade = JSON.stringify(error ?? "").includes("trade_in_progress");
       toast.error(t("collectionScreen.common.error"), {
-        description: t("collectionScreen.cardActions.itemDeleteFailed"),
+        description: inTrade ? t("trade.errors.itemInTrade") : t("collectionScreen.cardActions.itemDeleteFailed"),
       });
     }
   };

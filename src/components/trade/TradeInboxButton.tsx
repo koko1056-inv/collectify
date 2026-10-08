@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Inbox } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useMyTrades } from "@/hooks/trade/useMyTrades";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { cn } from "@/lib/utils";
 
@@ -24,26 +22,13 @@ export function TradeInboxButton({
   variant?: "icon" | "full";
   className?: string;
 }) {
-  const { user } = useAuth();
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
 
-  // 「自分の番」の件数。返事待ちの申請と、自分がまだ報告していない進行中。
-  const { data: actionable = 0 } = useQuery({
-    queryKey: ["trade-inbox-count", user?.id],
-    enabled: !!user?.id,
-    staleTime: 30 * 1000,
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("trade_requests")
-        .select("id", { count: "exact", head: true })
-        .eq("receiver_id", user!.id)
-        .eq("status", "pending")
-        .neq("sender_id", user!.id);
-      if (error) throw error;
-      return count ?? 0;
-    },
-  });
+  // 「自分の番」の件数。返事待ちの申請・まだ報告していない進行中・コレクションへ反映していない完了。
+  // 取引の一覧と同じデータから数えるので、承認や発送の直後にバッジも一緒に追いつく。
+  const { myTurn } = useMyTrades();
+  const actionable = myTurn.length;
 
   return (
     <>

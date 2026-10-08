@@ -177,3 +177,64 @@ export function useMyTradeOffers() {
     },
   });
 }
+
+export interface WishHolder {
+  user_id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  /** 相手が持っているそのグッズ（user_items の id）。申請の宛先になる */
+  user_item_id: string;
+  /** 相手が「交換に出す」にしているか。出していなくても申請はできる */
+  for_trade: boolean;
+  quantity: number;
+  trade_score: number;
+  trade_count: number;
+  /** 自分がすでに申請を出していて、返事待ち／進行中 */
+  already_requested: boolean;
+  /** 別の交換が成立していて、いまは申請できない */
+  busy: boolean;
+}
+
+export interface WishWithHolders {
+  wish_id: string;
+  official_item_id: string;
+  title: string;
+  image: string;
+  content_name: string | null;
+  holder_count: number;
+  trade_ok_count: number;
+  holders: WishHolder[];
+}
+
+/**
+ * 自分の「欲しい」を持っている人。
+ *
+ * find_trade_matches は「相手が交換に出している」ものしか拾わないので、
+ * 出している人がまだ少ないうちはほとんど何も出ない。
+ * ここは、出しているかどうかに関わらず「持っている人」を欲しいもの単位で見せて、
+ * そこから申請（相談）まで進めるための材料。
+ */
+export function useHoldersForMyWishes() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["trade-holders", user?.id],
+    enabled: !!user?.id,
+    staleTime: 60 * 1000,
+    queryFn: async (): Promise<WishWithHolders[]> => {
+      const { data, error } = await supabase.rpc("find_holders_for_my_wishes", { _limit: 40 });
+      if (error) throw error;
+      return (data ?? []).map((row) => ({
+        wish_id: row.wish_id,
+        official_item_id: row.official_item_id,
+        title: row.title,
+        image: row.image,
+        content_name: row.content_name,
+        holder_count: row.holder_count,
+        trade_ok_count: row.trade_ok_count,
+        holders: Array.isArray(row.holders) ? (row.holders as unknown as WishHolder[]) : [],
+      }));
+    },
+  });
+}

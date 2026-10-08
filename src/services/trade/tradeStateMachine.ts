@@ -20,6 +20,19 @@ export type TradeActionReason =
   | "already_shipped"
   | "already_reported"
   | "partner_not_shipped"
+  | "not_signed_in"
+  | "item_not_found"
+  | "not_your_item"
+  | "self_trade"
+  | "blocked"
+  | "private_profile"
+  | "offered_committed"
+  | "requested_committed"
+  | "duplicate"
+  | "too_many_pending"
+  | "item_gone"
+  | "item_taken"
+  | "not_completed"
   | "unknown";
 
 export interface TradeState {
@@ -47,6 +60,44 @@ function toResult(data: unknown, error: unknown): TradeActionResult {
     return { ok: false, reason: (body.reason as TradeActionReason) ?? "unknown" };
   }
   return { ok: true, state: body as unknown as TradeState };
+}
+
+/**
+ * 交換の申請を出す。相手の品（requestedItemId）と、差し出す自分の品（offeredItemId）を渡す。
+ * 持ち主・ブロック・二重の約束はサーバーが確かめる。
+ */
+export async function createTradeRequest(params: {
+  requestedItemId: string;
+  offeredItemId: string;
+  message?: string;
+}): Promise<TradeActionResult> {
+  const { data, error } = await supabase.rpc("create_trade_request", {
+    _requested_item_id: params.requestedItemId,
+    _offered_item_id: params.offeredItemId,
+    _message: params.message?.trim() || undefined,
+  });
+  return toResult(data, error);
+}
+
+export interface ApplyTradeResult {
+  ok: boolean;
+  already?: boolean;
+  added?: boolean;
+  removed?: boolean;
+  kept?: boolean;
+  reason?: TradeActionReason;
+}
+
+/** 完了した交換を、自分のコレクションへ反映する（受け取った品を追加・手放した品を外す）。 */
+export async function applyTradeToCollection(tradeId: string): Promise<ApplyTradeResult> {
+  const { data, error } = await supabase.rpc("apply_trade_to_collection", { _trade_id: tradeId });
+  if (error || !data || typeof data !== "object") {
+    console.error("apply trade failed:", error);
+    return { ok: false, reason: "unknown" };
+  }
+  const body = data as Record<string, unknown>;
+  if (body.ok !== true) return { ok: false, reason: (body.reason as TradeActionReason) ?? "unknown" };
+  return body as unknown as ApplyTradeResult;
 }
 
 /** 承認 / 辞退。決められるのは申し込まれた側だけ。 */

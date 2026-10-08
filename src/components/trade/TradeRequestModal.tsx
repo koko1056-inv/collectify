@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeftRight, Loader2, Send } from "lucide-react";
+import { ArrowLeftRight, Gift, Loader2, Search, Send } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,7 +22,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { invalidateTrades } from "@/hooks/trade/useMyTrades";
+import { invalidateTrades, useMyTrades } from "@/hooks/trade/useMyTrades";
+import { createTradeRequest, tradeErrorKey } from "@/services/trade/tradeStateMachine";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 import { cn } from "@/lib/utils";
 
@@ -31,14 +33,21 @@ interface TradeRequestModalProps {
   requestedItemId: string;
   requestedItemTitle: string;
   receiverId: string;
+  /** 欲しい品の写真（あれば申請画面の上に出す） */
+  requestedItemImage?: string | null;
+  /** 相手の名前（あれば案内文に使う） */
+  partnerName?: string | null;
+  /** 相手がその品を「交換に出す」にしているか。false なら、相談としての申請になる */
+  partnerOffers?: boolean;
 }
 
 /**
  * 交換の申し込み。
  *
- * 差し出せるのは「交換に出す」を有効にしたグッズだけ。
- * 以前は持ち物を全部並べていたので、1つしかない大事なグッズを
- * うっかり差し出してしまえた。手放していいと決めたものだけを見せる。
+ * 差し出す品は、持っているグッズから選ぶ。
+ * 「相手が欲しがっている品」→「交換に出している品」→ それ以外 の順に並べて、
+ * 話がまとまりやすいものを先に見せる。交換に出していない品も選べるが、その旨を伝える。
+ * 別の交換がすでに成立している品は選べない。
  */
 export function TradeRequestModal({
   isOpen,
@@ -46,6 +55,9 @@ export function TradeRequestModal({
   requestedItemId,
   requestedItemTitle,
   receiverId,
+  requestedItemImage,
+  partnerName,
+  partnerOffers = true,
 }: TradeRequestModalProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -55,28 +67,72 @@ export function TradeRequestModal({
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (isOpen) {
       setSelectedItemId(null);
       setMessage("");
+      setSearch("");
     }
   }, [isOpen]);
 
-  const { data: offerable = [], isLoading } = useQuery({
-    queryKey: ["tradable-items", user?.id],
+  // 差し出せる品: 持っているグッズ全部（交換に出していないものも選べる）
+  const { data: myItems = [], isLoading } = useQuery({
+    queryKey: ["trade-offerable-items", user?.id],
     enabled: isOpen && !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_items")
-        .select("id, title, image")
+        .select("id, title, image, for_trade, official_item_id, quantity")
         .eq("user_id", user!.id)
-        .eq("for_trade", true)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(400);
       if (error) throw error;
       return data ?? [];
     },
   });
+
+  // 相手が欲しがっている品（相手の「欲しい」と、自分の持ち物の重なり）
+  const myOfficialIds = useMemo(
+    () => myItems.map((i) => i.official_item_id).filter((v): v is string => !!v),
+    [myItems]
+  );
+  const { data: wantedByPartner = new Set<string>() } = useQuery({
+    queryKey: ["trade-partner-wants", receiverId, myOfficialIds.length],
+    enabled: isOpen && myOfficialIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("wishlists")
+        .select("official_item_id")
+        .eq("user_id", receiverId)
+        .in("official_item_id", myOfficialIds);
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.official_item_id as string));
+    },
+  });
+
+  // 別の交換が成立している（承認済み）品は差し出せない
+  const { active } = useMyTrades(isOpen);
+  const busyIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const tr of active) {
+      if (tr.offered_item?.id) ids.add(tr.offered_item.id);
+      if (tr.requested_item?.id) ids.add(tr.requested_item.id);
+    }
+    return ids;
+  }, [active]);
+
+  const offerable = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return myItems
+      .filter((i) => !busyIds.has(i.id))
+      .filter((i) => !q || i.title.toLowerCase().includes(q))
+      .map((i) => ({ ...i, wanted: !!i.official_item_id && wantedByPartner.has(i.official_item_id) }))
+      .sort((a, b) => Number(b.wanted) - Number(a.wanted) || Number(b.for_trade) - Number(a.for_trade));
+  }, [myItems, busyIds, search, wantedByPartner]);
+
+  const selectedItem = useMemo(() => myItems.find((i) => i.id === selectedItemId) ?? null, [myItems, selectedItemId]);
 
   // 同じ相手の同じグッズに二重で申し込まないようにする
   const { data: alreadyRequested } = useQuery({
@@ -104,19 +160,25 @@ export function TradeRequestModal({
     if (!user || !selectedItemId) return;
     setIsSending(true);
     try {
-      const { error } = await supabase.from("trade_requests").insert({
-        sender_id: user.id,
-        receiver_id: receiverId,
-        offered_item_id: selectedItemId,
-        requested_item_id: requestedItemId,
-        message: message.trim() || null,
+      const result = await createTradeRequest({
+        requestedItemId,
+        offeredItemId: selectedItemId,
+        message,
       });
-      if (error) throw error;
+      if (!result.ok) {
+        const reason = "reason" in result ? result.reason : "unknown";
+        toast.error(t("trade.errors.title"), { description: t(tradeErrorKey(reason)) });
+        await invalidateTrades(queryClient, user.id);
+        return;
+      }
 
       toast.success(t("trade.request.sentTitle"), {
         description: t("trade.request.sentDesc"),
       });
-      await invalidateTrades(queryClient, user.id);
+      await Promise.all([
+        invalidateTrades(queryClient, user.id),
+        queryClient.invalidateQueries({ queryKey: ["trade-exists", user.id, requestedItemId] }),
+      ]);
       onClose();
     } catch (e) {
       console.error("Error sending trade request:", e);
@@ -139,6 +201,31 @@ export function TradeRequestModal({
           </DialogDescription>
         </DialogHeader>
 
+        {/* 何を申し込むのか。写真があれば見せる */}
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-2.5">
+          {requestedItemImage && (
+            <img
+              src={getOptimizedImageUrl(requestedItemImage, { width: 120 })}
+              onError={fallbackToOriginal(requestedItemImage)}
+              alt=""
+              className="h-14 w-14 shrink-0 rounded-lg border bg-muted object-contain"
+            />
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] text-muted-foreground">
+              {partnerName
+                ? t("trade.request.fromPartner", { name: partnerName })
+                : t("trade.request.fromPartnerAnon")}
+            </p>
+            <p className="line-clamp-2 text-sm font-medium">{requestedItemTitle}</p>
+          </div>
+        </div>
+        {!partnerOffers && (
+          <p className="rounded-lg bg-amber-500/10 p-2 text-[11px] text-amber-800 dark:text-amber-300">
+            {t("trade.request.consultNote")}
+          </p>
+        )}
+
         {alreadyRequested ? (
           <EmptyState
             className="py-8"
@@ -158,13 +245,12 @@ export function TradeRequestModal({
                       <Skeleton key={i} className="aspect-square rounded-lg" />
                     ))}
                   </div>
-                ) : offerable.length === 0 ? (
-                  // 交換に出しているものが無いと申し込めない。
-                  // 「グッズがありません」で終わらせず、印の付け方まで案内する。
+                ) : myItems.length === 0 ? (
+                  // 差し出せるグッズが1つも無い。まずコレクションに追加してもらう。
                   <EmptyState
                     className="py-6"
-                    title={t("trade.request.noTradableTitle")}
-                    description={t("trade.request.noTradableDesc")}
+                    title={t("trade.request.noItemsTitle")}
+                    description={t("trade.request.noItemsDesc")}
                     action={
                       <Button
                         size="sm"
@@ -178,38 +264,70 @@ export function TradeRequestModal({
                     }
                   />
                 ) : (
-                  <div className="grid grid-cols-3 gap-2">
-                    {offerable.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setSelectedItemId(item.id)}
-                        aria-pressed={selectedItemId === item.id}
-                        className={cn(
-                          "rounded-lg border p-1.5 text-left transition-colors",
-                          selectedItemId === item.id
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/40"
-                        )}
-                      >
-                        <div className="aspect-square overflow-hidden rounded-md bg-muted">
-                          <img
-                            src={getOptimizedImageUrl(item.image, { width: 200 })}
-                            onError={fallbackToOriginal(item.image)}
-                            loading="lazy"
-                            decoding="async"
-                            alt=""
-                            className="h-full w-full object-contain"
-                          />
-                        </div>
-                        <p className="mt-1 line-clamp-2 min-h-[2rem] text-[11px]">{item.title}</p>
-                      </button>
-                    ))}
-                  </div>
+                  <>
+                    {myItems.length > 9 && (
+                      <div className="relative">
+                        <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          placeholder={t("trade.request.searchPlaceholder")}
+                          className="h-9 pl-8"
+                        />
+                      </div>
+                    )}
+                    {offerable.length === 0 ? (
+                      <p className="py-6 text-center text-xs text-muted-foreground">
+                        {t("trade.request.noMatchingItems")}
+                      </p>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-2">
+                        {offerable.map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => setSelectedItemId(item.id)}
+                            aria-pressed={selectedItemId === item.id}
+                            className={cn(
+                              "relative rounded-lg border p-1.5 text-left transition-colors",
+                              selectedItemId === item.id
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-primary/40"
+                            )}
+                          >
+                            <div className="aspect-square overflow-hidden rounded-md bg-muted">
+                              <img
+                                src={getOptimizedImageUrl(item.image, { width: 200 })}
+                                onError={fallbackToOriginal(item.image)}
+                                loading="lazy"
+                                decoding="async"
+                                alt=""
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                            {item.wanted ? (
+                              <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                                <Gift className="h-2.5 w-2.5" />
+                                {t("trade.request.wantedBadge")}
+                              </span>
+                            ) : item.for_trade ? (
+                              <span className="absolute left-1.5 top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[9px] font-semibold text-primary-foreground">
+                                {t("trade.request.offeringBadge")}
+                              </span>
+                            ) : null}
+                            <p className="mt-1 line-clamp-2 min-h-[2rem] text-[11px]">{item.title}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {selectedItem && !selectedItem.for_trade && (
+                      <p className="text-[11px] text-muted-foreground">{t("trade.request.notOfferingHint")}</p>
+                    )}
+                  </>
                 )}
               </div>
 
-              {offerable.length > 0 && (
+              {myItems.length > 0 && (
                 <div className="space-y-1.5">
                   <Label htmlFor="trade-message" className="text-sm">
                     {t("trade.request.messageLabel")}
@@ -232,7 +350,7 @@ export function TradeRequestModal({
           <Button variant="outline" onClick={onClose} disabled={isSending}>
             {t("trade.request.cancel")}
           </Button>
-          {!alreadyRequested && offerable.length > 0 && (
+          {!alreadyRequested && myItems.length > 0 && (
             <Button onClick={send} disabled={!canSend}>
               {isSending ? (
                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
