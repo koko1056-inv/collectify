@@ -519,11 +519,21 @@ BEGIN
   -- 受け取った品を入れる
   IF got_official IS NOT NULL THEN
     SELECT * INTO oi FROM public.official_items WHERE id = got_official;
-    SELECT * INTO got_src FROM public.user_items WHERE user_id = me AND official_item_id = got_official LIMIT 1;
+    SELECT * INTO got_src FROM public.user_items WHERE user_id = me AND official_item_id = got_official ORDER BY created_at LIMIT 1;
   END IF;
   -- 公式グッズに載っていない品（公式の発売日なし等）でも入れられるよう、相手の品の情報も控えておく
   IF got_item_id IS NOT NULL THEN
     SELECT * INTO got_partner FROM public.user_items WHERE id = got_item_id;
+  END IF;
+
+  -- 公式グッズに結びついていない品は、同じ題名・同じ写真のカードがあれば同じグッズとみなして数を足す
+  IF got_src.id IS NULL THEN
+    SELECT * INTO got_src FROM public.user_items
+    WHERE user_id = me
+      AND title = COALESCE(got_title, oi.title, got_partner.title)
+      AND COALESCE(image, '') <> ''
+      AND image = COALESCE(got_image, oi.image, got_partner.image)
+    ORDER BY created_at LIMIT 1;
   END IF;
 
   IF got_src.id IS NOT NULL THEN
