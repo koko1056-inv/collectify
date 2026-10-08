@@ -119,13 +119,16 @@ export function useItemPostsFeed({
         likedIds = new Set((likes || []).map((l) => l.post_id));
       }
 
-      return posts.map((p) => ({
-        ...p,
-        images: (p.images || []).sort(
-          (a: any, b: any) => a.display_order - b.display_order
-        ),
-        is_liked_by_me: likedIds.has(p.id),
-      }));
+      return posts
+        .map((p) => ({
+          ...p,
+          // 画像のURLが空の投稿は、一覧で真っ白なカードになる。写真のない投稿は並べない
+          images: (p.images || [])
+            .filter((img: any) => !!img.image_url)
+            .sort((a: any, b: any) => a.display_order - b.display_order),
+          is_liked_by_me: likedIds.has(p.id),
+        }))
+        .filter((p) => p.images.length > 0);
     },
   });
 }
