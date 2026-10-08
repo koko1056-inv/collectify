@@ -482,9 +482,11 @@ DECLARE
   got_title text;
   got_image text;
   got_official uuid;
+  got_item_id uuid;
   gave_id uuid;
   gave public.user_items;
   got_src public.user_items;
+  got_partner public.user_items;
   oi public.official_items;
   added boolean := false;
   removed boolean := false;
@@ -508,10 +510,10 @@ BEGIN
 
   IF is_sender THEN
     got_title := t.requested_title; got_image := t.requested_image; got_official := t.requested_official_item_id;
-    gave_id := t.offered_item_id;
+    got_item_id := t.requested_item_id; gave_id := t.offered_item_id;
   ELSE
     got_title := t.offered_title; got_image := t.offered_image; got_official := t.offered_official_item_id;
-    gave_id := t.requested_item_id;
+    got_item_id := t.offered_item_id; gave_id := t.requested_item_id;
   END IF;
 
   -- 受け取った品を入れる
@@ -519,13 +521,23 @@ BEGIN
     SELECT * INTO oi FROM public.official_items WHERE id = got_official;
     SELECT * INTO got_src FROM public.user_items WHERE user_id = me AND official_item_id = got_official LIMIT 1;
   END IF;
+  -- 公式グッズに載っていない品（公式の発売日なし等）でも入れられるよう、相手の品の情報も控えておく
+  IF got_item_id IS NOT NULL THEN
+    SELECT * INTO got_partner FROM public.user_items WHERE id = got_item_id;
+  END IF;
 
   IF got_src.id IS NOT NULL THEN
     UPDATE public.user_items SET quantity = COALESCE(quantity, 1) + 1 WHERE id = got_src.id;
   ELSE
     INSERT INTO public.user_items (user_id, title, image, prize, quantity, official_item_id, content_name, release_date, for_trade)
-    VALUES (me, COALESCE(got_title, oi.title, '交換で受け取ったグッズ'), COALESCE(got_image, oi.image),
-            COALESCE(oi.price, ''), 1, got_official, oi.content_name, oi.release_date, false);
+    VALUES (me,
+            COALESCE(got_title, oi.title, got_partner.title, '交換で受け取ったグッズ'),
+            COALESCE(got_image, oi.image, got_partner.image, ''),
+            COALESCE(oi.price, got_partner.prize, ''),
+            1, got_official,
+            COALESCE(oi.content_name, got_partner.content_name),
+            COALESCE(oi.release_date, got_partner.release_date, CURRENT_DATE),
+            false);
   END IF;
   added := true;
 
@@ -550,7 +562,8 @@ BEGIN
           DELETE FROM public.goods_posts WHERE user_item_id = gave.id;
           DELETE FROM public.user_items WHERE id = gave.id;
           removed := true;
-        EXCEPTION WHEN foreign_key_violation OR not_null_violation THEN
+        EXCEPTION WHEN foreign_key_violation OR not_null_violation OR raise_exception THEN
+          -- 別の交換で進行中の品はガードで外せない場合もここに来る
           UPDATE public.user_items SET for_trade = false WHERE id = gave.id;
           kept := true;
         END;
