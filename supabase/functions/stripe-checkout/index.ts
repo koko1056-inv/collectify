@@ -82,7 +82,9 @@ serve(async (req) => {
           line_items: [{ price: price.id, quantity: 1 }],
           client_reference_id: user.id,
           customer,
-          locale: "ja",
+          // 表示言語・通貨はお客さまの地域に合わせる（日本なら日本語・円、海外ならその国の言語・通貨）
+          locale: "auto",
+          adaptive_pricing: { enabled: true },
           success_url: `${origin}/?checkout=success&kind=subscription`,
           cancel_url: `${origin}/?checkout=cancel&kind=subscription`,
           metadata: { user_id: user.id, kind: "subscription", plan: body.plan, period: body.period },
@@ -125,7 +127,9 @@ serve(async (req) => {
           line_items: [{ price: price.id, quantity: 1 }],
           client_reference_id: user.id,
           customer,
-          locale: "ja",
+          // 表示言語・通貨はお客さまの地域に合わせる（日本なら日本語・円、海外ならその国の言語・通貨）
+          locale: "auto",
+          adaptive_pricing: { enabled: true },
           success_url: `${origin}/point-shop?checkout=success&kind=points`,
           cancel_url: `${origin}/point-shop?checkout=cancel&kind=points`,
           metadata: { user_id: user.id, kind: "points", package: key },
