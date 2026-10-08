@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Check, ChevronLeft, Heart, ListChecks, Loader2, Pencil, Search } from "lucide-react";
@@ -20,12 +20,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { OfficialItem } from "@/types";
-import { useOfficialItems } from "@/hooks/useOfficialItems";
+import { useCatalogContents, useCatalogSearch, useOfficialItems } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { GoodsPickTile } from "./GoodsPickTile";
 import { CatalogFilterPanel } from "./CatalogFilterPanel";
-import { applyFilter, contentOptions, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
+import { applyFilter, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
 import { cn } from "@/lib/utils";
 
 type View = "menu" | "pick";
@@ -170,7 +170,18 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   // 写真をタップしたグッズの詳細
   const [detailItem, setDetailItem] = useState<OfficialItem | null>(null);
 
-  const { data: items = [], isLoading, isError, refetch } = useOfficialItems();
+  // カタログは数万件あるので、全件は読み込まない。
+  //  - 作品を選んでいる: その作品を全件
+  //  - 言葉を入れた（作品は未選択）: サーバー側で検索した結果
+  //  - どちらでもない: 新しい順の一部
+  const { data: contents = [] } = useCatalogContents();
+  const deferredQuery = useDeferredValue(filter.query);
+  const searching = !filter.content && deferredQuery.trim().length >= 1;
+  const baseQuery = useOfficialItems({ content: filter.content, enabled: !searching });
+  const searchQuery = useCatalogSearch(searching ? deferredQuery : "");
+  const active = searching ? searchQuery : baseQuery;
+  const items = useMemo(() => active.data ?? [], [active.data]);
+  const { isLoading, isError, refetch } = active;
 
   // 既に持っているグッズを一度に取得する。
   // 行ごとに問い合わせると、表示件数ぶんクエリが飛んでしまう。
@@ -214,6 +225,16 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
       return (data?.favorite_contents ?? []) as string[];
     },
   });
+  // 初回だけ、好きな作品が登録されていればその作品を開く（なければ「すべて」）
+  const [initialized, setInitialized] = useState(false);
+  useEffect(() => {
+    if (initialized || favoriteContents === undefined || contents.length === 0) return;
+    setInitialized(true);
+    const known = new Set(contents.map((c) => c.name));
+    const first = favoriteContents.find((n) => known.has(n));
+    if (first) setFilter((f) => (f.content ? f : { ...f, content: first }));
+  }, [initialized, favoriteContents, contents]);
+
   const orderedItems = useMemo(() => {
     const fav = new Set(favoriteContents ?? []);
     if (fav.size === 0) return items;
@@ -266,13 +287,14 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
 
   const filtered = useMemo(() => applyFilter(orderedItems, filter, ownedIds), [orderedItems, filter, ownedIds]);
 
-  // 作品をワンタップで切り替えられるチップ（推しの作品を先頭、あとは件数の多い順）
+  // 作品をワンタップで切り替えられるチップ（推しの作品を先頭、あとは件数の多い順）。件数はサーバーで数えた全体の数。
   const contentChips = useMemo(() => {
     const fav = new Set(favoriteContents ?? []);
-    return contentOptions(items, filter, ownedIds)
-      .sort((a, b) => Number(fav.has(b.value)) - Number(fav.has(a.value)) || b.count - a.count)
-      .slice(0, 14);
-  }, [items, filter, ownedIds, favoriteContents]);
+    return [...contents]
+      .filter((c) => c.name !== "なし")
+      .sort((x, y) => Number(fav.has(y.name)) - Number(fav.has(x.name)) || y.count - x.count)
+      .slice(0, 16);
+  }, [contents, favoriteContents]);
   const results = filtered.slice(0, visible);
 
   const handleAdd = async (item: (typeof items)[number]) => {
@@ -345,7 +367,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="mt-2">
-          <CatalogFilterPanel items={items} owned={ownedIds} value={filter} onChange={setFilter} />
+          <CatalogFilterPanel items={items} owned={ownedIds} value={filter} onChange={setFilter} hideContent />
         </div>
 
         {!isLoading && !isError && contentChips.length > 1 && (
@@ -366,19 +388,19 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
               {t("engage.catalog.all")}
             </button>
             {contentChips.map((c) => {
-              const on = filter.content === c.value;
+              const on = filter.content === c.name;
               return (
                 <button
-                  key={c.value}
+                  key={c.name}
                   type="button"
                   aria-pressed={on}
-                  onClick={() => setFilter((f) => ({ ...f, content: on ? null : c.value }))}
+                  onClick={() => setFilter((f) => ({ ...f, content: on ? null : c.name }))}
                   className={cn(
                     "inline-flex shrink-0 items-center gap-1 rounded-full border px-3 py-1 text-xs",
                     on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"
                   )}
                 >
-                  <span className="max-w-[9rem] truncate">{c.value}</span>
+                  <span className="max-w-[9rem] truncate">{c.name}</span>
                   <span className="tabular-nums text-[10px] opacity-70">{c.count}</span>
                 </button>
               );

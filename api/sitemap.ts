@@ -9,22 +9,27 @@ const SUPABASE_ANON_KEY =
 
 const PAGE = 1000;
 
+async function fetchPage(from: number): Promise<{ id: string; created_at: string }[]> {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/official_items?select=id,created_at&merged_into=is.null&order=created_at.desc,id.asc&limit=${PAGE}&offset=${from}`,
+    { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+  );
+  if (!res.ok) return [];
+  return (await res.json()) as { id: string; created_at: string }[];
+}
+
+/** 数万件を1000件ずつ順番に読むと関数の制限時間を超えるので、複数ページを並列で読む。 */
 async function fetchItems(): Promise<{ id: string; created_at: string }[]> {
   const all: { id: string; created_at: string }[] = [];
-  for (let from = 0; from < 50000; from += PAGE) {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/official_items?select=id,created_at&merged_into=is.null&order=created_at.desc&limit=${PAGE}&offset=${from}`,
-      {
-        headers: {
-          apikey: SUPABASE_ANON_KEY,
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        },
-      }
-    );
-    if (!res.ok) break;
-    const rows = (await res.json()) as { id: string; created_at: string }[];
-    all.push(...rows);
-    if (rows.length < PAGE) break;
+  const CONCURRENCY = 8;
+  for (let from = 0; from < 50000; from += PAGE * CONCURRENCY) {
+    const batch = await Promise.all(Array.from({ length: CONCURRENCY }, (_, i) => fetchPage(from + i * PAGE)));
+    let done = false;
+    for (const rows of batch) {
+      all.push(...rows);
+      if (rows.length < PAGE) done = true;
+    }
+    if (done) break;
   }
   return all;
 }
