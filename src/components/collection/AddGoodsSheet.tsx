@@ -181,7 +181,15 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   const feed = useCatalogFeed(deferredQuery, !filter.content);
   const active = filter.content ? workQuery : feed;
   const items = useMemo(() => (filter.content ? workQuery.data ?? [] : feed.items), [filter.content, workQuery.data, feed.items]);
-  const { isLoading, isError, refetch } = active;
+  const { isError, refetch } = active;
+  // 作品を切り替えた直後は、前の一覧を残したまま新しい一覧を取りに行っている。
+  // その一覧を新しい作品で絞り込むと空になり、「見つかりません」が一瞬出てしまうので、読み込み中として扱う。
+  const isLoading =
+    active.isLoading ||
+    active.isPlaceholderData ||
+    (active.isFetching && items.length === 0) ||
+    // 言葉を入れた直後（検索結果がまだ追いついていない一瞬）
+    (!filter.content && filter.query !== deferredQuery);
 
   // 既に持っているグッズを一度に取得する。
   // 行ごとに問い合わせると、表示件数ぶんクエリが飛んでしまう。
@@ -386,7 +394,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           <CatalogFilterPanel items={items} owned={ownedIds} value={filter} onChange={setFilter} hideContent />
         </div>
 
-        {!isLoading && !isError && contentChips.length > 1 && (
+        {!isError && contentChips.length > 1 && (
           <div
             role="group"
             aria-label={t("engage.catalog.content")}
