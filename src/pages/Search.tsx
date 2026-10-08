@@ -9,13 +9,13 @@ import { TradeMatchingSection } from "@/components/trade/TradeMatchingSection";
 import { PublicCollectionView } from "@/components/collection/PublicCollectionView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useCatalogSearch, useOfficialItems } from "@/hooks/useOfficialItems";
+import { FEED_PAGE, useCatalogFeed, useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { Package, Users, Camera, ArrowLeftRight, Heart, SlidersHorizontal, X, Image as ImageIcon } from "lucide-react";
+import { Package, Users, Camera, ArrowLeftRight, Heart, SlidersHorizontal, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,18 +44,18 @@ const Search = () => {
   const { user } = useAuth();
   const { profile } = useProfile(user?.id);
   const queryClient = useQueryClient();
-  // 数万件を毎回読み込まない: 作品を選んでいればその作品だけ、選んでいなければ新しい順。
-  // 作品を選ばずにキーワードを入力したときは、サーバー側で全作品を横断検索する。
+  // 数万件を一度に読み込まない: 作品を選んでいればその作品だけ全件、
+  // 選んでいなければ（言葉を入れた場合も）サーバーから新しい順に少しずつ読み足して、最後まで辿れるようにする。
   const activeContent = selectedContent && selectedContent !== "all" ? selectedContent : null;
-  const searching = !activeContent && searchQuery.trim().length >= 1;
-  const baseResult = useOfficialItems({ content: activeContent });
-  const searchResult = useCatalogSearch(searching ? searchQuery : "");
+  const workResult = useOfficialItems({ content: activeContent, enabled: !!activeContent });
+  const feed = useCatalogFeed(searchQuery, !activeContent);
   const {
-    data: items = [],
     isLoading: itemsLoading,
     isError: itemsError,
     refetch: refetchItems,
-  } = searching ? searchResult : baseResult;
+  } = activeContent ? workResult : feed;
+  const items = useMemo(() => (activeContent ? workResult.data ?? [] : feed.items), [activeContent, workResult.data, feed.items]);
+  const moreOnServer = !activeContent && !!feed.hasNextPage;
   const { data: allTags = [] } = useTags(selectedContent);
 
   // コンテンツ名を早期に取得
@@ -262,6 +262,13 @@ const Search = () => {
                 onRetry={() => refetchItems()}
               />
               </div>
+              {moreOnServer && (
+                <div className="flex justify-center py-3">
+                  <Button variant="outline" size="sm" disabled={feed.isFetchingNextPage} onClick={() => void feed.fetchNextPage()}>
+                    {feed.isFetchingNextPage ? <Loader2 className="h-4 w-4 animate-spin" /> : t("engage.catalog.loadMore", { n: FEED_PAGE })}
+                  </Button>
+                </div>
+              )}
 
               {/* フィルターDrawer */}
               <Drawer open={isFilterDrawerOpen} onOpenChange={setIsFilterDrawerOpen}>
