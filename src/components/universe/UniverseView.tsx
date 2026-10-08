@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Share2 } from "lucide-react";
+import { Loader2, Share2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { UserItemDetailsModal } from "@/components/item-details/UserItemDetailsModal";
 import { ShareCardDialog, type ShareCardSpec } from "@/components/share/ShareCardDialog";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -371,11 +371,11 @@ export function UniverseView({ open, onOpenChange, ownerName }: UniverseViewProp
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="fixed inset-0 left-0 top-0 grid h-[100dvh] max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-rows-[auto_1fr] gap-0 overflow-hidden rounded-none border-0 bg-[#06051a] p-0 text-white sm:rounded-none data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100"
+          className="fixed inset-0 left-0 top-0 grid h-[100dvh] max-h-none w-screen max-w-none translate-x-0 translate-y-0 grid-rows-[auto_1fr] gap-0 overflow-hidden rounded-none border-0 bg-[#06051a] p-0 text-white sm:rounded-none [&>button:last-child]:hidden data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0 data-[state=open]:zoom-in-100 data-[state=closed]:zoom-out-100"
           // 描画の邪魔にならないよう、開いたときに勝手にフォーカスを奪わない
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
-          <header className="z-10 flex items-center gap-3 px-4 pb-2 pt-[calc(0.75rem+env(safe-area-inset-top))] pr-14">
+          <header className="z-10 flex items-center gap-3 px-4 pb-2 pt-[calc(0.75rem+env(safe-area-inset-top))]">
             <div className="min-w-0 flex-1">
               <DialogTitle className="truncate text-base font-bold text-white">{t("universe.title")}</DialogTitle>
               <DialogDescription className="truncate text-xs text-white/65">
@@ -396,6 +396,14 @@ export function UniverseView({ open, onOpenChange, ownerName }: UniverseViewProp
                 {t("universe.share")}
               </Button>
             )}
+            {/* 標準の×は画面の上端から16pxに固定で、ノッチ・ステータスバーの下に隠れて押せなくなる。
+                安全領域の内側に置いた専用の閉じるボタンを使う */}
+            <DialogClose
+              aria-label={t("universe.close")}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            >
+              <X className="h-5 w-5" />
+            </DialogClose>
           </header>
 
           <div ref={wrapRef} className="relative min-h-0 overflow-hidden">
