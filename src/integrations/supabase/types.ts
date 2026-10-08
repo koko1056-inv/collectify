@@ -3626,6 +3626,7 @@ export type Database = {
       }
       user_subscriptions: {
         Row: {
+          cancel_at_period_end: boolean
           created_at: string
           expires_at: string | null
           id: string
@@ -3633,6 +3634,8 @@ export type Database = {
           platform: string | null
           started_at: string
           status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           transaction_id: string | null
           updated_at: string
           user_id: string

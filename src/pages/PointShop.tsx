@@ -9,6 +9,7 @@ import {
   IAPUserCancelledError,
   type PointPackageEntry,
 } from "@/utils/iap";
+import { CheckoutError, isWebCheckoutAvailable, startPointsCheckout } from "@/utils/stripeCheckout";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -132,10 +133,39 @@ export default function PointShop() {
     if (!pack) return;
 
     if (!nativeAvailable) {
-      toast(t("screens.pointShop.iosOnlyTitle"), {
-        description: t("screens.pointShop.iosOnlyDesc"),
-      });
-      setConfirmPack(null);
+      // アプリの外（Web）では Stripe の決済ページへ。アプリ内ではストアの課金を使う決まり。
+      if (!isWebCheckoutAvailable()) {
+        toast(t("screens.pointShop.iosOnlyTitle"), {
+          description: t("screens.pointShop.iosOnlyDesc"),
+        });
+        setConfirmPack(null);
+        return;
+      }
+      const key = pack.revenuecat_package_id;
+      if (!key) {
+        toast.error(t("screens.pointShop.cannotPurchase"), {
+          description: t("screens.pointShop.noProductConfig"),
+        });
+        setConfirmPack(null);
+        return;
+      }
+      setPurchasing(true);
+      try {
+        toast(t("misc.checkout.redirecting"));
+        await startPointsCheckout(key); // 決済ページへ移動する（戻ってこない）
+      } catch (err) {
+        console.error("[PointShop] web checkout failed", err);
+        const code = err instanceof CheckoutError ? err.code : "unknown";
+        toast.error(t("screens.pointShop.purchaseFailed"), {
+          description:
+            code === "stripe_not_configured"
+              ? t("misc.checkout.notConfigured")
+              : code === "login_required"
+                ? t("misc.checkout.loginRequired")
+                : t("misc.checkout.failed"),
+        });
+        setPurchasing(false);
+      }
       return;
     }
 
@@ -237,7 +267,7 @@ export default function PointShop() {
               <Sparkles className="w-5 h-5 text-primary" />
               {t("screens.pointShop.packsHeading")}
             </h2>
-            {!nativeAvailable && (
+            {!nativeAvailable && !isWebCheckoutAvailable() && (
               <Badge variant="outline" className="text-[10px]">{t("screens.pointShop.iosOnlyBadge")}</Badge>
             )}
           </div>
