@@ -4,9 +4,13 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { initPerf } from './utils/perf';
+import { registerServiceWorker } from './utils/registerServiceWorker';
+import { listenForInstallPrompt } from './hooks/useInstallPrompt';
 
 // パフォーマンス計装（fetch 数 / Web Vitals）を最初に有効化
 initPerf();
+// ホーム画面への追加（PWA）。インストール案内の取りこぼしを防ぐため、最初に待ち受ける
+listenForInstallPrompt();
 import { Capacitor } from '@capacitor/core';
 import { Purchases } from '@revenuecat/purchases-capacitor';
 
@@ -23,3 +27,5 @@ if (!rootElement) throw new Error('Failed to find the root element');
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(<App />);
+
+registerServiceWorker();

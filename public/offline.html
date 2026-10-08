@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a2e" />
+    <title>オフライン | Collectify</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px;
+        background: radial-gradient(ellipse at 20% 15%, #2a1a7a 0%, transparent 55%), radial-gradient(ellipse at 90% 95%, #0d3a7a 0%, transparent 50%), #06051a;
+        color: #fff; font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif; text-align: center;
+      }
+      main { max-width: 340px; }
+      img { width: 88px; height: 88px; border-radius: 22px; box-shadow: 0 0 40px rgba(110, 90, 255, 0.5); }
+      h1 { font-size: 20px; margin: 20px 0 8px; }
+      p { margin: 0; color: #cfd4ff; font-size: 14px; line-height: 1.7; }
+      button {
+        margin-top: 24px; padding: 12px 28px; border: 0; border-radius: 999px; font-size: 15px; font-weight: 700;
+        background: #fff; color: #0a0a2e; cursor: pointer;
+      }
+      button:focus-visible { outline: 3px solid #9aa6ff; outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/icon-192.png" alt="" width="88" height="88" />
+      <h1>オフラインです</h1>
+      <p>ネットワークにつながっていません。電波のよい場所で、もう一度ひらいてください。</p>
+      <button type="button" onclick="location.reload()">再読み込み</button>
+    </main>
+  </body>
+</html>
