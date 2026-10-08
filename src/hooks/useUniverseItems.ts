@@ -23,7 +23,7 @@ export function useUniverseItems(userId: string | undefined, enabled: boolean) {
         const { data, error } = await supabase
           .from("user_items")
           .select(
-            "id, title, image, quantity, content_name, created_at, official_items!user_items_official_item_id_fkey(content_name)"
+            "id, title, image, quantity, content_name, created_at, official_items!user_items_official_item_id_fkey(content_name), user_item_tags(tags(name, category))"
           )
           .eq("user_id", userId!)
           .order("created_at", { ascending: true })
@@ -32,12 +32,16 @@ export function useUniverseItems(userId: string | undefined, enabled: boolean) {
         if (error) throw error;
         for (const r of data ?? []) {
           const official = r.official_items as { content_name: string | null } | null;
+          // 作品名が空のときは、本人がつけた「作品」タグで補う（それも無ければ「その他」）
+          const contentTag = (r.user_item_tags as { tags: { name: string; category: string | null } | null }[] | null)
+            ?.map((t) => t.tags)
+            .find((t) => t?.category === "content")?.name;
           rows.push({
             id: r.id,
             title: r.title ?? "",
             image: r.image ?? "",
             quantity: r.quantity ?? 1,
-            contentName: official?.content_name ?? r.content_name ?? null,
+            contentName: official?.content_name || r.content_name || contentTag || null,
           });
         }
         if (!data || data.length < PAGE) break;
