@@ -232,6 +232,20 @@ export const chrome = {
       aiMaxThree: "AI生成では最大3点まで使えます。先頭3点を引き継ぎます。",
       noMatchTitle: "該当するグッズがありません",
       noMatchDesc: "検索条件やフィルターを変えてみてください",
+      dedupe: {
+        bannerTitle: "同じグッズが別々のカードになっています",
+        bannerDesc: "{groups}組・{cards}枚を、1枚のカードに数でまとめられます",
+        bannerCta: "まとめる",
+        dialogTitle: "同じグッズを1枚にまとめる",
+        dialogDesc: "同じグッズのカードを、いちばん古い1枚に数でまとめます。タグ・思い出・いいねなどはそのまま引き継がれます。",
+        groupLine: "{n}枚 → 数{total}",
+        notes: "交換が進行中のグッズは、まとめの対象に入りません。",
+        confirm: "まとめる",
+        working: "まとめています…",
+        done: "{groups}組をまとめました（{cards}枚が1枚に）",
+        failed: "まとめられませんでした。時間をおいてもう一度お試しください。",
+        later: "あとで",
+      },
     },
 
     quickAdd: {
@@ -639,6 +653,20 @@ export const chrome = {
       aiMaxThree: "AI generation supports up to 3 items. The first 3 will be used.",
       noMatchTitle: "No matching goods",
       noMatchDesc: "Try changing your search or filters",
+      dedupe: {
+        bannerTitle: "Some goods are split into separate cards",
+        bannerDesc: "{groups} sets ({cards} cards) can be combined into single cards with a count",
+        bannerCta: "Combine",
+        dialogTitle: "Combine duplicate goods",
+        dialogDesc: "Cards for the same goods are merged into the oldest one, shown as a count. Tags, memories and likes carry over.",
+        groupLine: "{n} cards → ×{total}",
+        notes: "Goods in an ongoing trade are not included.",
+        confirm: "Combine",
+        working: "Combining…",
+        done: "Combined {groups} sets ({cards} cards merged)",
+        failed: "Couldn't combine them. Please try again in a moment.",
+        later: "Later",
+      },
     },
 
     quickAdd: {
