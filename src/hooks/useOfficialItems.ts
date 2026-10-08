@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { OfficialItem } from "@/types";
 
@@ -8,8 +8,6 @@ const PAGE_SIZE = 1000;
 const CONCURRENCY = 4;
 /** 作品を選ばないときに読み込む件数（新しい順）。数万件ある全体を毎回読み込まないための上限。 */
 export const RECENT_LIMIT = 1500;
-/** キーワード検索で返す最大件数 */
-export const SEARCH_LIMIT = 300;
 
 const SELECT = `
   id,
@@ -72,7 +70,7 @@ interface UseOfficialItemsOptions {
  * カタログは数万件になるので、全件を一度に読み込まない。
  *  - 作品を選んでいる: その作品を全件（1000件ずつ、並列で）
  *  - 選んでいない:     新しい順に RECENT_LIMIT 件
- * 作品をまたぐ検索は useCatalogSearch（サーバー側）を使う。
+ * 作品を選ばない一覧・検索は useCatalogFeed（サーバーでページ送り）を使う。
  */
 export function useOfficialItems(options: UseOfficialItemsOptions = {}) {
   const content = options.content?.trim() || null;
@@ -105,32 +103,6 @@ export function useOfficialItems(options: UseOfficialItemsOptions = {}) {
   });
 }
 
-/**
- * 作品をまたいだキーワード検索（サーバー側）。タイトル・作品名に含まれるものを新しい順に最大 SEARCH_LIMIT 件。
- * 数万件を手元に持たなくても、探している1点にたどり着けるようにする。
- */
-export function useCatalogSearch(term: string) {
-  // LIKE の特殊文字と、PostgREST の or() の区切り文字を取り除く
-  const q = term.trim().replace(/[%_,()\\]/g, " ").replace(/\s+/g, " ").trim();
-  return useQuery<OfficialItem[]>({
-    queryKey: ["official-items-search", q],
-    enabled: q.length >= 1,
-    staleTime: 1000 * 60 * 2,
-    placeholderData: keepPreviousData,
-    queryFn: async () => {
-      // 複数語は AND（すべてを含む）にする
-      let query = supabase.from("official_items").select(SELECT).is("merged_into", null);
-      for (const word of q.split(" ")) query = query.or(`title.ilike.%${word}%,content_name.ilike.%${word}%`);
-      const { data, error } = await query
-        .order("release_date", { ascending: false })
-        .order("id", { ascending: true })
-        .limit(SEARCH_LIMIT);
-      if (error) throw error;
-      return toItems(data ?? []);
-    },
-  });
-}
-
 export interface CatalogContent {
   name: string;
   count: number;
@@ -150,4 +122,45 @@ export function useCatalogContents() {
       }));
     },
   });
+}
+
+/** 作品を選ばないときの一覧を、サーバーから少しずつ（FEED_PAGE 件ずつ）読み足す件数 */
+export const FEED_PAGE = 200;
+
+/**
+ * 作品を選ばない一覧（「すべて」＋キーワード検索）を、全件に届くようにサーバーでページ送りする。
+ * 新しい順。言葉を入れたときは、タイトル・作品名に含むものだけ（複数語はすべてを含む）。
+ * 件数は先頭ページと一緒にサーバーが数えた全体の数。
+ */
+export function useCatalogFeed(term: string, enabled = true) {
+  // LIKE の特殊文字と、PostgREST の or() の区切り文字を取り除く
+  const q = term.trim().replace(/[%_,()\\]/g, " ").replace(/\s+/g, " ").trim();
+  const query = useInfiniteQuery({
+    queryKey: ["official-items-feed", q],
+    enabled,
+    staleTime: 1000 * 60 * 2,
+    placeholderData: keepPreviousData,
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      let req = supabase
+        .from("official_items")
+        .select(SELECT, pageParam === 0 ? { count: "exact" } : undefined)
+        .is("merged_into", null);
+      if (q) for (const word of q.split(" ")) req = req.or(`title.ilike.%${word}%,content_name.ilike.%${word}%`);
+      const { data, error, count } = await req
+        .order("release_date", { ascending: false })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(pageParam, pageParam + FEED_PAGE - 1);
+      if (error) throw error;
+      return { items: toItems(data ?? []), total: count ?? null, next: (data?.length ?? 0) === FEED_PAGE ? pageParam + FEED_PAGE : null };
+    },
+    getNextPageParam: (last) => last.next,
+  });
+  const pages = query.data?.pages ?? [];
+  return {
+    ...query,
+    items: pages.flatMap((p) => p.items),
+    total: pages[0]?.total ?? null,
+  };
 }

@@ -20,12 +20,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { OfficialItem } from "@/types";
-import { useCatalogContents, useCatalogSearch, useOfficialItems } from "@/hooks/useOfficialItems";
+import { useCatalogContents, useCatalogFeed, useOfficialItems } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { GoodsPickTile } from "./GoodsPickTile";
 import { CatalogFilterPanel } from "./CatalogFilterPanel";
-import { applyFilter, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
+import { activeFilterCount, applyFilter, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
 import { cn } from "@/lib/utils";
 
 type View = "menu" | "pick";
@@ -158,6 +158,8 @@ function AddOption({
 
 /** 一度に並べる件数。全件を一度に描くと重いので、「もっと見る」で足す */
 const PAGE = 60;
+/** 作品を選ばない一覧で、勝手に読み足す上限（これを超えたら「もっと見る」で） */
+const AUTO_FETCH_MAX = 1200;
 
 function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   const { t } = useLanguage();
@@ -170,17 +172,15 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   // 写真をタップしたグッズの詳細
   const [detailItem, setDetailItem] = useState<OfficialItem | null>(null);
 
-  // カタログは数万件あるので、全件は読み込まない。
+  // カタログは数万件あるので、全件は一度に読み込まない。
   //  - 作品を選んでいる: その作品を全件
-  //  - 言葉を入れた（作品は未選択）: サーバー側で検索した結果
-  //  - どちらでもない: 新しい順の一部
+  //  - 作品は未選択（言葉を入れた場合も）: サーバーから新しい順に少しずつ読み足す。最後まで辿れる
   const { data: contents = [] } = useCatalogContents();
   const deferredQuery = useDeferredValue(filter.query);
-  const searching = !filter.content && deferredQuery.trim().length >= 1;
-  const baseQuery = useOfficialItems({ content: filter.content, enabled: !searching });
-  const searchQuery = useCatalogSearch(searching ? deferredQuery : "");
-  const active = searching ? searchQuery : baseQuery;
-  const items = useMemo(() => active.data ?? [], [active.data]);
+  const workQuery = useOfficialItems({ content: filter.content, enabled: !!filter.content });
+  const feed = useCatalogFeed(deferredQuery, !filter.content);
+  const active = filter.content ? workQuery : feed;
+  const items = useMemo(() => (filter.content ? workQuery.data ?? [] : feed.items), [filter.content, workQuery.data, feed.items]);
   const { isLoading, isError, refetch } = active;
 
   // 既に持っているグッズを一度に取得する。
@@ -286,6 +286,22 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   }, [filter]);
 
   const filtered = useMemo(() => applyFilter(orderedItems, filter, ownedIds), [orderedItems, filter, ownedIds]);
+
+  // 作品を選ばない一覧は、見せる分が足りなければ裏でサーバーから読み足す（絞り込みで減っても探し続けられる）。
+  // 読み込みすぎないよう、勝手に読むのは AUTO_FETCH_MAX 件まで。それ以降は「もっと見る」で。
+  const moreOnServer = !filter.content && !!feed.hasNextPage;
+  useEffect(() => {
+    if (moreOnServer && !feed.isFetchingNextPage && filtered.length < visible + PAGE && feed.items.length < AUTO_FETCH_MAX) {
+      void feed.fetchNextPage();
+    }
+  }, [moreOnServer, feed, filtered.length, visible]);
+  const handleLoadMore = () => {
+    setVisible((v) => v + PAGE);
+    if (moreOnServer && !feed.isFetchingNextPage && filtered.length < visible + PAGE * 2) void feed.fetchNextPage();
+  };
+  // 件数は、絞り込み（タグ・持っていないものだけ）をしていなければサーバーが数えた全体の数
+  const hasClientFilter = activeFilterCount(filter) > 0;
+  const totalCount = !filter.content && !hasClientFilter && feed.total !== null ? feed.total : filtered.length;
 
   // 作品をワンタップで切り替えられるチップ（推しの作品を先頭、あとは件数の多い順）。件数はサーバーで数えた全体の数。
   const contentChips = useMemo(() => {
@@ -410,7 +426,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
 
         {!isLoading && !isError && (
           <p className="mt-2 text-[11px] text-muted-foreground tabular-nums">
-            {t("engage.catalog.count", { shown: Math.min(visible, filtered.length), total: filtered.length })}
+            {t("engage.catalog.count", { shown: Math.min(visible, filtered.length), total: totalCount })}
           </p>
         )}
 
@@ -488,10 +504,14 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                   </div>
                 );
               })}
-              {filtered.length > visible && (
+              {(filtered.length > visible || moreOnServer) && (
                 <div className="col-span-3 flex justify-center pt-1">
-                  <Button variant="outline" size="sm" onClick={() => setVisible((v) => v + PAGE)}>
-                    {t("engage.catalog.loadMore", { n: Math.min(PAGE, filtered.length - visible) })}
+                  <Button variant="outline" size="sm" disabled={feed.isFetchingNextPage && !filter.content} onClick={handleLoadMore}>
+                    {feed.isFetchingNextPage && !filter.content ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      t("engage.catalog.loadMore", { n: PAGE })
+                    )}
                   </Button>
                 </div>
               )}
