@@ -36,6 +36,8 @@ import { ShareCardDialog, type ShareCardSpec } from "./share/ShareCardDialog";
 import { useCollectionProgress, isComplete, type SeriesProgress } from "@/hooks/useCollectionProgress";
 import { OnThisDayCard } from "./collection/OnThisDayCard";
 import { DuplicateCleanupBanner } from "./collection/DuplicateCleanupBanner";
+import { UniverseEntryCard } from "./universe/UniverseEntryCard";
+import { UniverseView } from "./universe/UniverseView";
 import { acquiredTime, findOnThisDay, groupByMonth } from "@/utils/memories";
 import { countFacets, itemHasFacet, matchesQuery } from "@/utils/itemFacets";
 import { useNavigate } from "react-router-dom";
@@ -109,6 +111,7 @@ export function UserCollection({
     }
   });
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isUniverseOpen, setIsUniverseOpen] = useState(false);
   const selectedPersonalTag = selectedPersonalTagProp ?? internalPersonalTag;
   const onPersonalTagChange = onPersonalTagChangeProp ?? setInternalPersonalTag;
   const effectiveUserId = userId || user?.id;
@@ -455,6 +458,8 @@ export function UserCollection({
         />
       )}
 
+      {isOwnCollection && items.length > 0 && <UniverseEntryCard onOpen={() => setIsUniverseOpen(true)} />}
+
       {isOwnCollection && <DuplicateCleanupBanner />}
 
       <CollectionExplorer
@@ -681,6 +686,10 @@ export function UserCollection({
         selectedItemIds={selectedItemIds}
         onComplete={handleBulkComplete}
       />
+
+      {isOwnCollection && (
+        <UniverseView open={isUniverseOpen} onOpenChange={setIsUniverseOpen} ownerName={ownerName} />
+      )}
 
       <ShareCardDialog open={isShareOpen} onOpenChange={setIsShareOpen} spec={shareSpec} />
 

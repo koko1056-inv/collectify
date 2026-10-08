@@ -8,7 +8,9 @@
  *  - レイアウトが固定サイズなので、端末の画面幅に左右されずに同じ見た目になる。
  */
 
-export type ShareCardVariant = "series" | "status";
+import type { Universe } from "./universe/layout";
+
+export type ShareCardVariant = "series" | "status" | "universe";
 
 /** 共有先ごとの比率。投稿(4:5)・正方形(1:1)・ストーリーズ(9:16)・X/横長(16:9) */
 export type ShareCardFormat = "portrait" | "square" | "story" | "wide";
@@ -47,6 +49,10 @@ export interface ShareCardInput {
   footerUrl: string;
   completeLabel?: string;
   collectedLabel?: string;
+  /** universe: 作品ごとの銀河の配置 */
+  universe?: Universe;
+  /** universe: 数字の見出しなど（画面の言語に合わせた文言） */
+  universeLabels?: { goods: string; galaxies: string; biggest: string };
 }
 
 export const SHARE_CARD_WIDTH = 1080;
@@ -59,10 +65,10 @@ const PAPER = "#FBF7F2";
 const ROSE = "#D94A64";
 const ROSE_SOFT = "#F7DDE2";
 const GOLD = "#E0A21B";
-const FONT =
+export const FONT =
   '"Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", Meiryo, system-ui, sans-serif';
 
-async function loadBitmap(url: string): Promise<ImageBitmap | null> {
+export async function loadBitmap(url: string): Promise<ImageBitmap | null> {
   try {
     const res = await fetch(url, { mode: "cors" });
     if (!res.ok) return null;
@@ -74,7 +80,7 @@ async function loadBitmap(url: string): Promise<ImageBitmap | null> {
   }
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+export function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -172,7 +178,7 @@ function drawPlainTile(ctx: CanvasRenderingContext2D, x: number, y: number, size
 }
 
 /** 招待リンクのQR。読み取れれば十分なので、白地・濃色の単色で素直に描く */
-async function drawQr(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, size: number) {
+export async function drawQr(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, size: number) {
   try {
     const QRCode = (await import("qrcode")).default;
     const qr = QRCode.create(text, { errorCorrectionLevel: "M" });
@@ -201,7 +207,7 @@ async function drawQr(ctx: CanvasRenderingContext2D, text: string, x: number, y:
 }
 
 /** ロゴ: 角丸のバッジ + ワードマーク */
-function drawLogo(ctx: CanvasRenderingContext2D, x: number, baseline: number, scale = 1) {
+export function drawLogo(ctx: CanvasRenderingContext2D, x: number, baseline: number, scale = 1) {
   const s = 56 * scale;
   roundRect(ctx, x, baseline - s + 8 * scale, s, s, 16 * scale);
   ctx.fillStyle = ROSE;
@@ -219,6 +225,11 @@ function drawLogo(ctx: CanvasRenderingContext2D, x: number, baseline: number, sc
 }
 
 export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
+  if (input.variant === "universe") {
+    // 宇宙の絵は専用の描画。循環参照を避けるため、使うときに読み込む
+    const { renderUniverseCard } = await import("./universeCard");
+    return renderUniverseCard(input);
+  }
   const format = input.format ?? "portrait";
   const dims = SHARE_CARD_FORMATS[format];
   const canvas = document.createElement("canvas");
