@@ -1,6 +1,7 @@
 import { memo, type ReactNode } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface GoodsPickTileProps {
@@ -52,7 +53,10 @@ export const GoodsPickTile = memo(function GoodsPickTile({
   ariaLabel,
   imageAriaLabel,
 }: GoodsPickTileProps) {
+  const { t } = useLanguage();
   const actionDisabled = disabled || busy;
+  // 公式の写真が使えない商品は、目印の画像になっている。追加したあとに、自分の写真を入れられる
+  const noPhoto = !image || image === "/placeholder.svg";
   // 写真に専用の動作がある場合、追加済みでも詳細は開けるようにする
   const imageDisabled = onImageClick ? false : actionDisabled;
   return (
@@ -80,6 +84,11 @@ export const GoodsPickTile = memo(function GoodsPickTile({
             decoding="async"
             className="absolute inset-0 h-full w-full object-contain"
           />
+        )}
+        {noPhoto && (
+          <span className="absolute bottom-1.5 left-1.5 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-medium text-muted-foreground shadow-sm">
+            {t("collectionScreen.cardImage.noPhoto")}
+          </span>
         )}
         {selected && <div className="absolute inset-0 bg-primary/10" />}
         {badge && <div className="absolute left-1.5 top-1.5">{badge}</div>}
