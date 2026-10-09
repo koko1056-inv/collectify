@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Check, ChevronLeft, Heart, ListChecks, Loader2, Pencil, Search } from "lucide-react";
@@ -303,10 +303,29 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
       void feed.fetchNextPage();
     }
   }, [moreOnServer, feed, filtered.length, visible]);
-  const handleLoadMore = () => {
-    setVisible((v) => v + PAGE);
-    if (moreOnServer && !feed.isFetchingNextPage && filtered.length < visible + PAGE * 2) void feed.fetchNextPage();
-  };
+  const hasMore = filtered.length > visible || moreOnServer;
+  const loadingMore = feed.isFetchingNextPage && !filter.content;
+
+  // 一覧の末尾が見えたら、続きを足す（スクロールするだけで増えていく）。
+  // 足した直後にまだ末尾が見えていれば、依存の変化で監視し直されて、もう一度足される。
+  const [sentinel, setSentinel] = useState<HTMLDivElement | null>(null);
+  const setSentinelRef = useCallback((el: HTMLDivElement | null) => setSentinel(el), []);
+  useEffect(() => {
+    if (!sentinel || !hasMore) return;
+    const root = sentinel.closest<HTMLElement>("[data-radix-scroll-area-viewport]");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        // サーバーの読み込み待ちのあいだは、足さずに待つ（待たずに足すと、空の表示だけが増える）
+        if (loadingMore && filtered.length <= visible) return;
+        setVisible((v) => v + PAGE);
+        if (moreOnServer && !feed.isFetchingNextPage && filtered.length < visible + PAGE * 2) void feed.fetchNextPage();
+      },
+      { root, rootMargin: "600px 0px" }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [sentinel, hasMore, loadingMore, moreOnServer, feed, filtered.length, visible]);
   // 件数は、絞り込み（タグ・持っていないものだけ）をしていなければサーバーが数えた全体の数
   const hasClientFilter = activeFilterCount(filter) > 0;
   const totalCount = !filter.content && !hasClientFilter && feed.total !== null ? feed.total : filtered.length;
@@ -438,7 +457,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           </p>
         )}
 
-        <ScrollArea className="mt-2 h-[42vh] pr-2 [&>[data-radix-scroll-area-viewport]>div]:!block">
+        <ScrollArea className="mt-2 h-[48vh] pr-2 [&>[data-radix-scroll-area-viewport]>div]:!block">
           {isLoading ? (
             <div className="grid grid-cols-3 gap-2.5">
               {Array.from({ length: 9 }).map((_, i) => (
@@ -512,28 +531,14 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                   </div>
                 );
               })}
+              {hasMore && (
+                <div ref={setSentinelRef} className="col-span-3 flex h-10 items-center justify-center" aria-hidden>
+                  {loadingMore && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                </div>
+              )}
             </div>
           )}
         </ScrollArea>
-
-        {/* 「もっと見る」は一覧の外に置く。一覧の末尾に置くと、何十件も下までスクロールしないと見えない */}
-        {!isLoading && !isError && results.length > 0 && (filtered.length > visible || moreOnServer) && (
-          <div className="mt-2 flex justify-center">
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              disabled={feed.isFetchingNextPage && !filter.content}
-              onClick={handleLoadMore}
-            >
-              {feed.isFetchingNextPage && !filter.content ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                t("engage.catalog.loadMore", { n: PAGE })
-              )}
-            </Button>
-          </div>
-        )}
       </div>
 
       {detailItem && (
