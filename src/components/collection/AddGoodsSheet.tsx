@@ -62,7 +62,7 @@ export function AddGoodsSheet({ open, onOpenChange, initialView = "menu" }: AddG
 
   return (
     <Drawer open={open} onOpenChange={(next) => (next ? onOpenChange(true) : close())}>
-      <DrawerContent className="max-h-[88vh]">
+      <DrawerContent className={view === "pick" ? "h-[94dvh] max-h-[94dvh]" : "max-h-[88vh]"}>
         {view === "menu" ? (
           <MenuView onPick={() => setView("pick")} onNavigate={close} />
         ) : (
@@ -384,8 +384,8 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <div className="flex max-h-[88vh] flex-col px-4 pt-4 pb-6">
-      <div className="mx-auto flex w-full max-w-md flex-col overflow-hidden">
+    <div className="flex min-h-0 flex-1 flex-col px-4 pt-4 pb-6">
+      <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col overflow-hidden">
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={onBack} aria-label={t("chrome.common.back")}>
             <ChevronLeft className="h-5 w-5" />
@@ -457,7 +457,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           </p>
         )}
 
-        <ScrollArea className="mt-2 h-[48vh] pr-2 [&>[data-radix-scroll-area-viewport]>div]:!block">
+        <ScrollArea className="mt-2 min-h-0 flex-1 pr-2 [&>[data-radix-scroll-area-viewport]>div]:!block">
           {isLoading ? (
             <div className="grid grid-cols-3 gap-2.5">
               {Array.from({ length: 9 }).map((_, i) => (
