@@ -438,7 +438,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           </p>
         )}
 
-        <ScrollArea className="mt-2 h-[48vh] pr-2 [&>[data-radix-scroll-area-viewport]>div]:!block">
+        <ScrollArea className="mt-2 h-[42vh] pr-2 [&>[data-radix-scroll-area-viewport]>div]:!block">
           {isLoading ? (
             <div className="grid grid-cols-3 gap-2.5">
               {Array.from({ length: 9 }).map((_, i) => (
@@ -512,20 +512,28 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                   </div>
                 );
               })}
-              {(filtered.length > visible || moreOnServer) && (
-                <div className="col-span-3 flex justify-center pt-1">
-                  <Button variant="outline" size="sm" disabled={feed.isFetchingNextPage && !filter.content} onClick={handleLoadMore}>
-                    {feed.isFetchingNextPage && !filter.content ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      t("engage.catalog.loadMore", { n: PAGE })
-                    )}
-                  </Button>
-                </div>
-              )}
             </div>
           )}
         </ScrollArea>
+
+        {/* 「もっと見る」は一覧の外に置く。一覧の末尾に置くと、何十件も下までスクロールしないと見えない */}
+        {!isLoading && !isError && results.length > 0 && (filtered.length > visible || moreOnServer) && (
+          <div className="mt-2 flex justify-center">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              disabled={feed.isFetchingNextPage && !filter.content}
+              onClick={handleLoadMore}
+            >
+              {feed.isFetchingNextPage && !filter.content ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                t("engage.catalog.loadMore", { n: PAGE })
+              )}
+            </Button>
+          </div>
+        )}
       </div>
 
       {detailItem && (
