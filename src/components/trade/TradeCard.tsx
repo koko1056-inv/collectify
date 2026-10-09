@@ -39,6 +39,7 @@ import {
   type TradeActionResult,
 } from "@/services/trade/tradeStateMachine";
 
+import { AddressFreeShippingGuide } from "./AddressFreeShippingGuide";
 import { TradeProgress } from "./TradeProgress";
 import { ReportUserDialog } from "./ReportUserDialog";
 import { isStalled, viewpointOf, type TradeRequest } from "./types";
@@ -193,6 +194,9 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
       )}
 
       {trade.status === "accepted" && <TradeProgress view={view} />}
+
+      {/* 住所を預からない。送り方・受け取り方の選択肢をここで案内する */}
+      {trade.status === "accepted" && !(view.iShipped && view.iReceived) && <AddressFreeShippingGuide />}
 
       {stalled && (
         <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 p-2.5">

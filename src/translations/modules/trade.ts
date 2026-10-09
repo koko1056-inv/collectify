@@ -45,6 +45,30 @@ export const trade = {
       badgeLabel: "あなたの番の交換が{n}件",
       open: "進行中の交換",
     },
+    addressless: {
+      trigger: "住所を伝えずに送るには",
+      title: "住所を伝えずに送る方法",
+      intro: "このアプリは住所や氏名を預かりません。チャットに住所を書かなくても、送り合える方法があります。",
+      m1: {
+        title: "受取場所を、相手に選んでもらう",
+        body: "郵便局アプリで送り状を作るとき「カード事前決済で作成」を選ぶと、相手に受取場所の入力を頼む URL を作れます。その URL をチャットで渡すと、相手が自宅・郵便局・コンビニ・宅配ロッカーなどから受取場所を選びます。あなたは相手の住所を知らずに送れます。",
+        note: "あなたの情報が荷物にどう載るかは、郵便局アプリの案内で確認してください。",
+      },
+      m2: {
+        title: "局留め・営業所止め・宅配ロッカー",
+        body: "受け取る人が、郵便局や運送会社の営業所、宅配ロッカーを受取場所にします。相手には「受取場所」だけを伝えれば済みます。",
+        note: "受け取りには本人確認が必要なことがあります。置いておける期間も確認してください。",
+      },
+      m3: {
+        title: "手渡し",
+        body: "ライブやイベントの会場で会える相手なら、直接渡せば住所は要りません。",
+        note: "初めて会う相手とは、人の多い場所で、明るい時間に会いましょう。",
+      },
+      safetyTitle: "安全のために",
+      safety1: "住所や電話番号は、チャットに書かないでください。",
+      safety2: "発送したら、追跡番号を相手に伝えてください。",
+      safety3: "「発送した」「受け取った」の報告は、実際に送って、届いてからにしてください。",
+    },
     progress: {
       you: "自分",
       partner: "相手",
@@ -448,6 +472,30 @@ export const trade = {
     inbox: {
       badgeLabel: "{n} trades waiting for you",
       open: "My trades",
+    },
+    addressless: {
+      trigger: "Ship without sharing addresses",
+      title: "Ways to ship without sharing addresses",
+      intro: "This app never stores your address or real name. You can swap goods without writing an address in the chat.",
+      m1: {
+        title: "Let your partner pick the drop-off point",
+        body: "When you create a shipping label in the Japan Post app, choose \"Create with card pre-payment\" to get a link that asks the recipient to enter where they want to receive it. Send that link in the chat, and your partner picks home, a post office, a convenience store or a parcel locker. You ship without ever knowing their address.",
+        note: "Check the Japan Post app's guidance for how your own details appear on the parcel.",
+      },
+      m2: {
+        title: "Hold at post office, carrier branch or locker",
+        body: "The recipient uses a post office, a carrier branch or a parcel locker as the delivery point. You only need to share the place, not an address.",
+        note: "ID may be required at pickup, and parcels are held for a limited time.",
+      },
+      m3: {
+        title: "Hand it over in person",
+        body: "If you can meet at a live show or event, hand the item over directly. No address needed.",
+        note: "When meeting someone for the first time, pick a busy place in daylight.",
+      },
+      safetyTitle: "Staying safe",
+      safety1: "Never write your address or phone number in the chat.",
+      safety2: "Share the tracking number once you ship.",
+      safety3: "Only report \"shipped\" or \"received\" after you actually did.",
     },
     progress: {
       you: "You",
