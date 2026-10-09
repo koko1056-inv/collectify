@@ -24,6 +24,7 @@
 - `price` は NOT NULL。不明なら空文字 `''`（画面は空なら価格を出さない）。
 - `release_date` は NOT NULL。分からなければ、掲載日・登録日などの近い日付を使い、その旨を記録しておく。
 - 画像は実在（HTTP 200・`image/*`）を確かめたものだけ入れる。サムネではなく原寸を使う。
+- **`curl` で 200 でも、ブラウザで表示できないことがある。** 画像の応答に `Cross-Origin-Resource-Policy: same-site` / `same-origin` が付いているサイトは、他サイトの画面に埋め込めず、ブラウザが読み込みを拒否する（例: ONE PIECE カードゲーム公式 `onepiece-cardgame.com`）。そういうホストの画像は、保存するときに Edge Function の `proxy-image` 経由の URL（`<SUPABASE_URL>/functions/v1/proxy-image?url=<元URLをエンコード>`）にしておく。取り込み後は、実際のブラウザで数件、画像が出ることを確かめる。
 - 通知トリガー（新商品通知）は投入中だけ無効にして、終わったら必ず有効に戻す。
 
 ## 取得の作法
