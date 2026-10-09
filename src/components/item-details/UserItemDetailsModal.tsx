@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Calendar, Tag, BookHeart, Plus, ImagePlus, Heart, Share2 } from "lucide-react";
+import { Loader2, Calendar, Tag, BookHeart, Plus, ImagePlus, Heart, Share2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState, useCallback } from "react";
@@ -17,6 +17,7 @@ import { useItemShare } from "@/hooks/useItemShare";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
 
 interface UserItemDetailsModalProps {
   isOpen: boolean;
@@ -53,6 +54,7 @@ export function UserItemDetailsModal({
   const [memoryComment, setMemoryComment] = useState("");
   const [memoryImage, setMemoryImage] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   // user_itemの詳細を取得
   const { data: itemDetails, isLoading } = useQuery({
@@ -202,6 +204,45 @@ export function UserItemDetailsModal({
     }
   };
 
+  // 公式の写真が使えないグッズに、自分の写真を入れる（自分のグッズだけ）
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !user?.id) return;
+    setIsUploadingPhoto(true);
+    try {
+      const compressed = await compressImageFile(file, ITEM_IMAGE_OPTIONS);
+      const ext = compressed.name.split(".").pop() || "jpg";
+      const filePath = `${itemId}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("kuji_images")
+        .upload(filePath, compressed, { cacheControl: UPLOAD_CACHE_CONTROL });
+      if (uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from("kuji_images").getPublicUrl(filePath);
+      const { error: updateError } = await supabase
+        .from("user_items")
+        .update({ image: urlData.publicUrl })
+        .eq("id", itemId)
+        .eq("user_id", user.id);
+      if (updateError) throw updateError;
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["user-item-details", itemId], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" }),
+        queryClient.invalidateQueries({ queryKey: ["collection"], refetchType: "all" }),
+      ]);
+      toast.success(t("collectionScreen.cardImage.photoAdded"));
+    } catch (error) {
+      console.error("Failed to add photo:", error);
+      toast.error(t("collectionScreen.cardImage.photoAddFailed"));
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const currentImage = itemDetails?.image || image;
+  const noPhoto = !currentImage || currentImage === "/placeholder.svg";
+  const isOwner = !!user?.id && itemDetails?.user_id === user.id;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto overflow-x-hidden">
@@ -244,6 +285,20 @@ export function UserItemDetailsModal({
                   <Share2 className="w-4 h-4" />
                 )}
               </button>
+              {/* 写真がないグッズは、自分の写真を追加できる */}
+              {noPhoto && isOwner && (
+                <label className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-md transition-opacity hover:opacity-90 has-[:disabled]:cursor-wait has-[:disabled]:opacity-60">
+                  {isUploadingPhoto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                  {t("collectionScreen.cardImage.addPhoto")}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    disabled={isUploadingPhoto}
+                    onChange={handlePhotoSelect}
+                  />
+                </label>
+              )}
             </div>
 
             {/* 詳細情報 */}
