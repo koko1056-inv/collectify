@@ -1,3 +1,4 @@
+import { getInitial } from "@/utils/initial";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -319,7 +320,7 @@ export default function RoomView() {
             <Avatar className="w-12 h-12 border-2 border-primary">
               <AvatarImage src={ownerProfile?.avatar_url || undefined} />
               <AvatarFallback className="bg-primary text-primary-foreground">
-                {ownerProfile?.username?.charAt(0)}
+                {getInitial(null, ownerProfile?.username)}
               </AvatarFallback>
             </Avatar>
             <div className="text-left">

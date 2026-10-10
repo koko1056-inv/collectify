@@ -8,6 +8,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { useBlockedUserIds } from "@/hooks/useBlocks";
 
 interface Conversation {
@@ -25,6 +27,7 @@ interface Conversation {
 export function ConversationList() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { formatRelative } = useDateFormat();
   const [allConversations, setConversations] = useState<Conversation[]>([]);
   // ブロックした人・ブロックされた人との会話は一覧に出さない
@@ -220,6 +223,12 @@ export function ConversationList() {
         title={t("social.chat.listEmptyTitle")}
         description={t("social.chat.listEmptyDesc")}
         className="py-20"
+        action={
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button onClick={() => navigate("/trade")}>{t("social.chat.findTrade")}</Button>
+            <Button variant="outline" onClick={() => navigate("/explore?tab=users")}>{t("social.chat.findUsers")}</Button>
+          </div>
+        }
       />
     );
   }

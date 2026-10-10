@@ -1,3 +1,4 @@
+import { getInitial } from "@/utils/initial";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -211,7 +212,7 @@ export function ExploreRoomCard({ room, isBookmarked, isLiked }: Props) {
             <Avatar className="w-5 h-5 border border-border shrink-0">
               <AvatarImage src={room.profile?.avatar_url || undefined} />
               <AvatarFallback className="text-3xs">
-                {room.profile?.username?.charAt(0)}
+                {getInitial(null, room.profile?.username)}
               </AvatarFallback>
             </Avatar>
             <span className="text-xs text-muted-foreground truncate">

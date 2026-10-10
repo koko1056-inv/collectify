@@ -4,18 +4,15 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { FilterBar } from "@/components/FilterBar";
 import { OfficialItemsList } from "@/components/OfficialItemsList";
-import { FriendSearch } from "@/components/search/FriendSearch";
-import { TradeMatchingSection } from "@/components/trade/TradeMatchingSection";
-import { PublicCollectionView } from "@/components/collection/PublicCollectionView";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FEED_PAGE, useCatalogFeed, useOfficialItems } from "@/hooks/useOfficialItems";
 import { useTags } from "@/hooks/useTags";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
-import { Package, Users, Camera, ArrowLeftRight, Heart, SlidersHorizontal, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Package, SlidersHorizontal, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,11 +85,9 @@ const Search = () => {
     };
   }, [queryClient]);
 
-  const currentTab = searchParams.get("tab") || "goods";
-
-  const handleTabChange = useCallback((tab: string) => {
-    setSearchParams({ tab });
-  }, [setSearchParams]);
+  // この画面はグッズのカタログだけにした。以前のタブは、それぞれの置き場所へ送る
+  const legacyTab = searchParams.get("tab");
+  const currentTab = "goods";
 
   // ユーザーの興味のあるコンテンツをデフォルトで設定
   useEffect(() => {
@@ -146,40 +141,23 @@ const Search = () => {
     setSelectedTags([]);
   }, []);
 
+  if (legacyTab === "trade") return <Navigate to="/trade" replace />;
+  if (legacyTab === "friends" || legacyTab === "collections") return <Navigate to="/explore?tab=users" replace />;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       <main className="container mx-auto px-2 pt-4 pb-24 sm:px-4 sm:pt-6 sm:pb-8">
         <div className="space-y-3 sm:space-y-6">
-          <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-            {/* モバイルはアイコンの下にラベルを置くので、既定の h-10 だと収まらない */}
-            {currentTab === "trade" ? (
-              // 交換は下タブから単独で開く画面。グッズ・コレクション・フレンドの
-              // 切り替えを上に並べると、別の画面の中にいるように見えるので出さない。
-              <header className="mx-auto max-w-lg px-1 pb-1" data-tour="trade-header">
-                <h1 className="flex items-center gap-2 text-xl font-bold">
-                  <ArrowLeftRight className="h-5 w-5 text-primary" />
-                  {t("chrome.nav.trade")}
-                </h1>
-                <p className="mt-0.5 text-xs text-muted-foreground">{t("engage.trade.pageSubtitle")}</p>
-              </header>
-            ) : (
-            <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto h-auto py-1 sm:h-10 sm:py-1">
-              <TabsTrigger value="goods" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-3xs sm:text-sm px-0.5 sm:px-3 min-w-0">
-                <Package className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="w-full text-center truncate">{t("tabs.goods")}</span>
-              </TabsTrigger>
-              <TabsTrigger value="collections" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-3xs sm:text-sm px-0.5 sm:px-3 min-w-0">
-                <Heart className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="w-full text-center truncate">{t("screens.search.collectionsTab")}</span>
-              </TabsTrigger>
-              <TabsTrigger value="friends" className="flex flex-col sm:flex-row items-center gap-0.5 sm:gap-1 text-3xs sm:text-sm px-0.5 sm:px-3 min-w-0">
-                <Users className="h-5 w-5 sm:h-4 sm:w-4" />
-                <span className="w-full text-center truncate">{t("tabs.friends")}</span>
-              </TabsTrigger>
-            </TabsList>
-            )}
+          <Tabs value="goods" className="w-full">
+            <header className="mx-auto max-w-lg px-1 pb-1">
+              <h1 className="flex items-center gap-2 text-xl font-bold">
+                <Package className="h-5 w-5 text-primary" aria-hidden="true" />
+                {t("screens.search.catalogTitle")}
+              </h1>
+              <p className="mt-0.5 text-xs text-muted-foreground">{t("screens.search.catalogSub")}</p>
+            </header>
 
             {/* グッズ検索タブ - コンパクトフィルター */}
             <TabsContent value="goods" className="space-y-3">
@@ -295,27 +273,6 @@ const Search = () => {
               </Drawer>
             </TabsContent>
 
-            <TabsContent value="collections" className="space-y-4 sm:space-y-6">
-              <PublicCollectionView />
-            </TabsContent>
-
-            <TabsContent value="trade" className="space-y-4 sm:space-y-6">
-              <TradeMatchingSection />
-            </TabsContent>
-
-            <TabsContent value="friends" className="space-y-4 sm:space-y-6">
-              <FriendSearch 
-                userInterests={
-                  Array.isArray(profile?.interests) 
-                    ? profile.interests.map(interest => 
-                        typeof interest === 'string' ? interest : 
-                        interest && typeof interest === 'object' && 'name' in interest ? 
-                        (interest as any).name : String(interest)
-                      )
-                    : []
-                } 
-              />
-            </TabsContent>
           </Tabs>
         </div>
       </main>

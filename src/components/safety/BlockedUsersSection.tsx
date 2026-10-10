@@ -1,3 +1,4 @@
+import { getInitial } from "@/utils/initial";
 import { useState } from "react";
 import { Ban, ChevronDown, Loader2 } from "lucide-react";
 
@@ -60,7 +61,7 @@ function BlockedUsersList() {
               <li key={b.blocked_id} className="flex items-center gap-3">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={b.profile?.avatar_url || undefined} />
-                  <AvatarFallback className="text-xs">{name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback className="text-xs">{getInitial(name)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{name}</p>

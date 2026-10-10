@@ -1,3 +1,4 @@
+import { getInitial } from "@/utils/initial";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -193,7 +194,7 @@ export function RoomExplorer() {
                   <Avatar className="w-16 h-16 border-2 border-border">
                     <AvatarImage src={user.avatar_url || undefined} />
                     <AvatarFallback className="bg-secondary text-secondary-foreground">
-                      {user.username?.charAt(0)}
+                      {getInitial(null, user.username)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
@@ -275,7 +276,7 @@ function RoomCard({ room, rank }: { room: FeaturedRoom; rank: number }) {
           <Avatar className="w-6 h-6 border border-border">
             <AvatarImage src={room.profile?.avatar_url || undefined} />
             <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
-              {room.profile?.username?.charAt(0)}
+              {getInitial(null, room.profile?.username)}
             </AvatarFallback>
           </Avatar>
           <span className="text-foreground/90 text-sm truncate">

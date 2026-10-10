@@ -56,7 +56,7 @@ export default function UserProfile() {
 
   const handleBack = () => {
     if (window.history.length > 1) navigate(-1);
-    else navigate("/search?tab=friends");
+    else navigate("/explore?tab=users");
   };
 
   // 自分の id で開いたら、自分のプロフィール画面へ（ここでは設定・編集・ログアウトが動かない）

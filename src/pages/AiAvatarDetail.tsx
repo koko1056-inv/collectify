@@ -1,3 +1,4 @@
+import { getInitial } from "@/utils/initial";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Heart, Bookmark, Wand2, Sparkles, Package } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
@@ -101,7 +102,7 @@ export default function AiAvatarDetail() {
                   <Avatar className="w-8 h-8 border border-border">
                     <AvatarImage src={avatar.profile?.avatar_url || undefined} />
                     <AvatarFallback className="text-xs">
-                      {avatar.profile?.username?.charAt(0)}
+                      {getInitial(null, avatar.profile?.username)}
                     </AvatarFallback>
                   </Avatar>
                   <span className="text-sm font-medium">

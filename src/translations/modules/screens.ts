@@ -112,6 +112,8 @@ export const screens = {
       newChallenge: "新規チャレンジ",
     },
     search: {
+      catalogTitle: "グッズをさがす",
+      catalogSub: "作品ごとに公式グッズを一覧できます。持っているものはそのまま追加できます",
       collectionsTab: "コレクション",
       tradeTab: "交換",
       clearAll: "すべてクリア",
@@ -475,6 +477,8 @@ export const screens = {
       newChallenge: "New challenge",
     },
     search: {
+      catalogTitle: "Browse goods",
+      catalogSub: "Browse every official item by series, and add the ones you own",
       collectionsTab: "Collections",
       tradeTab: "Trade",
       clearAll: "Clear all",

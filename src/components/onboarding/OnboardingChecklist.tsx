@@ -260,7 +260,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.tradeOfferDesc',
         icon: ArrowLeftRight,
         completed: checklistData.hasTradeOffer,
-        action: () => navigate('/search?tab=trade'),
+        action: () => navigate('/trade'),
         points: ONBOARDING_STEP_POINTS['trade-offer'],
         group: 'community',
       },

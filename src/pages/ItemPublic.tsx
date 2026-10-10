@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/navigation/BackButton";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -38,6 +39,14 @@ interface PublicItem {
  * 写真と基本情報を見せ、登録（またはログイン済みなら追加）へつなげる。
  * 同じ作品の他のグッズも並べて、次のページへ辿れるようにする。
  */
+/** 数字だけの価格（"880"）は円で表示する。"¥880" や "880円（税込）" のような文字列はそのまま */
+function formatPrice(price: string): string {
+  const digits = price.replace(/,/g, "").trim();
+  return /^\d+$/.test(digits)
+    ? new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY" }).format(Number(digits))
+    : price;
+}
+
 export default function ItemPublic() {
   const { id } = useParams<{ id: string }>();
   const validId = !!id && UUID_RE.test(id);
@@ -195,6 +204,7 @@ export default function ItemPublic() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-6 pb-24">
+        <BackButton fallbackTo="/explore?tab=items" className="-ml-4 mb-2" />
         {isLoading ? (
           <div className="space-y-4">
             <Skeleton className="aspect-square w-full rounded-2xl" />
@@ -239,7 +249,7 @@ export default function ItemPublic() {
                   {item.price && (
                     <>
                       <dt className="text-muted-foreground">{t("engage.itemPage.price")}</dt>
-                      <dd className="tabular-nums">{item.price}</dd>
+                      <dd className="tabular-nums">{formatPrice(item.price)}</dd>
                     </>
                   )}
                 </dl>
