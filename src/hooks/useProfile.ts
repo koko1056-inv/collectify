@@ -65,6 +65,8 @@ export function useProfile(userId: string | undefined) {
       return profileData as Profile;
     },
     enabled: !!userId,
+    // 「見つかりません」や読み込み失敗はプロフィール画面側で表示する
+    meta: { silentError: true },
     // 存在しないユーザーは何度試しても無いので、再試行せずにすぐ「見つかりません」を出す
     retry: (count, err) => !(err instanceof Error && err.message === PROFILE_NOT_FOUND) && count < 2,
     staleTime: 1000 * 60 * 5,

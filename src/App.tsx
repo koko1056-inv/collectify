@@ -119,7 +119,8 @@ const queryClient = new QueryClient({
     onError: (error, query) => {
       console.error("Query error:", error);
       // キャッシュが無い＝画面にデータを出せない初回ロード失敗時のみユーザーに通知
-      if (query.state.data === undefined) {
+      // meta.silentError のクエリは画面側で失敗を表示するので、ここでは出さない
+      if (query.state.data === undefined && !query.meta?.silentError) {
         toast.error(getTranslation(currentLanguage(), "system.loadFailed"), { id: "query-error" });
       }
     },
