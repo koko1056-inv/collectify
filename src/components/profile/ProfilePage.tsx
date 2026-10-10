@@ -14,6 +14,7 @@ import { ProfileSettingsSheet } from "./ProfileSettingsSheet";
 import { ProfileEditSheet } from "./ProfileEditSheet";
 import { ProfileInterests } from "./interests";
 import { MyStudioPanel } from "./MyStudioPanel";
+import { FavoriteItemsTop5 } from "./FavoriteItemsTop5";
 import { ProfileItemPosts } from "./ProfileItemPosts";
 import { ProfileBookmarks } from "./ProfileBookmarks";
 import { ProfileShowcase } from "./ProfileShowcase";
@@ -106,6 +107,11 @@ export function ProfilePage() {
               currentInterests={profile.interests || []}
               onUpdate={refetchProfile}
             />
+          </div>
+
+          {/* お気に入り TOP5（マイページにまとめたときに、自分では選べなくなっていたので戻す） */}
+          <div className="mt-6">
+            <FavoriteItemsTop5 userId={user.id} isOwnProfile />
           </div>
 
           {/* ショーケース: お気に入りルーム / アバター */}

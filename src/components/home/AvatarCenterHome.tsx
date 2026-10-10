@@ -106,6 +106,8 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
             onClick={() => openStudio("generate")}
             size="sm"
             className="shrink-0 gap-1.5 shadow-md"
+            // はじめてガイドの「AIアバターを作る」の案内先（すでにアバターがある人はこちらを指す）
+            data-tour="avatar-create"
           >
             <Plus className="w-4 h-4" />
             {t("homeScreen.avatarCenter.newButton")}
@@ -320,7 +322,7 @@ function EmptyHero({
         </div>
 
         <div className="flex items-center justify-center gap-2">
-          <Button size="lg" onClick={onStart} className="gap-2 h-12 px-6 shadow-lg">
+          <Button size="lg" onClick={onStart} className="gap-2 h-12 px-6 shadow-lg" data-tour="avatar-create">
             <Wand2 className="w-5 h-5" />
             {t("homeScreen.avatarCenter.emptyStart")}
           </Button>

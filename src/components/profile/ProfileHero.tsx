@@ -351,7 +351,7 @@ export function ProfileHero({
             {isOwnProfile ? (
               <>
                 {onEdit && (
-                  <Button variant="outline" onClick={onEdit} className="flex-1 gap-1.5 rounded-full">
+                  <Button variant="outline" onClick={onEdit} className="flex-1 gap-1.5 rounded-full" data-tour="me-edit">
                     <Pencil className="w-4 h-4" />
                     {t("profileScreen.editSheet.title")}
                   </Button>

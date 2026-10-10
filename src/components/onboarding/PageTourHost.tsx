@@ -20,7 +20,9 @@ export function PageTourHost() {
   const [armedId, setArmedId] = useState<string | null>(null);
 
   const tour = tourForLocation(pathname, search);
-  const pending = !!user && !!tour && shouldShowTour(tour.id);
+  // はじめてガイドの項目から来たとき（?guide=）は、そちらの案内（GuideHost）を優先して重ねない
+  const fromGuide = new URLSearchParams(search).has("guide");
+  const pending = !!user && !!tour && !fromGuide && shouldShowTour(tour.id);
 
   useEffect(() => {
     if (!pending || !tour) {

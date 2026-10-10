@@ -286,7 +286,7 @@ export const screens = {
       heroLead2: "コレクションをもっと楽しくしましょう！",
       onboardingHeading: "はじめの{n}ステップ",
       onboardingSub: "ステップを達成するごとに自動でポイントがもらえます",
-      onboardingNote: "コレクション画面の「推し活はじめてガイド」から進み具合を確認できます",
+      onboardingNote: "コレクション画面の「Collectifyはじめてガイド」から進み具合を確認できます",
       featuresHeading: "主な機能",
       featuresSub: "Collectifyの中心となる3つの機能",
       quickTipsHeading: "便利な機能",

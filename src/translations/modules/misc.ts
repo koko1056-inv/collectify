@@ -355,9 +355,11 @@ export const misc = {
     },
 
     checklist: {
-      title: "推し活はじめてガイド",
+      title: "Collectifyはじめてガイド",
       open: "ガイドを開く",
       close: "ガイドを閉じる",
+      minimize: "ガイドを小さくする",
+      restore: "はじめてガイドを開く",
       progress: "{done}/{total} 完了",
       stepsLeft: "あと{n}ステップ",
       nextReward: "次は+{n}pt",
@@ -846,9 +848,11 @@ export const misc = {
     },
 
     checklist: {
-      title: "Getting started guide",
+      title: "Collectify getting-started guide",
       open: "Open guide",
       close: "Close guide",
+      minimize: "Minimize guide",
+      restore: "Open the getting-started guide",
       progress: "{done}/{total} done",
       stepsLeft: "{n} steps to go",
       nextReward: "Next: +{n} pt",
