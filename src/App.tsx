@@ -60,6 +60,7 @@ const Search = lazy(() => import("./pages/Search").catch(() => ({ default: () =>
 const Collection = lazy(() => import("./pages/Collection").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Posts = lazy(() => import("./pages/Posts"));
 const Oshi = lazy(() => import("./pages/Oshi"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 const ItemPostsFeed = lazy(() => import("./pages/ItemPostsFeed").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // バックグラウンドで下部ナビ全タブのコードチャンクをプリフェッチ。
@@ -204,7 +205,7 @@ const App: React.FC = () => {
                       <Route path="/matches" element={<Navigate to="/explore?tab=users" replace />} />
                       <Route path="/point-shop" element={<ProtectedRoute><PointShop /></ProtectedRoute>} />
                       <Route path="/points" element={<Navigate to="/point-shop" replace />} />
-                      <Route path="*" element={<Navigate to="/collection" replace />} />
+                      <Route path="*" element={<NotFound />} />
                     </Routes>
                   </Suspense>
                   {/* 初回ウェルカムと画面ガイドは特定のページに紐づけない。

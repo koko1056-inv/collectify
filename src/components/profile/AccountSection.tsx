@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Download, Loader2, Trash2, UserX } from "lucide-react";
+import { Download, KeyRound, Loader2, Trash2, UserX } from "lucide-react";
+import { ChangePasswordDialog } from "./ChangePasswordDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export function AccountSection({ onDeleted }: AccountSectionProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [typed, setTyped] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const [analyticsOn, setAnalyticsOn] = useState(() => getAnalyticsConsent() === "granted");
 
   const handleExport = async () => {
@@ -109,6 +111,17 @@ export function AccountSection({ onDeleted }: AccountSectionProps) {
           />
         </div>
         <button
+          onClick={() => setPasswordOpen(true)}
+          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left"
+        >
+          <div className="text-muted-foreground">
+            <KeyRound className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium">{t("profileScreen.account.changePassword")}</div>
+          </div>
+        </button>
+        <button
           onClick={handleExport}
           disabled={exporting}
           className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left disabled:opacity-60"
@@ -140,6 +153,7 @@ export function AccountSection({ onDeleted }: AccountSectionProps) {
         </button>
       </div>
       <LegalLinks className="pt-2" />
+      <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} />
 
       <AlertDialog
         open={dialogOpen}

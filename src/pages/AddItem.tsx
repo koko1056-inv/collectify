@@ -11,7 +11,7 @@ export default function AddItem() {
       <Navbar />
       <main className="container mx-auto px-4 pt-6 pb-20">
         <div className="max-w-2xl mx-auto">
-          <BackButton className="mb-6" to="/search" />
+          <BackButton className="mb-6" fallbackTo="/collection" />
 
           {/* タイトルセクション */}
           <div className="mb-6 text-center">

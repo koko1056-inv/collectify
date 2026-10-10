@@ -34,6 +34,12 @@ export const chrome = {
       logoutFailed: "ログアウトに失敗しました",
       logoutDoneTitle: "ログアウト完了",
       logoutDoneDesc: "ログアウトしました",
+      messages: "メッセージ",
+      messagesUnread: "メッセージ（未読{n}件）",
+      settings: "設定",
+      logout: "ログアウト",
+      wishlist: "ほしいものリスト",
+      accountMenu: "アカウントのメニュー",
     },
 
     themeColor: {
@@ -446,6 +452,10 @@ export const chrome = {
       sending: "送信中...",
       submit: "パスワードリセットメールを送信",
       backToLogin: "ログイン画面に戻る",
+      usernameNote: "Collectify はユーザー名とパスワードで登録するため、メールでパスワードを再設定することはできません。",
+      loggedInHint: "ほかの端末でログインできている場合は、「設定 → アカウント → パスワードを変更」から新しいパスワードにできます。",
+      contactHint: "どの端末でもログインできない場合は、{email} までユーザー名を添えてご連絡ください。",
+      emailAccount: "メールアドレスで登録した方はこちら",
     },
   },
 
@@ -476,6 +486,12 @@ export const chrome = {
       logoutFailed: "Failed to log out",
       logoutDoneTitle: "Logged out",
       logoutDoneDesc: "You have been logged out.",
+      messages: "Messages",
+      messagesUnread: "Messages ({n} unread)",
+      settings: "Settings",
+      logout: "Log out",
+      wishlist: "Wishlist",
+      accountMenu: "Account menu",
     },
 
     themeColor: {
@@ -888,6 +904,10 @@ export const chrome = {
       sending: "Sending...",
       submit: "Send password reset email",
       backToLogin: "Back to login",
+      usernameNote: "Collectify accounts are created with a username and password, so passwords can't be reset by email.",
+      loggedInHint: "If you're still logged in on another device, go to Settings → Account → Change password to set a new one.",
+      contactHint: "If you can't log in on any device, contact {email} with your username.",
+      emailAccount: "Signed up with an email address?",
     },
   },
 } as const;

@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/types";
 
+export const PROFILE_NOT_FOUND = "Profile not found";
+
 export function useProfile(userId: string | undefined) {
   const { data, refetch, isLoading, error } = useQuery<Profile>({
     queryKey: ["profile", userId],
@@ -38,7 +40,7 @@ export function useProfile(userId: string | undefined) {
       }
       
       if (!profileData) {
-        throw new Error("Profile not found");
+        throw new Error(PROFILE_NOT_FOUND);
       }
 
       // avatar_urlがない場合のみ、is_current=trueのアバターから同期
@@ -63,6 +65,8 @@ export function useProfile(userId: string | undefined) {
       return profileData as Profile;
     },
     enabled: !!userId,
+    // 存在しないユーザーは何度試しても無いので、再試行せずにすぐ「見つかりません」を出す
+    retry: (count, err) => !(err instanceof Error && err.message === PROFILE_NOT_FOUND) && count < 2,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
     // 編集後は明示的に refetchProfile() を呼ぶので、自動再取得は抑制してページ遷移を高速化
@@ -74,6 +78,7 @@ export function useProfile(userId: string | undefined) {
     profile: data,
     refetchProfile: refetch,
     isLoading,
-    error
+    error,
+    isNotFound: error instanceof Error && error.message === PROFILE_NOT_FOUND,
   };
 }

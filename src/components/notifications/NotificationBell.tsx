@@ -25,7 +25,12 @@ export function NotificationBell({ className }: NotificationBellProps) {
         <Button
           variant="ghost"
           size="sm"
-          className={cn("tap-safe-y relative p-2", className)}
+          className={cn("relative h-10 w-10 p-0", className)}
+          aria-label={
+            unreadCount > 0
+              ? t("misc.notifications.bellUnread", { n: unreadCount })
+              : t("misc.notifications.title")
+          }
         >
           <Bell className={cn("h-5 w-5", unreadCount > 0 && "animate-wiggle")} />
           {unreadCount > 0 && (
