@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useMemo, type ReactNode } from "react
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence, MotionConfig, type Variants } from "framer-motion";
-import { ArrowRight, Check, ChevronLeft, Heart, Package, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, Star } from "lucide-react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -13,6 +13,7 @@ import { claimReward } from "@/hooks/useClaimReward";
 import { cn } from "@/lib/utils";
 import { StarterGoodsStep } from "./StarterGoodsStep";
 import { OnboardingBottomBar, OnboardingPrimaryButton, OnboardingStepHeader } from "./OnboardingParts";
+import { BrandMark, GoodsFan, PenlightArt } from "./OnboardingArt";
 
 interface WelcomeOnboardingProps {
   onComplete: () => void;
@@ -79,6 +80,8 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   // はじめの1コレで登録した数（締めの画面と、最後の行き先に使う）
   const [addedCount, setAddedCount] = useState(0);
+  // 登録したグッズの写真（締めの画面で扇状に並べる）
+  const [addedImages, setAddedImages] = useState<string[]>([]);
 
   // 既存プロフィールの display_name をプリロード
   useEffect(() => {
@@ -226,13 +229,15 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
             {step === "starter" && (
               <StepFrame key="starter" direction={direction}>
                 <StarterGoodsStep
-                  onDone={(count) => {
+                  onDone={(count, images) => {
                     setAddedCount(count);
+                    setAddedImages(images);
                     goNext();
                   }}
                   onPhoto={() => {
                     // 写真から登録したい人は、このウェルカムを終えて登録画面へ
                     setAddedCount(0);
+                    setAddedImages([]);
                     setStep("celebrate");
                   }}
                 />
@@ -241,7 +246,12 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
             {step === "celebrate" && (
               <StepFrame key="celebrate" direction={direction}>
-                <CelebrateStep friendlyName={friendlyName} addedCount={addedCount} onFinish={handleFinish} />
+                <CelebrateStep
+                  friendlyName={friendlyName}
+                  addedCount={addedCount}
+                  addedImages={addedImages}
+                  onFinish={handleFinish}
+                />
               </StepFrame>
             )}
           </AnimatePresence>
@@ -271,7 +281,7 @@ function WelcomeStep({
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-lg px-4 pb-6 pt-8">
           <OnboardingStepHeader
-            icon={Sparkles}
+            art={<BrandMark size={72} />}
             title={
               <>
                 {/* 狭い画面で「ようこ／そ」と不自然に折り返さないよう語境界で改行 */}
@@ -328,7 +338,7 @@ function InterestsStep({ friendlyName, onDone }: { friendlyName: string; onDone:
       standalone
       header={
         <OnboardingStepHeader
-          icon={Heart}
+          art={<PenlightArt size={64} />}
           title={t("misc.onboarding.interestsTitle", { name: friendlyName })}
           description={t("misc.onboarding.interestsSubtitle")}
         />
@@ -342,57 +352,59 @@ function InterestsStep({ friendlyName, onDone }: { friendlyName: string; onDone:
 function CelebrateStep({
   friendlyName,
   addedCount,
+  addedImages,
   onFinish,
 }: {
   friendlyName: string;
   addedCount: number;
+  addedImages: string[];
   onFinish: () => void;
 }) {
   const { t } = useLanguage();
   return (
     <>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex max-w-lg flex-col items-center px-4 pb-6 pt-12 text-center">
-          <motion.div
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.1 }}
-            className="flex h-16 w-16 items-center justify-center rounded-full bg-success-soft text-success"
-          >
-            <Check className="h-8 w-8" strokeWidth={2.5} aria-hidden="true" />
-          </motion.div>
+        <div className="mx-auto flex max-w-lg flex-col items-center px-4 pb-6 pt-10 text-center">
+          {/* いま登録したグッズを、カードのように扇状に並べる（無ければブランドマーク） */}
+          <GoodsFan images={addedImages} />
 
-          <h2 className="mt-4 text-2xl font-bold">{t("misc.onboarding.readyTitle")}</h2>
+          {addedCount > 0 && (
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55, duration: 0.25 }}
+              className="mt-5 inline-flex items-center gap-1 rounded-full bg-success-soft px-3 py-1 text-xs font-bold text-success"
+            >
+              <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />
+              {t("misc.onboarding.starter.addedSummary", { n: addedCount })}
+            </motion.p>
+          )}
+
+          <h2 className={cn("text-2xl font-bold", addedCount > 0 ? "mt-3" : "mt-4")}>{t("misc.onboarding.readyTitle")}</h2>
           <p className="mt-1 max-w-xs text-sm text-muted-foreground">
             {t("misc.onboarding.readyDesc", { name: friendlyName })}
           </p>
 
-          <div className="mt-6 w-full space-y-3 text-left">
-            {addedCount > 0 && (
-              <div className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Package className="h-5 w-5" aria-hidden="true" />
-                </div>
-                <p className="min-w-0 flex-1 text-sm font-bold">
-                  {t("misc.onboarding.starter.addedSummary", { n: addedCount })}
-                </p>
-              </div>
-            )}
-
-            {/* ようこそボーナス（付与額と「生涯1回」の判定はサーバー側） */}
-            <div className="flex items-center gap-3 rounded-2xl border border-points/30 bg-points-soft p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-points text-points-foreground">
-                <Star className="h-5 w-5 fill-current" aria-hidden="true" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold">{t("misc.onboarding.welcomeBonus")}</p>
-                <p className="text-xs text-muted-foreground">{t("misc.onboarding.welcomeBonusDesc")}</p>
-              </div>
-              <p className="shrink-0 text-xl font-bold tabular-nums text-points">
-                +50<span className="ml-0.5 text-xs">pt</span>
-              </p>
+          {/* ようこそボーナス（付与額と「生涯1回」の判定はサーバー側） */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.3 }}
+            className="mt-6 flex w-full items-center gap-3 rounded-2xl border border-points/30 bg-points-soft p-4 text-left"
+          >
+            {/* メダルのような丸。ポイントの印（★）はアプリ全体と同じもの */}
+            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-points text-points-foreground shadow-sm ring-4 ring-points/15">
+              <span className="absolute inset-1 rounded-full border border-white/40" aria-hidden="true" />
+              <Star className="h-5 w-5 fill-current" aria-hidden="true" />
             </div>
-          </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold">{t("misc.onboarding.welcomeBonus")}</p>
+              <p className="text-xs text-muted-foreground">{t("misc.onboarding.welcomeBonusDesc")}</p>
+            </div>
+            <p className="shrink-0 text-xl font-bold tabular-nums text-points">
+              +50<span className="ml-0.5 text-xs">pt</span>
+            </p>
+          </motion.div>
         </div>
       </div>
 

@@ -124,6 +124,23 @@ export function useCatalogContents() {
   });
 }
 
+/**
+ * 作品ごとの「表紙」（その作品の新しいグッズの写真を数枚、重複なし）。
+ * 推し選びの作品カードに実物のグッズを並べるのに使う。表紙が無くても画面は成り立つので、失敗は通知しない。
+ */
+export function useCatalogContentCovers(perContent = 2) {
+  return useQuery<Map<string, string[]>>({
+    queryKey: ["catalog-content-covers", perContent],
+    staleTime: 1000 * 60 * 30,
+    meta: { silentError: true },
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("catalog_content_covers", { per_content: perContent });
+      if (error) throw error;
+      return new Map((data ?? []).map((r) => [r.content_name, r.images ?? []]));
+    },
+  });
+}
+
 /** 作品を選ばないときの一覧を、サーバーから少しずつ（FEED_PAGE 件ずつ）読み足す件数 */
 export const FEED_PAGE = 200;
 

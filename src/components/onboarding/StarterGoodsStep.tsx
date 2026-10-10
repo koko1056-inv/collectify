@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Camera, Check, Heart, Loader2, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -19,8 +19,8 @@ const GOAL = 3;
 const PER_CONTENT = 30;
 
 interface StarterGoodsStepProps {
-  /** 選んだ数を渡して次へ（0 のときは「あとで選ぶ」） */
-  onDone: (addedCount: number) => void;
+  /** 選んだ数と、そのグッズの写真（新しい順）を渡して次へ（0 のときは「あとで選ぶ」） */
+  onDone: (addedCount: number, images: string[]) => void;
   /** 写真から登録する（このウェルカム画面を抜けて登録画面へ） */
   onPhoto: () => void;
 }
@@ -40,7 +40,16 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
   const [content, setContent] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim());
-  const { added, wished, busyId, add: handleAdd, wish: handleWish } = useQuickAddGoods();
+  const { added, wished, busyId, add, wish: handleWish } = useQuickAddGoods();
+  // 登録できたグッズの写真。締めの画面で、いま登録したものを並べて見せる
+  const addedImages = useRef<string[]>([]);
+  const handleAdd = useCallback(
+    async (item: OfficialItem) => {
+      const ok = await add(item);
+      if (ok && item.image) addedImages.current = [item.image, ...addedImages.current];
+    },
+    [add]
+  );
 
   // 推しの作品（ウェルカムの「興味」で選んだもの）。無ければ、グッズの多い作品から
   const { data: interests } = useQuery({
@@ -224,7 +233,7 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
           </div>
           <span className="text-xs text-muted-foreground">{progressText}</span>
         </div>
-        <OnboardingPrimaryButton variant={n > 0 ? "default" : "outline"} onClick={() => onDone(n)}>
+        <OnboardingPrimaryButton variant={n > 0 ? "default" : "outline"} onClick={() => onDone(n, addedImages.current)}>
           {n > 0 ? t("misc.onboarding.starter.cta", { n }) : t("misc.onboarding.starter.later")}
         </OnboardingPrimaryButton>
         {n === 0 && (
