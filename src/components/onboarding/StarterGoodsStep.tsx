@@ -1,8 +1,7 @@
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Camera, Check, Heart, Loader2, Search } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useCatalogContents, useCatalogFeed, useContentNamesEn } from "@/hooks/useOfficialItems";
-import { addToCollection } from "@/utils/collection-actions";
+import { useQuickAddGoods } from "@/hooks/useQuickAddGoods";
 import { cn } from "@/lib/utils";
 import type { OfficialItem } from "@/types";
 
@@ -38,14 +37,11 @@ interface StarterGoodsStepProps {
 export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
   const { user } = useAuth();
   const { t, language } = useLanguage();
-  const queryClient = useQueryClient();
 
   const [content, setContent] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query.trim());
-  const [added, setAdded] = useState<Set<string>>(new Set());
-  const [wished, setWished] = useState<Set<string>>(new Set());
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const { added, wished, busyId, add: handleAdd, wish: handleWish } = useQuickAddGoods();
 
   // 推しの作品（ウェルカムの「興味」で選んだもの）。無ければ、グッズの多い作品から
   const { data: interests } = useQuery({
@@ -96,59 +92,6 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
   const searching = deferredQuery.length >= 2;
   const items = searching ? search.items.slice(0, 60) : starter.data ?? [];
   const isLoading = searching ? search.isLoading : starter.isLoading || (!activeContent && contents.length === 0);
-
-  const refreshAfterAdd = async () => {
-    if (!user) return;
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" }),
-      queryClient.invalidateQueries({ queryKey: ["owned-official-item-ids", user.id] }),
-      queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" }),
-      queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" }),
-      queryClient.invalidateQueries({ queryKey: ["onboarding-checklist", user.id] }),
-    ]);
-  };
-
-  const handleAdd = async (item: OfficialItem) => {
-    if (!user || added.has(item.id)) return;
-    setBusyId(item.id);
-    try {
-      const result = await addToCollection({
-        userId: user.id,
-        title: item.title,
-        image: item.image,
-        officialItemId: item.id,
-        contentName: item.content_name || undefined,
-        releaseDate: item.release_date,
-        prize: item.price,
-      });
-      if (result.success) {
-        setAdded((prev) => new Set(prev).add(item.id));
-        void refreshAfterAdd();
-      } else {
-        console.error("addToCollection failed:", result.error);
-        toast.error(t("misc.onboarding.starter.addFailed"));
-      }
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const handleWish = async (item: OfficialItem) => {
-    if (!user || wished.has(item.id)) return;
-    setBusyId(item.id);
-    try {
-      const { error } = await supabase.from("wishlists").insert({ user_id: user.id, official_item_id: item.id });
-      if (error) throw error;
-      setWished((prev) => new Set(prev).add(item.id));
-      void queryClient.invalidateQueries({ queryKey: ["wishlist"], refetchType: "all" });
-      void queryClient.invalidateQueries({ queryKey: ["onboarding-checklist", user.id] });
-    } catch (e) {
-      console.error("Failed to add to wishlist:", e);
-      toast.error(t("misc.onboarding.starter.addFailed"));
-    } finally {
-      setBusyId(null);
-    }
-  };
 
   const n = added.size;
   const progressText =

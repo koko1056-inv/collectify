@@ -33,6 +33,10 @@ const awardLoginBonus = async (userId: string) => {
       return;
     }
     // claimed が false の場合は本日付与済み（正常系なので何も出力しない）
+    // 受け取れたときだけ、「連続◯日・+◯pt」を見せるための合図を出す（表示は DailyBonusListener）
+    if (claimed === true && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('collectify:daily-bonus-claimed'));
+    }
   } catch (error) {
     console.error("[AuthContext] ログインボーナス付与エラー:", error);
   }
