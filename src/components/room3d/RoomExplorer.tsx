@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 interface FeaturedRoom {
   id: string;
@@ -37,6 +39,8 @@ interface FeaturedRoom {
 export function RoomExplorer() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"trending" | "featured" | "new">("trending");
 
@@ -61,9 +65,13 @@ export function RoomExplorer() {
 
       if (error) throw error;
 
+      // ブロックした人・ブロックされた人のルームは出さない
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      const visibleRooms = excludeBlocked(data || [], blocked, (room) => room.user_id);
+
       // プロフィール情報を追加
       const roomsWithProfiles = await Promise.all(
-        (data || []).map(async (room) => {
+        visibleRooms.map(async (room) => {
           const { data: profile } = await supabase
             .from("profiles")
             .select("username, avatar_url, display_name")
@@ -104,7 +112,8 @@ export function RoomExplorer() {
         .limit(10);
 
       if (error) throw error;
-      return data || [];
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      return excludeBlocked(data || [], blocked, (u) => u.id);
     },
   });
 

@@ -1117,6 +1117,9 @@ export type Database = {
       }
       goods_posts: {
         Row: {
+          hidden_at: string | null
+          hidden_reason: string | null
+          is_hidden: boolean
           caption: string | null
           created_at: string
           id: string
@@ -1126,6 +1129,9 @@ export type Database = {
           user_item_id: string
         }
         Insert: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           caption?: string | null
           created_at?: string
           id?: string
@@ -1135,6 +1141,9 @@ export type Database = {
           user_item_id: string
         }
         Update: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           caption?: string | null
           created_at?: string
           id?: string
@@ -1367,6 +1376,9 @@ export type Database = {
       }
       item_comments: {
         Row: {
+          hidden_at: string | null
+          hidden_reason: string | null
+          is_hidden: boolean
           content: string
           created_at: string
           helpful_count: number
@@ -1377,6 +1389,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           content: string
           created_at?: string
           helpful_count?: number
@@ -1387,6 +1402,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           content?: string
           created_at?: string
           helpful_count?: number
@@ -1440,6 +1458,9 @@ export type Database = {
       }
       item_post_comments: {
         Row: {
+          hidden_at: string | null
+          hidden_reason: string | null
+          is_hidden: boolean
           content: string
           created_at: string
           id: string
@@ -1447,6 +1468,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           content: string
           created_at?: string
           id?: string
@@ -1454,6 +1478,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           content?: string
           created_at?: string
           id?: string
@@ -1576,6 +1603,9 @@ export type Database = {
       }
       item_posts: {
         Row: {
+          hidden_at: string | null
+          hidden_reason: string | null
+          is_hidden: boolean
           caption: string | null
           comment_count: number
           created_at: string
@@ -1587,6 +1617,9 @@ export type Database = {
           user_item_id: string | null
         }
         Insert: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           caption?: string | null
           comment_count?: number
           created_at?: string
@@ -1598,6 +1631,9 @@ export type Database = {
           user_item_id?: string | null
         }
         Update: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           caption?: string | null
           comment_count?: number
           created_at?: string
@@ -1634,6 +1670,9 @@ export type Database = {
       }
       item_room_messages: {
         Row: {
+          hidden_at: string | null
+          hidden_reason: string | null
+          is_hidden: boolean
           content: string
           created_at: string
           id: string
@@ -1642,6 +1681,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           content: string
           created_at?: string
           id?: string
@@ -1650,6 +1692,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           content?: string
           created_at?: string
           id?: string
@@ -2504,6 +2549,9 @@ export type Database = {
       }
       post_comments: {
         Row: {
+          hidden_at: string | null
+          hidden_reason: string | null
+          is_hidden: boolean
           comment: string
           created_at: string
           id: string
@@ -2512,6 +2560,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           comment: string
           created_at?: string
           id?: string
@@ -2520,6 +2571,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          hidden_at?: string | null
+          hidden_reason?: string | null
+          is_hidden?: boolean
           comment?: string
           created_at?: string
           id?: string
@@ -3679,6 +3733,12 @@ export type Database = {
       }
       user_reports: {
         Row: {
+          handled_at: string | null
+          handled_by: string | null
+          target_excerpt: string | null
+          target_id: string | null
+          target_meta: Json | null
+          target_type: string
           created_at: string
           detail: string | null
           id: string
@@ -3689,6 +3749,12 @@ export type Database = {
           trade_request_id: string | null
         }
         Insert: {
+          handled_at?: string | null
+          handled_by?: string | null
+          target_excerpt?: string | null
+          target_id?: string | null
+          target_meta?: Json | null
+          target_type?: string
           created_at?: string
           detail?: string | null
           id?: string
@@ -3699,6 +3765,12 @@ export type Database = {
           trade_request_id?: string | null
         }
         Update: {
+          handled_at?: string | null
+          handled_by?: string | null
+          target_excerpt?: string | null
+          target_id?: string | null
+          target_meta?: Json | null
+          target_type?: string
           created_at?: string
           detail?: string | null
           id?: string
@@ -3709,6 +3781,13 @@ export type Database = {
           trade_request_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "user_reports_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_reports_reported_user_id_fkey"
             columns: ["reported_user_id"]
@@ -4080,6 +4159,22 @@ export type Database = {
           shared_series: string[]
           their_items: Json
         }[]
+      }
+      admin_set_content_hidden: {
+        Args: { _hidden: boolean; _target_id: string; _target_type: string }
+        Returns: undefined
+      }
+      get_blocked_user_ids: {
+        Args: Record<PropertyKey, never>
+        Returns: string[]
+      }
+      is_blocked_between: {
+        Args: { _a: string; _b: string }
+        Returns: boolean
+      }
+      submit_report: {
+        Args: { _detail?: string; _reason: string; _target_id: string; _target_type: string }
+        Returns: string
       }
       find_trade_matches: {
         Args: { _limit?: number }

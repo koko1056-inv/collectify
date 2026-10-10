@@ -10,6 +10,8 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { PartnerProfile } from "./types";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
+import { useBlockedUserIds, useBlockedUsers, useUnblockUser } from "@/hooks/useBlocks";
 
 interface ChatModalProps {
   isOpen: boolean;
@@ -26,6 +28,12 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
     tradeRequestId,
     isOpen,
   });
+  // ブロックの関係にある相手とは、やり取りを表示も送信もしない
+  const { isBlocked } = useBlockedUserIds();
+  const { data: myBlocks = [] } = useBlockedUsers();
+  const unblock = useUnblockUser();
+  const partnerBlocked = isBlocked(partnerId);
+  const iBlockedPartner = myBlocks.some((b) => b.blocked_id === partnerId);
 
   // モーダルが開いたときに既読にする
   useEffect(() => {
@@ -82,6 +90,13 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
                 @{partnerProfile?.username || "unknown"}
               </p>
             </div>
+            <ReportBlockMenu
+              targetType="user"
+              targetId={partnerId}
+              ownerId={partnerId}
+              ownerName={partnerProfile?.display_name || partnerProfile?.username}
+              allowBlock={!partnerBlocked}
+            />
             <Button 
               variant="ghost" 
               size="icon" 
@@ -94,11 +109,28 @@ export function ChatModal({ isOpen, onClose, partnerId, tradeRequestId }: ChatMo
           
           {/* チャットコンテンツ */}
           <div className="flex-1 flex flex-col min-h-0 bg-muted/30">
-            <ChatStep
-              messages={messages}
-              onSendMessage={sendMessage}
-              partnerProfile={partnerProfile}
-            />
+            {partnerBlocked ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+                <p className="text-sm font-medium">{t("safety.blocked.unavailableTitle")}</p>
+                <p className="text-xs text-muted-foreground">{t("safety.blocked.unavailableDesc")}</p>
+                {iBlockedPartner && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={unblock.isPending}
+                    onClick={() => unblock.mutate({ userId: partnerId })}
+                  >
+                    {t("safety.blocked.unavailableUnblock")}
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <ChatStep
+                messages={messages}
+                onSendMessage={sendMessage}
+                partnerProfile={partnerProfile}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>

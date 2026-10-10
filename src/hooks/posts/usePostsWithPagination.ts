@@ -2,11 +2,14 @@ import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GoodsPost } from "@/types/posts";
 import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 const POSTS_PER_PAGE = 20;
 
 export function usePostsWithPagination() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const query = useInfiniteQuery({
     queryKey: ["posts", "paginated"],
@@ -41,7 +44,8 @@ export function usePostsWithPagination() {
         throw error;
       }
 
-      const posts = (data || []).map(post => ({
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      const posts = excludeBlocked(data || [], blocked, (post) => post.user_id).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
         user_items: post.user_items || { title: "Unknown", image: "", official_item_id: null },

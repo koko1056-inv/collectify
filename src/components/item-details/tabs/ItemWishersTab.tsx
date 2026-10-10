@@ -14,6 +14,7 @@ import { TrustBadge } from "@/features/trust/TrustBadge";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useTrustScoresBulk } from "@/features/trust/useTrustScore";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 interface ItemWishersTabProps {
   officialItemId: string;
@@ -45,7 +46,11 @@ export function ItemWishersTab({
         .order("created_at", { ascending: false });
       if (error) throw error;
 
-      const ids = (data ?? []).map((d) => d.user_id);
+      // ブロックした人・ブロックされた人は出さない
+      const blocked = await fetchBlockedUserIds(qc, user?.id);
+      const rows = excludeBlocked(data ?? [], blocked, (d) => d.user_id);
+
+      const ids = rows.map((d) => d.user_id);
       if (!ids.length) return [];
 
       const { data: profs } = await supabase
@@ -53,7 +58,7 @@ export function ItemWishersTab({
         .select("id, username, display_name, avatar_url, bio")
         .in("id", ids);
       const map = new Map((profs ?? []).map((p) => [p.id, p]));
-      return (data ?? []).map((w) => ({ ...w, profile: map.get(w.user_id) }));
+      return rows.map((w) => ({ ...w, profile: map.get(w.user_id) }));
     },
     enabled: !!officialItemId,
   });

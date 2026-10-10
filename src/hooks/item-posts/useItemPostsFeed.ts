@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ItemPost } from "./useItemPosts";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 export type FeedMode = "new" | "popular" | "following";
 
@@ -23,6 +24,7 @@ export function useItemPostsFeed({
   limit?: number;
 } = {}) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useQuery({
     queryKey: ["item-posts-feed", mode, contentFilter, hashtag, user?.id, limit],
@@ -69,7 +71,9 @@ export function useItemPostsFeed({
       const { data, error } = await query;
       if (error) throw error;
 
-      let posts = (data || []) as any[];
+      // ブロックした人・ブロックされた人の投稿は並べない
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      let posts = excludeBlocked((data || []) as any[], blocked, (p) => p.user_id);
 
       // コンテンツ名フィルタ（official_items or user_items 経由で filter）
       if (contentFilter) {

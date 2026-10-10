@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 export interface ItemPost {
   id: string;
@@ -33,6 +34,7 @@ export type PostTarget =
  */
 export function useItemPosts(target: PostTarget | null, limit = 20) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useQuery({
     queryKey: ["item-posts", target?.type, target?.id, user?.id],
@@ -60,7 +62,8 @@ export function useItemPosts(target: PostTarget | null, limit = 20) {
       const { data, error } = await query;
       if (error) throw error;
 
-      const posts = (data || []) as any[];
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      const posts = excludeBlocked((data || []) as any[], blocked, (p) => p.user_id);
 
       // 自分のいいね状態を一括取得
       let likedIds = new Set<string>();
@@ -93,6 +96,7 @@ export function useItemPosts(target: PostTarget | null, limit = 20) {
  */
 export function useItemPost(postId: string | null) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useQuery({
     queryKey: ["item-post", postId, user?.id],
@@ -110,6 +114,10 @@ export function useItemPost(postId: string | null) {
         .eq("id", postId)
         .single();
       if (error) throw error;
+
+      // ブロック関係にある人の投稿は、リンクで開かれても見せない
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      if (blocked.has((data as any).user_id)) return null;
 
       let is_liked_by_me = false;
       if (user?.id) {

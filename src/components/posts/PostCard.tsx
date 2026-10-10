@@ -7,6 +7,7 @@ import { useState, memo } from "react";
 import { CommentsModal } from "./CommentsModal";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 
 interface PostCardProps {
   post: GoodsPost;
@@ -49,6 +50,17 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
             skeletonClassName="aspect-square"
           />
           
+          {/* 通報・ブロック（自分の投稿には出ない） */}
+          <ReportBlockMenu
+            targetType="goods_post"
+            targetId={post.id}
+            ownerId={post.user_id}
+            ownerName={post.profiles?.username}
+            tone="overlay"
+            className="absolute right-1.5 top-1.5 z-10"
+            triggerClassName="h-7 w-7"
+          />
+
           {/* デスクトップ: ホバーオーバーレイ */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden lg:flex flex-col justify-end p-3">
             <div className="flex items-center justify-between">

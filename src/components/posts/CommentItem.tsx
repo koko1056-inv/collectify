@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 
 interface CommentItemProps {
   comment: PostComment;
@@ -73,6 +74,13 @@ export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
               <Heart className={cn("h-3 w-3", isLiked && "fill-current")} />
               {likesCount > 0 && <span>{likesCount}</span>}
             </Button>
+            <ReportBlockMenu
+              targetType="post_comment"
+              targetId={comment.id}
+              ownerId={comment.user_id}
+              ownerName={comment.profiles?.username}
+              triggerClassName="h-5 w-5"
+            />
           </div>
         </div>
       </div>

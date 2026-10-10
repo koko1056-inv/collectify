@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useBlockedUserIds } from "@/hooks/useBlocks";
 
 interface Conversation {
   partnerId: string;
@@ -25,7 +26,10 @@ export function ConversationList() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { formatRelative } = useDateFormat();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [allConversations, setConversations] = useState<Conversation[]>([]);
+  // ブロックした人・ブロックされた人との会話は一覧に出さない
+  const { filter: excludeBlockedUsers } = useBlockedUserIds();
+  const conversations = excludeBlockedUsers(allConversations, (c) => c.partnerId);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
 

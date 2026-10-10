@@ -14,6 +14,7 @@ import {
 } from "./useItemComments";
 import type { ItemCommentNode } from "./types";
 import { cn } from "@/lib/utils";
+import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 
 interface CommentItemProps {
   comment: ItemCommentNode;
@@ -99,6 +100,16 @@ export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemP
               <MessageSquare className="h-3.5 w-3.5" />
               {t("trade.comments.reply")}
             </button>
+          )}
+          {!isMine && (
+            <ReportBlockMenu
+              targetType="item_comment"
+              targetId={comment.id}
+              ownerId={comment.user_id}
+              ownerName={author?.display_name || author?.username}
+              className="ml-auto"
+              triggerClassName="h-5 w-5"
+            />
           )}
           {isMine && (
             <button

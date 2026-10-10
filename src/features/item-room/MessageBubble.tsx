@@ -8,6 +8,7 @@ import { useDateFormat } from "@/hooks/useDateFormat";
 import { useDeleteItemRoomMessage } from "./useItemRoom";
 import { TrustBadge } from "@/features/trust/TrustBadge";
 import type { ItemRoomMessage } from "./types";
+import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 
 interface Props {
   message: ItemRoomMessage;
@@ -65,7 +66,7 @@ export function MessageBubble({ message, roomId, showHeader }: Props) {
           </div>
         )}
 
-        <div className="group relative">
+        <div className="group relative flex items-center gap-0.5">
           <div
             className={`rounded-2xl px-3 py-2 text-sm break-words whitespace-pre-wrap ${
               isMe
@@ -75,6 +76,16 @@ export function MessageBubble({ message, roomId, showHeader }: Props) {
           >
             {message.content}
           </div>
+          {!isMe && (
+            <ReportBlockMenu
+              targetType="room_message"
+              targetId={message.id}
+              ownerId={message.user_id}
+              ownerName={senderName}
+              align="start"
+              triggerClassName="h-6 w-6"
+            />
+          )}
           {isMe && (
             <Button
               variant="ghost"

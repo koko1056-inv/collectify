@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { CommentReaction, ItemCommentNode } from "./types";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 const KEY = (id: string) => ["item-comments", id] as const;
 
@@ -12,11 +13,14 @@ const KEY = (id: string) => ["item-comments", id] as const;
  */
 export function useItemComments(officialItemId: string | null | undefined) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useQuery({
     queryKey: KEY(officialItemId ?? ""),
     enabled: !!officialItemId,
     queryFn: async (): Promise<ItemCommentNode[]> => {
+      // ブロックした人・ブロックされた人のコメントは出さない
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
       const { data: rows, error } = await supabase
         .from("item_comments")
         .select(
@@ -44,10 +48,10 @@ export function useItemComments(officialItemId: string | null | undefined) {
           ...r,
           profiles: pmap.get(r.user_id) ?? null,
         })) as any[];
-        return await attachReactions(merged, user?.id);
+        return await attachReactions(excludeBlocked(merged, blocked, (r) => r.user_id), user?.id);
       }
 
-      return await attachReactions(rows as any[], user?.id);
+      return await attachReactions(excludeBlocked(rows as any[], blocked, (r) => r.user_id), user?.id);
     },
   });
 }

@@ -20,6 +20,7 @@ import { TrustBadge } from "@/features/trust/TrustBadge";
 import { TrustScoreSection } from "@/features/trust/TrustScoreSection";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBlockedUserIds, useBlockedUsers, useUnblockUser } from "@/hooks/useBlocks";
 
 type Tab = "collection" | "posts" | "wishlist" | "trust";
 
@@ -42,6 +43,11 @@ export default function UserProfile() {
 
   const isOwnProfile = user?.id === userId;
 
+  // ブロックの関係にある相手のプロフィールは見せない
+  const { isBlocked } = useBlockedUserIds();
+  const { data: myBlocks = [] } = useBlockedUsers();
+  const unblock = useUnblockUser();
+
   // 推しコンテンツ
   const interests = profile?.interests || [];
 
@@ -59,6 +65,37 @@ export default function UserProfile() {
             <Skeleton className="h-48 w-full rounded-3xl" />
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-96 w-full" />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!isOwnProfile && isBlocked(profile.id)) {
+    const iBlockedThem = myBlocks.some((b) => b.blocked_id === profile.id);
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container mx-auto pb-20 px-4 pt-6">
+          <div className="max-w-md mx-auto text-center space-y-3 py-16">
+            <p className="font-medium">{t("safety.blocked.unavailableTitle")}</p>
+            <p className="text-sm text-muted-foreground">{t("safety.blocked.unavailableDesc")}</p>
+            <div className="flex justify-center gap-2 pt-2">
+              <Button variant="ghost" size="sm" onClick={handleBack}>
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                {t("screens.userProfile.back")}
+              </Button>
+              {iBlockedThem && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={unblock.isPending}
+                  onClick={() => unblock.mutate({ userId: profile.id })}
+                >
+                  {t("safety.blocked.unavailableUnblock")}
+                </Button>
+              )}
+            </div>
           </div>
         </main>
       </div>

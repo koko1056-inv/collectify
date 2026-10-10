@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 interface CommentLike {
   id: string;
@@ -14,6 +15,7 @@ interface CommentLike {
 
 export function usePostComments(postId: string) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const query = useQuery({
     queryKey: ["comments", postId],
@@ -24,7 +26,7 @@ export function usePostComments(postId: string) {
       }
 
       // コメントを取得
-      const { data: commentsData, error: commentsError } = await supabase
+      const { data: rawComments, error: commentsError } = await supabase
         .from("post_comments")
         .select("*")
         .eq("post_id", postId)
@@ -34,6 +36,10 @@ export function usePostComments(postId: string) {
         console.error("コメント取得エラー:", commentsError);
         throw commentsError;
       }
+
+      // ブロックした人・ブロックされた人のコメントは出さない
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      const commentsData = excludeBlocked(rawComments || [], blocked, (c) => c.user_id);
 
       if (!commentsData || commentsData.length === 0) {
         return [];

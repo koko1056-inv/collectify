@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 
 interface PostDetailModalProps {
   post: GoodsPost | null;
@@ -152,6 +153,12 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
+                <ReportBlockMenu
+                  targetType="goods_post"
+                  targetId={post.id}
+                  ownerId={post.user_id}
+                  ownerName={post.profiles?.username}
+                />
               </div>
 
               {/* キャプションとコメント */}

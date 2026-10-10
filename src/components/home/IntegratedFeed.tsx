@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 interface FeedPost {
   id: string;
@@ -28,6 +29,7 @@ export function IntegratedFeed() {
   const { t } = useLanguage();
   const { formatRelative } = useDateFormat();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: feedPosts = [], isLoading } = useQuery<FeedPost[]>({
     queryKey: ["integrated-feed", user?.id],
@@ -45,7 +47,7 @@ export function IntegratedFeed() {
       }
 
       // 投稿を取得（フォローしているユーザー + 人気の投稿）
-      const { data: posts, error } = await supabase
+      const { data: rawPosts, error } = await supabase
         .from("goods_posts")
         .select(`
           id,
@@ -58,6 +60,10 @@ export function IntegratedFeed() {
         .limit(10);
 
       if (error) throw error;
+
+      // ブロックした人・ブロックされた人の投稿は並べない
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      const posts = excludeBlocked(rawPosts || [], blocked, (p) => p.user_id);
 
       // ユーザー情報を取得
       const userIds = [...new Set(posts?.map(p => p.user_id) || [])];

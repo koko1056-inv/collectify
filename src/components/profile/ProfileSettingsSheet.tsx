@@ -12,6 +12,7 @@ import { useState } from "react";
 import { InstallAppCard } from "@/components/pwa/InstallAppCard";
 import { AccountSection } from "./AccountSection";
 import { FeedbackSheet } from "@/components/feedback/FeedbackSheet";
+import { BlockedUsersSection } from "@/components/safety/BlockedUsersSection";
 
 interface ProfileSettingsSheetProps {
   open: boolean;
@@ -117,6 +118,9 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
               })}
             </div>
           </section>
+
+          {/* ブロックしたユーザー（一覧と解除） */}
+          <BlockedUsersSection />
 
           {/* アカウント（データの書き出し・退会） */}
           <AccountSection onDeleted={() => onOpenChange(false)} />

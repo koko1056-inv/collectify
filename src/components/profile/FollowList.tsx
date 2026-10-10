@@ -9,6 +9,7 @@ import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBlockedUserIds } from "@/hooks/useBlocks";
 
 interface Profile {
   id: string;
@@ -33,15 +34,19 @@ export function FollowList({ userId, type }: FollowListProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
 
+  // ブロックした人・ブロックされた人は一覧に出さない
+  const { ids: blockedIds } = useBlockedUserIds();
+
   const filteredProfiles = useMemo(() => {
-    if (!searchQuery.trim()) return profiles;
+    const visible = blockedIds.size === 0 ? profiles : profiles.filter((p) => !blockedIds.has(p.id));
+    if (!searchQuery.trim()) return visible;
     const query = searchQuery.toLowerCase();
-    return profiles.filter(
+    return visible.filter(
       (profile) =>
         profile.username.toLowerCase().includes(query) ||
         (profile.bio && profile.bio.toLowerCase().includes(query))
     );
-  }, [profiles, searchQuery]);
+  }, [profiles, searchQuery, blockedIds]);
 
   useEffect(() => {
     const fetchFollows = async () => {

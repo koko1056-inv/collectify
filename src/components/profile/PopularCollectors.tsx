@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UserCard } from "./UserCard";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,9 +10,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Users } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { fetchBlockedUserIds, toNotInList } from "@/hooks/useBlocks";
 
 export function PopularCollectors() {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedContent, setSelectedContent] = useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -26,6 +30,10 @@ export function PopularCollectors() {
       if (selectedContent) {
         query = query.contains('interests', [selectedContent]);
       }
+
+      // ブロックした人・ブロックされた人はおすすめに出さない
+      const notIn = toNotInList(await fetchBlockedUserIds(queryClient, user?.id));
+      if (notIn) query = query.not("id", "in", notIn);
 
       const { data: profiles, error } = await query
         .order("followers_count", { ascending: false })
