@@ -57,7 +57,6 @@ const ScrollToTop: React.FC = () => {
 // 主要ページも lazy 化して初回バンドルを縮小
 const Search = lazy(() => import("./pages/Search").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Collection = lazy(() => import("./pages/Collection").catch(() => ({ default: () => <div>Error loading page</div> })));
-const Posts = lazy(() => import("./pages/Posts"));
 const Oshi = lazy(() => import("./pages/Oshi"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Trade = lazy(() => import("./pages/Trade"));
@@ -197,7 +196,8 @@ const App: React.FC = () => {
                       <Route path="/edit-profile" element={<EditProfileRedirect />} />
                       <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                       <Route path="/oshi" element={<ProtectedRoute><Oshi /></ProtectedRoute>} />
-                      <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
+                      {/* 旧「投稿・投票・チャレンジ」は廃止。いまの投稿は「みんな」の投稿タブにある */}
+                      <Route path="/posts" element={<Navigate to="/explore?tab=posts" replace />} />
                       <Route path="/item-posts" element={<ProtectedRoute><ItemPostsFeed /></ProtectedRoute>} />
                       <Route path="/post/:postId" element={<ProtectedRoute><ItemPostsFeed /></ProtectedRoute>} />
                       <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />

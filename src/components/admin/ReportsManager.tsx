@@ -69,15 +69,14 @@ function targetLink(r: ReportRow): string | null {
     case "item_post":
       return r.target_id ? `/post/${r.target_id}` : null;
     case "goods_post":
-      return r.target_id ? `/posts?post=${r.target_id}` : null;
+      // 旧「投稿」の画面は廃止した。内容は通報に残した抜粋で確認する
+      return null;
     case "item_post_comment": {
       const postId = str(meta.post_id);
       return postId ? `/post/${postId}` : null;
     }
-    case "post_comment": {
-      const postId = str(meta.post_id);
-      return postId ? `/posts?post=${postId}` : null;
-    }
+    case "post_comment":
+      return null;
     case "item_comment":
     case "room_message": {
       const itemId = str(meta.official_item_id);
