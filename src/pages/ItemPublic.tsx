@@ -203,7 +203,7 @@ export default function ItemPublic() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-6 pb-24">
+      <main className="flex-1 mx-auto w-full max-w-3xl px-4 py-6 pb-nav">
         <BackButton fallbackTo="/explore?tab=items" className="-ml-4 mb-2" />
         {isLoading ? (
           <div className="space-y-4">
@@ -344,7 +344,7 @@ export default function ItemPublic() {
             </ul>
           </section>
         )}
-        <LegalLinks className="mt-12 pb-24 sm:pb-8" />
+        <LegalLinks className="mt-12 pb-nav" />
       </main>
       <Footer />
     </div>

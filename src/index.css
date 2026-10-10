@@ -360,3 +360,16 @@
   transform: translateY(-50%);
   height: max(100%, 44px);
 }
+
+@layer utilities {
+  /* 下タブ（高さ 4rem + iPhone の safe-area）に最後の行が隠れないためのページ下の余白。
+     以前は pb-20 / pb-24 などがばらばらで、safe-area を足していなかった */
+  .pb-nav {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom) + 1.5rem);
+  }
+  @media (min-width: 640px) {
+    .pb-nav {
+      padding-bottom: 2rem;
+    }
+  }
+}

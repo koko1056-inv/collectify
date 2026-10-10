@@ -148,7 +148,7 @@ const Search = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="container mx-auto px-2 pt-4 pb-24 sm:px-4 sm:pt-6 sm:pb-8">
+      <main className="container mx-auto px-2 pt-4 pb-nav sm:px-4 sm:pt-6 sm:pb-8">
         <div className="space-y-3 sm:space-y-6">
           <Tabs value="goods" className="w-full">
             <header className="mx-auto max-w-lg px-1 pb-1">

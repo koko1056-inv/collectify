@@ -42,7 +42,7 @@ export default function Collection() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-nav">
       <Navbar />
       <main className={`container mx-auto transition-all duration-300 ${isMobile ? 'px-3 py-4' : 'px-4 py-4'}`}>
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">

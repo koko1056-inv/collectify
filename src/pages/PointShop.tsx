@@ -36,7 +36,6 @@ import {
   type PointPackage,
   type PointShopItem,
 } from "@/hooks/usePointShop";
-import { EmptyState } from "@/components/ui/empty-state";
 import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { useUserPoints } from "@/hooks/usePoints";
@@ -212,7 +211,7 @@ export default function PointShop() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-nav">
       <Navbar />
 
       <div className="container max-w-4xl mx-auto px-4 py-6">
@@ -260,7 +259,8 @@ export default function PointShop() {
           </CardContent>
         </Card>
 
-        {/* Point Packages */}
+        {/* Point Packages。まだ売っていないあいだは節ごと出さない（空の「まもなく登場」が2つ並んでいた） */}
+        {(packagesLoading || (packages && packages.length > 0)) && (
         <section className="mb-8">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold flex items-center gap-2">
@@ -278,13 +278,6 @@ export default function PointShop() {
                 <Skeleton key={i} className="h-32" />
               ))}
             </div>
-          ) : !packages || packages.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                <Gift className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                {t("screens.pointShop.packsComingSoon")}
-              </CardContent>
-            </Card>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {packages.map((pack) => {
@@ -321,10 +314,12 @@ export default function PointShop() {
             </div>
           )}
         </section>
+        )}
 
         {/* ポイントで交換できるアイテム。
             以前は point_shop_items を読むフックと購入フックが実装済みなのに
             どの画面からも呼ばれておらず、ポイントの使い道が画面上に存在しなかった。 */}
+        {(shopItemsLoading || shopItemsError || (shopItems?.length ?? 0) > 0) && (
         <section data-tour="shop-items" className="mb-8">
           <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
             <Coins className="w-5 h-5 text-primary" />
@@ -342,8 +337,6 @@ export default function PointShop() {
               title={t("screens.pointShop.exchangeLoadFailed")}
               onRetry={() => refetchShopItems()}
             />
-          ) : (shopItems?.length ?? 0) === 0 ? (
-            <EmptyState icon={Coins} title={t("screens.pointShop.exchangeEmpty")} />
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {shopItems!.map((item) => {
@@ -377,6 +370,7 @@ export default function PointShop() {
             </div>
           )}
         </section>
+        )}
 
         {/* Spend Guide */}
         <section className="mb-8">

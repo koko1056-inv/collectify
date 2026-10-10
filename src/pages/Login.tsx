@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, User, Lock } from "lucide-react";
+import { AlertCircle, User, Lock, Globe } from "lucide-react";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import { PasswordReset } from "@/components/PasswordReset";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Login() {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   // 新規登録には利用規約とプライバシーポリシーへの同意が要る（ログインでは出さない）
   const [agreed, setAgreed] = useState(false);
@@ -68,7 +68,21 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-accent/5 flex items-center justify-center p-4">
+    <div className="relative min-h-screen bg-accent/5 flex flex-col items-center justify-center gap-6 p-4">
+      {/* 言語の切り替え（英語の端末では最初から英語で出るので、日本語に戻せるように） */}
+      <button
+        type="button"
+        onClick={() => setLanguage(language === "ja" ? "en" : "ja")}
+        className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted"
+      >
+        <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+        {language === "ja" ? "English" : "日本語"}
+      </button>
+      {/* 何のアプリかが分かるように、ロゴと1行の説明を置く */}
+      <div className="text-center">
+        <p className="logo-text text-4xl text-brand-gradient">Collectify</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("screens.login.tagline")}</p>
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">

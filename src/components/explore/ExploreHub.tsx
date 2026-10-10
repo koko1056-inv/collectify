@@ -98,7 +98,7 @@ export function ExploreHub() {
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
 
-      <main className="pb-24">
+      <main className="pb-nav">
         {/* ヘッダー */}
         <div className="sticky top-0 z-40 bg-background/90 backdrop-blur-xl border-b border-border">
           <div className="container mx-auto px-4 py-4">

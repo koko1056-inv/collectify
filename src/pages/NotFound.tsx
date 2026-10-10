@@ -23,7 +23,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="container mx-auto px-4 pb-24 pt-6">
+      <main className="container mx-auto px-4 pb-nav pt-6">
         <EmptyState
           icon={Compass}
           title={t("screens.notFound.title")}

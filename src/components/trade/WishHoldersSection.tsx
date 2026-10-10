@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   useHoldersForMyWishes,
@@ -59,27 +58,23 @@ export function WishHoldersSection({
       </CardHeader>
       <CardContent className="space-y-4">
         {list.length === 0 ? (
-          <EmptyState
-            className="py-6"
-            icon={Heart}
-            title={
-              (readiness?.wishCount ?? 0) === 0
-                ? t("trade.holders.emptyNoWishTitle")
-                : t("trade.holders.emptyTitle")
-            }
-            description={
-              (readiness?.wishCount ?? 0) === 0
-                ? t("trade.holders.emptyNoWishDesc")
-                : t("trade.holders.emptyDesc")
-            }
-            action={
-              (readiness?.wishCount ?? 0) === 0 ? (
-                <Button size="sm" onClick={() => navigate("/explore")}>
-                  {t("trade.holders.findWishes")}
-                </Button>
-              ) : undefined
-            }
-          />
+          // 以前は約 330px の空状態で、交換画面の最初がほぼこれで埋まっていた。1行の案内に縮める
+          <div className="flex items-center gap-3 rounded-xl bg-muted/40 p-3">
+            <Heart className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">
+                {(readiness?.wishCount ?? 0) === 0 ? t("trade.holders.emptyNoWishTitle") : t("trade.holders.emptyTitle")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {(readiness?.wishCount ?? 0) === 0 ? t("trade.holders.emptyNoWishDesc") : t("trade.holders.emptyDesc")}
+              </p>
+            </div>
+            {(readiness?.wishCount ?? 0) === 0 && (
+              <Button size="sm" className="shrink-0" onClick={() => navigate("/explore?tab=items")}>
+                {t("trade.holders.findWishes")}
+              </Button>
+            )}
+          </div>
         ) : (
           list.map((wish) => (
             <WishRow

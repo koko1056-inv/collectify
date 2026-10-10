@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Trash2, Plus } from "lucide-react";
+import { Camera, MessageSquare, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -27,6 +27,7 @@ export function CardActions({
       fn();
     };
 
+  // 「投稿する」は以前＋のアイコンで、下タブ中央の＋（グッズ追加）と紛らわしかったのでカメラにした。
   // 削除が隣にあるので、当たり判定は高さだけ広げる。
   // 横に広げると、追加のつもりで削除に当たる事故が起きる。
   return (
@@ -42,8 +43,9 @@ export function CardActions({
             : "text-muted-foreground hover:text-foreground hover:bg-muted"
         )}
         title={t("collectionScreen.cardActions.memories")}
+        aria-label={t("collectionScreen.cardActions.memories")}
       >
-        <MessageSquare className="h-3.5 w-3.5" />
+        <MessageSquare className="h-4 w-4" />
       </Button>
 
       <Button
@@ -52,8 +54,9 @@ export function CardActions({
         onClick={stop(onCreatePostClick)}
         className="tap-safe-y h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
         title={t("collectionScreen.cardActions.createPost")}
+        aria-label={t("collectionScreen.cardActions.createPost")}
       >
-        <Plus className="h-3.5 w-3.5" />
+        <Camera className="h-4 w-4" />
       </Button>
 
       <Button
@@ -62,8 +65,9 @@ export function CardActions({
         onClick={stop(onDeleteClick)}
         className="tap-safe-y h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
         title={t("collectionScreen.cardActions.delete")}
+        aria-label={t("collectionScreen.cardActions.delete")}
       >
-        <Trash2 className="h-3.5 w-3.5" />
+        <Trash2 className="h-4 w-4" />
       </Button>
     </div>
   );
