@@ -81,9 +81,13 @@ export function NotificationItem({ notification }: NotificationItemProps) {
 
     // Navigate based on notification type
     if (notification.type === 'new_item' && notification.data.item_id) {
-      navigate(`/search?item=${notification.data.item_id}`);
-    } else if ((notification.type === 'comment' || notification.type === 'reply' || notification.type === 'like') && notification.data.post_id) {
-      navigate(`/posts?post=${notification.data.post_id}`);
+      navigate(`/item/${notification.data.item_id}`);
+    } else if (notification.type.startsWith('item_post_') && notification.data.post_id) {
+      // いまの投稿へのコメント・いいね・リアクション（以前はどこにも飛ばなかった）
+      navigate(`/post/${notification.data.post_id}`);
+    } else if (notification.type === 'comment' || notification.type === 'reply' || notification.type === 'like') {
+      // 旧「投稿・投票・チャレンジ」の通知。画面は廃止したので、いまの投稿の一覧へ
+      navigate('/explore?tab=posts');
     } else if (notification.type === 'admin_report') {
       // 通報の通知は、管理画面の通報タブへ
       navigate(notification.data.url || '/admin?tab=reports');
