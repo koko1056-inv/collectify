@@ -8,6 +8,7 @@
  *
  * ここで一度縮めておけば、以後その画像を見るすべての画面が軽くなる。
  * 失敗したときは元のファイルをそのまま返す（登録自体は成功させたい）。
+ * JPEG は再エンコードで EXIF（撮影場所など）も取り除かれる。
  */
 
 export interface CompressOptions {
@@ -79,8 +80,9 @@ export async function compressImageFile(
     const blob = await canvasToBlob(canvas, quality);
     if (!blob) return file;
 
-    // 縮めたつもりが太った場合は元を使う
-    if (blob.size >= file.size) return file;
+    // 縮めたつもりが太った場合は元を使う。ただし JPEG は、撮影場所（GPS）などの EXIF を
+    // 取り除くために、太っても再エンコードしたものを使う（canvas で描き直すと EXIF は残らない）。
+    if (blob.size >= file.size && file.type !== "image/jpeg") return file;
 
     return new File([blob], replaceExtension(file.name, "jpg"), {
       type: "image/jpeg",
