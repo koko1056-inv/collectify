@@ -106,6 +106,8 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
             onClick={() => openStudio("generate")}
             size="sm"
             className="shrink-0 gap-1.5 shadow-md"
+            // はじめてガイドの「AIアバターを作る」の案内先（すでにアバターがある人はこちらを指す）
+            data-tour="avatar-create"
           >
             <Plus className="w-4 h-4" />
             {t("homeScreen.avatarCenter.newButton")}
