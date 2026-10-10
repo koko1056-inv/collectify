@@ -1,6 +1,7 @@
 import * as React from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { IconTile } from "@/components/ui/icon-tile";
 
 interface EmptyStateProps {
   /** Optional icon shown in a soft rounded container above the title. */
@@ -41,9 +42,9 @@ export function EmptyState({
       )}
     >
       {Icon && (
-        <div className="w-16 h-16 mb-4 rounded-2xl bg-muted flex items-center justify-center">
-          <Icon className="w-8 h-8 text-muted-foreground" />
-        </div>
+        <IconTile size="lg" className="mb-4">
+          <Icon />
+        </IconTile>
       )}
       {heading && (
         <p className="text-foreground font-medium mb-1">{heading}</p>

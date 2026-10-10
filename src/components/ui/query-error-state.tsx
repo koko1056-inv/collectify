@@ -1,6 +1,7 @@
 import { AlertTriangle, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { IconTile } from "@/components/ui/icon-tile";
 
 interface QueryErrorStateProps {
   /** 見出し。既定は汎用の読み込み失敗メッセージ。 */
@@ -32,9 +33,9 @@ export function QueryErrorState({
         className
       )}
     >
-      <div className="w-16 h-16 mb-4 rounded-2xl bg-destructive/10 flex items-center justify-center">
-        <AlertTriangle className="w-8 h-8 text-destructive" />
-      </div>
+      <IconTile size="lg" tone="destructive" className="mb-4">
+        <AlertTriangle />
+      </IconTile>
       <p className="text-foreground font-medium mb-1">{title}</p>
       <p className="text-sm text-muted-foreground max-w-sm">{description}</p>
       {onRetry && (
