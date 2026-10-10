@@ -15,15 +15,38 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 const LANGUAGE_KEY = "app-language";
 
+/**
+ * 最初の言語。保存した選択があればそれ、なければブラウザの言語（日本語なら日本語、それ以外は英語）。
+ * ストレージが使えない環境でも落ちないようにする。
+ */
+function detectInitialLanguage(): Language {
+  try {
+    const saved = localStorage.getItem(LANGUAGE_KEY);
+    if (saved === "en" || saved === "ja") return saved;
+  } catch {
+    // ストレージが使えないときはブラウザの言語で決める
+  }
+  const preferred = typeof navigator !== "undefined" ? navigator.languages?.[0] ?? navigator.language : "";
+  return preferred && !preferred.toLowerCase().startsWith("ja") ? "en" : "ja";
+}
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem(LANGUAGE_KEY);
-    return (saved === "en" || saved === "ja") ? saved : "ja";
+    return detectInitialLanguage();
   });
+
+  // 画面の言語をブラウザ・読み上げ・翻訳機能にも伝える
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem(LANGUAGE_KEY, lang);
+    try {
+      localStorage.setItem(LANGUAGE_KEY, lang);
+    } catch {
+      // 保存できなくても、この画面の言語は切り替わる
+    }
   };
 
   const t = (key: TranslationKey, vars?: TranslationVars): string => {

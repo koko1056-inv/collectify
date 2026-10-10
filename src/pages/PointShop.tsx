@@ -418,7 +418,10 @@ export default function PointShop() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <Row label={t("screens.pointShop.freeLoginBonus")} value={t("screens.pointShop.freeLoginBonusValue")} />
-            <Row label={t("screens.pointShop.freeAddGoods")} value="+1pt" />
+            <Row label={t("screens.pointShop.freePost")} value={t("screens.pointShop.freePostValue")} />
+            <Row label={t("screens.pointShop.freeComment")} value={t("screens.pointShop.freeCommentValue")} />
+            <Row label={t("screens.pointShop.freeReaction")} value={t("screens.pointShop.freeReactionValue")} />
+            <Row label={t("screens.pointShop.freeTrade")} value={t("screens.pointShop.freeTradeValue")} />
             <Row label={t("screens.pointShop.freeAddContent")} value="+10pt" />
 
             {/* 連続ログインの段階と、いま自分が何日目かを示す */}

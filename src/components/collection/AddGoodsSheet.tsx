@@ -20,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { OfficialItem } from "@/types";
-import { useCatalogContents, useCatalogFeed, useOfficialItems } from "@/hooks/useOfficialItems";
+import { useCatalogContents, useCatalogFeed, useContentNamesEn, useOfficialItems } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
 import { GoodsPickTile } from "./GoodsPickTile";
@@ -162,7 +162,7 @@ const PAGE = 60;
 const AUTO_FETCH_MAX = 1200;
 
 function PickFromCatalogView({ onBack }: { onBack: () => void }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<CatalogFilterState>(EMPTY_FILTER);
@@ -177,8 +177,20 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   //  - 作品は未選択（言葉を入れた場合も）: サーバーから新しい順に少しずつ読み足す。最後まで辿れる
   const { data: contents = [] } = useCatalogContents();
   const deferredQuery = useDeferredValue(filter.query);
+  // 英語の作品名（例: Mrs. GREEN APPLE）でも探せるように、作品が1つに決まるときは日本語名に置き換えて検索する
+  const { data: namesEn } = useContentNamesEn();
+  const contentLabel = useCallback(
+    (name: string | null | undefined) => (name && language === "en" ? namesEn?.get(name) ?? name : name ?? ""),
+    [namesEn, language]
+  );
+  const searchTerm = useMemo(() => {
+    const q = deferredQuery.trim().toLowerCase();
+    if (q.length < 2 || !namesEn) return deferredQuery;
+    const hits = [...namesEn].filter(([, en]) => en.toLowerCase().includes(q));
+    return hits.length === 1 ? hits[0][0] : deferredQuery;
+  }, [deferredQuery, namesEn]);
   const workQuery = useOfficialItems({ content: filter.content, enabled: !!filter.content });
-  const feed = useCatalogFeed(deferredQuery, !filter.content);
+  const feed = useCatalogFeed(searchTerm, !filter.content);
   const active = filter.content ? workQuery : feed;
   const items = useMemo(() => (filter.content ? workQuery.data ?? [] : feed.items), [filter.content, workQuery.data, feed.items]);
   const { isError, refetch } = active;
@@ -331,12 +343,13 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   const totalCount = !filter.content && !hasClientFilter && feed.total !== null ? feed.total : filtered.length;
 
   // 作品をワンタップで切り替えられるチップ（推しの作品を先頭、あとは件数の多い順）。件数はサーバーで数えた全体の数。
+  // 横にスクロールできるので全作品を並べる（件数の少ないアーティストなどが隠れないように）。
   const contentChips = useMemo(() => {
     const fav = new Set(favoriteContents ?? []);
     return [...contents]
       .filter((c) => c.name !== "なし")
       .sort((x, y) => Number(fav.has(y.name)) - Number(fav.has(x.name)) || y.count - x.count)
-      .slice(0, 16);
+      .slice(0, 80);
   }, [contents, favoriteContents]);
   const results = filtered.slice(0, visible);
 
@@ -443,7 +456,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                     on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"
                   )}
                 >
-                  <span className="max-w-[9rem] truncate">{c.name}</span>
+                  <span className="max-w-[9rem] truncate">{contentLabel(c.name)}</span>
                   <span className="tabular-nums text-[10px] opacity-70">{c.count}</span>
                 </button>
               );
@@ -486,7 +499,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                     <GoodsPickTile
                       image={item.image}
                       title={item.title}
-                      subtitle={item.content_name}
+                      subtitle={contentLabel(item.content_name)}
                       selected={owned}
                       busy={addingId === item.id}
                       disabled={owned}
