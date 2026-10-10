@@ -320,22 +320,7 @@ const Search = () => {
         </div>
       </main>
       
-      {currentTab === "goods" && (
-        // 撮影→AI解析フロー(/quick-add)を既定の追加導線にする。
-        // 手入力(/add-item)へは /quick-add 内のリンクから辿れる。
-        // 下タブ中央の丸い「みつける」ボタンと同じ形・同じ色だと見分けがつかないため、
-        // こちらは文字付きの横長ボタンにして「探す」と「登録する」を区別する。
-        <Button
-          onClick={() => navigate("/quick-add")}
-          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-50 h-12 pl-4 pr-5 gap-2 rounded-full shadow-lg"
-          title={t("chrome.collection.addByPhoto")}
-          aria-label={t("chrome.collection.addByPhoto")}
-        >
-          <Camera className="h-5 w-5" />
-          <span className="text-sm font-bold">{t("chrome.fab.addShort")}</span>
-        </Button>
-      )}
-      
+      {/* 以前はここに「📷追加」の浮きボタンがあり、下タブ中央の＋と2つ並んでいた。追加は下タブの＋に一本化する */}
       <Footer />
     </div>
   );

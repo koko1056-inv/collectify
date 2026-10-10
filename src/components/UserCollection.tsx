@@ -462,8 +462,6 @@ export function UserCollection({
         />
       )}
 
-      {isOwnCollection && items.length > 0 && <UniverseEntryCard onOpen={() => setIsUniverseOpen(true)} />}
-
       {isOwnCollection && <DuplicateCleanupBanner />}
 
       {/* ある程度使い始めた人にだけ、ホーム画面への追加を案内する（入れられる環境のときだけ出る） */}
@@ -639,6 +637,9 @@ export function UserCollection({
           onSelectItem={handleSelectItem}
         />
       )}
+
+      {/* 推し宇宙の入口は一覧の下に置く（上にあると、最初の画面にグッズが見えなかった） */}
+      {isOwnCollection && items.length > 0 && <UniverseEntryCard onOpen={() => setIsUniverseOpen(true)} />}
 
       {/* 選択モード時のフローティングアクションバー。
           下部ナビ中央の「みつける」ボタンが上へ張り出しているため、それより上に配置する。 */}

@@ -13,6 +13,8 @@ interface SlotUsageMeterProps {
   type?: "collection" | "room";
   /** 見出しと拡張ボタンを省いた1行表示にする（既存の密なレイアウトに置く用） */
   compact?: boolean;
+  /** この使用率（%）に届くまでは何も出さない。コレクションの最初の画面を枠の表示で埋めないため */
+  minPercent?: number;
   className?: string;
 }
 
@@ -29,6 +31,7 @@ const EXPAND_AMOUNT = 10;
 export function SlotUsageMeter({
   type = "collection",
   compact = false,
+  minPercent = 0,
   className,
 }: SlotUsageMeterProps) {
   const { t } = useLanguage();
@@ -53,6 +56,8 @@ export function SlotUsageMeter({
   const remaining = Math.max(0, maxSlots - currentCount);
   const isAtLimit = currentCount >= maxSlots;
   const isAlmostFull = !isAtLimit && usagePercent >= 80;
+
+  if (usagePercent < minPercent) return null;
 
   const Icon = isCollection ? Package : Home;
 

@@ -51,8 +51,9 @@ export default function Collection() {
               タブから辿り着けない画面に置いておくと誰も進められない。 */}
           {user && <OnboardingChecklist />}
 
-          {/* 枠の使用状況は常に表示する（以前は95%を超えるまで何も出なかった） */}
-          {user && <SlotUsageMeter type="collection" />}
+          {/* 枠の使用状況は 80% を超えてから出す（常に出すと、最初の画面にグッズが1つも見えなかった）。
+              普段の使用数はポイント画面と設定で見られる */}
+          {user && <SlotUsageMeter type="collection" minPercent={80} />}
 
           <FilterSheet
             searchQuery={searchQuery}

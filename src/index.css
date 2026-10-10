@@ -77,7 +77,7 @@
     --gradient-header: linear-gradient(180deg, hsl(0 0% 100%), hsl(30 20% 98%));
     /* ブランドグラデーション: 既定テーマは pink→purple→orange のアイデンティティを維持。
        テーマカラー切替時は各 [data-theme-color] が上書き、ダークモードは下で微調整。 */
-    --gradient-brand: linear-gradient(135deg, hsl(330 81% 60%), hsl(271 91% 65%), hsl(27 96% 61%));
+    --gradient-brand: linear-gradient(135deg, hsl(330 72% 46%), hsl(268 60% 50%), hsl(18 88% 42%));
     
     /* シャドウ */
     --shadow-sm: 0 1px 2px 0 hsl(350 30% 20% / 0.05);
@@ -160,8 +160,8 @@
     --loading-bg: 240 10% 8%;
     --loading-overlay: 240 10% 8% / 0.8;
 
-    /* ダークモード: 彩度・明度を少し抑えて沈ませる */
-    --gradient-brand: linear-gradient(135deg, hsl(330 70% 56%), hsl(271 75% 60%), hsl(27 85% 56%));
+    /* ダークモード: 彩度・明度を少し抑えて沈ませる（白い文字が乗るので、どの色でも 4.5:1 以上を保つ） */
+    --gradient-brand: linear-gradient(135deg, hsl(330 65% 44%), hsl(268 55% 48%), hsl(18 80% 40%));
   }
 
   /* テーマカラー: ブルー */
@@ -173,7 +173,7 @@
     --stats-login: 210 70% 50%;
     --stats-login-bg: 210 40% 97%;
     --stats-login-hover: 210 40% 94%;
-    --gradient-brand: linear-gradient(135deg, hsl(210 80% 50%), hsl(190 70% 50%));
+    --gradient-brand: linear-gradient(135deg, hsl(212 80% 45%), hsl(195 85% 32%));
   }
 
   /* テーマカラー: グリーン */
@@ -185,7 +185,7 @@
     --stats-login: 150 55% 45%;
     --stats-login-bg: 150 35% 97%;
     --stats-login-hover: 150 35% 94%;
-    --gradient-brand: linear-gradient(135deg, hsl(150 60% 40%), hsl(170 55% 45%));
+    --gradient-brand: linear-gradient(135deg, hsl(152 62% 32%), hsl(172 70% 28%));
   }
 
   /* テーマカラー: パープル */
@@ -197,7 +197,7 @@
     --stats-login: 270 55% 55%;
     --stats-login-bg: 270 35% 97%;
     --stats-login-hover: 270 35% 94%;
-    --gradient-brand: linear-gradient(135deg, hsl(270 60% 55%), hsl(290 55% 55%));
+    --gradient-brand: linear-gradient(135deg, hsl(270 55% 50%), hsl(290 50% 45%));
   }
 
   /* テーマカラー: オレンジ */
@@ -209,7 +209,7 @@
     --stats-login: 25 80% 50%;
     --stats-login-bg: 25 40% 97%;
     --stats-login-hover: 25 40% 94%;
-    --gradient-brand: linear-gradient(135deg, hsl(25 90% 50%), hsl(40 85% 55%));
+    --gradient-brand: linear-gradient(135deg, hsl(22 90% 40%), hsl(35 92% 33%));
   }
 
   /* テーマカラー × ダークモード: 明るめの色に濃い文字（.dark より後・詳細度も高くして、確実に上書きする） */

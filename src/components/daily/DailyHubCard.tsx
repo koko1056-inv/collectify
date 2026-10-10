@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Check, Flame, Gift, Heart, Loader2, MessageCircle, Repeat2, Sparkles } from "lucide-react";
+import { Camera, Check, ChevronDown, Flame, Gift, Heart, Loader2, MessageCircle, Repeat2, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { GoodsPickTile } from "@/components/collection/GoodsPickTile";
-import { LazyImage } from "@/components/ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDailyHub } from "@/hooks/useDailyHub";
 import { useQuickAddGoods } from "@/hooks/useQuickAddGoods";
@@ -23,102 +22,109 @@ export function DailyHubCard() {
   const navigate = useNavigate();
   const hub = useDailyHub();
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const oshi = useOshiPhotos();
 
   // 連続ログインの記録がまだ読めていないとき・初回のログイン前は何も出さない
   if (!hub.ready) return null;
 
-  const thumbs = hub.newItems.slice(0, 4);
-
   return (
     <>
-      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-amber-50/40 p-4 dark:to-amber-950/10">
-        <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl",
-              hub.streak > 0 ? "bg-gradient-to-br from-orange-400 to-rose-500 text-white shadow" : "bg-muted text-muted-foreground"
-            )}
-            aria-hidden="true"
+      {/* 普段は1行の帯にまとめる（以前は約320pxあり、コレクションの最初の画面がこれで埋まっていた）。
+          炎をタップすると、ボーナスの詳細とポイントの付く交流が開く */}
+      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-points-soft/40 p-2">
+        <div className="flex items-stretch gap-1.5">
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-xl px-2 py-1.5 text-left hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
           >
-            <Flame className="h-6 w-6" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold">
-              {hub.streak > 0 ? t("engage.dailyHub.streak", { n: hub.streak }) : t("engage.dailyHub.streakNone")}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {hub.claimedToday && hub.todayPoints !== null
-                ? t("engage.dailyHub.claimed", { n: hub.todayPoints })
-                : t("engage.dailyHub.notClaimed")}
-            </p>
+            <span
+              className={cn(
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
+                hub.streak > 0 ? "bg-gradient-to-br from-orange-400 to-rose-500 text-white shadow" : "bg-muted text-muted-foreground"
+              )}
+              aria-hidden="true"
+            >
+              <Flame className="h-5 w-5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-bold">
+                {hub.streak > 0 ? t("engage.dailyHub.streakShort", { n: hub.streak }) : t("engage.dailyHub.streakNone")}
+              </span>
+              <span className="block truncate text-2xs text-muted-foreground">
+                {hub.claimedToday && hub.todayPoints !== null
+                  ? t("engage.dailyHub.claimed", { n: hub.todayPoints })
+                  : t("engage.dailyHub.notClaimed")}
+              </span>
+            </span>
+            <ChevronDown className={cn("ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform", expanded && "rotate-180")} aria-hidden="true" />
+          </button>
+
+          {hub.newTotal > 0 && (
+            <StripButton
+              onClick={() => setOpen(true)}
+              icon={<Sparkles className="h-4 w-4" />}
+              label={t("engage.dailyHub.newShort", { n: hub.newTotal })}
+              ariaLabel={t("engage.dailyHub.newForYou", { n: hub.newTotal })}
+            />
+          )}
+          <StripButton
+            onClick={() => navigate("/oshi")}
+            icon={oshi.todayDone ? <Check className="h-4 w-4" /> : <Camera className="h-4 w-4" />}
+            label={t("engage.oshi.todayShort")}
+            ariaLabel={`${t("engage.oshi.todayCard")}: ${oshi.todayDone ? t("engage.oshi.todayDone") : t("engage.oshi.todayNotYet")}`}
+            done={oshi.todayDone}
+          />
+        </div>
+
+        {expanded && (
+          <div className="mt-2 space-y-2 border-t px-2 pb-1 pt-2">
             {hub.next && (
               <p className="text-xs font-medium text-primary">
                 {t("engage.dailyHub.next", { days: hub.next.inDays, points: hub.next.points })}
               </p>
             )}
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label={t("engage.dailyHub.actionsLabel")}>
+              <ActionChip icon={<Gift className="h-3.5 w-3.5" />} label={t("engage.dailyHub.post")} pt="+3" onClick={() => navigate("/item-posts")} />
+              <ActionChip icon={<MessageCircle className="h-3.5 w-3.5" />} label={t("engage.dailyHub.comment")} pt="+1" onClick={() => navigate("/item-posts")} />
+              <ActionChip icon={<Repeat2 className="h-3.5 w-3.5" />} label={t("engage.dailyHub.trade")} pt="+10" onClick={() => navigate("/explore?tab=users")} />
+            </div>
           </div>
-          {hub.claimedToday && (
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-3xs font-bold text-primary">
-              <Check className="h-3 w-3" aria-hidden="true" />
-              {t("engage.dailyHub.today")}
-            </span>
-          )}
-        </div>
-
-        {hub.newTotal > 0 && (
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            className="mt-3 flex w-full items-center gap-3 rounded-xl border bg-card p-2.5 text-left hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
-          >
-            <div className="flex -space-x-2" aria-hidden="true">
-              {thumbs.map((it) => (
-                <div key={it.id} className="h-10 w-10 overflow-hidden rounded-lg border-2 border-background bg-muted">
-                  <LazyImage src={it.image} alt="" className="h-full w-full object-cover" />
-                </div>
-              ))}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1 text-sm font-bold">
-                <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-                {t("engage.dailyHub.newForYou", { n: hub.newTotal })}
-              </p>
-              <p className="truncate text-xs text-muted-foreground">{t("engage.dailyHub.newForYouSub")}</p>
-            </div>
-          </button>
         )}
-
-        <button
-          type="button"
-          onClick={() => navigate("/oshi")}
-          className="mt-3 flex w-full items-center gap-3 rounded-xl border bg-card p-2.5 text-left hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
-        >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden="true">
-            <Camera className="h-5 w-5" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-bold">{t("engage.oshi.todayCard")}</span>
-            <span className="block truncate text-xs text-muted-foreground">
-              {oshi.todayDone
-                ? t("engage.oshi.todayDone")
-                : oshi.streak > 0
-                  ? `${t("engage.oshi.todayNotYet")} · ${t("engage.oshi.todayStreak", { n: oshi.streak })}`
-                  : t("engage.oshi.todayNotYet")}
-            </span>
-          </span>
-          {oshi.todayDone && <Check className="h-4 w-4 text-primary" aria-hidden="true" />}
-        </button>
-
-        <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label={t("engage.dailyHub.actionsLabel")}>
-          <ActionChip icon={<Gift className="h-3.5 w-3.5" />} label={t("engage.dailyHub.post")} pt="+3" onClick={() => navigate("/item-posts")} />
-          <ActionChip icon={<MessageCircle className="h-3.5 w-3.5" />} label={t("engage.dailyHub.comment")} pt="+1" onClick={() => navigate("/item-posts")} />
-          <ActionChip icon={<Repeat2 className="h-3.5 w-3.5" />} label={t("engage.dailyHub.trade")} pt="+10" onClick={() => navigate("/explore?tab=users")} />
-        </div>
       </Card>
 
       <NewForYouDialog open={open} onOpenChange={setOpen} />
     </>
+  );
+}
+
+function StripButton({
+  onClick,
+  icon,
+  label,
+  ariaLabel,
+  done,
+}: {
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  ariaLabel: string;
+  done?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className="flex w-16 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border bg-card px-1 py-1.5 hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+    >
+      <span className={cn("text-primary", done && "text-success")} aria-hidden="true">
+        {icon}
+      </span>
+      <span className="max-w-full truncate text-3xs font-bold">{label}</span>
+    </button>
   );
 }
 

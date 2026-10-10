@@ -22,6 +22,7 @@ import { TrustBadge } from "@/features/trust/TrustBadge";
 import { TrustScoreSection } from "@/features/trust/TrustScoreSection";
 import { StampSendButton } from "@/features/stamps/StampSendButton";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ProfileTabs } from "@/components/profile/ProfileTabs";
 import { useBlockedUserIds, useBlockedUsers, useUnblockUser } from "@/hooks/useBlocks";
 
 type Tab = "collection" | "posts" | "wishlist" | "trust";
@@ -197,27 +198,11 @@ export default function UserProfile() {
 
           {/* タブ */}
           <div className="px-4 mt-6">
-            <div className="relative flex p-1 rounded-full bg-muted/60 border border-border/30">
-              {TABS.map((tab) => {
-                const isActive = activeTab === tab.id;
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      "relative flex-1 flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-full text-sm font-medium transition-colors z-10 whitespace-nowrap min-w-0",
-                      isActive
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span className="text-xs sm:text-sm whitespace-nowrap">{t(tab.label)}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <ProfileTabs<Tab>
+              tabs={TABS.map((tab) => ({ id: tab.id, labelKey: tab.label, icon: tab.icon }))}
+              active={activeTab}
+              onChange={setActiveTab}
+            />
           </div>
 
           {/* タブコンテンツ */}

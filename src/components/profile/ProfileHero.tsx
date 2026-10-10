@@ -171,6 +171,8 @@ export function ProfileHero({
               <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20" />
             </>
           )}
+          {/* ダークでは明るいランク色のカバーが浮くので、少し沈める */}
+          {!hasCustomCover && <div className="absolute inset-0 z-[1] hidden bg-black/35 dark:block" aria-hidden="true" />}
           {!hasCustomCover && (
             <div className="absolute inset-0 overflow-hidden">
               {[0, 1, 2, 3, 4].map((i) => (

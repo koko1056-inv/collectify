@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ONBOARDING_STEP_POINTS } from './steps';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2,
@@ -67,8 +68,7 @@ export function OnboardingChecklist() {
    * コンテンツが無い。一方で登録直後のユーザーには1行の進捗バーしか見えず、
    * 次に何をすればいいのか分からない状態だった。
    *
-   * - 序盤（EARLY_STEPS 件まで）は開いた状態で出す
-   * - それ以降は畳むが、畳んでいる間も「次にやること」を1件だけ見せる
+   * - 既定は畳む。畳んでいる間も「次にやること」を1件だけ見せる
    * - ユーザーが自分で開閉したら、その選択を以後優先する
    *
    * null = まだ決まっていない（localStorage と進捗を読んでから確定させる）
@@ -173,7 +173,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.accountDesc',
         icon: CheckCircle2,
         completed: true,
-        points: 10,
+        points: ONBOARDING_STEP_POINTS['account'],
         group: 'start',
       },
       {
@@ -183,7 +183,7 @@ export function OnboardingChecklist() {
         icon: User,
         completed: checklistData.hasProfile,
         action: () => navigate('/edit-profile'),
-        points: 20,
+        points: ONBOARDING_STEP_POINTS['profile'],
         group: 'start',
       },
       // 📦 コレクション
@@ -194,7 +194,7 @@ export function OnboardingChecklist() {
         icon: Package,
         completed: checklistData.hasItem,
         action: () => navigate('/search'),
-        points: 30,
+        points: ONBOARDING_STEP_POINTS['first-item'],
         group: 'collection',
       },
       {
@@ -204,7 +204,7 @@ export function OnboardingChecklist() {
         icon: Star,
         completed: checklistData.hasFavorites5,
         action: () => navigate('/collection'),
-        points: 20,
+        points: ONBOARDING_STEP_POINTS['favorites'],
         group: 'collection',
       },
       {
@@ -214,7 +214,7 @@ export function OnboardingChecklist() {
         icon: Heart,
         completed: checklistData.hasWishlist,
         action: () => navigate('/search'),
-        points: 10,
+        points: ONBOARDING_STEP_POINTS['wishlist'],
         group: 'collection',
       },
       // 🎨 AIスタジオ
@@ -225,7 +225,7 @@ export function OnboardingChecklist() {
         icon: Home,
         completed: checklistData.hasAiRoom,
         action: () => navigate('/ai-rooms'),
-        points: 30,
+        points: ONBOARDING_STEP_POINTS['ai-room'],
         freeTrial: true,
         group: 'ai',
       },
@@ -236,7 +236,7 @@ export function OnboardingChecklist() {
         icon: UserCircle2,
         completed: checklistData.hasAvatar,
         action: () => navigate('/my-room?tab=avatar'),
-        points: 30,
+        points: ONBOARDING_STEP_POINTS['avatar'],
         freeTrial: true,
         group: 'ai',
       },
@@ -248,7 +248,7 @@ export function OnboardingChecklist() {
         icon: Users,
         completed: checklistData.hasFollow,
         action: () => navigate('/explore'),
-        points: 10,
+        points: ONBOARDING_STEP_POINTS['follow'],
         group: 'community',
       },
       {
@@ -261,7 +261,7 @@ export function OnboardingChecklist() {
         icon: ArrowLeftRight,
         completed: checklistData.hasTradeOffer,
         action: () => navigate('/search?tab=trade'),
-        points: 20,
+        points: ONBOARDING_STEP_POINTS['trade-offer'],
         group: 'community',
       },
       {
@@ -271,7 +271,7 @@ export function OnboardingChecklist() {
         icon: Compass,
         completed: checklistData.hasBookmark,
         action: () => navigate('/explore'),
-        points: 10,
+        points: ONBOARDING_STEP_POINTS['bookmark'],
         group: 'community',
       },
     ];
@@ -287,8 +287,8 @@ export function OnboardingChecklist() {
 
   // 序盤は開いて出す。アカウント作成だけ済んだ状態で畳むと、
   // 進捗バー1行しか見えず次の行動が分からない。
-  const EARLY_STEPS = 3;
-  const isExpanded = expandPref ?? completedCount <= EARLY_STEPS;
+  // 既定は畳む（1行の「次にやること」だけ）。開いたままだとコレクションの最初の画面がガイドで埋まり、グッズが1つも見えなかった
+  const isExpanded = expandPref ?? false;
 
   // グループ化
   const groupedItems = useMemo(() => {
@@ -365,8 +365,8 @@ export function OnboardingChecklist() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
     >
-      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-lg overflow-hidden">
-        <CardContent className="p-4 space-y-3">
+      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-sm overflow-hidden">
+        <CardContent className={isExpanded ? "p-4 space-y-3" : "p-3 space-y-2"}>
           {/* Header (tap anywhere to expand/collapse) */}
           <div className="flex items-center justify-between">
             <button
@@ -412,10 +412,10 @@ export function OnboardingChecklist() {
             </div>
           </div>
 
-          {/* Progress */}
+          {/* Progress（畳んでいるときはバーだけにして高さを抑える） */}
           <div className="space-y-1.5">
-            <Progress value={progress} className="h-2" />
-            <div className="flex items-center justify-between text-xs">
+            <Progress value={progress} className={isExpanded ? "h-2" : "h-1.5"} />
+            {isExpanded && <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">
                 {t('misc.checklist.stepsLeft', { n: totalCount - completedCount })}
               </span>
@@ -425,7 +425,7 @@ export function OnboardingChecklist() {
                   ? t('misc.checklist.nextReward', { n: nextReward })
                   : t('misc.checklist.hasReward')}
               </span>
-            </div>
+            </div>}
           </div>
 
           {/* 畳んでいるときの「次にやること」。
@@ -446,12 +446,9 @@ export function OnboardingChecklist() {
                   {t('misc.checklist.nextUp')}
                 </p>
                 <p className="text-sm font-medium truncate">{t(nextItem.labelKey)}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {t(nextItem.descriptionKey)}
-                </p>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-bold tabular-nums text-points bg-points-soft px-2 py-0.5 rounded-full">
                   +{nextItem.points}pt
                 </span>
                 {nextItem.action && <ChevronRight className="w-4 h-4 text-muted-foreground" />}

@@ -19,6 +19,7 @@ import { ProfileBookmarks } from "./ProfileBookmarks";
 import { ProfileShowcase } from "./ProfileShowcase";
 import { WishlistGrid } from "@/components/collection/WishlistGrid";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ProfileTabs } from "./ProfileTabs";
 
 type Tab = "collection" | "posts" | "wishlist" | "saved";
 
@@ -73,7 +74,7 @@ export function ProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="w-full pt-14 pb-24">
+      <main className="w-full pb-24">
         <div className="max-w-3xl mx-auto">
           {/* ヒーローカード */}
           <ProfileHero
@@ -107,33 +108,7 @@ export function ProfilePage() {
 
           {/* タブナビ */}
           <div className="px-4 mt-6">
-            <div className="relative flex p-1 rounded-full bg-muted/60 border border-border/30">
-              {TABS.map((tab) => {
-                const isActive = activeTab === tab.id;
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      "relative flex-1 flex items-center justify-center gap-1.5 py-2 px-1 rounded-full text-sm font-medium transition-colors z-10 whitespace-nowrap min-w-0",
-                      isActive
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {isActive ? (
-                      <span className="text-xs sm:text-sm font-bold whitespace-nowrap">{t(tab.labelKey)}</span>
-                    ) : (
-                      <>
-                        <Icon className="w-4 h-4 shrink-0" />
-                        <span className="hidden sm:inline text-sm whitespace-nowrap">{t(tab.labelKey)}</span>
-                      </>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            <ProfileTabs<Tab> tabs={TABS} active={activeTab} onChange={setActiveTab} />
           </div>
 
           {/* タブコンテンツ */}
