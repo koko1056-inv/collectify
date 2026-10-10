@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { BellRing } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChatModal } from "@/components/chat/ChatModal";
 import { TradeReviewModal } from "@/features/trust/TradeReviewModal";
@@ -11,6 +11,7 @@ import { useMyTrades } from "@/hooks/trade/useMyTrades";
 
 import { TradeCard } from "./TradeCard";
 import { TradeRequestsModal } from "./TradeRequestsModal";
+import { TradeSectionHeader } from "./TradeSectionHeader";
 import { viewpointOf, type TradeRequest } from "./types";
 
 /** 交換タブの先頭に並べる、自分の番の取引の最大件数。残りは受信箱で見る。 */
@@ -39,13 +40,11 @@ export function MyTurnSection() {
   return (
     <>
       <Card data-tour="trade-my-turn" className="border-primary/40 bg-primary/5">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <BellRing className="h-4 w-4 text-primary" />
-            {t("trade.myTurn.title", { n: myTurn.length })}
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">{t("trade.myTurn.desc")}</p>
-        </CardHeader>
+        <TradeSectionHeader
+          icon={BellRing}
+          title={t("trade.myTurn.title", { n: myTurn.length })}
+          description={t("trade.myTurn.desc")}
+        />
         <CardContent className="space-y-3">
           {myTurn.slice(0, SHOWN).map((trade) => (
             <TradeCard key={trade.id} trade={trade} onOpenChat={setChatTrade} onReview={setReviewTrade} />

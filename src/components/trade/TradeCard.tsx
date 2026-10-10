@@ -176,6 +176,16 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
         )}
       </div>
 
+      {/* 返事待ちの申請は、写真だけだと「どちらが自分の品か」を読み違えやすい。
+          「相手は◯◯を出して、あなたの△△をほしがっている」と文でも伝える */}
+      {trade.status === "pending" && (
+        <p className="text-xs leading-relaxed">
+          {view.isSender
+            ? t("trade.card.outgoingSummary", { name: partnerName, theirs: theirItem.title, mine: myItem.title })
+            : t("trade.card.incomingSummary", { name: partnerName, theirs: theirItem.title, mine: myItem.title })}
+        </p>
+      )}
+
       {/* 何と何を交換するのか */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <ItemSide label={t("trade.card.youGive")} item={myItem} />
