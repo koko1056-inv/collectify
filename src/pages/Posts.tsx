@@ -170,10 +170,12 @@ const Posts = memo(function Posts() {
       {/* フローティングアクションボタン */}
       <button
         onClick={handleCreateAction}
-        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-50 h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform hover:scale-105 active:scale-95 group"
-        aria-label={activeTab === "posts" ? t("common.newPost") : activeTab === "polls" ? t("screens.posts.newPoll") : t("screens.posts.newChallenge")}>
-
+        // 下タブ中央の＋（グッズ追加）と見分けられるよう、丸い＋ではなく文字付きにする
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 sm:bottom-8 sm:right-8 z-50 h-12 pl-4 pr-5 gap-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg flex items-center justify-center transition-transform active:scale-95 group">
         {getCreateIcon()}
+        <span className="text-sm font-bold">
+          {activeTab === "posts" ? t("common.newPost") : activeTab === "polls" ? t("screens.posts.newPoll") : t("screens.posts.newChallenge")}
+        </span>
       </button>
 
       {/* 投稿作成モーダル */}

@@ -1,3 +1,4 @@
+import { ONBOARDING_STEPS } from "@/components/onboarding/steps";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -122,16 +123,6 @@ const quickTips = [
   },
 ];
 
-// label は翻訳キー（描画時に t() で解決）。
-const onboardingSteps = [
-  { label: "screens.howToUse.onboarding.account", points: 10, icon: "👤" },
-  { label: "screens.howToUse.onboarding.profile", points: 10, icon: "✏️" },
-  { label: "screens.howToUse.onboarding.interests", points: 10, icon: "⭐" },
-  { label: "screens.howToUse.onboarding.firstGoods", points: 20, icon: "📦" },
-  { label: "screens.howToUse.onboarding.avatar", points: 30, icon: "🧑‍🎨" },
-  { label: "screens.howToUse.onboarding.aiRoom", points: 30, icon: "🏠" },
-  { label: "screens.howToUse.onboarding.firstPost", points: 20, icon: "📸" },
-];
 
 // q/a は翻訳キー（描画時に t() で解決）。
 const faqs = [
@@ -209,7 +200,7 @@ export default function HowToUse() {
             <div className="text-center">
               <h2 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-6 h-6 text-primary" />
-                {t("screens.howToUse.onboardingHeading")}
+                {t("screens.howToUse.onboardingHeading", { n: ONBOARDING_STEPS.length })}
               </h2>
               <p className="text-muted-foreground mt-2">
                 {t("screens.howToUse.onboardingSub")}
@@ -218,17 +209,17 @@ export default function HowToUse() {
             <Card className="border-2 border-primary/20 overflow-hidden">
               <CardContent className="p-5 md:p-6">
                 <ol className="grid sm:grid-cols-2 gap-3">
-                  {onboardingSteps.map((step, i) => (
+                  {ONBOARDING_STEPS.map((step, i) => (
                     <li
-                      key={step.label}
+                      key={step.id}
                       className="flex items-center gap-3 rounded-xl bg-muted/40 p-3"
                     >
                       <span className="w-8 h-8 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center text-sm shrink-0">
                         {i + 1}
                       </span>
-                      <span className="text-xl">{step.icon}</span>
+                      <span className="text-xl">{step.emoji}</span>
                       <span className="flex-1 text-sm font-medium">
-                        {t(step.label)}
+                        {t(step.labelKey)}
                       </span>
                       <Badge variant="secondary" className="font-bold">
                         +{step.points}pt
@@ -405,22 +396,22 @@ export default function HowToUse() {
                       <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
                         <Package className="w-5 h-5 text-primary" />
                         <div>
-                          <div className="font-medium">{t("screens.howToUse.pointsAddGoods")}</div>
-                          <div className="text-primary font-bold">+10pt</div>
+                          <div className="font-medium">{t("screens.howToUse.pointsPost")}</div>
+                          <div className="text-points font-bold tabular-nums">{t("screens.howToUse.pointsPostValue")}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
                         <CheckCircle2 className="w-5 h-5 text-primary" />
                         <div>
                           <div className="font-medium">{t("screens.howToUse.pointsDailyLogin")}</div>
-                          <div className="text-primary font-bold">+5pt</div>
+                          <div className="text-points font-bold tabular-nums">{t("screens.howToUse.pointsDailyLoginValue")}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
                         <Sparkles className="w-5 h-5 text-primary" />
                         <div>
                           <div className="font-medium">{t("screens.howToUse.pointsStepsDone")}</div>
-                          <div className="text-primary font-bold">{t("screens.howToUse.pointsStepsValue")}</div>
+                          <div className="text-points font-bold tabular-nums">{t("screens.howToUse.pointsStepsValue", { n: ONBOARDING_STEPS.reduce((sum, s) => sum + s.points, 0) })}</div>
                         </div>
                       </div>
                     </div>
