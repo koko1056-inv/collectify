@@ -108,7 +108,7 @@ export const DISPLAY_FURNITURE: DisplayFurniturePreset[] = [
     nameEn: "Small Pedestal",
     icon: "⚪",
     category: "stand",
-    description: "1つのアイテムを際立たせる小さな台座",
+    description: "1つのグッズを際立たせる小さな台座",
     descriptionEn: "A small pedestal that spotlights a single item",
     widthVw: 6,
     heightVw: 4,

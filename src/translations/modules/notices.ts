@@ -124,7 +124,7 @@ export const notices = {
       bulkAdded: "{added}件にタグを追加しました",
       bulkAddedPartial: "{added}件にタグを追加({skipped}件は既存)",
       savedTitle: "保存しました",
-      savedDesc: "タグとコンテンツ名が保存されました。",
+      savedDesc: "タグと作品名が保存されました。",
       saveErrorDesc: "保存中にエラーが発生しました。",
     },
     tagSelect: {
@@ -164,9 +164,9 @@ export const notices = {
       deleteFailed: "削除に失敗しました",
     },
     trade: {
-      updateFailed: "トレードリクエストの更新に失敗しました",
+      updateFailed: "交換の申し込みの更新に失敗しました",
       updateDoneTitle: "更新完了",
-      rejected: "トレードリクエストを拒否しました",
+      rejected: "交換の申し込みを拒否しました",
     },
     polls: {
       createdTitle: "投票を作成しました",
@@ -185,9 +185,9 @@ export const notices = {
     adminItem: {
       imageUploadFailedDesc: "画像のアップロードに失敗しました。",
       titleRequiredDesc: "タイトルを入力してください。",
-      addedTitle: "アイテムを追加しました",
+      addedTitle: "グッズを追加しました",
       addedDesc: "あなたのおかげでグッズリストが充実しました！5ポイント獲得！",
-      addFailedDesc: "アイテムの追加に失敗しました。",
+      addFailedDesc: "グッズの追加に失敗しました。",
       addToOwnCollectionLabel: "自分のコレクションに追加する",
       addToOwnCollectionHint: "コレクション枠を1つ使います。カタログの整備だけなら外してください。",
       noDestinationWarning: "どちらかを選んでください。両方外すと保存先がありません。",
@@ -321,10 +321,10 @@ export const notices = {
       nameRequired: "Enter a tag name",
       noItemsSelected: "No goods selected",
       alreadyTagged: "Already tagged",
-      bulkAdded: "Tag added to {added} items",
-      bulkAddedPartial: "Tag added to {added} items ({skipped} already had it)",
+      bulkAdded: "Tag added to {added} goods",
+      bulkAddedPartial: "Tag added to {added} goods ({skipped} already had it)",
       savedTitle: "Saved",
-      savedDesc: "Your tags and content name were saved.",
+      savedDesc: "Your tags and series name were saved.",
       saveErrorDesc: "Something went wrong while saving.",
     },
     tagSelect: {
@@ -364,9 +364,9 @@ export const notices = {
       deleteFailed: "Couldn't delete",
     },
     trade: {
-      updateFailed: "Couldn't update the trade request",
+      updateFailed: "Couldn't update the request",
       updateDoneTitle: "Updated",
-      rejected: "Trade request declined",
+      rejected: "Request declined",
     },
     polls: {
       createdTitle: "Poll created",
@@ -385,7 +385,7 @@ export const notices = {
     adminItem: {
       imageUploadFailedDesc: "Couldn't upload the image.",
       titleRequiredDesc: "Enter a title.",
-      addedTitle: "Item added",
+      addedTitle: "Goods added",
       addedDesc: "Thanks to you the goods list keeps growing! You earned 5 points!",
       addFailedDesc: "Couldn't add the item.",
       addToOwnCollectionLabel: "Add to my collection",
@@ -400,8 +400,8 @@ export const notices = {
       alsoInCatalogDesc: "It was added to the shared catalog too.",
       collectionOnlyDesc: "It was added to your collection only.",
       limitTitle: "Collection slots are full",
-      limitWithCatalogDesc: "We added it to the catalog, but your collection is full ({max} items) so it wasn't added there. You can buy more slots in the point shop.",
-      limitDesc: "Your collection is full ({max} items), so it wasn't added. You can buy more slots in the point shop.",
+      limitWithCatalogDesc: "We added it to the catalog, but your collection is full ({max} goods) so it wasn't added there. You can buy more slots in the point shop.",
+      limitDesc: "Your collection is full ({max} goods), so it wasn't added. You can buy more slots in the point shop.",
       collectionFailedWithCatalogDesc: "We added it to the catalog, but couldn't add it to your collection.",
       collectionFailedDesc: "Couldn't add it to your collection.",
     },

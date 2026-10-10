@@ -10,13 +10,13 @@ export const admin = {
     duplicates: {
       title: "重複したグッズの統合",
       description:
-        "同じグッズが2件に分かれていると、持っている人と欲しい人がマッチングで出会えません。片方に寄せて1件にまとめます。",
+        "同じグッズが2件に分かれていると、持っている人とほしい人がマッチングで出会えません。片方に寄せて1件にまとめます。",
       loadFailed: "重複候補を読み込めませんでした",
       noneTitle: "重複候補はありません",
       noneDesc: "見出しが完全に一致する組は見つかりませんでした。表記が違う重複は下から手で探せます。",
       groupCount: "{count}件",
       exactBadge: "同じ画像 {count}件",
-      usage: "所持 {owners}人 / 欲しい {wishes}人",
+      usage: "所持 {owners}人 / ほしい {wishes}人",
       sameImage: "画像が一致（同じものです）",
       differentImage: "画像が違います",
       nameOnlyWarning:
@@ -27,9 +27,9 @@ export const admin = {
       mergeIn: "こちらに寄せる",
       confirmTitle: "統合しますか？",
       confirmDesc:
-        "「{merge}」を「{keep}」に寄せます。所持・ウィッシュ・タグ・投稿はすべて統合先に付け替わります。統合元の行は削除せず、一覧から隠すだけです。",
+        "「{merge}」を「{keep}」に寄せます。所持・ほしい・タグ・投稿はすべて統合先に付け替わります。統合元の行は削除せず、一覧から隠すだけです。",
       confirmDifferentImage:
-        "この2件は画像が違います。別商品なら、寄せると2つの商品が1つになってしまいます。付け替えた所持・ウィッシュ・タグは元に戻せません。",
+        "この2件は画像が違います。別商品なら、寄せると2つの商品が1つになってしまいます。付け替えた所持・ほしい・タグは元に戻せません。",
       cancel: "やめる",
       confirmCta: "統合する",
       mergedTitle: "統合しました",
@@ -46,7 +46,7 @@ export const admin = {
       title: "同じ名前のグッズが既にあります",
       description:
         "同じ名前のグッズが{count}件登録されています。同じものなら、二重に登録せず既存のものを使ってください。キャラ違いなど別商品なら、そのまま登録して問題ありません。",
-      usage: "所持 {owners}人 / 欲しい {wishes}人",
+      usage: "所持 {owners}人 / ほしい {wishes}人",
       back: "戻って直す",
       proceed: "別の商品として登録する",
     },
@@ -130,7 +130,7 @@ export const admin = {
   },
   en: {
     duplicates: {
-      title: "Merge duplicate Goods",
+      title: "Merge duplicate goods",
       description:
         "When the same item exists twice, the person who has it and the person who wants it never match. Merge them into one.",
       loadFailed: "Couldn't load duplicate candidates",

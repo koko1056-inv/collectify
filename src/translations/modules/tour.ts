@@ -49,7 +49,7 @@ export const tour = {
     trade: {
       how: {
         title: "交換は2つ揃うと成立します",
-        body: "「欲しいもの」と「交換に出せるもの」の両方があると相手が見つかります。ダブっているグッズを1つ出すだけで十分です。",
+        body: "「ほしいもの」と「交換に出せるもの」の両方があると相手が見つかります。ダブっているグッズを1つ出すだけで十分です。",
       },
       offer: {
         title: "出すものをここで選びます",
@@ -124,7 +124,7 @@ export const tour = {
     collection: {
       nav: {
         title: "This is your shelf",
-        body: "Five tabs along the bottom: Collection, Trade, Add, People and My Room. The round button in the middle adds Goods at any time.",
+        body: "Five tabs along the bottom: Collection, Trade, Add, People and My Room. The round button in the middle adds goods at any time.",
       },
       checklist: {
         title: "Start by working through this",
