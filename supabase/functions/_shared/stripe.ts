@@ -31,7 +31,7 @@ export class StripeNotConfigured extends Error {
 }
 
 export async function stripeRequest<T = any>(
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "DELETE",
   path: string,
   params?: Record<string, unknown>,
   opts?: { idempotencyKey?: string }

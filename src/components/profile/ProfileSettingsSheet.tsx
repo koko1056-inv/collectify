@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useColorScheme, type ColorScheme } from "@/contexts/ColorSchemeContext";
 import { cn } from "@/lib/utils";
 import { InstallAppCard } from "@/components/pwa/InstallAppCard";
+import { AccountSection } from "./AccountSection";
 
 interface ProfileSettingsSheetProps {
   open: boolean;
@@ -108,6 +109,9 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
               })}
             </div>
           </section>
+
+          {/* アカウント（データの書き出し・退会） */}
+          <AccountSection onDeleted={() => onOpenChange(false)} />
 
           {/* ログアウト */}
           <Button
