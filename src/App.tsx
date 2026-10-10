@@ -58,6 +58,7 @@ const MyRoom = lazy(() => import("./pages/MyRoom").catch(() => ({ default: () =>
 const Search = lazy(() => import("./pages/Search").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Collection = lazy(() => import("./pages/Collection").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Posts = lazy(() => import("./pages/Posts"));
+const Oshi = lazy(() => import("./pages/Oshi"));
 const ItemPostsFeed = lazy(() => import("./pages/ItemPostsFeed").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // バックグラウンドで下部ナビ全タブのコードチャンクをプリフェッチ。
@@ -186,6 +187,7 @@ const App: React.FC = () => {
                       <Route path="/quick-add" element={<ProtectedRoute><QuickAdd /></ProtectedRoute>} />
                       <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
                       <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                      <Route path="/oshi" element={<ProtectedRoute><Oshi /></ProtectedRoute>} />
                       <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
                       <Route path="/item-posts" element={<ProtectedRoute><ItemPostsFeed /></ProtectedRoute>} />
                       <Route path="/post/:postId" element={<ProtectedRoute><ItemPostsFeed /></ProtectedRoute>} />
