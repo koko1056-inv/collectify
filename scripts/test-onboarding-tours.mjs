@@ -144,11 +144,16 @@ const lookupCases = [
   ["/search", "", "search-v1"],
   ["/search", "?tab=goods", "search-v1"],
   ["/search", "?tab=", "search-v1"],
-  ["/search", "?tab=trade", "trade-v1"],
+  // 交換は /trade に移った。/search?tab=trade は /trade へ転送するだけなのでツアーは出さない
+  ["/search", "?tab=trade", undefined],
+  ["/trade", "", "trade-v1"],
   ["/search", "?tab=friends", undefined],
   ["/explore", "?tab=rooms", "explore-v2"],
   ["/explore", "?tab=posts", "explore-v2"],
   ["/explore", "", "explore-v2"],
+  ["/me", "", "me-v1"],
+  // 設定シートを開いているときはマイページのツアーを重ねない
+  ["/me", "?settings=1", undefined],
   ["/login", "", undefined],
 ];
 for (const [path, search, want] of lookupCases) {
@@ -169,7 +174,7 @@ for (const t of PAGE_TOURS) {
 }
 
 // ── 9. query は URLSearchParams で引けるキーだけか（打ち間違い検出） ──
-const KNOWN_QUERY_KEYS = new Set(["tab"]);
+const KNOWN_QUERY_KEYS = new Set(["tab", "settings"]);
 for (const t of PAGE_TOURS) {
   for (const key of Object.keys(t.query ?? {})) {
     check(`${t.id}: query キー "${key}" は既知`, KNOWN_QUERY_KEYS.has(key));
