@@ -12,6 +12,7 @@ import {
   useSendItemRoomMessage,
 } from "./useItemRoom";
 import { MessageBubble } from "./MessageBubble";
+import { IconTile } from "@/components/ui/icon-tile";
 
 interface Props {
   officialItemId: string;
@@ -57,9 +58,10 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
   if (!canAccess) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-        <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mb-3">
-          <Lock className="h-6 w-6 text-muted-foreground" />
-        </div>
+        {/* 以前は丸い面。空・鍵の状態の印は EmptyState と同じ IconTile にそろえる */}
+        <IconTile tone="muted" size="lg" className="mb-3">
+          <Lock />
+        </IconTile>
         <p className="text-sm font-medium mb-1">{t("trade.room.joinTitle")}</p>
         <p className="text-xs text-muted-foreground max-w-xs">
           {t("trade.room.joinReqPrefix")}<span className="font-medium">{t("trade.room.joinReqCollection")}</span>

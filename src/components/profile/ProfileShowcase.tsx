@@ -91,7 +91,7 @@ export function ProfileShowcase({
     <section className="px-4 mt-6">
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+          <Sparkles className="w-4 h-4 text-primary" />
           <h2 className="text-sm font-bold tracking-wide">{t("profileScreen.showcase.title")}</h2>
         </div>
         {isOwnProfile && hasAny && (

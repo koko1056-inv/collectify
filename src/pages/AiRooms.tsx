@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { IconTile } from "@/components/ui/icon-tile";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
@@ -172,13 +173,10 @@ export default function AiRoomsPage() {
             </Button>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <motion.div
-                  animate={{ rotate: [0, 8, -6, 0] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-7 h-7 rounded-full bg-brand-gradient flex items-center justify-center shadow-md"
-                >
-                  <Wand2 className="w-3.5 h-3.5 text-white" />
-                </motion.div>
+                {/* 以前はブランドのグラデ丸が揺れ続けていた。見出しの印は静かな IconTile にする */}
+                <IconTile tone="primary" size="sm">
+                  <Wand2 />
+                </IconTile>
                 <h1 className="text-lg sm:text-xl font-bold tracking-tight">
                   {t("screens.aiRooms.studioTitle")}
                 </h1>
@@ -188,7 +186,7 @@ export default function AiRoomsPage() {
                   </span>
                 )}
               </div>
-              <p className="text-2xs text-muted-foreground mt-0.5 ml-9">
+              <p className="text-2xs text-muted-foreground mt-0.5 ml-10">
                 {t("screens.aiRooms.studioSubtitle")}
               </p>
             </div>
@@ -295,7 +293,7 @@ export default function AiRoomsPage() {
               data-tour="airooms-generate"
               onClick={handleNewClick}
               size="sm"
-              className="h-10 gap-1 bg-brand-gradient text-white hover:opacity-95 shadow-md shrink-0"
+              className="h-10 gap-1 shrink-0"
             >
               <Plus className="w-4 h-4" />
               {t("screens.aiRooms.createNew")}
@@ -535,11 +533,13 @@ function AvatarPanel({
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={onGenerate}
-          className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 border border-border/40 hover:shadow-md transition"
+          className="relative overflow-hidden rounded-2xl p-4 text-left bg-card border border-border hover:border-primary/40 transition-colors"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-2">
-            <Wand2 className="w-5 h-5 text-primary-foreground" />
-          </div>
+          {/* 以前は primary と sky→blue のグラデーション面を並べていた。
+              2枚は同じ重みの選択肢なので、同じカード・同じ IconTile にそろえる */}
+          <IconTile tone="primary" size="md" className="mb-2">
+            <Wand2 />
+          </IconTile>
           <p className="text-sm font-bold">{t("screens.aiRooms.avatarGenerate")}</p>
           <p className="text-2xs text-muted-foreground mt-0.5">
             {t("screens.aiRooms.avatarGenerateDesc")}
@@ -547,12 +547,12 @@ function AvatarPanel({
         </button>
         <button
           onClick={onDressUp}
-          className="relative overflow-hidden rounded-2xl p-4 text-left bg-gradient-to-br from-sky-500/15 via-blue-500/15 to-cyan-400/15 border border-border/40 hover:shadow-md transition"
+          className="relative overflow-hidden rounded-2xl p-4 text-left bg-card border border-border hover:border-primary/40 transition-colors disabled:opacity-60 disabled:hover:border-border"
           disabled={avatars.avatars.length === 0}
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 flex items-center justify-center mb-2">
-            <Shirt className="w-5 h-5 text-white" />
-          </div>
+          <IconTile tone="primary" size="md" className="mb-2">
+            <Shirt />
+          </IconTile>
           <p className="text-sm font-bold">{t("screens.aiRooms.avatarDressUp")}</p>
           <p className="text-2xs text-muted-foreground mt-0.5">
             {t("screens.aiRooms.avatarDressUpDesc")}
@@ -649,29 +649,11 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
       <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-primary/30 blur-3xl" />
 
       <div className="relative p-6 sm:p-8 text-center space-y-5">
-        <div className="relative w-20 h-20 mx-auto">
-          <motion.div
-            animate={{ rotate: [0, 15, -10, 0], scale: [1, 1.08, 1] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="w-full h-full rounded-full bg-brand-gradient flex items-center justify-center shadow-xl"
-          >
-            <Wand2 className="w-9 h-9 text-white" />
-          </motion.div>
-          {[0, 1, 2].map((i) => (
-            <motion.div
-              key={i}
-              className="absolute"
-              style={{
-                left: `${50 + Math.cos((i / 3) * Math.PI * 2) * 55}%`,
-                top: `${50 + Math.sin((i / 3) * Math.PI * 2) * 55}%`,
-              }}
-              animate={{ scale: [0, 1, 0], opacity: [0, 1, 0] }}
-              transition={{ duration: 2, repeat: Infinity, delay: i * 0.5 }}
-            >
-              <Sparkles className="w-4 h-4 text-primary" />
-            </motion.div>
-          ))}
-        </div>
+        {/* 以前はグラデの丸が揺れ続け、まわりで Sparkles が3つ明滅していた。
+            子どもっぽく見えたので、動かない IconTile 1つにした */}
+        <IconTile tone="primary" size="lg">
+          <Wand2 />
+        </IconTile>
 
         <div>
           <h2 className="text-xl sm:text-2xl font-bold mb-1.5">
@@ -687,7 +669,7 @@ function EmptyHero({ onStart }: { onStart: () => void }) {
         <Button
           size="lg"
           onClick={onStart}
-          className="gap-2 h-12 px-6 bg-brand-gradient text-white hover:opacity-95 shadow-lg"
+          className="gap-2 h-12 px-6"
         >
           <Wand2 className="w-5 h-5" />
           {t("screens.aiRooms.emptyHeroCta")}
@@ -736,8 +718,8 @@ function RoomCard({
         {/* スタイルバッジ */}
         {preset && (
           <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-black/50 backdrop-blur text-white text-3xs font-bold flex items-center gap-1">
-            <span>{preset.emoji}</span>
-            <span>{preset.name}</span>
+            <preset.icon className="w-3 h-3" aria-hidden="true" />
+            <span>{t(`aiRoom.stylePresets.${preset.id}.name`)}</span>
           </div>
         )}
         {/* 公開バッジ */}

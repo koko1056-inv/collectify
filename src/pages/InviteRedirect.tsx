@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Gift } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { IconTile } from "@/components/ui/icon-tile";
 
 /**
  * 招待リンク `/invite/:code` の着地ページ。
@@ -39,9 +40,10 @@ export default function InviteRedirect() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="text-center space-y-4 max-w-sm">
         <div className="flex justify-center">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
-            <Gift className="h-8 w-8 text-primary-foreground" />
-          </div>
+          {/* 以前は primary のグラデの丸に白い Gift。共通の IconTile にそろえる */}
+          <IconTile tone="primary" size="lg">
+            <Gift />
+          </IconTile>
         </div>
         <h1 className="text-xl font-bold">{t("screens.invite.checking")}</h1>
         <p className="text-sm text-muted-foreground">

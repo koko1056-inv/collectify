@@ -3,6 +3,7 @@ import { AdminItemForm } from "@/components/AdminItemForm";
 import { BackButton } from "@/components/navigation/BackButton";
 import { Package, Sparkles } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { IconTile } from "@/components/ui/icon-tile";
 
 export default function AddItem() {
   const { t } = useLanguage();
@@ -15,9 +16,10 @@ export default function AddItem() {
 
           {/* タイトルセクション */}
           <div className="mb-6 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 mb-4">
-              <Package className="h-8 w-8 text-primary" />
-            </div>
+            {/* 以前はグラデーションの手作りの面。共通の IconTile にそろえる */}
+            <IconTile tone="primary" size="lg" className="mb-4">
+              <Package />
+            </IconTile>
             <h1 className="text-2xl font-bold text-foreground mb-2">{t("screens.addItem.title")}</h1>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
               {t("screens.addItem.descLine1")}

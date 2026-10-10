@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { IconTile } from "@/components/ui/icon-tile";
 
 /**
  * マイページの「保存」タブ
@@ -31,9 +32,10 @@ export function ProfileBookmarks() {
     return (
       <div className="px-4 mt-2">
         <div className="bg-card rounded-2xl border border-border/40 p-10 text-center">
-          <div className="w-14 h-14 mx-auto rounded-full bg-muted flex items-center justify-center mb-3">
-            <Bookmark className="w-6 h-6 text-muted-foreground" />
-          </div>
+          {/* 以前は丸い面。空の状態の印は EmptyState と同じ IconTile にそろえる */}
+          <IconTile tone="muted" size="lg" className="mb-3">
+            <Bookmark />
+          </IconTile>
           <p className="font-bold text-sm mb-1">{t("profileScreen.bookmarks.empty")}</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
             {t("profileScreen.bookmarks.emptyHint1")}

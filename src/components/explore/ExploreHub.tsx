@@ -105,7 +105,7 @@ export function ExploreHub() {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h1 className="text-2xl font-bold flex items-center gap-2">
-                  <Sparkles className="w-6 h-6 text-primary" />
+                  <Sparkles className="w-5 h-5 text-primary" />
                   {t("chrome.explore.title")}
                 </h1>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -533,7 +533,8 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
       {showMatchSection && (
         <section className="space-y-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-500" />
+            {/* 以前は amber の直書き。見出しの印はテーマの primary にそろえる */}
+            <Sparkles className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-bold">{t("chrome.explore.matchTitle")}</h2>
           </div>
           <p className="text-xs text-muted-foreground">

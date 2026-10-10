@@ -41,6 +41,7 @@ import { AvatarStudioModal, type StudioTab } from "@/components/avatar";
 import { useAvatars, type AvatarRow } from "@/hooks/useAvatars";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { IconTile } from "@/components/ui/icon-tile";
 
 interface AvatarCenterHomeProps {
   profile: Profile | undefined;
@@ -473,11 +474,12 @@ function NextStepHint({ onDressUp }: { onDressUp: () => void }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={onDressUp}
-      className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/5 to-transparent hover:from-primary/10 hover:via-primary/10 transition-colors text-left"
+      className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors text-left"
     >
-      <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-        <Shirt className="w-4 h-4 text-primary" />
-      </div>
+      {/* 以前は面ごとに手作りの四角とグラデーションだった。共通の IconTile と平らな面にそろえる */}
+      <IconTile tone="primary" size="md">
+        <Shirt />
+      </IconTile>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold leading-tight">
           {t("homeScreen.avatarCenter.hintTitle")}

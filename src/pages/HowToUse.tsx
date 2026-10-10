@@ -13,8 +13,8 @@ import {
   Gift,
   Lightbulb,
   ArrowRight,
-  Star,
   Zap,
+  Lock,
   Package,
   UserCircle2,
   Wand2,
@@ -22,6 +22,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { IconTile } from "@/components/ui/icon-tile";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,6 +36,8 @@ import guideCollectionImg from "@/assets/guide-collection.png";
 
 // title/subtitle/description/steps/action は翻訳キー。
 // モジュールスコープでは useLanguage が使えないため、描画時に t() で解決する。
+// 以前は機能ごとに blue→cyan / green→emerald / purple→pink の虹色グラデーションを
+// バッジ・見出し・番号・ボタンに塗っていて、安っぽく見えた。色はテーマの primary 1色にそろえる。
 const featureShowcase = [
   {
     id: "search",
@@ -42,7 +45,6 @@ const featureShowcase = [
     subtitle: "screens.howToUse.feature.search.subtitle",
     description: "screens.howToUse.feature.search.description",
     image: guideSearchImg,
-    color: "from-blue-500 to-cyan-500",
     steps: [
       "screens.howToUse.feature.search.step1",
       "screens.howToUse.feature.search.step2",
@@ -57,7 +59,6 @@ const featureShowcase = [
     subtitle: "screens.howToUse.feature.collection.subtitle",
     description: "screens.howToUse.feature.collection.description",
     image: guideCollectionImg,
-    color: "from-green-500 to-emerald-500",
     steps: [
       "screens.howToUse.feature.collection.step1",
       "screens.howToUse.feature.collection.step2",
@@ -72,7 +73,6 @@ const featureShowcase = [
     subtitle: "screens.howToUse.feature.aiRoom.subtitle",
     description: "screens.howToUse.feature.aiRoom.description",
     image: guideCollectionImg,
-    color: "from-purple-500 to-pink-500",
     steps: [
       "screens.howToUse.feature.aiRoom.step1",
       "screens.howToUse.feature.aiRoom.step2",
@@ -84,67 +84,63 @@ const featureShowcase = [
 ];
 
 // title/description は翻訳キー（描画時に t() で解決）。
+// 以前は1枚ずつ blue / pink / orange… の原色ベタ塗りの丸だった。IconTile の primary にそろえる。
 const quickTips = [
   {
     icon: Plus,
     title: "screens.howToUse.tip.add.title",
     description: "screens.howToUse.tip.add.description",
-    color: "bg-blue-500",
   },
   {
     icon: Heart,
     title: "screens.howToUse.tip.wishlist.title",
     description: "screens.howToUse.tip.wishlist.description",
-    color: "bg-pink-500",
   },
   {
     icon: ArrowRightLeft,
     title: "screens.howToUse.tip.trade.title",
     description: "screens.howToUse.tip.trade.description",
-    color: "bg-orange-500",
   },
   {
     icon: Home,
     title: "screens.howToUse.tip.myRoom.title",
     description: "screens.howToUse.tip.myRoom.description",
-    color: "bg-purple-500",
   },
   {
     icon: UserCircle2,
     title: "screens.howToUse.tip.avatar.title",
     description: "screens.howToUse.tip.avatar.description",
-    color: "bg-cyan-500",
   },
   {
     icon: Wand2,
     title: "screens.howToUse.tip.aiRoom.title",
     description: "screens.howToUse.tip.aiRoom.description",
-    color: "bg-fuchsia-500",
   },
 ];
 
 
 // q/a は翻訳キー（描画時に t() で解決）。
+// 以前は 🔍💎🏠🔄 の絵文字だった。ほかのアイコンと線の太さをそろえるため lucide にする。
 const faqs = [
   {
     q: "screens.howToUse.faq.notFound.q",
     a: "screens.howToUse.faq.notFound.a",
-    icon: "🔍",
+    icon: Search,
   },
   {
     q: "screens.howToUse.faq.points.q",
     a: "screens.howToUse.faq.points.a",
-    icon: "💎",
+    icon: Gift,
   },
   {
     q: "screens.howToUse.faq.roomVisibility.q",
     a: "screens.howToUse.faq.roomVisibility.a",
-    icon: "🏠",
+    icon: Lock,
   },
   {
     q: "screens.howToUse.faq.trade.q",
     a: "screens.howToUse.faq.trade.a",
-    icon: "🔄",
+    icon: ArrowRightLeft,
   },
 ];
 
@@ -199,7 +195,7 @@ export default function HowToUse() {
           >
             <div className="text-center">
               <h2 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-2">
-                <CheckCircle2 className="w-6 h-6 text-primary" />
+                <CheckCircle2 className="w-5 h-5 text-primary" />
                 {t("screens.howToUse.onboardingHeading", { n: ONBOARDING_STEPS.length })}
               </h2>
               <p className="text-muted-foreground mt-2">
@@ -214,10 +210,12 @@ export default function HowToUse() {
                       key={step.id}
                       className="flex items-center gap-3 rounded-xl bg-muted/40 p-3"
                     >
-                      <span className="w-8 h-8 rounded-full bg-primary/15 text-primary font-bold flex items-center justify-center text-sm shrink-0">
+                      <span className="w-4 text-right text-xs font-medium tabular-nums text-muted-foreground shrink-0">
                         {i + 1}
                       </span>
-                      <span className="text-xl">{step.emoji}</span>
+                      <IconTile tone="primary" size="sm">
+                        <step.icon />
+                      </IconTile>
                       <span className="flex-1 text-sm font-medium">
                         {t(step.labelKey)}
                       </span>
@@ -264,9 +262,6 @@ export default function HowToUse() {
                           !isMobile && index % 2 === 1 ? "md:order-2" : ""
                         }`}
                       >
-                        <div
-                          className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-10`}
-                        />
                         <img
                           src={feature.image}
                           alt={t(feature.title)}
@@ -278,9 +273,9 @@ export default function HowToUse() {
                           }`}
                         >
                           <Badge
-                            className={`bg-gradient-to-r ${feature.color} text-white border-0`}
+                            variant="secondary"
+                            className="bg-background/90 text-foreground shadow-sm backdrop-blur-sm tabular-nums"
                           >
-                            <Star className="w-3 h-3 mr-1" />
                             STEP {index + 1}
                           </Badge>
                         </div>
@@ -290,9 +285,7 @@ export default function HowToUse() {
                       <div className="p-6 md:p-8 flex flex-col justify-center bg-card">
                         <div className="space-y-4">
                           <div>
-                            <p
-                              className={`text-sm font-medium bg-gradient-to-r ${feature.color} bg-clip-text text-transparent`}
-                            >
+                            <p className="text-sm font-medium text-primary">
                               {t(feature.subtitle)}
                             </p>
                             <h3 className="text-2xl md:text-3xl font-bold mt-1">
@@ -309,9 +302,7 @@ export default function HowToUse() {
                                 key={stepIndex}
                                 className="flex items-center gap-3"
                               >
-                                <div
-                                  className={`w-6 h-6 rounded-full bg-gradient-to-r ${feature.color} flex items-center justify-center text-white text-xs font-bold`}
-                                >
+                                <div className="w-6 h-6 rounded-full bg-primary/10 text-primary ring-1 ring-inset ring-primary/15 flex items-center justify-center text-xs font-semibold tabular-nums shrink-0">
                                   {stepIndex + 1}
                                 </div>
                                 <span className="text-sm">{t(step)}</span>
@@ -320,7 +311,7 @@ export default function HowToUse() {
                           </div>
 
                           <Button
-                            className={`mt-4 bg-gradient-to-r ${feature.color} hover:opacity-90 transition-opacity text-white`}
+                            className="mt-4 self-start"
                             onClick={() => navigate(feature.path)}
                           >
                             {t(feature.action)}
@@ -339,7 +330,7 @@ export default function HowToUse() {
           <section className="space-y-8">
             <div className="text-center">
               <h2 className="text-2xl md:text-3xl font-bold flex items-center justify-center gap-2">
-                <Zap className="w-6 h-6 text-primary" />
+                <Zap className="w-5 h-5 text-primary" />
                 {t("screens.howToUse.quickTipsHeading")}
               </h2>
               <p className="text-muted-foreground mt-2">
@@ -356,13 +347,11 @@ export default function HowToUse() {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 group">
+                  <Card className="h-full">
                     <CardContent className="p-4 md:p-6 text-center space-y-3">
-                      <div
-                        className={`w-12 h-12 mx-auto rounded-xl ${tip.color} flex items-center justify-center group-hover:scale-110 transition-transform`}
-                      >
-                        <tip.icon className="w-6 h-6 text-white" />
-                      </div>
+                      <IconTile tone="primary" size="md">
+                        <tip.icon />
+                      </IconTile>
                       <div>
                         <h3 className="font-bold">{t(tip.title)}</h3>
                         <p className="text-xs md:text-sm text-muted-foreground mt-1">
@@ -383,32 +372,39 @@ export default function HowToUse() {
             viewport={{ once: true }}
           >
             <Card className="overflow-hidden border-2 border-primary/20">
-              <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 md:p-8">
+              {/* 以前は primary のグラデーション面に白い Gift を載せていた。ポイントの話なので points の面にする */}
+              <div className="p-6 md:p-8">
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg">
-                    <Gift className="w-10 h-10 text-primary-foreground" />
-                  </div>
+                  <IconTile tone="points" size="lg">
+                    <Gift />
+                  </IconTile>
                   <div className="flex-1 space-y-3">
                     <h3 className="text-xl md:text-2xl font-bold">
                       {t("screens.howToUse.pointsHeading")}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                      <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
-                        <Package className="w-5 h-5 text-primary" />
+                      <div className="flex items-center gap-3 bg-muted/40 rounded-lg p-3">
+                        <IconTile tone="primary" size="sm">
+                          <Package />
+                        </IconTile>
                         <div>
                           <div className="font-medium">{t("screens.howToUse.pointsPost")}</div>
                           <div className="text-points font-bold tabular-nums">{t("screens.howToUse.pointsPostValue")}</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
-                        <CheckCircle2 className="w-5 h-5 text-primary" />
+                      <div className="flex items-center gap-3 bg-muted/40 rounded-lg p-3">
+                        <IconTile tone="primary" size="sm">
+                          <CheckCircle2 />
+                        </IconTile>
                         <div>
                           <div className="font-medium">{t("screens.howToUse.pointsDailyLogin")}</div>
                           <div className="text-points font-bold tabular-nums">{t("screens.howToUse.pointsDailyLoginValue")}</div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 bg-background/50 rounded-lg p-3">
-                        <Sparkles className="w-5 h-5 text-primary" />
+                      <div className="flex items-center gap-3 bg-muted/40 rounded-lg p-3">
+                        <IconTile tone="primary" size="sm">
+                          <Sparkles />
+                        </IconTile>
                         <div>
                           <div className="font-medium">{t("screens.howToUse.pointsStepsDone")}</div>
                           <div className="text-points font-bold tabular-nums">{t("screens.howToUse.pointsStepsValue", { n: ONBOARDING_STEPS.reduce((sum, s) => sum + s.points, 0) })}</div>
@@ -440,7 +436,9 @@ export default function HowToUse() {
                   <Card className="h-full hover:shadow-md transition-shadow">
                     <CardContent className="p-5">
                       <div className="flex items-start gap-4">
-                        <span className="text-2xl">{faq.icon}</span>
+                        <IconTile tone="muted" size="md">
+                          <faq.icon />
+                        </IconTile>
                         <div className="space-y-2">
                           <h3 className="font-bold text-base">{t(faq.q)}</h3>
                           <p className="text-sm text-muted-foreground leading-relaxed">

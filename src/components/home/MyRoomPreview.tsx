@@ -2,6 +2,7 @@ import { getInitial } from "@/utils/initial";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { IconTile } from "@/components/ui/icon-tile";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Home,
@@ -48,9 +49,10 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl" />
         
         <div className="relative z-10 text-center space-y-6 max-w-md">
-          <div className="w-32 h-32 mx-auto bg-gradient-to-br from-primary/20 to-secondary/20 rounded-full flex items-center justify-center">
-            <Home className="w-16 h-16 text-primary/60" />
-          </div>
+          {/* 以前は primary→secondary のグラデの大きな丸だった。空の状態の印は共通の IconTile にそろえる */}
+          <IconTile tone="primary" size="lg">
+            <Home />
+          </IconTile>
           
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-foreground">{t("homeScreen.room.createTitle")}</h2>
@@ -63,7 +65,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
             size="lg" 
             onClick={() => createMainRoom.mutate("マイルーム")}
             disabled={createMainRoom.isPending}
-            className="gap-2 shadow-lg hover:shadow-xl transition-all"
+            className="gap-2"
           >
             <Plus className="w-5 h-5" />
             {t("homeScreen.room.createButton")}
@@ -177,7 +179,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
             }}
             className={cn(
               "flex items-center gap-2 transition-colors",
-              isLiked ? "text-rose-500" : "text-muted-foreground hover:text-rose-500"
+              isLiked ? "text-primary" : "text-muted-foreground hover:text-primary"
             )}
             disabled={!user || isOwnRoom}
           >
