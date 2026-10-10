@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ShareModal } from "@/components/ShareModal";
@@ -7,7 +7,9 @@ import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Package, Camera, Heart, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Package, Camera, Heart, ShieldCheck, UserX } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 import { cn } from "@/lib/utils";
 import { ProfileHero } from "@/components/profile/ProfileHero";
 import { FavoriteItemsCircleStrip } from "@/components/profile/FavoriteItemsCircleStrip";
@@ -37,7 +39,7 @@ export default function UserProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { profile } = useProfile(userId);
+  const { profile, error: profileError, isNotFound, refetchProfile } = useProfile(userId);
   const [activeTab, setActiveTab] = useState<Tab>("collection");
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -56,17 +58,40 @@ export default function UserProfile() {
     else navigate("/search?tab=friends");
   };
 
+  // 自分の id で開いたら、自分のプロフィール画面へ（ここでは設定・編集・ログアウトが動かない）
+  if (user && userId === user.id) {
+    return <Navigate to="/edit-profile" replace />;
+  }
+
   if (!profile) {
+    // 読み込み中・存在しない・読み込み失敗を分ける（以前は永遠にスケルトンのままだった）
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container mx-auto pb-20 px-4 pt-6">
-          <div className="max-w-3xl mx-auto space-y-4">
-            <Skeleton className="h-48 w-full rounded-3xl" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-96 w-full" />
-          </div>
+        <main className="container mx-auto pb-24 px-4 pt-6">
+          {isNotFound ? (
+            <EmptyState
+              icon={UserX}
+              title={t("screens.userProfile.notFoundTitle")}
+              description={t("screens.userProfile.notFoundDesc")}
+              action={
+                <Button onClick={() => navigate("/explore?tab=users")}>{t("screens.userProfile.toExplore")}</Button>
+              }
+            />
+          ) : profileError ? (
+            <QueryErrorState
+              title={t("screens.userProfile.loadError")}
+              onRetry={() => void refetchProfile()}
+            />
+          ) : (
+            <div className="max-w-3xl mx-auto space-y-4">
+              <Skeleton className="h-48 w-full rounded-3xl" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-96 w-full" />
+            </div>
+          )}
         </main>
+        <Footer />
       </div>
     );
   }

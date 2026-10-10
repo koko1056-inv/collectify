@@ -27,9 +27,6 @@ export function BackButton({ className, to, fallbackTo }: BackButtonProps) {
     } else if (fallbackTo && location.key === "default") {
       // このルーターでの最初のエントリ＝直リンク。戻る履歴が無いので逃がす。
       navigate(fallbackTo);
-    } else if (location.pathname === "/add-item") {
-      // add-item画面の場合は検索画面に戻る
-      navigate("/search");
     } else {
       // それ以外の場合は履歴を1つ戻る
       navigate(-1);

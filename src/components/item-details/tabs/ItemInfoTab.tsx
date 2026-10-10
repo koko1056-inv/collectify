@@ -89,7 +89,7 @@ export function ItemInfoTab({
         {itemCreator && (
           <p>
             {t("itemDetails.info.creator")}{" "}
-            <Link to={`/profile/${itemCreator.id}`} className="hover:underline">
+            <Link to={`/user/${itemCreator.id}`} className="hover:underline">
               {itemCreator.username}
             </Link>
           </p>

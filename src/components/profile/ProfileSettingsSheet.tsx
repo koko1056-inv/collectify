@@ -32,7 +32,12 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-md p-0 flex flex-col"
+        // 開いた瞬間に先頭のボタンへフォーカスが当たり、赤い枠が出ていた
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <SheetHeader className="px-5 pt-5 pb-3 border-b">
           <SheetTitle className="text-left">{t("profileScreen.settings.title")}</SheetTitle>
         </SheetHeader>

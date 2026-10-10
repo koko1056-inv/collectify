@@ -391,7 +391,7 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
         <div className="flex items-start gap-4 mb-4">
           {/* アバター */}
           <button
-            onClick={() => navigate(`/user/${profile.id}`)}
+            onClick={() => navigate("/edit-profile")}
             className="relative shrink-0 group"
           >
             <motion.div
@@ -446,7 +446,7 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(`/user/${profile.id}`)}
+            onClick={() => navigate("/edit-profile")}
             className="shrink-0 h-9 w-9 rounded-xl"
             title={t("homeScreen.hero.viewProfile")}
           >

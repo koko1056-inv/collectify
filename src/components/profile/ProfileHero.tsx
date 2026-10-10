@@ -12,7 +12,6 @@ import {
   Share2,
   Settings,
   Pencil,
-  LogOut,
   MessageCircle,
   ImagePlus,
   Loader2,
@@ -40,7 +39,6 @@ interface ProfileHeroProps {
   onShare: () => void;
   onEdit?: () => void;
   onOpenSettings?: () => void;
-  onLogout?: () => void;
 }
 
 export function ProfileHero({
@@ -54,7 +52,6 @@ export function ProfileHero({
   onShare,
   onEdit,
   onOpenSettings,
-  onLogout,
 }: ProfileHeroProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -224,8 +221,9 @@ export function ProfileHero({
                 />
               </label>
             )}
+            {/* ログアウトはワンタップで確認なしに実行されていたので、ここには置かない（設定の最下部にある） */}
             {isOwnProfile ? (
-              <>
+              onOpenSettings && (
                 <button
                   onClick={onOpenSettings}
                   className="w-11 h-11 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
@@ -233,14 +231,7 @@ export function ProfileHero({
                 >
                   <Settings className="w-5 h-5" />
                 </button>
-                <button
-                  onClick={onLogout}
-                  className="w-11 h-11 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
-                  aria-label={t("profileScreen.logout.title")}
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
-              </>
+              )
             ) : (
               <button
                 onClick={onShare}
@@ -357,10 +348,12 @@ export function ProfileHero({
           <div className="flex gap-2 mt-4">
             {isOwnProfile ? (
               <>
-                <Button variant="outline" onClick={onEdit} className="flex-1 gap-1.5 rounded-full">
-                  <Pencil className="w-4 h-4" />
-                  {t("profileScreen.editSheet.title")}
-                </Button>
+                {onEdit && (
+                  <Button variant="outline" onClick={onEdit} className="flex-1 gap-1.5 rounded-full">
+                    <Pencil className="w-4 h-4" />
+                    {t("profileScreen.editSheet.title")}
+                  </Button>
+                )}
                 <Button variant="outline" onClick={onShare} size="icon" className="rounded-full shrink-0" aria-label={t("profileScreen.hero.share")}>
                   <Share2 className="w-4 h-4" />
                 </Button>
