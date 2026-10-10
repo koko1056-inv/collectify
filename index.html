@@ -29,6 +29,11 @@
     <meta name="twitter:description" content="アニメ・ゲーム・アイドルのグッズをコレクション管理。選んだグッズから、AIがあなただけの推しルームを描きます。" />
     <meta name="twitter:image" content="/og-image.png" />
 
+    <!-- 画像（サムネ・Storage）と API の接続を先に張っておく。
+         <img> は crossorigin なし、supabase-js の fetch は CORS なので接続が別になる。両方張る -->
+    <link rel="preconnect" href="https://dmgrgzysrzzgsajwqyrh.supabase.co" />
+    <link rel="preconnect" href="https://dmgrgzysrzzgsajwqyrh.supabase.co" crossorigin />
+
     <!-- フォントはレンダーブロックを避けて並列ダウンロード（display=swap） -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

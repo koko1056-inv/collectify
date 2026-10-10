@@ -95,7 +95,9 @@ const CardImage = memo(function CardImage({
   };
   return <div className="aspect-square relative overflow-hidden bg-muted/30 group">
       <LazyImage 
-        key={`${image}-${Date.now()}`} 
+        // Date.now() を key に入れていたため、親が描き直すたびに画像が作り直され
+        // スケルトン→読み込みをやり直していた。画像が変わったときだけ作り直す
+        key={image}
         src={image} 
         alt={title} 
         className="w-full h-full transition-transform duration-500 group-hover:scale-105 object-contain"
