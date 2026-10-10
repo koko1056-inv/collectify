@@ -338,7 +338,8 @@ function InterestsStep({
     >
       {/* スキップは上部バー（BAR_STEPS）にあるので、ここには置かない（重なって二重に見えていた） */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-lg mx-auto px-4 py-8">
+        {/* 上部バー（戻る・進捗・スキップ）の下から始める。py-8 だとハートが進捗バーに重なっていた */}
+        <div className="max-w-lg mx-auto px-4 pt-16 pb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -424,7 +425,7 @@ function CelebrateStep({
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.75 }}
-        className="bg-gradient-to-br from-amber-50 to-primary/5 dark:from-amber-950/30 dark:to-primary/10 border-2 border-amber-200 dark:border-amber-900/50 rounded-2xl px-5 py-4 mb-8 max-w-sm w-full"
+        className="bg-points-soft border border-points/30 rounded-2xl px-5 py-4 mb-8 max-w-sm w-full"
       >
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center shrink-0">
@@ -434,7 +435,7 @@ function CelebrateStep({
             <p className="text-sm font-semibold text-foreground">{t("misc.onboarding.welcomeBonus")}</p>
             <p className="text-xs text-muted-foreground">{t("misc.onboarding.welcomeBonusDesc")}</p>
           </div>
-          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">+50</div>
+          <div className="text-2xl font-bold tabular-nums text-points">+50</div>
         </div>
       </motion.div>
 
@@ -449,7 +450,8 @@ function CelebrateStep({
           size="lg"
           className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
         >
-          {t("misc.onboarding.goRegisterFirst")}
+          {/* 登録済みなら棚へ、まだなら登録画面へ（handleFinish の行き先と揃える） */}
+          {t(addedCount > 0 ? "misc.onboarding.goToCollection" : "misc.onboarding.goRegisterFirst")}
           <ArrowRight className="w-5 h-5" />
         </Button>
         <p className="text-center text-xs text-muted-foreground mt-3">
