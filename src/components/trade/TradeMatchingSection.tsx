@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftRight, Gift, Heart, Layers, MessageCircle, Sparkles } from "lucide-react";
+import { ArrowDownUp, ArrowLeftRight, Gift, Layers, MessageCircle, PackageOpen, Search } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { IconTile } from "@/components/ui/icon-tile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,10 +18,14 @@ import {
   useTradeReadiness,
   useTradeSeriesPartners,
   useMyTradeOffers,
+  useTradePartnerOffers,
   type TradeMatch,
+  type TradeMatchItem,
+  type TradePartnerItem,
   type TradeSeriesPartner,
 } from "@/hooks/useTradeMatches";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+import { cn } from "@/lib/utils";
 
 import { TradeOfferPicker } from "./TradeOfferPicker";
 import { TradeRequestModal } from "./TradeRequestModal";
@@ -28,6 +33,8 @@ import { TradeInboxButton } from "./TradeInboxButton";
 import { MyTurnSection } from "./MyTurnSection";
 import { WishHoldersSection, type HolderRequestTarget } from "./WishHoldersSection";
 import { InlineFollowButton } from "./InlineFollowButton";
+import { PartnerCollectionPicker } from "./PartnerCollectionPicker";
+import { TradeSectionHeader } from "./TradeSectionHeader";
 
 /**
  * 交換相手の候補。
@@ -36,6 +43,10 @@ import { InlineFollowButton } from "./InlineFollowButton";
  * かつ自分が交換に出しているものを相手が欲しがっている組み合わせで、
  * 話が最後までまとまる見込みがいちばん高い。
  * 片想いはその下に、それぞれ別の枠で出す。
+ *
+ * 「あなたのグッズをほしがっている人」は、相手が欲しいもの（自分の品）と、
+ * 代わりにもらえるもの（相手が交換に出している品）を並べて見せ、
+ * 相手の品を押せばそのまま申し込める（自分の品は選んだ状態で開く）。
  */
 export function TradeMatchingSection() {
   const { user } = useAuth();
@@ -49,8 +60,16 @@ export function TradeMatchingSection() {
     itemImage?: string | null;
     partnerName?: string | null;
     partnerOffers?: boolean;
+    /** 申し込み画面で最初から選んでおく、自分の差し出す品 */
+    offeredItemId?: string | null;
   } | null>(null);
   const [chatPartnerId, setChatPartnerId] = useState<string | null>(null);
+  // 交換に出していない相手に、コレクションから選んで相談するときの相手と自分の品
+  const [collectionTarget, setCollectionTarget] = useState<{
+    partnerId: string;
+    partnerName: string;
+    myItem: TradeMatchItem;
+  } | null>(null);
   const [isOfferPickerOpen, setIsOfferPickerOpen] = useState(false);
 
   const { data: matches, isLoading, isError, refetch } = useTradeMatches();
@@ -66,6 +85,15 @@ export function TradeMatchingSection() {
       theyWant: all.filter((m) => !m.is_mutual && m.my_items.length > 0),
     };
   }, [matches]);
+
+  // 「ほしがっている人」全員の、交換に出している品を1回でまとめて引く
+  const theyWantIds = useMemo(() => theyWant.map((m) => m.partner_id), [theyWant]);
+  const {
+    data: partnerOffers,
+    isLoading: offersLoading,
+    isError: offersError,
+    refetch: refetchOffers,
+  } = useTradePartnerOffers(theyWantIds);
 
   const seriesOnly = useMemo(() => {
     const already = new Set((matches ?? []).map((m) => m.partner_id));
@@ -137,9 +165,9 @@ export function TradeMatchingSection() {
         onClick={() => setIsOfferPickerOpen(true)}
         className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-muted/50"
       >
-        <div className="rounded-lg bg-primary/10 p-2">
-          <ArrowLeftRight className="h-4 w-4 text-primary" />
-        </div>
+        <IconTile size="sm" tone="primary">
+          <ArrowLeftRight />
+        </IconTile>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">{t("trade.picker.openTitle")}</p>
           <p className="text-xs text-muted-foreground">
@@ -185,14 +213,12 @@ export function TradeMatchingSection() {
       )}
 
       {/* 両想い */}
-      <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-background">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Sparkles className="w-5 h-5 text-primary" />
-            {t("trade.matching.mutualTitle")}
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">{t("trade.matching.mutualDesc")}</p>
-        </CardHeader>
+      <Card className="border-primary/30">
+        <TradeSectionHeader
+          icon={ArrowLeftRight}
+          title={t("trade.matching.mutualTitle")}
+          description={t("trade.matching.mutualDesc")}
+        />
         <CardContent>
           {mutual.length === 0 ? (
             <EmptyState
@@ -207,13 +233,15 @@ export function TradeMatchingSection() {
                 <MutualMatchCard
                   key={match.partner_id}
                   match={match}
-                  onRequest={(item) =>
+                  onRequest={(item, myItem) =>
                     setSelectedMatch({
                       userId: match.partner_id,
                       itemId: item.id,
                       itemTitle: item.title,
                       itemImage: item.image,
                       partnerName: match.partner_username,
+                      // 両想いなので、相手がほしがっている自分の品を最初から選んでおく
+                      offeredItemId: myItem?.id ?? null,
                     })
                   }
                   onOpenChat={() => openChat(match.partner_id)}
@@ -228,12 +256,7 @@ export function TradeMatchingSection() {
       {/* 片想い: 相手が交換に出していて、自分が欲しい */}
       {theyHave.length > 0 && (
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Heart className="w-4 h-4 text-primary" />
-              {t("trade.matching.haveYourWishlist")}
-            </CardTitle>
-          </CardHeader>
+          <TradeSectionHeader icon={PackageOpen} title={t("trade.matching.haveYourWishlist")} />
           <CardContent className="space-y-3">
             {theyHave.map((match) => (
               <OneWayCard
@@ -244,6 +267,7 @@ export function TradeMatchingSection() {
                   count: match.their_items.length,
                 })}
                 onItemClick={(item) =>
+                  // 差し出す品は、申し込み画面が「相手がほしがっている品」を先頭に並べ、あれば選んでおく
                   setSelectedMatch({
                     userId: match.partner_id,
                     itemId: item.id,
@@ -262,20 +286,39 @@ export function TradeMatchingSection() {
 
       {/* 片想い: 自分が交換に出していて、相手が欲しがっている */}
       {theyWant.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Gift className="w-4 h-4 text-amber-500" />
-              {t("trade.matching.wantYourItems")}
-            </CardTitle>
-          </CardHeader>
+        <Card data-testid="they-want-section">
+          <TradeSectionHeader
+            icon={Gift}
+            title={t("trade.matching.wantYourItems")}
+            description={t("trade.matching.wantYourItemsDesc")}
+          />
           <CardContent className="space-y-3">
             {theyWant.map((match) => (
-              <OneWayCard
+              <TheyWantCard
                 key={match.partner_id}
                 match={match}
-                items={match.my_items}
-                countLabel={t("trade.matching.wantCount", { count: match.my_items.length })}
+                offers={partnerOffers?.[match.partner_id] ?? []}
+                offersLoading={offersLoading}
+                offersError={offersError}
+                onRetryOffers={() => refetchOffers()}
+                onRequest={(theirItem, myItem) =>
+                  setSelectedMatch({
+                    userId: match.partner_id,
+                    itemId: theirItem.id,
+                    itemTitle: theirItem.title,
+                    itemImage: theirItem.image,
+                    partnerName: match.partner_username,
+                    partnerOffers: theirItem.for_trade,
+                    offeredItemId: myItem.id,
+                  })
+                }
+                onBrowse={(myItem) =>
+                  setCollectionTarget({
+                    partnerId: match.partner_id,
+                    partnerName: match.partner_username || t("trade.match.userFallback"),
+                    myItem,
+                  })
+                }
                 onOpenChat={() => openChat(match.partner_id)}
                 onOpenProfile={() => navigate(`/user/${match.partner_id}`)}
               />
@@ -288,15 +331,11 @@ export function TradeMatchingSection() {
           実際に話しかけられる唯一の相手になる。 */}
       {seriesOnly.length > 0 && (
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Layers className="w-4 h-4 text-sky-500" />
-              {t("trade.matching.sameSeriesTitle")}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              {t("trade.matching.sameSeriesDesc")}
-            </p>
-          </CardHeader>
+          <TradeSectionHeader
+            icon={Layers}
+            title={t("trade.matching.sameSeriesTitle")}
+            description={t("trade.matching.sameSeriesDesc")}
+          />
           <CardContent className="space-y-3">
             {seriesOnly.map((partner) => (
               <SeriesPartnerCard
@@ -330,6 +369,36 @@ export function TradeMatchingSection() {
           partnerName={selectedMatch.partnerName}
           partnerOffers={selectedMatch.partnerOffers ?? true}
           receiverId={selectedMatch.userId}
+          preselectedOfferedItemId={selectedMatch.offeredItemId ?? null}
+        />
+      )}
+
+      {collectionTarget && (
+        <PartnerCollectionPicker
+          open={!!collectionTarget}
+          onClose={() => setCollectionTarget(null)}
+          partnerId={collectionTarget.partnerId}
+          partnerName={collectionTarget.partnerName}
+          myItemTitle={collectionTarget.myItem.title}
+          onOpenChat={() => {
+            const pid = collectionTarget.partnerId;
+            setCollectionTarget(null);
+            openChat(pid);
+          }}
+          onPick={(item) => {
+            // 選んだ相手の品を「もらいたい品」、相手がほしがっている自分の品を「差し出す品」にして申し込み画面へ
+            const target = collectionTarget;
+            setCollectionTarget(null);
+            setSelectedMatch({
+              userId: target.partnerId,
+              itemId: item.id,
+              itemTitle: item.title,
+              itemImage: item.image,
+              partnerName: target.partnerName,
+              partnerOffers: item.for_trade,
+              offeredItemId: target.myItem.id,
+            });
+          }}
         />
       )}
 
@@ -567,7 +636,7 @@ function MutualMatchCard({
   onOpenProfile,
 }: {
   match: TradeMatch;
-  onRequest: (item: { id: string; title: string; image: string }) => void;
+  onRequest: (item: TradeMatchItem, myItem: TradeMatchItem | undefined) => void;
   onOpenChat: () => void;
   onOpenProfile: () => void;
 }) {
@@ -582,10 +651,10 @@ function MutualMatchCard({
       <PartnerHeader
         match={match}
         badge={
-          <Badge className="text-xs">
-            <Sparkles className="mr-1 h-3 w-3" />
+          // 状態の印は、色の薄い面に文字だけ（キラキラなどの飾りは付けない）
+          <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-semibold text-primary">
             {t("trade.matching.mutualBadge")}
-          </Badge>
+          </span>
         }
         onOpenChat={onOpenChat}
         onOpenProfile={onOpenProfile}
@@ -642,7 +711,7 @@ function MutualMatchCard({
         className="mt-3 w-full gap-1"
         size="sm"
         disabled={!theirTop}
-        onClick={() => theirTop && onRequest(theirTop)}
+        onClick={() => theirTop && onRequest(theirTop, myTop)}
       >
         <ArrowLeftRight className="h-3.5 w-3.5" />
         {t("trade.matching.requestCta")}
@@ -696,6 +765,193 @@ function OneWayCard({
           {t("trade.matching.andMore", { count: items.length - 3 })}
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * 片想い: 相手が自分の品を欲しがっている。
+ *
+ * 以前はほしがられている自分の品を並べるだけで、押しても何も起きず、
+ * 「相手と何を交換できるのか」が分からない行き止まりだった。
+ * いまは「相手がほしいもの（あなたの）」⇅「代わりにもらえるもの（相手が交換に出している品）」を
+ * 両想いのカードと同じ考え方で並べ、相手の品を押せば、自分の品を選んだ状態で申し込み画面が開く。
+ * 相手が何も交換に出していないときは、そう伝えたうえで
+ * 「相手のコレクションから選んで相談する」「チャットで聞く」の2つの出口を出す。
+ */
+function TheyWantCard({
+  match,
+  offers,
+  offersLoading,
+  offersError,
+  onRetryOffers,
+  onRequest,
+  onBrowse,
+  onOpenChat,
+  onOpenProfile,
+}: {
+  match: TradeMatch;
+  offers: TradePartnerItem[];
+  offersLoading: boolean;
+  offersError: boolean;
+  onRetryOffers: () => void;
+  onRequest: (theirItem: TradePartnerItem, myItem: TradeMatchItem) => void;
+  onBrowse: (myItem: TradeMatchItem) => void;
+  onOpenChat: () => void;
+  onOpenProfile: () => void;
+}) {
+  const { t } = useLanguage();
+  const name = match.partner_username || t("trade.match.userFallback");
+  // 相手がほしがっている自分の品が複数あるときは、どれを渡すか選べる（最初は先頭）
+  const [myPickId, setMyPickId] = useState<string | null>(null);
+  const mine = match.my_items.find((i) => i.id === myPickId) ?? match.my_items[0];
+  const canPickMine = match.my_items.length > 1;
+
+  if (!mine) return null;
+
+  return (
+    <div data-testid="they-want-card" className="rounded-lg border bg-background p-3">
+      <PartnerHeader
+        match={match}
+        badge={
+          <Badge variant="secondary" className="text-xs">
+            {t("trade.matching.wantCount", { count: match.my_items.length })}
+          </Badge>
+        }
+        onOpenChat={onOpenChat}
+        onOpenProfile={onOpenProfile}
+      />
+
+      {/* 相手がほしいもの（あなたの） */}
+      <div className="mt-3">
+        <p className="mb-1.5 text-2xs font-medium text-muted-foreground">{t("trade.matching.theyWantMine")}</p>
+        <div className="flex items-center gap-2.5">
+          <div className="flex shrink-0 gap-1.5">
+            {match.my_items.slice(0, 4).map((item) => {
+              const picked = item.id === mine.id;
+              const thumb = (
+                <img
+                  src={getOptimizedImageUrl(item.image, { width: 112 })}
+                  onError={fallbackToOriginal(item.image)}
+                  alt=""
+                  loading="lazy"
+                  className="h-full w-full object-contain"
+                />
+              );
+              return canPickMine ? (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setMyPickId(item.id)}
+                  aria-pressed={picked}
+                  aria-label={item.title}
+                  className={cn(
+                    "h-14 w-14 overflow-hidden rounded-lg border bg-muted transition-colors",
+                    picked ? "border-primary ring-2 ring-primary/40" : "border-border opacity-70 hover:opacity-100"
+                  )}
+                >
+                  {thumb}
+                </button>
+              ) : (
+                <div key={item.id} className="h-14 w-14 overflow-hidden rounded-lg border border-border bg-muted">
+                  {thumb}
+                </div>
+              );
+            })}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="line-clamp-2 text-sm font-medium leading-snug">{mine.title}</p>
+            {canPickMine && (
+              <p className="mt-0.5 text-2xs text-muted-foreground">{t("trade.matching.theyWantMinePick")}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 「この2つを入れ替える」ことを、区切り線の上の矢印1つで示す */}
+      <div className="my-3 flex items-center gap-2 text-muted-foreground" aria-hidden="true">
+        <span className="h-px flex-1 bg-border" />
+        <ArrowDownUp className="h-4 w-4" />
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      {/* 代わりにもらえるもの（相手が交換に出しているもの） */}
+      <div>
+        <p className="mb-1.5 text-2xs font-medium text-muted-foreground">
+          {t("trade.matching.theyWantTheirs")}
+          <span className="font-normal">（{t("trade.matching.theyWantTheirsSub")}）</span>
+        </p>
+
+        {offersLoading ? (
+          <div className="flex gap-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 w-24 shrink-0 rounded-lg" />
+            ))}
+          </div>
+        ) : offersError ? (
+          <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/50 p-2.5">
+            <p className="text-xs text-muted-foreground">{t("trade.matching.theyWantLoadFailed")}</p>
+            <Button size="sm" variant="outline" className="h-8 shrink-0" onClick={onRetryOffers}>
+              {t("common.retry")}
+            </Button>
+          </div>
+        ) : offers.length > 0 ? (
+          <>
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-hide">
+              {offers.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  data-testid="they-want-offer"
+                  onClick={() => onRequest(item, mine)}
+                  className="w-24 shrink-0 text-left"
+                  aria-label={item.title}
+                >
+                  <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted transition-colors hover:border-primary/50">
+                    <img
+                      src={getOptimizedImageUrl(item.image, { width: 192 })}
+                      onError={fallbackToOriginal(item.image)}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-contain"
+                    />
+                    {item.already_requested && (
+                      <span className="absolute inset-x-1 bottom-1 rounded-md bg-background/90 py-0.5 text-center text-3xs font-semibold text-muted-foreground">
+                        {t("trade.matching.theyWantRequested")}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-2xs leading-tight">{item.title}</p>
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-2xs text-muted-foreground">{t("trade.matching.theyWantTapHint")}</p>
+          </>
+        ) : (
+          // 相手が何も交換に出していない。黙って空にせず、そう伝えて次の一手を2つ出す
+          <div className="space-y-2.5 rounded-lg bg-muted/50 p-3">
+            <p className="text-xs leading-relaxed">{t("trade.matching.theyWantNoOffers", { name })}</p>
+            <div className="grid gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                data-testid="they-want-browse"
+                // 文言が長いので、狭い画面では折り返して枠からはみ出さないようにする
+                className="h-auto min-h-9 w-full justify-center gap-1.5 whitespace-normal bg-background py-2 text-xs"
+                onClick={() => onBrowse(mine)}
+              >
+                <Search className="h-4 w-4" />
+                {t("trade.matching.theyWantBrowse")}
+              </Button>
+              <Button size="sm" variant="ghost" className="h-9 w-full justify-center gap-1.5 text-xs" onClick={onOpenChat}>
+                <MessageCircle className="h-4 w-4" />
+                {t("trade.matching.theyWantAskChat")}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

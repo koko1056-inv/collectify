@@ -8,7 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Star, Gift } from "lucide-react";
+import { Gift } from "lucide-react";
+import { PointIcon } from "@/components/ui/point-icon";
 import { useUserPoints } from "@/hooks/usePoints";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -70,7 +71,7 @@ export function SpendPointsDialog({
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 font-bold">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <PointIcon size={16} />
                     {cost} pt
                   </span>
                 )}

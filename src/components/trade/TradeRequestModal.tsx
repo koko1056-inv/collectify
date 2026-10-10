@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeftRight, Gift, Loader2, Search, Send } from "lucide-react";
@@ -39,6 +39,12 @@ interface TradeRequestModalProps {
   partnerName?: string | null;
   /** 相手がその品を「交換に出す」にしているか。false なら、相談としての申請になる */
   partnerOffers?: boolean;
+  /**
+   * 開いたときに選んでおく、差し出す品（自分の user_items の id）。
+   * 「あなたのグッズをほしがっている人」から来たときは、相手がほしがっている品を最初から選んでおく。
+   * 渡さないときは、相手がほしがっている品が持ち物にあればそれを選んでおく。
+   */
+  preselectedOfferedItemId?: string | null;
 }
 
 /**
@@ -48,6 +54,7 @@ interface TradeRequestModalProps {
  * 「相手が欲しがっている品」→「交換に出している品」→ それ以外 の順に並べて、
  * 話がまとまりやすいものを先に見せる。交換に出していない品も選べるが、その旨を伝える。
  * 別の交換がすでに成立している品は選べない。
+ * 相手がほしがっている品は、最初から選んだ状態にしておく（変えることもできる）。
  */
 export function TradeRequestModal({
   isOpen,
@@ -58,6 +65,7 @@ export function TradeRequestModal({
   requestedItemImage,
   partnerName,
   partnerOffers = true,
+  preselectedOfferedItemId = null,
 }: TradeRequestModalProps) {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -68,14 +76,17 @@ export function TradeRequestModal({
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [search, setSearch] = useState("");
+  // 「相手がほしい品」を自動で選ぶのは、開いた直後の1回だけ（自分で選び直したものを上書きしない）
+  const autoPicked = useRef(false);
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedItemId(null);
+      setSelectedItemId(preselectedOfferedItemId);
+      autoPicked.current = !!preselectedOfferedItemId;
       setMessage("");
       setSearch("");
     }
-  }, [isOpen]);
+  }, [isOpen, preselectedOfferedItemId]);
 
   // 差し出せる品: 持っているグッズ全部（交換に出していないものも選べる）
   const { data: myItems = [], isLoading } = useQuery({
@@ -129,10 +140,34 @@ export function TradeRequestModal({
       .filter((i) => !busyIds.has(i.id))
       .filter((i) => !q || i.title.toLowerCase().includes(q))
       .map((i) => ({ ...i, wanted: !!i.official_item_id && wantedByPartner.has(i.official_item_id) }))
-      .sort((a, b) => Number(b.wanted) - Number(a.wanted) || Number(b.for_trade) - Number(a.for_trade));
-  }, [myItems, busyIds, search, wantedByPartner]);
+      .sort(
+        (a, b) =>
+          Number(b.id === preselectedOfferedItemId) - Number(a.id === preselectedOfferedItemId) ||
+          Number(b.wanted) - Number(a.wanted) ||
+          Number(b.for_trade) - Number(a.for_trade)
+      );
+  }, [myItems, busyIds, search, wantedByPartner, preselectedOfferedItemId]);
 
-  const selectedItem = useMemo(() => myItems.find((i) => i.id === selectedItemId) ?? null, [myItems, selectedItemId]);
+  // 相手がほしがっている品が持ち物にあれば、最初からそれを選んでおく。
+  // 話がまとまりやすい品を、わざわざ探して押させない。
+  useEffect(() => {
+    if (!isOpen || autoPicked.current || selectedItemId) return;
+    const top = offerable[0];
+    if (top?.wanted) {
+      autoPicked.current = true;
+      setSelectedItemId(top.id);
+    }
+  }, [isOpen, offerable, selectedItemId]);
+
+  // 別の交換で成立済みになった品は、選んであっても差し出せない
+  const selectedItem = useMemo(
+    () => (selectedItemId && !busyIds.has(selectedItemId) ? myItems.find((i) => i.id === selectedItemId) ?? null : null),
+    [myItems, selectedItemId, busyIds]
+  );
+  const selectedWanted =
+    !!selectedItem &&
+    (selectedItem.id === preselectedOfferedItemId ||
+      (!!selectedItem.official_item_id && wantedByPartner.has(selectedItem.official_item_id)));
 
   // 同じ相手の同じグッズに二重で申し込まないようにする
   const { data: alreadyRequested } = useQuery({
@@ -152,17 +187,17 @@ export function TradeRequestModal({
   });
 
   const canSend = useMemo(
-    () => !!selectedItemId && !isSending && !alreadyRequested,
-    [selectedItemId, isSending, alreadyRequested]
+    () => !!selectedItem && !isSending && !alreadyRequested,
+    [selectedItem, isSending, alreadyRequested]
   );
 
   const send = async () => {
-    if (!user || !selectedItemId) return;
+    if (!user || !selectedItem) return;
     setIsSending(true);
     try {
       const result = await createTradeRequest({
         requestedItemId,
-        offeredItemId: selectedItemId,
+        offeredItemId: selectedItem.id,
         message,
       });
       if (!result.ok) {
@@ -178,6 +213,9 @@ export function TradeRequestModal({
       await Promise.all([
         invalidateTrades(queryClient, user.id),
         queryClient.invalidateQueries({ queryKey: ["trade-exists", user.id, requestedItemId] }),
+        // 相手の品の「申し込み済み」の印を更新する
+        queryClient.invalidateQueries({ queryKey: ["trade-partner-offers", user.id] }),
+        queryClient.invalidateQueries({ queryKey: ["trade-partner-collection", user.id] }),
       ]);
       onClose();
     } catch (e) {
@@ -201,24 +239,25 @@ export function TradeRequestModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* 何を申し込むのか。写真があれば見せる */}
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/30 p-2.5">
-          {requestedItemImage && (
-            <img
-              src={getOptimizedImageUrl(requestedItemImage, { width: 120 })}
-              onError={fallbackToOriginal(requestedItemImage)}
-              alt=""
-              className="h-14 w-14 shrink-0 rounded-lg border bg-muted object-contain"
-            />
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="text-2xs text-muted-foreground">
-              {partnerName
+        {/* 何と何を交換するのか。もらう品（相手の）と、渡す品（いま選んでいる自分の）を並べる。
+            以前はもらう品だけで、渡す品は下の一覧の枠でしか分からなかった */}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 rounded-xl border border-border bg-muted/30 p-2.5">
+          <SummarySide
+            label={
+              partnerName
                 ? t("trade.request.fromPartner", { name: partnerName })
-                : t("trade.request.fromPartnerAnon")}
-            </p>
-            <p className="line-clamp-2 text-sm font-medium">{requestedItemTitle}</p>
-          </div>
+                : t("trade.request.fromPartnerAnon")
+            }
+            image={requestedItemImage ?? null}
+            title={requestedItemTitle}
+          />
+          <ArrowLeftRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <SummarySide
+            label={t("trade.request.yourOffer")}
+            image={selectedItem?.image ?? null}
+            title={selectedItem?.title ?? t("trade.request.yourOfferEmpty")}
+            empty={!selectedItem}
+          />
         </div>
         {!partnerOffers && (
           <p className="rounded-lg bg-warning-soft p-2 text-2xs text-warning">
@@ -238,6 +277,12 @@ export function TradeRequestModal({
             <div className="space-y-4 pb-2">
               <div className="space-y-2">
                 <Label className="text-sm">{t("trade.request.selectOfferLabel")}</Label>
+                {/* 最初から選んであることを、一覧より先に伝える（下に置くと画面の外で気づかない） */}
+                {selectedItem && selectedWanted && (
+                  <p className="text-2xs text-muted-foreground">
+                    {t("trade.request.preselectedNote", { title: selectedItem.title })}
+                  </p>
+                )}
 
                 {isLoading ? (
                   <div className="grid grid-cols-3 gap-2">
@@ -363,5 +408,40 @@ export function TradeRequestModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** 申し込みの上部に置く、片側（もらう品／渡す品）の小さな見本 */
+function SummarySide({
+  label,
+  image,
+  title,
+  empty = false,
+}: {
+  label: string;
+  image: string | null;
+  title: string;
+  /** まだ選んでいない（渡す品）。写真の代わりに点線の枠を出す */
+  empty?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="mb-1 truncate text-2xs text-muted-foreground">{label}</p>
+      <div className="flex items-center gap-2">
+        {empty || !image ? (
+          <div className="h-11 w-11 shrink-0 rounded-lg border border-dashed border-border bg-background" />
+        ) : (
+          <img
+            src={getOptimizedImageUrl(image, { width: 96 })}
+            onError={fallbackToOriginal(image)}
+            alt=""
+            className="h-11 w-11 shrink-0 rounded-lg border bg-muted object-contain"
+          />
+        )}
+        <p className={cn("line-clamp-2 text-xs leading-snug", empty ? "text-muted-foreground" : "font-medium")}>
+          {title}
+        </p>
+      </div>
+    </div>
   );
 }

@@ -3,6 +3,7 @@ import { CheckCircle2, Share, SquarePlus, Smartphone, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { IconTile } from "@/components/ui/icon-tile";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
@@ -69,11 +70,9 @@ export function InstallAppCard({ variant }: InstallAppCardProps) {
   return (
     <>
       <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3">
-        {state === "installed" ? (
-          <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" aria-hidden />
-        ) : (
-          <Smartphone className="h-5 w-5 shrink-0 text-primary" aria-hidden />
-        )}
+        <IconTile tone={state === "installed" ? "success" : "primary"} size="md">
+          {state === "installed" ? <CheckCircle2 /> : <Smartphone />}
+        </IconTile>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">{state === "installed" ? t("pwa.installed") : t("pwa.title")}</p>
           <p className="text-xs text-muted-foreground">
@@ -99,23 +98,24 @@ export function InstallAppCard({ variant }: InstallAppCardProps) {
             <DialogTitle>{t("pwa.iosTitle")}</DialogTitle>
             <DialogDescription>{t("pwa.desc")}</DialogDescription>
           </DialogHeader>
+          {/* 以前は手順ごとに丸い面だった。丸は人のアイコン用に取っておき、手順の印は IconTile にそろえる */}
           <ol className="space-y-3 text-sm">
             <li className="flex items-center gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Share className="h-4 w-4" aria-hidden />
-              </span>
+              <IconTile tone="primary" size="md">
+                <Share />
+              </IconTile>
               {t("pwa.iosStep1")}
             </li>
             <li className="flex items-center gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <SquarePlus className="h-4 w-4" aria-hidden />
-              </span>
+              <IconTile tone="primary" size="md">
+                <SquarePlus />
+              </IconTile>
               {t("pwa.iosStep2")}
             </li>
             <li className="flex items-center gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <CheckCircle2 className="h-4 w-4" aria-hidden />
-              </span>
+              <IconTile tone="primary" size="md">
+                <CheckCircle2 />
+              </IconTile>
               {t("pwa.iosStep3")}
             </li>
           </ol>

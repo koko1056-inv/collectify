@@ -1,6 +1,6 @@
-import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles, ArrowLeftRight, Flag } from 'lucide-react';
+import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles, ArrowLeftRight, Flag, type LucideIcon } from 'lucide-react';
+import { IconTile, type IconTileTone } from '@/components/ui/icon-tile';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Notification, NotificationData } from '@/types/notification';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -21,41 +21,46 @@ export function NotificationItem({ notification }: NotificationItemProps) {
   const navigate = useNavigate();
   const replyStamp = useReplyStamp();
 
-  const getIcon = () => {
+  // 種類ごとの印と面の色。以前は rose-500 / violet-500 などの直書きの色で線の印だけを出していて、
+  // 一覧の左端が色とりどりに散らかって見えた。IconTile（意味のトークンの薄い面）に入れてそろえる。
+  // 交換・やりとりは primary、うまくいったものは success、新着は info、注意は warning、
+  // 取り消し・届かなかった交換は muted、エラーと通報は destructive。
+  const getIcon = (): { icon: LucideIcon; tone: IconTileTone } => {
     switch (notification.type) {
       case 'new_item':
-        return <Package className="h-4 w-4 text-info" />;
+        return { icon: Package, tone: 'info' };
       case 'comment':
-        return <MessageCircle className="h-4 w-4 text-primary" />;
+        return { icon: MessageCircle, tone: 'primary' };
       case 'reply':
-        return <Reply className="h-4 w-4 text-primary" />;
+        return { icon: Reply, tone: 'primary' };
       case 'like':
-        return <Heart className="h-4 w-4 text-rose-500" />;
+        return { icon: Heart, tone: 'primary' };
       case 'greeting_stamp':
-        return <Sticker className="h-4 w-4 text-primary" />;
+        return { icon: Sticker, tone: 'primary' };
       case 'match_success':
-        return <Sparkles className="h-4 w-4 text-violet-500" />;
+        return { icon: Sparkles, tone: 'success' };
       case 'trade_request':
       case 'trade_accepted':
       case 'trade_shipped':
       case 'trade_received':
-      case 'trade_completed':
       case 'trade_nudge':
-        return <ArrowLeftRight className="h-4 w-4 text-primary" />;
+        return { icon: ArrowLeftRight, tone: 'primary' };
+      case 'trade_completed':
+        return { icon: ArrowLeftRight, tone: 'success' };
       case 'trade_rejected':
       case 'trade_cancelled':
       case 'trade_unavailable':
-        return <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />;
+        return { icon: ArrowLeftRight, tone: 'muted' };
       case 'admin_report':
-        return <Flag className="h-4 w-4 text-destructive" />;
+        return { icon: Flag, tone: 'destructive' };
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-success" />;
+        return { icon: CheckCircle, tone: 'success' };
       case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-warning" />;
+        return { icon: AlertTriangle, tone: 'warning' };
       case 'error':
-        return <XCircle className="h-4 w-4 text-destructive" />;
+        return { icon: XCircle, tone: 'destructive' };
       default:
-        return <Info className="h-4 w-4 text-info" />;
+        return { icon: Info, tone: 'info' };
     }
   };
 
@@ -115,14 +120,19 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     <div
       className={cn(
         "p-3 hover:bg-muted/50 cursor-pointer transition-colors min-h-[60px]",
-        !notification.is_read && "bg-info-soft"
+        !notification.is_read && "bg-primary/5"
       )}
       onClick={handleClick}
     >
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 mt-0.5">
-          {getIcon()}
-        </div>
+        {(() => {
+          const { icon: Icon, tone } = getIcon();
+          return (
+            <IconTile tone={tone} size="sm">
+              <Icon />
+            </IconTile>
+          );
+        })()}
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -130,7 +140,8 @@ export function NotificationItem({ notification }: NotificationItemProps) {
               {notification.title}
             </h4>
             {!notification.is_read && (
-              <Badge variant="destructive" className="h-2 w-2 p-0 rounded-full" />
+              // 未読の点はヘッダーの件数バッジと同じ primary（以前は destructive の赤で、エラーに見えた）
+              <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-primary" />
             )}
           </div>
           

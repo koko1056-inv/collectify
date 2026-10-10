@@ -280,7 +280,7 @@ export default function RoomView() {
               className="text-white hover:bg-white/10"
               disabled={!user || room.user_id === user?.id}
             >
-              <Heart className={cn("w-5 h-5", isLiked && "fill-current text-rose-500")} />
+              <Heart className={cn("w-5 h-5", isLiked && "fill-primary text-primary")} />
             </Button>
             <Button
               variant="ghost"

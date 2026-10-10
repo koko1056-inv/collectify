@@ -11,6 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ONBOARDING_STEP_POINTS, type OnboardingStepId } from './steps';
 import { guideHref } from './guideTasks';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IconTile } from '@/components/ui/icon-tile';
 import {
   CheckCircle2,
   User,
@@ -44,18 +45,21 @@ interface ChecklistItem {
   group: 'start' | 'collection' | 'ai' | 'community';
 }
 
+// グループ見出しの印の色。以前は amber / emerald / fuchsia / blue の直書きで、
+// 4色が並んで落ち着かなかった。意味のトークンだけで、はじめる=primary、
+// 集める=success、AI=info、みんな=muted と控えめに分ける
 const GROUP_META: Record<
   ChecklistItem['group'],
   { labelKey: string; icon: LucideIcon; color: string }
 > = {
-  start: { labelKey: 'misc.checklist.groupStart', icon: Sparkles, color: 'text-amber-500' },
+  start: { labelKey: 'misc.checklist.groupStart', icon: Sparkles, color: 'text-primary' },
   collection: {
     labelKey: 'misc.checklist.groupCollection',
     icon: Package,
-    color: 'text-emerald-500',
+    color: 'text-success',
   },
-  ai: { labelKey: 'misc.checklist.groupAi', icon: Wand2, color: 'text-fuchsia-500' },
-  community: { labelKey: 'misc.checklist.groupCommunity', icon: Users, color: 'text-blue-500' },
+  ai: { labelKey: 'misc.checklist.groupAi', icon: Wand2, color: 'text-info' },
+  community: { labelKey: 'misc.checklist.groupCommunity', icon: Users, color: 'text-muted-foreground' },
 };
 
 export function OnboardingChecklist() {
@@ -81,7 +85,6 @@ export function OnboardingChecklist() {
    */
   const [expandPref, setExpandPref] = useState<boolean | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
-  const claimingRef = useRef<Set<string>>(new Set());
 
   // Check dismissed + remembered expand state from localStorage
   useEffect(() => {
@@ -128,8 +131,15 @@ export function OnboardingChecklist() {
           .select('avatar_url, bio, display_name, username, favorite_item_ids')
           .eq('id', user.id)
           .single(),
-        supabase.from('user_items').select('id').eq('user_id', user.id).limit(1),
-        supabase.from('avatar_gallery').select('id').eq('user_id', user.id).limit(1),
+        // 件数も使う（お気に入りの達成条件が「5つ、持っているのが5つ未満なら持っている数」なので）
+        supabase.from('user_items').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+        // プロフィール写真のアップロードも avatar_gallery に入るので、AI で作ったものだけ数える（サーバーの判定と同じ）
+        supabase
+          .from('avatar_gallery')
+          .select('id')
+          .eq('user_id', user.id)
+          .or('prompt.is.null,prompt.not.in.("プロフィール画像","アップロード画像")')
+          .limit(1),
         supabase.from('ai_generated_rooms').select('id').eq('user_id', user.id).limit(1),
         supabase.from('wishlists').select('id').eq('user_id', user.id).limit(1),
         supabase.from('follows').select('id').eq('follower_id', user.id).limit(1),
@@ -146,6 +156,7 @@ export function OnboardingChecklist() {
       const profile = profileRes.data;
       const claimedSteps = new Set((rewardsRes.data ?? []).map((r) => r.step_id));
       const favCount = (profile?.favorite_item_ids as string[] | null)?.length ?? 0;
+      const itemCount = itemsRes.count ?? 0;
 
       return {
         // 登録時に display_name へユーザー名が入るので、それだけでは達成にしない（サーバーの判定と同じ）
@@ -154,8 +165,9 @@ export function OnboardingChecklist() {
           profile?.bio ||
           (profile?.display_name && profile.display_name !== profile.username)
         ),
-        hasItem: (itemsRes.data?.length ?? 0) > 0,
-        hasFavorites5: favCount >= 5,
+        hasItem: itemCount > 0,
+        // 5つ選ぶ。持っているグッズが5つ未満なら、持っている数だけ選べば達成（サーバーの判定と同じ）
+        hasFavorites5: favCount >= Math.max(1, Math.min(5, itemCount)),
         hasAvatar: (avatarRes.data?.length ?? 0) > 0,
         hasAiRoom: (roomRes.data?.length ?? 0) > 0,
         hasWishlist: (wishlistRes.data?.length ?? 0) > 0,
@@ -167,7 +179,9 @@ export function OnboardingChecklist() {
     },
     // 小さくしている間も進み具合を出すので、取得は続ける
     enabled: !!user?.id,
-    staleTime: 1000 * 60 * 5,
+    // 達成したらすぐ完了の印を付けたいので、長くは持たない（画面に戻るたびに読み直す）
+    staleTime: 1000 * 15,
+    refetchOnWindowFocus: true,
   });
 
   const items: ChecklistItem[] = useMemo(() => {
@@ -309,52 +323,9 @@ export function OnboardingChecklist() {
     return groups;
   }, [items]);
 
-  // 自動報酬付与
-  useEffect(() => {
-    if (!user?.id || !checklistData) return;
-    const claimedSteps =
-      checklistData.claimedSteps instanceof Set
-        ? checklistData.claimedSteps
-        : new Set<string>(
-            Array.isArray(checklistData.claimedSteps)
-              ? (checklistData.claimedSteps as string[])
-              : []
-          );
-
-    const toClaim = items.filter(
-      (i) => i.completed && i.points > 0 && !claimedSteps.has(i.id) && !claimingRef.current.has(i.id)
-    );
-    if (toClaim.length === 0) return;
-
-    (async () => {
-      for (const item of toClaim) {
-        claimingRef.current.add(item.id);
-        try {
-          // 付与額はサーバー側の onboarding_reward_steps が持つ。
-          // 以前は _points をクライアントから渡していたため、任意額を請求できた。
-          const { data, error } = await supabase.rpc('claim_onboarding_reward', {
-            _step_id: item.id,
-          });
-          if (error) {
-            console.error('[OnboardingChecklist] claim error:', error);
-            claimingRef.current.delete(item.id);
-            continue;
-          }
-          if (data === true) {
-            toast.success(t('misc.checklist.achievedTitle', { label: t(item.labelKey) }), {
-              description: t('misc.checklist.achievedDesc', { points: item.points }),
-            });
-          }
-        } catch (e) {
-          console.error('[OnboardingChecklist] claim exception:', e);
-          claimingRef.current.delete(item.id);
-        }
-      }
-      queryClient.invalidateQueries({ queryKey: ['onboarding-checklist', user.id] });
-      queryClient.invalidateQueries({ queryKey: ['userPoints'] });
-      queryClient.invalidateQueries({ queryKey: ['pointTransactions'] });
-    })();
-  }, [items, checklistData, user?.id, queryClient]);
+  // 報酬の付与は OnboardingRewardWatcher（アプリ全体で常に動く）が持つ。
+  // 以前はここで付与していたため、この一覧が画面に出ていて、しかもキャッシュが新しくなるまで
+  // 達成しても報酬が出なかった（プロフィールを保存しても +20pt がもらえない、など）。
 
   // × は「消す」ではなく「小さくする」。以前は × を押すと二度と出せなかった
   const handleDismiss = () => {
@@ -417,9 +388,10 @@ export function OnboardingChecklist() {
               aria-label={isExpanded ? t('misc.checklist.close') : t('misc.checklist.open')}
               className="flex items-center gap-2 flex-1 min-w-0 text-left rounded-lg -m-1 p-1 transition-colors hover:bg-muted/40"
             >
-              <div className="p-1.5 rounded-lg bg-brand-gradient shrink-0">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
+              {/* 以前はブランドのグラデーションの面に白い印。アプリ共通の IconTile にそろえる */}
+              <IconTile tone="primary" size="sm">
+                <Sparkles />
+              </IconTile>
               <div className="min-w-0">
                 <h3 className="font-bold text-sm">{t('misc.checklist.title')}</h3>
                 <p className="text-xs text-muted-foreground">
@@ -480,9 +452,9 @@ export function OnboardingChecklist() {
               disabled={!nextItem.action}
               className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors text-left disabled:cursor-default"
             >
-              <div className="p-1.5 rounded-lg bg-primary/10 shrink-0">
-                <nextItem.icon className="w-4 h-4 text-primary" />
-              </div>
+              <IconTile tone="primary" size="sm">
+                <nextItem.icon />
+              </IconTile>
               <div className="flex-1 min-w-0">
                 <p className="text-3xs font-bold text-primary uppercase tracking-wider">
                   {t('misc.checklist.nextUp')}

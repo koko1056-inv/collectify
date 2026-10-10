@@ -516,7 +516,8 @@ function HeroRoom({
 
         {preset && (
           <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur text-white text-xs font-bold flex items-center gap-1.5">
-            <span>{preset.emoji}</span>
+            {/* 以前は絵文字。写真の上でも線がそろう lucide のアイコンにした */}
+            <preset.icon className="w-3.5 h-3.5" aria-hidden="true" />
             <span>{t(`aiRoom.stylePresets.${preset.id}.name`)}</span>
           </div>
         )}
@@ -627,8 +628,8 @@ function RoomThumbCard({
         />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/70 to-transparent" />
         {preset && (
-          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full bg-black/55 backdrop-blur text-white text-3xs font-bold flex items-center gap-1">
-            <span>{preset.emoji}</span>
+          <div className="absolute top-1.5 left-1.5 p-1 rounded-full bg-black/55 backdrop-blur text-white flex items-center">
+            <preset.icon className="w-3 h-3" aria-label={t(`aiRoom.stylePresets.${preset.id}.name`)} />
           </div>
         )}
         {room.is_public && (

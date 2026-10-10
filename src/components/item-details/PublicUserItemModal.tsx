@@ -282,7 +282,7 @@ export function PublicUserItemModal({
                   ) : (
                     <Heart
                       className={
-                        alreadyWished ? "w-4 h-4 fill-current text-rose-500" : "w-4 h-4"
+                        alreadyWished ? "w-4 h-4 fill-primary text-primary" : "w-4 h-4"
                       }
                     />
                   )}

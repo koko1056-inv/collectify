@@ -151,7 +151,7 @@ export function ExploreAvatarCard({ avatar, isBookmarked, isLiked }: Props) {
               disabled={toggleLike.isPending}
               className={cn(
                 "flex items-center gap-0.5 transition-colors",
-                isLiked ? "text-rose-500" : "hover:text-foreground"
+                isLiked ? "text-primary" : "hover:text-foreground"
               )}
               aria-pressed={isLiked}
               aria-label={t("chrome.exploreCard.like")}

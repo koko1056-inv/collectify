@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect, useMemo, type ReactNode } from "react
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence, MotionConfig, type Variants } from "framer-motion";
-import { ArrowRight, Check, ChevronLeft, Star } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft } from "lucide-react";
+import { PointIcon } from "@/components/ui/point-icon";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -375,7 +376,7 @@ function CelebrateStep({
               transition={{ delay: 0.55, duration: 0.25 }}
               className="mt-5 inline-flex items-center gap-1 rounded-full bg-success-soft px-3 py-1 text-xs font-bold text-success"
             >
-              <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />
+              <Check className="h-3.5 w-3.5" aria-hidden="true" />
               {t("misc.onboarding.starter.addedSummary", { n: addedCount })}
             </motion.p>
           )}
@@ -392,11 +393,9 @@ function CelebrateStep({
             transition={{ delay: 0.7, duration: 0.3 }}
             className="mt-6 flex w-full items-center gap-3 rounded-2xl border border-points/30 bg-points-soft p-4 text-left"
           >
-            {/* メダルのような丸。ポイントの印（★）はアプリ全体と同じもの */}
-            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-points text-points-foreground shadow-sm ring-4 ring-points/15">
-              <span className="absolute inset-1 rounded-full border border-white/40" aria-hidden="true" />
-              <Star className="h-5 w-5 fill-current" aria-hidden="true" />
-            </div>
+            {/* ポイントの印はアプリ共通の PointIcon をそのまま大きく出す。
+                以前はここだけ div と lucide の Star でメダルを手組みしていて、ほかの画面の印と形が少し違っていた */}
+            <PointIcon size={44} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold">{t("misc.onboarding.welcomeBonus")}</p>
               <p className="text-xs text-muted-foreground">{t("misc.onboarding.welcomeBonusDesc")}</p>

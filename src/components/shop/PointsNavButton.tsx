@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PointIcon } from "@/components/ui/point-icon";
 import { useUserPoints } from "@/hooks/usePoints";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -26,15 +26,17 @@ export function PointsNavButton({ variant = "full" }: PointsNavButtonProps) {
     // 「+1pt獲得」の通知は届くのに合計が最後まで分からなかった。
     // 貯める動機が働くよう、狭いヘッダーでも数字を出す。
     // カートだと「お金で買う場所」に見えるので、無料で貯まるポイントらしい星にする。
+    // 星はアプリ共通の PointIcon（以前は黄色の lucide Star で、ほかの画面の印と色が違っていた）。
+    // 高さは隣のメッセージ・通知と同じ 40px の当たり判定にそろえる。
     return (
       <Button
         variant="ghost"
         size="sm"
         onClick={() => navigate("/point-shop")}
         aria-label={`${points} ${t("chrome.nav.pointsUnit")}`}
-        className="tap-safe-y relative h-8 gap-1 px-1.5"
+        className="relative h-10 gap-1 rounded-full px-2 hover:bg-muted hover:text-foreground"
       >
-        <Star className="w-4 h-4 shrink-0 fill-yellow-400 text-yellow-400" />
+        <PointIcon size={16} />
         {isLoading ? (
           <Skeleton className="h-3.5 w-6" />
         ) : (
@@ -53,7 +55,7 @@ export function PointsNavButton({ variant = "full" }: PointsNavButtonProps) {
       onClick={() => navigate("/point-shop")}
       className="gap-1.5 px-2"
     >
-      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+      <PointIcon size={16} />
       {isLoading ? (
         <Skeleton className="h-4 w-8" />
       ) : (

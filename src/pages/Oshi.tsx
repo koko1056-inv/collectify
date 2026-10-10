@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
+import { IconTile } from "@/components/ui/icon-tile";
 import { CompanionCard } from "@/components/oshi/CompanionCard";
 import { CompanionPicker } from "@/components/oshi/CompanionPicker";
 import { PhotoCalendar } from "@/components/oshi/PhotoCalendar";
@@ -68,15 +69,10 @@ const Oshi = () => {
 
         {/* 今日の1枚 */}
         <section className="mb-4 flex items-center gap-3 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-background p-4">
-          <div
-            className={
-              "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl " +
-              (photos.streak > 0 ? "bg-gradient-to-br from-orange-400 to-rose-500 text-white" : "bg-muted text-muted-foreground")
-            }
-            aria-hidden="true"
-          >
-            <Flame className="h-6 w-6" />
-          </div>
+          {/* 炎の面は今日のチェックと同じ IconTile（以前は orange→rose のグラデーション） */}
+          <IconTile tone={photos.streak > 0 ? "warning" : "muted"} size="md">
+            <Flame />
+          </IconTile>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold">{photos.streak > 0 ? t("engage.oshi.streak", { n: photos.streak }) : t("engage.oshi.streakNone")}</p>
             <p className="text-xs text-muted-foreground">

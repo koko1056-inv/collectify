@@ -44,6 +44,7 @@ import { acquiredTime, findOnThisDay, groupByMonth } from "@/utils/memories";
 import { countFacets, itemHasFacet, matchesQuery } from "@/utils/itemFacets";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "./ui/card";
+import { IconTile } from "./ui/icon-tile";
 import { EmptyState } from "./ui/empty-state";
 import {
   DropdownMenu,
@@ -350,15 +351,12 @@ export function UserCollection({
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 animate-fade-in">
-        <Card className="max-w-sm w-full border-dashed border-2 bg-gradient-to-br from-primary/5 to-muted/20">
+        <Card className="max-w-sm w-full border-dashed border-2">
           <CardContent className="pt-8 pb-8 text-center space-y-6">
-            {/* メインアイコン */}
-            <div className="w-20 h-20 mx-auto relative">
-              <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
-              <div className="relative w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl flex items-center justify-center border border-primary/20">
-                <Package className="w-10 h-10 text-primary" />
-              </div>
-            </div>
+            {/* メインアイコン。以前はグラデの面の後ろで光がぼんやり明滅していた。共通の IconTile にする */}
+            <IconTile tone="primary" size="lg">
+              <Package />
+            </IconTile>
             
             {/* テキスト */}
             <div className="space-y-2">
@@ -677,9 +675,10 @@ export function UserCollection({
                 handleBulkComplete();
                 navigate("/me?tab=ai&from=collection");
               }}
-              // violet→fuchsia は AI 機能の識別色（AIスタジオ/FAB/オンボーディングでも共通）。
-              // テーマ色に寄せると AI 機能の見分けが付かなくなるため、あえてトークン化しない。
-              className="rounded-full gap-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-primary-foreground"
+              // 以前は violet→fuchsia のグラデーションで AI 機能を見分けさせていたが、
+              // テーマ色と喧嘩して安っぽく見えた。主ボタンはふつうの primary の Button にそろえ、
+              // AI であることは Sparkles の印と文言で伝える。
+              className="rounded-full gap-1.5"
             >
               <Sparkles className="w-4 h-4" />
               {t("chrome.collection.makeWithAi")}

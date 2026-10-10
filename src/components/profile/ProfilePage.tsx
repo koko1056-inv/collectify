@@ -12,6 +12,7 @@ import { Camera, Heart, Bookmark, Wand2 } from "lucide-react";
 import { ProfileHero } from "./ProfileHero";
 import { ProfileSettingsSheet } from "./ProfileSettingsSheet";
 import { ProfileEditSheet } from "./ProfileEditSheet";
+import { requestOnboardingRewardCheck } from "@/lib/onboardingRewards";
 import { ProfileInterests } from "./interests";
 import { MyStudioPanel } from "./MyStudioPanel";
 import { FavoriteItemsTop5 } from "./FavoriteItemsTop5";
@@ -57,6 +58,11 @@ export function ProfilePage() {
     setSearchParams(next, { replace: true });
   };
   const [editOpen, setEditOpen] = useState(false);
+  // プロフィールは refetch で読み直すので、はじめてガイドの報酬（プロフィールを整える）の確認を明示的に頼む
+  const afterProfileChange = () => {
+    void refetchProfile();
+    requestOnboardingRewardCheck();
+  };
 
   const {
     uploadImage,
@@ -64,7 +70,7 @@ export function ProfilePage() {
     previewUrl,
   } = useProfileImageUpload({
     userId: user?.id || "",
-    onSuccess: () => refetchProfile(),
+    onSuccess: afterProfileChange,
   });
 
   if (!user || !profile) {
@@ -162,7 +168,7 @@ export function ProfilePage() {
         open={editOpen}
         onOpenChange={setEditOpen}
         profile={profile}
-        onSaved={refetchProfile}
+        onSaved={afterProfileChange}
       />
       <ProfileSettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
 

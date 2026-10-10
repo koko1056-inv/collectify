@@ -12,6 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
+// 選択中の印。以前は文字の ✓ で、フォントによって太さや高さがばらついていた
+import { Check } from "lucide-react";
 
 interface TagFilterProps {
   selectedTags: string[];
@@ -254,7 +256,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                             onClick={() => handleTagToggle(tag.name)}
                           >
                             {tag.name}
-                            {selectedTags.includes(tag.name) && <span className="ml-1">✓</span>}
+                            {selectedTags.includes(tag.name) && <Check className="ml-1 h-3.5 w-3.5" aria-hidden="true" />}
                           </Button>
                         ))}
                       </div>
@@ -278,7 +280,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                           <span className="truncate">{tag.name}</span>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-muted-foreground">({tag.count})</span>
-                            {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                            {selectedTags.includes(tag.name) && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                           </div>
                         </Button>
                       ))}
@@ -300,7 +302,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                       <span className="truncate">{tag.name}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">({tag.count})</span>
-                        {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                        {selectedTags.includes(tag.name) && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                       </div>
                     </Button>
                   ))}
@@ -326,7 +328,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                       <span className="truncate">{tag.name}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">({tag.count})</span>
-                        {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                        {selectedTags.includes(tag.name) && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                       </div>
                     </Button>
                   ))}
@@ -352,7 +354,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                       <span className="truncate">{tag.name}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">({tag.count})</span>
-                        {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                        {selectedTags.includes(tag.name) && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                       </div>
                     </Button>
                   ))}
@@ -378,7 +380,7 @@ export function TagFilter({ selectedTags, onTagsChange, tags, selectedContent }:
                       <span className="truncate">{tag.name}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">({tag.count})</span>
-                        {selectedTags.includes(tag.name) && <span className="text-xs">✓</span>}
+                        {selectedTags.includes(tag.name) && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
                       </div>
                     </Button>
                   ))}

@@ -92,8 +92,9 @@ export function LikeButton({ itemId }: LikeButtonProps) {
         variant="ghost"
         size="icon"
         onClick={handleLikeToggle}
+        // いいね済みの色。以前は rose-500 の直書きで、テーマ色（primary）とずれて見えた
         className={`tap-safe-y h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${
-          isLiked ? "text-rose-500 hover:text-rose-600" : "text-muted-foreground hover:text-foreground"
+          isLiked ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-foreground"
         }`}
       >
         <Heart className={`h-full w-full ${isLiked ? "fill-current" : ""}`} />

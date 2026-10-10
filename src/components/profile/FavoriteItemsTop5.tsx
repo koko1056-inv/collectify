@@ -43,7 +43,9 @@ export function FavoriteItemsTop5({ userId, isOwnProfile }: FavoriteItemsTop5Pro
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-1.5 min-w-0">
-            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500 shrink-0" />
+            {/* お気に入りの星は primary（テーマの色）で塗る。金色（points）はポイントの印と評価の星のためにとっておく。
+                以前は yellow-500 の直書きで、ポイントの★と見分けがつかなかった */}
+            <Star className="w-4 h-4 text-primary fill-primary shrink-0" />
             <h3 className="text-sm font-bold truncate">
               {t("profileScreen.favorites.top5", { count: FAVORITE_ITEMS_LIMIT })}
             </h3>
@@ -141,14 +143,12 @@ function FavoriteSlot({
   onClickEmpty: () => void;
 }) {
   const { t } = useLanguage();
+  // 順位の丸。以前は金・銀・銅（yellow / gray / amber の直書き）で塗り分けていたが、
+  // 5枠しかないので色で序列を付けるとうるさい。1位だけ primary、ほかは落ち着いた白地にする
   const rankColor =
     rank === 1
-      ? "bg-yellow-400 text-yellow-950"
-      : rank === 2
-      ? "bg-gray-300 text-gray-800"
-      : rank === 3
-      ? "bg-amber-600 text-amber-50"
-      : "bg-muted text-muted-foreground";
+      ? "bg-primary text-primary-foreground"
+      : "bg-background/90 text-foreground ring-1 ring-inset ring-foreground/10";
 
   if (!item) {
     return (
