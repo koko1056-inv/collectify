@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Loader2 } from "lucide-react";
+import { Camera, Image as ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -22,6 +22,7 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null }: T
   const { streak, todayDone } = useOshiPhotos();
   const upload = useUploadOshiPhoto();
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [itemId, setItemId] = useState<string | null>(initialItemId);
@@ -86,11 +87,24 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null }: T
           <DialogDescription>{t("engage.oshi.shootDesc")}</DialogDescription>
         </DialogHeader>
 
+        {/* 以前は capture 付きの入力1つだけで、スマホではカメラしか開けず、撮影済みの写真を選べなかった。
+            「撮る」（カメラを直接開く）と「選ぶ」（アルバムから選ぶ）を分ける */}
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="sr-only"
+          data-testid="oshi-photo-camera"
+          onChange={(e) => {
+            handleFile(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
         <input
           ref={inputRef}
           type="file"
           accept="image/*"
-          capture="environment"
           className="sr-only"
           data-testid="oshi-photo-input"
           onChange={(e) => {
@@ -99,11 +113,13 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null }: T
           }}
         />
 
+        {/* 写真の枠と「撮る / 選ぶ」は1つの塊にする（ダイアログの grid の中で aspect-square がボタンに重なっていた） */}
+        <div className="flex flex-col gap-2">
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
           className={cn(
-            "relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed bg-muted/40",
+            "relative flex aspect-[4/3] w-full shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed bg-muted/40",
             "focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring",
             preview && "border-solid"
           )}
@@ -112,20 +128,22 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null }: T
             <img src={preview} alt="" className="h-full w-full object-cover" />
           ) : (
             <span className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
-              <Camera className="h-8 w-8" aria-hidden="true" />
-              {t("engage.oshi.takePhoto")}
+              <ImageIcon className="h-8 w-8" aria-hidden="true" />
+              {t("engage.oshi.pickPhoto")}
             </span>
           )}
         </button>
-        {preview && (
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            className="mx-auto -mt-1 text-xs text-muted-foreground underline"
-          >
-            {t("engage.oshi.retake")}
-          </button>
-        )}
+        <div className="grid grid-cols-2 gap-2">
+          <Button type="button" variant="outline" onClick={() => cameraRef.current?.click()}>
+            <Camera className="mr-1.5 h-4 w-4" aria-hidden="true" />
+            {t("engage.oshi.cameraButton")}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => inputRef.current?.click()}>
+            <ImageIcon className="mr-1.5 h-4 w-4" aria-hidden="true" />
+            {t("engage.oshi.libraryButton")}
+          </Button>
+        </div>
+        </div>
 
         {companions.length > 0 && (
           <div>
@@ -154,6 +172,9 @@ export function TodayPhotoDialog({ open, onOpenChange, initialItemId = null }: T
         <Button size="lg" className="h-12 w-full rounded-2xl" disabled={!file || upload.isPending} onClick={save}>
           {upload.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {upload.isPending ? t("engage.oshi.saving") : t("engage.oshi.save")}
+        </Button>
+        <Button variant="ghost" className="-mt-2 w-full" disabled={upload.isPending} onClick={() => { reset(); onOpenChange(false); }}>
+          {t("chrome.common.cancel")}
         </Button>
       </DialogContent>
     </Dialog>
