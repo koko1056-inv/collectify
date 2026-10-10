@@ -1,12 +1,11 @@
+import { useSearchParams } from "react-router-dom";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ShareModal } from "@/components/ShareModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProfile } from "@/hooks/useProfile";
 import { useProfileImageUpload } from "@/hooks/useProfileImageUpload";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Package, Camera, Heart, Bookmark } from "lucide-react";
@@ -33,11 +32,18 @@ const TABS: { id: Tab; labelKey: string; icon: typeof Package }[] = [
 export function ProfilePage() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const { profile, refetchProfile } = useProfile(user?.id);
   const [activeTab, setActiveTab] = useState<Tab>("collection");
   const [shareOpen, setShareOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  // ヘッダーのメニューの「設定」は /edit-profile?settings=1 で開く
+  const [searchParams, setSearchParams] = useSearchParams();
+  const settingsOpen = searchParams.get("settings") === "1";
+  const setSettingsOpen = (open: boolean) => {
+    const next = new URLSearchParams(searchParams);
+    if (open) next.set("settings", "1");
+    else next.delete("settings");
+    setSearchParams(next, { replace: true });
+  };
   const [editOpen, setEditOpen] = useState(false);
 
   const {
@@ -48,11 +54,6 @@ export function ProfilePage() {
     userId: user?.id || "",
     onSuccess: () => refetchProfile(),
   });
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
-  };
 
   if (!user || !profile) {
     return (
@@ -86,7 +87,6 @@ export function ProfilePage() {
             onShare={() => setShareOpen(true)}
             onEdit={() => setEditOpen(true)}
             onOpenSettings={() => setSettingsOpen(true)}
-            onLogout={handleLogout}
           />
 
           {/* 推しコンテンツ */}

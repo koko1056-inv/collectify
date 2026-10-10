@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Camera, Flame, Plus, Sprout } from "lucide-react";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { BackButton } from "@/components/navigation/BackButton";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -46,6 +48,8 @@ const Oshi = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="mx-auto max-w-lg px-4 py-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:pb-10">
+        {/* 以前は下部ナビも戻るボタンも無く、PWA では抜け出せなかった */}
+        <BackButton fallbackTo="/collection" className="-ml-4 mb-1" />
         <header className="mb-4">
           <h1 className="text-2xl font-bold">{t("engage.oshi.pageTitle")}</h1>
           <p className="text-sm text-muted-foreground">{t("engage.oshi.pageSub")}</p>
@@ -124,6 +128,7 @@ const Oshi = () => {
 
       <CompanionPicker open={pickerOpen} onOpenChange={setPickerOpen} excludeIds={list.map((c) => c.user_item_id)} />
       <TodayPhotoDialog open={photoOpen} onOpenChange={setPhotoOpen} initialItemId={photoItem} />
+      <Footer />
     </div>
   );
 };

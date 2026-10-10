@@ -52,7 +52,9 @@ export function Footer() {
     if (path === "/my-room") return isMyRoomActive;
     if (path === "/search?tab=trade") return isTradeActive;
     // 交換タブに居るあいだは「コレクション」を点灯させない
-    if (path === "/collection") return location.pathname === "/collection";
+    // コレクションから入る画面（推しフォト・追加）でもコレクションを点灯させる
+    if (path === "/collection")
+      return ["/collection", "/oshi", "/add-item", "/quick-add", "/image-search"].includes(location.pathname);
     return location.pathname === path;
   };
 

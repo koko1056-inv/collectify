@@ -55,6 +55,7 @@ export const misc = {
     notifications: {
       title: "通知",
       unreadCount: "{n}件の未読",
+      bellUnread: "通知（未読{n}件）",
       empty: "通知はありません",
       markAllRead: "すべて既読にする",
       markRead: "既読にする",
@@ -545,6 +546,7 @@ export const misc = {
     notifications: {
       title: "Notifications",
       unreadCount: "{n} unread",
+      bellUnread: "Notifications ({n} unread)",
       empty: "No notifications yet",
       markAllRead: "Mark all as read",
       markRead: "Mark as read",

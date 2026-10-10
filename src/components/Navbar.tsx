@@ -4,15 +4,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, User, Globe, Palette, HelpCircle, Compass, Home, Boxes, ArrowLeftRight, Plus } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ShoppingBasket, User, Globe, Palette, HelpCircle, Compass, Home, Boxes, ArrowLeftRight, Plus, MessageCircle, Settings, LogOut } from "lucide-react";
+import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { AddGoodsSheet } from "@/components/collection/AddGoodsSheet";
-import { UserSearchModal } from "./UserSearchModal";
 import { TradeInboxButton } from "./trade/TradeInboxButton";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useThemeColor, themeColors } from "@/contexts/ThemeColorContext";
-import { ChatButton } from "./ChatButton";
+import { MessagesNavButton } from "./MessagesNavButton";
+import { useUnreadMessageCount } from "@/hooks/useUnreadMessageCount";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "./notifications/NotificationBell";
@@ -43,7 +43,6 @@ export function Navbar() {
     profile
   } = useProfile(user?.id);
   const [isWishlistModalOpen, setIsWishlistModalOpen] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isAddGoodsOpen, setIsAddGoodsOpen] = useState(false);
   const handleLogout = async () => {
     const {
@@ -57,68 +56,99 @@ export function Navbar() {
       toast.success(t("chrome.nav.logoutDoneTitle"), {
         description: t("chrome.nav.logoutDoneDesc"),
       });
+      navigate("/login");
     }
   };
+  const unreadMessages = useUnreadMessageCount();
+
+  // アバターのメニュー。モバイルとデスクトップで同じ中身にする
+  // （以前のデスクトップ版にはプロフィールもログアウトも無く、どこにも辿り着けなかった）
+  const accountMenu = (
+    <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
+        <User className="w-4 h-4 mr-2" />
+        {t("chrome.nav.profile")}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => navigate("/messages")}>
+        <MessageCircle className="w-4 h-4 mr-2" />
+        {t("chrome.nav.messages")}
+        {unreadMessages > 0 && (
+          <span className="ml-auto rounded-full bg-destructive px-1.5 text-3xs font-bold leading-4 tabular-nums text-destructive-foreground">
+            {unreadMessages > 9 ? "9+" : unreadMessages}
+          </span>
+        )}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => navigate("/edit-profile?settings=1")}>
+        <Settings className="w-4 h-4 mr-2" />
+        {t("chrome.nav.settings")}
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => navigate("/how-to-use")}>
+        <HelpCircle className="w-4 h-4 mr-2" />
+        {t("chrome.nav.howToUse")}
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel className="flex items-center gap-2">
+        <Globe className="w-4 h-4" />
+        {t("chrome.nav.language")}
+      </DropdownMenuLabel>
+      <DropdownMenuItem onClick={() => setLanguage("ja")} className={language === "ja" ? "bg-accent" : ""}>
+        🇯🇵 日本語
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
+        🇺🇸 English
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuLabel className="flex items-center gap-2">
+        <Palette className="w-4 h-4" />
+        {t("chrome.nav.themeColor")}
+      </DropdownMenuLabel>
+      {themeColors.map((color) => (
+        <DropdownMenuItem
+          key={color.value}
+          onClick={() => setThemeColor(color.value)}
+          className={themeColor === color.value ? "bg-accent" : ""}
+        >
+          {color.emoji} {t(`chrome.themeColor.${color.value}`)}
+        </DropdownMenuItem>
+      ))}
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+        <LogOut className="w-4 h-4 mr-2" />
+        {t("chrome.nav.logout")}
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  );
+
+  const avatarTrigger = (
+    <DropdownMenuTrigger asChild>
+      <button
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full transition-opacity hover:opacity-80"
+        aria-label={t("chrome.nav.accountMenu")}
+      >
+        <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
+          <AvatarImage src={profile?.avatar_url || undefined} />
+          <AvatarFallback className="bg-muted">
+            <User className="w-4 h-4" />
+          </AvatarFallback>
+        </Avatar>
+      </button>
+    </DropdownMenuTrigger>
+  );
   return <nav className="relative z-50 bg-background border-b shadow-sm">
-      {/* モバイル版のロゴ (sm未満でのみ表示) */}
-      <div className="flex sm:hidden items-center h-12 bg-background px-4 pt-[env(safe-area-inset-top)]">
-        <div className="w-20 flex-shrink-0" /> {/* Left spacer for balance */}
-        <Link to="/collection" className="logo-text text-xl font-bold flex-1 text-center">
+      {/* モバイル版のヘッダー (sm未満でのみ表示)。ロゴは左、操作は右にまとめる */}
+      <div className="flex sm:hidden items-center justify-between gap-2 h-12 bg-background pl-4 pr-2 pt-[env(safe-area-inset-top)]">
+        <Link to="/collection" className="logo-text text-xl">
           Collectify
         </Link>
-        <div className="w-24 flex-shrink-0 flex justify-end">
-          {user && <div className="flex items-center gap-1">
-              <PointsNavButton variant="icon" />
-              <NotificationBell className="sm:hidden" />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="tap-safe-y flex items-center justify-center" aria-label={t("chrome.nav.profile")}>
-                    <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-muted">
-                        <User className="w-4 h-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
-                    <User className="w-4 h-4 mr-2" />
-                    {t("chrome.nav.profile")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/how-to-use")}>
-                    <HelpCircle className="w-4 h-4 mr-2" />
-                    {t("chrome.nav.howToUse")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="flex items-center gap-2">
-                    <Globe className="w-4 h-4" />
-                    {t("chrome.nav.language")}
-                  </DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => setLanguage("ja")} className={language === "ja" ? "bg-accent" : ""}>
-                    🇯🇵 日本語
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
-                    🇺🇸 English
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="flex items-center gap-2">
-                    <Palette className="w-4 h-4" />
-                    {t("chrome.nav.themeColor")}
-                  </DropdownMenuLabel>
-                  {themeColors.map((color) => (
-                    <DropdownMenuItem
-                      key={color.value}
-                      onClick={() => setThemeColor(color.value)}
-                      className={themeColor === color.value ? "bg-accent" : ""}
-                    >
-                      {color.emoji} {t(`chrome.themeColor.${color.value}`)}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>}
-        </div>
+        {user && <div className="flex items-center">
+            <PointsNavButton variant="icon" />
+            <MessagesNavButton unreadCount={unreadMessages} />
+            <NotificationBell className="sm:hidden" />
+            <DropdownMenu>
+              {avatarTrigger}
+              {accountMenu}
+            </DropdownMenu>
+          </div>}
       </div>
       
       {/* デスクトップ版のナビゲーション */}
@@ -176,56 +206,17 @@ export function Navbar() {
           <UserInfo />
           {user ? <>
               
-              <Button variant="outline" size="icon" onClick={() => setIsWishlistModalOpen(true)} className="relative h-8 w-8">
+              <Button variant="outline" size="icon" onClick={() => setIsWishlistModalOpen(true)} className="relative h-8 w-8" aria-label={t("chrome.nav.wishlist")} title={t("chrome.nav.wishlist")}>
                 <ShoppingBasket className="h-4 w-4 text-foreground" />
               </Button>
               
               <TradeInboxButton />
-              <ChatButton />
+              <MessagesNavButton unreadCount={unreadMessages} />
               <NotificationBell className="hidden sm:block" />
               
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="tap-safe-y flex items-center justify-center rounded-full hover:opacity-80 transition-opacity" aria-label={t("chrome.nav.profile")}>
-                    <Avatar className="w-8 h-8 border-2 border-border hover:border-primary transition-colors">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-muted">
-                        <User className="w-4 h-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate("/how-to-use")}>
-                    <HelpCircle className="w-4 h-4 mr-2" />
-                    {t("chrome.nav.howToUse")}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="flex items-center gap-2">
-                    <Globe className="w-4 h-4" />
-                    {t("chrome.nav.language")}
-                  </DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => setLanguage("ja")} className={language === "ja" ? "bg-accent" : ""}>
-                    🇯🇵 日本語
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
-                    🇺🇸 English
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="flex items-center gap-2">
-                    <Palette className="w-4 h-4" />
-                    {t("chrome.nav.themeColor")}
-                  </DropdownMenuLabel>
-                  {themeColors.map((color) => (
-                    <DropdownMenuItem
-                      key={color.value}
-                      onClick={() => setThemeColor(color.value)}
-                      className={themeColor === color.value ? "bg-accent" : ""}
-                    >
-                      {color.emoji} {t(`chrome.themeColor.${color.value}`)}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
+                {avatarTrigger}
+                {accountMenu}
               </DropdownMenu>
               
             </> : <Link to="/login">
@@ -237,7 +228,6 @@ export function Navbar() {
       </div>
       
       <WishlistViewModal isOpen={isWishlistModalOpen} onClose={() => setIsWishlistModalOpen(false)} />
-      <UserSearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
       <AddGoodsSheet open={isAddGoodsOpen} onOpenChange={setIsAddGoodsOpen} />
     </nav>;
 }

@@ -8,7 +8,6 @@ import { ModalHeader } from "./ModalHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, X, Info, Users, Heart, MessageSquare, MessageCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { isUUID } from "@/utils/tag/tag-core";
 import { SimpleItemTag } from "@/utils/tag/types";
 import { ItemInfoTab } from "./tabs/ItemInfoTab";
@@ -18,6 +17,7 @@ import { ItemCommentsSection } from "@/features/comments/ItemCommentsSection";
 import { ItemRoomPanel } from "@/features/item-room/ItemRoomPanel";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { buildShareUrl } from "@/utils/shareLinks";
+import { useAddOfficialItem } from "@/hooks/useAddOfficialItem";
 
 interface ItemDetailsWrapperProps {
   itemId: string;
@@ -47,7 +47,6 @@ export function ItemDetailsWrapper({
   const [isTagManageModalOpen, setIsTagManageModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("info");
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
@@ -179,9 +178,18 @@ export function ItemDetailsWrapper({
     }
   };
 
+  // 以前は存在しない /collection/add/:id へ飛ばしていて、何も追加されずにコレクションへ戻っていた
+  const { add: addOfficialItem } = useAddOfficialItem();
   const handleAddToCollection = useCallback(() => {
-    navigate(`/collection/add/${itemId}`);
-  }, [itemId, navigate]);
+    if (!itemDetails) return;
+    void addOfficialItem({
+      id: itemId,
+      title: itemDetails.title,
+      image: itemDetails.image,
+      releaseDate: itemDetails.release_date,
+      price: itemDetails.price,
+    });
+  }, [itemId, itemDetails, addOfficialItem]);
 
   if (isItemDetailsLoading) {
     return (
