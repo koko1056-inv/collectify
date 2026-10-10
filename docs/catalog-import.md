@@ -15,6 +15,12 @@
 
 既存の作品にも同じものを足す。ガチャやくじは通常グッズより見つけにくいので、後回しにしない。
 
+## 一括取り込みの関数
+
+`public.import_official_batch(j jsonb, cname text, pre text)`（マイグレーション `20261010800000`）に、下の「データの形」の行（JSON）・作品名・画像URLの共通の前置きを渡すと、通知トリガーの停止/復帰・作品・タグ・商品・タグ付けまでを1回でやる。クライアントからは呼べない（`execute_sql` から使う）。`docs/catalog-import-template.sql` と同じ処理で、貼る量が少ない。1回は60件ほどにすると安全。
+
+行の形: `{"i":"安定ID","t":"タイトル","im":"画像のパス","p":"価格","d":"日付","ty":"タイプ","s":"シリーズ","sr":["入手方法"],"c":["キャラ"]}`（`s` `sr` `c` は省略可）。
+
 ## データの形
 
 - `content_names`（`type='anime'`）に作品を作り、同名のコンテンツタグを付ける。
@@ -48,6 +54,16 @@
 - プライズ: タイトーのプライズ（`taito.co.jp`、20 秒あける）、BANPRESTO（`bsp-prize.jp`。原寸画像が Referer なしで取れるものだけ）
 - カード: ヴァイスシュヴァルツ / UNION ARENA / hololive OFFICIAL CARD GAME などの1枚ずつ一覧
 - 取り込み済みのほかの作品（アニメ・ゲーム）の新商品・新弾
+
+### 事務所・レーベルの公式ショップ（Shopify）
+
+- **BMSG SHOP**（`bmsg.shop`、BE:FIRST / MAZZEL / STARGLOW / Novel Core / Aile The Shota / SKY-HI / REIKO ほか）: robots.txt は `User-agent: *` で許可。`/products.json?limit=250&page=N` で全商品が取れる（3ページほど、ページ間は15秒あける）。ID は `bmsg:<product id>`。画像は `https://cdn.shopify.com/s/files/1/0614/7430/8322/` 以下（`files/` または `products/`）。チケット・ファンクラブ・配信・アーカイブ類は入れない。
+- 新着は `published_at` が新しいものだけを見る。作品（content_names）には英語名と日本語の別名（例: BE:FIRST→ビーファースト）を付ける。
+
+### 取り込めない・見送った取得元
+
+- **STARTO ENTERTAINMENT**（Snow Man ほか）: `starto.jp` の robots.txt が ClaudeBot / Claude-SearchBot / GPTBot を名指しで禁止しているため、取得元に使わない。
+- JO1（`jo1.jp` は取得可だが、グッズの販売先 LAPONE のショップは、この実行環境のネットワーク許可に無い）、M!LK（公式サイト・ショップとも同様）: 環境のネットワーク許可に追加するか、取得元を別にする必要がある。
 
 ### 手順
 
