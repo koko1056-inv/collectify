@@ -675,7 +675,7 @@ export function UserCollection({
                   }))
                 );
                 handleBulkComplete();
-                navigate("/my-room?tab=studio&from=collection");
+                navigate("/me?tab=ai&from=collection");
               }}
               // violet→fuchsia は AI 機能の識別色（AIスタジオ/FAB/オンボーディングでも共通）。
               // テーマ色に寄せると AI 機能の見分けが付かなくなるため、あえてトークン化しない。

@@ -54,14 +54,14 @@ const ScrollToTop: React.FC = () => {
   return null;
 };
 
-// 主要ページも lazy 化して初回バンドルを縮小（MyRoom はデフォルト遷移先なので即プリフェッチ）
-const MyRoom = lazy(() => import("./pages/MyRoom").catch(() => ({ default: () => <div>Error loading page</div> })));
+// 主要ページも lazy 化して初回バンドルを縮小
 const Search = lazy(() => import("./pages/Search").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Collection = lazy(() => import("./pages/Collection").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Posts = lazy(() => import("./pages/Posts"));
 const Oshi = lazy(() => import("./pages/Oshi"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Trade = lazy(() => import("./pages/Trade"));
+import { EditProfileRedirect, MyRoomRedirect } from "@/components/navigation/LegacyRedirects";
 const ItemPostsFeed = lazy(() => import("./pages/ItemPostsFeed").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // バックグラウンドで下部ナビ全タブのコードチャンクをプリフェッチ。
@@ -69,7 +69,7 @@ const ItemPostsFeed = lazy(() => import("./pages/ItemPostsFeed").catch(() => ({ 
 // 「表示→ロード」に見えるため、5タブ分を事前に読み込んでおく。
 if (typeof window !== "undefined") {
   const prefetch = () => {
-    import("./pages/MyRoom");
+    import("./pages/Trade");
     import("./pages/Search");
     import("./pages/Collection");
     import("./pages/AiRooms");
@@ -193,7 +193,8 @@ const App: React.FC = () => {
                       <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Admin /></ProtectedRoute>} />
                       <Route path="/add-item" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
                       <Route path="/quick-add" element={<ProtectedRoute><QuickAdd /></ProtectedRoute>} />
-                      <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+                      <Route path="/me" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+                      <Route path="/edit-profile" element={<EditProfileRedirect />} />
                       <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                       <Route path="/oshi" element={<ProtectedRoute><Oshi /></ProtectedRoute>} />
                       <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
@@ -202,7 +203,7 @@ const App: React.FC = () => {
                       <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
                       <Route path="/trade" element={<ProtectedRoute><Trade /></ProtectedRoute>} />
                       <Route path="/collection" element={<ProtectedRoute><Collection /></ProtectedRoute>} />
-                      <Route path="/my-room" element={<ProtectedRoute><MyRoom /></ProtectedRoute>} />
+                      <Route path="/my-room" element={<MyRoomRedirect />} />
                       <Route path="/image-search" element={<ProtectedRoute><ImageSearch /></ProtectedRoute>} />
                       <Route path="/ai-rooms" element={<ProtectedRoute><AiRooms /></ProtectedRoute>} />
                       <Route path="/matches" element={<Navigate to="/explore?tab=users" replace />} />

@@ -61,7 +61,7 @@ export default function UserProfile() {
 
   // 自分の id で開いたら、自分のプロフィール画面へ（ここでは設定・編集・ログアウトが動かない）
   if (user && userId === user.id) {
-    return <Navigate to="/edit-profile" replace />;
+    return <Navigate to="/me" replace />;
   }
 
   if (!profile) {

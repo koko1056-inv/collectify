@@ -90,6 +90,12 @@ export const tour = {
       },
     },
 
+    me: {
+      tabs: {
+        title: "ここがあなたのマイページ",
+        body: "投稿・ほしいもの・保存・AI作品がここにまとまっています。右上の歯車から設定を開けます。",
+      },
+    },
     myRoom: {
       main: {
         title: "ここが公開されるあなたの部屋",
@@ -191,6 +197,12 @@ export const tour = {
       },
     },
 
+    me: {
+      tabs: {
+        title: "This is your page",
+        body: "Your posts, wishlist, saved items and AI works live here. Open settings from the gear at the top right.",
+      },
+    },
     myRoom: {
       main: {
         title: "This is your public room",

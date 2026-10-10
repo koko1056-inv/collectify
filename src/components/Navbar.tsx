@@ -5,13 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserInfo } from "./UserInfo";
-import { ShoppingBasket, User, Globe, Palette, HelpCircle, Compass, Home, Boxes, ArrowLeftRight, Plus, MessageCircle, Settings, LogOut } from "lucide-react";
+import { ShoppingBasket, User, HelpCircle, Compass, Boxes, ArrowLeftRight, Plus, MessageCircle, Settings, LogOut } from "lucide-react";
 import { useState } from "react";
 import { WishlistViewModal } from "./WishlistViewModal";
 import { AddGoodsSheet } from "@/components/collection/AddGoodsSheet";
 import { TradeInboxButton } from "./trade/TradeInboxButton";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useThemeColor, themeColors } from "@/contexts/ThemeColorContext";
 import { MessagesNavButton } from "./MessagesNavButton";
 import { useUnreadMessageCount } from "@/hooks/useUnreadMessageCount";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
@@ -25,7 +24,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -33,12 +31,7 @@ export function Navbar() {
   const {
     user
   } = useAuth();
-  const {
-    t,
-    language,
-    setLanguage
-  } = useLanguage();
-  const { themeColor, setThemeColor } = useThemeColor();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -64,10 +57,11 @@ export function Navbar() {
   const unreadMessages = useUnreadMessageCount();
 
   // アバターのメニュー。モバイルとデスクトップで同じ中身にする
-  // （以前のデスクトップ版にはプロフィールもログアウトも無く、どこにも辿り着けなかった）
+  // （以前のデスクトップ版にはプロフィールもログアウトも無く、どこにも辿り着けなかった）。
+  // 言語とテーマカラーは設定にまとめた（以前はメニューと設定に分かれていた）
   const accountMenu = (
     <DropdownMenuContent align="end" className="w-56">
-      <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
+      <DropdownMenuItem onClick={() => navigate("/me")}>
         <User className="w-4 h-4 mr-2" />
         {t("chrome.nav.profile")}
       </DropdownMenuItem>
@@ -80,7 +74,7 @@ export function Navbar() {
           </span>
         )}
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => navigate("/edit-profile?settings=1")}>
+      <DropdownMenuItem onClick={() => navigate("/me?settings=1")}>
         <Settings className="w-4 h-4 mr-2" />
         {t("chrome.nav.settings")}
       </DropdownMenuItem>
@@ -88,31 +82,6 @@ export function Navbar() {
         <HelpCircle className="w-4 h-4 mr-2" />
         {t("chrome.nav.howToUse")}
       </DropdownMenuItem>
-      <DropdownMenuSeparator />
-      <DropdownMenuLabel className="flex items-center gap-2">
-        <Globe className="w-4 h-4" />
-        {t("chrome.nav.language")}
-      </DropdownMenuLabel>
-      <DropdownMenuItem onClick={() => setLanguage("ja")} className={language === "ja" ? "bg-accent" : ""}>
-        🇯🇵 日本語
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => setLanguage("en")} className={language === "en" ? "bg-accent" : ""}>
-        🇺🇸 English
-      </DropdownMenuItem>
-      <DropdownMenuSeparator />
-      <DropdownMenuLabel className="flex items-center gap-2">
-        <Palette className="w-4 h-4" />
-        {t("chrome.nav.themeColor")}
-      </DropdownMenuLabel>
-      {themeColors.map((color) => (
-        <DropdownMenuItem
-          key={color.value}
-          onClick={() => setThemeColor(color.value)}
-          className={themeColor === color.value ? "bg-accent" : ""}
-        >
-          {color.emoji} {t(`chrome.themeColor.${color.value}`)}
-        </DropdownMenuItem>
-      ))}
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
         <LogOut className="w-4 h-4 mr-2" />
@@ -160,7 +129,7 @@ export function Navbar() {
         </Link>
         
         {/* ナビゲーションメニュー。モバイルの下タブと同じ並び・同じ行き先にする。
-            コレクション / 交換 / 追加 / みんな / マイルーム */}
+            コレクション / 交換 / 追加 / みんな / マイページ */}
         {user && <NavigationMenu data-tour="nav-bar" className="mr-auto">
             <NavigationMenuList>
               <NavigationMenuItem>
@@ -195,9 +164,9 @@ export function Navbar() {
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/my-room" aria-current={isNavActive("/my-room", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), isNavActive("/my-room", location.pathname) && "bg-accent text-primary")}>
-                  <Home className="h-4 w-4 mr-2" />
-                  {t("chrome.nav.myRoom")}
+                <Link to="/me" aria-current={isNavActive("/me", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), isNavActive("/me", location.pathname) && "bg-accent text-primary")}>
+                  <User className="h-4 w-4 mr-2" />
+                  {t("chrome.nav.myPage")}
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>

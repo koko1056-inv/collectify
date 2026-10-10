@@ -6,8 +6,8 @@ export const NAV_GROUPS: Record<string, string[]> = {
   "/collection": ["/collection", "/oshi", "/add-item", "/quick-add", "/image-search"],
   "/trade": ["/trade", "/messages"],
   "/explore": ["/explore", "/search", "/item-posts", "/post", "/posts", "/user", "/room", "/rooms", "/ai-work", "/ai-avatar", "/item"],
-  // /my-room と /ai-rooms はどちらも AI スタジオに着くので同じタブ扱いにする
-  "/my-room": ["/my-room", "/ai-rooms", "/edit-profile", "/point-shop", "/points", "/how-to-use"],
+  // マイページ（以前のマイルームと /edit-profile をまとめた）。AI スタジオ・ポイント・使い方もここから入る
+  "/me": ["/me", "/my-room", "/ai-rooms", "/edit-profile", "/point-shop", "/points", "/how-to-use"],
 };
 
 export function isNavActive(to: string, pathname: string): boolean {

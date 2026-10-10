@@ -1,8 +1,9 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { PointBalanceCard } from "./PointBalanceCard";
+import { useUserPoints } from "@/hooks/usePoints";
+import { useThemeColor, themeColors } from "@/contexts/ThemeColorContext";
 import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
 import { Button } from "@/components/ui/button";
-import { LogOut, MessageSquare, MessageSquarePlus, HelpCircle, Globe, Sun, Moon, SunMoon } from "lucide-react";
+import { LogOut, MessageSquarePlus, HelpCircle, Globe, Sun, Moon, SunMoon, Palette, Coins, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -23,6 +24,8 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
   const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
   const { colorScheme, setColorScheme } = useColorScheme();
+  const { themeColor, setThemeColor } = useThemeColor();
+  const { data: userPoints } = useUserPoints();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -43,50 +46,18 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {/* ポイント */}
-          <section className="bg-card rounded-2xl border border-border p-5">
-            <PointBalanceCard />
-          </section>
-
-          {/* 招待 */}
-          <section className="bg-card rounded-2xl border border-border p-5">
-            <InviteCodeSection />
-          </section>
-
-          {/* ホーム画面に追加（PWA） */}
-          <InstallAppCard variant="section" />
-
-          {/* 一般 */}
+          {/* 並びは「表示 → ポイント・招待 → アプリ → アカウント → ログアウト」。
+              以前は先頭にポイント残高と招待が大きく出て、設定を探しにくかった。
+              メッセージはヘッダーに入口を置いたのでここからは外した */}
+          <SectionHeading>{t("profileScreen.settings.display")}</SectionHeading>
           <section className="bg-card rounded-2xl border border-border divide-y divide-border">
             <SettingRow
-              icon={<MessageSquare className="w-4 h-4" />}
-              label={t("profileScreen.settings.messages")}
-              onClick={() => {
-                onOpenChange(false);
-                navigate("/messages");
-              }}
-            />
-            <SettingRow
-              icon={<MessageSquarePlus className="w-4 h-4" />}
-              label={t("engage.feedback.settingsRow")}
-              onClick={() => setFeedbackOpen(true)}
-            />
-            <SettingRow
-              icon={<HelpCircle className="w-4 h-4" />}
-              label={t("profileScreen.settings.howTo")}
-              onClick={() => {
-                onOpenChange(false);
-                navigate("/how-to-use");
-              }}
-            />
-            <SettingRow
               icon={<Globe className="w-4 h-4" />}
-              label={language === "ja" ? "日本語" : "English"}
+              label={t("chrome.nav.language")}
               onClick={() => setLanguage(language === "ja" ? "en" : "ja")}
-              hint={language === "ja" ? "Switch to English" : "日本語へ"}
+              hint={language === "ja" ? "日本語 → English" : "English → 日本語"}
             />
           </section>
-
           {/* 表示テーマ（ライト / ダーク / 端末設定に追従） */}
           <section className="bg-card rounded-2xl border border-border p-4 space-y-3">
             <div className="flex items-center gap-2">
@@ -124,6 +95,72 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
             </div>
           </section>
 
+
+          {/* テーマカラー（以前はアバターのメニューにだけあった） */}
+          <section className="bg-card rounded-2xl border border-border p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Palette className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">{t("chrome.nav.themeColor")}</span>
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              {themeColors.map((color) => {
+                const active = themeColor === color.value;
+                return (
+                  <button
+                    key={color.value}
+                    onClick={() => setThemeColor(color.value)}
+                    aria-pressed={active}
+                    className={cn(
+                      "flex flex-col items-center gap-1 rounded-xl border py-2 text-3xs font-medium transition-colors",
+                      active ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    <span className="text-base leading-none" aria-hidden="true">{color.emoji}</span>
+                    {t(`chrome.themeColor.${color.value}`)}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <SectionHeading>{t("profileScreen.settings.pointsAndInvite")}</SectionHeading>
+          <section className="bg-card rounded-2xl border border-border divide-y divide-border">
+            <SettingRow
+              icon={<Coins className="w-4 h-4" />}
+              label={t("chrome.nav.pointsUnit")}
+              hint={userPoints ? `${userPoints.total_points.toLocaleString()}pt` : undefined}
+              onClick={() => {
+                onOpenChange(false);
+                navigate("/point-shop");
+              }}
+              chevron
+            />
+          </section>
+          <section className="bg-card rounded-2xl border border-border p-5">
+            <InviteCodeSection />
+          </section>
+
+          <SectionHeading>{t("profileScreen.settings.app")}</SectionHeading>
+          {/* ホーム画面に追加（PWA） */}
+          <InstallAppCard variant="section" />
+          <section className="bg-card rounded-2xl border border-border divide-y divide-border">
+            <SettingRow
+              icon={<HelpCircle className="w-4 h-4" />}
+              label={t("profileScreen.settings.howTo")}
+              onClick={() => {
+                onOpenChange(false);
+                navigate("/how-to-use");
+              }}
+              chevron
+            />
+            <SettingRow
+              icon={<MessageSquarePlus className="w-4 h-4" />}
+              label={t("engage.feedback.settingsRow")}
+              onClick={() => setFeedbackOpen(true)}
+              chevron
+            />
+          </section>
+
           {/* ブロックしたユーザー（一覧と解除） */}
           <BlockedUsersSection />
 
@@ -146,16 +183,22 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
   );
 }
 
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return <h3 className="-mb-3 px-1 text-xs font-bold text-muted-foreground">{children}</h3>;
+}
+
 function SettingRow({
   icon,
   label,
   hint,
   onClick,
+  chevron,
 }: {
   icon: React.ReactNode;
   label: string;
   hint?: string;
   onClick: () => void;
+  chevron?: boolean;
 }) {
   return (
     <button
@@ -164,7 +207,8 @@ function SettingRow({
     >
       <div className="text-muted-foreground">{icon}</div>
       <span className="flex-1 text-sm font-medium">{label}</span>
-      {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
+      {hint && <span className="text-xs tabular-nums text-muted-foreground">{hint}</span>}
+      {chevron && <ChevronRight className="w-4 h-4 text-muted-foreground" aria-hidden="true" />}
     </button>
   );
 }
