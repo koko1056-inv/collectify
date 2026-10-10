@@ -2,14 +2,16 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { PointBalanceCard } from "./PointBalanceCard";
 import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
 import { Button } from "@/components/ui/button";
-import { LogOut, MessageSquare, HelpCircle, Globe, Sun, Moon, SunMoon } from "lucide-react";
+import { LogOut, MessageSquare, MessageSquarePlus, HelpCircle, Globe, Sun, Moon, SunMoon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useColorScheme, type ColorScheme } from "@/contexts/ColorSchemeContext";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 import { InstallAppCard } from "@/components/pwa/InstallAppCard";
 import { AccountSection } from "./AccountSection";
+import { FeedbackSheet } from "@/components/feedback/FeedbackSheet";
 
 interface ProfileSettingsSheetProps {
   open: boolean;
@@ -20,6 +22,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
   const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
   const { colorScheme, setColorScheme } = useColorScheme();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -56,6 +59,11 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
                 onOpenChange(false);
                 navigate("/messages");
               }}
+            />
+            <SettingRow
+              icon={<MessageSquarePlus className="w-4 h-4" />}
+              label={t("engage.feedback.settingsRow")}
+              onClick={() => setFeedbackOpen(true)}
             />
             <SettingRow
               icon={<HelpCircle className="w-4 h-4" />}
@@ -124,6 +132,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
           </Button>
         </div>
       </SheetContent>
+      <FeedbackSheet open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </Sheet>
   );
 }

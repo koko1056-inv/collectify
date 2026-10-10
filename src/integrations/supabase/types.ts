@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      feedback_requests: {
+        Row: {
+          admin_note: string | null
+          body: string | null
+          created_at: string
+          id: string
+          is_public: boolean
+          kind: string
+          status: string
+          title: string
+          updated_at: string
+          url: string | null
+          user_id: string
+          vote_count: number
+        }
+        Insert: {
+          admin_note?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          kind: string
+          status?: string
+          title: string
+          updated_at?: string
+          url?: string | null
+          user_id: string
+          vote_count?: number
+        }
+        Update: {
+          admin_note?: string | null
+          body?: string | null
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          kind?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string
+          vote_count?: number
+        }
+        Relationships: []
+      }
+      feedback_votes: {
+        Row: {
+          created_at: string
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       achievements: {
         Row: {
           action_type: string | null

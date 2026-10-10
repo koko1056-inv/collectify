@@ -22,6 +22,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import type { OfficialItem } from "@/types";
 import { useSuggestNames } from "@/hooks/useSuggestNames";
 import { DidYouMean } from "@/components/search/DidYouMean";
+import { FeedbackSheet } from "@/components/feedback/FeedbackSheet";
 import { useCatalogContents, useCatalogFeed, useContentNamesEn, useOfficialItems } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
@@ -173,6 +174,8 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   const [wishingId, setWishingId] = useState<string | null>(null);
   // 写真をタップしたグッズの詳細
   const [detailItem, setDetailItem] = useState<OfficialItem | null>(null);
+  // ほしいグッズが見つからないとき、運営に追加をリクエストする
+  const [requestOpen, setRequestOpen] = useState(false);
 
   // カタログは数万件あるので、全件は一度に読み込まない。
   //  - 作品を選んでいる: その作品を全件
@@ -501,11 +504,19 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
               onRetry={() => refetch()}
             />
           ) : results.length === 0 ? (
-            <EmptyState
-              icon={Search}
-              title={t("collectionScreen.addSheet.noHitTitle")}
-              description={t("collectionScreen.addSheet.noHitDesc")}
-            />
+            <div className="space-y-3">
+              <EmptyState
+                icon={Search}
+                title={t("collectionScreen.addSheet.noHitTitle")}
+                description={t("collectionScreen.addSheet.noHitDesc")}
+              />
+              <div className="flex flex-col items-center gap-1.5 pb-4">
+                <p className="text-xs text-muted-foreground">{t("engage.feedback.cantFind")}</p>
+                <Button size="sm" variant="outline" onClick={() => setRequestOpen(true)}>
+                  {t("engage.feedback.requestIt")}
+                </Button>
+              </div>
+            </div>
           ) : (
             // マイコレクションと同じ、写真つきのカードを並べて選ぶ
             <div className="grid grid-cols-3 gap-2.5 pb-2">
@@ -586,6 +597,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           isUserItem={false}
         />
       )}
+      <FeedbackSheet open={requestOpen} onOpenChange={setRequestOpen} initialKind="content" initialTitle={filter.query.trim()} />
     </div>
   );
 }
