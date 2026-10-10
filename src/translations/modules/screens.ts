@@ -13,6 +13,7 @@ export const screens = {
       tagsTab: "タグ候補管理",
       duplicatesTab: "重複統合",
       reportsTab: "通報",
+      feedbackTab: "要望",
       seriesTab: "作品情報",
       seriesBackfill: {
         title: "作品情報の補完",
@@ -422,6 +423,7 @@ export const screens = {
       tagsTab: "Tag suggestions",
       duplicatesTab: "Duplicates",
       reportsTab: "Reports",
+      feedbackTab: "Requests",
       seriesTab: "Series",
       seriesBackfill: {
         title: "Fill in missing series",
