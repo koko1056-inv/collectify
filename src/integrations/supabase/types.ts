@@ -4006,6 +4006,17 @@ export type Database = {
         Args: { _item: string }
         Returns: boolean
       }
+      get_trade_partner_items: {
+        Args: { _only_for_trade?: boolean; _partner_ids: string[] }
+        Returns: {
+          already_requested: boolean
+          for_trade: boolean
+          image: string
+          item_id: string
+          partner_id: string
+          title: string
+        }[]
+      }
       search_official_items: {
         Args: { _limit?: number; _offset?: number; _q: string }
         Returns: { id: string; total: number }[]
@@ -4036,6 +4047,10 @@ export type Database = {
       catalog_content_counts: {
         Args: Record<PropertyKey, never>
         Returns: { content_name: string; item_count: number }[]
+      }
+      claim_completed_onboarding_rewards: {
+        Args: Record<PropertyKey, never>
+        Returns: { step_id: string; points: number }[]
       }
       catalog_content_covers: {
         Args: { per_content?: number }
