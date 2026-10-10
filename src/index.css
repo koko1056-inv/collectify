@@ -10,10 +10,11 @@
     --foreground: 240 10% 10%;
     --border: 30 10% 88%;
     --input: 30 10% 88%;
-    --ring: 350 65% 55%;
+    --ring: 350 65% 48%;
     
-    /* ブランドカラー - ローズ/コーラル系 */
-    --primary: 350 65% 55%;
+    /* ブランドカラー - ローズ/コーラル系
+       白い文字を載せても、背景に文字として置いても、読みやすさの基準（WCAG AA 4.5:1）を満たす明るさ */
+    --primary: 350 65% 48%;
     --primary-foreground: 0 0% 100%;
     --secondary: 30 15% 95%;
     --secondary-foreground: 240 10% 15%;
@@ -23,8 +24,24 @@
     --muted-foreground: 240 5% 45%;
     
     /* Destructive */
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 48%;
     --destructive-foreground: 0 0% 100%;
+
+    /* 意味の色（成功・注意・情報・ポイント）。色を直書きせず、これを使う。
+       いずれも、白い背景の上の文字として 4.5:1 以上 */
+    --success: 152 60% 32%;
+    --success-foreground: 0 0% 100%;
+    --success-soft: 152 45% 94%;
+    --warning: 32 95% 34%;
+    --warning-foreground: 0 0% 100%;
+    --warning-soft: 40 90% 93%;
+    --info: 212 80% 45%;
+    --info-foreground: 0 0% 100%;
+    --info-soft: 212 70% 95%;
+    /* ポイント（コイン）の金色 */
+    --points: 35 92% 33%;
+    --points-foreground: 0 0% 100%;
+    --points-soft: 42 95% 92%;
     
     /* カード用 */
     --card: 0 0% 100%;
@@ -79,11 +96,11 @@
     --foreground: 30 20% 96%;
     --border: 240 8% 18%;
     --input: 240 8% 18%;
-    --ring: 350 60% 60%;
+    --ring: 350 75% 68%;
     
-    /* ブランドカラー - ダークモード */
-    --primary: 350 60% 60%;
-    --primary-foreground: 0 0% 100%;
+    /* ブランドカラー - ダークモード。明るめのピンクに濃い文字を載せる（白い文字だと読みにくいため） */
+    --primary: 350 75% 68%;
+    --primary-foreground: 350 45% 10%;
     --secondary: 240 8% 14%;
     --secondary-foreground: 30 20% 96%;
     --accent: 350 40% 18%;
@@ -94,6 +111,19 @@
     /* Destructive - ダークモード */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
+
+    --success: 152 55% 55%;
+    --success-foreground: 152 50% 8%;
+    --success-soft: 152 30% 14%;
+    --warning: 38 95% 60%;
+    --warning-foreground: 38 60% 8%;
+    --warning-soft: 38 40% 14%;
+    --info: 210 80% 66%;
+    --info-foreground: 210 50% 8%;
+    --info-soft: 210 35% 15%;
+    --points: 42 95% 62%;
+    --points-foreground: 42 60% 8%;
+    --points-soft: 42 45% 14%;
     
     /* カード用 */
     --card: 240 8% 10%;
@@ -136,8 +166,8 @@
 
   /* テーマカラー: ブルー */
   [data-theme-color="blue"] {
-    --primary: 210 80% 50%;
-    --ring: 210 80% 50%;
+    --primary: 212 80% 45%;
+    --ring: 212 80% 45%;
     --accent: 210 50% 95%;
     --accent-foreground: 210 80% 35%;
     --stats-login: 210 70% 50%;
@@ -148,8 +178,8 @@
 
   /* テーマカラー: グリーン */
   [data-theme-color="green"] {
-    --primary: 150 60% 40%;
-    --ring: 150 60% 40%;
+    --primary: 152 62% 32%;
+    --ring: 152 62% 32%;
     --accent: 150 40% 95%;
     --accent-foreground: 150 60% 30%;
     --stats-login: 150 55% 45%;
@@ -172,8 +202,8 @@
 
   /* テーマカラー: オレンジ */
   [data-theme-color="orange"] {
-    --primary: 25 90% 50%;
-    --ring: 25 90% 50%;
+    --primary: 22 90% 40%;
+    --ring: 22 90% 40%;
     --accent: 25 50% 95%;
     --accent-foreground: 25 90% 35%;
     --stats-login: 25 80% 50%;
@@ -182,8 +212,41 @@
     --gradient-brand: linear-gradient(135deg, hsl(25 90% 50%), hsl(40 85% 55%));
   }
 
+  /* テーマカラー × ダークモード: 明るめの色に濃い文字（.dark より後・詳細度も高くして、確実に上書きする） */
+  .dark[data-theme-color="blue"] {
+    --primary: 210 80% 66%;
+    --primary-foreground: 210 45% 10%;
+    --ring: 210 80% 66%;
+    --accent: 210 35% 18%;
+    --accent-foreground: 210 80% 80%;
+  }
+  .dark[data-theme-color="green"] {
+    --primary: 150 55% 55%;
+    --primary-foreground: 150 45% 8%;
+    --ring: 150 55% 55%;
+    --accent: 150 30% 16%;
+    --accent-foreground: 150 55% 75%;
+  }
+  .dark[data-theme-color="purple"] {
+    --primary: 270 70% 74%;
+    --primary-foreground: 270 45% 10%;
+    --ring: 270 70% 74%;
+    --accent: 270 30% 18%;
+    --accent-foreground: 270 70% 82%;
+  }
+  .dark[data-theme-color="orange"] {
+    --primary: 25 90% 62%;
+    --primary-foreground: 25 50% 8%;
+    --ring: 25 90% 62%;
+    --accent: 25 35% 16%;
+    --accent-foreground: 25 90% 75%;
+  }
+
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-overflow-scrolling: touch;
     overflow-y: auto;
@@ -192,6 +255,22 @@
   
   * {
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* 枠線の色は、テーマの --border に揃える（指定がないと Tailwind の既定の明るい灰色になり、ダークモードで白く浮く） */
+  *,
+  ::before,
+  ::after {
+    @apply border-border;
+  }
+
+  /* 見出しは、行の長さをそろえて折り返し、和文の字間を詰める（約物の空きを自然に） */
+  h1, h2, h3 {
+    text-wrap: balance;
+    font-feature-settings: "palt" 1;
+  }
+  p {
+    text-wrap: pretty;
   }
 }
 
