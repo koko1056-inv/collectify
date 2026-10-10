@@ -77,6 +77,13 @@ verify_jwt = true
 [functions.stripe-portal]
 verify_jwt = true
 
+# 退会（アカウント削除）と、自分のデータの書き出し。どちらも本人のJWTが必須。
+[functions.delete-account]
+verify_jwt = true
+
+[functions.export-my-data]
+verify_jwt = true
+
 # Stripe が JWT なしで叩く。認証は Stripe-Signature（STRIPE_WEBHOOK_SECRET）の検証で行う。
 [functions.stripe-webhook]
 verify_jwt = false
