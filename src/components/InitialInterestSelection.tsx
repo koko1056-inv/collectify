@@ -3,7 +3,7 @@ import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useDeferredValue } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,9 @@ import {
 import { cn } from "@/lib/utils";
 import { Dialog } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useCatalogContents } from "@/hooks/useOfficialItems";
+import { fuzzyRank } from "@/utils/fuzzy";
+import { DidYouMean } from "@/components/search/DidYouMean";
 
 const ICON_MAP: Record<string, any> = {
   BookOpen,
@@ -53,6 +56,12 @@ const getDefaultIcon = (contentName: string): any => {
   return Star;
 };
 
+/** 作品。英語名と別名は検索に使う */
+type InterestContent = ContentInfo & { name_en?: string | null; aliases?: string[] | null };
+
+/** 先頭の「人気」に並べる数 */
+const POPULAR_COUNT = 6;
+
 interface InitialInterestSelectionProps {
   isOpen?: boolean;
   onClose?: () => void;
@@ -72,7 +81,7 @@ export function InitialInterestSelection({
   const [showNewContentDialog, setShowNewContentDialog] = useState(false);
   const [newContentName, setNewContentName] = useState("");
   const [creatingContent, setCreatingContent] = useState(false);
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const { completeWalkthrough } = useOnboarding();
   const queryClient = useQueryClient();
@@ -85,9 +94,10 @@ export function InitialInterestSelection({
         .select("*")
         .order("name");
       if (error) throw error;
-      return data as ContentInfo[];
+      return data as InterestContent[];
     },
   });
+  const { data: catalogCounts } = useCatalogContents();
 
   // ユーザーの既存の興味を取得する
   useEffect(() => {
@@ -176,17 +186,141 @@ export function InitialInterestSelection({
     }
   };
 
-  const filteredContents = contentNames.filter(content =>
-    content.name && content.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const deferredQuery = useDeferredValue(searchQuery.trim());
+
+  // グッズの多い順（0件は最後。同数は名前順）
+  const countOf = useMemo(() => new Map((catalogCounts ?? []).map((c) => [c.name, c.count])), [catalogCounts]);
+  const sortedContents = useMemo(
+    () =>
+      contentNames
+        .filter((c) => c.name && c.name !== "なし")
+        .sort((a, b) => (countOf.get(b.name) ?? 0) - (countOf.get(a.name) ?? 0) || a.name.localeCompare(b.name, "ja")),
+    [contentNames, countOf]
+  );
+  const searchTexts = (c: InterestContent) => [c.name, c.name_en, ...(c.aliases ?? [])];
+
+  const searching = deferredQuery.length > 0;
+  // 言葉を入れたら、名前・英語名・別名のどれにでも、打ち間違いを許して近い順に
+  const searchResults = useMemo(
+    () => (searching ? fuzzyRank(deferredQuery, sortedContents, searchTexts, { min: 0.5, limit: 60 }).map((m) => m.item) : []),
+    [searching, deferredQuery, sortedContents]
+  );
+  const suggestions = useMemo(
+    () =>
+      searching && searchResults.length === 0
+        ? fuzzyRank(deferredQuery, sortedContents, searchTexts, { min: 0.3, limit: 3 })
+        : [],
+    [searching, searchResults.length, deferredQuery, sortedContents]
+  );
+  const popularContents = useMemo(
+    () => sortedContents.filter((c) => (countOf.get(c.name) ?? 0) > 0).slice(0, POPULAR_COUNT),
+    [sortedContents, countOf]
+  );
+  const restContents = useMemo(() => {
+    const popular = new Set(popularContents.map((c) => c.id));
+    return sortedContents.filter((c) => !popular.has(c.id));
+  }, [sortedContents, popularContents]);
+
+  const displayName = (c: InterestContent) => (language === "en" && c.name_en ? c.name_en : c.name);
+
+  const renderCard = (content: InterestContent) => {
+    const IconComponent = content.icon_name && ICON_MAP[content.icon_name] ? ICON_MAP[content.icon_name] : getDefaultIcon(content.name);
+    const isSelected = selectedContents.includes(content.name);
+    const count = countOf.get(content.name) ?? 0;
+    return (
+      <button
+        key={content.id}
+        type="button"
+        aria-pressed={isSelected}
+        className={cn(
+          "relative h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-2xl border-2 overflow-hidden",
+          isSelected ? "border-primary bg-primary/10 shadow-md ring-1 ring-primary/20" : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
+        )}
+        onClick={() => handleContentToggle(content.name)}
+      >
+        {isSelected && (
+          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        )}
+        {content.image_url ? (
+          <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted/50 flex items-center justify-center">
+            <img src={content.image_url} alt="" className="w-full h-full object-contain" />
+          </div>
+        ) : (
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", isSelected ? "bg-primary/20" : "bg-muted/60")}>
+            <IconComponent className={cn("h-5 w-5", isSelected ? "text-primary" : "text-muted-foreground")} />
+          </div>
+        )}
+        <span className={cn("text-sm font-medium break-words text-center w-full line-clamp-2 leading-tight", isSelected ? "text-primary" : "text-foreground")}>
+          {displayName(content)}
+        </span>
+        {count > 0 && (
+          <span className="text-[10px] tabular-nums text-muted-foreground">{t("chrome.interests.goodsCount", { n: count.toLocaleString() })}</span>
+        )}
+      </button>
+    );
+  };
+
+  const otherButton = (
+    <button
+      type="button"
+      className="h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/20 hover:border-primary/30 hover:bg-muted/40"
+      onClick={() => setShowNewContentDialog(true)}
+    >
+      <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center">
+        <PlusCircle className="h-5 w-5 text-muted-foreground" />
+      </div>
+      <span className="text-sm font-medium text-muted-foreground">{t("chrome.interests.other")}</span>
+    </button>
+  );
+
+  /** 人気 → すべて の順。言葉を入れている間は、近い順の結果と「もしかして」 */
+  const contentList = searching ? (
+    <div className="space-y-3">
+      {searchResults.length > 0 ? (
+        <div className="grid grid-cols-2 gap-3">{searchResults.map(renderCard)}</div>
+      ) : (
+        <div className="space-y-3 py-4">
+          <p className="text-center text-sm text-muted-foreground">{t("engage.didYouMean.noResults", { q: deferredQuery })}</p>
+          <DidYouMean
+            className="justify-center"
+            options={suggestions.map((m) => ({
+              key: m.item.name,
+              label: displayName(m.item),
+              hint: m.matched && m.matched !== m.item.name && m.matched !== m.item.name_en ? m.matched : undefined,
+            }))}
+            onPick={(name) => {
+              setSearchQuery("");
+              if (!selectedContents.includes(name)) handleContentToggle(name);
+            }}
+          />
+          <div className="grid grid-cols-2 gap-3">{otherButton}</div>
+        </div>
+      )}
+    </div>
+  ) : (
+    <div className="space-y-5">
+      {popularContents.length > 0 && (
+        <section aria-label={t("chrome.interests.popular")}>
+          <h3 className="mb-2 text-xs font-semibold text-muted-foreground">{t("chrome.interests.popular")}</h3>
+          <div className="grid grid-cols-2 gap-3">{popularContents.map(renderCard)}</div>
+        </section>
+      )}
+      <section aria-label={t("chrome.interests.all")}>
+        {popularContents.length > 0 && <h3 className="mb-2 text-xs font-semibold text-muted-foreground">{t("chrome.interests.all")}</h3>}
+        <div className="grid grid-cols-2 gap-3">
+          {restContents.map(renderCard)}
+          {otherButton}
+        </div>
+      </section>
+    </div>
   );
 
   if (standalone) {
     return (
       <div className="space-y-4">
-        <p className="text-center text-muted-foreground text-sm">
-          {t("chrome.interests.description")}
-        </p>
-        
+        {/* 見出しの下の説明は、ウェルカム画面のサブタイトルと重なるのでここでは出さない */}
         {/* 検索バー */}
         <div className="relative">
           <Input
@@ -201,75 +335,7 @@ export function InitialInterestSelection({
         </div>
         
         <ScrollArea className="h-[40vh]">
-          <div className="grid grid-cols-2 gap-3">
-            {filteredContents.map((content) => {
-              const IconComponent = content.icon_name && ICON_MAP[content.icon_name] 
-                ? ICON_MAP[content.icon_name] 
-                : getDefaultIcon(content.name);
-                
-              const isSelected = selectedContents.includes(content.name);
-              
-              return (
-                <button
-                  key={content.id}
-                  className={cn(
-                    "relative h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-2xl border-2 overflow-hidden",
-                    isSelected 
-                      ? "border-primary bg-primary/10 shadow-md ring-1 ring-primary/20"
-                      : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
-                  )}
-                  onClick={() => handleContentToggle(content.name)}
-                >
-                  {/* 選択チェックマーク */}
-                  {isSelected && (
-                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    </div>
-                  )}
-
-                  {/* ロゴ画像 or アイコン */}
-                  {content.image_url ? (
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted/50 flex items-center justify-center">
-                      <img 
-                        src={content.image_url} 
-                        alt={content.name} 
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <div className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center",
-                      isSelected ? "bg-primary/20" : "bg-muted/60"
-                    )}>
-                      <IconComponent className={cn(
-                        "h-5 w-5",
-                        isSelected ? "text-primary" : "text-muted-foreground"
-                      )} />
-                    </div>
-                  )}
-
-                  <span className={cn(
-                    "text-sm font-medium break-words text-center w-full line-clamp-2 leading-tight",
-                    isSelected ? "text-primary" : "text-foreground"
-                  )}>
-                    {content.name}
-                  </span>
-                </button>
-              );
-            })}
-            {/* その他ボタン */}
-            {!searchQuery && (
-              <button
-                className="h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/20 hover:border-primary/30 hover:bg-muted/40"
-                onClick={() => setShowNewContentDialog(true)}
-              >
-                <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center">
-                  <PlusCircle className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">{t("chrome.interests.other")}</span>
-              </button>
-            )}
-          </div>
+          {contentList}
         </ScrollArea>
 
         {/* 新規コンテンツ作成ダイアログ */}
@@ -343,68 +409,7 @@ export function InitialInterestSelection({
         </div>
         
         <ScrollArea className="h-[50vh] pr-4">
-          <div className="grid grid-cols-2 gap-3 p-4">
-            {filteredContents.map((content) => {
-              const IconComponent = content.icon_name && ICON_MAP[content.icon_name] 
-                ? ICON_MAP[content.icon_name] 
-                : getDefaultIcon(content.name);
-                
-              const isSelected = selectedContents.includes(content.name);
-              
-              return (
-                <button
-                  key={content.id}
-                  className={cn(
-                    "relative h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-2xl border-2 overflow-hidden",
-                    isSelected 
-                      ? "border-primary bg-primary/10 shadow-md ring-1 ring-primary/20"
-                      : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
-                  )}
-                  onClick={() => handleContentToggle(content.name)}
-                >
-                  {isSelected && (
-                    <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    </div>
-                  )}
-
-                  {content.image_url ? (
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted/50 flex items-center justify-center">
-                      <img src={content.image_url} alt={content.name} className="w-full h-full object-contain" />
-                    </div>
-                  ) : (
-                    <div className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center",
-                      isSelected ? "bg-primary/20" : "bg-muted/60"
-                    )}>
-                      <IconComponent className={cn(
-                        "h-5 w-5",
-                        isSelected ? "text-primary" : "text-muted-foreground"
-                      )} />
-                    </div>
-                  )}
-
-                  <span className={cn(
-                    "text-sm font-medium break-words text-center w-full line-clamp-2 leading-tight",
-                    isSelected ? "text-primary" : "text-foreground"
-                  )}>
-                    {content.name}
-                  </span>
-                </button>
-              );
-            })}
-            {!searchQuery && (
-              <button
-                className="h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/20 hover:border-primary/30 hover:bg-muted/40"
-                onClick={() => setShowNewContentDialog(true)}
-              >
-                <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center">
-                  <PlusCircle className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground">{t("chrome.interests.other")}</span>
-              </button>
-            )}
-          </div>
+          <div className="p-4">{contentList}</div>
         </ScrollArea>
         
         <div className="flex justify-center mt-4 px-4">

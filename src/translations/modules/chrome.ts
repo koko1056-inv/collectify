@@ -359,7 +359,10 @@ export const chrome = {
     interests: {
       title: "興味のあるコンテンツ",
       description: "好みに合わせたグッズを表示するために、興味のあるコンテンツを選んでください",
-      searchPlaceholder: "コンテンツを検索...",
+      searchPlaceholder: "コンテンツを検索（英語名・略称でもOK）",
+      popular: "人気",
+      all: "すべてのコンテンツ",
+      goodsCount: "グッズ {n}件",
       other: "その他",
       newContentTitle: "新しいコンテンツを追加",
       newContentPlaceholder: "コンテンツ名を入力...",
@@ -780,7 +783,10 @@ export const chrome = {
     interests: {
       title: "Your interests",
       description: "Pick the content you're into so we can show goods that match your taste",
-      searchPlaceholder: "Search content...",
+      searchPlaceholder: "Search content (English names and nicknames work too)",
+      popular: "Popular",
+      all: "All content",
+      goodsCount: "{n} goods",
       other: "Other",
       newContentTitle: "Add new content",
       newContentPlaceholder: "Enter a content name...",
