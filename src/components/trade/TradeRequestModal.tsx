@@ -306,12 +306,12 @@ export function TradeRequestModal({
                               />
                             </div>
                             {item.wanted ? (
-                              <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-0.5 rounded-full bg-warning px-1.5 py-0.5 text-3xs font-semibold text-warning-foreground">
+                              <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-0.5 rounded-full bg-warning px-1.5 py-0.5 text-3xs font-bold text-warning-foreground">
                                 <Gift className="h-2.5 w-2.5" />
                                 {t("trade.request.wantedBadge")}
                               </span>
                             ) : item.for_trade ? (
-                              <span className="absolute left-1.5 top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-3xs font-semibold text-primary-foreground">
+                              <span className="absolute left-1.5 top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-3xs font-bold text-primary-foreground">
                                 {t("trade.request.offeringBadge")}
                               </span>
                             ) : null}

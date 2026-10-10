@@ -24,7 +24,7 @@ export function WeeklyPromptBanner({ onPost, onBrowse }: WeeklyPromptBannerProps
       <button
         type="button"
         onClick={() => onBrowse(prompt.tag)}
-        className="inline-flex min-w-0 items-center font-semibold text-primary hover:underline"
+        className="inline-flex min-w-0 items-center font-bold text-primary hover:underline"
         title={t(`engage.prompts.${prompt.id}`)}
       >
         <Hash className="h-3 w-3 shrink-0" />

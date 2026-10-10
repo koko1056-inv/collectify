@@ -332,7 +332,7 @@ const Search = () => {
           aria-label={t("chrome.collection.addByPhoto")}
         >
           <Camera className="h-5 w-5" />
-          <span className="text-sm font-semibold">{t("chrome.fab.addShort")}</span>
+          <span className="text-sm font-bold">{t("chrome.fab.addShort")}</span>
         </Button>
       )}
       

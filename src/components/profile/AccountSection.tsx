@@ -92,7 +92,7 @@ export function AccountSection({ onDeleted }: AccountSectionProps) {
 
   return (
     <section className="space-y-2">
-      <h3 className="text-xs font-semibold text-muted-foreground px-1">{t("profileScreen.account.heading")}</h3>
+      <h3 className="text-xs font-bold text-muted-foreground px-1">{t("profileScreen.account.heading")}</h3>
       <div className="bg-card rounded-2xl border border-border divide-y divide-border">
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="flex-1 min-w-0">

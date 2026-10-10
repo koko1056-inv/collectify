@@ -222,7 +222,7 @@ export function PublicUserItemModal({
                 <Calendar className="w-4 h-4" />
                 {formatDate(officialItem.release_date)}
                 {officialItem.price && officialItem.price !== "0" && (
-                  <span className="ml-auto font-semibold text-foreground">
+                  <span className="ml-auto font-bold text-foreground">
                     ¥{officialItem.price}
                   </span>
                 )}

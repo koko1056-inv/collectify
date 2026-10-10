@@ -81,7 +81,7 @@ export function CompanionCard({ companion, onPhoto, onRemove }: CompanionCardPro
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-1">
-            <p className="line-clamp-2 flex-1 text-sm font-semibold">{companion.title}</p>
+            <p className="line-clamp-2 flex-1 text-sm font-bold">{companion.title}</p>
             <button
               type="button"
               onClick={() => onRemove(companion)}

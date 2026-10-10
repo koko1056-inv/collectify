@@ -105,7 +105,7 @@ export function CollectionViewToggle({
         <div className="space-y-6">
           {groups.map((group) => (
             <section key={group.key} aria-label={group.label}>
-              <h3 className="mb-2 flex items-baseline gap-2 px-1 text-sm font-semibold text-foreground">
+              <h3 className="mb-2 flex items-baseline gap-2 px-1 text-sm font-bold text-foreground">
                 {group.label}
                 <span className="text-xs font-normal text-muted-foreground tabular-nums">{group.count}</span>
               </h3>

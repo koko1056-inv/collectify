@@ -26,7 +26,7 @@ export function CurrentTagsList({ currentTags, onRemoveTag }: CurrentTagsListPro
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-semibold text-foreground">{t("tagManage.current.heading")}</h3>
+        <h3 className="text-sm font-bold text-foreground">{t("tagManage.current.heading")}</h3>
         <Badge variant="secondary" className="text-xs">
           {currentTags.length}
         </Badge>

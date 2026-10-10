@@ -809,7 +809,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
               <Alert className="border-warning/50 bg-warning-soft">
                 <AlertTriangle className="h-4 w-4 text-warning" />
                 <AlertDescription className="text-foreground">
-                  <div className="font-semibold">{t("screens.quickAdd.similarHeading")}</div>
+                  <div className="font-bold">{t("screens.quickAdd.similarHeading")}</div>
                   {/* カタログに登録しない選択のときは「重複を防げる」という理由が当てはまらないので、
                       既存情報を引き継げるという別の理由を出す */}
                   <p className="mt-1 text-xs text-muted-foreground">
@@ -972,7 +972,7 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                   >
                     <Minus className="h-3.5 w-3.5" />
                   </Button>
-                  <span className="w-9 text-center text-sm font-semibold tabular-nums">
+                  <span className="w-9 text-center text-sm font-bold tabular-nums">
                     {quantity}
                   </span>
                   <Button

@@ -30,7 +30,7 @@ export function ProfileItemPosts({ userId }: ProfileItemPostsProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold flex items-center gap-1.5">
+        <h3 className="text-sm font-bold flex items-center gap-1.5">
           <Camera className="w-4 h-4 text-primary" />
           {t("profileScreen.posts.title")}
           {posts.length > 0 && (

@@ -34,7 +34,7 @@ export function ProfileBookmarks() {
           <div className="w-14 h-14 mx-auto rounded-full bg-muted flex items-center justify-center mb-3">
             <Bookmark className="w-6 h-6 text-muted-foreground" />
           </div>
-          <p className="font-semibold text-sm mb-1">{t("profileScreen.bookmarks.empty")}</p>
+          <p className="font-bold text-sm mb-1">{t("profileScreen.bookmarks.empty")}</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
             {t("profileScreen.bookmarks.emptyHint1")}
             <br />
@@ -80,7 +80,7 @@ export function ProfileBookmarks() {
                 {(w.title || w.name) && (
                   <p
                     className={cn(
-                      "text-xs text-white font-semibold truncate mt-0.5",
+                      "text-xs text-white font-bold truncate mt-0.5",
                     )}
                   >
                     {w.title || w.name}

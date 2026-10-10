@@ -156,7 +156,7 @@ export function ImageSearchResults({
               {/* 類似画像 */}
               {webResults?.visuallySimilarImages && webResults.visuallySimilarImages.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-sm mb-3 text-foreground">{t("misc.imageSearch.webSimilarHeading")}</h3>
+                  <h3 className="font-bold text-sm mb-3 text-foreground">{t("misc.imageSearch.webSimilarHeading")}</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {webResults.visuallySimilarImages.map((img, index) => (
                       <a
@@ -187,7 +187,7 @@ export function ImageSearchResults({
               {/* マッチしたページ */}
               {webResults?.pagesWithMatchingImages && webResults.pagesWithMatchingImages.length > 0 && (
                 <div>
-                  <h3 className="font-semibold text-sm mb-3 text-foreground">{t("misc.imageSearch.webPagesHeading")}</h3>
+                  <h3 className="font-bold text-sm mb-3 text-foreground">{t("misc.imageSearch.webPagesHeading")}</h3>
                   <div className="space-y-2">
                     {webResults.pagesWithMatchingImages.map((page, index) => (
                       <a

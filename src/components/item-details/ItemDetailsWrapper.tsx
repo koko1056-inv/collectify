@@ -210,7 +210,7 @@ export function ItemDetailsWrapper({
       )}
 
       <div className="px-4 sm:px-6 pt-3 pb-4">
-        <h2 className="text-lg font-semibold mb-3 line-clamp-2">{itemDetails.title}</h2>
+        <h2 className="text-lg font-bold mb-3 line-clamp-2">{itemDetails.title}</h2>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-5 h-auto">

@@ -174,7 +174,7 @@ export function TradeMatchingSection() {
                   <img src={getOptimizedImageUrl(o.image, { width: 160 })} onError={fallbackToOriginal(o.image)} alt="" loading="lazy" className="h-full w-full object-contain" />
                 </div>
                 {o.quantity >= 2 && (
-                  <span className="absolute right-1 top-1 rounded-full bg-foreground/85 px-1.5 text-3xs font-semibold text-background">×{o.quantity}</span>
+                  <span className="absolute right-1 top-1 rounded-full bg-foreground/85 px-1.5 text-3xs font-bold text-background">×{o.quantity}</span>
                 )}
                 <p className="mt-1 line-clamp-2 text-3xs leading-tight">{o.title}</p>
               </button>

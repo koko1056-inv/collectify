@@ -700,7 +700,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
               {/* タグ一覧 */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="flex items-center gap-2 text-base font-semibold">
+                  <Label className="flex items-center gap-2 text-base font-bold">
                     <Badge variant="secondary" className="font-normal">
                       {selectedContent}
                     </Badge>
@@ -715,7 +715,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
                   <ScrollArea className="h-[180px]">
                     {filteredTags.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-                        <Tags className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                        <Tags className="h-8 w-8 text-muted-foreground mb-2" />
                         <p className="text-sm text-muted-foreground">
                           {tagSearchQuery ? t("tagManage.empty.noSearchResults") : `${t("tagManage.empty.notRegisteredPrefix")}${categoryLabel}${t("tagManage.empty.notRegisteredSuffix")}`}
                         </p>
@@ -794,7 +794,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
               {/* 未紐づけタグ */}
               <div className="space-y-3 pt-4 border-t">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <Label className="flex items-center gap-2 text-base font-semibold">
+                  <Label className="flex items-center gap-2 text-base font-bold">
                     <Link2 className="h-4 w-4 text-muted-foreground" />
                     {t("tagManage.manage.unlinkedTags")}
                     {unlinkedTags.length > 0 && (

@@ -98,7 +98,7 @@ export function PhotoCalendar({ photos }: PhotoCalendarProps) {
         <Button type="button" variant="ghost" size="icon" aria-label={t("engage.oshi.prevMonth")} onClick={() => move(-1)}>
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <p className="text-sm font-semibold tabular-nums">
+        <p className="text-sm font-bold tabular-nums">
           {t("engage.oshi.monthLabel", { y: cursor.y, m: language === "en" ? pad(cursor.m) : cursor.m })}
           <span className="ml-2 text-xs font-normal text-muted-foreground">{t("engage.oshi.total", { n: monthCount })}</span>
         </p>

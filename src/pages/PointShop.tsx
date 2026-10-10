@@ -263,7 +263,7 @@ export default function PointShop() {
         {/* Point Packages */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
+            <h2 className="text-lg font-bold flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />
               {t("screens.pointShop.packsHeading")}
             </h2>
@@ -310,7 +310,7 @@ export default function PointShop() {
                       </CardDescription>
                     </CardHeader>
                     <CardFooter className="pt-2 flex items-center justify-between">
-                      <span className="text-base font-semibold">¥{pack.price.toLocaleString()}</span>
+                      <span className="text-base font-bold">¥{pack.price.toLocaleString()}</span>
                       <Button size="sm" onClick={() => setConfirmPack(pack)}>
                         {t("screens.pointShop.buy")}
                       </Button>
@@ -326,7 +326,7 @@ export default function PointShop() {
             以前は point_shop_items を読むフックと購入フックが実装済みなのに
             どの画面からも呼ばれておらず、ポイントの使い道が画面上に存在しなかった。 */}
         <section data-tour="shop-items" className="mb-8">
-          <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
+          <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
             <Coins className="w-5 h-5 text-primary" />
             {t("screens.pointShop.exchangeHeading")}
           </h2>
@@ -380,7 +380,7 @@ export default function PointShop() {
 
         {/* Spend Guide */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
+          <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
             <Info className="w-5 h-5 text-primary" />
             {t("screens.pointShop.spendHeading")}
           </h2>

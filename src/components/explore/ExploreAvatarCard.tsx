@@ -78,14 +78,14 @@ export function ExploreAvatarCard({ avatar, isBookmarked, isLiked }: Props) {
         />
         {!imgLoaded && <Skeleton className="absolute inset-0 rounded-none" />}
 
-        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-3xs font-semibold text-primary">
+        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-3xs font-bold text-primary">
           <Sparkles className="w-3 h-3" />
           AI
         </div>
 
         {/* 着せ替え済み（グッズを使った）アバターの印 */}
         {!!avatar.item_ids?.length && (
-          <div className="absolute top-2 left-12 flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/90 backdrop-blur text-3xs font-semibold text-accent-foreground">
+          <div className="absolute top-2 left-12 flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/90 backdrop-blur text-3xs font-bold text-accent-foreground">
             <Package className="w-3 h-3" />
             {avatar.item_ids.length}
           </div>

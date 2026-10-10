@@ -304,7 +304,7 @@ export function ProfileHero({
               <h1 className="text-xl sm:text-2xl font-bold leading-tight">{displayName}</h1>
               <div
                 className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-semibold text-white bg-gradient-to-r shadow-sm",
+                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-bold text-white bg-gradient-to-r shadow-sm",
                   rank.color
                 )}
               >

@@ -99,7 +99,7 @@ export function FeedbackSheet({ open, onOpenChange, initialKind = "content", ini
                   onClick={() => setKind(k)}
                   className={cn(
                     "rounded-xl border px-3 py-2 text-left text-sm transition-colors",
-                    kind === k ? "border-primary bg-primary/10 font-semibold text-primary" : "border-border hover:bg-muted/50"
+                    kind === k ? "border-primary bg-primary/10 font-bold text-primary" : "border-border hover:bg-muted/50"
                   )}
                 >
                   {t(`engage.feedback.kind.${k}`)}
@@ -208,7 +208,7 @@ function MineRow({ request }: { request: FeedbackRequest }) {
       <p className="text-sm font-medium">{request.title}</p>
       {request.admin_note && (
         <p className="rounded-lg bg-muted/60 p-2 text-xs">
-          <span className="font-semibold">{t("engage.feedback.adminNote")}</span> {request.admin_note}
+          <span className="font-bold">{t("engage.feedback.adminNote")}</span> {request.admin_note}
         </p>
       )}
     </div>

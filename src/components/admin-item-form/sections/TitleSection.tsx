@@ -47,7 +47,7 @@ export function TitleSection({
         <Alert className="border-warning/50 bg-warning-soft">
           <AlertTriangle className="h-4 w-4 text-warning" />
           <AlertDescription className="text-warning">
-            <div className="font-semibold mb-2">{t("misc.itemForm.similarHeading")}</div>
+            <div className="font-bold mb-2">{t("misc.itemForm.similarHeading")}</div>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {similarItems.map((item) => (
                 <div 

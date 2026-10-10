@@ -50,7 +50,7 @@ export function GeneratingStep() {
         ))}
       </div>
       <div className="text-center space-y-1">
-        <p className="font-semibold text-base">{t("aiRoom.generating.title")}</p>
+        <p className="font-bold text-base">{t("aiRoom.generating.title")}</p>
         <p className="text-xs text-muted-foreground">
           {overdue ? t("aiRoom.generating.stillWorking") : t("aiRoom.generating.subtitle")}
         </p>

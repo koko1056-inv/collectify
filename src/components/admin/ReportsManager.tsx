@@ -261,7 +261,7 @@ export function ReportsManager() {
           <p
             className={cn(
               "flex items-center gap-1 text-xs",
-              overdue ? "font-semibold text-destructive" : soon ? "text-warning" : "text-muted-foreground"
+              overdue ? "font-bold text-destructive" : soon ? "text-warning" : "text-muted-foreground"
             )}
           >
             {overdue && <AlertTriangle className="h-3.5 w-3.5" />}
@@ -374,7 +374,7 @@ export function ReportsManager() {
           <>
             <section className="space-y-3">
               <div>
-                <h3 className="text-sm font-semibold">
+                <h3 className="text-sm font-bold">
                   {t("admin.reports.pendingTitle")}（{pendingReports.length}）
                 </h3>
                 <p className="text-xs text-muted-foreground">{t("admin.reports.pendingHint")}</p>
@@ -390,7 +390,7 @@ export function ReportsManager() {
 
             {handledReports.length > 0 && (
               <section className="space-y-3">
-                <h3 className="text-sm font-semibold text-muted-foreground">{t("admin.reports.handledTitle")}</h3>
+                <h3 className="text-sm font-bold text-muted-foreground">{t("admin.reports.handledTitle")}</h3>
                 {handledReports.map(renderReport)}
               </section>
             )}

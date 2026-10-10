@@ -172,7 +172,7 @@ export function GenerateTab({
       {/* 直前に作れたアバター。作った物が見えないと「できたのか分からない」ため。 */}
       {!isGenerating && lastResultUrl && (
         <div className="space-y-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
-          <p className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+          <p className="flex items-center gap-1.5 text-sm font-bold text-primary">
             <Check className="h-4 w-4" />
             {t("misc.avatar.resultTitle")}
           </p>

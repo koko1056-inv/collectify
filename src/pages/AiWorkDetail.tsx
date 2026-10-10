@@ -131,11 +131,11 @@ export default function AiWorkDetail() {
                   className="w-full h-auto max-h-[70vh] object-contain bg-black/5"
                 />
                 <div className="absolute top-3 left-3 flex items-center gap-2">
-                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-background/80 backdrop-blur text-xs font-semibold text-primary">
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-background/80 backdrop-blur text-xs font-bold text-primary">
                     <Sparkles className="w-3.5 h-3.5" /> AI
                   </div>
                   {room.parent_room_id && (
-                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent/90 backdrop-blur text-xs font-semibold text-accent-foreground">
+                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent/90 backdrop-blur text-xs font-bold text-accent-foreground">
                       <Repeat className="w-3.5 h-3.5" /> Remix
                     </div>
                   )}
@@ -325,7 +325,7 @@ export default function AiWorkDetail() {
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur">
           <div className="mx-auto flex max-w-md items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">
+              <p className="truncate text-sm font-bold">
                 {t("screens.aiWorkDetail.joinTitle")}
               </p>
               <p className="truncate text-xs text-muted-foreground">

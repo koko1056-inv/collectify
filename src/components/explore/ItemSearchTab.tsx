@@ -151,7 +151,7 @@ export function ItemSearchTab({ query, onPickSuggestion }: ItemSearchTabProps) {
         />
         {suggestions.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground">{t("engage.search.popularSeries")}</p>
+            <p className="text-xs font-bold text-muted-foreground">{t("engage.search.popularSeries")}</p>
             <div className="flex flex-wrap gap-1.5">
               {suggestions.map((s) => (
                 <button
@@ -262,7 +262,7 @@ export function ItemSearchTab({ query, onPickSuggestion }: ItemSearchTabProps) {
               <div className="relative aspect-square overflow-hidden bg-muted">
                 {r.image && <img src={r.image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-contain" />}
                 {r.trade_count > 0 && (
-                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-3xs font-semibold text-primary-foreground shadow">
+                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-3xs font-bold text-primary-foreground shadow">
                     <Repeat className="h-3 w-3" />
                     {t("engage.search.tradeBadge", { n: r.trade_count })}
                   </span>
@@ -270,7 +270,7 @@ export function ItemSearchTab({ query, onPickSuggestion }: ItemSearchTabProps) {
               </div>
               <div className="flex flex-1 flex-col gap-2 p-2.5">
                 <div className="min-h-[2.5rem]">
-                  <p className="line-clamp-2 text-xs font-semibold leading-tight">{r.title}</p>
+                  <p className="line-clamp-2 text-xs font-bold leading-tight">{r.title}</p>
                   {r.content_name && <p className="mt-0.5 truncate text-3xs text-muted-foreground">{r.content_name}</p>}
                 </div>
                 <button

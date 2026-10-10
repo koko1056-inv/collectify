@@ -51,7 +51,7 @@ export function AddedNextSteps({ item }: { item: AddedItem }) {
     <div className="w-full max-w-xs space-y-3">
       {showProgress && mine && (
         <div className="rounded-2xl border border-border bg-card p-3 space-y-2">
-          <div className="flex items-center gap-1.5 text-sm font-semibold">
+          <div className="flex items-center gap-1.5 text-sm font-bold">
             {isComplete(mine) && <Trophy className="h-4 w-4 text-amber-500" />}
             <span className="truncate">{mine.series_label}</span>
             <span className="ml-auto shrink-0 tabular-nums text-xs text-muted-foreground">

@@ -165,7 +165,7 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
                   <div>
                     <div className="flex items-center gap-2">
                       {p === "premium_plus" && <Sparkles className="w-4 h-4 text-yellow-500" />}
-                      <p className="font-semibold">
+                      <p className="font-bold">
                         {p === "premium" ? "Premium" : "Premium+"}
                       </p>
                     </div>
@@ -226,7 +226,7 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
         <Button
           onClick={handlePurchase}
           disabled={loading || isWebSubscriber}
-          className="w-full bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60 text-primary-foreground font-semibold"
+          className="w-full bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60 text-primary-foreground font-bold"
           size="lg"
         >
           {loading

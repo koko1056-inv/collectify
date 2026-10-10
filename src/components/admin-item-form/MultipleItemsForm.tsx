@@ -120,7 +120,7 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">
+        <h3 className="text-lg font-bold">
           {t("misc.itemForm.registerItems", { n: items.length })}
         </h3>
         <div className="flex gap-2">
@@ -144,7 +144,7 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
       <Card className="p-4 bg-muted/30 border-dashed">
         <div className="flex items-center gap-2 mb-3">
           <Wand2 className="h-4 w-4 text-primary" />
-          <h4 className="text-sm font-semibold">{t("misc.itemForm.bulkTitle", { n: items.length })}</h4>
+          <h4 className="text-sm font-bold">{t("misc.itemForm.bulkTitle", { n: items.length })}</h4>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
           <div className="space-y-1.5">
@@ -191,7 +191,7 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="absolute top-3 left-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-semibold shadow-lg">
+                <div className="absolute top-3 left-3 bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-bold shadow-lg">
                   #{index + 1}
                 </div>
               </div>
@@ -199,7 +199,7 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
               <div className="p-5 space-y-5">
                 <div className="space-y-4 pb-4 border-b">
                   <div className="mb-3">
-                    <h4 className="text-base font-semibold text-foreground">{t("addItem.basicInfo")}</h4>
+                    <h4 className="text-base font-bold text-foreground">{t("addItem.basicInfo")}</h4>
                   </div>
                   
                   <TitleSection 
@@ -220,7 +220,7 @@ export function MultipleItemsForm({ images, onSubmit, onBack }: MultipleItemsFor
 
                 <div className="space-y-4">
                   <div className="mb-3">
-                    <h4 className="text-base font-semibold text-foreground">{t("addItem.categoryTags")}</h4>
+                    <h4 className="text-base font-bold text-foreground">{t("addItem.categoryTags")}</h4>
                   </div>
                   
                   <TagsSection 

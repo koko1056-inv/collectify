@@ -57,7 +57,7 @@ export function LegalDocPage({ docs }: LegalDocPageProps) {
                     <thead className="bg-muted/50 text-left">
                       <tr>
                         {s.table.head.map((h) => (
-                          <th key={h} className="px-3 py-2 font-semibold">
+                          <th key={h} className="px-3 py-2 font-bold">
                             {h}
                           </th>
                         ))}

@@ -306,7 +306,7 @@ export default function ItemPublic() {
 
         {item && related.length > 0 && (
           <section className="mt-10 space-y-3">
-            <h2 className="text-sm font-semibold text-foreground">
+            <h2 className="text-sm font-bold text-foreground">
               {t("engage.itemPage.sameSeries", { series: item.content_name ?? "" })}
             </h2>
             <ul className="grid grid-cols-3 gap-2.5">

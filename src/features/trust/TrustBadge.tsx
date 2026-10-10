@@ -58,7 +58,7 @@ export function TrustBadge({
             <p>{t("trade.trust.categoryTooltip", { category: t(`trade.trustCategory.${category}`), tier: tierLabel })}</p>
           ) : (
             <div className="space-y-1">
-              <p className="font-semibold">{t("trade.trust.overallTooltip", { tier: tierLabel })}</p>
+              <p className="font-bold">{t("trade.trust.overallTooltip", { tier: tierLabel })}</p>
               <p>{t("trade.trust.countsTooltip", { trade: score.trade_count, collector: score.collector_count, communication: score.communication_count })}</p>
             </div>
           )}

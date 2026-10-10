@@ -431,7 +431,7 @@ function HeroCard({ profile, userId }: { profile: Profile; userId: string | unde
             <div className="flex items-center gap-1.5 mt-1">
               <div
                 className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-semibold bg-gradient-to-r text-white shadow-sm",
+                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-bold bg-gradient-to-r text-white shadow-sm",
                   rank.color
                 )}
               >

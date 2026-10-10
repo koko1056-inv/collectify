@@ -178,7 +178,7 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
                       footer={
                         <span
                           className={cn(
-                            "mt-auto rounded-md py-1 text-center text-3xs font-semibold",
+                            "mt-auto rounded-md py-1 text-center text-3xs font-bold",
                             owned ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
                           )}
                         >
@@ -230,7 +230,7 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
           </div>
           <Button
             size="lg"
-            className="h-12 w-full rounded-2xl text-base font-semibold"
+            className="h-12 w-full rounded-2xl text-base font-bold"
             variant={n > 0 ? "default" : "outline"}
             onClick={() => onDone(n)}
           >

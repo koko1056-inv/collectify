@@ -59,7 +59,7 @@ export function SpendPointsDialog({
               <div className="flex items-center justify-between rounded-lg bg-muted px-3 py-2">
                 <span className="text-muted-foreground">{t("misc.shop.cost")}</span>
                 {freeTrial ? (
-                  <span className="flex items-center gap-2 font-semibold">
+                  <span className="flex items-center gap-2 font-bold">
                     <span className="text-xs text-muted-foreground line-through">
                       {cost} pt
                     </span>
@@ -69,7 +69,7 @@ export function SpendPointsDialog({
                     </span>
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1 font-semibold">
+                  <span className="flex items-center gap-1 font-bold">
                     <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                     {cost} pt
                   </span>

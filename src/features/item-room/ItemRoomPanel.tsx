@@ -92,7 +92,7 @@ export function ItemRoomPanel({ officialItemId, itemTitle }: Props) {
         <div className="flex items-center gap-2 min-w-0">
           <MessageCircle className="h-4 w-4 text-primary shrink-0" />
           <div className="min-w-0">
-            <p className="text-xs font-semibold truncate">
+            <p className="text-xs font-bold truncate">
               {t("trade.room.headerTitle", {
                 title: itemTitle ?? t("trade.room.defaultItemTitle"),
               })}

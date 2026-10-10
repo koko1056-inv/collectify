@@ -58,7 +58,7 @@ export function CommentItem({ comment, officialItemId, depth = 0 }: CommentItemP
         <div className="bg-muted/50 rounded-2xl px-3 py-2">
           <Link
             to={`/user/${author?.username || comment.user_id}`}
-            className="text-sm font-semibold hover:underline"
+            className="text-sm font-bold hover:underline"
           >
             {author?.display_name || author?.username || t("trade.comments.collectorFallback")}
           </Link>

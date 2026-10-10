@@ -109,13 +109,13 @@ export function CollectionExplorer({
                       )}
                     </div>
                     <div className="p-2.5 space-y-1.5">
-                      <p className="text-xs font-semibold leading-tight line-clamp-2 min-h-[2rem]">
+                      <p className="text-xs font-bold leading-tight line-clamp-2 min-h-[2rem]">
                         {p.series_label}
                       </p>
                       <Progress value={pct} className="h-1.5" />
                       <p className="text-2xs text-muted-foreground tabular-nums">
                         {t("engage.collection.ownedOf", { owned: p.owned, total: p.total })}
-                        <span className="ml-1 font-semibold text-foreground">{pct}%</span>
+                        <span className="ml-1 font-bold text-foreground">{pct}%</span>
                       </p>
                     </div>
                   </button>

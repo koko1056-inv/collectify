@@ -66,7 +66,7 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
       {/* 3カテゴリのバッジ */}
       <Card className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-sm">{t("trade.trust.heading")}</h3>
+          <h3 className="font-bold text-sm">{t("trade.trust.heading")}</h3>
           <TrustBadge score={score} size="md" />
         </div>
         <div className="grid grid-cols-3 gap-3">
@@ -82,7 +82,7 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
 
       {/* 取引レビュー */}
       <div>
-        <h4 className="font-semibold text-sm mb-2">{t("trade.trust.reviewsHeading")}</h4>
+        <h4 className="font-bold text-sm mb-2">{t("trade.trust.reviewsHeading")}</h4>
         {loadingReviews ? (
           <Skeleton className="h-20 w-full" />
         ) : !reviews || reviews.length === 0 ? (

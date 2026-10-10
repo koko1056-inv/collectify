@@ -151,7 +151,7 @@ export function FavoriteItemsEditModal({
 
         {/* 選択中の枠 */}
         <div className="px-4 pt-3 pb-2">
-          <p className="text-2xs font-semibold text-muted-foreground mb-2">
+          <p className="text-2xs font-bold text-muted-foreground mb-2">
             {t("profileScreen.favorites.selected", {
               count: selectedIds.length,
               limit: FAVORITE_ITEMS_LIMIT,

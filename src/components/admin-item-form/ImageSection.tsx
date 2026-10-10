@@ -245,7 +245,7 @@ export function ImageSection({
     <>
       <div className="space-y-4">
         <div className="bg-muted/50 p-2 sm:p-4 rounded-lg border">
-          <h3 className="font-semibold text-base sm:text-lg mb-3 sm:mb-4 text-foreground">{t("addItem.howToAddImage")}</h3>
+          <h3 className="font-bold text-base sm:text-lg mb-3 sm:mb-4 text-foreground">{t("addItem.howToAddImage")}</h3>
           
           {/* モバイルの主動線は「写真を撮る/選ぶ」なのでアップロードを最上位に置く */}
           <div className="space-y-4 sm:space-y-6">
@@ -256,7 +256,7 @@ export function ImageSection({
                   A
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label htmlFor="fileUpload" className="text-sm sm:text-base font-semibold text-foreground block mb-1">
+                  <label htmlFor="fileUpload" className="text-sm sm:text-base font-bold text-foreground block mb-1">
                     {t("addItem.methodB")}
                   </label>
                   <p className="text-xs sm:text-sm text-muted-foreground break-words">
@@ -274,7 +274,7 @@ export function ImageSection({
                       handleImageChange(e.target.files[0]);
                     }
                   }}
-                  className="file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4 file:rounded-md file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer text-sm"
+                  className="file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4 file:rounded-md file:border-0 file:text-xs sm:file:text-sm file:font-bold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer text-sm"
                 />
               </div>
             </div>
@@ -286,7 +286,7 @@ export function ImageSection({
                   B
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label htmlFor="url" className="text-sm sm:text-base font-semibold text-foreground block mb-1">
+                  <label htmlFor="url" className="text-sm sm:text-base font-bold text-foreground block mb-1">
                     {t("addItem.methodC")}
                   </label>
                   <p className="text-xs sm:text-sm text-muted-foreground break-words">
@@ -325,7 +325,7 @@ export function ImageSection({
                   C
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label htmlFor="imageUrl" className="text-sm sm:text-base font-semibold text-foreground block mb-1">
+                  <label htmlFor="imageUrl" className="text-sm sm:text-base font-bold text-foreground block mb-1">
                     {t("addItem.methodA")}
                   </label>
                   <p className="text-xs sm:text-sm text-muted-foreground break-words">
@@ -357,7 +357,7 @@ export function ImageSection({
         {previewUrl && (
           <div className="bg-background p-4 rounded-lg border">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-lg text-foreground">{t("addItem.imagePreview")}</h3>
+              <h3 className="font-bold text-lg text-foreground">{t("addItem.imagePreview")}</h3>
               <Button
                 type="button"
                 onClick={handleAnalyzeImage}

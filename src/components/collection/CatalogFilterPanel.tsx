@@ -113,7 +113,7 @@ export function CatalogFilterPanel({ items, owned, value, onChange, hideContent 
 
           {!hideContent && contents.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-2xs font-semibold text-muted-foreground">{t("engage.catalog.content")}</p>
+              <p className="text-2xs font-bold text-muted-foreground">{t("engage.catalog.content")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {contents.map((c) => {
                   const on = value.content === c.value;

@@ -116,7 +116,7 @@ export function TrendingTags({ onTagClick, selectedTags = [] }: TrendingTagsProp
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold flex items-center gap-2">
+      <h3 className="text-sm font-bold flex items-center gap-2">
         <TrendingUp className="h-4 w-4 text-primary" />
         {t("social.posts.trendingTags")}
       </h3>

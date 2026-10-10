@@ -44,7 +44,7 @@ export function PointBalanceCard() {
     <div className="space-y-4">
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-lg font-semibold">
+        <div className="flex items-center gap-2 text-lg font-bold">
           <Coins className="w-5 h-5 text-points" />
           {t("profileScreen.points.title")}
         </div>
@@ -112,7 +112,7 @@ export function PointBalanceCard() {
                     </div>
                   </div>
                   <span
-                    className={`text-sm font-semibold shrink-0 ml-2 ${
+                    className={`text-sm font-bold shrink-0 ml-2 ${
                       isPositive
                         ? "text-success"
                         : "text-destructive"

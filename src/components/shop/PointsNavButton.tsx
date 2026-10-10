@@ -38,7 +38,7 @@ export function PointsNavButton({ variant = "full" }: PointsNavButtonProps) {
         {isLoading ? (
           <Skeleton className="h-3.5 w-6" />
         ) : (
-          <span className="text-xs font-semibold tabular-nums">
+          <span className="text-xs font-bold tabular-nums">
             {points.toLocaleString()}
           </span>
         )}

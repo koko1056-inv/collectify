@@ -38,7 +38,7 @@ export function UniverseEntryCard({ onOpen }: UniverseEntryCardProps) {
         <span className="block text-sm font-bold">{t("universe.entryTitle")}</span>
         <span className="block truncate text-xs text-white/75">{t("universe.entryDesc")}</span>
       </span>
-      <span className="relative shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur">
+      <span className="relative shrink-0 rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur">
         {t("universe.entryCta")}
       </span>
     </button>

@@ -63,7 +63,7 @@ const Oshi = () => {
             <Flame className="h-6 w-6" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">{photos.streak > 0 ? t("engage.oshi.streak", { n: photos.streak }) : t("engage.oshi.streakNone")}</p>
+            <p className="text-sm font-bold">{photos.streak > 0 ? t("engage.oshi.streak", { n: photos.streak }) : t("engage.oshi.streakNone")}</p>
             <p className="text-xs text-muted-foreground">
               {photos.todayDone ? t("engage.oshi.todayDone") : t("engage.oshi.todayNotYet")}
               <span className="ml-2 tabular-nums">{t("engage.oshi.total", { n: photos.total })}</span>

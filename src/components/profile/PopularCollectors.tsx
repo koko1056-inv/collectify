@@ -78,7 +78,7 @@ export function PopularCollectors() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between pl-4">
-        <h2 className="text-[15px] font-semibold">{t("profileScreen.collectors.title")}</h2>
+        <h2 className="text-[15px] font-bold">{t("profileScreen.collectors.title")}</h2>
         <Button 
           size="sm" 
           variant="outline"

@@ -140,14 +140,14 @@ export function ExploreRoomCard({ room, isBookmarked, isLiked }: Props) {
         )}
 
         {/* AI バッジ */}
-        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-3xs font-semibold text-primary">
+        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-3xs font-bold text-primary">
           <Sparkles className="w-3 h-3" />
           AI
         </div>
 
         {/* リミックスバッジ */}
         {room.parent_room_id && (
-          <div className="absolute top-2 left-12 flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/90 backdrop-blur text-3xs font-semibold text-accent-foreground">
+          <div className="absolute top-2 left-12 flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/90 backdrop-blur text-3xs font-bold text-accent-foreground">
             <Repeat className="w-3 h-3" />
             Remix
           </div>

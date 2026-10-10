@@ -250,7 +250,7 @@ export function CreateItemPostModal({
               <Sparkles className="w-4 h-4 text-primary" />
               {t("social.itemPosts.aiGenerate")}
             </div>
-            <span className="text-3xs font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary">
+            <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">
               {t("social.itemPosts.aiCost")}
             </span>
           </div>

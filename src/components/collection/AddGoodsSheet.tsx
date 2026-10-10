@@ -88,7 +88,7 @@ function MenuView({ onPick, onNavigate }: { onPick: () => void; onNavigate: () =
   return (
     <div className="px-4 pt-4 pb-8">
       <div className="mx-auto w-full max-w-sm space-y-3">
-        <DrawerTitle className="text-center text-base font-semibold">
+        <DrawerTitle className="text-center text-base font-bold">
           {t("collectionScreen.addSheet.title")}
         </DrawerTitle>
         <DrawerDescription className="sr-only">
@@ -152,7 +152,7 @@ function AddOption({
         <Icon className="h-5 w-5" />
       </span>
       <span className="min-w-0">
-        <span className="block text-sm font-semibold">{title}</span>
+        <span className="block text-sm font-bold">{title}</span>
         <span className="block text-xs text-muted-foreground">{desc}</span>
       </span>
     </button>
@@ -412,7 +412,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
           <Button variant="ghost" size="icon" onClick={onBack} aria-label={t("chrome.common.back")}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <DrawerTitle className="text-base font-semibold">
+          <DrawerTitle className="text-base font-bold">
             {t("collectionScreen.addSheet.pickTitle")}
           </DrawerTitle>
         </div>
@@ -543,7 +543,7 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
                       footer={
                         <span
                           className={cn(
-                            "mt-auto rounded-md py-1 text-center text-3xs font-semibold",
+                            "mt-auto rounded-md py-1 text-center text-3xs font-bold",
                             owned ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
                           )}
                         >

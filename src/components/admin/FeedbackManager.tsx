@@ -106,7 +106,7 @@ export function FeedbackManager() {
                 </Badge>
                 <span className="text-xs text-muted-foreground">{t(`engage.feedback.kind.${r.kind}`)}</span>
                 {r.vote_count > 0 && (
-                  <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-primary">
+                  <span className="inline-flex items-center gap-0.5 text-xs font-bold text-primary">
                     <ThumbsUp className="h-3 w-3" aria-hidden="true" />
                     {r.vote_count}
                   </span>

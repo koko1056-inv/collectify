@@ -34,7 +34,7 @@ export function SelectStyleStep({
     >
       <div className="flex items-end justify-between gap-2">
         <div>
-          <h3 className="text-base font-semibold mb-1">{t("aiRoom.style.title")}</h3>
+          <h3 className="text-base font-bold mb-1">{t("aiRoom.style.title")}</h3>
           <p className="text-xs text-muted-foreground">
             {t("aiRoom.style.subtitle")}
           </p>

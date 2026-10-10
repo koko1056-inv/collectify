@@ -44,7 +44,7 @@ export function DailyHubCard() {
             <Flame className="h-6 w-6" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">
+            <p className="text-sm font-bold">
               {hub.streak > 0 ? t("engage.dailyHub.streak", { n: hub.streak }) : t("engage.dailyHub.streakNone")}
             </p>
             <p className="text-xs text-muted-foreground">
@@ -59,7 +59,7 @@ export function DailyHubCard() {
             )}
           </div>
           {hub.claimedToday && (
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-3xs font-semibold text-primary">
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-3xs font-bold text-primary">
               <Check className="h-3 w-3" aria-hidden="true" />
               {t("engage.dailyHub.today")}
             </span>
@@ -80,7 +80,7 @@ export function DailyHubCard() {
               ))}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="flex items-center gap-1 text-sm font-semibold">
+              <p className="flex items-center gap-1 text-sm font-bold">
                 <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
                 {t("engage.dailyHub.newForYou", { n: hub.newTotal })}
               </p>
@@ -98,7 +98,7 @@ export function DailyHubCard() {
             <Camera className="h-5 w-5" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold">{t("engage.oshi.todayCard")}</span>
+            <span className="block text-sm font-bold">{t("engage.oshi.todayCard")}</span>
             <span className="block truncate text-xs text-muted-foreground">
               {oshi.todayDone
                 ? t("engage.oshi.todayDone")
@@ -131,7 +131,7 @@ function ActionChip({ icon, label, pt, onClick }: { icon: React.ReactNode; label
     >
       {icon}
       <span>{label}</span>
-      <span className="font-semibold tabular-nums text-primary">{pt}pt</span>
+      <span className="font-bold tabular-nums text-primary">{pt}pt</span>
     </button>
   );
 }
@@ -168,7 +168,7 @@ function NewForYouDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
                     footer={
                       <span
                         className={cn(
-                          "mt-auto rounded-md py-1 text-center text-3xs font-semibold",
+                          "mt-auto rounded-md py-1 text-center text-3xs font-bold",
                           owned ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
                         )}
                       >

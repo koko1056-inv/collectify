@@ -258,7 +258,7 @@ export function AdminItemForm() {
             {currentStep === "step1" && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
-                  <h2 className="text-lg font-semibold mb-1">{t("chrome.adminForm.addImageTitle")}</h2>
+                  <h2 className="text-lg font-bold mb-1">{t("chrome.adminForm.addImageTitle")}</h2>
                   <p className="text-sm text-muted-foreground">
                     {t("chrome.adminForm.addImageDesc")}
                   </p>
@@ -484,7 +484,7 @@ export function AdminItemForm() {
                 ) : (
                   <>
                     <div className="text-center mb-6">
-                      <h2 className="text-lg font-semibold mb-1">{t("chrome.adminForm.detailsTitle")}</h2>
+                      <h2 className="text-lg font-bold mb-1">{t("chrome.adminForm.detailsTitle")}</h2>
                       <p className="text-sm text-muted-foreground">
                         {t("chrome.adminForm.detailsDesc")}
                       </p>

@@ -60,7 +60,7 @@ export function CommentsModal({ postId, isOpen, onClose }: CommentsModalProps) {
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <div className="bg-muted rounded-lg p-3">
-                    <p className="text-sm font-semibold">
+                    <p className="text-sm font-bold">
                       {comment.profiles?.username || 'Unknown User'}
                     </p>
                     <p className="text-sm text-foreground mt-1">

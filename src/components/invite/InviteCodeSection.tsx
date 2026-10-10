@@ -37,7 +37,7 @@ export function InviteCodeSection() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 text-lg font-semibold">
+      <div className="flex items-center gap-2 text-lg font-bold">
         <Gift className="w-5 h-5 text-primary" />
         {t("misc.invite.title")}
       </div>

@@ -203,7 +203,7 @@ export function ProfileShowcase({
           {featuredAvatar?.name && (
             <div className="mb-1 max-w-[40%]">
               <p className={cn(
-                "text-2xs font-semibold truncate",
+                "text-2xs font-bold truncate",
                 featuredRoom ? "text-white drop-shadow" : "text-foreground"
               )}>
                 {featuredAvatar.name}
@@ -274,7 +274,7 @@ function ShowcaseCard({
                 {label}
               </div>
               {title && (
-                <p className="text-white text-xs font-semibold truncate mt-0.5">{title}</p>
+                <p className="text-white text-xs font-bold truncate mt-0.5">{title}</p>
               )}
             </div>
           </>

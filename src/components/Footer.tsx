@@ -88,7 +88,7 @@ export function Footer() {
           {to === "/search?tab=trade" && tradeBadge > 0 && (
             <span
               aria-label={t("trade.inbox.badgeLabel", { n: tradeBadge })}
-              className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-3xs font-semibold leading-none text-primary-foreground tabular-nums"
+              className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-3xs font-bold leading-none text-primary-foreground tabular-nums"
             >
               {tradeBadge > 9 ? "9+" : tradeBadge}
             </span>
@@ -97,7 +97,7 @@ export function Footer() {
         <span
           className={cn(
             "text-2xs leading-tight w-full text-center truncate",
-            active ? "font-semibold" : "font-medium"
+            active ? "font-bold" : "font-medium"
           )}
         >
           {label}

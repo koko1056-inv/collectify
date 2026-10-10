@@ -130,7 +130,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm">{post.profiles?.username}</p>
+                  <p className="font-bold text-sm">{post.profiles?.username}</p>
                   <p className="text-xs text-muted-foreground">
                     {formatRelative(post.created_at)}
                   </p>
@@ -192,7 +192,7 @@ export function PostDetailModal({ post, isOpen, onClose }: PostDetailModalProps)
 
                   {/* コメント一覧 */}
                   <div className="border-t pt-4">
-                    <h3 className="text-sm font-semibold mb-3">{t("social.posts.commentsTitle")}</h3>
+                    <h3 className="text-sm font-bold mb-3">{t("social.posts.commentsTitle")}</h3>
                     {commentsLoading ? (
                       <div className="text-center py-4 text-sm text-muted-foreground">{t("social.posts.loading")}</div>
                     ) : comments && comments.length > 0 ? (

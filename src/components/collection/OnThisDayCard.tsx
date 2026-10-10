@@ -61,7 +61,7 @@ export function OnThisDayCard({ memory, onDismiss }: OnThisDayCardProps) {
         ))}
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-semibold text-primary">{headline}</p>
+        <p className="text-xs font-bold text-primary">{headline}</p>
         <p className="line-clamp-2 text-sm text-foreground">{body}</p>
       </div>
       <button

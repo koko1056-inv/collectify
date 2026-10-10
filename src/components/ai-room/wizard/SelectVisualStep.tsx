@@ -27,11 +27,11 @@ export function SelectVisualStep({
       className="p-5 space-y-4"
     >
       <div>
-        <h3 className="text-base font-semibold mb-1">{t("aiRoom.visual.title")}</h3>
+        <h3 className="text-base font-bold mb-1">{t("aiRoom.visual.title")}</h3>
         <p className="text-xs text-muted-foreground">
           {t("aiRoom.visual.subtitle")}
         </p>
-        <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-2xs font-semibold">
+        <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-2xs font-bold">
           <Sparkles className="w-3 h-3" />
           {isFirstTime
             ? t("aiRoom.visual.firstFree")
@@ -56,7 +56,7 @@ export function SelectVisualStep({
               <div className="flex items-start gap-2">
                 <span className="text-2xl shrink-0">{v.emoji}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold flex items-center gap-1">
+                  <p className="text-sm font-bold flex items-center gap-1">
                     {t(`aiRoom.visualStyles.${v.id}.name`)}
                     {active && (
                       <Check className="w-3.5 h-3.5 text-primary" strokeWidth={3} />

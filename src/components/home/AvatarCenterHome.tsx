@@ -146,7 +146,7 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
       {!avatars.isLoading && restAvatars.length > 0 && (
         <>
           <div className="flex items-center justify-between pt-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
               {t("homeScreen.avatarCenter.gallery")}
               <span className="ml-1.5 normal-case font-normal">
                 ({restAvatars.length})
@@ -394,7 +394,7 @@ function HeroAvatar({
         </div>
 
         {/* 右上バッジ */}
-        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur text-white text-xs font-semibold flex items-center gap-1.5">
+        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur text-white text-xs font-bold flex items-center gap-1.5">
           <Sparkles className="w-3 h-3" /> {t("homeScreen.avatarCenter.wearing")}
         </div>
       </button>
@@ -416,7 +416,7 @@ function HeroAvatar({
         />
         <label className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-lg hover:bg-muted/60 cursor-pointer transition-colors text-foreground/80">
           <UploadCloud className="w-4 h-4" />
-          <span className="text-2xs font-semibold leading-none">{t("homeScreen.avatarCenter.actionUpload")}</span>
+          <span className="text-2xs font-bold leading-none">{t("homeScreen.avatarCenter.actionUpload")}</span>
           <span className="text-3xs text-muted-foreground leading-none">{t("homeScreen.avatarCenter.actionUploadHint")}</span>
           <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
         </label>
@@ -448,7 +448,7 @@ function ActionButton({
       }`}
     >
       <Icon className="w-4 h-4" />
-      <span className="text-2xs font-semibold leading-none">{label}</span>
+      <span className="text-2xs font-bold leading-none">{label}</span>
       {hint && (
         <span className={`text-3xs leading-none ${accent ? "text-primary/70" : "text-muted-foreground"}`}>
           {hint}
@@ -477,7 +477,7 @@ function NextStepHint({ onDressUp }: { onDressUp: () => void }) {
         <Shirt className="w-4 h-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold leading-tight">
+        <p className="text-sm font-bold leading-tight">
           {t("homeScreen.avatarCenter.hintTitle")}
         </p>
         <p className="text-2xs text-muted-foreground mt-0.5">
@@ -521,12 +521,12 @@ function AvatarThumbCard({
         />
         <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/70 to-transparent" />
         {avatar.item_ids && avatar.item_ids.length > 0 && (
-          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-3xs font-semibold flex items-center gap-1">
+          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-3xs font-bold flex items-center gap-1">
             <Shirt className="w-2.5 h-2.5" />
           </div>
         )}
         {avatar.name && (
-          <div className="absolute left-2 right-2 bottom-1.5 text-white text-2xs font-semibold truncate text-left">
+          <div className="absolute left-2 right-2 bottom-1.5 text-white text-2xs font-bold truncate text-left">
             {avatar.name}
           </div>
         )}
