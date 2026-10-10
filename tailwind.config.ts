@@ -52,6 +52,27 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // 意味の色（成功・注意・情報・ポイント）。bg-amber-500 などの直書きの代わりに使う
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+          soft: "hsl(var(--success-soft))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+          soft: "hsl(var(--warning-soft))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
+          soft: "hsl(var(--info-soft))",
+        },
+        points: {
+          DEFAULT: "hsl(var(--points))",
+          foreground: "hsl(var(--points-foreground))",
+          soft: "hsl(var(--points-soft))",
+        },
         skeleton: "hsl(var(--skeleton))",
         "skeleton-foreground": "hsl(var(--skeleton-foreground))",
         "loading-bg": "hsl(var(--loading-bg))",
@@ -120,6 +141,11 @@ export default {
         wiggle: "wiggle 0.5s ease-in-out infinite",
         "page-flip-right": "page-flip-right 0.6s ease-out",
         "page-flip-left": "page-flip-left 0.6s ease-out",
+      },
+      // 小さな文字の段階。text-[10px] などの直書きの代わりに使う（10px 未満は使わない）
+      fontSize: {
+        "3xs": ["0.625rem", { lineHeight: "0.875rem" }], // 10px: バッジ・ごく短いラベルだけ
+        "2xs": ["0.6875rem", { lineHeight: "1rem" }], // 11px: 補足・キャプション
       },
       fontFamily: {
         // Webフォント読込前/失敗時も日本語が即座に表示されるよう OS ネイティブ日本語フォントをフォールバック
