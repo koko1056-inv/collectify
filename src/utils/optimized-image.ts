@@ -14,11 +14,11 @@ const CATALOG_THUMB_PREFIX = `${STORAGE_PUBLIC_PREFIX}catalog-thumbs/v1/`;
 export const CATALOG_THUMB_MAX_WIDTH = 480;
 
 /**
- * サムネを使うかどうか。全件のサムネ作り（バックフィル）が終わるまでは false にしておく。
- * まだ無いサムネを先に取りに行くと 404 を待ってから元の経路に戻るため、今より遅くなる。
- * バックフィルが終わったら true にする。
+ * サムネを使うかどうか。全件のサムネ作り（バックフィル）は 2026-10-10 に終わった（約4.9万枚）。
+ * 新しく登録されたグッズは cron（catalog-thumbs-recent）が10分ごとに作り、作れなかったものは
+ * catalog-thumbs-retry が拾い直す。それまでの間はサムネが 400 を返し、元の経路に戻る。
  */
-export const CATALOG_THUMBS_ENABLED = false;
+export const CATALOG_THUMBS_ENABLED = true;
 
 const thumbCache = new Map<string, string>();
 
