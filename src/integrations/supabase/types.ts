@@ -4048,6 +4048,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: { content_name: string; item_count: number }[]
       }
+      claim_completed_onboarding_rewards: {
+        Args: Record<PropertyKey, never>
+        Returns: { step_id: string; points: number }[]
+      }
       catalog_content_covers: {
         Args: { per_content?: number }
         Returns: { content_name: string; images: string[] }[]
