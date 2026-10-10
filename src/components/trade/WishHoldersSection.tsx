@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Heart, Send, Star } from "lucide-react";
+import { Heart, Send } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,8 @@ import {
   type WishWithHolders,
 } from "@/hooks/useTradeMatches";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
+
+import { TradeSectionHeader } from "./TradeSectionHeader";
 
 export interface HolderRequestTarget {
   userId: string;
@@ -49,18 +51,12 @@ export function WishHoldersSection({
 
   return (
     <Card data-tour="trade-holders">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Heart className="h-5 w-5 text-primary" />
-          {t("trade.holders.title")}
-        </CardTitle>
-        <p className="text-xs text-muted-foreground">{t("trade.holders.desc")}</p>
-      </CardHeader>
+      <TradeSectionHeader icon={Heart} title={t("trade.holders.title")} description={t("trade.holders.desc")} />
       <CardContent className="space-y-4">
         {list.length === 0 ? (
           // 以前は約 330px の空状態で、交換画面の最初がほぼこれで埋まっていた。1行の案内に縮める
           <div className="flex items-center gap-3 rounded-xl bg-muted/40 p-3">
-            <Heart className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <Heart className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">
                 {(readiness?.wishCount ?? 0) === 0 ? t("trade.holders.emptyNoWishTitle") : t("trade.holders.emptyTitle")}
@@ -153,8 +149,8 @@ function WishRow({
                       <span className="text-3xs text-muted-foreground">{t("trade.holders.notListed")}</span>
                     )}
                     {holder.trade_count > 0 && (
-                      <span className="inline-flex items-center gap-0.5 text-3xs text-muted-foreground">
-                        <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-400" />
+                      // 取引回数は評価ではないので、星などの飾りは付けず文字だけで出す
+                      <span className="text-3xs text-muted-foreground">
                         {t("trade.holders.tradeCount", { n: holder.trade_count })}
                       </span>
                     )}
