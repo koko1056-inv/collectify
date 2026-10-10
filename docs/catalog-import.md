@@ -60,10 +60,15 @@
 - **BMSG SHOP**（`bmsg.shop`、BE:FIRST / MAZZEL / STARGLOW / Novel Core / Aile The Shota / SKY-HI / REIKO ほか）: robots.txt は `User-agent: *` で許可。`/products.json?limit=250&page=N` で全商品が取れる（3ページほど、ページ間は15秒あける）。ID は `bmsg:<product id>`。画像は `https://cdn.shopify.com/s/files/1/0614/7430/8322/` 以下（`files/` または `products/`）。チケット・ファンクラブ・配信・アーカイブ類は入れない。
 - 新着は `published_at` が新しいものだけを見る。作品（content_names）には英語名と日本語の別名（例: BE:FIRST→ビーファースト）を付ける。
 
+- **M!LK**（スターダストプロモーション、ブロマイド・グッズ。作品名 `M!LK`）。公式サイトは `sd-milk.com`、グッズの販売先は2つ:
+  - **STARDUST PLUS GOODS STORE**（`stardust-plus-goods-store.plusmember.jp`、Shopify）: robots.txt は `*` で許可。`/collections/m-lk/products.json?limit=250&page=N`。現行の商品だけが載る（終了すると消える）。ID は `plusstore:<product id>`。画像は `https://cdn.shopify.com/s/files/1/0638/4798/9332/` 以下。
+  - **スタダ便 ONLINE SHOP**（旧ストア `store.plusmember.jp/stardustch`）: robots.txt は無い（制限なし）。過去分を含めて M!LK が131件。カテゴリ一覧 `products/list.php?category_id=891` は **POST** でページ送りする（`mode=&pageno=N&disp_number=50&orderby=date&category_id=891`、ページ間は15秒）。ID は `sdstore:<product_id>`。画像は `https://storage-store.plusmember.jp/upload/save_image/` 以下。FC会員限定・チラシ・0円・チケット・写真集（書籍）は入れない。**発売日は載っていない**ので、画像ファイル名 `MMDDhhmm_<8桁16進>…` の16進が UNIX 時刻（アップロード日）なので、それを日本時間の日付にして使う（無ければ画像の `Last-Modified`）。
+  - 新着は、PLUS GOODS STORE の商品（`published_at` が新しいもの）と、旧ストアの一覧の先頭（新着順）を見る。
+
 ### 取り込めない・見送った取得元
 
 - **STARTO ENTERTAINMENT**（Snow Man ほか）: `starto.jp` の robots.txt が ClaudeBot / Claude-SearchBot / GPTBot を名指しで禁止しているため、取得元に使わない。
-- JO1（`jo1.jp` は取得可だが、グッズの販売先 LAPONE のショップは、この実行環境のネットワーク許可に無い）、M!LK（公式サイト・ショップとも同様）: 環境のネットワーク許可に追加するか、取得元を別にする必要がある。
+- JO1（`jo1.jp` は取得可だが、グッズの販売先 LAPONE のショップは、この実行環境のネットワーク許可に無い）: 環境のネットワーク許可に追加するか、取得元を別にする必要がある。
 
 ### 手順
 
