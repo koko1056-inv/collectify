@@ -117,13 +117,10 @@ export async function shareDisplayToTwitter(
       data: { publicUrl },
     } = supabase.storage.from("kuji_images").getPublicUrl(filePath);
 
-    const { error: tweetError } = await supabase.functions.invoke(
-      "post-to-twitter",
-      { body: { text: tweetText, imageUrl: publicUrl } }
-    );
-    if (tweetError) throw tweetError;
+    // 運営のアカウントに投稿するのではなく、本人の X の投稿画面を開く（画像は URL として添える）
+    const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent(publicUrl)}`;
+    window.open(intent, "_blank", "noopener,noreferrer");
 
-    toast.success("Xに投稿しました！");
   } catch (error) {
     console.error("Error sharing to Twitter:", error);
     toast.error("Xへの投稿に失敗しました");

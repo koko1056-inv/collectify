@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test:ai": "node scripts/test-ai-adapter.mjs",
+    "test:ssrf": "node --experimental-strip-types scripts/test-ssrf-guard.mjs",
     "test:tours": "node scripts/test-onboarding-tours.mjs",
     "test:backfill": "node scripts/test-series-backfill.mjs"
   },

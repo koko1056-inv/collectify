@@ -1,10 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { callAi, currentAiProvider } from "../_shared/ai.ts";
+import {
+  checkRateLimit,
+  corsHeadersFor,
+  jsonResponse,
+  rateLimitedResponse,
+  readJson,
+  requireUser,
+} from "../_shared/security.ts";
+import { assertPublicHttpsUrl, SsrfError } from "../_shared/ssrf.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// 入力の上限
+const MAX_MESSAGES = 30;
+const MAX_MESSAGE_CHARS = 2000;
+const MAX_IMAGES = 3;
+const MAX_DATA_URL_CHARS = 6 * 1024 * 1024; // 1枚あたり（base64 の文字数）
+const MAX_TOTAL_DATA_URL_CHARS = 12 * 1024 * 1024;
+const DATA_IMAGE_PATTERN = /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
 
 const SYSTEM_PROMPT = `あなたはグッズ登録をサポートするアシスタントです。ユーザーと対話しながら、以下の情報を収集してください：
 
@@ -45,17 +57,79 @@ isComplete: 全ての必須情報（画像、タイトル、コンテンツ名�
 isConfirmed: ユーザーが最終確認でOKしたらtrue`;
 
 serve(async (req) => {
+  const corsHeaders = corsHeadersFor(req);
+
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
+  // ログイン必須（anon キーだけの呼び出しは 401）
+  const auth = await requireUser(req, corsHeaders);
+  if (!auth.ok) return auth.response;
+
   try {
-    const { messages, imageUrl } = await req.json();
+    const body = await readJson(req);
+    const messages = body?.messages;
+
+    // 入力の検査。role を user / assistant に限るのは、system を名乗る
+    // メッセージでシステムプロンプトを上書きされるのを防ぐため。
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) {
+      return jsonResponse(corsHeaders, { error: "Invalid messages" }, 400);
+    }
+
+    let imageCount = 0;
+    let totalDataChars = 0;
+    const checked: Array<{ role: "user" | "assistant"; content: string; imageUrl?: string }> = [];
+    for (const raw of messages) {
+      const msg = raw as { role?: unknown; content?: unknown; imageUrl?: unknown };
+      if (msg?.role !== "user" && msg?.role !== "assistant") {
+        return jsonResponse(corsHeaders, { error: "Invalid messages" }, 400);
+      }
+      const content = msg.content === undefined || msg.content === null ? "" : msg.content;
+      if (typeof content !== "string" || content.length > MAX_MESSAGE_CHARS) {
+        return jsonResponse(corsHeaders, { error: "Message is too long" }, 400);
+      }
+
+      let imageUrl: string | undefined;
+      if (msg.imageUrl !== undefined && msg.imageUrl !== null && msg.imageUrl !== "") {
+        if (typeof msg.imageUrl !== "string") {
+          return jsonResponse(corsHeaders, { error: "Invalid image" }, 400);
+        }
+        if (++imageCount > MAX_IMAGES) {
+          return jsonResponse(corsHeaders, { error: "Too many images" }, 400);
+        }
+        if (msg.imageUrl.startsWith("data:")) {
+          totalDataChars += msg.imageUrl.length;
+          if (
+            msg.imageUrl.length > MAX_DATA_URL_CHARS ||
+            totalDataChars > MAX_TOTAL_DATA_URL_CHARS ||
+            !DATA_IMAGE_PATTERN.test(msg.imageUrl)
+          ) {
+            return jsonResponse(corsHeaders, { error: "Invalid image" }, 400);
+          }
+        } else {
+          // サーバー側で取りに行くので、内部アドレスを指す URL は拒否する
+          try {
+            await assertPublicHttpsUrl(msg.imageUrl);
+          } catch (e) {
+            if (e instanceof SsrfError) return jsonResponse(corsHeaders, { error: e.message }, 400);
+            throw e;
+          }
+        }
+        imageUrl = msg.imageUrl;
+      }
+      checked.push({ role: msg.role, content, imageUrl });
+    }
+
+    // 1時間に60メッセージまで（チャットなので多めに）
+    // TODO: 暫定のインスタンス単位の制限。共有ストアでの制限に置き換えること（_shared/security.ts 参照）
+    const limit = checkRateLimit(`add-item-chat:${auth.user.id}`, 60, 60 * 60 * 1000);
+    if (!limit.ok) return rateLimitedResponse(corsHeaders, limit.retryAfterSec);
 
     // Build messages array with image if provided
     const apiMessages = [
       { role: "system", content: SYSTEM_PROMPT },
-      ...messages.map((msg: any) => {
+      ...checked.map((msg) => {
         if (msg.imageUrl) {
           return {
             role: msg.role,
@@ -70,24 +144,18 @@ serve(async (req) => {
     ];
 
     const response = await callAi({
-      messages: apiMessages,
+      messages: apiMessages as any,
       temperature: 0.7,
     });
 
     if (!response.ok) {
       console.error("AI error:", currentAiProvider(), response.status, response.errorText);
-      
+
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "レート制限に達しました。少し待ってからお試しください。" }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse(corsHeaders, { error: "レート制限に達しました。少し待ってからお試しください。" }, 429);
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "クレジットが不足しています。" }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse(corsHeaders, { error: "クレジットが不足しています。" }, 402);
       }
       throw new Error("AI gateway error");
     }
@@ -113,16 +181,10 @@ serve(async (req) => {
       };
     }
 
-    return new Response(JSON.stringify(parsed), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(corsHeaders, parsed);
   } catch (error) {
     console.error("Error in add-item-chat:", error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : "Unknown error" 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // 内部のエラー文言はクライアントに返さない
+    return jsonResponse(corsHeaders, { error: "チャットの処理に失敗しました" }, 500);
   }
 });

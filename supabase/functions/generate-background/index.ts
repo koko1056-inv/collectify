@@ -1,24 +1,45 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { callAi, currentAiProvider } from "../_shared/ai.ts";
+import {
+  checkRateLimit,
+  corsHeadersFor,
+  jsonResponse,
+  rateLimitedResponse,
+  readJson,
+  requireUser,
+} from "../_shared/security.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// プロンプトの上限（プリセットは100字前後）
+const MAX_PROMPT_CHARS = 1000;
 
 Deno.serve(async (req) => {
+  const corsHeaders = corsHeadersFor(req);
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
+  // ログイン必須（anon キーだけの呼び出しは 401）
+  const auth = await requireUser(req, corsHeaders);
+  if (!auth.ok) return auth.response;
+
   try {
-    const { prompt } = await req.json();
-    
+    const body = await readJson(req);
+    const prompt = typeof body?.prompt === 'string' ? body.prompt.trim() : '';
+
     if (!prompt) {
-      throw new Error('prompt is required');
+      return jsonResponse(corsHeaders, { error: 'prompt is required' }, 400);
+    }
+    if (prompt.length > MAX_PROMPT_CHARS) {
+      return jsonResponse(corsHeaders, { error: 'prompt is too long' }, 400);
     }
 
-    console.log('Generating background image with prompt:', prompt, 'provider:', currentAiProvider());
+    // AI 画像生成は高コストなので 1時間に20回まで
+    // TODO: 暫定のインスタンス単位の制限。共有ストアでの制限、またはポイント課金に置き換えること（_shared/security.ts 参照）
+    const limit = checkRateLimit(`generate-background:${auth.user.id}`, 20, 60 * 60 * 1000);
+    if (!limit.ok) return rateLimitedResponse(corsHeaders, limit.retryAfterSec);
+
+    console.log('Generating background image, promptLength:', prompt.length, 'provider:', currentAiProvider());
 
     const response = await callAi({
       messages: [
@@ -70,12 +91,7 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in generate-background function:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : '背景画像の生成に失敗しました' }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    );
+    // 内部のエラー文言（API の応答など）はクライアントに返さない
+    return jsonResponse(corsHeaders, { error: '背景画像の生成に失敗しました' }, 500);
   }
 });
