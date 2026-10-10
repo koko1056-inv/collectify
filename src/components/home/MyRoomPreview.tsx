@@ -1,3 +1,4 @@
+import { getInitial } from "@/utils/initial";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -125,7 +126,7 @@ export function MyRoomPreview({ profile, onEditRoom }: MyRoomPreviewProps) {
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20">
             <Avatar className="w-20 h-20 border-4 border-white shadow-lg">
               <AvatarImage src={profile.avatar_url} />
-              <AvatarFallback>{profile.username?.charAt(0)}</AvatarFallback>
+              <AvatarFallback>{getInitial(null, profile.username)}</AvatarFallback>
             </Avatar>
           </div>
         )}

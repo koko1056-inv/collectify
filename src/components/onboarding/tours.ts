@@ -100,8 +100,7 @@ export const PAGE_TOURS: PageTour[] = [
     // 交換は「出すものを選ぶ」を先にやらないと永遠に空のままなので、
     // 最後は出品ピッカーを実際に開かせて終える。
     id: "trade-v1",
-    path: "/search",
-    query: { tab: "trade" },
+    path: "/trade",
     steps: [
       {
         target: "trade-readiness",

@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { isNavActive } from "@/components/navigation/navGroups";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ export function Navbar() {
   } = useLanguage();
   const { themeColor, setThemeColor } = useThemeColor();
   const navigate = useNavigate();
+  const location = useLocation();
   const {
     profile
   } = useProfile(user?.id);
@@ -162,13 +164,13 @@ export function Navbar() {
         {user && <NavigationMenu data-tour="nav-bar" className="mr-auto">
             <NavigationMenuList>
               <NavigationMenuItem>
-                <Link to="/collection" className={cn(navigationMenuTriggerStyle())}>
+                <Link to="/collection" aria-current={isNavActive("/collection", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), isNavActive("/collection", location.pathname) && "bg-accent text-primary")}>
                   <Boxes className="h-4 w-4 mr-2" />
                   {t("chrome.nav.collection")}
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/search?tab=trade" className={cn(navigationMenuTriggerStyle())}>
+                <Link to="/trade" aria-current={isNavActive("/trade", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), isNavActive("/trade", location.pathname) && "bg-accent text-primary")}>
                   <ArrowLeftRight className="h-4 w-4 mr-2" />
                   {t("chrome.nav.trade")}
                 </Link>
@@ -187,13 +189,13 @@ export function Navbar() {
                 </button>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/explore" className={cn(navigationMenuTriggerStyle())}>
+                <Link to="/explore" aria-current={isNavActive("/explore", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), isNavActive("/explore", location.pathname) && "bg-accent text-primary")}>
                   <Compass className="h-4 w-4 mr-2" />
                   {t("chrome.nav.explore")}
                 </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link to="/my-room" className={cn(navigationMenuTriggerStyle())}>
+                <Link to="/my-room" aria-current={isNavActive("/my-room", location.pathname) ? "page" : undefined} className={cn(navigationMenuTriggerStyle(), isNavActive("/my-room", location.pathname) && "bg-accent text-primary")}>
                   <Home className="h-4 w-4 mr-2" />
                   {t("chrome.nav.myRoom")}
                 </Link>

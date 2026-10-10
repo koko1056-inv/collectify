@@ -1,3 +1,4 @@
+import { getInitial } from "@/utils/initial";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Heart, Bookmark, Wand2, Sparkles, Package, MoreHorizontal } from "lucide-react";
@@ -132,7 +133,7 @@ export function ExploreAvatarCard({ avatar, isBookmarked, isLiked }: Props) {
             <Avatar className="w-5 h-5 border border-border shrink-0">
               <AvatarImage src={avatar.profile?.avatar_url || undefined} />
               <AvatarFallback className="text-3xs">
-                {avatar.profile?.username?.charAt(0)}
+                {getInitial(null, avatar.profile?.username)}
               </AvatarFallback>
             </Avatar>
             <span className="text-xs text-muted-foreground truncate">

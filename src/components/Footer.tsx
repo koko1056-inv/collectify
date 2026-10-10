@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { isNavActive } from "@/components/navigation/navGroups";
 import { useState } from "react";
 import { ArrowLeftRight, Boxes, Compass, Home, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,29 +39,11 @@ export function Footer() {
   const { myTurn } = useMyTrades();
   const tradeBadge = myTurn.length;
 
-  const params = new URLSearchParams(location.search);
-
-  const isExploreActive =
-    location.pathname.startsWith("/explore") || location.pathname.startsWith("/rooms/explore");
-  // /my-room と /ai-rooms はどちらも AI スタジオに着くので同じタブ扱いにする
-  const isMyRoomActive =
-    location.pathname === "/my-room" || location.pathname === "/ai-rooms";
-  const isTradeActive = location.pathname === "/search" && params.get("tab") === "trade";
-
-  const isActive = (path: string) => {
-    if (path === "/explore") return isExploreActive;
-    if (path === "/my-room") return isMyRoomActive;
-    if (path === "/search?tab=trade") return isTradeActive;
-    // 交換タブに居るあいだは「コレクション」を点灯させない
-    // コレクションから入る画面（推しフォト・追加）でもコレクションを点灯させる
-    if (path === "/collection")
-      return ["/collection", "/oshi", "/add-item", "/quick-add", "/image-search"].includes(location.pathname);
-    return location.pathname === path;
-  };
+  const isActive = (to: string) => isNavActive(to, location.pathname);
 
   const leftTabs = [
     { to: "/collection", icon: Boxes, label: t("chrome.nav.collection") },
-    { to: "/search?tab=trade", icon: ArrowLeftRight, label: t("chrome.nav.trade") },
+    { to: "/trade", icon: ArrowLeftRight, label: t("chrome.nav.trade") },
   ];
   const rightTabs = [
     { to: "/explore", icon: Compass, label: t("chrome.nav.explore") },
@@ -87,7 +70,7 @@ export function Footer() {
               active && "scale-110"
             )}
           />
-          {to === "/search?tab=trade" && tradeBadge > 0 && (
+          {to === "/trade" && tradeBadge > 0 && (
             <span
               aria-label={t("trade.inbox.badgeLabel", { n: tradeBadge })}
               className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-3xs font-bold leading-none text-primary-foreground tabular-nums"

@@ -1,3 +1,4 @@
+import { getInitial } from "@/utils/initial";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
@@ -19,6 +20,7 @@ import {
   Images,
   PackageSearch,
   X,
+  Camera,
 } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ItemPostsFeedPanel } from "@/components/item-posts/ItemPostsFeedPanel";
@@ -41,16 +43,34 @@ import { MatchCard } from "@/features/matching/MatchCard";
 import { CollectionDiffModal } from "@/features/matching/CollectionDiffModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-type ExploreTab = "posts" | "items" | "rooms" | "avatars" | "collections" | "users";
-const EXPLORE_TABS: ExploreTab[] = ["posts", "items", "rooms", "avatars", "collections", "users"];
+// 以前は6タブで横にスクロールし、選んだタブが画面の外に出ていた。4つにまとめる。
+// AI ルームとアバターは「AI作品」の中のチップで、コレクションの多い人は「ユーザー」の中で見る。
+type ExploreTab = "posts" | "items" | "users" | "ai";
+type AiView = "rooms" | "avatars";
+const EXPLORE_TABS: ExploreTab[] = ["posts", "items", "users", "ai"];
+
+/** 古い ?tab= の値（rooms / avatars / collections）を新しいタブに読み替える */
+function resolveTab(raw: string | null): { tab: ExploreTab; view: AiView } {
+  if (raw === "rooms") return { tab: "ai", view: "rooms" };
+  if (raw === "avatars") return { tab: "ai", view: "avatars" };
+  if (raw === "collections") return { tab: "users", view: "rooms" };
+  if (raw && (EXPLORE_TABS as string[]).includes(raw)) return { tab: raw as ExploreTab, view: "rooms" };
+  return { tab: "posts", view: "rooms" };
+}
 
 export function ExploreHub() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get("tab") as ExploreTab | null;
   // 既定は「投稿」。ここが交流の入口で、他のタブは見つけたいものが決まっているときに使う。
-  const [activeTab, setActiveTab] = useState<ExploreTab>(
-    initialTab && EXPLORE_TABS.includes(initialTab) ? initialTab : "posts"
-  );
+  const initial = resolveTab(searchParams.get("tab"));
+  const [activeTab, setActiveTab] = useState<ExploreTab>(initial.tab);
+  const aiView: AiView = searchParams.get("view") === "avatars" ? "avatars" : initial.view;
+  const setAiView = (v: AiView) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", "ai");
+    next.set("view", v);
+    setSearchParams(next, { replace: true });
+  };
   const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
   // 打つたびにDBへ問い合わせない。URLにも反映して、検索結果を共有・戻る操作で復元できるようにする。
   const searchQuery = useDebounce(searchInput, 300);
@@ -119,48 +139,22 @@ export function ExploreHub() {
 
           {/* タブ */}
           <Tabs value={activeTab} onValueChange={handleTabChange} className="px-4">
-            <TabsList data-tour="explore-tabs" className="bg-transparent border-b border-border rounded-none w-full justify-start gap-1 sm:gap-4 p-0 h-auto overflow-x-auto scrollbar-hide">
-              <TabsTrigger
-                value="posts"
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
-              >
+            <TabsList data-tour="explore-tabs" className="bg-transparent border-b border-border rounded-none w-full grid grid-cols-4 p-0 h-auto">
+              <TabsTrigger value="posts" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1 px-1 min-w-0 [&_svg]:shrink-0">
                 <Images className="w-4 h-4" />
                 {t("engage.explore.tabPosts")}
               </TabsTrigger>
-              <TabsTrigger
-                value="items"
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
-              >
+              <TabsTrigger value="items" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1 px-1 min-w-0 [&_svg]:shrink-0">
                 <PackageSearch className="w-4 h-4" />
                 {t("engage.explore.tabItems")}
               </TabsTrigger>
-              <TabsTrigger
-                value="rooms"
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
-              >
-                <HomeIcon className="w-4 h-4" />
-                {t("chrome.explore.tabRooms")}
-              </TabsTrigger>
-              <TabsTrigger
-                value="avatars"
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
-              >
-                <Wand2 className="w-4 h-4" />
-                {t("chrome.explore.tabAvatars")}
-              </TabsTrigger>
-              <TabsTrigger
-                value="collections"
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
-              >
-                <Package className="w-4 h-4" />
-                {t("chrome.explore.tabCollections")}
-              </TabsTrigger>
-              <TabsTrigger
-                value="users"
-                className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1.5"
-              >
+              <TabsTrigger value="users" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1 px-1 min-w-0 [&_svg]:shrink-0">
                 <User className="w-4 h-4" />
                 {t("chrome.explore.tabUsers")}
+              </TabsTrigger>
+              <TabsTrigger value="ai" className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none pb-3 pt-1 text-muted-foreground data-[state=active]:text-foreground gap-1 px-1 min-w-0 [&_svg]:shrink-0">
+                <Wand2 className="w-4 h-4" />
+                {t("chrome.explore.tabAi")}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -183,12 +177,42 @@ export function ExploreHub() {
           )}
           {activeTab === "posts" && <div className="mx-auto max-w-4xl"><ItemPostsFeedPanel /></div>}
           {activeTab === "items" && (
-            <ItemSearchTab query={searchQuery} onPickSuggestion={(text) => setSearchInput(text)} />
+            <div className="space-y-4">
+              {/* 作品ごとのカタログ（/search）と写真検索への入口。以前はここから辿れなかった */}
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="outline" className="rounded-full" onClick={() => navigate("/search")}>
+                  <Package className="mr-1 h-4 w-4" />
+                  {t("chrome.explore.browseCatalog")}
+                </Button>
+                <Button size="sm" variant="outline" className="rounded-full" onClick={() => navigate("/image-search")}>
+                  <Camera className="mr-1 h-4 w-4" />
+                  {t("chrome.explore.searchByPhoto")}
+                </Button>
+              </div>
+              <ItemSearchTab query={searchQuery} onPickSuggestion={(text) => setSearchInput(text)} />
+            </div>
           )}
-          {activeTab === "rooms" && <RoomsTab searchQuery={searchQuery} />}
-          {activeTab === "avatars" && <AvatarsTab searchQuery={searchQuery} />}
-          {activeTab === "collections" && <CollectionsTab searchQuery={searchQuery} />}
           {activeTab === "users" && <UsersTab searchQuery={searchQuery} />}
+          {activeTab === "ai" && (
+            <div className="space-y-4">
+              <div className="flex gap-2" role="group" aria-label={t("chrome.explore.tabAi")}>
+                {(["rooms", "avatars"] as const).map((v) => (
+                  <Button
+                    key={v}
+                    size="sm"
+                    variant={aiView === v ? "default" : "outline"}
+                    className="rounded-full"
+                    aria-pressed={aiView === v}
+                    onClick={() => setAiView(v)}
+                  >
+                    {v === "rooms" ? <HomeIcon className="mr-1 h-4 w-4" /> : <Wand2 className="mr-1 h-4 w-4" />}
+                    {v === "rooms" ? t("chrome.explore.tabRooms") : t("chrome.explore.tabAvatars")}
+                  </Button>
+                ))}
+              </div>
+              {aiView === "rooms" ? <RoomsTab searchQuery={searchQuery} /> : <AvatarsTab searchQuery={searchQuery} />}
+            </div>
+          )}
         </div>
       </main>
 
@@ -391,12 +415,12 @@ function AvatarsTab({ searchQuery }: { searchQuery: string }) {
 }
 
 // ============= コレクションタブ =============
-function CollectionsTab({ searchQuery }: { searchQuery: string }) {
+function CollectionsTab({ searchQuery, excludeUserId }: { searchQuery: string; excludeUserId?: string }) {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
   const { data: collectors = [], isLoading } = useQuery({
-    queryKey: ["explore-collectors"],
+    queryKey: ["explore-collectors", excludeUserId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -415,7 +439,9 @@ function CollectionsTab({ searchQuery }: { searchQuery: string }) {
         })
       );
       // アイテム数の多い順
-      return enriched.sort((a, b) => b.item_count - a.item_count).filter((p) => p.item_count > 0);
+      return enriched
+        .sort((a, b) => b.item_count - a.item_count)
+        .filter((p) => p.item_count > 0 && p.id !== excludeUserId);
     },
   });
 
@@ -452,7 +478,7 @@ function CollectionsTab({ searchQuery }: { searchQuery: string }) {
           <Avatar className="w-14 h-14 border-2 border-border">
             <AvatarImage src={c.avatar_url || undefined} />
             <AvatarFallback className="bg-secondary text-secondary-foreground">
-              {c.username?.charAt(0)}
+              {getInitial(null, c.username)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
@@ -478,15 +504,16 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
   const [compareWith, setCompareWith] = useState<string | null>(null);
 
   const { data: users = [], isLoading } = useQuery({
-    queryKey: ["explore-featured-users"],
+    queryKey: ["explore-featured-users", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("id, username, avatar_url, display_name, followers_count, bio")
         .order("followers_count", { ascending: false })
-        .limit(30);
+        .limit(31);
       if (error) throw error;
-      return data || [];
+      // 自分は並べない（以前は自分も「人気ユーザー」に出ていた）
+      return (data || []).filter((u) => u.id !== user?.id).slice(0, 30);
     },
   });
 
@@ -564,7 +591,7 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
                   <Avatar className="w-16 h-16 border-2 border-border">
                     <AvatarImage src={u.avatar_url || undefined} />
                     <AvatarFallback className="bg-secondary text-secondary-foreground">
-                      {u.username?.charAt(0)}
+                      {getInitial(null, u.username)}
                     </AvatarFallback>
                   </Avatar>
                   {(u.followers_count || 0) >= 10 && (
@@ -583,6 +610,15 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
             ))}
           </div>
         )}
+      </section>
+
+      {/* 以前の「コレクション」タブ。グッズを多く登録している人 */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Package className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold">{t("chrome.explore.topCollectors")}</h2>
+        </div>
+        <CollectionsTab searchQuery={searchQuery} excludeUserId={user?.id} />
       </section>
 
       <CollectionDiffModal

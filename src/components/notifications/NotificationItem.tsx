@@ -89,7 +89,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       navigate(notification.data.url || '/admin?tab=reports');
     } else if (notification.type.startsWith('trade_')) {
       // 交換の通知は、交換タブ（自分の番の取引が先頭に出る）へ
-      navigate(notification.data.url || '/search?tab=trade');
+      navigate(notification.data.url || '/trade');
     }
   };
 

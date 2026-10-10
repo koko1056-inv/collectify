@@ -1,3 +1,4 @@
+import { getInitial } from "@/utils/initial";
 import { useNavigate, useParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -197,7 +198,7 @@ export default function AiWorkDetail() {
                   >
                     <Avatar className="w-8 h-8 border border-border">
                       <AvatarImage src={profile.avatar_url || undefined} />
-                      <AvatarFallback>{profile.username?.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{getInitial(null, profile.username)}</AvatarFallback>
                     </Avatar>
                     <div className="text-left">
                       <p className="text-sm font-medium">

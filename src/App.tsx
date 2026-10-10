@@ -61,6 +61,7 @@ const Collection = lazy(() => import("./pages/Collection").catch(() => ({ defaul
 const Posts = lazy(() => import("./pages/Posts"));
 const Oshi = lazy(() => import("./pages/Oshi"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Trade = lazy(() => import("./pages/Trade"));
 const ItemPostsFeed = lazy(() => import("./pages/ItemPostsFeed").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // バックグラウンドで下部ナビ全タブのコードチャンクをプリフェッチ。
@@ -199,6 +200,7 @@ const App: React.FC = () => {
                       <Route path="/item-posts" element={<ProtectedRoute><ItemPostsFeed /></ProtectedRoute>} />
                       <Route path="/post/:postId" element={<ProtectedRoute><ItemPostsFeed /></ProtectedRoute>} />
                       <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+                      <Route path="/trade" element={<ProtectedRoute><Trade /></ProtectedRoute>} />
                       <Route path="/collection" element={<ProtectedRoute><Collection /></ProtectedRoute>} />
                       <Route path="/my-room" element={<ProtectedRoute><MyRoom /></ProtectedRoute>} />
                       <Route path="/image-search" element={<ProtectedRoute><ImageSearch /></ProtectedRoute>} />
