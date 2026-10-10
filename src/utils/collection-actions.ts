@@ -115,12 +115,8 @@ export async function addToCollection(params: AddToCollectionParams): Promise<Ad
     
     if (insertError) throw insertError;
     
-    // 5. ポイント付与。付与額と二重付与の判定はサーバー側（claim_reward）が持つ。
-    //    同じ official_item に対しては初回のみ付与されるよう、
-    //    reference_id を official_item_id 基準にする（カスタム品は user_item.id）。
-    const awarded = await claimReward("item_add", officialItemId || userItem.id);
-    const pointsAwarded = awarded ? 1 : 0;
-
+    // グッズを追加してもポイントは付かない（ポイントは投稿・コメント・交換など、交流に付く。サーバー側のトリガーが付与する）。
+    const pointsAwarded = 0;
 
     return {
       success: true,

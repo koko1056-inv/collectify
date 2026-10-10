@@ -164,3 +164,16 @@ export function useCatalogFeed(term: string, enabled = true) {
     total: pages[0]?.total ?? null,
   };
 }
+
+/** 作品名（日本語）→ 英語表記。英語表示と、英語名での検索に使う。 */
+export function useContentNamesEn() {
+  return useQuery<Map<string, string>>({
+    queryKey: ["content-names-en"],
+    staleTime: 1000 * 60 * 60,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("content_names").select("name, name_en").not("name_en", "is", null);
+      if (error) throw error;
+      return new Map((data ?? []).map((r) => [r.name as string, r.name_en as string]));
+    },
+  });
+}
