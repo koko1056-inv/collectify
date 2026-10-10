@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Home } from "lucide-react";
+import { RefreshCw, Home, TriangleAlert } from "lucide-react";
+import { IconTile } from "@/components/ui/icon-tile";
 
 interface Props {
   children: React.ReactNode;
@@ -49,7 +50,11 @@ export class AppErrorBoundary extends React.Component<Props, State> {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <div className="max-w-sm w-full text-center space-y-6">
-          <div className="text-5xl">😢</div>
+          {/* 以前は 😢 の絵文字だった。泣き顔は子どもっぽく、端末ごとに絵柄も変わるので、
+              アプリ共通の面（IconTile）に注意のアイコンを置く */}
+          <IconTile tone="destructive" size="lg" className="mx-auto">
+            <TriangleAlert />
+          </IconTile>
           <div className="space-y-2">
             <h1 className="text-lg font-bold text-foreground">
               {en ? "Something went wrong" : "問題が発生しました"}

@@ -89,7 +89,7 @@ export const notices = {
       spendFailed: "ポイント消費に失敗しました",
     },
     collection: {
-      slotsExpanded: "コレクション枠を +10 拡張しました ✨",
+      slotsExpanded: "コレクション枠を +10 拡張しました",
       slotsExpandFailed: "枠拡張に失敗しました",
     },
     shop: {
@@ -289,7 +289,7 @@ export const notices = {
       spendFailed: "Couldn't spend your points",
     },
     collection: {
-      slotsExpanded: "Collection expanded by 10 slots ✨",
+      slotsExpanded: "Collection expanded by 10 slots",
       slotsExpandFailed: "Couldn't expand your collection",
     },
     shop: {

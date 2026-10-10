@@ -45,7 +45,7 @@ export const aiRoom = {
     empty: {
       title: "あなただけの推しルーム",
       desc1: "コレクションから好きなグッズを選ぶと、AIがあなた専用の",
-      desc2: "一度きりの部屋を描きます ✨",
+      desc2: "一度きりの部屋を描きます",
       cta: "はじめて作る",
     },
     viewer: {
@@ -62,12 +62,12 @@ export const aiRoom = {
     wizard: {
       title: "AIで推しルームを作る",
       generate: "生成する",
-      firstFree: "(初回無料 🎁)",
+      firstFree: "(初回無料)",
       maxItemsPrefix: "最大",
       maxItemsSuffix: "個まで選べます",
       handedOffSuffix: "点の素材を引き継ぎました",
-      remixHandedOff: "リミックス元のスタイルと素材を引き継ぎました 🎨",
-      styleHandedOff: "スタイルを引き継ぎました ✨",
+      remixHandedOff: "リミックス元のスタイルと素材を引き継ぎました",
+      styleHandedOff: "スタイルを引き継ぎました",
     },
     confirm: {
       title: "AI推しルームを生成しますか？",
@@ -98,7 +98,7 @@ export const aiRoom = {
     visual: {
       title: "絵柄スタイル",
       subtitle: "部屋をどんなタッチで描くか選びましょう",
-      firstFree: "初回無料で生成できます 🎁",
+      firstFree: "初回無料で生成できます",
       costPrefix: "1回の生成に ",
       costSuffix: "pt 消費します",
     },
@@ -132,7 +132,7 @@ export const aiRoom = {
       chibi: { name: "ちびデフォルメ", description: "可愛いミニチュア風" },
     },
     toast: {
-      variationStart: "バリエーションを作成します 🎨",
+      variationStart: "バリエーションを作成します",
       imageUrlCopied: "画像URLをコピーしました",
       generateSuccess: "AIルームを生成しました！(-100pt)",
       generateFailed: "生成に失敗しました",
@@ -141,10 +141,10 @@ export const aiRoom = {
       titleUpdated: "ルーム名を更新しました",
       updateFailed: "更新に失敗しました",
       roomNotFound: "ルームが見つかりません",
-      published: "公開しました。投稿にも反映されます ✨",
+      published: "公開しました。投稿にも反映されます",
       unpublished: "非公開にしました。投稿からも削除しました",
       loginRequired: "ログインしてください",
-      bookmarked: "ブックマークしました 📌",
+      bookmarked: "ブックマークしました",
       unbookmarked: "ブックマークを解除しました",
     },
   },
@@ -187,7 +187,7 @@ export const aiRoom = {
     empty: {
       title: "A Favorite Room that's all yours",
       desc1: "Pick the goods you love from your collection and AI will paint ",
-      desc2: "a one-of-a-kind room just for you ✨",
+      desc2: "a one-of-a-kind room just for you",
       cta: "Create your first",
     },
     viewer: {
@@ -204,12 +204,12 @@ export const aiRoom = {
     wizard: {
       title: "Create a Favorite Room with AI",
       generate: "Generate",
-      firstFree: "(first one free 🎁)",
+      firstFree: "(first one free)",
       maxItemsPrefix: "You can pick up to ",
       maxItemsSuffix: " goods",
       handedOffSuffix: " goods carried over",
-      remixHandedOff: "Style and goods carried over from the original 🎨",
-      styleHandedOff: "Style carried over ✨",
+      remixHandedOff: "Style and goods carried over from the original",
+      styleHandedOff: "Style carried over",
     },
     confirm: {
       title: "Generate an AI Favorite Room?",
@@ -240,7 +240,7 @@ export const aiRoom = {
     visual: {
       title: "Art style",
       subtitle: "Choose how your room should be drawn",
-      firstFree: "Your first generation is free 🎁",
+      firstFree: "Your first generation is free",
       costPrefix: "Each generation costs ",
       costSuffix: "pt",
     },
@@ -274,7 +274,7 @@ export const aiRoom = {
       chibi: { name: "Chibi", description: "Cute miniature style" },
     },
     toast: {
-      variationStart: "Creating a variation 🎨",
+      variationStart: "Creating a variation",
       imageUrlCopied: "Image URL copied",
       generateSuccess: "AI Room generated! (-100pt)",
       generateFailed: "Couldn't generate the room",
@@ -283,10 +283,10 @@ export const aiRoom = {
       titleUpdated: "Room name updated",
       updateFailed: "Couldn't update",
       roomNotFound: "Room not found",
-      published: "Published. It now shows up in your Posts ✨",
+      published: "Published. It now shows up in your Posts",
       unpublished: "Set to private and removed from your Posts",
       loginRequired: "Please log in",
-      bookmarked: "Bookmarked 📌",
+      bookmarked: "Bookmarked",
       unbookmarked: "Bookmark removed",
     },
   },

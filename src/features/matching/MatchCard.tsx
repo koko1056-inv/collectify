@@ -56,7 +56,7 @@ export function MatchCard({ match, onCompare }: Props) {
               <TrustBadge userId={profile.id} size="sm" />
             </div>
             <div className="flex items-center gap-1 mt-1">
-              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+              <Sparkles className="h-3.5 w-3.5 text-warning" />
               <span className="text-xs font-bold text-warning">
                 {t("trade.match.score", { score: Math.round(Number(match.score)) })}
               </span>
@@ -67,10 +67,11 @@ export function MatchCard({ match, onCompare }: Props) {
           </div>
         </div>
 
+        {/* 以前は pink-50 / violet-50 の直書きで、ダークモードでは白く浮いていた。色は意味のトークンに */}
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-md bg-pink-50 border border-pink-100 px-2 py-1.5">
-            <Heart className="h-3.5 w-3.5 mx-auto text-pink-600 mb-0.5" />
-            <div className="text-sm font-bold text-pink-700">{match.shared_interests}</div>
+          <div className="rounded-md bg-primary/10 border border-primary/20 px-2 py-1.5">
+            <Heart className="h-3.5 w-3.5 mx-auto text-primary mb-0.5" />
+            <div className="text-sm font-bold text-primary">{match.shared_interests}</div>
             <div className="text-3xs text-muted-foreground">{t("trade.match.sharedInterests")}</div>
           </div>
           <div className="rounded-md bg-success-soft border border-success/30 px-2 py-1.5">
@@ -78,9 +79,9 @@ export function MatchCard({ match, onCompare }: Props) {
             <div className="text-sm font-bold text-success">{match.shared_items}</div>
             <div className="text-3xs text-muted-foreground">{t("trade.match.sharedItems")}</div>
           </div>
-          <div className="rounded-md bg-violet-50 border border-violet-100 px-2 py-1.5">
-            <Repeat className="h-3.5 w-3.5 mx-auto text-violet-600 mb-0.5" />
-            <div className="text-sm font-bold text-violet-700">{match.tradeable_items}</div>
+          <div className="rounded-md bg-info-soft border border-info/30 px-2 py-1.5">
+            <Repeat className="h-3.5 w-3.5 mx-auto text-info mb-0.5" />
+            <div className="text-sm font-bold text-info">{match.tradeable_items}</div>
             <div className="text-3xs text-muted-foreground">{t("trade.match.tradeableItems")}</div>
           </div>
         </div>

@@ -169,8 +169,8 @@ export default function AiWorkDetail() {
                     </h1>
                     {preset && (
                       <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                        <span>{preset.emoji}</span>
-                        <span>{preset.name}</span>
+                        <preset.icon className="w-3.5 h-3.5" aria-hidden="true" />
+                        <span>{t(`aiRoom.stylePresets.${preset.id}.name`)}</span>
                       </p>
                     )}
                   </div>
@@ -180,7 +180,7 @@ export default function AiWorkDetail() {
                       disabled={toggleLike.isPending}
                       className={cn(
                         "flex items-center gap-1 transition-colors",
-                        isLiked ? "text-rose-500" : "hover:text-foreground"
+                        isLiked ? "text-primary" : "hover:text-foreground"
                       )}
                       aria-pressed={isLiked}
                       aria-label={t("chrome.exploreCard.like")}

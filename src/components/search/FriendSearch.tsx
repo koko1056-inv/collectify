@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { IconTile } from "@/components/ui/icon-tile";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Users, Search, Sparkles, ChevronRight, UserPlus } from "lucide-react";
 import { FollowButton } from "@/components/profile/FollowButton";
@@ -297,9 +298,10 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
       {recommendedProfiles.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <div className="bg-primary/10 p-2 rounded-full">
-              <Sparkles className="h-4 w-4 text-primary" />
-            </div>
+            {/* 以前は見出しごとに丸い面だった。丸は人のアイコンと紛れるので IconTile にそろえる */}
+            <IconTile tone="primary" size="sm">
+              <Sparkles />
+            </IconTile>
             <h3 className="font-bold text-foreground">
               {t("chrome.friendSearch.recommended")}
             </h3>
@@ -319,9 +321,9 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
       {/* 検索結果 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <div className="bg-muted p-2 rounded-full">
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </div>
+          <IconTile tone="muted" size="sm">
+            <Users />
+          </IconTile>
           <h3 className="font-bold text-foreground">
             {t("chrome.friendSearch.userList")}
           </h3>

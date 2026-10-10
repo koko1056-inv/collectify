@@ -30,6 +30,7 @@ import { GoodsPickTile } from "./GoodsPickTile";
 import { CatalogFilterPanel } from "./CatalogFilterPanel";
 import { activeFilterCount, applyFilter, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
 import { cn } from "@/lib/utils";
+import { IconTile } from "@/components/ui/icon-tile";
 
 type View = "menu" | "pick";
 
@@ -142,15 +143,11 @@ function AddOption({
           : "w-full flex items-start gap-3 rounded-xl border border-border bg-card p-3.5 text-left transition-colors hover:bg-muted/60"
       }
     >
-      <span
-        className={
-          primary
-            ? "shrink-0 rounded-lg bg-primary p-2 text-primary-foreground"
-            : "shrink-0 rounded-lg bg-muted p-2 text-foreground"
-        }
-      >
-        <Icon className="h-5 w-5" />
-      </span>
+      {/* 以前は主な選択肢だけ primary のベタ塗りの面だった。カードの枠と色で主従は伝わるので、
+          印は共通の IconTile（薄い面）にそろえる */}
+      <IconTile tone={primary ? "primary" : "muted"} size="md">
+        <Icon />
+      </IconTile>
       <span className="min-w-0">
         <span className="block text-sm font-bold">{title}</span>
         <span className="block text-xs text-muted-foreground">{desc}</span>

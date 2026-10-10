@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { IconTile } from "@/components/ui/icon-tile";
 import { ROOM_STYLE_PRESETS } from "../roomStylePresets";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -49,81 +50,43 @@ export function SelectStyleStep({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5">
+      {/* 以前は虹色グラデーション（pink→fuchsia、sky→blue…）の面に大きな絵文字を載せたカードで、
+          ぼかした玉や格子模様まで重ねていた。にぎやかすぎて安っぽく見えたので、
+          SelectVisualStep と同じ「アイコンの面＋名前」の静かなカードにそろえる */}
+      <div className="grid grid-cols-2 gap-2">
         {ROOM_STYLE_PRESETS.map((p) => {
           const active = stylePresetId === p.id;
+          const Icon = p.icon;
           return (
             <button
               key={p.id}
               onClick={() => onStylePresetChange(active ? null : p.id)}
+              aria-pressed={active}
               className={cn(
-                "group relative rounded-2xl overflow-hidden border transition-all text-left bg-card",
+                "relative rounded-xl border text-left p-3 bg-card transition-colors",
                 active
-                  ? "border-primary shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.45)] ring-2 ring-primary/30"
-                  : "border-border/60 hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5"
+                  ? "border-primary ring-1 ring-primary bg-primary/5"
+                  : "border-border hover:border-primary/40"
               )}
             >
-              {/* Visual area */}
-              <div
+              {/* 2列だと横並びでは名前が折り返すので、印を上・名前を下に積む */}
+              <IconTile tone={active ? "primary" : "muted"} size="sm">
+                <Icon />
+              </IconTile>
+              <p
                 className={cn(
-                  "aspect-[5/4] w-full bg-gradient-to-br relative overflow-hidden",
-                  p.gradient
+                  "mt-2 text-sm font-bold leading-tight",
+                  active ? "text-primary" : "text-foreground"
                 )}
               >
-                {/* Decorative blurred orbs */}
-                <div className="absolute -top-6 -left-6 w-20 h-20 rounded-full bg-white/30 blur-2xl" />
-                <div className="absolute -bottom-8 -right-4 w-24 h-24 rounded-full bg-black/15 blur-2xl" />
-
-                {/* Subtle grid pattern */}
-                <div
-                  className="absolute inset-0 opacity-[0.12] mix-blend-overlay"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)",
-                    backgroundSize: "16px 16px",
-                  }}
-                />
-
-                {/* Floor line for "room" feeling */}
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent" />
-
-                {/* Big emoji */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span
-                    className={cn(
-                      "text-5xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.25)] transition-transform duration-300",
-                      active ? "scale-110" : "group-hover:scale-105"
-                    )}
-                  >
-                    {p.emoji}
-                  </span>
-                </div>
-
-                {/* Inner highlight */}
-                <div className="absolute inset-0 ring-1 ring-inset ring-white/20 rounded-none pointer-events-none" />
-
-                {/* Active check */}
-                {active && (
-                  <div className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-primary flex items-center justify-center shadow-lg ring-2 ring-background">
-                    <Check className="w-4 h-4 text-primary-foreground" strokeWidth={3} />
-                  </div>
-                )}
-              </div>
-
-              {/* Label area */}
-              <div className={cn("px-2.5 py-2 transition-colors", active && "bg-primary/5")}>
-                <p
-                  className={cn(
-                    "text-sm font-bold leading-tight",
-                    active ? "text-primary" : "text-foreground"
-                  )}
-                >
-                  {t(`aiRoom.stylePresets.${p.id}.name`)}
-                </p>
-                <p className="text-3xs text-muted-foreground line-clamp-1 mt-0.5">
-                  {t(`aiRoom.stylePresets.${p.id}.tagline`)}
-                </p>
-              </div>
+                {t(`aiRoom.stylePresets.${p.id}.name`)}
+              </p>
+              <p className="text-3xs text-muted-foreground line-clamp-2 mt-0.5">
+                {t(`aiRoom.stylePresets.${p.id}.tagline`)}
+              </p>
+              {active && (
+                <Check className="absolute top-2.5 right-2.5 w-4 h-4 text-primary" />
+              )}
             </button>
           );
         })}

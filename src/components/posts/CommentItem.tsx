@@ -66,7 +66,7 @@ export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
               size="sm"
               className={cn(
                 "h-auto p-0 text-xs flex items-center gap-1",
-                isLiked ? "text-rose-500 hover:text-rose-600" : "text-muted-foreground hover:text-foreground"
+                isLiked ? "text-primary hover:text-primary/80" : "text-muted-foreground hover:text-foreground"
               )}
               onClick={handleLike}
               disabled={!user || toggleLike.isPending}
