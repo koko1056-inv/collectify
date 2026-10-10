@@ -356,6 +356,24 @@ export const chrome = {
       empty: "まだ誰もこのアイテムをほしい物リストに追加していません",
     },
 
+    legal: {
+      label: "規約・ポリシー",
+      terms: "利用規約",
+      privacy: "プライバシーポリシー",
+      tokushoho: "特定商取引法に基づく表記",
+      back: "トップへ戻る",
+      updated: "最終更新日: {date}",
+    },
+
+    consent: {
+      title: "利用状況の分析について",
+      body: "サービスを良くするため、どの機能が使われているかを分析ツールで取得してもよいですか？ 「同意しない」でも、すべての機能を使えます。あとから設定で変えられます。",
+      accept: "同意する",
+      decline: "同意しない",
+      settingsLabel: "分析への同意",
+      settingsDesc: "利用状況の分析ツール（Mixpanel）を使うことに同意します",
+    },
+
     interests: {
       title: "興味のあるコンテンツ",
       description: "好みに合わせたグッズを表示するために、興味のあるコンテンツを選んでください",
@@ -778,6 +796,24 @@ export const chrome = {
       remove: "Remove from wishlist",
       listHeading: "People who have this item on their wishlist",
       empty: "No one has added this item to their wishlist yet",
+    },
+
+    legal: {
+      label: "Terms and policies",
+      terms: "Terms of Service",
+      privacy: "Privacy Policy",
+      tokushoho: "Commercial Transactions Act notice",
+      back: "Back to top",
+      updated: "Last updated: {date}",
+    },
+
+    consent: {
+      title: "About usage analytics",
+      body: "To improve the service, may we collect which features are used with an analytics tool? Every feature works even if you decline. You can change this later in Settings.",
+      accept: "Accept",
+      decline: "Decline",
+      settingsLabel: "Analytics consent",
+      settingsDesc: "Allow usage analytics (Mixpanel)",
     },
 
     interests: {

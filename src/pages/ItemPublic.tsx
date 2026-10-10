@@ -5,6 +5,7 @@ import { Check, Heart, Loader2, Plus, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Navbar } from "@/components/Navbar";
+import { LegalLinks } from "@/components/legal/LegalLinks";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -333,6 +334,7 @@ export default function ItemPublic() {
             </ul>
           </section>
         )}
+        <LegalLinks className="mt-12 pb-24 sm:pb-8" />
       </main>
       <Footer />
     </div>

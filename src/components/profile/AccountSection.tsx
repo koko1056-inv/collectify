@@ -6,6 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { LegalLinks } from "@/components/legal/LegalLinks";
+import { getAnalyticsConsent, setAnalyticsConsent } from "@/utils/analyticsConsent";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -33,6 +36,7 @@ export function AccountSection({ onDeleted }: AccountSectionProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [typed, setTyped] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [analyticsOn, setAnalyticsOn] = useState(() => getAnalyticsConsent() === "granted");
 
   const handleExport = async () => {
     setExporting(true);
@@ -90,6 +94,20 @@ export function AccountSection({ onDeleted }: AccountSectionProps) {
     <section className="space-y-2">
       <h3 className="text-xs font-semibold text-muted-foreground px-1">{t("profileScreen.account.heading")}</h3>
       <div className="bg-card rounded-2xl border border-border divide-y divide-border">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium">{t("chrome.consent.settingsLabel")}</div>
+            <div className="text-xs text-muted-foreground">{t("chrome.consent.settingsDesc")}</div>
+          </div>
+          <Switch
+            checked={analyticsOn}
+            aria-label={t("chrome.consent.settingsLabel")}
+            onCheckedChange={(on) => {
+              setAnalyticsOn(on);
+              setAnalyticsConsent(on ? "granted" : "denied");
+            }}
+          />
+        </div>
         <button
           onClick={handleExport}
           disabled={exporting}
@@ -121,6 +139,7 @@ export function AccountSection({ onDeleted }: AccountSectionProps) {
           </div>
         </button>
       </div>
+      <LegalLinks className="pt-2" />
 
       <AlertDialog
         open={dialogOpen}

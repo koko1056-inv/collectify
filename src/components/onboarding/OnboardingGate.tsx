@@ -21,6 +21,7 @@ const EXEMPT_PREFIXES = [
   "/login",
   "/privacy",
   "/terms",
+  "/tokushoho",
   "/how-to-use",
   "/invite",
   "/user",
