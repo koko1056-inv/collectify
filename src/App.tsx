@@ -2,6 +2,7 @@
 import React from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { DailyBonusListener } from "@/components/daily/DailyBonusListener";
+import { ConsentBanner } from "@/components/legal/ConsentBanner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -101,6 +102,7 @@ const ItemPublic = lazy(() => import("./pages/ItemPublic").catch(() => ({ defaul
 const AiAvatarDetail = lazy(() => import("./pages/AiAvatarDetail").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Privacy = lazy(() => import("./pages/Privacy").catch(() => ({ default: () => <div>Error loading page</div> })));
 const Terms = lazy(() => import("./pages/Terms").catch(() => ({ default: () => <div>Error loading page</div> })));
+const Tokushoho = lazy(() => import("./pages/Tokushoho").catch(() => ({ default: () => <div>Error loading page</div> })));
 
 // queryClient はモジュールスコープのため、言語は localStorage から直接解決する
 const currentLanguage = (): Language => {
@@ -159,6 +161,7 @@ const App: React.FC = () => {
                 <TooltipProvider>
                   <Sonner />
                   <DailyBonusListener />
+                  <ConsentBanner />
                   <RouteReadyTracker />
                   <ScrollToTop />
                   <OfflineBanner />
@@ -170,6 +173,8 @@ const App: React.FC = () => {
                       <Route path="/" element={<RootRedirect />} />
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/terms" element={<Terms />} />
+                      <Route path="/tokushoho" element={<Tokushoho />} />
+                      <Route path="/legal" element={<Navigate to="/terms" replace />} />
                       <Route path="/login" element={<Login />} />
                       {/* Public routes */}
                       <Route path="/user/:userId" element={<UserProfile />} />

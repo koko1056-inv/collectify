@@ -1,17 +1,46 @@
 import mixpanel from 'mixpanel-browser';
 import { supabase } from "@/integrations/supabase/client";
+import { ANALYTICS_CONSENT_EVENT, getAnalyticsConsent, type AnalyticsConsent } from "@/utils/analyticsConsent";
 
-// Initialize Mixpanel
+// Mixpanel は、利用者が分析への同意を選んだときだけ初期化する（src/utils/analyticsConsent.ts）
 const MIXPANEL_TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN;
 let mixpanelEnabled = false;
-if (MIXPANEL_TOKEN) {
+let mixpanelInitialized = false;
+
+function enableMixpanel() {
+  if (!MIXPANEL_TOKEN) return;
   try {
-    mixpanel.init(MIXPANEL_TOKEN);
+    if (!mixpanelInitialized) {
+      mixpanel.init(MIXPANEL_TOKEN);
+      mixpanelInitialized = true;
+    } else {
+      mixpanel.opt_in_tracking();
+    }
     mixpanelEnabled = true;
   } catch (e) {
     console.warn('Failed to initialize Mixpanel:', e);
   }
-} else if (import.meta.env.DEV) {
+}
+
+function disableMixpanel() {
+  mixpanelEnabled = false;
+  if (!mixpanelInitialized) return;
+  try {
+    mixpanel.opt_out_tracking();
+    mixpanel.reset();
+  } catch (e) {
+    console.warn('Failed to disable Mixpanel:', e);
+  }
+}
+
+if (getAnalyticsConsent() === 'granted') enableMixpanel();
+if (typeof window !== 'undefined') {
+  window.addEventListener(ANALYTICS_CONSENT_EVENT, (e) => {
+    if ((e as CustomEvent<AnalyticsConsent>).detail === 'granted') enableMixpanel();
+    else disableMixpanel();
+  });
+}
+if (!MIXPANEL_TOKEN && import.meta.env.DEV) {
   // 本番では毎回出るノイズになるため開発時のみ通知
   console.warn('VITE_MIXPANEL_TOKEN is not set. Analytics will not be tracked.');
 }
