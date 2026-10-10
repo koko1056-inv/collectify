@@ -17,16 +17,18 @@ import { InitialInterestSelection } from "@/components/InitialInterestSelection"
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { claimReward } from "@/hooks/useClaimReward";
+import { StarterGoodsStep } from "./StarterGoodsStep";
 
 interface WelcomeOnboardingProps {
   onComplete: () => void;
 }
 
 // ──────────────────────────────────────────────
-// ウェルカムフロー（3ステップ）
+// ウェルカムフロー（4ステップ）
 //   1. Welcome / 名前入力
 //   2. 興味選択（おすすめの精度に使う）
-//   3. 完了セレブレーション → /collection へ
+//   3. はじめの1コレ: 推しの作品のグッズから、持っているものをタップして登録（写真を撮らずに数秒で）
+//   4. 完了セレブレーション → /collection へ
 //
 // 以前はここに AIスタジオ / 探索 / コレクション の紹介スライドが3枚あった。
 // 読む時点では指し示す対象が画面に無く、読み終えても何も残らないため外した。
@@ -34,10 +36,10 @@ interface WelcomeOnboardingProps {
 // ボタンを光らせながら行う。ここは名前と興味だけ受け取って手短に終える。
 // ──────────────────────────────────────────────
 
-type Step = "welcome" | "interests" | "celebrate";
+type Step = "welcome" | "interests" | "starter" | "celebrate";
 
 /** 上部バー（戻る・進捗・スキップ）を出すステップ。 */
-const BAR_STEPS: Step[] = ["interests"];
+const BAR_STEPS: Step[] = ["interests", "starter"];
 
 export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const { user } = useAuth();
@@ -49,6 +51,8 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const [direction, setDirection] = useState(1);
   const [displayName, setDisplayName] = useState("");
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  // はじめの1コレで登録した数（締めの画面と、最後の行き先に使う）
+  const [addedCount, setAddedCount] = useState(0);
 
   // 既存プロフィールの display_name をプリロード
   useEffect(() => {
@@ -76,7 +80,7 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
   // 全ステップ順序とindex計算（プログレス表示用）
   const allSteps: Step[] = useMemo(
-    () => ["welcome", "interests", "celebrate"],
+    () => ["welcome", "interests", "starter", "celebrate"],
     []
   );
   const stepIndex = allSteps.indexOf(step);
@@ -94,10 +98,11 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     if (prev) setStep(prev);
   }, [allSteps, stepIndex]);
 
+  // 上部の「スキップ」: 興味の選択は飛ばして次（はじめの1コレ）へ。はじめの1コレを飛ばすと締めの画面へ。
   const skipToEnd = useCallback(() => {
     setDirection(1);
-    setStep("celebrate");
-  }, []);
+    setStep(step === "interests" ? "starter" : "celebrate");
+  }, [step]);
 
   // Welcome → display_name保存 → interests
   const handleWelcomeNext = useCallback(async () => {
@@ -126,8 +131,9 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     // 部屋生成も交換も中身が無く、どの機能も意味を持たない。
     // 以前もここへ送っていたが説明がゼロだったので離脱していた。
     // いまは /quick-add 側のガイドが撮り方と逃げ道を実物の上で説明する。
-    navigate("/quick-add");
-  }, [user?.id, completeWalkthrough, completeWelcome, onComplete, navigate]);
+    // 1つでも登録していれば、できあがったコレクションを見せる。何も選ばなかった人だけ登録画面へ。
+    navigate(addedCount > 0 ? "/collection" : "/quick-add");
+  }, [user?.id, completeWalkthrough, completeWelcome, onComplete, navigate, addedCount]);
 
 
   return (
@@ -186,8 +192,23 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
 
 
 
+        {step === "starter" && (
+          <StarterGoodsStep
+            key="starter"
+            onDone={(count) => {
+              setAddedCount(count);
+              goNext();
+            }}
+            onPhoto={() => {
+              // 写真から登録したい人は、このウェルカムを終えて登録画面へ
+              setAddedCount(0);
+              setStep("celebrate");
+            }}
+          />
+        )}
+
         {step === "celebrate" && (
-          <CelebrateStep key="celebrate" friendlyName={friendlyName} onFinish={handleFinish} />
+          <CelebrateStep key="celebrate" friendlyName={friendlyName} addedCount={addedCount} onFinish={handleFinish} />
         )}
       </AnimatePresence>
     </div>
@@ -315,13 +336,7 @@ function InterestsStep({
       transition={{ duration: 0.4 }}
       className="h-full flex flex-col relative z-10"
     >
-      {/* 上部スキップ */}
-      <div className="absolute top-4 right-4 z-10">
-        <Button variant="ghost" size="sm" onClick={onSkip} className="text-muted-foreground">
-          {t("misc.common.skip")}
-        </Button>
-      </div>
-
+      {/* スキップは上部バー（BAR_STEPS）にあるので、ここには置かない（重なって二重に見えていた） */}
       <div className="flex-1 overflow-auto">
         <div className="max-w-lg mx-auto px-4 py-8">
           <motion.div
@@ -351,9 +366,11 @@ function InterestsStep({
 
 function CelebrateStep({
   friendlyName,
+  addedCount,
   onFinish,
 }: {
   friendlyName: string;
+  addedCount: number;
   onFinish: () => void;
 }) {
   const { t } = useLanguage();
@@ -394,6 +411,12 @@ function CelebrateStep({
         className="text-center text-muted-foreground mb-6 max-w-xs"
       >
         {t("misc.onboarding.readyDesc", { name: friendlyName })}
+        {addedCount > 0 && (
+          <>
+            <br />
+            <span className="font-semibold text-foreground">{t("misc.onboarding.starter.addedSummary", { n: addedCount })}</span>
+          </>
+        )}
       </motion.p>
 
       {/* ようこそギフト */}
