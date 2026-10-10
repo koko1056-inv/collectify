@@ -20,6 +20,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { OfficialItem } from "@/types";
+import { useSuggestNames } from "@/hooks/useSuggestNames";
+import { DidYouMean } from "@/components/search/DidYouMean";
 import { useCatalogContents, useCatalogFeed, useContentNamesEn, useOfficialItems } from "@/hooks/useOfficialItems";
 import { addToCollection } from "@/utils/collection-actions";
 import { ItemDetailsModal } from "@/components/item-details/ItemDetailsModal";
@@ -177,20 +179,14 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
   //  - 作品は未選択（言葉を入れた場合も）: サーバーから新しい順に少しずつ読み足す。最後まで辿れる
   const { data: contents = [] } = useCatalogContents();
   const deferredQuery = useDeferredValue(filter.query);
-  // 英語の作品名（例: Mrs. GREEN APPLE）でも探せるように、作品が1つに決まるときは日本語名に置き換えて検索する
+  // 英語表示のときは作品名も英語で見せる（検索はサーバーが英語名・別名でも当てる）
   const { data: namesEn } = useContentNamesEn();
   const contentLabel = useCallback(
     (name: string | null | undefined) => (name && language === "en" ? namesEn?.get(name) ?? name : name ?? ""),
     [namesEn, language]
   );
-  const searchTerm = useMemo(() => {
-    const q = deferredQuery.trim().toLowerCase();
-    if (q.length < 2 || !namesEn) return deferredQuery;
-    const hits = [...namesEn].filter(([, en]) => en.toLowerCase().includes(q));
-    return hits.length === 1 ? hits[0][0] : deferredQuery;
-  }, [deferredQuery, namesEn]);
   const workQuery = useOfficialItems({ content: filter.content, enabled: !!filter.content });
-  const feed = useCatalogFeed(searchTerm, !filter.content);
+  const feed = useCatalogFeed(deferredQuery, !filter.content);
   const active = filter.content ? workQuery : feed;
   const items = useMemo(() => (filter.content ? workQuery.data ?? [] : feed.items), [filter.content, workQuery.data, feed.items]);
   const { isError, refetch } = active;
@@ -344,6 +340,16 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
 
   // 作品をワンタップで切り替えられるチップ（推しの作品を先頭、あとは件数の多い順）。件数はサーバーで数えた全体の数。
   // 横にスクロールできるので全作品を並べる（件数の少ないアーティストなどが隠れないように）。
+  // 結果が少ないときの「もしかして」（作品・タグ）
+  const { suggestions } = useSuggestNames(filter.query, "any", 4);
+  const showSuggestions = !filter.content && !isLoading && !isError && totalCount <= 30 && suggestions.length > 0;
+  const pickSuggestion = (key: string) => {
+    const hit = suggestions.find((x) => `${x.kind}:${x.id}` === key);
+    if (!hit) return;
+    // 作品なら、その作品の一覧へ。タグなら、その言葉で探し直す
+    setFilter((f) => (hit.kind === "content" ? { ...f, content: hit.name, query: "" } : { ...f, query: hit.name }));
+  };
+
   const contentChips = useMemo(() => {
     const fav = new Set(favoriteContents ?? []);
     return [...contents]
@@ -421,6 +427,18 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
             className="pl-9"
           />
         </div>
+
+        {showSuggestions && (
+          <DidYouMean
+            className="mt-2"
+            options={suggestions.map((x) => ({
+              key: `${x.kind}:${x.id}`,
+              label: x.kind === "content" ? contentLabel(x.name) : x.name,
+              hint: x.matched !== x.name && x.matched !== contentLabel(x.name) ? x.matched : undefined,
+            }))}
+            onPick={pickSuggestion}
+          />
+        )}
 
         <div className="mt-2">
           <CatalogFilterPanel items={items} owned={ownedIds} value={filter} onChange={setFilter} hideContent />

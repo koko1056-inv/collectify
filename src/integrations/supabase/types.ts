@@ -3804,6 +3804,21 @@ export type Database = {
         Args: { _item: string }
         Returns: boolean
       }
+      search_official_items: {
+        Args: { _limit?: number; _offset?: number; _q: string }
+        Returns: { id: string; total: number }[]
+      }
+      suggest_names: {
+        Args: { _kind?: string; _limit?: number; _q: string }
+        Returns: {
+          category: string | null
+          id: string
+          kind: string
+          matched: string
+          name: string
+          score: number
+        }[]
+      }
       catalog_content_counts: {
         Args: Record<PropertyKey, never>
         Returns: { content_name: string; item_count: number }[]

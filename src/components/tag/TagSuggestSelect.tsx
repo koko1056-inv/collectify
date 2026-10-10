@@ -1,3 +1,5 @@
+import { fuzzyRank, normalizeForSearch } from "@/utils/fuzzy";
+import { DidYouMean } from "@/components/search/DidYouMean";
 import React, { useState, useMemo } from 'react';
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -119,11 +121,9 @@ export function TagSuggestSelect({
       return tags.slice(0, 20); // 人気順で上位20件
     }
     
-    const query = searchQuery.toLowerCase();
-    const matched = tags.filter(tag => 
-      tag.name.toLowerCase().includes(query)
-    );
-    
+    // ひらがな/カタカナ・全角/半角・大文字小文字の違いと、軽い打ち間違いを許して、近い順に並べる
+    const matched = fuzzyRank(searchQuery, tags, (tag) => [tag.name], { min: 0.45, limit: 50 }).map((m) => m.item);
+
     // エイリアスからマッチしたタグも追加
     const aliasTagIds = aliases.map((a: any) => a.canonical_tag_id);
     const aliasMatchedTags = tags.filter(tag => 
@@ -136,10 +136,16 @@ export function TagSuggestSelect({
   // 完全一致があるかチェック
   const hasExactMatch = useMemo(() => {
     if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase().trim();
-    return tags.some(tag => tag.name.toLowerCase() === query) ||
-           aliases.some((a: any) => a.alias_name.toLowerCase() === query);
+    const query = normalizeForSearch(searchQuery);
+    return tags.some(tag => normalizeForSearch(tag.name) === query) ||
+           aliases.some((a: any) => normalizeForSearch(a.alias_name) === query);
   }, [tags, aliases, searchQuery]);
+
+  // 完全一致がないとき、新しく作る前に出す「もしかして」（近い既存のタグ）
+  const closeTags = useMemo(() => {
+    if (!searchQuery.trim() || hasExactMatch) return [];
+    return fuzzyRank(searchQuery, tags, (tag) => [tag.name], { min: 0.5, limit: 3 }).map((m) => m.item);
+  }, [tags, searchQuery, hasExactMatch]);
 
   // タグ提案のミューテーション
   const suggestMutation = useMutation({
@@ -324,6 +330,15 @@ export function TagSuggestSelect({
               )}
             </div>
           </ScrollArea>
+
+          {closeTags.length > 0 && (
+            <div className="px-2 pt-2 border-t">
+              <DidYouMean
+                options={closeTags.map((tag) => ({ key: tag.name, label: tag.name }))}
+                onPick={handleSelect}
+              />
+            </div>
+          )}
 
           {/* 提案ボタン（完全一致がない場合のみ表示） */}
           {searchQuery.trim() && !hasExactMatch && user && (

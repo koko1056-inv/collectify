@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSuggestNames } from "@/hooks/useSuggestNames";
+import { DidYouMean } from "@/components/search/DidYouMean";
 
 interface ContentNameSectionProps {
   isEditing: boolean;
@@ -24,6 +26,8 @@ export function ContentNameSection({
   const [newContentName, setNewContentName] = useState("");
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  // 新しい作品名を入れているとき、近い既存の作品を「もしかして」で出す（表記ゆれ・英語名・別名・打ち間違いの重複登録を防ぐ）
+  const { suggestions: contentSuggestions } = useSuggestNames(isAddingNewContent ? newContentName : "", "content", 4);
 
   const { data: contentNames = [] } = useQuery({
     queryKey: ["content-names"],
@@ -92,6 +96,7 @@ export function ContentNameSection({
           {t("itemDetails.common.content")}
         </label>
         {isAddingNewContent ? (
+          <div className="space-y-2">
           <div className="flex gap-2">
             <Input
               value={newContentName}
@@ -112,6 +117,15 @@ export function ContentNameSection({
             >
               {t("itemDetails.common.cancel")}
             </Button>
+          </div>
+          <DidYouMean
+            options={contentSuggestions.map((x) => ({ key: x.name, label: x.name, hint: x.matched !== x.name ? x.matched : undefined }))}
+            onPick={(name) => {
+              setEditedData({ ...editedData, content_name: name });
+              setIsAddingNewContent(false);
+              setNewContentName("");
+            }}
+          />
           </div>
         ) : (
           <Select

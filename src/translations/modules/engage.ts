@@ -50,6 +50,10 @@ export const engage = {
       detail: "{title}の詳細を見る",
       all: "すべて",
     },
+    didYouMean: {
+      title: "もしかして",
+      noResults: "「{q}」は見つかりませんでした",
+    },
     sourceTags: {
       title: "入手方法",
       hint: "当てはまるものをタップ（複数OK）。押した時点で反映されます。",
@@ -225,6 +229,10 @@ export const engage = {
       loadMore: "Show more ({n} more)",
       detail: "View details of {title}",
       all: "All",
+    },
+    didYouMean: {
+      title: "Did you mean",
+      noResults: "No results for \"{q}\"",
     },
     sourceTags: {
       title: "Where from",
