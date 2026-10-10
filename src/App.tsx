@@ -12,6 +12,7 @@ import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
 import { PageTourHost } from "@/components/onboarding/PageTourHost";
 import { GuideHost } from "@/components/onboarding/GuideHost";
+import { OnboardingRewardWatcher } from "@/components/onboarding/OnboardingRewardWatcher";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { ColorSchemeProvider } from "@/contexts/ColorSchemeContext";
@@ -218,6 +219,7 @@ const App: React.FC = () => {
                   <OnboardingGate />
                   <PageTourHost />
                   <GuideHost />
+                  <OnboardingRewardWatcher />
                   </AppErrorBoundary>
                 </TooltipProvider>
               </OnboardingProvider>
