@@ -129,12 +129,11 @@ export const FEED_PAGE = 200;
 
 /**
  * 作品を選ばない一覧（「すべて」＋キーワード検索）を、全件に届くようにサーバーでページ送りする。
- * 新しい順。言葉を入れたときは、タイトル・作品名に含むものだけ（複数語はすべてを含む）。
+ * 新しい順。言葉を入れたときは、サーバーのあいまい検索で近い順（ひらがな/カタカナ・全角/半角・英語名・別名・打ち間違いを許す）。
  * 件数は先頭ページと一緒にサーバーが数えた全体の数。
  */
 export function useCatalogFeed(term: string, enabled = true) {
-  // LIKE の特殊文字と、PostgREST の or() の区切り文字を取り除く
-  const q = term.trim().replace(/[%_,()\\]/g, " ").replace(/\s+/g, " ").trim();
+  const q = term.trim().replace(/\s+/g, " ");
   const query = useInfiniteQuery({
     queryKey: ["official-items-feed", q],
     enabled,
@@ -142,12 +141,29 @@ export function useCatalogFeed(term: string, enabled = true) {
     placeholderData: keepPreviousData,
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
-      let req = supabase
+      // 言葉を入れたとき: サーバーのあいまい検索（表記ゆれ・英語名・別名・打ち間違い）で、近い順の id を取り、中身を読む
+      if (q) {
+        const { data: hits, error: hitErr } = await supabase.rpc("search_official_items", {
+          _q: q,
+          _limit: FEED_PAGE,
+          _offset: pageParam,
+        });
+        if (hitErr) throw hitErr;
+        const rows = hits ?? [];
+        const ids = rows.map((r) => r.id);
+        const total = rows.length > 0 ? Number(rows[0].total) : 0;
+        if (ids.length === 0) return { items: [] as OfficialItem[], total: pageParam === 0 ? 0 : null, next: null };
+        const { data, error } = await supabase.from("official_items").select(SELECT).in("id", ids);
+        if (error) throw error;
+        const byId = new Map((data ?? []).map((r: { id: string }) => [r.id, r]));
+        const ordered = ids.map((id) => byId.get(id)).filter(Boolean) as unknown[];
+        return { items: toItems(ordered), total: pageParam === 0 ? total : null, next: ids.length === FEED_PAGE ? pageParam + FEED_PAGE : null };
+      }
+
+      const { data, error, count } = await supabase
         .from("official_items")
         .select(SELECT, pageParam === 0 ? { count: "exact" } : undefined)
-        .is("merged_into", null);
-      if (q) for (const word of q.split(" ")) req = req.or(`title.ilike.%${word}%,content_name.ilike.%${word}%`);
-      const { data, error, count } = await req
+        .is("merged_into", null)
         .order("release_date", { ascending: false })
         .order("created_at", { ascending: false })
         .order("id", { ascending: true })

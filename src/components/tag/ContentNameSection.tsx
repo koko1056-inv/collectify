@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useSuggestNames } from "@/hooks/useSuggestNames";
+import { DidYouMean } from "@/components/search/DidYouMean";
 
 interface ContentNameSectionProps {
   contentName: string | null;
@@ -19,6 +21,8 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
   const queryClient = useQueryClient();
   const [isAddingNewContent, setIsAddingNewContent] = useState(false);
   const [newContentName, setNewContentName] = useState("");
+  // 新しい作品名を入れているとき、近い既存の作品を「もしかして」で出す
+  const { suggestions: contentSuggestions } = useSuggestNames(isAddingNewContent ? newContentName : "", "content", 4);
 
   const { data: contentNames = [], isLoading: isContentLoading } = useQuery({
     queryKey: ["content-names"],
@@ -84,6 +88,7 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
       <h3 className="text-sm font-medium">{t("tagManage.content.heading")}</h3>
       
       {isAddingNewContent ? (
+        <div className="space-y-2">
         <div className="flex gap-2">
           <Input
             value={newContentName}
@@ -103,6 +108,15 @@ export function ContentNameSection({ contentName, onContentChange }: ContentName
           >
             {t("tagManage.common.cancel")}
           </Button>
+        </div>
+        <DidYouMean
+          options={contentSuggestions.map((x) => ({ key: x.name, label: x.name, hint: x.matched !== x.name ? x.matched : undefined }))}
+          onPick={(name) => {
+            onContentChange(name);
+            setIsAddingNewContent(false);
+            setNewContentName("");
+          }}
+        />
         </div>
       ) : (
         isContentLoading ? (
