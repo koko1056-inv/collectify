@@ -18,12 +18,15 @@ import { ReactionPicker } from "@/components/room3d/ReactionPicker";
 import { toast } from "sonner";
 import { trackRoomView, trackRoomShare } from "@/utils/analytics";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBlockedUserIds } from "@/hooks/useBlocks";
+import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 
 export default function RoomView() {
   const { t } = useLanguage();
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isBlocked } = useBlockedUserIds();
   const { furniture } = useRoomFurniture(roomId);
   const { shareScreenshot } = useRoomScreenshot();
   const { floatingReactions, sendReaction } = useRoomReactions(roomId);
@@ -218,7 +221,8 @@ export default function RoomView() {
     );
   }
 
-  if (!room) {
+  // ブロックの関係にある人のルームは見せない（理由は明かさず「見つからない」と同じ扱い）
+  if (!room || isBlocked(room.user_id)) {
     return (
       <div className="min-h-screen bg-[#0f0f23] flex items-center justify-center text-white">
         <div className="text-center">
@@ -347,6 +351,14 @@ export default function RoomView() {
                 {t("screens.roomView.follow")}
               </Button>
             )}
+            <ReportBlockMenu
+              targetType="profile"
+              targetId={room.user_id}
+              ownerId={room.user_id}
+              ownerName={ownerProfile?.display_name || ownerProfile?.username}
+              tone="overlay"
+              align="end"
+            />
           </div>
         </div>
       </div>

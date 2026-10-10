@@ -3,9 +3,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GoodsPost } from "@/types/posts";
 import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 export function usePosts() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const query = useQuery({
     queryKey: ["posts"],
@@ -47,7 +50,8 @@ export function usePosts() {
         throw error;
       }
       
-      return (data || []).map(post => ({
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      return excludeBlocked(data || [], blocked, (post) => post.user_id).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
         user_items: post.user_items ? {
@@ -105,6 +109,8 @@ export function usePosts() {
 }
 
 export function usePostsForItem(userItemId: string) {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
   return useQuery({
     queryKey: ["posts", "item", userItemId],
     queryFn: async () => {
@@ -141,7 +147,8 @@ export function usePostsForItem(userItemId: string) {
 
       if (error) throw error;
       
-      return (data || []).map(post => ({
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      return excludeBlocked(data || [], blocked, (post) => post.user_id).map(post => ({
         ...post,
         profiles: post.profiles || { username: "Unknown", avatar_url: null },
         user_items: post.user_items ? {

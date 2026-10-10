@@ -117,6 +117,9 @@ export function useChat({ partnerId, tradeRequestId, isOpen }: UseChatProps) {
     if (!error) {
       await markMessagesAsRead();
       fetchMessages();
+    } else {
+      // ブロックの関係にある相手には DB 側で送れない。理由は明かさず、送れなかったことだけ伝える
+      toast.error(t("safety.menu.sendFailed"));
     }
   };
 

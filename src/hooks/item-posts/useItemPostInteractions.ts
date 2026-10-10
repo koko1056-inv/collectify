@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 export interface ItemPostComment {
   id: string;
@@ -98,8 +99,10 @@ export function useToggleItemPostLike() {
  * 投稿のコメント一覧
  */
 export function useItemPostComments(postId: string | null) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
   return useQuery({
-    queryKey: ["item-post-comments", postId],
+    queryKey: ["item-post-comments", postId, user?.id],
     queryFn: async (): Promise<ItemPostComment[]> => {
       if (!postId) return [];
       const { data, error } = await supabase
@@ -113,7 +116,8 @@ export function useItemPostComments(postId: string | null) {
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data || []) as any;
+      const blocked = await fetchBlockedUserIds(qc, user?.id);
+      return excludeBlocked((data || []) as unknown as ItemPostComment[], blocked, (c) => c.user_id);
     },
     enabled: !!postId,
   });

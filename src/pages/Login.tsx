@@ -6,13 +6,16 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, User, Lock } from "lucide-react";
 import { useLoginForm } from "@/hooks/useLoginForm";
 import { PasswordReset } from "@/components/PasswordReset";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function Login() {
   const { t } = useLanguage();
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  // 新規登録には利用規約とプライバシーポリシーへの同意が要る（ログインでは出さない）
+  const [agreed, setAgreed] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/collection";
@@ -26,6 +29,16 @@ export default function Login() {
     handleSubmit,
     toggleMode,
   } = useLoginForm();
+
+  const needsAgreement = !isLogin && !agreed;
+
+  const onSubmit = (e: React.FormEvent) => {
+    if (needsAgreement) {
+      e.preventDefault();
+      return;
+    }
+    handleSubmit(e);
+  };
 
   // AuthContext の状態のみ使用（直接 Supabase 購読は二重購読でループの原因になる）
   useEffect(() => {
@@ -67,7 +80,7 @@ export default function Login() {
               : t("screens.login.subtitleSignup")}
           </CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={onSubmit}>
           <CardContent className="space-y-4">
             {error && (
               <Alert variant="destructive" className="animate-shake">
@@ -105,12 +118,34 @@ export default function Login() {
                 />
               </div>
             </div>
+            {!isLogin && (
+              <div className="flex items-start gap-2 rounded-lg bg-muted/50 p-3">
+                <Checkbox
+                  id="agree-terms"
+                  checked={agreed}
+                  onCheckedChange={(v) => setAgreed(v === true)}
+                  className="mt-0.5"
+                  aria-label={t("safety.agree.label")}
+                />
+                <label htmlFor="agree-terms" className="text-xs leading-relaxed text-muted-foreground">
+                  {t("safety.agree.before")}
+                  <Link to="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2">
+                    {t("safety.agree.terms")}
+                  </Link>
+                  {t("safety.agree.and")}
+                  <Link to="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2">
+                    {t("safety.agree.privacy")}
+                  </Link>
+                  {t("safety.agree.after")}
+                </label>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button
               type="submit"
               className="w-full"
-              disabled={loading}
+              disabled={loading || needsAgreement}
               size="lg"
             >
               {loading ? t("screens.login.processing") : isLogin ? t("screens.login.loginButton") : t("screens.login.signupButton")}
@@ -128,7 +163,10 @@ export default function Login() {
             <Button
               type="button"
               variant="ghost"
-              onClick={toggleMode}
+              onClick={() => {
+                setAgreed(false);
+                toggleMode();
+              }}
               className="w-full text-sm"
               disabled={loading}
             >

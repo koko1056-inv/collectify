@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { fetchBlockedUserIds, toNotInList } from "@/hooks/useBlocks";
 
 interface Profile {
   id: string;
@@ -32,6 +33,7 @@ interface FriendSearchProps {
 export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedInterest, setSelectedInterest] = useState<string>("all");
@@ -45,6 +47,10 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
         .select("id, username, display_name, avatar_url, bio, interests, followers_count, following_count")
         .neq("id", user?.id || "")
         .limit(50);
+
+      // ブロックした人・ブロックされた人は出さない
+      const notIn = toNotInList(await fetchBlockedUserIds(queryClient, user?.id));
+      if (notIn) query = query.not("id", "in", notIn);
 
       if (searchQuery.trim()) {
         const searchTerm = searchQuery.toLowerCase();

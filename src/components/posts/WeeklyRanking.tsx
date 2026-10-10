@@ -6,6 +6,7 @@ import { Trophy, Heart, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBlockedUserIds } from "@/hooks/useBlocks";
 
 interface RankingUser {
   user_id: string;
@@ -26,12 +27,14 @@ interface RankingPost {
 }
 
 export function WeeklyRanking() {
+  // ブロックした人・ブロックされた人はランキングに出さない
+  const { filter: excludeBlockedUsers } = useBlockedUserIds();
   const { t } = useLanguage();
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
   // 週間人気投稿
-  const { data: topPosts, isLoading: isLoadingPosts } = useQuery({
+  const { data: rawTopPosts, isLoading: isLoadingPosts } = useQuery({
     queryKey: ["weekly-top-posts"],
     queryFn: async () => {
       // 過去1週間のいいね数でソート
@@ -88,7 +91,7 @@ export function WeeklyRanking() {
   });
 
   // 週間アクティブユーザー
-  const { data: topUsers, isLoading: isLoadingUsers } = useQuery({
+  const { data: rawTopUsers, isLoading: isLoadingUsers } = useQuery({
     queryKey: ["weekly-top-users"],
     queryFn: async () => {
       // 過去1週間の投稿を取得
@@ -163,6 +166,9 @@ export function WeeklyRanking() {
     },
     staleTime: 1000 * 60 * 5,
   });
+
+  const topPosts = rawTopPosts && excludeBlockedUsers(rawTopPosts, (p) => p.user_id);
+  const topUsers = rawTopUsers && excludeBlockedUsers(rawTopUsers, (u) => u.user_id);
 
   const getRankBadge = (index: number) => {
     switch (index) {

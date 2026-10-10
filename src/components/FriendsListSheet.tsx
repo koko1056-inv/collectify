@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { UserCard } from "./profile/UserCard";
 import { PopularCollectors } from "./profile/PopularCollectors";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBlockedUserIds } from "@/hooks/useBlocks";
 
 interface FriendsListSheetProps {
   isOpen: boolean;
@@ -32,7 +33,10 @@ interface Profile {
 export function FriendsListSheet({ isOpen, onClose }: FriendsListSheetProps) {
   const [userId, setUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Profile[]>([]);
+  const [allSearchResults, setSearchResults] = useState<Profile[]>([]);
+  // ブロックした人・ブロックされた人は検索結果に出さない
+  const { filter: excludeBlockedUsers } = useBlockedUserIds();
+  const searchResults = excludeBlockedUsers(allSearchResults, (p) => p.id);
   const [searching, setSearching] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("following");
   const [collectionCounts, setCollectionCounts] = useState<Record<string, number>>({});

@@ -2,6 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useDateFormat } from "@/hooks/useDateFormat";
 import type { Message, PartnerProfile } from "./types";
+import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 
 interface MessageItemProps {
   message: Message;
@@ -44,14 +45,28 @@ export function MessageItem({ message, partnerProfile, showAvatar = true }: Mess
 
       {/* メッセージバブル */}
       <div className={`flex flex-col gap-1 ${isOwnMessage ? "items-end" : "items-start"}`}>
-        <div
-          className={`max-w-[260px] rounded-2xl px-4 py-2.5 ${
-            isOwnMessage
-              ? "bg-primary text-primary-foreground rounded-br-md"
-              : "bg-background border shadow-sm rounded-bl-md"
-          }`}
-        >
-          <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+        <div className="flex items-center gap-0.5">
+          <div
+            className={`max-w-[260px] rounded-2xl px-4 py-2.5 ${
+              isOwnMessage
+                ? "bg-primary text-primary-foreground rounded-br-md"
+                : "bg-background border shadow-sm rounded-bl-md"
+            }`}
+          >
+            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+          </div>
+          {/* 受け取ったメッセージだけ通報できる（ブロックはヘッダーのメニューから） */}
+          {!isOwnMessage && (
+            <ReportBlockMenu
+              targetType="message"
+              targetId={message.id}
+              ownerId={message.sender_id}
+              ownerName={partnerProfile?.display_name || partnerProfile?.username}
+              allowBlock={false}
+              align="start"
+              triggerClassName="h-6 w-6"
+            />
+          )}
         </div>
         
         {/* タイムスタンプ */}

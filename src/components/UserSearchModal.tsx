@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useBlockedUserIds } from "@/hooks/useBlocks";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 
 interface Profile {
@@ -17,7 +18,10 @@ interface Profile {
 
 export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [username, setUsername] = useState("");
-  const [suggestions, setSuggestions] = useState<Profile[]>([]);
+  const [allSuggestions, setSuggestions] = useState<Profile[]>([]);
+  // ブロックした人・ブロックされた人は検索結果に出さない
+  const { ids: blockedIds, filter: excludeBlockedUsers } = useBlockedUserIds();
+  const suggestions = excludeBlockedUsers(allSuggestions, (p) => p.id);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
@@ -67,7 +71,7 @@ export function UserSearchModal({ isOpen, onClose }: { isOpen: boolean; onClose:
       .eq("username", username)
       .maybeSingle();
 
-    if (error || !profile) {
+    if (error || !profile || blockedIds.has(profile.id)) {
       toast.error(t("chrome.common.error"), {
         description: t("chrome.friends.noUsersFound"),
       });

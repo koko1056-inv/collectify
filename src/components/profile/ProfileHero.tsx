@@ -27,6 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ChatModal } from "@/components/chat/ChatModal";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 
 interface ProfileHeroProps {
   profile: Profile;
@@ -377,6 +378,13 @@ export function ProfileHero({
                   <MessageCircle className="w-4 h-4" />
                   {t("profileScreen.hero.message")}
                 </Button>
+                <ReportBlockMenu
+                  targetType="profile"
+                  targetId={profile.id}
+                  ownerId={profile.id}
+                  ownerName={profile.display_name || profile.username}
+                  triggerClassName="h-10 w-10 rounded-full border border-input"
+                />
               </>
             ) : null}
           </div>

@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import type { ItemRoom, ItemRoomMessage } from "./types";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 /**
  * グッズに対応するルームを取得 or 作成。
@@ -47,6 +48,7 @@ export function useItemRoom(officialItemId: string | undefined) {
 /** ルーム内のメッセージ一覧 */
 export function useItemRoomMessages(roomId: string | undefined) {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const query = useQuery({
     queryKey: ["item-room-messages", roomId],
@@ -60,7 +62,9 @@ export function useItemRoomMessages(roomId: string | undefined) {
         .limit(200);
       if (error) throw error;
 
-      const messages = (data || []) as ItemRoomMessage[];
+      // ブロックした人・ブロックされた人の発言は出さない
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      const messages = excludeBlocked((data || []) as ItemRoomMessage[], blocked, (m) => m.user_id);
       const userIds = Array.from(new Set(messages.map((m) => m.user_id)));
       if (userIds.length === 0) return messages;
 

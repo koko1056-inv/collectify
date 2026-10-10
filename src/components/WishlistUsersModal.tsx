@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useSoundEffect } from "@/hooks/useSoundEffect";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { excludeBlocked, fetchBlockedUserIds } from "@/hooks/useBlocks";
 
 interface WishlistUsersModalProps {
   isOpen: boolean;
@@ -49,8 +50,12 @@ export function WishlistUsersModal({
         throw error;
       }
 
+      // ブロックした人・ブロックされた人は出さない
+      const blocked = await fetchBlockedUserIds(queryClient, user?.id);
+      const visible = excludeBlocked(data, blocked, (item) => item.user_id);
+
       // プロフィール情報を別途取得
-      const userIds = data.map(item => item.user_id);
+      const userIds = visible.map(item => item.user_id);
       
       if (userIds.length === 0) {
         return [];
@@ -67,7 +72,7 @@ export function WishlistUsersModal({
       }
 
       // データを結合（user_idをプロフィール情報に追加）
-      const wishlistWithProfiles = data.map(wishlistItem => {
+      const wishlistWithProfiles = visible.map(wishlistItem => {
         const profile = profiles.find(profile => profile.id === wishlistItem.user_id);
         return {
           ...wishlistItem,

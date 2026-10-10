@@ -38,6 +38,7 @@ import { useDateFormat } from "@/hooks/useDateFormat";
 import { ReactionBar } from "./ReactionBar";
 import { shareContent } from "@/utils/share";
 import { buildShareText } from "@/utils/shareLinks";
+import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
 
 interface ItemPostDetailModalProps {
   open: boolean;
@@ -196,6 +197,12 @@ export function ItemPostDetailModal({
                 {formatRelative(post.created_at)}
               </p>
             </div>
+            <ReportBlockMenu
+              targetType="item_post"
+              targetId={post.id}
+              ownerId={post.user_id}
+              ownerName={post.profile?.display_name || post.profile?.username}
+            />
             {isOwner && (
               <Button
                 variant="ghost"
@@ -276,7 +283,7 @@ export function ItemPostDetailModal({
                     {c.content}
                   </p>
                 </div>
-                {user?.id === c.user_id && (
+                {user?.id === c.user_id ? (
                   <button
                     onClick={() =>
                       deleteComment.mutate({ commentId: c.id, postId: post.id })
@@ -285,6 +292,15 @@ export function ItemPostDetailModal({
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
+                ) : (
+                  <ReportBlockMenu
+                    targetType="item_post_comment"
+                    targetId={c.id}
+                    ownerId={c.user_id}
+                    ownerName={c.profile?.display_name || c.profile?.username}
+                    className="shrink-0 self-start"
+                    triggerClassName="h-6 w-6"
+                  />
                 )}
               </div>
             ))}

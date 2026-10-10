@@ -1,4 +1,4 @@
-import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles, ArrowLeftRight } from 'lucide-react';
+import { X, Eye, Package, Info, AlertTriangle, CheckCircle, XCircle, MessageCircle, Heart, Reply, Sticker, Sparkles, ArrowLeftRight, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Notification, NotificationData } from '@/types/notification';
@@ -46,6 +46,8 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       case 'trade_cancelled':
       case 'trade_unavailable':
         return <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />;
+      case 'admin_report':
+        return <Flag className="h-4 w-4 text-destructive" />;
       case 'success':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'warning':
@@ -82,6 +84,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
       navigate(`/search?item=${notification.data.item_id}`);
     } else if ((notification.type === 'comment' || notification.type === 'reply' || notification.type === 'like') && notification.data.post_id) {
       navigate(`/posts?post=${notification.data.post_id}`);
+    } else if (notification.type === 'admin_report') {
+      // 通報の通知は、管理画面の通報タブへ
+      navigate(notification.data.url || '/admin?tab=reports');
     } else if (notification.type.startsWith('trade_')) {
       // 交換の通知は、交換タブ（自分の番の取引が先頭に出る）へ
       navigate(notification.data.url || '/search?tab=trade');
