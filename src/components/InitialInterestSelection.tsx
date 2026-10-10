@@ -3,7 +3,7 @@ import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { useState, useEffect, useMemo, useDeferredValue } from "react";
+import { useState, useEffect, useMemo, useDeferredValue, type ReactNode } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,8 +12,10 @@ import { ContentInfo } from "@/utils/tag/types";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { 
   BookOpen, Gamepad2, Music, Film, Tv, Heart, Star, Zap, 
-  Award, Users, Boxes, PenTool, Palette, BookMarked, Pin, PlusCircle, ArrowRight
+  Award, Users, Boxes, PenTool, Palette, BookMarked, Pin, PlusCircle, ArrowRight, Check, Search,
+  type LucideIcon
 } from "lucide-react";
+import { OnboardingBottomBar, OnboardingPrimaryButton } from "@/components/onboarding/OnboardingParts";
 import { cn } from "@/lib/utils";
 import { Dialog } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -21,7 +23,7 @@ import { useCatalogContents } from "@/hooks/useOfficialItems";
 import { fuzzyRank } from "@/utils/fuzzy";
 import { DidYouMean } from "@/components/search/DidYouMean";
 
-const ICON_MAP: Record<string, any> = {
+const ICON_MAP: Record<string, LucideIcon> = {
   BookOpen,
   Gamepad2,
   Music,
@@ -40,7 +42,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 // カテゴリーに基づいたデフォルトアイコンを取得する関数
-const getDefaultIcon = (contentName: string): any => {
+const getDefaultIcon = (contentName: string): LucideIcon => {
   const lowercaseName = contentName.toLowerCase();
   
   if (lowercaseName.includes('ゲーム') || lowercaseName.includes('game')) return Gamepad2;
@@ -67,6 +69,8 @@ interface InitialInterestSelectionProps {
   onClose?: () => void;
   onComplete?: () => void;
   standalone?: boolean;
+  /** standalone のとき、一覧の上（一緒にスクロールする位置）に置く見出し */
+  header?: ReactNode;
 }
 
 export function InitialInterestSelection({
@@ -74,6 +78,7 @@ export function InitialInterestSelection({
   onClose,
   onComplete,
   standalone = false,
+  header,
 }: InitialInterestSelectionProps) {
   const [selectedContents, setSelectedContents] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -167,9 +172,13 @@ export function InitialInterestSelection({
       // オンボーディングを完了としてマーク
       completeWalkthrough();
 
-      toast.success(selectedContents.length > 0 ? t("chrome.interests.savedTitle") : t("chrome.interests.skippedTitle"), {
-        description: selectedContents.length > 0 ? t("chrome.interests.savedDesc") : t("chrome.interests.skippedDesc"),
-      });
+      // ウェルカム画面の中（standalone）では、すぐ次のステップへ進むので通知は出さない。
+      // 出すと、次の画面の下に固定した「始める」ボタンに数秒かぶっていた。
+      if (!standalone) {
+        toast.success(selectedContents.length > 0 ? t("chrome.interests.savedTitle") : t("chrome.interests.skippedTitle"), {
+          description: selectedContents.length > 0 ? t("chrome.interests.savedDesc") : t("chrome.interests.skippedDesc"),
+        });
+      }
       
       if (onComplete) {
         onComplete();
@@ -227,37 +236,53 @@ export function InitialInterestSelection({
     const IconComponent = content.icon_name && ICON_MAP[content.icon_name] ? ICON_MAP[content.icon_name] : getDefaultIcon(content.name);
     const isSelected = selectedContents.includes(content.name);
     const count = countOf.get(content.name) ?? 0;
+    // アプリのカード（rounded-2xl border bg-card）に揃えた横並び。選んだものは GoodsPickTile と同じリングとチェックで示す
     return (
       <button
         key={content.id}
         type="button"
         aria-pressed={isSelected}
         className={cn(
-          "relative h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-2xl border-2 overflow-hidden",
-          isSelected ? "border-primary bg-primary/10 shadow-md ring-1 ring-primary/20" : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
+          "flex min-h-[4.5rem] w-full min-w-0 items-center gap-2 rounded-2xl border bg-card p-2.5 text-left shadow-sm transition-colors",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+          isSelected ? "border-primary bg-primary/5 ring-2 ring-primary/60" : "border-border hover:border-primary/40"
         )}
         onClick={() => handleContentToggle(content.name)}
       >
-        {isSelected && (
-          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-        )}
-        {content.image_url ? (
-          <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted/50 flex items-center justify-center">
-            <img src={content.image_url} alt="" className="w-full h-full object-contain" />
-          </div>
-        ) : (
-          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", isSelected ? "bg-primary/20" : "bg-muted/60")}>
-            <IconComponent className={cn("h-5 w-5", isSelected ? "text-primary" : "text-muted-foreground")} />
-          </div>
-        )}
-        <span className={cn("text-sm font-medium break-words text-center w-full line-clamp-2 leading-tight", isSelected ? "text-primary" : "text-foreground")}>
-          {displayName(content)}
+        {/* 選んだら、左の四角が primary に変わってチェックが付く（名前の幅を削らないよう、印は右に別に置かない） */}
+        <div className="relative h-9 w-9 shrink-0">
+          {content.image_url ? (
+            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-xl bg-muted">
+              <img src={content.image_url} alt="" className="h-full w-full object-contain" />
+            </div>
+          ) : (
+            <div
+              className={cn(
+                "flex h-full w-full items-center justify-center rounded-xl transition-colors",
+                isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+              )}
+            >
+              {isSelected ? (
+                <Check className="h-5 w-5" strokeWidth={3} aria-hidden="true" />
+              ) : (
+                <IconComponent className="h-5 w-5" aria-hidden="true" />
+              )}
+            </div>
+          )}
+          {content.image_url && isSelected && (
+            <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-card">
+              <Check className="h-3 w-3" strokeWidth={3} aria-hidden="true" />
+            </span>
+          )}
+        </div>
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="line-clamp-2 break-words text-sm font-medium leading-tight text-foreground">
+            {displayName(content)}
+          </span>
+          {count > 0 && (
+            <span className="whitespace-nowrap text-3xs tabular-nums text-muted-foreground">{t("chrome.interests.goodsCount", { n: count.toLocaleString() })}</span>
+          )}
         </span>
-        {count > 0 && (
-          <span className="text-3xs tabular-nums text-muted-foreground">{t("chrome.interests.goodsCount", { n: count.toLocaleString() })}</span>
-        )}
       </button>
     );
   };
@@ -265,11 +290,11 @@ export function InitialInterestSelection({
   const otherButton = (
     <button
       type="button"
-      className="h-auto min-h-[6rem] px-3 py-4 flex flex-col items-center justify-center gap-2 transition-all duration-200 rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/20 hover:border-primary/30 hover:bg-muted/40"
+      className="flex min-h-[4.5rem] w-full min-w-0 items-center gap-2 rounded-2xl border border-dashed bg-card p-2.5 text-left transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       onClick={() => setShowNewContentDialog(true)}
     >
-      <div className="w-10 h-10 rounded-xl bg-muted/60 flex items-center justify-center">
-        <PlusCircle className="h-5 w-5 text-muted-foreground" />
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+        <PlusCircle className="h-5 w-5" aria-hidden="true" />
       </div>
       <span className="text-sm font-medium text-muted-foreground">{t("chrome.interests.other")}</span>
     </button>
@@ -318,25 +343,49 @@ export function InitialInterestSelection({
   );
 
   if (standalone) {
+    // ウェルカム画面の1ステップとして、画面の高さいっぱいに使う。
+    // 見出し・検索・一覧は一緒にスクロールし（検索は上に貼りつく）、「次へ」は画面下に固定する。
+    // 以前は一覧が 40vh の小さな枠の中だけでスクロールし、ボタンが一覧の下に埋もれていた。
     return (
-      <div className="space-y-4">
-        {/* 見出しの下の説明は、ウェルカム画面のサブタイトルと重なるのでここでは出さない */}
-        {/* 検索バー */}
-        <div className="relative">
-          <Input
-            placeholder={t("chrome.interests.searchPlaceholder")}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-card border-border rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary"
-          />
-          <div className="absolute top-1/2 -translate-y-1/2 left-3 text-muted-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-lg px-4 pb-6 pt-6">
+            {header}
+            {/* 見出しの下の説明は、ウェルカム画面のサブタイトルと重なるのでここでは出さない */}
+            <div className="sticky top-0 z-10 -mx-4 mt-3 bg-background px-4 pb-3 pt-2">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <Input
+                  placeholder={t("chrome.interests.searchPlaceholder")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-11 rounded-xl pl-9"
+                />
+              </div>
+            </div>
+            {contentList}
           </div>
         </div>
-        
-        <ScrollArea className="h-[40vh]">
-          {contentList}
-        </ScrollArea>
+
+        <OnboardingBottomBar>
+          <p className="mb-2 text-xs text-muted-foreground" aria-live="polite">
+            {selectedContents.length > 0
+              ? t("misc.onboarding.interestsSelected", { n: selectedContents.length })
+              : t("misc.onboarding.interestsNone")}
+          </p>
+          <OnboardingPrimaryButton
+            onClick={handleConfirm}
+            disabled={saving}
+            variant={selectedContents.length > 0 ? "default" : "outline"}
+          >
+            {saving ? t("chrome.interests.saving") : selectedContents.length > 0 ? (
+              <>
+                {t("chrome.interests.next")}
+                <ArrowRight />
+              </>
+            ) : t("chrome.interests.skip")}
+          </OnboardingPrimaryButton>
+        </OnboardingBottomBar>
 
         {/* 新規コンテンツ作成ダイアログ */}
         <Dialog open={showNewContentDialog} onOpenChange={setShowNewContentDialog}>
@@ -362,23 +411,6 @@ export function InitialInterestSelection({
             </div>
           </DialogContent>
         </Dialog>
-        
-        {/* CTAボタン */}
-        <div className="flex justify-center pt-2">
-          <Button 
-            onClick={handleConfirm} 
-            size="lg"
-            className="w-full h-14 text-base font-bold rounded-2xl shadow-lg gap-2"
-            disabled={saving}
-          >
-            {saving ? t("chrome.interests.saving") : selectedContents.length > 0 ? (
-              <>
-                {t("chrome.interests.next")}
-                <ArrowRight className="w-5 h-5" />
-              </>
-            ) : t("chrome.interests.skip")}
-          </Button>
-        </div>
       </div>
     );
   }
@@ -396,27 +428,25 @@ export function InitialInterestSelection({
           {t("chrome.interests.description")}
         </p>
         
-        <div className="relative px-4">
+        <div className="relative mx-4 mb-4">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
             placeholder={t("chrome.interests.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="mb-4 pl-10 bg-card border-border rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            className="h-11 rounded-xl pl-9"
           />
-          <div className="absolute top-1/2 -translate-y-1/2 left-7 text-muted-foreground" style={{ marginTop: '-8px' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          </div>
         </div>
-        
+
         <ScrollArea className="h-[50vh] pr-4">
           <div className="p-4">{contentList}</div>
         </ScrollArea>
-        
+
         <div className="flex justify-center mt-4 px-4">
-          <Button 
-            onClick={handleConfirm} 
+          <Button
+            onClick={handleConfirm}
             size="lg"
-            className="w-full h-12 text-base font-bold rounded-2xl shadow-lg"
+            className="h-12 w-full text-base font-bold"
             disabled={saving}
           >
             {saving ? t("chrome.interests.saving") : selectedContents.length > 0 ? t("chrome.interests.save") : t("chrome.interests.skip")}

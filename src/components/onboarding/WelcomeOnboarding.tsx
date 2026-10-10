@@ -1,15 +1,8 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  ArrowRight,
-  ChevronLeft,
-  Sparkles,
-  Heart,
-  Gift,
-  Star,
-} from "lucide-react";
+import { motion, AnimatePresence, MotionConfig, type Variants } from "framer-motion";
+import { ArrowRight, Check, ChevronLeft, Heart, Package, Sparkles, Star } from "lucide-react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -17,7 +10,9 @@ import { InitialInterestSelection } from "@/components/InitialInterestSelection"
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { claimReward } from "@/hooks/useClaimReward";
+import { cn } from "@/lib/utils";
 import { StarterGoodsStep } from "./StarterGoodsStep";
+import { OnboardingBottomBar, OnboardingPrimaryButton, OnboardingStepHeader } from "./OnboardingParts";
 
 interface WelcomeOnboardingProps {
   onComplete: () => void;
@@ -34,12 +29,43 @@ interface WelcomeOnboardingProps {
 // 読む時点では指し示す対象が画面に無く、読み終えても何も残らないため外した。
 // 機能の説明は各画面のスポットライトガイド（PageTourHost）が、実物の
 // ボタンを光らせながら行う。ここは名前と興味だけ受け取って手短に終える。
+//
+// 見た目はアプリ本体に揃える: 上はアプリのヘッダーと同じ「左にロゴ・右に操作」＋細い進捗バー、
+// 中身は bg-card のカードと primary 単色、主ボタンは画面下に固定。
+// 以前の、漂う絵文字・紙吹雪・発光するグラデーションの丸は外した。
 // ──────────────────────────────────────────────
 
 type Step = "welcome" | "interests" | "starter" | "celebrate";
 
-/** 上部バー（戻る・進捗・スキップ）を出すステップ。 */
+/** 戻る・スキップを出すステップ。ロゴと進捗バーはすべてのステップで出す */
 const BAR_STEPS: Step[] = ["interests", "starter"];
+
+/**
+ * ステップの切り替え。進む向きに少しだけ横へずらして入れ替える。
+ * 動きを減らす設定の人には、MotionConfig(reducedMotion="user") が移動を止め、薄く切り替えるだけにする。
+ */
+const stepVariants: Variants = {
+  enter: (dir: number) => ({ opacity: 0, x: dir * 24 }),
+  center: { opacity: 1, x: 0 },
+  exit: (dir: number) => ({ opacity: 0, x: dir * -24 }),
+};
+
+/** 各ステップの外枠。ヘッダーの下を埋める縦並び（中身のスクロール＋下の固定バー） */
+function StepFrame({ direction, children }: { direction: number; children: ReactNode }) {
+  return (
+    <motion.div
+      custom={direction}
+      variants={stepVariants}
+      initial="enter"
+      animate="center"
+      exit="exit"
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className="absolute inset-0 flex flex-col"
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
   const { user } = useAuth();
@@ -135,83 +161,93 @@ export function WelcomeOnboarding({ onComplete }: WelcomeOnboardingProps) {
     navigate(addedCount > 0 ? "/collection" : "/quick-add");
   }, [user?.id, completeWalkthrough, completeWelcome, onComplete, navigate, addedCount]);
 
+  const showBar = BAR_STEPS.includes(step);
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background overflow-hidden">
-      <FloatingEmojis />
-
-      {/* 上部プログレスバー（welcome / interests / celebrate以外で表示） */}
-      {BAR_STEPS.includes(step) && (
-        <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-4">
-          <div className="max-w-md mx-auto flex items-center gap-3">
-            <button
-              onClick={goPrev}
-              className="p-1.5 rounded-full hover:bg-muted/50 transition-colors"
-              aria-label={t("misc.common.back")}
-            >
-              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
-            </button>
-            <div className="flex-1 h-1.5 bg-muted/40 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-brand-gradient"
-                initial={false}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-              />
-            </div>
-            <button
-              onClick={skipToEnd}
-              className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2"
-            >
-              {t("misc.common.skip")}
-            </button>
+    <MotionConfig reducedMotion="user">
+      <div className="fixed inset-0 z-[100] flex flex-col bg-background">
+        {/* アプリのヘッダーと同じ形: 左にロゴ、右にスキップ。下に細い進捗バー */}
+        <header className="shrink-0 border-b bg-background pt-[env(safe-area-inset-top)]">
+          <div className={cn("mx-auto flex h-12 max-w-lg items-center gap-1 pr-2", showBar ? "pl-1" : "pl-4")}>
+            {showBar && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={goPrev}
+                className="h-10 w-10 rounded-full text-muted-foreground"
+                aria-label={t("misc.common.back")}
+              >
+                <ChevronLeft className="!size-5" />
+              </Button>
+            )}
+            <span className="logo-text text-xl">Collectify</span>
+            <div className="flex-1" />
+            {showBar && (
+              <Button variant="ghost" size="sm" onClick={skipToEnd} className="text-muted-foreground">
+                {t("misc.common.skip")}
+              </Button>
+            )}
           </div>
-        </div>
-      )}
+          <div
+            className="h-1 overflow-hidden bg-muted"
+            role="progressbar"
+            aria-valuemin={1}
+            aria-valuemax={allSteps.length}
+            aria-valuenow={stepIndex + 1}
+          >
+            <motion.div
+              className="h-full bg-primary"
+              initial={false}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            />
+          </div>
+        </header>
 
-      <AnimatePresence mode="wait" custom={direction}>
-        {step === "welcome" && (
-          <WelcomeStep
-            key="welcome"
-            displayName={displayName}
-            onDisplayNameChange={setDisplayName}
-            onNext={handleWelcomeNext}
-            isLoading={isLoadingProfile}
-          />
-        )}
+        <main className="relative min-h-0 flex-1 overflow-hidden">
+          <AnimatePresence mode="wait" custom={direction} initial={false}>
+            {step === "welcome" && (
+              <StepFrame key="welcome" direction={direction}>
+                <WelcomeStep
+                  displayName={displayName}
+                  onDisplayNameChange={setDisplayName}
+                  onNext={handleWelcomeNext}
+                  isLoading={isLoadingProfile}
+                />
+              </StepFrame>
+            )}
 
-        {step === "interests" && (
-          <InterestsStep
-            key="interests"
-            friendlyName={friendlyName}
-            onDone={goNext}
-            onSkip={goNext}
-          />
-        )}
+            {step === "interests" && (
+              <StepFrame key="interests" direction={direction}>
+                <InterestsStep friendlyName={friendlyName} onDone={goNext} />
+              </StepFrame>
+            )}
 
+            {step === "starter" && (
+              <StepFrame key="starter" direction={direction}>
+                <StarterGoodsStep
+                  onDone={(count) => {
+                    setAddedCount(count);
+                    goNext();
+                  }}
+                  onPhoto={() => {
+                    // 写真から登録したい人は、このウェルカムを終えて登録画面へ
+                    setAddedCount(0);
+                    setStep("celebrate");
+                  }}
+                />
+              </StepFrame>
+            )}
 
-
-
-        {step === "starter" && (
-          <StarterGoodsStep
-            key="starter"
-            onDone={(count) => {
-              setAddedCount(count);
-              goNext();
-            }}
-            onPhoto={() => {
-              // 写真から登録したい人は、このウェルカムを終えて登録画面へ
-              setAddedCount(0);
-              setStep("celebrate");
-            }}
-          />
-        )}
-
-        {step === "celebrate" && (
-          <CelebrateStep key="celebrate" friendlyName={friendlyName} addedCount={addedCount} onFinish={handleFinish} />
-        )}
-      </AnimatePresence>
-    </div>
+            {step === "celebrate" && (
+              <StepFrame key="celebrate" direction={direction}>
+                <CelebrateStep friendlyName={friendlyName} addedCount={addedCount} onFinish={handleFinish} />
+              </StepFrame>
+            )}
+          </AnimatePresence>
+        </main>
+      </div>
+    </MotionConfig>
   );
 }
 
@@ -229,141 +265,79 @@ function WelcomeStep({
   isLoading: boolean;
 }) {
   const { t } = useLanguage();
+  const name = displayName.trim();
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ duration: 0.4 }}
-      className="h-full flex flex-col items-center justify-center px-6 relative z-10"
-    >
-      <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 60, delay: 0.1 }}
-        className="relative mb-8"
-      >
-        <div className="absolute inset-0 rounded-full blur-3xl bg-brand-gradient opacity-40 scale-150" />
-        <div className="relative w-24 h-24 rounded-full bg-brand-gradient flex items-center justify-center shadow-2xl">
-          <Sparkles className="w-12 h-12 text-white" strokeWidth={2.5} />
+    <>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-lg px-4 pb-6 pt-8">
+          <OnboardingStepHeader
+            icon={Sparkles}
+            title={
+              <>
+                {/* 狭い画面で「ようこ／そ」と不自然に折り返さないよう語境界で改行 */}
+                <span className="inline-block">{t("misc.onboarding.welcomeLine1")}</span>
+                <span className="inline-block">{t("misc.onboarding.welcomeLine2")}</span>
+              </>
+            }
+            description={t("misc.onboarding.tagline")}
+          />
+
+          <div className="mt-6 rounded-2xl border bg-card p-4 shadow-sm">
+            <label htmlFor="onboarding-name" className="text-sm font-bold">
+              {t("misc.onboarding.askName")}
+            </label>
+            <Input
+              id="onboarding-name"
+              value={displayName}
+              onChange={(e) => onDisplayNameChange(e.target.value)}
+              placeholder={t("misc.onboarding.namePlaceholder")}
+              disabled={isLoading}
+              maxLength={30}
+              className="mt-2 h-12 rounded-xl text-base"
+              autoFocus
+            />
+            <p className="mt-2 min-h-4 text-xs text-muted-foreground" aria-live="polite">
+              {name ? (
+                <span className="font-medium text-foreground">{t("misc.onboarding.greeting", { name })}</span>
+              ) : (
+                t("misc.onboarding.setLater")
+              )}
+            </p>
+          </div>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.h1
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.25 }}
-        className="text-4xl sm:text-5xl font-bold text-center mb-3 text-brand-gradient"
-      >
-        {/* 狭い画面で「ようこ／そ」と不自然に折り返さないよう語境界で改行 */}
-        <span className="inline-block">{t("misc.onboarding.welcomeLine1")}</span>
-        <span className="inline-block">{t("misc.onboarding.welcomeLine2")}</span>
-      </motion.h1>
-
-      <motion.p
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.35 }}
-        className="text-center text-muted-foreground mb-10 max-w-sm"
-      >
-        {t("misc.onboarding.tagline")}
-        <br />
-        {t("misc.onboarding.askName")}
-      </motion.p>
-
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="w-full max-w-sm"
-      >
-        <Input
-          value={displayName}
-          onChange={(e) => onDisplayNameChange(e.target.value)}
-          placeholder={t("misc.onboarding.namePlaceholder")}
-          disabled={isLoading}
-          maxLength={30}
-          className="h-14 text-lg text-center rounded-2xl border-2 focus-visible:ring-2 focus-visible:ring-primary/40 mb-3"
-          autoFocus
-        />
-        {displayName.trim() && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center text-sm text-primary font-medium mb-6"
-          >
-            {t("misc.onboarding.greeting", { name: displayName.trim() })}
-          </motion.p>
-        )}
-
-        <Button
-          onClick={onNext}
-          disabled={isLoading}
-          size="lg"
-          className="w-full h-14 text-base font-bold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
-        >
+      <OnboardingBottomBar>
+        <OnboardingPrimaryButton onClick={onNext} disabled={isLoading}>
           {t("misc.onboarding.start")}
-          <ArrowRight className="w-5 h-5" />
-        </Button>
-
-        {!displayName.trim() && (
-          <p className="text-center text-xs text-muted-foreground mt-3">
-            {t("misc.onboarding.setLater")}
-          </p>
-        )}
-      </motion.div>
-    </motion.div>
+          <ArrowRight />
+        </OnboardingPrimaryButton>
+      </OnboardingBottomBar>
+    </>
   );
 }
 
 // ==================== Step 2: 興味選択 ====================
 
-function InterestsStep({
-  friendlyName,
-  onDone,
-  onSkip,
-}: {
-  friendlyName: string;
-  onDone: () => void;
-  onSkip: () => void;
-}) {
+function InterestsStep({ friendlyName, onDone }: { friendlyName: string; onDone: () => void }) {
   const { t } = useLanguage();
+  // 検索・一覧・下の「次へ」ボタンは InitialInterestSelection が持つ。見出しだけここから渡す
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ duration: 0.4 }}
-      className="h-full flex flex-col relative z-10"
-    >
-      {/* スキップは上部バー（BAR_STEPS）にあるので、ここには置かない（重なって二重に見えていた） */}
-      <div className="flex-1 overflow-auto">
-        {/* 上部バー（戻る・進捗・スキップ）の下から始める。py-8 だとハートが進捗バーに重なっていた */}
-        <div className="max-w-lg mx-auto px-4 pt-16 pb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-center mb-6"
-          >
-            <div className="inline-flex p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 mb-4">
-              <Heart className="w-8 h-8 text-primary" />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">
-              {t("misc.onboarding.interestsTitle", { name: friendlyName })}
-            </h2>
-            <p className="text-muted-foreground text-sm">
-              {t("misc.onboarding.interestsSubtitle")}
-            </p>
-          </motion.div>
-          <InitialInterestSelection onComplete={onDone} standalone />
-        </div>
-      </div>
-    </motion.div>
+    <InitialInterestSelection
+      onComplete={onDone}
+      standalone
+      header={
+        <OnboardingStepHeader
+          icon={Heart}
+          title={t("misc.onboarding.interestsTitle", { name: friendlyName })}
+          description={t("misc.onboarding.interestsSubtitle")}
+        />
+      }
+    />
   );
 }
 
-// ==================== Step 6: お祝い画面 ====================
+// ==================== Step 4: お祝い画面 ====================
 
 function CelebrateStep({
   friendlyName,
@@ -376,182 +350,60 @@ function CelebrateStep({
 }) {
   const { t } = useLanguage();
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="h-full flex flex-col items-center justify-center px-6 relative overflow-hidden z-10"
-    >
-      <Confetti />
+    <>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto flex max-w-lg flex-col items-center px-4 pb-6 pt-12 text-center">
+          <motion.div
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.1 }}
+            className="flex h-16 w-16 items-center justify-center rounded-full bg-success-soft text-success"
+          >
+            <Check className="h-8 w-8" strokeWidth={2.5} aria-hidden="true" />
+          </motion.div>
 
-      <motion.div
-        initial={{ scale: 0, rotate: -180 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: "spring", stiffness: 80, delay: 0.2 }}
-        className="relative mb-8"
-      >
-        <div className="absolute inset-0 rounded-full blur-3xl bg-brand-gradient opacity-60 scale-150" />
-        <div className="relative w-32 h-32 rounded-full bg-brand-gradient flex items-center justify-center shadow-2xl">
-          <Gift className="w-16 h-16 text-white" strokeWidth={2.5} />
-        </div>
-      </motion.div>
+          <h2 className="mt-4 text-2xl font-bold">{t("misc.onboarding.readyTitle")}</h2>
+          <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+            {t("misc.onboarding.readyDesc", { name: friendlyName })}
+          </p>
 
-      <motion.h1
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-3xl sm:text-4xl font-bold text-center mb-3"
-      >
-        {t("misc.onboarding.readyTitle")}
-      </motion.h1>
+          <div className="mt-6 w-full space-y-3 text-left">
+            {addedCount > 0 && (
+              <div className="flex items-center gap-3 rounded-2xl border bg-card p-4 shadow-sm">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Package className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <p className="min-w-0 flex-1 text-sm font-bold">
+                  {t("misc.onboarding.starter.addedSummary", { n: addedCount })}
+                </p>
+              </div>
+            )}
 
-      <motion.p
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.6 }}
-        className="text-center text-muted-foreground mb-6 max-w-xs"
-      >
-        {t("misc.onboarding.readyDesc", { name: friendlyName })}
-        {addedCount > 0 && (
-          <>
-            <br />
-            <span className="font-bold text-foreground">{t("misc.onboarding.starter.addedSummary", { n: addedCount })}</span>
-          </>
-        )}
-      </motion.p>
-
-      {/* ようこそギフト */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.75 }}
-        className="bg-points-soft border border-points/30 rounded-2xl px-5 py-4 mb-8 max-w-sm w-full"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center shrink-0">
-            <Star className="w-6 h-6 text-white fill-white" />
+            {/* ようこそボーナス（付与額と「生涯1回」の判定はサーバー側） */}
+            <div className="flex items-center gap-3 rounded-2xl border border-points/30 bg-points-soft p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-points text-points-foreground">
+                <Star className="h-5 w-5 fill-current" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold">{t("misc.onboarding.welcomeBonus")}</p>
+                <p className="text-xs text-muted-foreground">{t("misc.onboarding.welcomeBonusDesc")}</p>
+              </div>
+              <p className="shrink-0 text-xl font-bold tabular-nums text-points">
+                +50<span className="ml-0.5 text-xs">pt</span>
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-foreground">{t("misc.onboarding.welcomeBonus")}</p>
-            <p className="text-xs text-muted-foreground">{t("misc.onboarding.welcomeBonusDesc")}</p>
-          </div>
-          <div className="text-2xl font-bold tabular-nums text-points">+50</div>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.9 }}
-        className="w-full max-w-sm"
-      >
-        <Button
-          onClick={onFinish}
-          size="lg"
-          className="w-full h-14 text-base font-bold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
-        >
+      <OnboardingBottomBar>
+        <OnboardingPrimaryButton onClick={onFinish}>
           {/* 登録済みなら棚へ、まだなら登録画面へ（handleFinish の行き先と揃える） */}
           {t(addedCount > 0 ? "misc.onboarding.goToCollection" : "misc.onboarding.goRegisterFirst")}
-          <ArrowRight className="w-5 h-5" />
-        </Button>
-        <p className="text-center text-xs text-muted-foreground mt-3">
-          {t("misc.onboarding.continueNote")}
-        </p>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// ==================== 装飾: 漂う絵文字 ====================
-
-const EMOJIS = ["✨", "💖", "🌸", "⭐", "🎀", "💫", "🫧", "🌟"];
-
-function FloatingEmojis() {
-  const positions = useMemo(
-    () =>
-      Array.from({ length: 14 }).map((_, i) => ({
-        left: (i * 37) % 100,
-        delay: (i * 0.7) % 6,
-        emoji: EMOJIS[i % EMOJIS.length],
-        size: 16 + (i % 4) * 6,
-        duration: 14 + (i % 5) * 3,
-      })),
-    []
-  );
-
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-      {positions.map((p, i) => (
-        <motion.div
-          key={i}
-          className="absolute select-none"
-          style={{
-            left: `${p.left}%`,
-            bottom: "-10%",
-            fontSize: `${p.size}px`,
-            opacity: 0.5,
-          }}
-          animate={{
-            y: ["0vh", "-110vh"],
-            rotate: [0, 360],
-          }}
-          transition={{
-            duration: p.duration,
-            repeat: Infinity,
-            delay: p.delay,
-            ease: "linear",
-          }}
-        >
-          {p.emoji}
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-// ==================== 装飾: Confetti ====================
-
-function Confetti() {
-  const pieces = useMemo(
-    () =>
-      Array.from({ length: 30 }).map((_, i) => ({
-        left: (i * 29) % 100,
-        delay: (i * 0.15) % 2,
-        color: ["#ec4899", "#a855f7", "#f59e0b", "#10b981", "#3b82f6"][i % 5],
-        size: 8 + (i % 3) * 4,
-        rotate: (i * 73) % 360,
-      })),
-    []
-  );
-
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {pieces.map((p, i) => (
-        <motion.div
-          key={i}
-          className="absolute"
-          style={{
-            left: `${p.left}%`,
-            top: "-5%",
-            width: `${p.size}px`,
-            height: `${p.size * 0.4}px`,
-            background: p.color,
-            borderRadius: "2px",
-          }}
-          initial={{ y: 0, rotate: p.rotate, opacity: 1 }}
-          animate={{
-            y: ["0vh", "110vh"],
-            rotate: [p.rotate, p.rotate + 720],
-            opacity: [1, 1, 0],
-          }}
-          transition={{
-            duration: 3 + (i % 3),
-            delay: p.delay,
-            ease: [0.2, 0.8, 0.4, 1],
-            times: [0, 0.8, 1],
-          }}
-        />
-      ))}
-    </div>
+          <ArrowRight />
+        </OnboardingPrimaryButton>
+        <p className="mt-2 text-center text-2xs text-muted-foreground">{t("misc.onboarding.continueNote")}</p>
+      </OnboardingBottomBar>
+    </>
   );
 }

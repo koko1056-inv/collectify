@@ -1,8 +1,6 @@
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Camera, Check, Heart, Loader2, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { GoodsPickTile } from "@/components/collection/GoodsPickTile";
@@ -12,6 +10,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { useCatalogContents, useCatalogFeed, useContentNamesEn } from "@/hooks/useOfficialItems";
 import { useQuickAddGoods } from "@/hooks/useQuickAddGoods";
 import { cn } from "@/lib/utils";
+import { OnboardingBottomBar, OnboardingPrimaryButton, OnboardingStepHeader } from "./OnboardingParts";
 import type { OfficialItem } from "@/types";
 
 /** ここまで選ぶと「完成度が見える」と案内する数 */
@@ -102,24 +101,21 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
         : t("misc.onboarding.starter.progressDone");
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ duration: 0.35 }}
-      className="relative z-10 flex h-full flex-col"
-    >
-      <div className="mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col px-4 pt-16">
-        <h2 className="text-center text-2xl font-bold">{t("misc.onboarding.starter.title")}</h2>
-        <p className="mt-1 text-center text-sm text-muted-foreground">{t("misc.onboarding.starter.subtitle")}</p>
+    // 切り替えの動きは親（WelcomeOnboarding の StepFrame）が持つ
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="mx-auto flex min-h-0 w-full max-w-lg flex-1 flex-col px-4 pt-6">
+        <OnboardingStepHeader
+          title={t("misc.onboarding.starter.title")}
+          description={t("misc.onboarding.starter.subtitle")}
+        />
 
         <div className="relative mt-4">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("misc.onboarding.starter.searchPlaceholder")}
-            className="pl-9"
+            className="h-11 rounded-xl pl-9"
           />
         </div>
 
@@ -150,7 +146,8 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
 
         <p className="mt-1 text-2xs text-muted-foreground">{t("misc.onboarding.starter.hint")}</p>
 
-        <div className="mt-2 min-h-0 flex-1 overflow-y-auto pb-4">
+        {/* 選んだタイルのリング（外側に2px）が上端で切れないよう、内側に少し余白を取る */}
+        <div className="-mx-1 mt-1 min-h-0 flex-1 overflow-y-auto px-1 pb-4 pt-1">
           {isLoading ? (
             <div className="grid grid-cols-3 gap-2.5">
               {Array.from({ length: 9 }).map((_, i) => (
@@ -218,36 +215,29 @@ export function StarterGoodsStep({ onDone, onPhoto }: StarterGoodsStepProps) {
       </div>
 
       {/* 進み具合と、先へ進むボタン。選ぶほど「完成度が見える」までが縮む */}
-      <div className="border-t bg-background/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
-        <div className="mx-auto max-w-lg">
-          <div className="mb-2 flex items-center gap-2" aria-live="polite">
-            <div className="flex gap-1" aria-hidden="true">
-              {Array.from({ length: GOAL }).map((_, i) => (
-                <span key={i} className={cn("h-2 w-6 rounded-full transition-colors", i < n ? "bg-primary" : "bg-muted")} />
-              ))}
-            </div>
-            <span className="text-xs text-muted-foreground">{progressText}</span>
+      <OnboardingBottomBar>
+        <div className="mb-2 flex items-center gap-2" aria-live="polite">
+          <div className="flex gap-1" aria-hidden="true">
+            {Array.from({ length: GOAL }).map((_, i) => (
+              <span key={i} className={cn("h-2 w-6 rounded-full transition-colors", i < n ? "bg-primary" : "bg-muted")} />
+            ))}
           </div>
-          <Button
-            size="lg"
-            className="h-12 w-full rounded-2xl text-base font-bold"
-            variant={n > 0 ? "default" : "outline"}
-            onClick={() => onDone(n)}
-          >
-            {n > 0 ? t("misc.onboarding.starter.cta", { n }) : t("misc.onboarding.starter.later")}
-          </Button>
-          {n === 0 && (
-            <button
-              type="button"
-              onClick={onPhoto}
-              className="mx-auto mt-2 flex items-center gap-1 text-xs text-muted-foreground underline"
-            >
-              <Camera className="h-3 w-3" aria-hidden="true" />
-              {t("misc.onboarding.starter.photoLink")}
-            </button>
-          )}
+          <span className="text-xs text-muted-foreground">{progressText}</span>
         </div>
-      </div>
-    </motion.div>
+        <OnboardingPrimaryButton variant={n > 0 ? "default" : "outline"} onClick={() => onDone(n)}>
+          {n > 0 ? t("misc.onboarding.starter.cta", { n }) : t("misc.onboarding.starter.later")}
+        </OnboardingPrimaryButton>
+        {n === 0 && (
+          <button
+            type="button"
+            onClick={onPhoto}
+            className="mx-auto mt-2 flex items-center gap-1 text-xs text-muted-foreground underline"
+          >
+            <Camera className="h-3 w-3" aria-hidden="true" />
+            {t("misc.onboarding.starter.photoLink")}
+          </button>
+        )}
+      </OnboardingBottomBar>
+    </div>
   );
 }
