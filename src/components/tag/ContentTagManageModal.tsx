@@ -128,7 +128,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
   const addTagMutation = useMutation({
     mutationFn: async (tagName: string) => {
       const content = contentNames.find(c => c.name === selectedContent);
-      if (!content) throw new Error("コンテンツが見つかりません");
+      if (!content) throw new Error("作品が見つかりません");
 
       const { data, error } = await supabase
         .from("tags")
@@ -365,7 +365,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
   const linkTagMutation = useMutation({
     mutationFn: async (tagId: string) => {
       const content = contentNames.find(c => c.name === selectedContent);
-      if (!content) throw new Error("コンテンツが見つかりません");
+      if (!content) throw new Error("作品が見つかりません");
 
       const { error } = await supabase
         .from("tags")
@@ -429,7 +429,7 @@ export function ContentTagManageModal({ isOpen, onClose }: ContentTagManageModal
   const linkMultipleTagsMutation = useMutation({
     mutationFn: async (tagIds: string[]) => {
       const content = contentNames.find(c => c.name === selectedContent);
-      if (!content) throw new Error("コンテンツが見つかりません");
+      if (!content) throw new Error("作品が見つかりません");
 
       const { error } = await supabase
         .from("tags")

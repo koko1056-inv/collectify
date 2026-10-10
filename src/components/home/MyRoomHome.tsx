@@ -194,7 +194,7 @@ export function MyRoomHome({
 
   // 2大タブ: AI Studio（ルーム+アバター） / コレクション（素材庫）
   const tabs = [
-    { id: "studio" as const, icon: Sparkles, label: "AI Studio", badge: tabBadges.studio },
+    { id: "studio" as const, icon: Sparkles, label: t("homeScreen.tabs.studio"), badge: tabBadges.studio },
     { id: "collection" as const, icon: Package, label: t("homeScreen.tabs.collection"), badge: tabBadges.collection },
   ];
 
