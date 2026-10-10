@@ -10,53 +10,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ContentInfo } from "@/utils/tag/types";
 import { useOnboarding } from "@/contexts/OnboardingContext";
-import { 
-  BookOpen, Gamepad2, Music, Film, Tv, Heart, Star, Zap, 
-  Award, Users, Boxes, PenTool, Palette, BookMarked, Pin, PlusCircle, ArrowRight, Check, Search,
-  type LucideIcon
-} from "lucide-react";
+import { PlusCircle, ArrowRight, Check, Search } from "lucide-react";
 import { OnboardingBottomBar, OnboardingPrimaryButton } from "@/components/onboarding/OnboardingParts";
 import { cn } from "@/lib/utils";
 import { Dialog } from "@/components/ui/dialog";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useCatalogContents } from "@/hooks/useOfficialItems";
+import { useCatalogContentCovers, useCatalogContents } from "@/hooks/useOfficialItems";
+import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
 import { fuzzyRank } from "@/utils/fuzzy";
 import { DidYouMean } from "@/components/search/DidYouMean";
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  BookOpen,
-  Gamepad2,
-  Music,
-  Film,
-  Tv,
-  Heart,
-  Star,
-  Zap,
-  Award,
-  Users,
-  Boxes,
-  PenTool,
-  Palette,
-  BookMarked,
-  Pin
-};
-
-// カテゴリーに基づいたデフォルトアイコンを取得する関数
-const getDefaultIcon = (contentName: string): LucideIcon => {
-  const lowercaseName = contentName.toLowerCase();
-  
-  if (lowercaseName.includes('ゲーム') || lowercaseName.includes('game')) return Gamepad2;
-  if (lowercaseName.includes('音楽') || lowercaseName.includes('music')) return Music;
-  if (lowercaseName.includes('映画') || lowercaseName.includes('movie')) return Film;
-  if (lowercaseName.includes('テレビ') || lowercaseName.includes('tv')) return Tv;
-  if (lowercaseName.includes('アニメ') || lowercaseName.includes('anime')) return BookMarked;
-  if (lowercaseName.includes('マンガ') || lowercaseName.includes('manga')) return BookOpen;
-  if (lowercaseName.includes('アート') || lowercaseName.includes('art')) return Palette;
-  if (lowercaseName.includes('スポーツ') || lowercaseName.includes('sport')) return Award;
-  
-  // デフォルトのフォールバックアイコン
-  return Star;
-};
 
 /** 作品。英語名と別名は検索に使う */
 type InterestContent = ContentInfo & { name_en?: string | null; aliases?: string[] | null };
@@ -103,6 +65,7 @@ export function InitialInterestSelection({
     },
   });
   const { data: catalogCounts } = useCatalogContents();
+  const { data: covers } = useCatalogContentCovers(2);
 
   // ユーザーの既存の興味を取得する
   useEffect(() => {
@@ -233,9 +196,12 @@ export function InitialInterestSelection({
   const displayName = (c: InterestContent) => (language === "en" && c.name_en ? c.name_en : c.name);
 
   const renderCard = (content: InterestContent) => {
-    const IconComponent = content.icon_name && ICON_MAP[content.icon_name] ? ICON_MAP[content.icon_name] : getDefaultIcon(content.name);
     const isSelected = selectedContents.includes(content.name);
     const count = countOf.get(content.name) ?? 0;
+    const name = displayName(content);
+    // 作品の「表紙」は、その作品の実物のグッズの写真（新しいもの2枚を重ねる）。
+    // 以前はジャンルから選んだ汎用アイコン（★など）で、どの作品も同じに見えていた。
+    const coverImages = (content.image_url ? [content.image_url] : covers?.get(content.name) ?? []).slice(0, 2);
     // アプリのカード（rounded-2xl border bg-card）に揃えた横並び。選んだものは GoodsPickTile と同じリングとチェックで示す
     return (
       <button
@@ -243,42 +209,15 @@ export function InitialInterestSelection({
         type="button"
         aria-pressed={isSelected}
         className={cn(
-          "flex min-h-[4.5rem] w-full min-w-0 items-center gap-2 rounded-2xl border bg-card p-2.5 text-left shadow-sm transition-colors",
+          "flex min-h-[4.5rem] w-full min-w-0 items-center gap-2.5 rounded-2xl border bg-card p-2.5 text-left shadow-sm transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
           isSelected ? "border-primary bg-primary/5 ring-2 ring-primary/60" : "border-border hover:border-primary/40"
         )}
         onClick={() => handleContentToggle(content.name)}
       >
-        {/* 選んだら、左の四角が primary に変わってチェックが付く（名前の幅を削らないよう、印は右に別に置かない） */}
-        <div className="relative h-9 w-9 shrink-0">
-          {content.image_url ? (
-            <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-xl bg-muted">
-              <img src={content.image_url} alt="" className="h-full w-full object-contain" />
-            </div>
-          ) : (
-            <div
-              className={cn(
-                "flex h-full w-full items-center justify-center rounded-xl transition-colors",
-                isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              )}
-            >
-              {isSelected ? (
-                <Check className="h-5 w-5" strokeWidth={3} aria-hidden="true" />
-              ) : (
-                <IconComponent className="h-5 w-5" aria-hidden="true" />
-              )}
-            </div>
-          )}
-          {content.image_url && isSelected && (
-            <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-card">
-              <Check className="h-3 w-3" strokeWidth={3} aria-hidden="true" />
-            </span>
-          )}
-        </div>
+        <InterestCover images={coverImages} label={name} selected={isSelected} />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="line-clamp-2 break-words text-sm font-medium leading-tight text-foreground">
-            {displayName(content)}
-          </span>
+          <span className="line-clamp-2 break-words text-sm font-medium leading-tight text-foreground">{name}</span>
           {count > 0 && (
             <span className="whitespace-nowrap text-3xs tabular-nums text-muted-foreground">{t("chrome.interests.goodsCount", { n: count.toLocaleString() })}</span>
           )}
@@ -293,7 +232,7 @@ export function InitialInterestSelection({
       className="flex min-h-[4.5rem] w-full min-w-0 items-center gap-2 rounded-2xl border border-dashed bg-card p-2.5 text-left transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       onClick={() => setShowNewContentDialog(true)}
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-dashed text-muted-foreground">
         <PlusCircle className="h-5 w-5" aria-hidden="true" />
       </div>
       <span className="text-sm font-medium text-muted-foreground">{t("chrome.interests.other")}</span>
@@ -454,5 +393,50 @@ export function InitialInterestSelection({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * 作品カードの左の「表紙」。実物のグッズの写真を、2枚なら少しずらして重ねる（カードの束のように）。
+ * 写真が無い作品は、名前の頭文字を primary で置く。選んだら右下にチェックの丸。
+ */
+function InterestCover({ images, label, selected }: { images: string[]; label: string; selected: boolean }) {
+  const [front, back] = images;
+  return (
+    <span className="relative h-11 w-11 shrink-0" aria-hidden="true">
+      {front ? (
+        <>
+          {back && (
+            <span className="absolute inset-0 translate-x-1.5 -translate-y-0.5 rotate-[8deg] overflow-hidden rounded-lg border bg-card shadow-sm">
+              <img
+                src={getOptimizedImageUrl(back, { width: 96 })}
+                onError={fallbackToOriginal(back)}
+                alt=""
+                loading="lazy"
+                className="h-full w-full object-cover opacity-80"
+              />
+            </span>
+          )}
+          <span className={cn("absolute inset-0 overflow-hidden rounded-lg border bg-card shadow-sm", back && "-rotate-[4deg]")}>
+            <img
+              src={getOptimizedImageUrl(front, { width: 96 })}
+              onError={fallbackToOriginal(front)}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
+          </span>
+        </>
+      ) : (
+        <span className="flex h-full w-full items-center justify-center rounded-xl bg-primary/10 text-lg font-bold text-primary">
+          {Array.from(label.trim())[0] ?? "?"}
+        </span>
+      )}
+      {selected && (
+        <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-card">
+          <Check className="h-3 w-3" strokeWidth={3} />
+        </span>
+      )}
+    </span>
   );
 }

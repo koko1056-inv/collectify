@@ -4037,6 +4037,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: { content_name: string; item_count: number }[]
       }
+      catalog_content_covers: {
+        Args: { per_content?: number }
+        Returns: { content_name: string; images: string[] }[]
+      }
       add_user_points: {
         Args: {
           _description?: string

@@ -1,5 +1,4 @@
 import { forwardRef, type ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -16,25 +15,21 @@ export const OnboardingPrimaryButton = forwardRef<HTMLButtonElement, ButtonProps
   return <Button ref={ref} size="lg" className={cn("h-12 w-full text-base font-bold", className)} {...props} />;
 });
 
-/** 見出し。アイコンは EmptyState と同じく「primary の薄い面に primary のアイコン」 */
+/** 見出し。上に置く絵は OnboardingArt の描き下ろし（汎用アイコンを四角に入れるのはやめた） */
 export function OnboardingStepHeader({
-  icon: Icon,
+  art,
   title,
   description,
   className,
 }: {
-  icon?: LucideIcon;
+  art?: ReactNode;
   title: ReactNode;
   description?: ReactNode;
   className?: string;
 }) {
   return (
     <div className={cn("space-y-1", className)}>
-      {Icon && (
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <Icon className="h-6 w-6" aria-hidden="true" />
-        </div>
-      )}
+      {art && <div className="mb-4 -ml-1">{art}</div>}
       <h2 className="text-2xl font-bold leading-tight">{title}</h2>
       {description && <p className="text-sm text-muted-foreground">{description}</p>}
     </div>
