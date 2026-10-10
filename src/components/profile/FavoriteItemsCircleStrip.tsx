@@ -25,7 +25,8 @@ export function FavoriteItemsCircleStrip({ userId }: Props) {
   return (
     <div className="px-4 mt-4">
       <div className="flex items-center gap-1.5 mb-2">
-        <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+        {/* お気に入りの星は primary（金色の points はポイントと評価の星だけ。FavoriteItemsTop5 と同じ決まり） */}
+        <Star className="w-4 h-4 text-primary fill-primary" />
         <h3 className="text-sm font-bold tracking-wide">{t("profileScreen.favorites.oshiHeading")}</h3>
       </div>
       <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">

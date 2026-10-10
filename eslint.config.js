@@ -42,6 +42,24 @@ export default tseslint.config(
           selector: "Literal[value=/\\b(text|bg|border)-(red|green|emerald|amber|yellow|blue|sky)-\\d{2,3}\\b/]",
           message: "状態の色は success / warning / info / points / destructive のトークンを使ってください（装飾の色は eslint-disable で理由を書く）。",
         },
+        // アイコンの塗り（fill-*）も同じ。ポイントの印は PointIcon、評価・お気に入りの星は points / primary のトークンで塗る
+        {
+          selector: "Literal[value=/\\bfill-(yellow|amber|pink|rose|violet|purple|orange|sky)-\\d{2,3}\\b/]",
+          message: "アイコンの塗りは fill-primary / fill-points などのトークンを使ってください（ポイントの印は PointIcon）。",
+        },
+        {
+          selector: "TemplateElement[value.raw=/\\bfill-(yellow|amber|pink|rose|violet|purple|orange|sky)-\\d{2,3}\\b/]",
+          message: "アイコンの塗りは fill-primary / fill-points などのトークンを使ってください（ポイントの印は PointIcon）。",
+        },
+        // 生の色のグラデーション（from-orange-400 to-rose-500 など）。アイコンの面は IconTile、面の色はトークンで
+        {
+          selector: "Literal[value=/\\b(from|via|to)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-\\d{2,3}\\b/]",
+          message: "生の色のグラデーションではなく、IconTile やトークン（primary / points など）の面を使ってください。",
+        },
+        {
+          selector: "TemplateElement[value.raw=/\\b(from|via|to)-(red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone)-\\d{2,3}\\b/]",
+          message: "生の色のグラデーションではなく、IconTile やトークン（primary / points など）の面を使ってください。",
+        },
       ],
     },
   }

@@ -11,6 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ONBOARDING_STEP_POINTS, type OnboardingStepId } from './steps';
 import { guideHref } from './guideTasks';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IconTile } from '@/components/ui/icon-tile';
 import {
   CheckCircle2,
   User,
@@ -44,18 +45,21 @@ interface ChecklistItem {
   group: 'start' | 'collection' | 'ai' | 'community';
 }
 
+// グループ見出しの印の色。以前は amber / emerald / fuchsia / blue の直書きで、
+// 4色が並んで落ち着かなかった。意味のトークンだけで、はじめる=primary、
+// 集める=success、AI=info、みんな=muted と控えめに分ける
 const GROUP_META: Record<
   ChecklistItem['group'],
   { labelKey: string; icon: LucideIcon; color: string }
 > = {
-  start: { labelKey: 'misc.checklist.groupStart', icon: Sparkles, color: 'text-amber-500' },
+  start: { labelKey: 'misc.checklist.groupStart', icon: Sparkles, color: 'text-primary' },
   collection: {
     labelKey: 'misc.checklist.groupCollection',
     icon: Package,
-    color: 'text-emerald-500',
+    color: 'text-success',
   },
-  ai: { labelKey: 'misc.checklist.groupAi', icon: Wand2, color: 'text-fuchsia-500' },
-  community: { labelKey: 'misc.checklist.groupCommunity', icon: Users, color: 'text-blue-500' },
+  ai: { labelKey: 'misc.checklist.groupAi', icon: Wand2, color: 'text-info' },
+  community: { labelKey: 'misc.checklist.groupCommunity', icon: Users, color: 'text-muted-foreground' },
 };
 
 export function OnboardingChecklist() {
@@ -417,9 +421,10 @@ export function OnboardingChecklist() {
               aria-label={isExpanded ? t('misc.checklist.close') : t('misc.checklist.open')}
               className="flex items-center gap-2 flex-1 min-w-0 text-left rounded-lg -m-1 p-1 transition-colors hover:bg-muted/40"
             >
-              <div className="p-1.5 rounded-lg bg-brand-gradient shrink-0">
-                <Sparkles className="w-4 h-4 text-white" />
-              </div>
+              {/* 以前はブランドのグラデーションの面に白い印。アプリ共通の IconTile にそろえる */}
+              <IconTile tone="primary" size="sm">
+                <Sparkles />
+              </IconTile>
               <div className="min-w-0">
                 <h3 className="font-bold text-sm">{t('misc.checklist.title')}</h3>
                 <p className="text-xs text-muted-foreground">
@@ -480,9 +485,9 @@ export function OnboardingChecklist() {
               disabled={!nextItem.action}
               className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors text-left disabled:cursor-default"
             >
-              <div className="p-1.5 rounded-lg bg-primary/10 shrink-0">
-                <nextItem.icon className="w-4 h-4 text-primary" />
-              </div>
+              <IconTile tone="primary" size="sm">
+                <nextItem.icon />
+              </IconTile>
               <div className="flex-1 min-w-0">
                 <p className="text-3xs font-bold text-primary uppercase tracking-wider">
                   {t('misc.checklist.nextUp')}

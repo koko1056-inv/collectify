@@ -31,7 +31,7 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
       if (error) throw error;
 
       const reviewerIds = Array.from(new Set((data ?? []).map((r) => r.reviewer_id)));
-      let profiles: Record<string, { username: string; display_name: string | null; avatar_url: string | null }> = {};
+      const profiles: Record<string, { username: string; display_name: string | null; avatar_url: string | null }> = {};
       if (reviewerIds.length > 0) {
         const { data: profs } = await supabase
           .from("profiles")
@@ -105,12 +105,13 @@ export function TrustScoreSection({ userId }: TrustScoreSectionProps) {
                         {formatRelative(r.created_at)}
                       </span>
                     </div>
+                    {/* 評価の星は points の金色（以前は amber-400 の直書き） */}
                     <div className="flex items-center gap-0.5 mt-0.5">
                       {[1, 2, 3, 4, 5].map((n) => (
                         <Star
                           key={n}
                           className={`h-3 w-3 ${
-                            n <= r.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"
+                            n <= r.rating ? "fill-points text-points" : "text-muted-foreground/30"
                           }`}
                         />
                       ))}

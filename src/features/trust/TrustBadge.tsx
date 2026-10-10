@@ -1,7 +1,9 @@
-import { Badge } from "@/components/ui/badge";
+import { Award, Crown, Sprout, Star, type LucideIcon } from "lucide-react";
+import { IconTile } from "@/components/ui/icon-tile";
+import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTrustScore } from "./useTrustScore";
-import { getCategoryTier, getOverallTier, type TrustCategory, type TrustScore } from "./types";
+import { getCategoryTier, getOverallTier, type TrustCategory, type TrustScore, type TrustTier } from "./types";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface TrustBadgeProps {
@@ -13,6 +15,17 @@ interface TrustBadgeProps {
   size?: "xs" | "sm" | "md";
   showLabel?: boolean;
 }
+
+/**
+ * ティアの印。以前は 🌱⭐️🌟👑 の絵文字を色付きの枠の中に出していた。
+ * いまは lucide の線の印を IconTile（意味のトークンの薄い面）に入れ、名前は普通の文字色で添える。
+ */
+const TIER_ICON: Record<TrustTier, LucideIcon> = {
+  newbie: Sprout,
+  trusted: Star,
+  veteran: Award,
+  ace: Crown,
+};
 
 export function TrustBadge({
   userId,
@@ -38,20 +51,29 @@ export function TrustBadge({
 
   const tierLabel = t(`trade.trustTier.${tier.tier}`);
 
-  const sizeClasses = {
-    xs: "text-3xs px-1.5 py-0 h-4 gap-0.5",
-    sm: "text-xs px-2 py-0.5 h-5 gap-1",
-    md: "text-sm px-2.5 py-1 h-6 gap-1",
-  }[size];
+  const Icon = TIER_ICON[tier.tier];
+  // xs は一覧の名前の横に並ぶので、面も小さく（16px）する。sm / md は IconTile の xs（24px）
+  const tileClass = size === "xs" ? "h-4 w-4 rounded [&_svg]:size-2.5" : undefined;
+  const textClass = { xs: "text-3xs", sm: "text-xs", md: "text-sm" }[size];
 
   return (
     <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Badge variant="outline" className={`${tier.colorClass} ${sizeClasses} font-medium inline-flex items-center`}>
-            <span>{tier.emoji}</span>
+          <span
+            className={cn(
+              "inline-flex items-center font-medium text-foreground/80",
+              size === "xs" ? "gap-1" : "gap-1.5",
+              textClass
+            )}
+            role={showLabel ? undefined : "img"}
+            aria-label={showLabel ? undefined : tierLabel}
+          >
+            <IconTile tone={tier.tone} size="xs" className={tileClass}>
+              <Icon />
+            </IconTile>
             {showLabel && <span>{tierLabel}</span>}
-          </Badge>
+          </span>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">
           {category ? (

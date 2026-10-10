@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Star } from "lucide-react";
+import { PointIcon } from "@/components/ui/point-icon";
 import { useUserPoints } from "@/hooks/usePoints";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -137,7 +137,7 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
           <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-xs">
             <span className="text-muted-foreground">{t("tagManage.addDialog.costLabel")}</span>
             <span className="flex items-center gap-1 font-medium">
-              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+              <PointIcon size={14} />
               {TAG_CREATE_COST}{t("tagManage.addDialog.ptBalancePrefix")}{balance}{t("tagManage.addDialog.ptBalanceSuffix")}
             </span>
           </div>

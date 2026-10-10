@@ -10,6 +10,7 @@ import { useDailyHub } from "@/hooks/useDailyHub";
 import { useQuickAddGoods } from "@/hooks/useQuickAddGoods";
 import { useOshiPhotos } from "@/hooks/useOshi";
 import { cn } from "@/lib/utils";
+import { IconTile } from "@/components/ui/icon-tile";
 
 /**
  * 今日のチェック。毎日開く理由を、1枚のカードにまとめる。
@@ -40,15 +41,11 @@ export function DailyHubCard() {
             aria-expanded={expanded}
             className="flex min-w-0 flex-1 items-center gap-2 rounded-xl px-2 py-1.5 text-left hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
           >
-            <span
-              className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-                hub.streak > 0 ? "bg-gradient-to-br from-orange-400 to-rose-500 text-white shadow" : "bg-muted text-muted-foreground"
-              )}
-              aria-hidden="true"
-            >
-              <Flame className="h-5 w-5" />
-            </span>
+            {/* 炎の面。以前は orange→rose のグラデーションに白い炎で、ここだけ浮いていた。
+                連続中は warning のトークンの薄い面、途切れているときは muted */}
+            <IconTile tone={hub.streak > 0 ? "warning" : "muted"} size="md">
+              <Flame />
+            </IconTile>
             <span className="min-w-0">
               <span className="block truncate text-sm font-bold">
                 {hub.streak > 0 ? t("engage.dailyHub.streakShort", { n: hub.streak }) : t("engage.dailyHub.streakNone")}
