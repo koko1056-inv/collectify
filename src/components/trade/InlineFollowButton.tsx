@@ -77,10 +77,12 @@ export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonPr
 
   if (!user || user.id === userId) return null;
 
+  // 交換カードの中では「申し込む」が主役。フォローは塗りつぶしにせず、枠線だけの控えめなボタンにする
+
   if (size === "icon") {
     return (
       <Button
-        variant={isFollowing ? "secondary" : "default"}
+        variant={isFollowing ? "secondary" : "outline"}
         size="icon"
         onClick={handleFollow}
         disabled={isLoading}
@@ -97,7 +99,7 @@ export function InlineFollowButton({ userId, size = "sm" }: InlineFollowButtonPr
 
   return (
     <Button
-      variant={isFollowing ? "secondary" : "default"}
+      variant={isFollowing ? "secondary" : "outline"}
       size="sm"
       onClick={handleFollow}
       disabled={isLoading}

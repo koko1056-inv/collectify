@@ -238,3 +238,87 @@ export function useHoldersForMyWishes() {
     },
   });
 }
+
+export interface TradePartnerItem {
+  id: string;
+  title: string;
+  image: string;
+  /** 相手が「交換に出す」にしているか。出していない品への申し込みは相談になる */
+  for_trade: boolean;
+  /** 自分がすでに申し込んでいて、返事待ち／進行中 */
+  already_requested: boolean;
+}
+
+type PartnerItemRow = {
+  partner_id: string;
+  item_id: string;
+  title: string;
+  image: string;
+  for_trade: boolean;
+  already_requested: boolean;
+};
+
+function toPartnerItem(row: PartnerItemRow): TradePartnerItem {
+  return {
+    id: row.item_id,
+    title: row.title,
+    image: row.image,
+    for_trade: row.for_trade,
+    already_requested: row.already_requested,
+  };
+}
+
+/**
+ * 相手たちが交換に出している品（相手ごと）。
+ *
+ * 「あなたのグッズをほしがっている人」は、find_trade_matches の their_items が空
+ * （相手が出している品に、自分の欲しいものが無い）なので、
+ * 代わりに何をもらえるのかが分からず、行き止まりになっていた。
+ * 相手が交換に出している品を全員分まとめて1回で引き、「代わりにもらえるもの」として見せる。
+ * 別の交換で成立済みの品はサーバー側で除いている。
+ */
+export function useTradePartnerOffers(partnerIds: string[]) {
+  const { user } = useAuth();
+  const ids = [...new Set(partnerIds)].sort();
+
+  return useQuery({
+    queryKey: ["trade-partner-offers", user?.id, ids.join(",")],
+    enabled: !!user?.id && ids.length > 0,
+    staleTime: 60 * 1000,
+    queryFn: async (): Promise<Record<string, TradePartnerItem[]>> => {
+      const { data, error } = await supabase.rpc("get_trade_partner_items", {
+        _partner_ids: ids,
+        _only_for_trade: true,
+      });
+      if (error) throw error;
+      const byPartner: Record<string, TradePartnerItem[]> = {};
+      for (const row of (data ?? []) as PartnerItemRow[]) {
+        (byPartner[row.partner_id] ??= []).push(toPartnerItem(row));
+      }
+      return byPartner;
+    },
+  });
+}
+
+/**
+ * 相手のコレクション全体（交換に出していない品も含む）。
+ * 相手が何も交換に出していないとき、そこから選んで「相談」として申し込むために使う。
+ * 公開設定とブロックはサーバー側で守る。
+ */
+export function usePartnerCollection(partnerId: string | null) {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["trade-partner-collection", user?.id, partnerId],
+    enabled: !!user?.id && !!partnerId,
+    staleTime: 60 * 1000,
+    queryFn: async (): Promise<TradePartnerItem[]> => {
+      const { data, error } = await supabase.rpc("get_trade_partner_items", {
+        _partner_ids: [partnerId!],
+        _only_for_trade: false,
+      });
+      if (error) throw error;
+      return ((data ?? []) as PartnerItemRow[]).map(toPartnerItem);
+    },
+  });
+}

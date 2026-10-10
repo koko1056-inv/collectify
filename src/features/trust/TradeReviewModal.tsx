@@ -87,7 +87,7 @@ export function TradeReviewModal({
             >
               <Star
                 className={`h-9 w-9 ${
-                  (hover || rating) >= n ? "fill-amber-400 text-amber-400" : "text-muted-foreground"
+                  (hover || rating) >= n ? "fill-points text-points" : "text-muted-foreground/40"
                 }`}
               />
             </button>
