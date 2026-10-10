@@ -89,9 +89,9 @@ export function TrendingTags({ onTagClick, selectedTags = [] }: TrendingTagsProp
       case "character":
         return "bg-pink-100 text-pink-700 hover:bg-pink-200 dark:bg-pink-900/30 dark:text-pink-300";
       case "series":
-        return "bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300";
+        return "bg-info-soft text-info hover:bg-info/20";
       case "item_type":
-        return "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300";
+        return "bg-success-soft text-success hover:bg-success/20";
       default:
         return "bg-muted hover:bg-muted/80";
     }
@@ -116,7 +116,7 @@ export function TrendingTags({ onTagClick, selectedTags = [] }: TrendingTagsProp
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold flex items-center gap-2">
+      <h3 className="text-sm font-bold flex items-center gap-2">
         <TrendingUp className="h-4 w-4 text-primary" />
         {t("social.posts.trendingTags")}
       </h3>
@@ -137,7 +137,7 @@ export function TrendingTags({ onTagClick, selectedTags = [] }: TrendingTagsProp
               <Hash className="h-3 w-3" />
               {tag.name}
               {tag.trend_count && (
-                <span className="text-[10px] opacity-70">
+                <span className="text-3xs opacity-70">
                   {tag.trend_count}
                 </span>
               )}

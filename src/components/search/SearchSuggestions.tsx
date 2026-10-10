@@ -44,7 +44,7 @@ export function SearchSuggestions({
       )}
       
       {error && (
-        <div className="px-4 py-2 text-sm text-red-500">
+        <div className="px-4 py-2 text-sm text-destructive">
           {t("chrome.search.searchError")}
         </div>
       )}

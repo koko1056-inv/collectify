@@ -88,7 +88,7 @@ export function Footer() {
           {to === "/search?tab=trade" && tradeBadge > 0 && (
             <span
               aria-label={t("trade.inbox.badgeLabel", { n: tradeBadge })}
-              className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground tabular-nums"
+              className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-3xs font-bold leading-none text-primary-foreground tabular-nums"
             >
               {tradeBadge > 9 ? "9+" : tradeBadge}
             </span>
@@ -96,8 +96,8 @@ export function Footer() {
         </span>
         <span
           className={cn(
-            "text-[11px] leading-tight w-full text-center truncate",
-            active ? "font-semibold" : "font-medium"
+            "text-2xs leading-tight w-full text-center truncate",
+            active ? "font-bold" : "font-medium"
           )}
         >
           {label}
@@ -129,7 +129,7 @@ export function Footer() {
               >
                 <Plus className="h-7 w-7" />
               </motion.button>
-              <span className="text-[10px] font-medium text-muted-foreground mt-0.5">
+              <span className="text-3xs font-medium text-muted-foreground mt-0.5">
                 {t("chrome.nav.add")}
               </span>
             </div>

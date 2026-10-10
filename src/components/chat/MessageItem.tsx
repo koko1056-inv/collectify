@@ -70,7 +70,7 @@ export function MessageItem({ message, partnerProfile, showAvatar = true }: Mess
         </div>
         
         {/* タイムスタンプ */}
-        <span className="text-[10px] text-muted-foreground px-1">
+        <span className="text-3xs text-muted-foreground px-1">
           {formatTime(message.created_at)}
         </span>
       </div>

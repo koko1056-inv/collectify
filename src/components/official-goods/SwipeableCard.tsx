@@ -53,7 +53,7 @@ export function SwipeableCard({
         className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
         style={{ opacity: rightIndicatorOpacity }}
       >
-        <div className="bg-green-500 text-white p-3 rounded-full shadow-lg">
+        <div className="bg-success text-success-foreground p-3 rounded-full shadow-lg">
           <Check className="w-6 h-6" />
         </div>
       </motion.div>

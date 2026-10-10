@@ -199,8 +199,8 @@ export function TradeCard({ trade, onOpenChat, onReview }: TradeCardProps) {
       {trade.status === "accepted" && !(view.iShipped && view.iReceived) && <AddressFreeShippingGuide />}
 
       {stalled && (
-        <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 p-2.5">
-          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+        <div className="flex items-start gap-2 rounded-lg bg-warning-soft p-2.5">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
           <p className="text-xs">{t("trade.card.stalled")}</p>
         </div>
       )}
@@ -342,7 +342,7 @@ function ItemSide({
 }) {
   return (
     <div className="min-w-0">
-      <p className="mb-1 text-[11px] text-muted-foreground">{label}</p>
+      <p className="mb-1 text-2xs text-muted-foreground">{label}</p>
       <div className="aspect-square overflow-hidden rounded-lg border bg-muted">
         <img
           src={getOptimizedImageUrl(item.image, { width: 200 })}

@@ -34,7 +34,7 @@ export function SelectStyleStep({
     >
       <div className="flex items-end justify-between gap-2">
         <div>
-          <h3 className="text-base font-semibold mb-1">{t("aiRoom.style.title")}</h3>
+          <h3 className="text-base font-bold mb-1">{t("aiRoom.style.title")}</h3>
           <p className="text-xs text-muted-foreground">
             {t("aiRoom.style.subtitle")}
           </p>
@@ -42,7 +42,7 @@ export function SelectStyleStep({
         {stylePresetId && (
           <button
             onClick={() => onStylePresetChange(null)}
-            className="text-[10px] text-muted-foreground hover:text-foreground underline underline-offset-2 shrink-0 pb-0.5"
+            className="text-3xs text-muted-foreground hover:text-foreground underline underline-offset-2 shrink-0 pb-0.5"
           >
             {t("aiRoom.style.clear")}
           </button>
@@ -114,13 +114,13 @@ export function SelectStyleStep({
               <div className={cn("px-2.5 py-2 transition-colors", active && "bg-primary/5")}>
                 <p
                   className={cn(
-                    "text-[13px] font-bold leading-tight",
+                    "text-sm font-bold leading-tight",
                     active ? "text-primary" : "text-foreground"
                   )}
                 >
                   {t(`aiRoom.stylePresets.${p.id}.name`)}
                 </p>
-                <p className="text-[10px] text-muted-foreground line-clamp-1 mt-0.5">
+                <p className="text-3xs text-muted-foreground line-clamp-1 mt-0.5">
                   {t(`aiRoom.stylePresets.${p.id}.tagline`)}
                 </p>
               </div>
@@ -141,7 +141,7 @@ export function SelectStyleStep({
           rows={3}
           className="resize-none"
         />
-        <p className="text-[10px] text-right text-muted-foreground">
+        <p className="text-3xs text-right text-muted-foreground">
           {customPrompt.length}/300
         </p>
       </div>

@@ -54,7 +54,7 @@ export function SearchHistory({
             className="flex items-center gap-2 px-3 py-2.5 hover:bg-muted/50 cursor-pointer group transition-colors"
             onClick={() => onHistoryClick(item.query)}
           >
-            <Clock className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" />
+            <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <span className="flex-1 text-sm text-foreground truncate">
               {item.query}
             </span>

@@ -250,11 +250,11 @@ export function CreateItemPostModal({
               <Sparkles className="w-4 h-4 text-primary" />
               {t("social.itemPosts.aiGenerate")}
             </div>
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary">
+            <span className="text-3xs font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">
               {t("social.itemPosts.aiCost")}
             </span>
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-2xs text-muted-foreground">
             {t("social.itemPosts.aiDesc")}
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -264,7 +264,7 @@ export function CreateItemPostModal({
                 type="button"
                 onClick={() => setAiPrompt(t(`engage.posts.aiPreset.${id}`))}
                 disabled={isGenerating || createMutation.isPending}
-                className="rounded-full border border-primary/30 bg-background px-2.5 py-1 text-[11px] text-primary hover:bg-primary/10 disabled:opacity-50"
+                className="rounded-full border border-primary/30 bg-background px-2.5 py-1 text-2xs text-primary hover:bg-primary/10 disabled:opacity-50"
               >
                 {t(`engage.posts.aiPresetLabel.${id}`)}
               </button>
@@ -333,7 +333,7 @@ export function CreateItemPostModal({
                   type="button"
                   onClick={() => toggleTag(tag)}
                   className={cn(
-                    "inline-flex items-center gap-0.5 rounded-full border px-2.5 py-1 text-[11px]",
+                    "inline-flex items-center gap-0.5 rounded-full border px-2.5 py-1 text-2xs",
                     active
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border text-muted-foreground hover:border-primary/40"
@@ -346,7 +346,7 @@ export function CreateItemPostModal({
               );
             })}
           </div>
-          <p className="mt-1 text-right text-[10px] text-muted-foreground">{caption.length}/500</p>
+          <p className="mt-1 text-right text-3xs text-muted-foreground">{caption.length}/500</p>
         </div>
 
         {/* アクション */}

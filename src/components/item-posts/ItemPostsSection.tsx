@@ -38,7 +38,7 @@ export function ItemPostsSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold flex items-center gap-1.5">
+        <h3 className="text-sm font-bold flex items-center gap-1.5">
           <Images className="w-4 h-4 text-primary" />
           {t("social.itemPosts.sectionTitle")}
           {posts.length > 0 && (

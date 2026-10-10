@@ -212,7 +212,7 @@ export function TradeRequestModal({
             />
           )}
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-2xs text-muted-foreground">
               {partnerName
                 ? t("trade.request.fromPartner", { name: partnerName })
                 : t("trade.request.fromPartnerAnon")}
@@ -221,7 +221,7 @@ export function TradeRequestModal({
           </div>
         </div>
         {!partnerOffers && (
-          <p className="rounded-lg bg-amber-500/10 p-2 text-[11px] text-amber-800 dark:text-amber-300">
+          <p className="rounded-lg bg-warning-soft p-2 text-2xs text-warning">
             {t("trade.request.consultNote")}
           </p>
         )}
@@ -306,22 +306,22 @@ export function TradeRequestModal({
                               />
                             </div>
                             {item.wanted ? (
-                              <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-0.5 rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                              <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-0.5 rounded-full bg-warning px-1.5 py-0.5 text-3xs font-bold text-warning-foreground">
                                 <Gift className="h-2.5 w-2.5" />
                                 {t("trade.request.wantedBadge")}
                               </span>
                             ) : item.for_trade ? (
-                              <span className="absolute left-1.5 top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[9px] font-semibold text-primary-foreground">
+                              <span className="absolute left-1.5 top-1.5 rounded-full bg-primary px-1.5 py-0.5 text-3xs font-bold text-primary-foreground">
                                 {t("trade.request.offeringBadge")}
                               </span>
                             ) : null}
-                            <p className="mt-1 line-clamp-2 min-h-[2rem] text-[11px]">{item.title}</p>
+                            <p className="mt-1 line-clamp-2 min-h-[2rem] text-2xs">{item.title}</p>
                           </button>
                         ))}
                       </div>
                     )}
                     {selectedItem && !selectedItem.for_trade && (
-                      <p className="text-[11px] text-muted-foreground">{t("trade.request.notOfferingHint")}</p>
+                      <p className="text-2xs text-muted-foreground">{t("trade.request.notOfferingHint")}</p>
                     )}
                   </>
                 )}

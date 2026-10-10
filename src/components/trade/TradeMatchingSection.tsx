@@ -174,13 +174,13 @@ export function TradeMatchingSection() {
                   <img src={getOptimizedImageUrl(o.image, { width: 160 })} onError={fallbackToOriginal(o.image)} alt="" loading="lazy" className="h-full w-full object-contain" />
                 </div>
                 {o.quantity >= 2 && (
-                  <span className="absolute right-1 top-1 rounded-full bg-foreground/85 px-1.5 text-[10px] font-semibold text-background">×{o.quantity}</span>
+                  <span className="absolute right-1 top-1 rounded-full bg-foreground/85 px-1.5 text-3xs font-bold text-background">×{o.quantity}</span>
                 )}
-                <p className="mt-1 line-clamp-2 text-[10px] leading-tight">{o.title}</p>
+                <p className="mt-1 line-clamp-2 text-3xs leading-tight">{o.title}</p>
               </button>
             ))}
           </div>
-          <p className="text-[11px] text-muted-foreground">{t("trade.picker.mineHint")}</p>
+          <p className="text-2xs text-muted-foreground">{t("trade.picker.mineHint")}</p>
         </section>
       )}
 
@@ -424,7 +424,7 @@ function SeriesPartnerCard({
       <div className="flex items-center gap-3">
         <Avatar className="h-10 w-10 cursor-pointer" onClick={onOpenProfile}>
           <AvatarImage src={partner.partner_avatar_url || undefined} />
-          <AvatarFallback className="bg-sky-500/10 text-sky-600">
+          <AvatarFallback className="bg-info-soft text-info">
             {name.charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
@@ -438,12 +438,12 @@ function SeriesPartnerCard({
           </button>
           <div className="mt-0.5 flex flex-wrap gap-1">
             {partner.shared_series.slice(0, 2).map((series) => (
-              <Badge key={series} variant="secondary" className="px-1.5 py-0 text-[10px]">
+              <Badge key={series} variant="secondary" className="px-1.5 py-0 text-3xs">
                 {series}
               </Badge>
             ))}
             {partner.shared_series.length > 2 && (
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-3xs text-muted-foreground">
                 {t("trade.matching.seriesMore", { n: partner.shared_series.length - 2 })}
               </span>
             )}
@@ -473,7 +473,7 @@ function SeriesPartnerCard({
               loading="lazy"
               className="h-20 w-20 rounded-lg border border-border bg-muted/30 object-contain transition-opacity hover:opacity-80"
             />
-            <p className="mt-1 truncate text-[10px] text-muted-foreground">{item.title}</p>
+            <p className="mt-1 truncate text-3xs text-muted-foreground">{item.title}</p>
           </button>
         ))}
       </div>
@@ -595,14 +595,14 @@ function MutualMatchCard({
           グッズ名が長いときに画面の外まで伸びてしまう */}
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <div className="min-w-0">
-          <p className="mb-1 truncate text-[11px] text-muted-foreground">
+          <p className="mb-1 truncate text-2xs text-muted-foreground">
             {t("trade.matching.youGet")}
           </p>
           {theirTop && <ItemThumb item={theirTop} />}
         </div>
         <ArrowLeftRight className="h-4 w-4 shrink-0 text-primary" />
         <div className="min-w-0">
-          <p className="mb-1 truncate text-[11px] text-muted-foreground">
+          <p className="mb-1 truncate text-2xs text-muted-foreground">
             {t("trade.matching.youGive")}
           </p>
           {myTop && <ItemThumb item={myTop} />}
@@ -611,7 +611,7 @@ function MutualMatchCard({
 
       {match.their_items.length > 1 && (
         <div className="mt-3">
-          <p className="mb-1 text-[11px] text-muted-foreground">{t("trade.matching.pickTheirs")}</p>
+          <p className="mb-1 text-2xs text-muted-foreground">{t("trade.matching.pickTheirs")}</p>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
             {match.their_items.slice(0, 8).map((item) => (
               <button
@@ -692,7 +692,7 @@ function OneWayCard({
         ))}
       </div>
       {items.length > 3 && (
-        <p className="mt-2 text-[11px] text-muted-foreground">
+        <p className="mt-2 text-2xs text-muted-foreground">
           {t("trade.matching.andMore", { count: items.length - 3 })}
         </p>
       )}

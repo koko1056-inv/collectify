@@ -46,7 +46,7 @@ export const OfficialItemsHeader = memo(function OfficialItemsHeader({
     <div className="flex justify-between items-center gap-2 px-2">
       <div className="flex items-baseline gap-2 min-w-0">
         <h1 className="text-sm sm:text-2xl font-bold text-foreground">{t("collectionScreen.official.heading")}</h1>
-        <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
+        <span className="text-3xs sm:text-xs text-muted-foreground whitespace-nowrap">
           {t("collectionScreen.official.totalPrefix")}{totalItems}{t("collectionScreen.official.totalSuffix")}
         </span>
       </div>

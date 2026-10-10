@@ -300,7 +300,7 @@ function WelcomeStep({
           onClick={onNext}
           disabled={isLoading}
           size="lg"
-          className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
+          className="w-full h-14 text-base font-bold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
         >
           {t("misc.onboarding.start")}
           <ArrowRight className="w-5 h-5" />
@@ -415,7 +415,7 @@ function CelebrateStep({
         {addedCount > 0 && (
           <>
             <br />
-            <span className="font-semibold text-foreground">{t("misc.onboarding.starter.addedSummary", { n: addedCount })}</span>
+            <span className="font-bold text-foreground">{t("misc.onboarding.starter.addedSummary", { n: addedCount })}</span>
           </>
         )}
       </motion.p>
@@ -432,7 +432,7 @@ function CelebrateStep({
             <Star className="w-6 h-6 text-white fill-white" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-foreground">{t("misc.onboarding.welcomeBonus")}</p>
+            <p className="text-sm font-bold text-foreground">{t("misc.onboarding.welcomeBonus")}</p>
             <p className="text-xs text-muted-foreground">{t("misc.onboarding.welcomeBonusDesc")}</p>
           </div>
           <div className="text-2xl font-bold tabular-nums text-points">+50</div>
@@ -448,7 +448,7 @@ function CelebrateStep({
         <Button
           onClick={onFinish}
           size="lg"
-          className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
+          className="w-full h-14 text-base font-bold rounded-2xl shadow-lg gap-2 bg-brand-gradient hover:opacity-95"
         >
           {/* 登録済みなら棚へ、まだなら登録画面へ（handleFinish の行き先と揃える） */}
           {t(addedCount > 0 ? "misc.onboarding.goToCollection" : "misc.onboarding.goRegisterFirst")}

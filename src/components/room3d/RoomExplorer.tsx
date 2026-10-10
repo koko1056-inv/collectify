@@ -178,7 +178,7 @@ export function RoomExplorer() {
       <div className="container mx-auto px-4 py-6">
         {/* 注目のユーザー */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
             <Crown className="w-5 h-5 text-muted-foreground" />
             Featured Users
           </h2>
@@ -210,7 +210,7 @@ export function RoomExplorer() {
 
         {/* ルーム一覧 */}
         <section>
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-muted-foreground" />
             Popular This Week
           </h2>

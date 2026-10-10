@@ -126,7 +126,7 @@ export function TradeAvailabilitySection({
           >
             <Minus className="h-3.5 w-3.5" />
           </Button>
-          <span className="w-9 text-center text-sm font-semibold tabular-nums">
+          <span className="w-9 text-center text-sm font-bold tabular-nums">
             {localQuantity}
           </span>
           <Button

@@ -176,7 +176,7 @@ export function WishlistViewModal({
                     }}>
                             <CheckCircle className="h-3 w-3" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600" onClick={e => {
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={e => {
                       e.stopPropagation();
                       handleRemoveFromWishlist(item.id);
                     }}>

@@ -80,7 +80,7 @@ export function ItemImageEditor({ image, title, isEditing, onImageUpdate }: Item
 
       <Dialog open={isImageEditModalOpen} onOpenChange={setIsImageEditModalOpen}>
         <DialogContent>
-          <h3 className="text-lg font-semibold mb-4">{t("itemDetails.image.editTitle")}</h3>
+          <h3 className="text-lg font-bold mb-4">{t("itemDetails.image.editTitle")}</h3>
           <ItemImageUpload
             onImageChange={handleImageChange}
             previewUrl={previewUrl}

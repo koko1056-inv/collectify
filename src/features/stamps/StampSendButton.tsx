@@ -69,7 +69,7 @@ export function StampSendButton({
             </button>
           ))}
         </div>
-        <p className="text-[10px] text-muted-foreground mt-2 text-center">
+        <p className="text-3xs text-muted-foreground mt-2 text-center">
           {t("trade.stamp.limitNote")}
         </p>
       </PopoverContent>

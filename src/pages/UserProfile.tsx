@@ -149,7 +149,7 @@ export default function UserProfile() {
           {/* 推しコンテンツ (読み取り専用) */}
           {interests.length > 0 && (
             <div className="px-4 mt-4">
-              <h3 className="text-sm font-semibold mb-2">{t("screens.userProfile.favoriteContent")}</h3>
+              <h3 className="text-sm font-bold mb-2">{t("screens.userProfile.favoriteContent")}</h3>
               <div className="flex flex-wrap gap-1.5">
                 {interests.map((name: string) => (
                   <Badge key={name} variant="secondary" className="bg-primary/10 text-primary border-primary/20">

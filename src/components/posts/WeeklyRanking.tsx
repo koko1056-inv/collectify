@@ -187,7 +187,7 @@ export function WeeklyRanking() {
     <div className="space-y-4">
       {/* 週間人気投稿 */}
       <div>
-        <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">
+        <h3 className="text-sm font-bold flex items-center gap-2 mb-3">
           <TrendingUp className="h-4 w-4 text-primary" />
           {t("social.posts.weeklyTopPosts")}
         </h3>
@@ -230,7 +230,7 @@ export function WeeklyRanking() {
 
       {/* 週間アクティブユーザー */}
       <div>
-        <h3 className="text-sm font-semibold flex items-center gap-2 mb-3">
+        <h3 className="text-sm font-bold flex items-center gap-2 mb-3">
           <Trophy className="h-4 w-4 text-primary" />
           {t("social.posts.weeklyTopUsers")}
         </h3>

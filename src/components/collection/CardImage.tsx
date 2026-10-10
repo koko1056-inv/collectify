@@ -104,14 +104,14 @@ const CardImage = memo(function CardImage({
       {/* 数量バッジ（2個以上の時のみ表示） */}
       {quantity && quantity > 1 && (
         <div className="absolute top-2 right-2 min-w-[24px] h-6 px-1.5 rounded-full bg-foreground/85 backdrop-blur-sm shadow-sm flex items-center justify-center">
-          <span className="text-[10px] font-semibold text-background leading-none tabular-nums">×{quantity}</span>
+          <span className="text-3xs font-bold text-background leading-none tabular-nums">×{quantity}</span>
         </div>
       )}
       {/* 交換に出している印 */}
       {forTrade && (
         <div className="absolute top-2 left-2 flex h-6 items-center gap-0.5 rounded-full bg-primary/90 px-1.5 shadow-sm backdrop-blur-sm">
           <ArrowLeftRight className="h-3 w-3 text-primary-foreground" />
-          <span className="text-[10px] font-semibold leading-none text-primary-foreground">
+          <span className="text-3xs font-bold leading-none text-primary-foreground">
             {t("collectionScreen.cardImage.forTrade")}
           </span>
         </div>

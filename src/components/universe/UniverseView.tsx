@@ -440,7 +440,7 @@ export function UniverseView({ open, onOpenChange, ownerName }: UniverseViewProp
                   <div className="pointer-events-auto flex max-w-full items-center gap-3 rounded-full bg-black/55 py-2 pl-4 pr-2 backdrop-blur">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold">{focus.label}</p>
-                      <p className="text-[11px] text-white/65">{t("universe.focusCount", { n: focus.count })}</p>
+                      <p className="text-2xs text-white/65">{t("universe.focusCount", { n: focus.count })}</p>
                     </div>
                     <Button
                       size="sm"
@@ -451,7 +451,7 @@ export function UniverseView({ open, onOpenChange, ownerName }: UniverseViewProp
                     </Button>
                   </div>
                 ) : null}
-                <p className="rounded-full bg-black/40 px-3 py-1 text-[11px] text-white/70 backdrop-blur">
+                <p className="rounded-full bg-black/40 px-3 py-1 text-2xs text-white/70 backdrop-blur">
                   {focus ? t("universe.hintFocused") : t("universe.hint")}
                 </p>
               </div>

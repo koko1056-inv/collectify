@@ -52,7 +52,7 @@ export function MemoriesSection({ memories }: MemoriesSectionProps) {
                 <span className="text-xs text-muted-foreground">
                   {formatDate(memory.created_at)}
                 </span>
-                <span className="text-xs text-muted-foreground/60">
+                <span className="text-xs text-muted-foreground">
                   ({formatRelative(memory.created_at)})
                 </span>
               </div>

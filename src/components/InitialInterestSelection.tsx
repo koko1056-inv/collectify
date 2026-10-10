@@ -256,7 +256,7 @@ export function InitialInterestSelection({
           {displayName(content)}
         </span>
         {count > 0 && (
-          <span className="text-[10px] tabular-nums text-muted-foreground">{t("chrome.interests.goodsCount", { n: count.toLocaleString() })}</span>
+          <span className="text-3xs tabular-nums text-muted-foreground">{t("chrome.interests.goodsCount", { n: count.toLocaleString() })}</span>
         )}
       </button>
     );
@@ -303,12 +303,12 @@ export function InitialInterestSelection({
     <div className="space-y-5">
       {popularContents.length > 0 && (
         <section aria-label={t("chrome.interests.popular")}>
-          <h3 className="mb-2 text-xs font-semibold text-muted-foreground">{t("chrome.interests.popular")}</h3>
+          <h3 className="mb-2 text-xs font-bold text-muted-foreground">{t("chrome.interests.popular")}</h3>
           <div className="grid grid-cols-2 gap-3">{popularContents.map(renderCard)}</div>
         </section>
       )}
       <section aria-label={t("chrome.interests.all")}>
-        {popularContents.length > 0 && <h3 className="mb-2 text-xs font-semibold text-muted-foreground">{t("chrome.interests.all")}</h3>}
+        {popularContents.length > 0 && <h3 className="mb-2 text-xs font-bold text-muted-foreground">{t("chrome.interests.all")}</h3>}
         <div className="grid grid-cols-2 gap-3">
           {restContents.map(renderCard)}
           {otherButton}
@@ -368,7 +368,7 @@ export function InitialInterestSelection({
           <Button 
             onClick={handleConfirm} 
             size="lg"
-            className="w-full h-14 text-base font-semibold rounded-2xl shadow-lg gap-2"
+            className="w-full h-14 text-base font-bold rounded-2xl shadow-lg gap-2"
             disabled={saving}
           >
             {saving ? t("chrome.interests.saving") : selectedContents.length > 0 ? (
@@ -416,7 +416,7 @@ export function InitialInterestSelection({
           <Button 
             onClick={handleConfirm} 
             size="lg"
-            className="w-full h-12 text-base font-semibold rounded-2xl shadow-lg"
+            className="w-full h-12 text-base font-bold rounded-2xl shadow-lg"
             disabled={saving}
           >
             {saving ? t("chrome.interests.saving") : selectedContents.length > 0 ? t("chrome.interests.save") : t("chrome.interests.skip")}

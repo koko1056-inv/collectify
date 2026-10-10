@@ -106,7 +106,7 @@ export function TradeRequestsModal({ isOpen, onClose }: TradeRequestsModalProps)
                 <Inbox className="h-3.5 w-3.5" />
                 {t("trade.tabs.pending")}
                 {incoming.length > 0 && (
-                  <Badge className="ml-0.5 h-4 min-w-4 px-1 text-[10px]">{incoming.length}</Badge>
+                  <Badge className="ml-0.5 h-4 min-w-4 px-1 text-3xs">{incoming.length}</Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger value="active" className="gap-1">

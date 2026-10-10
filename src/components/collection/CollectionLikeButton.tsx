@@ -92,7 +92,7 @@ export function CollectionLikeButton({ collectionOwnerId }: CollectionLikeButton
         size="icon"
         onClick={handleLikeToggle}
         className={`${
-          isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-foreground"
+          isLiked ? "text-rose-500 hover:text-rose-600" : "text-muted-foreground hover:text-foreground"
         }`}
       >
         <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />

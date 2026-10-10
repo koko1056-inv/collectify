@@ -25,16 +25,16 @@ export interface TrustTierInfo {
  */
 export function getCategoryTier(score: number, count: number): TrustTierInfo {
   if (count < 3) {
-    return { tier: "newbie", label: "新人", emoji: "🌱", colorClass: "text-emerald-600 border-emerald-200 bg-emerald-50" };
+    return { tier: "newbie", label: "新人", emoji: "🌱", colorClass: "text-success border-success/30 bg-success-soft" };
   }
   const avg = score / Math.max(count, 1);
   if (count >= 20 && avg >= 1.5) {
-    return { tier: "veteran", label: "ベテラン", emoji: "🌟", colorClass: "text-amber-600 border-amber-200 bg-amber-50" };
+    return { tier: "veteran", label: "ベテラン", emoji: "🌟", colorClass: "text-warning border-warning/30 bg-warning-soft" };
   }
   if (count >= 5 && avg >= 0.5) {
-    return { tier: "trusted", label: "信頼できる", emoji: "⭐️", colorClass: "text-blue-600 border-blue-200 bg-blue-50" };
+    return { tier: "trusted", label: "信頼できる", emoji: "⭐️", colorClass: "text-info border-info/30 bg-info-soft" };
   }
-  return { tier: "newbie", label: "新人", emoji: "🌱", colorClass: "text-emerald-600 border-emerald-200 bg-emerald-50" };
+  return { tier: "newbie", label: "新人", emoji: "🌱", colorClass: "text-success border-success/30 bg-success-soft" };
 }
 
 /**
@@ -52,12 +52,12 @@ export function getOverallTier(s: TrustScore): TrustTierInfo {
     return { tier: "ace", label: "エース", emoji: "👑", colorClass: "text-violet-600 border-violet-200 bg-violet-50" };
   }
   if (veteranCount >= 1) {
-    return { tier: "veteran", label: "ベテラン", emoji: "🌟", colorClass: "text-amber-600 border-amber-200 bg-amber-50" };
+    return { tier: "veteran", label: "ベテラン", emoji: "🌟", colorClass: "text-warning border-warning/30 bg-warning-soft" };
   }
   if (trustedOrAbove >= 2) {
-    return { tier: "trusted", label: "信頼できる", emoji: "⭐️", colorClass: "text-blue-600 border-blue-200 bg-blue-50" };
+    return { tier: "trusted", label: "信頼できる", emoji: "⭐️", colorClass: "text-info border-info/30 bg-info-soft" };
   }
-  return { tier: "newbie", label: "新人", emoji: "🌱", colorClass: "text-emerald-600 border-emerald-200 bg-emerald-50" };
+  return { tier: "newbie", label: "新人", emoji: "🌱", colorClass: "text-success border-success/30 bg-success-soft" };
 }
 
 export const CATEGORY_LABELS: Record<TrustCategory, string> = {

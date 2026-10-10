@@ -263,12 +263,12 @@ export default function PointShop() {
         {/* Point Packages */}
         <section className="mb-8">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
+            <h2 className="text-lg font-bold flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />
               {t("screens.pointShop.packsHeading")}
             </h2>
             {!nativeAvailable && !isWebCheckoutAvailable() && (
-              <Badge variant="outline" className="text-[10px]">{t("screens.pointShop.iosOnlyBadge")}</Badge>
+              <Badge variant="outline" className="text-3xs">{t("screens.pointShop.iosOnlyBadge")}</Badge>
             )}
           </div>
 
@@ -296,7 +296,7 @@ export default function PointShop() {
                       <div className="flex items-start justify-between">
                         <CardTitle className="text-base">{pack.name}</CardTitle>
                         {hasBonus && (
-                          <Badge className="bg-amber-500/15 text-amber-700 border-amber-500/30 dark:text-amber-300">
+                          <Badge className="bg-points-soft text-points border-points/30">
                             {t("screens.pointShop.bonusBadge", { points: pack.bonus_points })}
                           </Badge>
                         )}
@@ -310,7 +310,7 @@ export default function PointShop() {
                       </CardDescription>
                     </CardHeader>
                     <CardFooter className="pt-2 flex items-center justify-between">
-                      <span className="text-base font-semibold">¥{pack.price.toLocaleString()}</span>
+                      <span className="text-base font-bold">¥{pack.price.toLocaleString()}</span>
                       <Button size="sm" onClick={() => setConfirmPack(pack)}>
                         {t("screens.pointShop.buy")}
                       </Button>
@@ -326,7 +326,7 @@ export default function PointShop() {
             以前は point_shop_items を読むフックと購入フックが実装済みなのに
             どの画面からも呼ばれておらず、ポイントの使い道が画面上に存在しなかった。 */}
         <section data-tour="shop-items" className="mb-8">
-          <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
+          <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
             <Coins className="w-5 h-5 text-primary" />
             {t("screens.pointShop.exchangeHeading")}
           </h2>
@@ -380,7 +380,7 @@ export default function PointShop() {
 
         {/* Spend Guide */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold flex items-center gap-2 mb-3">
+          <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
             <Info className="w-5 h-5 text-primary" />
             {t("screens.pointShop.spendHeading")}
           </h2>
@@ -401,7 +401,7 @@ export default function PointShop() {
                   </div>
                 );
               })}
-              <p className="text-[11px] text-muted-foreground pt-2">
+              <p className="text-2xs text-muted-foreground pt-2">
                 {t("screens.pointShop.spendNote")}
               </p>
             </CardContent>
@@ -449,8 +449,8 @@ export default function PointShop() {
                         key={tier.min_streak}
                         className={
                           active
-                            ? "text-[11px] px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium"
-                            : "text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+                            ? "text-2xs px-2 py-0.5 rounded-full bg-primary/15 text-primary font-medium"
+                            : "text-2xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
                         }
                       >
                         {t("screens.pointShop.streakTier", {

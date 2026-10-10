@@ -347,7 +347,7 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
 
             <div className="ml-auto">
               {step.advance === "click" ? (
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-primary">
                   <Hand className="h-3.5 w-3.5" />
                   {t("tour.tapIt")}
                 </span>
@@ -367,7 +367,7 @@ export function SpotlightTour({ steps, onClose, onDisableAll }: SpotlightTourPro
                 onDisableAll();
                 close("skipped");
               }}
-              className="w-full text-[11px] text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+              className="w-full text-2xs text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
             >
               {t("tour.disableAll")}
             </button>

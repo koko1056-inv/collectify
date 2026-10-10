@@ -86,7 +86,7 @@ export const GoodsPickTile = memo(function GoodsPickTile({
           />
         )}
         {noPhoto && (
-          <span className="absolute bottom-1.5 left-1.5 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-medium text-muted-foreground shadow-sm">
+          <span className="absolute bottom-1.5 left-1.5 rounded-full bg-background/90 px-2 py-0.5 text-3xs font-medium text-muted-foreground shadow-sm">
             {t("collectionScreen.cardImage.noPhoto")}
           </span>
         )}
@@ -111,7 +111,7 @@ export const GoodsPickTile = memo(function GoodsPickTile({
         )}
       >
         <span className="line-clamp-2 min-h-[2rem] text-xs font-medium leading-tight text-foreground">{title}</span>
-        {subtitle && <span className="truncate text-[10px] text-muted-foreground">{subtitle}</span>}
+        {subtitle && <span className="truncate text-3xs text-muted-foreground">{subtitle}</span>}
         {footer}
       </button>
     </div>

@@ -92,12 +92,12 @@ export function ProfileShowcase({
       <div className="flex items-center justify-between mb-2.5">
         <div className="flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <h2 className="text-[13px] font-bold tracking-wide">{t("profileScreen.showcase.title")}</h2>
+          <h2 className="text-sm font-bold tracking-wide">{t("profileScreen.showcase.title")}</h2>
         </div>
         {isOwnProfile && hasAny && (
           <button
             onClick={() => setPickerOpen(featuredRoom ? "room" : "avatar")}
-            className="tap-safe-y text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+            className="tap-safe-y text-2xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
           >
             <Pencil className="w-3 h-3" /> {t("profileScreen.common.edit")}
           </button>
@@ -131,7 +131,7 @@ export function ProfileShowcase({
               {isOwnProfile ? t("profileScreen.showcase.setRoom") : t("profileScreen.showcase.noRoom")}
             </p>
             {isOwnProfile && (
-              <span className="mt-1 inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              <span className="mt-1 inline-flex items-center gap-1 text-3xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
                 <Plus className="w-3 h-3" /> {t("profileScreen.common.add")}
               </span>
             )}
@@ -140,7 +140,7 @@ export function ProfileShowcase({
 
         {/* 上部ラベル */}
         {featuredRoom && (
-          <div className="absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md text-white text-[10px] font-medium">
+          <div className="absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md text-white text-3xs font-medium">
             <Home className="w-3 h-3" />
             {featuredRoom.title || t("profileScreen.showcase.myRoom")}
           </div>
@@ -193,7 +193,7 @@ export function ProfileShowcase({
                 )}
               >
                 <User className="w-5 h-5 opacity-80" />
-                <span className="text-[9px] font-medium leading-tight text-center px-1">
+                <span className="text-3xs font-medium leading-tight text-center px-1">
                   {isOwnProfile ? t("profileScreen.showcase.addAvatar") : t("profileScreen.showcase.notSet")}
                 </span>
               </button>
@@ -203,13 +203,13 @@ export function ProfileShowcase({
           {featuredAvatar?.name && (
             <div className="mb-1 max-w-[40%]">
               <p className={cn(
-                "text-[11px] font-semibold truncate",
+                "text-2xs font-bold truncate",
                 featuredRoom ? "text-white drop-shadow" : "text-foreground"
               )}>
                 {featuredAvatar.name}
               </p>
               <p className={cn(
-                "text-[9px]",
+                "text-3xs",
                 featuredRoom ? "text-white/80" : "text-muted-foreground"
               )}>
                 {t("profileScreen.showcase.myAvatar")}
@@ -269,12 +269,12 @@ function ShowcaseCard({
           <>
             <img src={imageUrl} alt={title || label} className="w-full h-full object-cover" />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-              <div className="flex items-center gap-1 text-white text-[10px] font-medium">
+              <div className="flex items-center gap-1 text-white text-3xs font-medium">
                 <Icon className="w-3 h-3" />
                 {label}
               </div>
               {title && (
-                <p className="text-white text-xs font-semibold truncate mt-0.5">{title}</p>
+                <p className="text-white text-xs font-bold truncate mt-0.5">{title}</p>
               )}
             </div>
           </>
@@ -283,7 +283,7 @@ function ShowcaseCard({
             <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center">
               {isOwnProfile ? <Plus className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
             </div>
-            <p className="text-[11px] font-medium px-2 text-center">
+            <p className="text-2xs font-medium px-2 text-center">
               {isOwnProfile ? emptyHint : t("profileScreen.showcase.slotNotSet", { label })}
             </p>
           </>
@@ -470,7 +470,7 @@ function PickerGrid({
               <img src={getOptimizedImageUrl(it.image_url, { width: 200 })} onError={fallbackToOriginal(it.image_url)} loading="lazy" decoding="async" alt={it.title || it.name || ""} className="w-full h-full object-cover" />
               {(it.title || it.name) && (
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-1.5">
-                  <p className="text-white text-[10px] font-medium truncate">{it.title || it.name}</p>
+                  <p className="text-white text-3xs font-medium truncate">{it.title || it.name}</p>
                 </div>
               )}
               {selected && (

@@ -96,7 +96,7 @@ export function CreatorSection({
               {t("itemDetails.creator.addedBy", { name: creatorName })}
             </div>
             {createdBy && creatorProfile && (
-              <div className="text-green-600 font-medium mt-1">
+              <div className="text-success font-medium mt-1">
                 {t("itemDetails.creator.thanks")}
               </div>
             )}

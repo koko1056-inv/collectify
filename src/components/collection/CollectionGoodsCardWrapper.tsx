@@ -82,7 +82,7 @@ export function CollectionGoodsCardWrapper({
           <CollectionGoodsCardHeader title={title} image={image} quantity={quantity} forTrade={forTrade} />
         </CardHeader>
         <CardContent className="px-2.5 pt-2 pb-1.5 flex-1">
-          <h3 className="font-medium text-foreground text-[12px] leading-snug line-clamp-2 min-h-[2.5em] tracking-tight">{title}</h3>
+          <h3 className="font-medium text-foreground text-xs leading-snug line-clamp-2 min-h-[2.5em] tracking-tight">{title}</h3>
         </CardContent>
 
         {/* フッターアクション(削除など)は自分のグッズのみ表示 */}

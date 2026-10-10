@@ -93,12 +93,12 @@ export function LikeButton({ itemId }: LikeButtonProps) {
         size="icon"
         onClick={handleLikeToggle}
         className={`tap-safe-y h-7 w-7 sm:h-9 sm:w-9 p-1.5 ${
-          isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-foreground"
+          isLiked ? "text-rose-500 hover:text-rose-600" : "text-muted-foreground hover:text-foreground"
         }`}
       >
         <Heart className={`h-full w-full ${isLiked ? "fill-current" : ""}`} />
       </Button>
-      <span className="text-[10px] sm:text-xs text-muted-foreground -mt-1">{likeCount}</span>
+      <span className="text-3xs sm:text-xs text-muted-foreground -mt-1">{likeCount}</span>
     </div>
   );
 }

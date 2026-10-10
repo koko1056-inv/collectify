@@ -172,7 +172,7 @@ export function TagGroupedCollection({ userId }: TagGroupedCollectionProps) {
         <div className="mt-6">
           {activeTag && currentItems[activeTag] && (
             <>
-              <h3 className="text-lg font-semibold mb-3">
+              <h3 className="text-lg font-bold mb-3">
                 {activeTag} <span className="text-sm text-muted-foreground">({currentItems[activeTag].length}{t("collectionScreen.tagGroups.itemsSuffix")})</span>
               </h3>
               <CollectionGrid

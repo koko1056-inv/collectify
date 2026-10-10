@@ -99,7 +99,7 @@ export function OfficialGoodsCard({
           />
           
           {quantity > 1 && (
-            <Badge className="absolute top-1.5 right-1.5 z-10 bg-primary/90 text-primary-foreground text-[10px] px-1.5">
+            <Badge className="absolute top-1.5 right-1.5 z-10 bg-primary/90 text-primary-foreground text-3xs px-1.5">
               ×{quantity}
             </Badge>
           )}
@@ -137,7 +137,7 @@ export function OfficialGoodsCard({
 
         {/* コンテンツ */}
         <CardContent className="p-2 sm:p-3 flex-1 flex flex-col">
-          <CardTitle className="text-[11px] sm:text-sm font-medium line-clamp-2 text-card-foreground leading-snug min-h-[2.2em]">
+          <CardTitle className="text-2xs sm:text-sm font-medium line-clamp-2 text-card-foreground leading-snug min-h-[2.2em]">
             {title}
           </CardTitle>
           
@@ -152,11 +152,11 @@ export function OfficialGoodsCard({
               aria-label={t("chrome.officialCard.wishersAria")}
             >
               <Heart className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <span className="text-[10px] sm:text-xs">{wishlistCount}</span>
+              <span className="text-3xs sm:text-xs">{wishlistCount}</span>
             </button>
             <span className="flex items-center gap-0.5 text-muted-foreground">
               <Users className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <span className="text-[10px] sm:text-xs">{ownersCount}</span>
+              <span className="text-3xs sm:text-xs">{ownersCount}</span>
             </span>
             <button
               onClick={(e) => {
@@ -176,7 +176,7 @@ export function OfficialGoodsCard({
           <Button
             size="sm"
             variant={isInCollection ? "secondary" : "default"}
-            className={`w-full h-6 text-[10px] gap-0.5 px-1 ${isInCollection ? 'text-muted-foreground' : ''}`}
+            className={`w-full h-6 text-3xs gap-0.5 px-1 ${isInCollection ? 'text-muted-foreground' : ''}`}
             onClick={(e) => {
               e.stopPropagation();
               handleAddToCollection();

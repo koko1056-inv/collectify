@@ -116,7 +116,7 @@ export function FilterSheet({
         >
           <SlidersHorizontal className="w-4 h-4" />
           {hasActive && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold ring-2 ring-background">
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-3xs font-bold ring-2 ring-background">
               {activeCount}
             </span>
           )}
@@ -303,7 +303,7 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-baseline justify-between mb-2.5">
-      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      <h3 className="text-sm font-bold text-foreground">{title}</h3>
       {value && (
         <span className="text-xs text-primary font-medium truncate max-w-[50%] text-right">
           {value}

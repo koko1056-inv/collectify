@@ -63,13 +63,13 @@ export function SlotUsageMeter({
   const barTone = isAtLimit
     ? "[&>div]:bg-destructive"
     : isAlmostFull
-      ? "[&>div]:bg-amber-500"
+      ? "[&>div]:bg-warning"
       : undefined;
 
   const countTone = isAtLimit
     ? "text-destructive"
     : isAlmostFull
-      ? "text-amber-600 dark:text-amber-400"
+      ? "text-warning"
       : "text-muted-foreground";
 
   const expandDialog = isCollection ? (
@@ -131,7 +131,7 @@ export function SlotUsageMeter({
           <span className="text-sm font-medium">
             {isCollection ? t("misc.shop.slotsCollection") : t("misc.shop.slotsRoom")}
           </span>
-          <span className={cn("ml-auto text-sm font-semibold tabular-nums", countTone)}>
+          <span className={cn("ml-auto text-sm font-bold tabular-nums", countTone)}>
             {currentCount}
             <span className="text-muted-foreground font-normal"> / {maxSlots}</span>
           </span>

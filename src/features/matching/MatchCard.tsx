@@ -57,7 +57,7 @@ export function MatchCard({ match, onCompare }: Props) {
             </div>
             <div className="flex items-center gap-1 mt-1">
               <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-              <span className="text-xs font-semibold text-amber-700">
+              <span className="text-xs font-bold text-warning">
                 {t("trade.match.score", { score: Math.round(Number(match.score)) })}
               </span>
             </div>
@@ -71,24 +71,24 @@ export function MatchCard({ match, onCompare }: Props) {
           <div className="rounded-md bg-pink-50 border border-pink-100 px-2 py-1.5">
             <Heart className="h-3.5 w-3.5 mx-auto text-pink-600 mb-0.5" />
             <div className="text-sm font-bold text-pink-700">{match.shared_interests}</div>
-            <div className="text-[10px] text-muted-foreground">{t("trade.match.sharedInterests")}</div>
+            <div className="text-3xs text-muted-foreground">{t("trade.match.sharedInterests")}</div>
           </div>
-          <div className="rounded-md bg-emerald-50 border border-emerald-100 px-2 py-1.5">
-            <Package className="h-3.5 w-3.5 mx-auto text-emerald-600 mb-0.5" />
-            <div className="text-sm font-bold text-emerald-700">{match.shared_items}</div>
-            <div className="text-[10px] text-muted-foreground">{t("trade.match.sharedItems")}</div>
+          <div className="rounded-md bg-success-soft border border-success/30 px-2 py-1.5">
+            <Package className="h-3.5 w-3.5 mx-auto text-success mb-0.5" />
+            <div className="text-sm font-bold text-success">{match.shared_items}</div>
+            <div className="text-3xs text-muted-foreground">{t("trade.match.sharedItems")}</div>
           </div>
           <div className="rounded-md bg-violet-50 border border-violet-100 px-2 py-1.5">
             <Repeat className="h-3.5 w-3.5 mx-auto text-violet-600 mb-0.5" />
             <div className="text-sm font-bold text-violet-700">{match.tradeable_items}</div>
-            <div className="text-[10px] text-muted-foreground">{t("trade.match.tradeableItems")}</div>
+            <div className="text-3xs text-muted-foreground">{t("trade.match.tradeableItems")}</div>
           </div>
         </div>
 
         {profile.interests && profile.interests.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {profile.interests.slice(0, 4).map((tag: string) => (
-              <Badge key={tag} variant="secondary" className="text-[10px] py-0 px-1.5">
+              <Badge key={tag} variant="secondary" className="text-3xs py-0 px-1.5">
                 {tag}
               </Badge>
             ))}

@@ -194,7 +194,7 @@ export function AdminItemForm() {
             currentStep === "step1" 
               ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25" 
               : step1Completed 
-                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" 
+                ? "bg-success-soft text-success" 
                 : "bg-muted text-muted-foreground"
           )}
           onClick={() => setCurrentStep("step1")}
@@ -204,7 +204,7 @@ export function AdminItemForm() {
             currentStep === "step1" 
               ? "bg-primary-foreground text-primary" 
               : step1Completed 
-                ? "bg-green-500 text-white" 
+                ? "bg-success text-success-foreground" 
                 : "bg-muted-foreground/30 text-muted-foreground"
           )}>
             {step1Completed ? <Check className="w-4 h-4" /> : "1"}
@@ -214,7 +214,7 @@ export function AdminItemForm() {
 
         <div className={cn(
           "w-8 h-0.5 rounded-full transition-colors",
-          step1Completed ? "bg-green-500" : "bg-muted"
+          step1Completed ? "bg-success" : "bg-muted"
         )} />
 
         <div 
@@ -258,7 +258,7 @@ export function AdminItemForm() {
             {currentStep === "step1" && (
               <div className="space-y-6">
                 <div className="text-center mb-6">
-                  <h2 className="text-lg font-semibold mb-1">{t("chrome.adminForm.addImageTitle")}</h2>
+                  <h2 className="text-lg font-bold mb-1">{t("chrome.adminForm.addImageTitle")}</h2>
                   <p className="text-sm text-muted-foreground">
                     {t("chrome.adminForm.addImageDesc")}
                   </p>
@@ -484,7 +484,7 @@ export function AdminItemForm() {
                 ) : (
                   <>
                     <div className="text-center mb-6">
-                      <h2 className="text-lg font-semibold mb-1">{t("chrome.adminForm.detailsTitle")}</h2>
+                      <h2 className="text-lg font-bold mb-1">{t("chrome.adminForm.detailsTitle")}</h2>
                       <p className="text-sm text-muted-foreground">
                         {t("chrome.adminForm.detailsDesc")}
                       </p>

@@ -137,7 +137,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
         <div className="relative">
           <Avatar className="h-14 w-14 ring-2 ring-background shadow-md">
             <AvatarImage src={profile.avatar_url} />
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+            <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
               {profile.username?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
@@ -150,7 +150,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h4 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+            <h4 className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
               {profile.display_name || profile.username}
             </h4>
           </div>
@@ -211,7 +211,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
           <FollowButton userId={profile.id} />
         </div>
         
-        <ChevronRight className="h-5 w-5 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
+        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-muted-foreground transition-colors" />
       </div>
     );
   };
@@ -300,7 +300,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
             <div className="bg-primary/10 p-2 rounded-full">
               <Sparkles className="h-4 w-4 text-primary" />
             </div>
-            <h3 className="font-semibold text-foreground">
+            <h3 className="font-bold text-foreground">
               {t("chrome.friendSearch.recommended")}
             </h3>
             <Badge variant="secondary" className="ml-auto">
@@ -322,7 +322,7 @@ export function FriendSearch({ userInterests = [] }: FriendSearchProps) {
           <div className="bg-muted p-2 rounded-full">
             <Users className="h-4 w-4 text-muted-foreground" />
           </div>
-          <h3 className="font-semibold text-foreground">
+          <h3 className="font-bold text-foreground">
             {t("chrome.friendSearch.userList")}
           </h3>
           <Badge variant="outline" className="ml-auto">

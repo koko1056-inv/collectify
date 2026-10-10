@@ -442,7 +442,7 @@ export function OnboardingChecklist() {
                 <nextItem.icon className="w-4 h-4 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold text-primary uppercase tracking-wider">
+                <p className="text-3xs font-bold text-primary uppercase tracking-wider">
                   {t('misc.checklist.nextUp')}
                 </p>
                 <p className="text-sm font-medium truncate">{t(nextItem.labelKey)}</p>
@@ -480,10 +480,10 @@ export function OnboardingChecklist() {
                       {/* Group header */}
                       <div className="flex items-center gap-1.5 px-1">
                         <GroupIcon className={`w-3.5 h-3.5 ${meta.color}`} />
-                        <span className="text-[11px] font-bold text-foreground/80 uppercase tracking-wider">
+                        <span className="text-2xs font-bold text-foreground/80 uppercase tracking-wider">
                           {t(meta.labelKey)}
                         </span>
-                        <span className="text-[10px] text-muted-foreground ml-auto">
+                        <span className="text-3xs text-muted-foreground ml-auto">
                           {groupCompleted}/{groupItems.length}
                         </span>
                       </div>
@@ -505,7 +505,7 @@ export function OnboardingChecklist() {
                               {item.completed ? (
                                 <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
                               ) : (
-                                <Icon className="w-5 h-5 text-muted-foreground/60 shrink-0" />
+                                <Icon className="w-5 h-5 text-muted-foreground shrink-0" />
                               )}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -517,7 +517,7 @@ export function OnboardingChecklist() {
                                     {t(item.labelKey)}
                                   </p>
                                   {!item.completed && item.freeTrial && (
-                                    <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                                    <span className="text-3xs font-bold text-points bg-points-soft px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                                       <Gift className="w-2.5 h-2.5" />
                                       {t('misc.common.freeFirstTime')}
                                     </span>

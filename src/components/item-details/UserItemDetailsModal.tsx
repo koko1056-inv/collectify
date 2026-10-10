@@ -542,7 +542,7 @@ export function UserItemDetailsModal({
                       {memory.comment && (
                         <p className="text-xs text-foreground">{memory.comment}</p>
                       )}
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-3xs text-muted-foreground">
                         {formatDate(memory.created_at)}
                       </p>
                     </div>

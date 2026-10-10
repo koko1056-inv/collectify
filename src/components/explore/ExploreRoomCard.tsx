@@ -140,14 +140,14 @@ export function ExploreRoomCard({ room, isBookmarked, isLiked }: Props) {
         )}
 
         {/* AI バッジ */}
-        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-[10px] font-semibold text-primary">
+        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-3xs font-bold text-primary">
           <Sparkles className="w-3 h-3" />
           AI
         </div>
 
         {/* リミックスバッジ */}
         {room.parent_room_id && (
-          <div className="absolute top-2 left-12 flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/90 backdrop-blur text-[10px] font-semibold text-accent-foreground">
+          <div className="absolute top-2 left-12 flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent/90 backdrop-blur text-3xs font-bold text-accent-foreground">
             <Repeat className="w-3 h-3" />
             Remix
           </div>
@@ -210,7 +210,7 @@ export function ExploreRoomCard({ room, isBookmarked, isLiked }: Props) {
           >
             <Avatar className="w-5 h-5 border border-border shrink-0">
               <AvatarImage src={room.profile?.avatar_url || undefined} />
-              <AvatarFallback className="text-[8px]">
+              <AvatarFallback className="text-3xs">
                 {room.profile?.username?.charAt(0)}
               </AvatarFallback>
             </Avatar>
@@ -218,7 +218,7 @@ export function ExploreRoomCard({ room, isBookmarked, isLiked }: Props) {
               {room.profile?.display_name || room.profile?.username || t("chrome.exploreCard.userFallback")}
             </span>
           </button>
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground shrink-0">
+          <div className="flex items-center gap-2 text-3xs text-muted-foreground shrink-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();

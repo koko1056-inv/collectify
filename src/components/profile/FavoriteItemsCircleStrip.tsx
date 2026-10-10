@@ -26,7 +26,7 @@ export function FavoriteItemsCircleStrip({ userId }: Props) {
     <div className="px-4 mt-4">
       <div className="flex items-center gap-1.5 mb-2">
         <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-        <h3 className="text-[13px] font-bold tracking-wide">{t("profileScreen.favorites.oshiHeading")}</h3>
+        <h3 className="text-sm font-bold tracking-wide">{t("profileScreen.favorites.oshiHeading")}</h3>
       </div>
       <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
         {items.map((item) => (
@@ -45,7 +45,7 @@ export function FavoriteItemsCircleStrip({ userId }: Props) {
                   />
               </div>
             </div>
-            <span className="text-[10px] text-muted-foreground leading-tight line-clamp-1 w-full text-center">
+            <span className="text-3xs text-muted-foreground leading-tight line-clamp-1 w-full text-center">
               {item.title}
             </span>
           </button>

@@ -99,7 +99,7 @@ export function FeedbackSheet({ open, onOpenChange, initialKind = "content", ini
                   onClick={() => setKind(k)}
                   className={cn(
                     "rounded-xl border px-3 py-2 text-left text-sm transition-colors",
-                    kind === k ? "border-primary bg-primary/10 font-semibold text-primary" : "border-border hover:bg-muted/50"
+                    kind === k ? "border-primary bg-primary/10 font-bold text-primary" : "border-border hover:bg-muted/50"
                   )}
                 >
                   {t(`engage.feedback.kind.${k}`)}
@@ -189,7 +189,7 @@ export function FeedbackSheet({ open, onOpenChange, initialKind = "content", ini
 function StatusBadge({ status }: { status: FeedbackRequest["status"] }) {
   const { t } = useLanguage();
   return (
-    <Badge variant={status === "done" ? "default" : "secondary"} className="text-[10px]">
+    <Badge variant={status === "done" ? "default" : "secondary"} className="text-3xs">
       {t(`engage.feedback.status.${status}`)}
     </Badge>
   );
@@ -208,7 +208,7 @@ function MineRow({ request }: { request: FeedbackRequest }) {
       <p className="text-sm font-medium">{request.title}</p>
       {request.admin_note && (
         <p className="rounded-lg bg-muted/60 p-2 text-xs">
-          <span className="font-semibold">{t("engage.feedback.adminNote")}</span> {request.admin_note}
+          <span className="font-bold">{t("engage.feedback.adminNote")}</span> {request.admin_note}
         </p>
       )}
     </div>
@@ -238,8 +238,8 @@ function BoardRow({ request, voted }: { request: FeedbackRequest; voted: boolean
         onClick={() => toggle.mutate({ requestId: request.id, voted })}
       >
         {voted ? <Check className="h-4 w-4" /> : <ThumbsUp className="h-4 w-4" />}
-        <span className="text-[10px] tabular-nums">{request.vote_count}</span>
-        <span className="text-[10px]">{voted ? t("engage.feedback.voted") : t("engage.feedback.vote")}</span>
+        <span className="text-3xs tabular-nums">{request.vote_count}</span>
+        <span className="text-3xs">{voted ? t("engage.feedback.voted") : t("engage.feedback.vote")}</span>
       </Button>
     </div>
   );

@@ -411,7 +411,7 @@ export function CreatePostFromCollectionModal({
                       <div className="p-2.5">
                         <p className="font-medium text-xs line-clamp-2 leading-tight">{item.title}</p>
                         {item.content_name && (
-                          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{item.content_name}</p>
+                          <p className="text-3xs text-muted-foreground mt-1 line-clamp-1">{item.content_name}</p>
                         )}
                       </div>
                       

@@ -180,7 +180,7 @@ export function PriceSearchModal({
                         <p className="text-sm line-clamp-1 group-hover:text-primary transition-colors">
                           {result.title}
                         </p>
-                        <p className="text-sm font-semibold text-primary">
+                        <p className="text-sm font-bold text-primary">
                           {result.price}
                         </p>
                       </div>

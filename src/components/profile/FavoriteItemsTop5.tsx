@@ -48,7 +48,7 @@ export function FavoriteItemsTop5({ userId, isOwnProfile }: FavoriteItemsTop5Pro
               {t("profileScreen.favorites.top5", { count: FAVORITE_ITEMS_LIMIT })}
             </h3>
             {items.length > 0 && (
-              <span className="text-[10px] text-muted-foreground shrink-0">
+              <span className="text-3xs text-muted-foreground shrink-0">
                 ({items.length}/{FAVORITE_ITEMS_LIMIT})
               </span>
             )}
@@ -90,7 +90,7 @@ export function FavoriteItemsTop5({ userId, isOwnProfile }: FavoriteItemsTop5Pro
 
         {/* 自分のページで0件なら大きめCTA */}
         {isOwnProfile && !isLoading && items.length === 0 && (
-          <p className="text-[11px] text-muted-foreground mt-2 text-center">
+          <p className="text-2xs text-muted-foreground mt-2 text-center">
             {t("profileScreen.favorites.emptyCta")}
           </p>
         )}
@@ -161,7 +161,7 @@ function FavoriteSlot({
         )}
       >
         <Plus className="w-5 h-5 text-muted-foreground" />
-        <span className="text-[10px] text-muted-foreground">{t("profileScreen.common.add")}</span>
+        <span className="text-3xs text-muted-foreground">{t("profileScreen.common.add")}</span>
       </button>
     );
   }
@@ -187,11 +187,11 @@ function FavoriteSlot({
           {rank}
         </div>
       </div>
-      <p className="mt-1.5 text-[11px] font-medium leading-tight line-clamp-2">
+      <p className="mt-1.5 text-2xs font-medium leading-tight line-clamp-2">
         {item.title}
       </p>
       {item.content_name && (
-        <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+        <p className="text-3xs text-muted-foreground truncate mt-0.5">
           {item.content_name}
         </p>
       )}

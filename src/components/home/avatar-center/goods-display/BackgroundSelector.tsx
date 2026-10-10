@@ -259,7 +259,7 @@ export function BackgroundSelector({
                         <span className="text-xs font-medium">
                           {presetLabels[preset.id] ?? preset.name}
                         </span>
-                        <span className="text-[10px] text-muted-foreground">
+                        <span className="text-3xs text-muted-foreground">
                           {presetsByCategory[
                             preset.category as keyof typeof presetsByCategory
                           ]?.length || 0}

@@ -29,7 +29,7 @@ export function ConsentBanner() {
       aria-label={t("chrome.consent.title")}
       className="fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[60] mx-auto max-w-md rounded-2xl border bg-card p-4 shadow-xl sm:bottom-4 sm:left-4 sm:right-auto sm:mx-0"
     >
-      <p className="text-sm font-semibold">{t("chrome.consent.title")}</p>
+      <p className="text-sm font-bold">{t("chrome.consent.title")}</p>
       <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
         {t("chrome.consent.body")}{" "}
         <Link to="/privacy" className="underline">

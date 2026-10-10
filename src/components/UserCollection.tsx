@@ -529,7 +529,7 @@ export function UserCollection({
                   >
                     <SlidersHorizontal className="h-4 w-4" />
                     {hasFilter && (
-                      <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+                      <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 rounded-full bg-primary text-primary-foreground text-3xs font-bold flex items-center justify-center">
                         {filterCount}
                       </span>
                     )}
@@ -574,7 +574,7 @@ export function UserCollection({
                 className="gap-1.5 h-9 px-3 rounded-lg bg-primary/10 text-primary hover:bg-primary/15 shadow-none group"
               >
                 <Dices className="h-4 w-4 shrink-0 group-hover:rotate-12 transition-transform" />
-                <span className="text-xs font-semibold whitespace-nowrap">{t("chrome.collection.todaysGoods")}</span>
+                <span className="text-xs font-bold whitespace-nowrap">{t("chrome.collection.todaysGoods")}</span>
               </Button>
             </div>
           </>

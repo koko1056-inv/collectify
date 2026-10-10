@@ -105,7 +105,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
                     onClick={() => setColorScheme(value)}
                     aria-pressed={active}
                     className={cn(
-                      "flex flex-col items-center gap-1 rounded-xl border py-2.5 text-[11px] font-medium transition-colors",
+                      "flex flex-col items-center gap-1 rounded-xl border py-2.5 text-2xs font-medium transition-colors",
                       active
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border text-muted-foreground hover:bg-muted/50"

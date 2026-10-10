@@ -71,7 +71,7 @@ export function PollCard({ poll }: PollCardProps) {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <p className="font-semibold text-sm">{poll.profiles?.username}</p>
+            <p className="font-bold text-sm">{poll.profiles?.username}</p>
             <p className="text-xs text-muted-foreground">
               {formatNumericDate(poll.created_at)}
             </p>
@@ -80,7 +80,7 @@ export function PollCard({ poll }: PollCardProps) {
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
               {isExpired ? (
-                <span className="text-destructive font-semibold">{t("social.polls.closed")}</span>
+                <span className="text-destructive font-bold">{t("social.polls.closed")}</span>
               ) : (
                 <span>
                   {t("social.polls.remaining", { time: formatDistance(poll.ends_at) })}
@@ -117,7 +117,7 @@ export function PollCard({ poll }: PollCardProps) {
                     {isUserVote && <CheckCircle2 className="h-4 w-4" />}
                     {option.text}
                   </span>
-                  <span className="text-sm font-semibold">
+                  <span className="text-sm font-bold">
                     {t("social.polls.optionResult", { count: voteCount, percent: percentage.toFixed(0) })}
                   </span>
                 </div>

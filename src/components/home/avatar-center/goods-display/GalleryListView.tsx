@@ -43,7 +43,7 @@ export function GalleryListView({ userId, enabled }: Props) {
 
   return (
     <div className="space-y-4 pb-4 pr-2">
-      <h3 className="text-lg font-semibold">{t("homeScreen.gallery.title")}</h3>
+      <h3 className="text-lg font-bold">{t("homeScreen.gallery.title")}</h3>
       {displayGallery.length === 0 ? (
         <EmptyState icon={Frame} title={t("homeScreen.gallery.empty")} />
       ) : (
@@ -60,7 +60,7 @@ export function GalleryListView({ userId, enabled }: Props) {
                 onClick={() => window.open(gallery.image_url, "_blank")}
               />
               <div className="p-4 space-y-2">
-                <h4 className="font-semibold text-base line-clamp-1">
+                <h4 className="font-bold text-base line-clamp-1">
                   {gallery.title}
                 </h4>
                 {gallery.description && (

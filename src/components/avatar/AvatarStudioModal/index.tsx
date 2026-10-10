@@ -60,15 +60,15 @@ export function AvatarStudioModal({
         >
           {/* モバイルでもラベルを出す。アイコンだけでは「👕＝着せ替え」が伝わらない */}
           <TabsList className="mx-6 grid grid-cols-3 h-auto py-1 sm:h-12">
-            <TabsTrigger value="generate" className="flex-col gap-0.5 text-[10px] sm:flex-row sm:gap-2 sm:text-sm">
+            <TabsTrigger value="generate" className="flex-col gap-0.5 text-3xs sm:flex-row sm:gap-2 sm:text-sm">
               <Wand2 className="w-4 h-4" />
               <span>{t("misc.avatar.tabGenerate")}</span>
             </TabsTrigger>
-            <TabsTrigger value="dressup" className="flex-col gap-0.5 text-[10px] sm:flex-row sm:gap-2 sm:text-sm">
+            <TabsTrigger value="dressup" className="flex-col gap-0.5 text-3xs sm:flex-row sm:gap-2 sm:text-sm">
               <Shirt className="w-4 h-4" />
               <span>{t("misc.avatar.tabDressUp")}</span>
             </TabsTrigger>
-            <TabsTrigger value="gallery" className="relative flex-col gap-0.5 text-[10px] sm:flex-row sm:gap-2 sm:text-sm">
+            <TabsTrigger value="gallery" className="relative flex-col gap-0.5 text-3xs sm:flex-row sm:gap-2 sm:text-sm">
               <ImageIcon className="w-4 h-4" />
               <span>{t("misc.avatar.tabGallery")}</span>
               {avatars.avatars.length > 0 && (

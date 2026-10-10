@@ -85,7 +85,7 @@ export default function AiAvatarDetail() {
                 alt={avatar.name || t("chrome.exploreCard.avatarImageAlt")}
                 className="w-full object-cover"
               />
-              <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-[11px] font-semibold text-primary">
+              <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/80 backdrop-blur text-2xs font-bold text-primary">
                 <Sparkles className="w-3 h-3" />
                 AI
               </div>

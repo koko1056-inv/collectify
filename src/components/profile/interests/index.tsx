@@ -115,16 +115,16 @@ export function ProfileInterests({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Heart className="w-3.5 h-3.5 text-primary fill-primary/30" />
-          <h3 className="text-[13px] font-bold tracking-wide">{t("profileScreen.interests.title")}</h3>
+          <h3 className="text-sm font-bold tracking-wide">{t("profileScreen.interests.title")}</h3>
           {selectedInterests.length > 0 && (
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-3xs text-muted-foreground">
               {t("profileScreen.interests.count", { count: selectedInterests.length })}
             </span>
           )}
         </div>
         <button
           onClick={() => setIsSelectingContent(true)}
-          className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+          className="text-2xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
         >
           <Plus className="w-3 h-3" /> {t("profileScreen.common.edit")}
         </button>

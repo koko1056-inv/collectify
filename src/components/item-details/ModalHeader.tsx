@@ -13,7 +13,7 @@ export function ModalHeader({ onClose, children }: ModalHeaderProps) {
     <div className="flex justify-between items-center p-2 border-b border-border">
       <div className="flex-1"></div>
       <div className="flex-1 flex justify-center">
-        <h3 className="font-semibold text-sm">{t("itemDetails.header.title")}</h3>
+        <h3 className="font-bold text-sm">{t("itemDetails.header.title")}</h3>
       </div>
       <div className="flex-1 flex justify-end">
         {typeof onClose === 'function' ? (

@@ -39,7 +39,7 @@ export function TrustBadge({
   const tierLabel = t(`trade.trustTier.${tier.tier}`);
 
   const sizeClasses = {
-    xs: "text-[10px] px-1.5 py-0 h-4 gap-0.5",
+    xs: "text-3xs px-1.5 py-0 h-4 gap-0.5",
     sm: "text-xs px-2 py-0.5 h-5 gap-1",
     md: "text-sm px-2.5 py-1 h-6 gap-1",
   }[size];
@@ -58,7 +58,7 @@ export function TrustBadge({
             <p>{t("trade.trust.categoryTooltip", { category: t(`trade.trustCategory.${category}`), tier: tierLabel })}</p>
           ) : (
             <div className="space-y-1">
-              <p className="font-semibold">{t("trade.trust.overallTooltip", { tier: tierLabel })}</p>
+              <p className="font-bold">{t("trade.trust.overallTooltip", { tier: tierLabel })}</p>
               <p>{t("trade.trust.countsTooltip", { trade: score.trade_count, collector: score.collector_count, communication: score.communication_count })}</p>
             </div>
           )}

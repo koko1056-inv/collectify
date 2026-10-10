@@ -70,7 +70,7 @@ export function CatalogFilterPanel({ items, owned, value, onChange, hideContent 
           <SlidersHorizontal className="h-3.5 w-3.5" />
           {t("engage.catalog.filter")}
           {count > 0 && (
-            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground">
+            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-3xs text-primary-foreground">
               {count}
             </span>
           )}
@@ -89,7 +89,7 @@ export function CatalogFilterPanel({ items, owned, value, onChange, hideContent 
               key={a.key}
               type="button"
               onClick={a.remove}
-              className="inline-flex max-w-full items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-[11px] text-primary-foreground"
+              className="inline-flex max-w-full items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-2xs text-primary-foreground"
               aria-label={`${a.label} ${t("engage.catalog.remove")}`}
             >
               <span className="truncate">{a.label}</span>
@@ -113,7 +113,7 @@ export function CatalogFilterPanel({ items, owned, value, onChange, hideContent 
 
           {!hideContent && contents.length > 0 && (
             <div className="space-y-1.5">
-              <p className="text-[11px] font-semibold text-muted-foreground">{t("engage.catalog.content")}</p>
+              <p className="text-2xs font-bold text-muted-foreground">{t("engage.catalog.content")}</p>
               <div className="flex flex-wrap gap-1.5">
                 {contents.map((c) => {
                   const on = value.content === c.value;
@@ -129,7 +129,7 @@ export function CatalogFilterPanel({ items, owned, value, onChange, hideContent 
                       )}
                     >
                       <span className="max-w-[9rem] truncate">{c.value}</span>
-                      <span className="tabular-nums text-[10px] opacity-70">{c.count}</span>
+                      <span className="tabular-nums text-3xs opacity-70">{c.count}</span>
                     </button>
                   );
                 })}
@@ -150,7 +150,7 @@ export function CatalogFilterPanel({ items, owned, value, onChange, hideContent 
                     setExpanded(false);
                   }}
                   className={cn(
-                    "rounded-full px-2.5 py-1 text-[11px] font-medium",
+                    "rounded-full px-2.5 py-1 text-2xs font-medium",
                     kind === k ? "bg-background shadow-sm" : "text-muted-foreground"
                   )}
                 >
@@ -173,7 +173,7 @@ export function CatalogFilterPanel({ items, owned, value, onChange, hideContent 
                     )}
                   >
                     <span className="max-w-[9rem] truncate">{o.value}</span>
-                    <span className="tabular-nums text-[10px] opacity-70">{o.count}</span>
+                    <span className="tabular-nums text-3xs opacity-70">{o.count}</span>
                   </button>
                 );
               })}

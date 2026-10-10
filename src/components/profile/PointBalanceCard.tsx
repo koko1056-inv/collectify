@@ -44,8 +44,8 @@ export function PointBalanceCard() {
     <div className="space-y-4">
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-lg font-semibold">
-          <Coins className="w-5 h-5 text-amber-500" />
+        <div className="flex items-center gap-2 text-lg font-bold">
+          <Coins className="w-5 h-5 text-points" />
           {t("profileScreen.points.title")}
         </div>
         <Button
@@ -60,12 +60,12 @@ export function PointBalanceCard() {
       </div>
 
       {/* 残高表示 */}
-      <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-amber-50 via-orange-50 to-primary/5 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-primary/10 border border-amber-200/60 dark:border-amber-900/40">
+      <div className="relative overflow-hidden rounded-2xl p-5 bg-points-soft border border-points/20">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-xs text-muted-foreground mb-1">{t("profileScreen.points.currentBalance")}</p>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+              <span className="text-3xl font-bold tabular-nums text-points">
                 {isLoading ? "…" : balance.toLocaleString()}
               </span>
               <span className="text-sm font-medium text-muted-foreground">pt</span>
@@ -112,10 +112,10 @@ export function PointBalanceCard() {
                     </div>
                   </div>
                   <span
-                    className={`text-sm font-semibold shrink-0 ml-2 ${
+                    className={`text-sm font-bold shrink-0 ml-2 ${
                       isPositive
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-rose-600 dark:text-rose-400"
+                        ? "text-success"
+                        : "text-destructive"
                     }`}
                   >
                     {isPositive ? "+" : ""}

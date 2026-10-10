@@ -18,7 +18,7 @@ export function TagList({ tags, className = "" }: TagListProps) {
         <Badge 
           key={tag.tag_id}
           variant="outline" 
-          className={`text-[10px] border-border py-0 px-2 ${className}`}
+          className={`text-3xs border-border py-0 px-2 ${className}`}
         >
           {tag.tags.name}
         </Badge>

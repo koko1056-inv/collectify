@@ -202,7 +202,7 @@ export function TradeOfferPicker({ open, onOpenChange }: TradeOfferPickerProps) 
                     ariaLabel={t("trade.picker.toggleAria", { title: row.title })}
                     corner={
                       row.quantity >= 2 ? (
-                        <span className="flex h-6 min-w-[24px] items-center justify-center rounded-full bg-foreground/85 px-1.5 text-[10px] font-semibold tabular-nums text-background">
+                        <span className="flex h-6 min-w-[24px] items-center justify-center rounded-full bg-foreground/85 px-1.5 text-3xs font-bold tabular-nums text-background">
                           ×{row.quantity}
                         </span>
                       ) : undefined
@@ -210,7 +210,7 @@ export function TradeOfferPicker({ open, onOpenChange }: TradeOfferPickerProps) 
                     footer={
                       <span
                         className={cn(
-                          "mt-auto rounded-md py-1 text-center text-[10px] font-semibold",
+                          "mt-auto rounded-md py-1 text-center text-3xs font-bold",
                           on ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                         )}
                       >

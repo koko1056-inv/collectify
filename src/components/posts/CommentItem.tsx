@@ -39,7 +39,7 @@ export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
         </Avatar>
         <div className="flex-1 min-w-0">
           <div className="bg-muted rounded-lg p-3">
-            <p className="text-sm font-semibold">
+            <p className="text-sm font-bold">
               {comment.profiles?.username || 'Unknown User'}
             </p>
             <p className="text-sm mt-1">
@@ -66,7 +66,7 @@ export function CommentItem({ comment, onReply, level = 0 }: CommentItemProps) {
               size="sm"
               className={cn(
                 "h-auto p-0 text-xs flex items-center gap-1",
-                isLiked ? "text-red-500 hover:text-red-600" : "text-muted-foreground hover:text-foreground"
+                isLiked ? "text-rose-500 hover:text-rose-600" : "text-muted-foreground hover:text-foreground"
               )}
               onClick={handleLike}
               disabled={!user || toggleLike.isPending}

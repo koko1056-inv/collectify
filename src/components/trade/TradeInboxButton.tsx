@@ -52,7 +52,7 @@ export function TradeInboxButton({
           <Inbox className="h-4 w-4" />
           {t("trade.inbox.open")}
           {actionable > 0 && (
-            <span className="ml-auto rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground tabular-nums">
+            <span className="ml-auto rounded-full bg-primary px-1.5 py-0.5 text-3xs font-bold text-primary-foreground tabular-nums">
               {actionable}
             </span>
           )}
@@ -66,7 +66,7 @@ export function TradeInboxButton({
 
 function CountDot({ count }: { count: number }) {
   return (
-    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-none text-primary-foreground tabular-nums">
+    <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-3xs font-bold leading-none text-primary-foreground tabular-nums">
       {count > 9 ? "9+" : count}
     </span>
   );

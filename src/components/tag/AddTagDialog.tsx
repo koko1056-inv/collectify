@@ -141,7 +141,7 @@ export function AddTagDialog({ isOpen, onClose, category, onTagAdded, contentId 
               {TAG_CREATE_COST}{t("tagManage.addDialog.ptBalancePrefix")}{balance}{t("tagManage.addDialog.ptBalanceSuffix")}
             </span>
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-2xs text-muted-foreground">
             {t("tagManage.addDialog.note")}
           </p>
         </div>

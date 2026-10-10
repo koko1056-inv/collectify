@@ -48,7 +48,7 @@ export function UserCard({
       
       <div className="flex-1 min-w-0">
         <Link to={`/user/${id}`} className="block group">
-          <div className="font-semibold text-foreground group-hover:text-primary transition-colors truncate">
+          <div className="font-bold text-foreground group-hover:text-primary transition-colors truncate">
             {username}
           </div>
           {bio ? (

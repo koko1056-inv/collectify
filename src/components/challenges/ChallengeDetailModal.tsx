@@ -232,7 +232,7 @@ export function ChallengeDetailModal({ challengeId, isOpen, onClose }: Challenge
                               <div className="flex items-center gap-2 mb-1">
                                 <Avatar className="h-5 w-5">
                                   <AvatarImage src={entry.profiles?.avatar_url} />
-                                  <AvatarFallback className="text-[10px]">{entry.profiles?.username?.[0]}</AvatarFallback>
+                                  <AvatarFallback className="text-3xs">{entry.profiles?.username?.[0]}</AvatarFallback>
                                 </Avatar>
                                 <span className="text-sm font-medium truncate">
                                   {entry.profiles?.username}

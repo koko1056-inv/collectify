@@ -222,7 +222,7 @@ export function PublicUserItemModal({
                 <Calendar className="w-4 h-4" />
                 {formatDate(officialItem.release_date)}
                 {officialItem.price && officialItem.price !== "0" && (
-                  <span className="ml-auto font-semibold text-foreground">
+                  <span className="ml-auto font-bold text-foreground">
                     ¥{officialItem.price}
                   </span>
                 )}
@@ -293,7 +293,7 @@ export function PublicUserItemModal({
                       : t("itemDetails.publicItem.addToWishlist")}
                 </Button>
                 {!officialItemId && (
-                  <p className="text-[11px] text-muted-foreground text-center">
+                  <p className="text-2xs text-muted-foreground text-center">
                     {t("itemDetails.publicItem.noOfficialNote")}
                   </p>
                 )}

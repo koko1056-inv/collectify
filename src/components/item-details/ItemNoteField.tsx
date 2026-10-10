@@ -51,7 +51,7 @@ export function ItemNoteField({
               {memory.comment && (
                 <p className="text-xs text-foreground">{memory.comment}</p>
               )}
-              <p className="text-[10px] text-muted-foreground mt-1">
+              <p className="text-3xs text-muted-foreground mt-1">
                 {formatNumericDate(memory.created_at)}
               </p>
             </div>

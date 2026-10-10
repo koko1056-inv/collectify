@@ -87,7 +87,7 @@ export function GeneratedResultView({
         </div>
 
         <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
-          <h3 className="font-semibold">{t("homeScreen.result.saveToGallery")}</h3>
+          <h3 className="font-bold">{t("homeScreen.result.saveToGallery")}</h3>
           <div className="space-y-2">
             <Label htmlFor="gallery-title">{t("homeScreen.result.titleLabel")}</Label>
             <Input

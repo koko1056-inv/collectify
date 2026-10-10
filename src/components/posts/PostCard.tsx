@@ -67,7 +67,7 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
               <div className="flex items-center gap-2">
                 <Avatar className="h-7 w-7 border-2 border-white/80">
                   <AvatarImage src={post.profiles?.avatar_url} />
-                  <AvatarFallback className="text-[10px] bg-primary text-primary-foreground">
+                  <AvatarFallback className="text-3xs bg-primary text-primary-foreground">
                     {post.profiles?.username?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -77,7 +77,7 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
               </div>
               <div className="flex items-center gap-3 text-white">
                 <button onClick={handleLike} disabled={!user} className="flex items-center gap-1 hover:scale-110 transition-transform">
-                  <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-400 text-red-400' : ''}`} />
+                  <Heart className={`w-4 h-4 ${isLiked ? 'fill-rose-500 text-rose-500' : ''}`} />
                   <span className="text-xs">{likesCount}</span>
                 </button>
                 <button onClick={handleCommentClick} className="flex items-center gap-1 hover:scale-110 transition-transform">
@@ -97,27 +97,27 @@ export const PostCard = memo(function PostCard({ post, onClick }: PostCardProps)
               <div className="flex items-center gap-1.5">
                 <Avatar className="h-5 w-5">
                   <AvatarImage src={post.profiles?.avatar_url} />
-                  <AvatarFallback className="text-[9px] bg-primary text-primary-foreground">
+                  <AvatarFallback className="text-3xs bg-primary text-primary-foreground">
                     {post.profiles?.username?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-[11px] font-medium text-card-foreground truncate max-w-[80px]">
+                <span className="text-2xs font-medium text-card-foreground truncate max-w-[80px]">
                   {post.profiles?.username}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={handleLike} disabled={!user} className="flex items-center gap-0.5">
-                  <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
-                  <span className="text-[10px] text-muted-foreground">{likesCount}</span>
+                  <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-rose-500 text-rose-500' : 'text-muted-foreground'}`} />
+                  <span className="text-3xs text-muted-foreground">{likesCount}</span>
                 </button>
                 <button onClick={handleCommentClick} className="flex items-center gap-0.5">
                   <MessageCircle className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-[10px] text-muted-foreground">{commentsCount}</span>
+                  <span className="text-3xs text-muted-foreground">{commentsCount}</span>
                 </button>
               </div>
             </div>
             {post.caption && (
-              <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{post.caption}</p>
+              <p className="text-2xs text-muted-foreground line-clamp-2 leading-relaxed">{post.caption}</p>
             )}
           </div>
         </div>

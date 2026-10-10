@@ -210,7 +210,7 @@ export function ItemDetailsWrapper({
       )}
 
       <div className="px-4 sm:px-6 pt-3 pb-4">
-        <h2 className="text-lg font-semibold mb-3 line-clamp-2">{itemDetails.title}</h2>
+        <h2 className="text-lg font-bold mb-3 line-clamp-2">{itemDetails.title}</h2>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-5 h-auto">
@@ -222,21 +222,21 @@ export function ItemDetailsWrapper({
               <Users className="h-4 w-4" />
               {t("itemDetails.tabs.owners")}
               {ownersCount > 0 && (
-                <span className="text-[10px] text-muted-foreground">({ownersCount})</span>
+                <span className="text-3xs text-muted-foreground">({ownersCount})</span>
               )}
             </TabsTrigger>
             <TabsTrigger value="wishers" className="flex flex-col gap-0.5 py-2 text-xs">
               <Heart className="h-4 w-4" />
               {t("itemDetails.tabs.wishers")}
               {wishlistCount > 0 && (
-                <span className="text-[10px] text-muted-foreground">({wishlistCount})</span>
+                <span className="text-3xs text-muted-foreground">({wishlistCount})</span>
               )}
             </TabsTrigger>
             <TabsTrigger value="comments" className="flex flex-col gap-0.5 py-2 text-xs">
               <MessageSquare className="h-4 w-4" />
               {t("itemDetails.tabs.comments")}
               {commentsCount > 0 && (
-                <span className="text-[10px] text-muted-foreground">({commentsCount})</span>
+                <span className="text-3xs text-muted-foreground">({commentsCount})</span>
               )}
             </TabsTrigger>
             <TabsTrigger value="room" className="flex flex-col gap-0.5 py-2 text-xs">

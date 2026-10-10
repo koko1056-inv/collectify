@@ -248,6 +248,9 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* 日本語を文節で折り返す（「ぬい／ぐるみ」のような単語の途中での改行を防ぐ。未対応のブラウザは無視する） */
+    word-break: auto-phrase;
+    line-break: strict;
     -webkit-overflow-scrolling: touch;
     overflow-y: auto;
     touch-action: pan-y;
@@ -289,7 +292,8 @@
 
 .logo-text {
   font-family: 'Righteous', sans-serif;
-  @apply text-2xl font-bold;
+  /* Righteous には太字が無い。font-bold だと擬似的に太らせて輪郭がにじむ */
+  @apply text-2xl font-normal;
   letter-spacing: 0.05em;
 }
 

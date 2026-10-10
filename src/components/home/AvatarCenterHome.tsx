@@ -93,11 +93,11 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
           <div className="flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-primary" />
             <h2 className="text-base font-bold">{t("homeScreen.avatarCenter.title")}</h2>
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
+            <span className="text-3xs font-bold px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground">
               NEW
             </span>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+          <p className="text-2xs text-muted-foreground mt-0.5 truncate">
             {t("homeScreen.avatarCenter.subtitle")}
           </p>
         </div>
@@ -146,7 +146,7 @@ export function AvatarCenterHome({ profile }: AvatarCenterHomeProps) {
       {!avatars.isLoading && restAvatars.length > 0 && (
         <>
           <div className="flex items-center justify-between pt-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">
               {t("homeScreen.avatarCenter.gallery")}
               <span className="ml-1.5 normal-case font-normal">
                 ({restAvatars.length})
@@ -387,14 +387,14 @@ function HeroAvatar({
         {/* 下グラデ + ラベル */}
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute left-4 right-4 bottom-3 text-left text-white">
-          <p className="text-[10px] uppercase tracking-widest opacity-80 mb-0.5">
+          <p className="text-3xs uppercase tracking-widest opacity-80 mb-0.5">
             {t("homeScreen.avatarCenter.currentAvatar")}
           </p>
           <p className="text-base font-bold truncate drop-shadow-md">{name}</p>
         </div>
 
         {/* 右上バッジ */}
-        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur text-white text-xs font-semibold flex items-center gap-1.5">
+        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur text-white text-xs font-bold flex items-center gap-1.5">
           <Sparkles className="w-3 h-3" /> {t("homeScreen.avatarCenter.wearing")}
         </div>
       </button>
@@ -416,8 +416,8 @@ function HeroAvatar({
         />
         <label className="flex flex-col items-center justify-center gap-1 py-2.5 rounded-lg hover:bg-muted/60 cursor-pointer transition-colors text-foreground/80">
           <UploadCloud className="w-4 h-4" />
-          <span className="text-[11px] font-semibold leading-none">{t("homeScreen.avatarCenter.actionUpload")}</span>
-          <span className="text-[9px] text-muted-foreground leading-none">{t("homeScreen.avatarCenter.actionUploadHint")}</span>
+          <span className="text-2xs font-bold leading-none">{t("homeScreen.avatarCenter.actionUpload")}</span>
+          <span className="text-3xs text-muted-foreground leading-none">{t("homeScreen.avatarCenter.actionUploadHint")}</span>
           <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
         </label>
       </div>
@@ -448,9 +448,9 @@ function ActionButton({
       }`}
     >
       <Icon className="w-4 h-4" />
-      <span className="text-[11px] font-semibold leading-none">{label}</span>
+      <span className="text-2xs font-bold leading-none">{label}</span>
       {hint && (
-        <span className={`text-[9px] leading-none ${accent ? "text-primary/70" : "text-muted-foreground"}`}>
+        <span className={`text-3xs leading-none ${accent ? "text-primary/70" : "text-muted-foreground"}`}>
           {hint}
         </span>
       )}
@@ -477,10 +477,10 @@ function NextStepHint({ onDressUp }: { onDressUp: () => void }) {
         <Shirt className="w-4 h-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold leading-tight">
+        <p className="text-sm font-bold leading-tight">
           {t("homeScreen.avatarCenter.hintTitle")}
         </p>
-        <p className="text-[11px] text-muted-foreground mt-0.5">
+        <p className="text-2xs text-muted-foreground mt-0.5">
           {t("homeScreen.avatarCenter.hintDescription")}
         </p>
       </div>
@@ -521,12 +521,12 @@ function AvatarThumbCard({
         />
         <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/70 to-transparent" />
         {avatar.item_ids && avatar.item_ids.length > 0 && (
-          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-[9px] font-semibold flex items-center gap-1">
+          <div className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-3xs font-bold flex items-center gap-1">
             <Shirt className="w-2.5 h-2.5" />
           </div>
         )}
         {avatar.name && (
-          <div className="absolute left-2 right-2 bottom-1.5 text-white text-[11px] font-semibold truncate text-left">
+          <div className="absolute left-2 right-2 bottom-1.5 text-white text-2xs font-bold truncate text-left">
             {avatar.name}
           </div>
         )}

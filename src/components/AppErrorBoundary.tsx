@@ -51,7 +51,7 @@ export class AppErrorBoundary extends React.Component<Props, State> {
         <div className="max-w-sm w-full text-center space-y-6">
           <div className="text-5xl">😢</div>
           <div className="space-y-2">
-            <h1 className="text-lg font-semibold text-foreground">
+            <h1 className="text-lg font-bold text-foreground">
               {en ? "Something went wrong" : "問題が発生しました"}
             </h1>
             <p className="text-sm text-muted-foreground">

@@ -44,7 +44,7 @@ export function AddressFreeShippingGuide() {
         <div className="space-y-4">
           {methods.map(({ icon: Icon, key }) => (
             <section key={key} className="space-y-1.5 rounded-lg border border-border p-3">
-              <h3 className="flex items-center gap-2 text-sm font-semibold">
+              <h3 className="flex items-center gap-2 text-sm font-bold">
                 <Icon className="h-4 w-4 shrink-0 text-primary" />
                 {t(`trade.addressless.${key}.title`)}
               </h3>
@@ -58,7 +58,7 @@ export function AddressFreeShippingGuide() {
           ))}
 
           <section className="rounded-lg bg-muted/60 p-3">
-            <h3 className="mb-1.5 text-sm font-semibold">{t("trade.addressless.safetyTitle")}</h3>
+            <h3 className="mb-1.5 text-sm font-bold">{t("trade.addressless.safetyTitle")}</h3>
             <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-muted-foreground">
               <li>{t("trade.addressless.safety1")}</li>
               <li>{t("trade.addressless.safety2")}</li>
