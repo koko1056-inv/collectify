@@ -49,6 +49,11 @@ verify_jwt = true
 [functions.search-item-prices]
 verify_jwt = true
 
+# 公式アカウントとして X に投稿する。ログイン済みの管理者（has_role('admin')）だけ。
+# 関数の中でも auth.getUser() と has_role を検証している。
+[functions.post-to-twitter]
+verify_jwt = true
+
 # --- JWT を要求しない（要求すると壊れるもの）-------------------------------
 
 # SNS のクローラーに OGP を返し、人間は本体へ送り返す。
@@ -78,13 +83,15 @@ verify_jwt = false
 
 # --- JWT を要求しない（本番が false なので合わせてある）-------------------
 #
-# 以下の5本は本番で verify_jwt = false になっている。Lovable 経由で
+# 以下の4本は本番で verify_jwt = false になっている。Lovable 経由で
 # そう作られたもので、意図的かどうかは確認できていない。
 #
 # ここで true に変えると CLI デプロイの瞬間に挙動が変わるため、
 # 現状に合わせてある。締めるかどうかは別途判断すること。
 # notify-new-tag は DB トリガーから呼ばれるので false が正しいが、
-# 残りの4本は invoke 経由なので true でも動く可能性がある（未検証）。
+# 残りの3本は invoke 経由なので true でも動く可能性がある（未検証）。
+# analyze-image と scrape-images は関数の中で auth.getUser() を検証するようにした
+# （Authorization ヘッダがあるだけでは通さない）。
 
 [functions.analyze-image]
 verify_jwt = false
@@ -96,9 +103,6 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.notify-new-tag]
-verify_jwt = false
-
-[functions.post-to-twitter]
 verify_jwt = false
 
 [functions.scrape-images]

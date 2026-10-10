@@ -1,72 +1,65 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { checkRateLimit, corsHeadersFor, jsonResponse, rateLimitedResponse, readJson, requireUser } from '../_shared/security.ts'
+import { mediaType, parsePublicHttpsUrl, readBodyCapped, safeFetch, SsrfError } from '../_shared/ssrf.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-// SSRF対策: 内部ネットワークアドレスをブロック
-const isInternalUrl = (urlString: string): boolean => {
-  try {
-    const parsed = new URL(urlString)
-    const hostname = parsed.hostname.toLowerCase()
-    return ['localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254', '::1'].includes(hostname) ||
-      hostname.endsWith('.internal') ||
-      hostname.startsWith('10.') ||
-      hostname.startsWith('192.168.') ||
-      /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
-  } catch {
-    return true
-  }
-}
+// 取得する HTML の上限（先頭1MBだけ読む。超えた分は打ち切り）
+const MAX_HTML_BYTES = 1_000_000
 
 serve(async (req) => {
+  const corsHeaders = corsHeadersFor(req)
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { status: 204, headers: corsHeaders })
   }
 
+  // 認証チェック: auth.getUser() で本物のログインユーザーか確かめる
+  // （Authorization ヘッダがあるだけでは通さない）
+  const auth = await requireUser(req, corsHeaders)
+  if (!auth.ok) return auth.response
+
   try {
-    // 認証チェック
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
-      )
+    const body = await readJson(req)
+    const rawUrl = body?.url
+
+    if (!rawUrl) {
+      return jsonResponse(corsHeaders, { error: 'URL is required' }, 400)
     }
 
-    const { url } = await req.json()
-    
-    if (!url) {
-      return new Response(
-        JSON.stringify({ error: 'URL is required' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
+    // SSRF対策: https のみ・IP 直指定や内部ホスト名は拒否（DNS の検査は safeFetch が行う）
+    let parsedUrl: URL
+    try {
+      parsedUrl = parsePublicHttpsUrl(rawUrl)
+    } catch (e) {
+      if (e instanceof SsrfError) return jsonResponse(corsHeaders, { error: e.message }, 400)
+      throw e
     }
 
-    // SSRF対策
-    if (isInternalUrl(url)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid URL: internal addresses are not allowed' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
+    const url = parsedUrl.href // 以降（保存する source_url を含む）は検査済みの URL を使う
+
+    // TODO: 暫定のインスタンス単位の制限。共有ストアでの制限に置き換えること（_shared/security.ts 参照）
+    const limit = checkRateLimit(`scrape-images:${auth.user.id}`, 60, 10 * 60 * 1000)
+    if (!limit.ok) return rateLimitedResponse(corsHeaders, limit.retryAfterSec)
+
+    // Fetch the webpage content with timeout.
+    // リダイレクトは最大3回まで辿り、ホップごとに内部アドレスでないか検査し直す。
+    const { response, finalUrl } = await safeFetch(parsedUrl, { timeoutMs: 10000, maxRedirects: 3 })
+
+    if (!response.ok) {
+      await response.body?.cancel().catch(() => {})
+      return jsonResponse(corsHeaders, { error: 'Failed to fetch the page' }, 502)
+    }
+    const type = mediaType(response)
+    if (type !== 'text/html' && type !== 'application/xhtml+xml') {
+      await response.body?.cancel().catch(() => {})
+      return jsonResponse(corsHeaders, { error: 'URL does not point to an HTML page' }, 400)
     }
 
-    // Fetch the webpage content with timeout
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
-    
-    const response = await fetch(url, { signal: controller.signal })
-    clearTimeout(timeoutId)
-    
-    let html = await response.text()
-    
-    // Limit HTML size to prevent memory issues (first 1MB)
-    if (html.length > 1000000) {
-      html = html.substring(0, 1000000)
-    }
+    // Limit HTML size to prevent memory issues (first 1MB)。ストリームで読んで上限で打ち切る
+    const html = new TextDecoder().decode(
+      await readBodyCapped(response, MAX_HTML_BYTES, { truncate: true })
+    )
 
     interface ImageData {
       url: string;
@@ -98,10 +91,10 @@ serve(async (req) => {
         if (imgUrl.startsWith('//')) {
           imgUrl = 'https:' + imgUrl
         } else if (imgUrl.startsWith('/')) {
-          const urlObj = new URL(url)
+          const urlObj = finalUrl
           imgUrl = urlObj.origin + imgUrl
         } else if (!imgUrl.startsWith('http')) {
-          const urlObj = new URL(url)
+          const urlObj = finalUrl
           imgUrl = urlObj.origin + '/' + imgUrl
         }
       } catch (e) {
@@ -201,27 +194,22 @@ serve(async (req) => {
 
       if (insertError) {
         console.error('Error inserting scraped images:', insertError)
-        return new Response(
-          JSON.stringify({ error: 'Failed to store scraped images' }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-        )
+        return jsonResponse(corsHeaders, { error: 'Failed to store scraped images' }, 500)
       }
     }
 
-    return new Response(
-      JSON.stringify({ 
-        images: imageData.map(data => ({
-          url: data.url,
-          title: data.title
-        }))
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    )
+    return jsonResponse(corsHeaders, {
+      images: imageData.map(data => ({
+        url: data.url,
+        title: data.title
+      }))
+    })
   } catch (error) {
     console.error('Error:', error)
-    return new Response(
-      JSON.stringify({ error: 'Failed to scrape images' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    )
+    // 取得先の内部事情は返さず、SSRF 対策で弾いた場合だけ固定の文言を返す
+    if (error instanceof SsrfError) {
+      return jsonResponse(corsHeaders, { error: error.message }, error.status)
+    }
+    return jsonResponse(corsHeaders, { error: 'Failed to scrape images' }, 500)
   }
 })

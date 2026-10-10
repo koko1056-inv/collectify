@@ -1,9 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import {
+  checkRateLimit,
+  corsHeadersFor,
+  jsonResponse,
+  rateLimitedResponse,
+  readJson,
+  requireUser,
+} from "../_shared/security.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// 検索語の上限
+const MAX_TITLE_CHARS = 200;
 
 interface SearchResult {
   shop: string;
@@ -15,27 +21,36 @@ interface SearchResult {
 }
 
 serve(async (req) => {
+  const corsHeaders = corsHeadersFor(req);
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
+  // ログイン必須（anon キーだけの呼び出しは 401）
+  const auth = await requireUser(req, corsHeaders);
+  if (!auth.ok) return auth.response;
+
   try {
-    const { itemTitle } = await req.json();
+    const body = await readJson(req);
+    const itemTitle = typeof body?.itemTitle === 'string' ? body.itemTitle.trim() : '';
 
     if (!itemTitle) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Item title is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse(corsHeaders, { success: false, error: 'Item title is required' }, 400);
     }
+    if (itemTitle.length > MAX_TITLE_CHARS) {
+      return jsonResponse(corsHeaders, { success: false, error: 'Item title is too long' }, 400);
+    }
+
+    // 1回の検索で Firecrawl を5回呼ぶので 10分に10回まで
+    // TODO: 暫定のインスタンス単位の制限。共有ストアでの制限に置き換えること（_shared/security.ts 参照）
+    const limit = checkRateLimit(`search-item-prices:${auth.user.id}`, 10, 10 * 60 * 1000);
+    if (!limit.ok) return rateLimitedResponse(corsHeaders, limit.retryAfterSec);
 
     const apiKey = Deno.env.get('FIRECRAWL_API_KEY');
     if (!apiKey) {
       console.error('FIRECRAWL_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ success: false, error: 'Firecrawl connector not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse(corsHeaders, { success: false, error: 'Firecrawl connector not configured' }, 500);
     }
 
     console.log('Searching for item prices:', itemTitle);
@@ -109,17 +124,11 @@ serve(async (req) => {
 
     console.log('Total results found:', results.length);
 
-    return new Response(
-      JSON.stringify({ success: true, data: results }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse(corsHeaders, { success: true, data: results });
   } catch (error) {
     console.error('Error searching item prices:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to search prices';
-    return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    // 内部のエラー文言はクライアントに返さない
+    return jsonResponse(corsHeaders, { success: false, error: 'Failed to search prices' }, 500);
   }
 });
 
