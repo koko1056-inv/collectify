@@ -1,14 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Crown,
+  Gem,
   Trophy,
-  Award,
-  Star,
-  Sparkles,
+  Medal,
+  Sprout,
   Share2,
   Settings,
   Pencil,
@@ -27,6 +25,7 @@ import { ChatModal } from "@/components/chat/ChatModal";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ReportBlockMenu } from "@/components/safety/ReportBlockMenu";
+import { IconTile, type IconTileTone } from "@/components/ui/icon-tile";
 
 interface ProfileHeroProps {
   profile: Profile;
@@ -133,31 +132,41 @@ export function ProfileHero({
     staleTime: 2 * 60 * 1000,
   });
 
-  // ランク
-  const rank = (() => {
+  // ランク（登録数で決まる）。
+  // 以前はランクごとに虹色のグラデーション（cyan→blue、amber→orange、pink→purple…）を
+  // カバー全面・アバターの光・ピン・名前の横の札の4か所に塗っていて、画面が子どもっぽく見えていた。
+  // いまは名前の横の小さな印（IconTile）と文字だけで示し、色は意味のトークンから選ぶ。
+  const rank: { label: string; icon: typeof Gem; tone: IconTileTone } = (() => {
     const n = stats?.items ?? 0;
-    if (n >= 500) return { label: "Diamond", icon: Crown, color: "from-cyan-400 to-blue-500" };
-    if (n >= 200) return { label: "Gold", icon: Trophy, color: "from-amber-400 to-orange-500" };
-    if (n >= 50) return { label: "Silver", icon: Award, color: "from-slate-300 to-slate-500" };
-    if (n >= 10) return { label: "Bronze", icon: Star, color: "from-orange-300 to-rose-400" };
-    return { label: "Rookie", icon: Sparkles, color: "from-pink-300 to-purple-400" };
+    // 登録したばかり（Rookie）は控えめな muted。上がるほど色が付く
+    if (n >= 500) return { label: "Diamond", icon: Gem, tone: "primary" };
+    if (n >= 200) return { label: "Gold", icon: Trophy, tone: "points" };
+    if (n >= 50) return { label: "Silver", icon: Medal, tone: "info" };
+    if (n >= 10) return { label: "Bronze", icon: Medal, tone: "warning" };
+    return { label: "Rookie", icon: Sprout, tone: "muted" };
   })();
   const RankIcon = rank.icon;
+
 
   const displayName = profile.display_name || profile.username || t("profileScreen.hero.defaultName");
   const avatarSrc = previewUrl || profile.avatar_url || undefined;
   const coverSrc = coverPreview || profile.cover_image_url || null;
   const hasCustomCover = !!coverSrc;
+  // カバーの上のボタン。写真のカバーでは暗い半透明（白い印）、無地のカバーでは明るい面（文字色の印）にする
+  const coverButton = hasCustomCover
+    ? "bg-black/30 hover:bg-black/50 text-white"
+    : "bg-background/70 hover:bg-background/90 text-foreground ring-1 ring-inset ring-foreground/5";
 
   return (
     <>
       <div className="relative overflow-hidden rounded-b-3xl sm:rounded-3xl">
-        {/* カバー: カスタム画像 or グラデーション */}
+        {/* カバー: カスタム画像 or 無地。
+            無地のときは primary をごく薄く敷き、細かな点の地模様と上からのやわらかな光だけを置く。
+            以前はランク色のグラデーションの上に ✨💖🌸⭐🎀 の絵文字が浮遊していた */}
         <div
           className={cn(
             "relative h-32 sm:h-44 overflow-hidden",
-            !hasCustomCover && "bg-gradient-to-br",
-            !hasCustomCover && rank.color
+            !hasCustomCover && "bg-primary/10 dark:bg-primary/15"
           )}
         >
           {hasCustomCover && (
@@ -171,26 +180,34 @@ export function ProfileHero({
               <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/20" />
             </>
           )}
-          {/* ダークでは明るいランク色のカバーが浮くので、少し沈める */}
-          {!hasCustomCover && <div className="absolute inset-0 z-[1] hidden bg-black/35 dark:block" aria-hidden="true" />}
           {!hasCustomCover && (
-            <div className="absolute inset-0 overflow-hidden">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <motion.div
-                  key={i}
-                  className="absolute text-white/30"
-                  style={{
-                    left: `${[10, 30, 55, 75, 90][i]}%`,
-                    top: `${[20, 50, 30, 60, 35][i]}%`,
-                    fontSize: `${14 + (i % 3) * 4}px`,
-                  }}
-                  animate={{ y: [0, -8, 0], rotate: [0, 20, 0] }}
-                  transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  {["✨", "💖", "🌸", "⭐", "🎀"][i]}
-                </motion.div>
-              ))}
-            </div>
+            <>
+              <div
+                aria-hidden="true"
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: "radial-gradient(circle at 1px 1px, hsl(var(--primary) / 0.22) 1px, transparent 0)",
+                  backgroundSize: "14px 14px",
+                  maskImage: "linear-gradient(to bottom, black, transparent 85%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, black, transparent 85%)",
+                }}
+              />
+              {/* 上からのやわらかな光。ライトでは白っぽく明るく、ダークでは primary を少しだけ灯す */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 dark:hidden"
+                style={{
+                  backgroundImage: "radial-gradient(90% 120% at 50% 0%, hsl(var(--background) / 0.55), transparent 70%)",
+                }}
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 hidden dark:block"
+                style={{
+                  backgroundImage: "radial-gradient(90% 120% at 50% 0%, hsl(var(--primary) / 0.14), transparent 70%)",
+                }}
+              />
+            </>
           )}
 
           {/* 44px は Apple の指針の下限。ログアウトが隣にあるので、
@@ -199,16 +216,17 @@ export function ProfileHero({
             {isOwnProfile && (
               <label
                 className={cn(
-                  "w-11 h-11 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center cursor-pointer transition-colors",
+                  "w-11 h-11 rounded-full backdrop-blur-sm flex items-center justify-center cursor-pointer transition-colors",
+                  coverButton,
                   coverUploading && "pointer-events-none opacity-70"
                 )}
                 aria-label={t("profileScreen.hero.changeCover")}
                 title={t("profileScreen.hero.changeCover")}
               >
                 {coverUploading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <ImagePlus className="w-4 h-4" />
+                  <ImagePlus className="w-5 h-5" />
                 )}
                 <input
                   type="file"
@@ -228,7 +246,7 @@ export function ProfileHero({
               onOpenSettings && (
                 <button
                   onClick={onOpenSettings}
-                  className="w-11 h-11 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
+                  className={cn("w-11 h-11 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors", coverButton)}
                   aria-label={t("profileScreen.hero.settings")}
                 >
                   <Settings className="w-5 h-5" />
@@ -237,10 +255,10 @@ export function ProfileHero({
             ) : (
               <button
                 onClick={onShare}
-                className="w-11 h-11 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-sm flex items-center justify-center"
+                className={cn("w-11 h-11 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors", coverButton)}
                 aria-label={t("profileScreen.hero.share")}
               >
-                <Share2 className="w-4 h-4" />
+                <Share2 className="w-5 h-5" />
               </button>
             )}
           </div>
@@ -251,26 +269,14 @@ export function ProfileHero({
           {/* アバター (カバーに半分かぶる) */}
           <div className="absolute top-20 sm:top-24 left-1/2 -translate-x-1/2 sm:left-6 sm:translate-x-0">
             <label className={cn("relative block group", isOwnProfile && !isUploading && "cursor-pointer")}>
-              <motion.div
-                animate={{ scale: [1, 1.04, 1] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className={cn("absolute -inset-1 rounded-full blur-md opacity-60 bg-gradient-to-br", rank.color)}
-              />
-              <Avatar className="relative w-24 h-24 sm:w-28 sm:h-28 border-[3px] border-card shadow-xl ring-2 ring-background">
+              {/* 以前はアバターの後ろでランク色の光が脈打ち、右下にもランクのピンが付いていた。
+                  ランクは名前の横に1つだけ出す */}
+              <Avatar className="relative w-24 h-24 sm:w-28 sm:h-28 border-4 border-card bg-card shadow-md">
                 <AvatarImage src={avatarSrc} className="object-cover" />
-                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary font-bold text-2xl">
+                <AvatarFallback className="bg-primary/10 text-primary font-bold text-2xl">
                   {displayName.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              {/* ランクピン */}
-              <div
-                className={cn(
-                  "absolute -bottom-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br border-2 border-card",
-                  rank.color
-                )}
-              >
-                <RankIcon className="w-4 h-4 text-white" strokeWidth={2.5} />
-              </div>
               {isOwnProfile && onAvatarUpload && (
                 <>
                   <input
@@ -295,15 +301,12 @@ export function ProfileHero({
           <div className="text-center sm:text-left sm:ml-36">
             <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
               <h1 className="text-xl sm:text-2xl font-bold leading-tight">{displayName}</h1>
-              <div
-                className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-3xs font-bold text-white bg-gradient-to-r shadow-sm",
-                  rank.color
-                )}
-              >
-                <RankIcon className="w-3 h-3" />
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <IconTile tone={rank.tone} size="xs">
+                  <RankIcon />
+                </IconTile>
                 {rank.label}
-              </div>
+              </span>
             </div>
             {profile.username && profile.display_name && (
               <p className="text-xs text-muted-foreground mt-0.5">@{profile.username}</p>

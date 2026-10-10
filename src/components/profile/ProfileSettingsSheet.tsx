@@ -1,9 +1,10 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useUserPoints } from "@/hooks/usePoints";
 import { useThemeColor, themeColors } from "@/contexts/ThemeColorContext";
+import { PointIcon } from "@/components/ui/point-icon";
 import { InviteCodeSection } from "@/components/invite/InviteCodeSection";
 import { Button } from "@/components/ui/button";
-import { LogOut, MessageSquarePlus, HelpCircle, Globe, Sun, Moon, SunMoon, Palette, Coins, ChevronRight } from "lucide-react";
+import { LogOut, MessageSquarePlus, HelpCircle, Globe, Sun, Moon, SunMoon, Palette, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -111,11 +112,21 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
                     onClick={() => setThemeColor(color.value)}
                     aria-pressed={active}
                     className={cn(
-                      "flex flex-col items-center gap-1 rounded-xl border py-2 text-3xs font-medium transition-colors",
+                      "flex flex-col items-center gap-1.5 rounded-xl border py-2.5 text-3xs font-medium transition-colors",
                       active ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:bg-muted/50"
                     )}
                   >
-                    <span className="text-base leading-none" aria-hidden="true">{color.emoji}</span>
+                    {/* 色見本。選んでいるものは外側に細い輪を足す（以前は絵文字だった） */}
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "h-5 w-5 rounded-full bg-[color:var(--swatch)] dark:bg-[color:var(--swatch-dark)]",
+                        active
+                          ? "ring-2 ring-foreground/70 ring-offset-2 ring-offset-card"
+                          : "ring-1 ring-inset ring-black/10 dark:ring-white/15"
+                      )}
+                      style={{ "--swatch": color.swatch.light, "--swatch-dark": color.swatch.dark } as React.CSSProperties}
+                    />
                     {t(`chrome.themeColor.${color.value}`)}
                   </button>
                 );
@@ -126,7 +137,7 @@ export function ProfileSettingsSheet({ open, onOpenChange }: ProfileSettingsShee
           <SectionHeading>{t("profileScreen.settings.pointsAndInvite")}</SectionHeading>
           <section className="bg-card rounded-2xl border border-border divide-y divide-border">
             <SettingRow
-              icon={<Coins className="w-4 h-4" />}
+              icon={<PointIcon size={16} />}
               label={t("chrome.nav.pointsUnit")}
               hint={userPoints ? `${userPoints.total_points.toLocaleString()}pt` : undefined}
               onClick={() => {

@@ -17,11 +17,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Star,
   ArrowLeft,
   Gift,
   Sparkles,
-  Coins,
   Flame,
   Info,
   Tag as TagIcon,
@@ -37,6 +35,8 @@ import {
   type PointShopItem,
 } from "@/hooks/usePointShop";
 import { SlotUsageMeter } from "@/components/shop/SlotUsageMeter";
+import { PointIcon } from "@/components/ui/point-icon";
+import { IconTile } from "@/components/ui/icon-tile";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { useUserPoints } from "@/hooks/usePoints";
 import { useLoginBonusTiers } from "@/hooks/useLoginBonusTiers";
@@ -221,8 +221,9 @@ export default function PointShop() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Coins className="w-6 h-6 text-primary" />
+            {/* 見出しの横の印は外した。下の残高カードに同じ印が大きく出るので、並ぶと重複していた
+                （以前は lucide の Coins で、ほかの画面の ★ とも違う印だった） */}
+            <h1 className="text-2xl font-bold">
               {t("screens.pointShop.title")}
             </h1>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -232,12 +233,13 @@ export default function PointShop() {
         </div>
 
         {/* Current Balance */}
-        <Card data-tour="shop-balance" className="mb-6 bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
+        {/* 残高。以前は primary のグラデーションの面に、primary で塗った星の丸を置いていて、
+            ほかの画面のポイントの印（金色のメダル）と色が違っていた。面は落ち着いたカードにし、
+            印はアプリ共通の PointIcon を大きく出す */}
+        <Card data-tour="shop-balance" className="mb-6">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <Star className="w-6 h-6 text-primary fill-primary" />
-              </div>
+              <PointIcon size={44} />
               <div>
                 <p className="text-sm text-muted-foreground">{t("screens.pointShop.balance")}</p>
                 {pointsLoading ? (
@@ -252,7 +254,7 @@ export default function PointShop() {
             </div>
 
             {/* 枠の使用状況。枠を買うかどうかの判断材料になるのでここに出す。 */}
-            <div className="mt-4 pt-4 border-t border-primary/20 grid gap-3 sm:grid-cols-2">
+            <div className="mt-4 pt-4 border-t border-border grid gap-3 sm:grid-cols-2">
               <SlotUsageMeter type="collection" compact />
               <SlotUsageMeter type="room" compact />
             </div>
@@ -295,7 +297,7 @@ export default function PointShop() {
                         )}
                       </div>
                       <CardDescription className="flex items-baseline gap-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <PointIcon size={16} className="self-center" />
                         <span className="text-xl font-bold text-foreground">
                           {totalPoints.toLocaleString()}
                         </span>
@@ -322,7 +324,7 @@ export default function PointShop() {
         {(shopItemsLoading || shopItemsError || (shopItems?.length ?? 0) > 0) && (
         <section data-tour="shop-items" className="mb-8">
           <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
-            <Coins className="w-5 h-5 text-primary" />
+            <PointIcon size={20} />
             {t("screens.pointShop.exchangeHeading")}
           </h2>
 
@@ -350,8 +352,8 @@ export default function PointShop() {
                       )}
                     </CardHeader>
                     <CardFooter className="flex items-center justify-between pt-0">
-                      <Badge variant="secondary" className="gap-1">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      <Badge variant="secondary" className="gap-1 tabular-nums">
+                        <PointIcon size={14} />
                         {item.points_cost}pt
                       </Badge>
                       <Button
@@ -388,8 +390,8 @@ export default function PointShop() {
                       <Icon className="w-4 h-4 text-muted-foreground" />
                       <span>{t(g.label)}</span>
                     </div>
-                    <Badge variant="secondary" className="gap-1">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <Badge variant="secondary" className="gap-1 tabular-nums">
+                      <PointIcon size={14} />
                       {g.cost}pt
                     </Badge>
                   </div>
@@ -406,7 +408,10 @@ export default function PointShop() {
         <Card className="bg-muted/30">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Gift className="w-5 h-5 text-green-500" />
+              {/* 以前は green-500 の Gift。状態色ではなく「もらえる」の意味なので success のトークンに */}
+              <IconTile tone="success" size="sm">
+                <Gift />
+              </IconTile>
               {t("screens.pointShop.freeHeading")}
             </CardTitle>
           </CardHeader>
@@ -421,13 +426,16 @@ export default function PointShop() {
             {/* 連続ログインの段階と、いま自分が何日目かを示す */}
             <div className="pt-2 border-t border-border/60 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Flame className="w-4 h-4 text-orange-500" />
+                {/* 連続（炎）は warning のトークンにそろえる（以前は orange-500 の直書き） */}
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  <IconTile tone="warning" size="xs">
+                    <Flame />
+                  </IconTile>
                   {t("screens.pointShop.freeStreak")}
                 </span>
                 {currentStreak > 0 && (
                   <Badge variant="secondary" className="gap-1">
-                    <Flame className="w-3 h-3 text-orange-500" />
+                    <Flame className="w-3 h-3 text-warning" />
                     {t("screens.pointShop.streakDays", { n: currentStreak })}
                   </Badge>
                 )}

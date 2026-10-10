@@ -10,14 +10,38 @@ export interface TrustScore {
   communication_count: number;
 }
 
+import type { IconTileTone } from "@/components/ui/icon-tile";
+
 export type TrustTier = "newbie" | "trusted" | "veteran" | "ace";
 
 export interface TrustTierInfo {
   tier: TrustTier;
   label: string;
+  /**
+   * @deprecated 画面には出さない。TrustBadge は tone と lucide の印（芽・星・賞・王冠）で描く。
+   * 以前は 🌱⭐️🌟👑 をそのまま出していて、端末ごとに絵柄が違い、安っぽく見えていた。
+   * 外から読んでいるコードがあっても壊れないよう、値は残しておく。
+   */
   emoji: string;
+  /** 印の面（IconTile）の色。意味のトークンから選ぶ */
+  tone: IconTileTone;
+  /** 文字と枠の色（トークンのみ）。旧来の表示向けに残す */
   colorClass: string;
 }
+
+/**
+ * ティアごとの見た目。1か所にまとめて、同じティアがどこでも同じ色・同じ印になるようにする。
+ * 新人=芽（控えめな muted）/ 信頼=星（info）/ ベテラン=賞（success）/ エース=王冠（points の金）。
+ * 以前はエースだけ violet の直書きで、新人とベテランも success / warning と段階の並びが読み取りにくかった。
+ */
+const TIER_STYLE: Record<TrustTier, Pick<TrustTierInfo, "label" | "emoji" | "tone" | "colorClass">> = {
+  newbie: { label: "新人", emoji: "🌱", tone: "muted", colorClass: "text-muted-foreground border-border bg-muted" },
+  trusted: { label: "信頼できる", emoji: "⭐️", tone: "info", colorClass: "text-info border-info/30 bg-info-soft" },
+  veteran: { label: "ベテラン", emoji: "🌟", tone: "success", colorClass: "text-success border-success/30 bg-success-soft" },
+  ace: { label: "エース", emoji: "👑", tone: "points", colorClass: "text-points border-points/30 bg-points-soft" },
+};
+
+const tierInfo = (tier: TrustTier): TrustTierInfo => ({ tier, ...TIER_STYLE[tier] });
 
 /**
  * カテゴリ単独でのティア判定
@@ -25,16 +49,16 @@ export interface TrustTierInfo {
  */
 export function getCategoryTier(score: number, count: number): TrustTierInfo {
   if (count < 3) {
-    return { tier: "newbie", label: "新人", emoji: "🌱", colorClass: "text-success border-success/30 bg-success-soft" };
+    return tierInfo("newbie");
   }
   const avg = score / Math.max(count, 1);
   if (count >= 20 && avg >= 1.5) {
-    return { tier: "veteran", label: "ベテラン", emoji: "🌟", colorClass: "text-warning border-warning/30 bg-warning-soft" };
+    return tierInfo("veteran");
   }
   if (count >= 5 && avg >= 0.5) {
-    return { tier: "trusted", label: "信頼できる", emoji: "⭐️", colorClass: "text-info border-info/30 bg-info-soft" };
+    return tierInfo("trusted");
   }
-  return { tier: "newbie", label: "新人", emoji: "🌱", colorClass: "text-success border-success/30 bg-success-soft" };
+  return tierInfo("newbie");
 }
 
 /**
@@ -49,15 +73,15 @@ export function getOverallTier(s: TrustScore): TrustTierInfo {
   const veteranCount = tiers.filter(t => t.tier === "veteran").length;
   const trustedOrAbove = tiers.filter(t => t.tier === "veteran" || t.tier === "trusted").length;
   if (veteranCount >= 2 && trustedOrAbove === 3) {
-    return { tier: "ace", label: "エース", emoji: "👑", colorClass: "text-violet-600 border-violet-200 bg-violet-50" };
+    return tierInfo("ace");
   }
   if (veteranCount >= 1) {
-    return { tier: "veteran", label: "ベテラン", emoji: "🌟", colorClass: "text-warning border-warning/30 bg-warning-soft" };
+    return tierInfo("veteran");
   }
   if (trustedOrAbove >= 2) {
-    return { tier: "trusted", label: "信頼できる", emoji: "⭐️", colorClass: "text-info border-info/30 bg-info-soft" };
+    return tierInfo("trusted");
   }
-  return { tier: "newbie", label: "新人", emoji: "🌱", colorClass: "text-success border-success/30 bg-success-soft" };
+  return tierInfo("newbie");
 }
 
 export const CATEGORY_LABELS: Record<TrustCategory, string> = {

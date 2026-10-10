@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Check, Sparkles } from "lucide-react";
+import { Crown, Check, Minus, Sparkles } from "lucide-react";
+import { IconTile } from "@/components/ui/icon-tile";
 import { cn } from "@/lib/utils";
 import {
   PLAN_LIMITS,
@@ -60,10 +61,11 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
       free: t("misc.premium.valueConversionFree"),
       premium: t("misc.premium.valueConversionPremium"),
     },
-    { key: "bgm", label: t("misc.premium.featureBgm"), free: "×", premium: "✓" },
-    { key: "watermark", label: t("misc.premium.featureWatermark"), free: "×", premium: "✓" },
-    { key: "badge", label: t("misc.premium.featureBadge"), free: "×", premium: "✓" },
-  ];
+    // 有無だけの行は、文字の ×/✓ ではなく印で出す（null = 無料では使えない / true = 使える）
+    { key: "bgm", label: t("misc.premium.featureBgm"), free: null, premium: true },
+    { key: "watermark", label: t("misc.premium.featureWatermark"), free: null, premium: true },
+    { key: "badge", label: t("misc.premium.featureBadge"), free: null, premium: true },
+  ] as { key: string; label: string; free: string | null; premium: string | true }[];
 
   const checkoutMessage = (e: unknown): string => {
     if (e instanceof CheckoutError) {
@@ -108,9 +110,10 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-center w-16 h-16 mx-auto bg-gradient-to-br from-primary to-primary/70 rounded-full mb-2">
-            <Crown className="w-8 h-8 text-primary-foreground" />
-          </div>
+          {/* 以前は primary のグラデーションの丸に白い王冠。アプリ共通の IconTile（薄い面の角丸）にそろえる */}
+          <IconTile tone="primary" size="lg" className="mx-auto mb-2">
+            <Crown />
+          </IconTile>
           <DialogTitle className="text-center text-2xl">
             Collectify Premium
           </DialogTitle>
@@ -164,7 +167,8 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      {p === "premium_plus" && <Sparkles className="w-4 h-4 text-yellow-500" />}
+                      {/* 以前は yellow-500 の直書き。上位プランの印は primary の線だけにする */}
+                      {p === "premium_plus" && <Sparkles className="w-4 h-4 text-primary" />}
                       <p className="font-bold">
                         {p === "premium" ? "Premium" : "Premium+"}
                       </p>
@@ -195,13 +199,19 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
         {/* Features list */}
         <div className="border border-border rounded-xl p-4 mt-2 space-y-2">
           {features.map((f) => (
-            <div key={f.key} className="flex items-center justify-between text-sm">
+            <div key={f.key} className="flex items-center justify-between gap-3 text-sm">
               <span className="text-muted-foreground">{f.label}</span>
-              <span className="font-medium">
-                <span className="text-muted-foreground line-through text-xs mr-2">
-                  {f.free}
-                </span>
-                {f.premium}
+              <span className="flex items-center gap-2 font-medium">
+                {f.free === null ? (
+                  <Minus className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
+                ) : (
+                  <span className="text-muted-foreground line-through text-xs">{f.free}</span>
+                )}
+                {f.premium === true ? (
+                  <Check className="h-4 w-4 text-primary" aria-hidden="true" />
+                ) : (
+                  f.premium
+                )}
               </span>
             </div>
           ))}
@@ -226,7 +236,7 @@ export function PaywallModal({ open, onOpenChange, reason }: PaywallModalProps) 
         <Button
           onClick={handlePurchase}
           disabled={loading || isWebSubscriber}
-          className="w-full bg-gradient-to-r from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60 text-primary-foreground font-bold"
+          className="w-full font-bold"
           size="lg"
         >
           {loading

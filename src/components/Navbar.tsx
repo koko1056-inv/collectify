@@ -27,6 +27,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+/**
+ * ヘッダー右上のアイコンボタンの形。枠なしの丸・当たり判定40px・アイコン20px。
+ * 交換の入口（TradeInboxButton）は枠付きの四角が既定なので、ここから上書きしてそろえる。
+ * 件数バッジ（直下の span）の位置と縁も、メッセージ・通知の NavCountBadge に合わせる。
+ */
+const HEADER_ICON_BUTTON =
+  "relative h-10 w-10 rounded-full border-0 bg-transparent text-foreground shadow-none hover:bg-muted hover:text-foreground [&_svg]:size-5 [&>span]:right-0.5 [&>span]:top-0.5 [&>span]:ring-2 [&>span]:ring-background";
+
 export function Navbar() {
   const {
     user
@@ -173,17 +181,20 @@ export function Navbar() {
           </NavigationMenu>}
         
         {/* 右側のアクション */}
-        <div className="ml-auto flex items-center gap-4">
-          <UserInfo />
+        <div className="ml-auto flex items-center gap-1">
+          <div className="mr-2"><UserInfo /></div>
           {user ? <>
               
-              <Button variant="outline" size="icon" onClick={() => setIsWishlistModalOpen(true)} className="relative h-8 w-8" aria-label={t("chrome.nav.wishlist")} title={t("chrome.nav.wishlist")}>
-                <ShoppingBasket className="h-4 w-4 text-foreground" />
+              {/* 右上の丸いボタンは、ほしいもの・交換・メッセージ・通知で形をそろえる。
+                  以前はほしいもの・交換だけ枠付きの小さな四角（32px・アイコン16px）で、
+                  隣のメッセージ・通知（枠なしの丸・40px・アイコン20px）と大きさも形も違っていた */}
+              <Button variant="ghost" size="icon" onClick={() => setIsWishlistModalOpen(true)} className={HEADER_ICON_BUTTON} aria-label={t("chrome.nav.wishlist")} title={t("chrome.nav.wishlist")}>
+                <ShoppingBasket />
               </Button>
               
-              <TradeInboxButton />
+              <TradeInboxButton className={HEADER_ICON_BUTTON} />
               <MessagesNavButton unreadCount={unreadMessages} />
-              <NotificationBell className="hidden sm:block" />
+              <NotificationBell className="hidden sm:inline-flex" />
               
               <DropdownMenu>
                 {avatarTrigger}

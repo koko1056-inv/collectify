@@ -15,7 +15,9 @@ export interface PlanLimits {
   customBgm: boolean;                // カスタムBGM設定
   removeWatermark: boolean;          // シェア画像の透かし削除
   priorityAI: boolean;               // AI処理の優先度
-  badge: string | null;              // プロフィールバッジ
+  // プロフィールバッジの文字。印は描画側で lucide の Crown を付ける
+  // （以前は "Premium" / "Premium+" と記号・絵文字を文字に混ぜていた）
+  badge: string | null;
 }
 
 export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
@@ -41,7 +43,7 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     customBgm: true,
     removeWatermark: true,
     priorityAI: false,
-    badge: "★ Premium",
+    badge: "Premium",
   },
   premium_plus: {
     collectionItems: Infinity as unknown as number,
@@ -53,7 +55,7 @@ export const PLAN_LIMITS: Record<PlanTier, PlanLimits> = {
     customBgm: true,
     removeWatermark: true,
     priorityAI: true,
-    badge: "👑 Premium+",
+    badge: "Premium+",
   },
 };
 

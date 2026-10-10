@@ -33,7 +33,8 @@ export function DailyBonusListener() {
         const next = sorted.find((x) => x.min_streak > streak);
         const points = current?.points ?? 10;
         toast(t("engage.dailyHub.toastTitle", { n: streak, points }), {
-          icon: <Flame className="h-4 w-4 text-orange-500" />,
+          // 連続（炎）は warning のトークン（以前は orange-500 の直書き）
+          icon: <Flame className="h-4 w-4 text-warning" />,
           description: next
             ? t("engage.dailyHub.next", { days: next.min_streak - streak, points: next.points })
             : t("engage.dailyHub.toastMax"),

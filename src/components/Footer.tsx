@@ -64,12 +64,9 @@ export function Footer() {
         )}
       >
         <span className="relative">
-          <Icon
-            className={cn(
-              "h-6 w-6 mb-0.5 transition-transform",
-              active && "scale-110"
-            )}
-          />
+          {/* 選んでいるタブは線を少し太くして示す。以前は scale-110 で拡大していたが、
+              24px の線が拡大でにじみ、隣のタブと大きさがそろわなく見えていた */}
+          <Icon className="h-6 w-6 mb-0.5" strokeWidth={active ? 2.25 : 1.75} />
           {to === "/trade" && tradeBadge > 0 && (
             <span
               aria-label={t("trade.inbox.badgeLabel", { n: tradeBadge })}

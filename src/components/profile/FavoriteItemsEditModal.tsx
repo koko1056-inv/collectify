@@ -141,7 +141,8 @@ export function FavoriteItemsEditModal({
       <DialogContent className="max-w-2xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
         <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+            {/* お気に入りの星は primary（金色の points はポイントと評価の星だけ。FavoriteItemsTop5 と同じ決まり） */}
+            <Star className="w-5 h-5 text-primary fill-primary" />
             {t("profileScreen.favorites.editTitle", { count: FAVORITE_ITEMS_LIMIT })}
           </DialogTitle>
           <DialogDescription className="text-xs">
@@ -181,7 +182,7 @@ export function FavoriteItemsEditModal({
                           alt={item.title}
                           className="w-full h-full object-contain"
                         />
-                        <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-yellow-400 text-yellow-950 text-3xs font-bold flex items-center justify-center shadow">
+                        <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-3xs font-bold flex items-center justify-center shadow">
                           {idx + 1}
                         </div>
                         <button
