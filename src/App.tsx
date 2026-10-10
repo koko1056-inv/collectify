@@ -1,6 +1,7 @@
 
 import React from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { DailyBonusListener } from "@/components/daily/DailyBonusListener";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -156,6 +157,7 @@ const App: React.FC = () => {
               <OnboardingProvider>
                 <TooltipProvider>
                   <Sonner />
+                  <DailyBonusListener />
                   <RouteReadyTracker />
                   <ScrollToTop />
                   <OfflineBanner />
