@@ -70,7 +70,7 @@ export function ProfilePage() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container mx-auto pt-6 pb-20 px-4">
+        <main className="container mx-auto pt-6 pb-nav px-4">
           <div className="max-w-3xl mx-auto space-y-4">
             <Skeleton className="h-48 w-full rounded-3xl" />
             <Skeleton className="h-10 w-full" />
@@ -84,7 +84,7 @@ export function ProfilePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="w-full pb-24">
+      <main className="w-full pb-nav">
         <div className="max-w-3xl mx-auto">
           {/* ヒーローカード */}
           <ProfileHero

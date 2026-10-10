@@ -69,7 +69,7 @@ export default function UserProfile() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container mx-auto pb-24 px-4 pt-6">
+        <main className="container mx-auto pb-nav px-4 pt-6">
           {isNotFound ? (
             <EmptyState
               icon={UserX}
@@ -102,7 +102,7 @@ export default function UserProfile() {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
-        <main className="container mx-auto pb-20 px-4 pt-6">
+        <main className="container mx-auto pb-nav px-4 pt-6">
           <div className="max-w-md mx-auto text-center space-y-3 py-16">
             <p className="font-medium">{t("safety.blocked.unavailableTitle")}</p>
             <p className="text-sm text-muted-foreground">{t("safety.blocked.unavailableDesc")}</p>
@@ -131,7 +131,7 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="w-full pb-24">
+      <main className="w-full pb-nav">
         <div className="max-w-3xl mx-auto">
           {/* 戻るボタン */}
           <div className="px-4 py-2">

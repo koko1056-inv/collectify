@@ -96,7 +96,7 @@ export default function AiWorkDetail() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="w-full pb-24 pt-4">
+      <main className="w-full pb-nav pt-4">
         <div className="max-w-4xl mx-auto px-4">
           <Button
             variant="ghost"

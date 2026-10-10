@@ -85,6 +85,7 @@ export const screens = {
       resetTitle: "ログインできないとき",
       resetDesc: "パスワードの再設定について",
       welcome: "Collectifyにようこそ",
+      tagline: "推しグッズを記録して、交換して、見せ合おう",
       subtitleLogin: "アカウントにログインしてコレクションを管理",
       subtitleSignup: "新規アカウントを作成してコレクションを始めましょう",
       usernamePlaceholder: "ユーザー名",
@@ -445,6 +446,7 @@ export const screens = {
     invite: {
       checking: "Checking your invite…",
       welcome: "Welcome to Collectify! Sign up and get 50 points 🎁",
+      tagline: "Track, trade and show off your favorite merch",
     },
     login: {
       resetTitle: "Can't log in?",
