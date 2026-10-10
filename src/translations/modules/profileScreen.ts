@@ -26,7 +26,7 @@ export const profileScreen = {
       searchPlaceholder: "コレクションから検索...",
       noMatch: "該当するグッズがありません",
       emptyCollection: "コレクションにグッズがありません",
-      emptyCta: "タップして、推しグッズを最大5個まで選ぼう ⭐",
+      emptyCta: "タップして、推しグッズを最大5個まで選ぼう",
     },
     follow: {
       follow: "フォロー",
@@ -91,7 +91,7 @@ export const profileScreen = {
     bookmarks: {
       empty: "まだ保存した作品はありません",
       emptyHint1: "探索ページで気になるAI作品を見つけたら",
-      emptyHint2: "ブックマークして自分のコレクションに 📌",
+      emptyHint2: "ブックマークして自分のコレクションに",
       aiWorkAlt: "AI作品",
       aiRoom: "AIルーム",
       avatar: "アバター",
@@ -263,7 +263,7 @@ export const profileScreen = {
       searchPlaceholder: "Search your collection...",
       noMatch: "No matching goods",
       emptyCollection: "No goods in your collection",
-      emptyCta: "Tap to pick up to 5 favorite goods ⭐",
+      emptyCta: "Tap to pick up to 5 favorite goods",
     },
     follow: {
       follow: "Follow",
@@ -328,7 +328,7 @@ export const profileScreen = {
     bookmarks: {
       empty: "Nothing saved yet",
       emptyHint1: "Spot an AI creation you like on the explore page,",
-      emptyHint2: "bookmark it and it lands in your collection 📌",
+      emptyHint2: "bookmark it and it lands in your collection",
       aiWorkAlt: "AI creation",
       aiRoom: "AI Room",
       avatar: "Avatar",

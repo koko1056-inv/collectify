@@ -35,6 +35,7 @@ export const collectionScreen = {
       updated: "更新完了",
     },
     publicCollections: {
+      rankLabel: "{n}位",
       operationFailed: "操作に失敗しました",
       shareTitleSuffix: "のコレクション",
       linkCopied: "リンクをコピーしました",
@@ -240,6 +241,7 @@ export const collectionScreen = {
       updated: "Updated",
     },
     publicCollections: {
+      rankLabel: "No. {n}",
       operationFailed: "Something went wrong",
       shareTitleSuffix: "'s collection",
       linkCopied: "Link copied",

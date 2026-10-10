@@ -6,11 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Grid, Share2, ChevronRight, Sparkles, Package, Crown, Eye } from "lucide-react";
+import { Heart, Grid, Share2, ChevronRight, Sparkles, Package, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { IconTile } from "@/components/ui/icon-tile";
+import { cn } from "@/lib/utils";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getOptimizedImageUrl, fallbackToOriginal } from "@/utils/optimized-image";
@@ -212,9 +214,9 @@ export function PublicCollectionView() {
     <div className="space-y-4">
       {/* ヘッダー */}
       <div className="flex items-center gap-3">
-        <div className="bg-gradient-to-br from-primary/20 to-primary/10 p-2.5 rounded-full">
-          <Sparkles className="w-5 h-5 text-primary" />
-        </div>
+        <IconTile tone="primary" size="md">
+          <Sparkles />
+        </IconTile>
         <div>
           <h2 className="text-lg font-bold text-foreground">{t("collectionScreen.publicCollections.heading")}</h2>
           <p className="text-xs text-muted-foreground">{t("collectionScreen.publicCollections.subheading")}</p>
@@ -235,15 +237,6 @@ export function PublicCollectionView() {
             {/* ヘッダー部分 */}
             <div className="p-4 pb-3">
               <div className="flex items-center gap-3">
-                {/* ランキングバッジ（上位3位まで） */}
-                {index < 3 && (
-                  <div className={`absolute -left-1 -top-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                    index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-amber-600'
-                  }`}>
-                    {index + 1}
-                  </div>
-                )}
-                
                 <div className="relative">
                   <Avatar className="h-14 w-14 ring-2 ring-background shadow-md">
                     <AvatarImage src={collection.avatar_url || undefined} />
@@ -251,10 +244,21 @@ export function PublicCollectionView() {
                       {collection.username?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  {index === 0 && (
-                    <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-1">
-                      <Crown className="h-3 w-3 text-white" />
-                    </div>
+                  {/* ランキング（上位3位まで）。以前は金・銀・銅の原色の丸＋王冠で、
+                      しかも位置の基準が無くカードの外にずれていた。
+                      アバターの角に小さな角丸の数字を置き、1位だけ points の色にする */}
+                  {index < 3 && (
+                    <span
+                      className={cn(
+                        "absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-2xs font-bold tabular-nums ring-2 ring-background",
+                        index === 0
+                          ? "bg-points text-points-foreground"
+                          : "bg-muted text-foreground"
+                      )}
+                      aria-label={t("collectionScreen.publicCollections.rankLabel", { n: index + 1 })}
+                    >
+                      {index + 1}
+                    </span>
                   )}
                 </div>
                 

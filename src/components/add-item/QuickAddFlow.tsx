@@ -26,6 +26,7 @@ import { suggestTags, fillEmptyTags } from "@/utils/tag-suggest";
 import { consumePendingItemPhoto, dataUrlToFile } from "@/utils/ai-studio-handoff";
 import { ensureContentByName } from "@/utils/content-names";
 import { compressImageFile, ITEM_IMAGE_OPTIONS, UPLOAD_CACHE_CONTROL } from "@/utils/compress-image";
+import { IconTile } from "@/components/ui/icon-tile";
 
 interface AnalysisResult {
   title: string;
@@ -1064,13 +1065,23 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
             exit={{ opacity: 0 }}
             className="flex-1 flex flex-col items-center justify-center p-4 space-y-6"
           >
+            {/* 以前は緑の塗りつぶし丸＋✨絵文字を5つ並べていて、はしゃいだ印象だった。
+                成功の印は1つだけ: success の面に、チェックを一筆で描くだけにとどめる */}
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.2 }}
-              className="w-24 h-24 rounded-full bg-success flex items-center justify-center"
+              initial={{ scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.15 }}
             >
-              <Check className="w-12 h-12 text-success-foreground" />
+              <IconTile tone="success" size="lg">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                  <motion.path
+                    d="M5 12.5l4.5 4.5L19 7.5"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.45, ease: "easeOut", delay: 0.35 }}
+                  />
+                </svg>
+              </IconTile>
             </motion.div>
 
             <div className="text-center space-y-2">
@@ -1095,26 +1106,6 @@ export function QuickAddFlow({ onComplete, onCancel }: QuickAddFlowProps) {
                     : t("screens.quickAdd.collectionOnlyDesc")}
               </motion.p>
             </div>
-
-            {/* キラキラエフェクト */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex gap-2"
-            >
-              {[...Array(5)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ scale: 0, rotate: 0 }}
-                  animate={{ scale: [0, 1.2, 1], rotate: [0, 180] }}
-                  transition={{ delay: 0.6 + i * 0.1, duration: 0.5 }}
-                  className="text-2xl"
-                >
-                  ✨
-                </motion.div>
-              ))}
-            </motion.div>
 
             {addedItem && <AddedNextSteps key={addedItem.userItemId} item={addedItem} />}
 
