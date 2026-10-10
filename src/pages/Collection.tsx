@@ -46,7 +46,7 @@ export default function Collection() {
       <Navbar />
       <main className={`container mx-auto transition-all duration-300 ${isMobile ? 'px-3 py-4' : 'px-4 py-4'}`}>
         <div className="max-w-5xl mx-auto space-y-4 animate-fade-in">
-          {/* 「推し活はじめてガイド」。ログイン後に最初に開く画面がここになったので、
+          {/* 「Collectifyはじめてガイド」。ログイン後に最初に開く画面がここになったので、
               以前置いていた /my-room からこちらへ移した。
               タブから辿り着けない画面に置いておくと誰も進められない。 */}
           {user && <OnboardingChecklist />}

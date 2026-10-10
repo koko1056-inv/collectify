@@ -11,6 +11,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { OnboardingGate } from "@/components/onboarding/OnboardingGate";
 import { PageTourHost } from "@/components/onboarding/PageTourHost";
+import { GuideHost } from "@/components/onboarding/GuideHost";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeColorProvider } from "@/contexts/ThemeColorContext";
 import { ColorSchemeProvider } from "@/contexts/ColorSchemeContext";
@@ -216,6 +217,7 @@ const App: React.FC = () => {
                       ページ内に置くとそのページへ行かない人には一度も出ない。 */}
                   <OnboardingGate />
                   <PageTourHost />
+                  <GuideHost />
                   </AppErrorBoundary>
                 </TooltipProvider>
               </OnboardingProvider>

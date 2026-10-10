@@ -15,7 +15,7 @@ interface FavoriteItemsTop5Props {
 }
 
 /**
- * プロフィール「コレクション」タブの最上部に表示するお気に入り TOP5 セクション。
+ * お気に入り TOP5。自分のマイページ（編集できる）と、他人のプロフィールのコレクションタブに出す。
  * - 横スクロールカード
  * - 自分のページなら編集ボタンと未設定時の追加プレースホルダー
  * - 他人のページで未設定なら非表示
@@ -58,7 +58,8 @@ export function FavoriteItemsTop5({ userId, isOwnProfile }: FavoriteItemsTop5Pro
               size="sm"
               variant="ghost"
               onClick={() => setEditOpen(true)}
-              className="h-7 gap-1 text-xs"
+              className="h-8 gap-1 text-xs"
+              data-tour="me-top5"
             >
               <Pencil className="w-3 h-3" />
               {t("profileScreen.common.edit")}

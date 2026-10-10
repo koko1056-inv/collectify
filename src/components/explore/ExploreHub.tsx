@@ -580,7 +580,7 @@ function UsersTab({ searchQuery }: { searchQuery: string }) {
         ) : filtered.length === 0 ? (
           <EmptyState icon={User} message={t("chrome.explore.noUsers")} />
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-tour="explore-users">
             {filtered.map((u) => (
               <button
                 key={u.id}

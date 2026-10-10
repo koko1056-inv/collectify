@@ -8,7 +8,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ONBOARDING_STEP_POINTS } from './steps';
+import { ONBOARDING_STEP_POINTS, type OnboardingStepId } from './steps';
+import { guideHref } from './guideTasks';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2,
@@ -22,7 +23,7 @@ import {
   ChevronRight,
   Gift,
   Sparkles,
-  X,
+  Minus,
   Heart,
   Users,
   Wand2,
@@ -60,6 +61,11 @@ const GROUP_META: Record<
 export function OnboardingChecklist() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  // 項目を押したら、その操作をする画面へ移り、押す場所を光らせて案内する（GuideHost）
+  const goGuide = (id: OnboardingStepId) => {
+    const href = guideHref(id);
+    if (href) navigate(href);
+  };
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   /**
@@ -159,7 +165,8 @@ export function OnboardingChecklist() {
         claimedSteps,
       };
     },
-    enabled: !!user?.id && !isDismissed,
+    // 小さくしている間も進み具合を出すので、取得は続ける
+    enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -182,7 +189,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.profileDesc',
         icon: User,
         completed: checklistData.hasProfile,
-        action: () => navigate('/me'),
+        action: () => goGuide('profile'),
         points: ONBOARDING_STEP_POINTS['profile'],
         group: 'start',
       },
@@ -193,7 +200,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.firstItemDesc',
         icon: Package,
         completed: checklistData.hasItem,
-        action: () => navigate('/search'),
+        action: () => goGuide('first-item'),
         points: ONBOARDING_STEP_POINTS['first-item'],
         group: 'collection',
       },
@@ -203,7 +210,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.favoritesDesc',
         icon: Star,
         completed: checklistData.hasFavorites5,
-        action: () => navigate('/collection'),
+        action: () => goGuide('favorites'),
         points: ONBOARDING_STEP_POINTS['favorites'],
         group: 'collection',
       },
@@ -213,7 +220,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.wishlistDesc',
         icon: Heart,
         completed: checklistData.hasWishlist,
-        action: () => navigate('/search'),
+        action: () => goGuide('wishlist'),
         points: ONBOARDING_STEP_POINTS['wishlist'],
         group: 'collection',
       },
@@ -224,7 +231,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.aiRoomDesc',
         icon: Home,
         completed: checklistData.hasAiRoom,
-        action: () => navigate('/ai-rooms'),
+        action: () => goGuide('ai-room'),
         points: ONBOARDING_STEP_POINTS['ai-room'],
         freeTrial: true,
         group: 'ai',
@@ -235,7 +242,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.avatarDesc',
         icon: UserCircle2,
         completed: checklistData.hasAvatar,
-        action: () => navigate('/me?tab=ai&view=avatar'),
+        action: () => goGuide('avatar'),
         points: ONBOARDING_STEP_POINTS['avatar'],
         freeTrial: true,
         group: 'ai',
@@ -247,7 +254,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.followDesc',
         icon: Users,
         completed: checklistData.hasFollow,
-        action: () => navigate('/explore'),
+        action: () => goGuide('follow'),
         points: ONBOARDING_STEP_POINTS['follow'],
         group: 'community',
       },
@@ -260,7 +267,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.tradeOfferDesc',
         icon: ArrowLeftRight,
         completed: checklistData.hasTradeOffer,
-        action: () => navigate('/trade'),
+        action: () => goGuide('trade-offer'),
         points: ONBOARDING_STEP_POINTS['trade-offer'],
         group: 'community',
       },
@@ -270,7 +277,7 @@ export function OnboardingChecklist() {
         descriptionKey: 'misc.checklist.bookmarkDesc',
         icon: Compass,
         completed: checklistData.hasBookmark,
-        action: () => navigate('/explore'),
+        action: () => goGuide('bookmark'),
         points: ONBOARDING_STEP_POINTS['bookmark'],
         group: 'community',
       },
@@ -349,6 +356,7 @@ export function OnboardingChecklist() {
     })();
   }, [items, checklistData, user?.id, queryClient]);
 
+  // × は「消す」ではなく「小さくする」。以前は × を押すと二度と出せなかった
   const handleDismiss = () => {
     if (user?.id) {
       localStorage.setItem(`checklist_dismissed_${user.id}`, 'true');
@@ -356,7 +364,40 @@ export function OnboardingChecklist() {
     setIsDismissed(true);
   };
 
-  if (isDismissed || !checklistData || allCompleted) return null;
+  const handleRestore = () => {
+    if (user?.id) {
+      localStorage.removeItem(`checklist_dismissed_${user.id}`);
+    }
+    setIsDismissed(false);
+  };
+
+  if (!checklistData || allCompleted) return null;
+
+  if (isDismissed) {
+    return (
+      <button
+        type="button"
+        onClick={handleRestore}
+        data-tour="collection-checklist"
+        className="flex w-full items-center gap-2 rounded-xl border border-primary/20 bg-card px-3 py-2 text-left transition-colors hover:bg-accent"
+        aria-label={t('misc.checklist.restore')}
+      >
+        <span className="rounded-lg bg-brand-gradient p-1">
+          <Sparkles className="h-3.5 w-3.5 text-white" />
+        </span>
+        <span className="min-w-0 flex-1 truncate text-xs font-bold">{t('misc.checklist.title')}</span>
+        <span className="text-2xs tabular-nums text-muted-foreground">
+          {completedCount}/{totalCount}
+        </span>
+        {nextReward > 0 && (
+          <span className="rounded-full bg-points-soft px-1.5 py-0.5 text-3xs font-bold tabular-nums text-points">
+            +{nextReward}pt
+          </span>
+        )}
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </button>
+    );
+  }
 
   return (
     <motion.div
@@ -404,10 +445,11 @@ export function OnboardingChecklist() {
                 variant="ghost"
                 size="icon"
                 className="tap-safe-y h-7 w-7 text-muted-foreground"
-                aria-label={t('misc.checklist.close')}
+                aria-label={t('misc.checklist.minimize')}
+                title={t('misc.checklist.minimize')}
                 onClick={handleDismiss}
               >
-                <X className="w-3.5 h-3.5" />
+                <Minus className="w-4 h-4" />
               </Button>
             </div>
           </div>

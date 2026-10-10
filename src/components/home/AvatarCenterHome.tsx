@@ -320,7 +320,7 @@ function EmptyHero({
         </div>
 
         <div className="flex items-center justify-center gap-2">
-          <Button size="lg" onClick={onStart} className="gap-2 h-12 px-6 shadow-lg">
+          <Button size="lg" onClick={onStart} className="gap-2 h-12 px-6 shadow-lg" data-tour="avatar-create">
             <Wand2 className="w-5 h-5" />
             {t("homeScreen.avatarCenter.emptyStart")}
           </Button>
