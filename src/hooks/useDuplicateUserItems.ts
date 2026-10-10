@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 
 export interface DuplicateGroup {
   groupKey: string;
@@ -52,9 +53,8 @@ export function useMergeDuplicateUserItems() {
     },
     onSuccess: () => {
       // カードの数と並びが変わるので、棚まわりの表示をまとめて引き直す
-      queryClient.invalidateQueries({ queryKey: ["user-items"] });
-      queryClient.invalidateQueries({ queryKey: ["duplicate-user-items", user?.id] });
-      queryClient.invalidateQueries({ queryKey: ["collection-progress"] });
+      // （進捗・登録数・重複の組は invalidateCollectionChanged に含まれる）
+      void invalidateCollectionChanged(queryClient, { userId: user?.id });
       queryClient.invalidateQueries({ queryKey: ["my-trades", user?.id] });
     },
   });

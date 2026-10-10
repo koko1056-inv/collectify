@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, Trash2, Search, ShoppingBasket } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/ui/empty-state";
 import { QueryErrorState } from "@/components/ui/query-error-state";
@@ -21,6 +23,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   // Price search modal state
   const [priceSearchItem, setPriceSearchItem] = useState<{
@@ -81,7 +84,8 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
       if (deleteError) throw deleteError;
 
       await queryClient.invalidateQueries({ queryKey: ["wishlist"] });
-      await queryClient.invalidateQueries({ queryKey: ["user-items"] });
+      // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
+      await invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: officialItem.id });
 
       toast.success(t("collectionScreen.common.success"), {
         description: t("collectionScreen.wishlist.addedToCollection"),
@@ -156,6 +160,14 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
             key={item.id}
             className="bg-card border rounded-lg p-3 flex flex-col items-center shadow-sm relative group"
           >
+            {/* 写真と名前を押すとグッズの詳細ページを開く。以前は押し先がなく、
+                他の人のほしいものリストから詳細が見られなかった。 */}
+            <button
+              type="button"
+              disabled={!item.official_items?.id}
+              onClick={() => item.official_items?.id && navigate(`/item/${item.official_items.id}`)}
+              className="flex w-full flex-col items-center text-center"
+            >
             <img
               src={getOptimizedImageUrl(item.official_items?.image, { width: 300 })} onError={fallbackToOriginal(item.official_items?.image)} loading="lazy" decoding="async"
               alt={item.official_items?.title}
@@ -166,6 +178,7 @@ export function WishlistGrid({ userId, enableActions = false }: WishlistGridProp
               {item.note && <p className="text-xs text-muted-foreground mt-1">{t("collectionScreen.wishlist.notePrefix")}{item.note}</p>}
               <p className="text-xs text-muted-foreground mt-1">{item.official_items?.price}</p>
             </div>
+            </button>
             
             {/* Price Search Button - Always visible */}
             <Button

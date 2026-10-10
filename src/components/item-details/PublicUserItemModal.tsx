@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { addToCollection } from "@/utils/collection-actions";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDateFormat } from "@/hooks/useDateFormat";
 
@@ -154,9 +155,8 @@ export function PublicUserItemModal({
           );
         }
       }
-      await qc.invalidateQueries({ queryKey: ["user-items"] });
-      await qc.invalidateQueries({ queryKey: ["already-owned", officialItemId, user.id] });
-      await qc.invalidateQueries({ queryKey: ["collectionCount"] });
+      // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
+      await invalidateCollectionChanged(qc, { userId: user.id, officialItemId });
       toast.success(t("itemDetails.publicItem.addedToCollection"));
     } catch (e) {
       console.error(e);

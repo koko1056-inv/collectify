@@ -4142,6 +4142,14 @@ export type Database = {
           total: number
         }[]
       }
+      get_profile_featured_avatar: {
+        Args: { _profile_id: string }
+        Returns: {
+          id: string
+          image_url: string
+          name: string | null
+        }[]
+      }
       get_recent_registrations: {
         Args: { _limit?: number }
         Returns: {

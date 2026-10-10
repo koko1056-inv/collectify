@@ -13,6 +13,7 @@ import { ItemOwnersModal } from "@/components/ItemOwnersModal";
 import { cn } from "@/lib/utils";
 import { addToCollection } from "@/utils/collection-actions";
 import { copyTagsFromOfficialItem } from "@/utils/tag-operations";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 
 interface ItemRow {
   id: string;
@@ -117,12 +118,8 @@ export function ItemSearchTab({ query, onPickSuggestion }: ItemSearchTabProps) {
       }
       if (result.userItemId) await copyTagsFromOfficialItem(r.id, result.userItemId);
       toast.success(t("collectionScreen.official.added"));
-      await Promise.all([
-        qc.invalidateQueries({ queryKey: ["explore-item-search"] }),
-        qc.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" }),
-        qc.invalidateQueries({ queryKey: ["collection-progress"] }),
-        qc.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" }),
-      ]);
+      // 「持ってる」表示・コンプ進捗・登録数などをまとめて引き直す
+      await invalidateCollectionChanged(qc, { userId: user.id, officialItemId: r.id });
     } catch {
       toast.error(t("collectionScreen.official.addFailed"));
     } finally {
@@ -259,20 +256,30 @@ export function ItemSearchTab({ query, onPickSuggestion }: ItemSearchTabProps) {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {shown.map((r) => (
             <div key={r.id} className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card">
-              <div className="relative aspect-square overflow-hidden bg-muted">
-                {r.image && <img src={r.image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-contain" />}
-                {r.trade_count > 0 && (
-                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-3xs font-bold text-primary-foreground shadow">
-                    <Repeat className="h-3 w-3" />
-                    {t("engage.search.tradeBadge", { n: r.trade_count })}
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-1 flex-col gap-2 p-2.5">
-                <div className="min-h-[2.5rem]">
+              {/* 写真と名前を押すとグッズの詳細ページ（/item/:id）を開く。
+                  以前はどこにも押し先がなく、「みんな」のグッズ一覧から詳細が見られなかった。
+                  検索語は URL（?q=）に残っているので、戻ると同じ結果に戻れる。 */}
+              <button
+                type="button"
+                onClick={() => navigate(`/item/${r.id}`)}
+                aria-label={t("engage.search.openDetail", { title: r.title })}
+                className="flex flex-col text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <div className="relative aspect-square w-full overflow-hidden bg-muted">
+                  {r.image && <img src={r.image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-contain" />}
+                  {r.trade_count > 0 && (
+                    <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-3xs font-bold text-primary-foreground shadow">
+                      <Repeat className="h-3 w-3" />
+                      {t("engage.search.tradeBadge", { n: r.trade_count })}
+                    </span>
+                  )}
+                </div>
+                <div className="min-h-[2.5rem] px-2.5 pt-2.5">
                   <p className="line-clamp-2 text-xs font-bold leading-tight">{r.title}</p>
                   {r.content_name && <p className="mt-0.5 truncate text-3xs text-muted-foreground">{r.content_name}</p>}
                 </div>
+              </button>
+              <div className="flex flex-1 flex-col gap-2 p-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setOwnersFor(r)}
