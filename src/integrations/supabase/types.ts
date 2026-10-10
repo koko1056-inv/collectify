@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      companion_goods: {
+        Row: {
+          created_at: string
+          last_pat_on: string | null
+          last_photo_on: string | null
+          last_polish_on: string | null
+          user_id: string
+          user_item_id: string
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          last_pat_on?: string | null
+          last_photo_on?: string | null
+          last_polish_on?: string | null
+          user_id: string
+          user_item_id: string
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          last_pat_on?: string | null
+          last_photo_on?: string | null
+          last_polish_on?: string | null
+          user_id?: string
+          user_item_id?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      oshi_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          image_url: string
+          taken_on: string
+          user_id: string
+          user_item_id: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url: string
+          taken_on?: string
+          user_id: string
+          user_item_id?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          taken_on?: string
+          user_id?: string
+          user_item_id?: string | null
+        }
+        Relationships: []
+      }
       feedback_requests: {
         Row: {
           admin_note: string | null
@@ -3881,6 +3941,18 @@ export type Database = {
           name: string
           score: number
         }[]
+      }
+      care_companion: {
+        Args: { _action: string; _user_item_id: string }
+        Returns: Json
+      }
+      set_companion: {
+        Args: { _user_item_id: string }
+        Returns: Json
+      }
+      remove_companion: {
+        Args: { _user_item_id: string }
+        Returns: undefined
       }
       catalog_content_counts: {
         Args: Record<PropertyKey, never>

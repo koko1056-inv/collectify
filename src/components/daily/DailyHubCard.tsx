@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Flame, Gift, Heart, Loader2, MessageCircle, Repeat2, Sparkles } from "lucide-react";
+import { Camera, Check, Flame, Gift, Heart, Loader2, MessageCircle, Repeat2, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,6 +9,7 @@ import { LazyImage } from "@/components/ui/lazy-image";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useDailyHub } from "@/hooks/useDailyHub";
 import { useQuickAddGoods } from "@/hooks/useQuickAddGoods";
+import { useOshiPhotos } from "@/hooks/useOshi";
 import { cn } from "@/lib/utils";
 
 /**
@@ -22,6 +23,7 @@ export function DailyHubCard() {
   const navigate = useNavigate();
   const hub = useDailyHub();
   const [open, setOpen] = useState(false);
+  const oshi = useOshiPhotos();
 
   // 連続ログインの記録がまだ読めていないとき・初回のログイン前は何も出さない
   if (!hub.ready) return null;
@@ -86,6 +88,27 @@ export function DailyHubCard() {
             </div>
           </button>
         )}
+
+        <button
+          type="button"
+          onClick={() => navigate("/oshi")}
+          className="mt-3 flex w-full items-center gap-3 rounded-xl border bg-card p-2.5 text-left hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden="true">
+            <Camera className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">{t("engage.oshi.todayCard")}</span>
+            <span className="block truncate text-xs text-muted-foreground">
+              {oshi.todayDone
+                ? t("engage.oshi.todayDone")
+                : oshi.streak > 0
+                  ? `${t("engage.oshi.todayNotYet")} · ${t("engage.oshi.todayStreak", { n: oshi.streak })}`
+                  : t("engage.oshi.todayNotYet")}
+            </span>
+          </span>
+          {oshi.todayDone && <Check className="h-4 w-4 text-primary" aria-hidden="true" />}
+        </button>
 
         <div className="mt-3 flex flex-wrap gap-1.5" role="group" aria-label={t("engage.dailyHub.actionsLabel")}>
           <ActionChip icon={<Gift className="h-3.5 w-3.5" />} label={t("engage.dailyHub.post")} pt="+3" onClick={() => navigate("/item-posts")} />
