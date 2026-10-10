@@ -10,13 +10,23 @@ export interface SeriesProgress {
 }
 
 /**
+ * コンプ進捗のクエリキー。
+ * ["user-items", ...] で始めておくと、グッズの追加・削除のたびに各所で行っている
+ * invalidateQueries(["user-items"]) で一緒に引き直される（useUniverseItems と同じ考え方）。
+ * 以前は ["collection-progress", userId] という独立したキーで、削除側のどこからも引き直されず、
+ * 「一度登録して削除してもコンプ進捗が変わらない」状態になっていた。
+ */
+export const collectionProgressKey = (userId: string | null | undefined) =>
+  ["user-items", "collection-progress", userId] as const;
+
+/**
  * 作品ごとの「持っている数 / カタログ総数」。
  * 閲覧権限（公開設定・フォロー）はDB側の can_view_collection で判定するので、
  * 見せてはいけない相手のときは空配列が返る。
  */
 export function useCollectionProgress(userId: string | null | undefined) {
   return useQuery({
-    queryKey: ["collection-progress", userId],
+    queryKey: collectionProgressKey(userId),
     queryFn: async (): Promise<SeriesProgress[]> => {
       const { data, error } = await supabase.rpc("get_collection_progress", {
         _user_id: userId as string,
@@ -26,6 +36,9 @@ export function useCollectionProgress(userId: string | null | undefined) {
     },
     enabled: !!userId,
     staleTime: 1000 * 60 * 5,
+    // アプリ全体の既定は refetchOnMount: false。画面に出ていない間に invalidate（stale 化）された
+    // 進捗も、次にコレクションを開いたときに引き直されるようにする。
+    refetchOnMount: true,
   });
 }
 

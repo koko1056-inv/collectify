@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { addToCollection } from "@/utils/collection-actions";
 import type { OfficialItem } from "@/types";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 
 /**
  * カタログのグッズを、タップで「持ってる」「ほしい」に入れる。
@@ -45,13 +46,8 @@ export function useQuickAddGoods() {
           return false;
         }
         setAdded((prev) => new Set(prev).add(item.id));
-        void Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" }),
-          queryClient.invalidateQueries({ queryKey: ["owned-official-item-ids", user.id] }),
-          queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" }),
-          queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" }),
-          queryClient.invalidateQueries({ queryKey: ["onboarding-checklist", user.id] }),
-        ]);
+        // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
+        void invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: item.id });
         return true;
       } finally {
         setBusyId(null);

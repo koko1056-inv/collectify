@@ -30,6 +30,7 @@ import { GoodsPickTile } from "./GoodsPickTile";
 import { CatalogFilterPanel } from "./CatalogFilterPanel";
 import { activeFilterCount, applyFilter, EMPTY_FILTER, type CatalogFilterState } from "@/utils/catalogFilter";
 import { cn } from "@/lib/utils";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 
 type View = "menu" | "pick";
 
@@ -382,12 +383,10 @@ function PickFromCatalogView({ onBack }: { onBack: () => void }) {
             ? t("notices.adminItem.pointsEarnedDesc", { n: result.pointsAwarded })
             : item.title,
         });
+        // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" }),
-          queryClient.invalidateQueries({ queryKey: ["owned-official-item-ids", user.id] }),
-          queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" }),
+          invalidateCollectionChanged(queryClient, { userId: user.id, officialItemId: item.id }),
           queryClient.invalidateQueries({ queryKey: ["userPoints"], refetchType: "all" }),
-          queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" }),
         ]);
       } else if (result.isAtLimit) {
         toast.error(t("collectionScreen.addFlow.limitTitle"), {

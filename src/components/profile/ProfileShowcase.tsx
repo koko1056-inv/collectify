@@ -64,15 +64,15 @@ export function ProfileShowcase({
   });
 
   const { data: featuredAvatar } = useQuery({
-    queryKey: ["featured-avatar", featuredAvatarId],
+    queryKey: ["featured-avatar", profileId, featuredAvatarId],
     queryFn: async (): Promise<AvatarRow | null> => {
       if (!featuredAvatarId) return null;
-      const { data } = await supabase
-        .from("avatar_gallery")
-        .select("id, image_url, name")
-        .eq("id", featuredAvatarId)
-        .maybeSingle();
-      return data;
+      // 以前は avatar_gallery を直接読んでいたが、RLS で「本人」か「みんなに公開したもの」しか読めず、
+      // 他の人がプロフィールを開くと飾ったアバターが「未設定」になっていた。
+      // プロフィールを見られる人には、飾ったアバター（表示に要る列だけ）を返す関数を使う。
+      const { data, error } = await supabase.rpc("get_profile_featured_avatar", { _profile_id: profileId });
+      if (error) throw error;
+      return data?.[0] ?? null;
     },
     enabled: !!featuredAvatarId,
     staleTime: 60_000,

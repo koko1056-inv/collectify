@@ -4,6 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from "sonner";
 import { deleteUserItem } from '@/utils/tag/user-item-operations';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { invalidateCollectionChanged } from '@/utils/collection-cache';
 
 export function useItemDetailsActions(
   itemId: string,
@@ -14,6 +16,7 @@ export function useItemDetailsActions(
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const { user } = useAuth();
 
   const handleDeleteItem = async () => {
     if (!itemId) return;
@@ -23,16 +26,8 @@ export function useItemDetailsActions(
       const { error, officialItemId } = await deleteUserItem(itemId);
       if (error) throw error;
 
-      queryClient.invalidateQueries({ queryKey: ["user-items"] });
-      
-      if (officialItemId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ["user-item-exists", officialItemId] 
-        });
-        queryClient.invalidateQueries({ 
-          queryKey: ["item-owners-count", officialItemId] 
-        });
-      }
+      // コレクションから計算している数字（コンプ進捗・登録数など）をまとめて引き直す
+      void invalidateCollectionChanged(queryClient, { userId: user?.id, officialItemId });
       
       toast.success(t("itemDetails.remove.success"), {
         description: t("itemDetails.remove.successDescription"),

@@ -10,6 +10,7 @@ import { addToCollection } from "@/utils/collection-actions";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { claimReward } from "@/hooks/useClaimReward";
 import { notifyNewTag } from "@/utils/notify-new-tag";
+import { invalidateCollectionChanged } from "@/utils/collection-cache";
 
 interface FormDataType {
   title: string;
@@ -289,10 +290,9 @@ export function useItemSubmit({
       await queryClient.invalidateQueries({ queryKey: ["official-items"], refetchType: "all" });
       await queryClient.invalidateQueries({ queryKey: ["tags"], refetchType: "all" });
       await queryClient.invalidateQueries({ queryKey: ["item-tags-count"], refetchType: "all" });
-      await queryClient.invalidateQueries({ queryKey: ["user-items"], refetchType: "all" });
-      await queryClient.invalidateQueries({ queryKey: ["collectionCount"], refetchType: "all" });
+      // コンプ進捗・登録数など、コレクションから計算している数字をまとめて引き直す（以前は進捗が漏れていた）
+      await invalidateCollectionChanged(queryClient, { userId: user.id });
       await queryClient.invalidateQueries({ queryKey: ["userPoints"], refetchType: "all" });
-      await queryClient.invalidateQueries({ queryKey: ["hero-stats", user.id], refetchType: "all" });
 
       // 実際に起きたことに合わせて伝える。コレクションに入っていないなら成功扱いにしない。
       if (!collectionResult) {
